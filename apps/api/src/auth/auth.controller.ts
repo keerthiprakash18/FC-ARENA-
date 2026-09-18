@@ -106,10 +106,12 @@ export class AuthController {
 
     const result = await this.authService.logout(refreshToken);
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.clearCookie(REFRESH_COOKIE_NAME, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/api/auth',
     });
 
@@ -128,10 +130,12 @@ export class AuthController {
   }
 
   private setRefreshCookie(response: Response, token: string): void {
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.cookie(REFRESH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/api/auth',
       maxAge: REFRESH_COOKIE_MAX_AGE,
     });

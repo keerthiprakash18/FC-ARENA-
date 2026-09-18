@@ -81,7 +81,8 @@ export default function LeaguesPage() {
     setError('');
     setMessage('');
 
-    const form = new FormData(event.currentTarget);
+    const submittedForm = event.currentTarget;
+    const form = new FormData(submittedForm);
 
     try {
       const response = await authenticatedRequest<{
@@ -106,7 +107,7 @@ export default function LeaguesPage() {
         `${response.data.message} Code: ${response.data.league.code}`,
       );
 
-      event.currentTarget.reset();
+      submittedForm.reset();
       await loadLeagues();
     } catch (err) {
       setError(

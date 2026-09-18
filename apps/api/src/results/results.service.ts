@@ -834,11 +834,69 @@ export class ResultsService {
         },
       });
 
+    const groupFixtures =
+      await this.prisma.fixture.findMany({
+        where: {
+          tournamentId,
+        },
+        orderBy: {
+          sequence: 'asc',
+        },
+        select: {
+          roundName: true,
+          homeRegistrationId: true,
+          awayRegistrationId: true,
+        },
+      });
+
+    const registrationGroups =
+      new Map<string, string>();
+
+    for (
+      const fixture
+      of groupFixtures
+    ) {
+      const match =
+        /^GROUP\s+([A-Z]+)\s+•\s+/i.exec(
+          fixture.roundName,
+        );
+
+      if (!match?.[1]) {
+        continue;
+      }
+
+      const groupName =
+        match[1].toUpperCase();
+
+      if (
+        fixture.homeRegistrationId
+      ) {
+        registrationGroups.set(
+          fixture.homeRegistrationId,
+          groupName,
+        );
+      }
+
+      if (
+        fixture.awayRegistrationId
+      ) {
+        registrationGroups.set(
+          fixture.awayRegistrationId,
+          groupName,
+        );
+      }
+    }
+
     const rows =
       registrations.map(
         (registration) => ({
           registrationId:
             registration.id,
+
+          groupName:
+            registrationGroups.get(
+              registration.id,
+            ) ?? null,
 
           entryName:
             registration.entryName ||
@@ -914,6 +972,9 @@ export class ResultsService {
 
     rows.sort(
       (a, b) =>
+        (a.groupName ?? 'TABLE').localeCompare(
+          b.groupName ?? 'TABLE',
+        ) ||
         b.points -
           a.points ||
         b.goalDifference -
@@ -926,6 +987,9 @@ export class ResultsService {
           b.entryName,
         ),
     );
+
+    const positionByGroup =
+      new Map<string, number>();
 
     return {
       success: true,
@@ -943,11 +1007,26 @@ export class ResultsService {
 
         standings:
           rows.map(
-            (row, index) => ({
-              position:
-                index + 1,
-              ...row,
-            }),
+            (row) => {
+              const key =
+                row.groupName ??
+                'TABLE';
+
+              const position =
+                (positionByGroup.get(
+                  key,
+                ) ?? 0) + 1;
+
+              positionByGroup.set(
+                key,
+                position,
+              );
+
+              return {
+                position,
+                ...row,
+              };
+            },
           ),
       },
       error: null,

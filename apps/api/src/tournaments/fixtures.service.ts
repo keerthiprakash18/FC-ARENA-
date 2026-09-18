@@ -5,8 +5,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import type { GenerateFixturesDto } from './dto/generate-fixtures.dto.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import {
@@ -24,6 +25,7 @@ export class FixturesService {
   async generateFixtures(
     userId: string,
     tournamentId: string,
+    dto: GenerateFixturesDto = {},
   ) {
     const tournament =
       await this.prisma.tournament.findUnique({
@@ -93,14 +95,48 @@ export class FixturesService {
           registration.id,
       );
 
-    const blueprints =
+    const groupCount =
+      dto.groupCount ?? 1;
+
+    const shuffle =
+      dto.shuffle ?? true;
+
+    if (
+      tournament.format ===
+        'KNOCKOUT' &&
+      groupCount !== 1
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'GROUPS_REQUIRE_ROUND_ROBIN',
+          message:
+            'Group Division is available for Round Robin tournaments. Use a single table for Knockout.',
+        },
+      });
+    }
+
+    const roundRobinPlan =
       tournament.format ===
       'ROUND_ROBIN'
-        ? generateRoundRobinFixtures(
+        ? this.createRoundRobinPlan(
             registrationIds,
+            groupCount,
+            shuffle,
           )
+        : null;
+
+    const blueprints =
+      roundRobinPlan
+        ? roundRobinPlan.blueprints
         : generateKnockoutFixtures(
-            registrationIds,
+            shuffle
+              ? this.shuffleRegistrationIds(
+                  registrationIds,
+                )
+              : registrationIds,
           );
 
     try {
@@ -204,6 +240,12 @@ export class FixturesService {
           participants:
             registrations.length,
           fixtures: fixtureCount,
+          groupCount:
+            roundRobinPlan?.groups.length ??
+            1,
+          groups:
+            roundRobinPlan?.groups ?? [],
+          shuffled: shuffle,
         },
         error: null,
       };
@@ -262,14 +304,9 @@ export class FixturesService {
         where: {
           tournamentId,
         },
-        orderBy: [
-          {
-            roundNumber: 'asc',
-          },
-          {
-            bracketPosition: 'asc',
-          },
-        ],
+        orderBy: {
+          sequence: 'asc',
+        },
         include: {
           match: true,
 
@@ -1235,6 +1272,195 @@ export class FixturesService {
         },
       });
     }
+  }
+
+  private createRoundRobinPlan(
+    registrationIds: string[],
+    groupCount: number,
+    shuffle: boolean,
+  ) {
+    if (groupCount < 1) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'INVALID_GROUP_COUNT',
+          message:
+            'Group count must be at least 1.',
+        },
+      });
+    }
+
+    const maximumGroups =
+      Math.floor(
+        registrationIds.length / 2,
+      );
+
+    if (
+      groupCount > 1 &&
+      groupCount > maximumGroups
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'TOO_MANY_GROUPS',
+          message:
+            `With ${registrationIds.length} approved entries, use at most ${maximumGroups} groups so every group has at least 2 entries.`,
+        },
+      });
+    }
+
+    const orderedIds =
+      shuffle
+        ? this.shuffleRegistrationIds(
+            registrationIds,
+          )
+        : [...registrationIds];
+
+    if (groupCount === 1) {
+      return {
+        blueprints:
+          generateRoundRobinFixtures(
+            orderedIds,
+          ),
+        groups: [
+          {
+            name: 'TABLE',
+            participants:
+              orderedIds.length,
+          },
+        ],
+      };
+    }
+
+    const groups =
+      Array.from(
+        {
+          length: groupCount,
+        },
+        () => [] as string[],
+      );
+
+    orderedIds.forEach(
+      (
+        registrationId,
+        index,
+      ) => {
+        groups[
+          index % groupCount
+        ]?.push(
+          registrationId,
+        );
+      },
+    );
+
+    const blueprints:
+      FixtureBlueprint[] = [];
+
+    groups.forEach(
+      (
+        groupRegistrationIds,
+        groupIndex,
+      ) => {
+        const name =
+          this.groupName(
+            groupIndex,
+          );
+
+        const groupFixtures =
+          generateRoundRobinFixtures(
+            groupRegistrationIds,
+          );
+
+        for (
+          const fixture
+          of groupFixtures
+        ) {
+          blueprints.push({
+            ...fixture,
+            key:
+              `group-${name}-${fixture.key}`,
+            roundName:
+              `GROUP ${name} • ${fixture.roundName}`,
+          });
+        }
+      },
+    );
+
+    return {
+      blueprints,
+      groups:
+        groups.map(
+          (
+            groupRegistrationIds,
+            groupIndex,
+          ) => ({
+            name:
+              this.groupName(
+                groupIndex,
+              ),
+            participants:
+              groupRegistrationIds.length,
+          }),
+        ),
+    };
+  }
+
+  private shuffleRegistrationIds(
+    registrationIds: string[],
+  ) {
+    const result =
+      [...registrationIds];
+
+    for (
+      let index =
+        result.length - 1;
+      index > 0;
+      index--
+    ) {
+      const swapIndex =
+        randomInt(
+          0,
+          index + 1,
+        );
+
+      [
+        result[index],
+        result[swapIndex],
+      ] = [
+        result[swapIndex]!,
+        result[index]!,
+      ];
+    }
+
+    return result;
+  }
+
+  private groupName(
+    index: number,
+  ) {
+    let value =
+      index + 1;
+
+    let name = '';
+
+    while (value > 0) {
+      value--;
+
+      name =
+        String.fromCharCode(
+          65 +
+            (value % 26),
+        ) + name;
+
+      value =
+        Math.floor(
+          value / 26,
+        );
+    }
+
+    return name;
   }
 
   private createFixtureCode() {

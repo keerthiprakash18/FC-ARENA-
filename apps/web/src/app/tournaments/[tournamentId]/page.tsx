@@ -1117,6 +1117,13 @@ export default function TournamentPage() {
             </button>
           ))}
 
+          <Link
+            href={`/tournaments/${tournamentId}/standings`}
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-sky-300"
+          >
+            Standings
+          </Link>
+
           {tournament.isLeagueAdmin ? (
             <button
               onClick={() => {

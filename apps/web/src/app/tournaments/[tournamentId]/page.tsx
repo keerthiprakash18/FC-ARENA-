@@ -452,7 +452,9 @@ export default function TournamentPage() {
   async function generateFixtures() {
     const selectedGroupCount =
       fixtureDrawMode ===
-        'GROUPS'
+        'GROUPS' &&
+      tournament?.format ===
+        'ROUND_ROBIN'
         ? groupCount
         : 1;
 

@@ -11,8 +11,8 @@ import type { GenerateFixturesDto } from './dto/generate-fixtures.dto.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import {
+  generateGroupedRoundRobinFixtures,
   generateKnockoutFixtures,
-  generateRoundRobinFixtures,
 } from './fixture-engine.js';
 import type { FixtureBlueprint } from './fixture-engine.js';
 
@@ -118,25 +118,49 @@ export class FixturesService {
       });
     }
 
-    const roundRobinPlan =
+    const orderedRegistrationIds =
+      shuffle
+        ? this.shuffleRegistrationIds(
+            registrationIds,
+          )
+        : [...registrationIds];
+
+    let roundRobinPlan:
+      ReturnType<
+        typeof generateGroupedRoundRobinFixtures
+      > | null = null;
+
+    if (
       tournament.format ===
       'ROUND_ROBIN'
-        ? this.createRoundRobinPlan(
-            registrationIds,
+    ) {
+      try {
+        roundRobinPlan =
+          generateGroupedRoundRobinFixtures(
+            orderedRegistrationIds,
             groupCount,
-            shuffle,
-          )
-        : null;
+          );
+      } catch (error) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'INVALID_GROUP_CONFIGURATION',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Invalid Round Robin group configuration.',
+          },
+        });
+      }
+    }
 
     const blueprints =
       roundRobinPlan
         ? roundRobinPlan.blueprints
         : generateKnockoutFixtures(
-            shuffle
-              ? this.shuffleRegistrationIds(
-                  registrationIds,
-                )
-              : registrationIds,
+            orderedRegistrationIds,
           );
 
     try {
@@ -1274,139 +1298,6 @@ export class FixturesService {
     }
   }
 
-  private createRoundRobinPlan(
-    registrationIds: string[],
-    groupCount: number,
-    shuffle: boolean,
-  ) {
-    if (groupCount < 1) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-        error: {
-          code: 'INVALID_GROUP_COUNT',
-          message:
-            'Group count must be at least 1.',
-        },
-      });
-    }
-
-    const maximumGroups =
-      Math.floor(
-        registrationIds.length / 2,
-      );
-
-    if (
-      groupCount > 1 &&
-      groupCount > maximumGroups
-    ) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-        error: {
-          code: 'TOO_MANY_GROUPS',
-          message:
-            `With ${registrationIds.length} approved entries, use at most ${maximumGroups} groups so every group has at least 2 entries.`,
-        },
-      });
-    }
-
-    const orderedIds =
-      shuffle
-        ? this.shuffleRegistrationIds(
-            registrationIds,
-          )
-        : [...registrationIds];
-
-    if (groupCount === 1) {
-      return {
-        blueprints:
-          generateRoundRobinFixtures(
-            orderedIds,
-          ),
-        groups: [
-          {
-            name: 'TABLE',
-            participants:
-              orderedIds.length,
-          },
-        ],
-      };
-    }
-
-    const groups =
-      Array.from(
-        {
-          length: groupCount,
-        },
-        () => [] as string[],
-      );
-
-    orderedIds.forEach(
-      (
-        registrationId,
-        index,
-      ) => {
-        groups[
-          index % groupCount
-        ]?.push(
-          registrationId,
-        );
-      },
-    );
-
-    const blueprints:
-      FixtureBlueprint[] = [];
-
-    groups.forEach(
-      (
-        groupRegistrationIds,
-        groupIndex,
-      ) => {
-        const name =
-          this.groupName(
-            groupIndex,
-          );
-
-        const groupFixtures =
-          generateRoundRobinFixtures(
-            groupRegistrationIds,
-          );
-
-        for (
-          const fixture
-          of groupFixtures
-        ) {
-          blueprints.push({
-            ...fixture,
-            key:
-              `group-${name}-${fixture.key}`,
-            roundName:
-              `GROUP ${name} • ${fixture.roundName}`,
-          });
-        }
-      },
-    );
-
-    return {
-      blueprints,
-      groups:
-        groups.map(
-          (
-            groupRegistrationIds,
-            groupIndex,
-          ) => ({
-            name:
-              this.groupName(
-                groupIndex,
-              ),
-            participants:
-              groupRegistrationIds.length,
-          }),
-        ),
-    };
-  }
-
   private shuffleRegistrationIds(
     registrationIds: string[],
   ) {
@@ -1435,32 +1326,6 @@ export class FixturesService {
     }
 
     return result;
-  }
-
-  private groupName(
-    index: number,
-  ) {
-    let value =
-      index + 1;
-
-    let name = '';
-
-    while (value > 0) {
-      value--;
-
-      name =
-        String.fromCharCode(
-          65 +
-            (value % 26),
-        ) + name;
-
-      value =
-        Math.floor(
-          value / 26,
-        );
-    }
-
-    return name;
   }
 
   private createFixtureCode() {

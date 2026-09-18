@@ -12,6 +12,7 @@ import type { Request } from 'express';
 import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CreateTournamentDto } from './dto/create-tournament.dto.js';
+import { GenerateFixturesDto } from './dto/generate-fixtures.dto.js';
 import { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 import { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
@@ -196,10 +197,14 @@ export class TournamentsController {
 
     @Param('tournamentId')
     tournamentId: string,
+
+    @Body()
+    dto: GenerateFixturesDto,
   ) {
     return this.fixturesService.generateFixtures(
       request.user.sub,
       tournamentId,
+      dto,
     );
   }
 

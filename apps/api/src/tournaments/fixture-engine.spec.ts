@@ -4,6 +4,7 @@ import {
   it,
 } from 'vitest';
 import {
+  generateGroupedRoundRobinFixtures,
   generateKnockoutFixtures,
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
@@ -111,6 +112,131 @@ describe('Round Robin Fixture Engine', () => {
         fixture.awayRegistrationId,
       ).not.toBeNull();
     }
+  });
+});
+
+describe('Grouped Round Robin Fixture Engine', () => {
+  it('splits 22 entries into two groups of 11 and creates 110 fixtures', () => {
+    const plan =
+      generateGroupedRoundRobinFixtures(
+        ids(22),
+        2,
+      );
+
+    expect(
+      plan.groups,
+    ).toEqual([
+      {
+        name: 'A',
+        participants: 11,
+      },
+      {
+        name: 'B',
+        participants: 11,
+      },
+    ]);
+
+    expect(
+      plan.blueprints,
+    ).toHaveLength(110);
+
+    for (
+      const groupName
+      of ['A', 'B']
+    ) {
+      const fixtures =
+        plan.blueprints.filter(
+          (fixture) =>
+            fixture.roundName.startsWith(
+              `GROUP ${groupName} • `,
+            ),
+        );
+
+      expect(
+        fixtures,
+      ).toHaveLength(55);
+
+      const appearances =
+        new Map<string, number>();
+
+      const pairs =
+        new Set<string>();
+
+      for (
+        const fixture
+        of fixtures
+      ) {
+        const home =
+          fixture.homeRegistrationId;
+
+        const away =
+          fixture.awayRegistrationId;
+
+        expect(home).not.toBeNull();
+        expect(away).not.toBeNull();
+        expect(home).not.toBe(away);
+
+        if (
+          !home ||
+          !away
+        ) {
+          continue;
+        }
+
+        const pair =
+          [home, away]
+            .sort()
+            .join(':');
+
+        expect(
+          pairs.has(pair),
+        ).toBe(false);
+
+        pairs.add(pair);
+
+        appearances.set(
+          home,
+          (appearances.get(
+            home,
+          ) ?? 0) + 1,
+        );
+
+        appearances.set(
+          away,
+          (appearances.get(
+            away,
+          ) ?? 0) + 1,
+        );
+      }
+
+      expect(
+        pairs.size,
+      ).toBe(55);
+
+      expect(
+        appearances.size,
+      ).toBe(11);
+
+      for (
+        const appearancesCount
+        of appearances.values()
+      ) {
+        expect(
+          appearancesCount,
+        ).toBe(10);
+      }
+    }
+  });
+
+  it('rejects a group count that would leave fewer than two entries per group', () => {
+    expect(() =>
+      generateGroupedRoundRobinFixtures(
+        ids(6),
+        4,
+      ),
+    ).toThrow(
+      'use at most 3 groups',
+    );
   });
 });
 

@@ -57,13 +57,46 @@ const navigation:
 
     {
       label:
+        'Tournaments',
+      href:
+        '/tournaments',
+      icon:
+        '♛',
+      mobile:
+        true,
+    },
+
+    {
+      label:
+        'Fixtures',
+      href:
+        '/fixtures',
+      icon:
+        '⇄',
+      mobile:
+        true,
+    },
+
+    {
+      label:
+        'Matches',
+      href:
+        '/matches',
+      icon:
+        '⚽',
+      mobile:
+        true,
+    },
+
+    {
+      label:
         'Career',
       href:
         '/career',
       icon:
         '★',
       mobile:
-        true,
+        false,
     },
 
     {
@@ -74,7 +107,7 @@ const navigation:
       icon:
         '●',
       mobile:
-        true,
+        false,
     },
 
     {
@@ -85,7 +118,7 @@ const navigation:
       icon:
         '◎',
       mobile:
-        true,
+        false,
     },
   ];
 

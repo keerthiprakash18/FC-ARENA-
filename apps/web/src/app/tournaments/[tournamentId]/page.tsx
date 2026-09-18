@@ -100,6 +100,10 @@ type Tab =
   | 'fixtures'
   | 'admin';
 
+type FixtureDrawMode =
+  | 'SINGLE'
+  | 'GROUPS';
+
 export default function TournamentPage() {
   const params =
     useParams<{
@@ -143,6 +147,24 @@ export default function TournamentPage() {
     playerCodes,
     setPlayerCodes,
   ] = useState('');
+
+  const [
+    fixtureDrawMode,
+    setFixtureDrawMode,
+  ] =
+    useState<FixtureDrawMode>(
+      'SINGLE',
+    );
+
+  const [
+    groupCount,
+    setGroupCount,
+  ] = useState(2);
+
+  const [
+    shuffleFixtures,
+    setShuffleFixtures,
+  ] = useState(true);
 
   const [busy, setBusy] =
     useState(false);
@@ -428,9 +450,22 @@ export default function TournamentPage() {
   }
 
   async function generateFixtures() {
+    const selectedGroupCount =
+      fixtureDrawMode ===
+        'GROUPS' &&
+      tournament?.format ===
+        'ROUND_ROBIN'
+        ? groupCount
+        : 1;
+
+    const drawLabel =
+      selectedGroupCount > 1
+        ? `${selectedGroupCount} groups`
+        : 'a single table';
+
     if (
       !window.confirm(
-        'Generate fixtures using all approved entries?',
+        `Generate fixtures using all approved entries as ${drawLabel}?`,
       )
     ) {
       return;
@@ -450,6 +485,13 @@ export default function TournamentPage() {
             participants:
               number;
             fixtures: number;
+            groupCount: number;
+            groups: Array<{
+              name: string;
+              participants:
+                number;
+            }>;
+            shuffled: boolean;
           };
 
           error: null;
@@ -457,11 +499,29 @@ export default function TournamentPage() {
           `/tournaments/${tournamentId}/fixtures/generate`,
           {
             method: 'POST',
+            body:
+              JSON.stringify({
+                groupCount:
+                  selectedGroupCount,
+                shuffle:
+                  shuffleFixtures,
+              }),
           },
         );
 
+      const groupSummary =
+        response.data.groups.length >
+        1
+          ? ` ${response.data.groups
+              .map(
+                (group) =>
+                  `Group ${group.name}: ${group.participants}`,
+              )
+              .join(' • ')}.`
+          : '';
+
       setMessage(
-        `${response.data.message} ${response.data.participants} entries → ${response.data.fixtures} fixtures.`,
+        `${response.data.message} ${response.data.participants} entries → ${response.data.fixtures} fixtures.${groupSummary}`,
       );
 
       await Promise.all([
@@ -586,6 +646,54 @@ export default function TournamentPage() {
         'APPROVED',
     );
 
+  const approvedEntries =
+    tournament.approvedEntries;
+
+  const maxGroupCount =
+    Math.max(
+      1,
+      Math.floor(
+        approvedEntries / 2,
+      ),
+    );
+
+  const selectedGroupCount =
+    fixtureDrawMode ===
+      'GROUPS'
+      ? Math.min(
+          groupCount,
+          maxGroupCount,
+        )
+      : 1;
+
+  const groupSizes =
+    Array.from(
+      {
+        length:
+          selectedGroupCount,
+      },
+      (_, index) =>
+        Math.floor(
+          approvedEntries /
+            selectedGroupCount,
+        ) +
+        (index <
+        approvedEntries %
+          selectedGroupCount
+          ? 1
+          : 0),
+    );
+
+  const expectedRoundRobinFixtures =
+    groupSizes.reduce(
+      (total, size) =>
+        total +
+        (size *
+          (size - 1)) /
+          2,
+      0,
+    );
+
   const grouped =
     fixtures.reduce<
       Record<
@@ -696,21 +804,277 @@ export default function TournamentPage() {
                 </button>
               ) : null}
 
-              {registrationClosed &&
-              fixtures.length === 0 ? (
-                <button
-                  disabled={busy}
-                  onClick={() =>
-                    void generateFixtures()
-                  }
-                  className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-black"
-                >
-                  Generate Fixtures
-                </button>
-              ) : null}
+
             </div>
           ) : null}
         </section>
+
+        {tournament.isLeagueAdmin &&
+        registrationClosed &&
+        fixtures.length === 0 ? (
+          <section className="rounded-[28px] border border-sky-400/20 bg-[#08111a] p-6 md:p-8">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+                  League Admin • Fixture Engine
+                </p>
+
+                <h2 className="mt-2 text-3xl font-black">
+                  Generate Fixtures
+                </h2>
+
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+                  Choose a single round-robin table or divide approved entries into balanced groups. Each team plays every other team in its own group exactly once.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-600">
+                  Approved Entries
+                </p>
+
+                <p className="mt-1 text-3xl font-black text-white">
+                  {approvedEntries}
+                </p>
+              </div>
+            </div>
+
+            {tournament.format ===
+            'ROUND_ROBIN' ? (
+              <div className="mt-7 space-y-5">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFixtureDrawMode(
+                        'SINGLE',
+                      )
+                    }
+                    className={`rounded-2xl border p-5 text-left transition ${
+                      fixtureDrawMode ===
+                      'SINGLE'
+                        ? 'border-sky-400/50 bg-sky-400/10'
+                        : 'border-white/10 bg-black/10'
+                    }`}
+                  >
+                    <p className="font-black">
+                      Single Table
+                    </p>
+
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      All {approvedEntries} entries play in one Round Robin table.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={
+                      approvedEntries <
+                      4
+                    }
+                    onClick={() => {
+                      setFixtureDrawMode(
+                        'GROUPS',
+                      );
+
+                      setGroupCount(
+                        Math.min(
+                          2,
+                          maxGroupCount,
+                        ),
+                      );
+                    }}
+                    className={`rounded-2xl border p-5 text-left transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                      fixtureDrawMode ===
+                      'GROUPS'
+                        ? 'border-sky-400/50 bg-sky-400/10'
+                        : 'border-white/10 bg-black/10'
+                    }`}
+                  >
+                    <p className="font-black">
+                      Group Division
+                    </p>
+
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      Split entries into balanced Group A, Group B and more.
+                    </p>
+                  </button>
+                </div>
+
+                {fixtureDrawMode ===
+                'GROUPS' ? (
+                  <div className="rounded-2xl border border-white/10 bg-black/10 p-5">
+                    <label className="grid gap-2 text-sm font-black">
+                      Number of Groups
+
+                      <input
+                        type="number"
+                        min="2"
+                        max={
+                          maxGroupCount
+                        }
+                        value={
+                          groupCount
+                        }
+                        onChange={(
+                          event,
+                        ) =>
+                          setGroupCount(
+                            Math.max(
+                              2,
+                              Math.min(
+                                maxGroupCount,
+                                Number(
+                                  event
+                                    .target
+                                    .value,
+                                ) ||
+                                  2,
+                              ),
+                            ),
+                          )
+                        }
+                        className="mt-1 rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-lg font-black outline-none focus:border-sky-400/60"
+                      />
+                    </label>
+
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {groupSizes.map(
+                        (
+                          size,
+                          index,
+                        ) => (
+                          <span
+                            key={
+                              index
+                            }
+                            className="rounded-full border border-sky-400/20 bg-sky-400/[0.06] px-3 py-2 text-xs font-black text-sky-300"
+                          >
+                            Group{' '}
+                            {String.fromCharCode(
+                              65 +
+                                index,
+                            )}
+                            : {size}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/10 p-4">
+                  <input
+                    type="checkbox"
+                    checked={
+                      shuffleFixtures
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setShuffleFixtures(
+                        event.target
+                          .checked,
+                      )
+                    }
+                    className="h-4 w-4 accent-sky-400"
+                  />
+
+                  <span>
+                    <span className="block text-sm font-black">
+                      Shuffle entries before draw
+                    </span>
+
+                    <span className="mt-1 block text-xs text-slate-500">
+                      Randomizes group assignment / fixture draw before the round-robin engine runs.
+                    </span>
+                  </span>
+                </label>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white/[0.03] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                      Structure
+                    </p>
+
+                    <p className="mt-2 font-black">
+                      {fixtureDrawMode ===
+                      'GROUPS'
+                        ? `${selectedGroupCount} Groups`
+                        : '1 Table'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-white/[0.03] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                      Fixtures
+                    </p>
+
+                    <p className="mt-2 font-black">
+                      {
+                        expectedRoundRobinFixtures
+                      }
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-white/[0.03] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                      Rule
+                    </p>
+
+                    <p className="mt-2 font-black">
+                      Play each opponent once
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={
+                    busy ||
+                    approvedEntries <
+                      2
+                  }
+                  onClick={() =>
+                    void generateFixtures()
+                  }
+                  className="w-full rounded-xl bg-sky-400 px-5 py-4 font-black text-[#041019] disabled:opacity-50"
+                >
+                  {busy
+                    ? 'Generating Fixtures...'
+                    : 'Generate Fixture Draw'}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-7">
+                <p className="rounded-2xl border border-white/10 bg-black/10 p-4 text-sm text-slate-400">
+                  Knockout tournaments use a single elimination bracket. Group Division is available for Round Robin tournaments.
+                </p>
+
+                <button
+                  type="button"
+                  disabled={
+                    busy ||
+                    approvedEntries <
+                      2
+                  }
+                  onClick={() => {
+                    setFixtureDrawMode(
+                      'SINGLE',
+                    );
+
+                    void generateFixtures();
+                  }}
+                  className="mt-4 w-full rounded-xl bg-sky-400 px-5 py-4 font-black text-[#041019] disabled:opacity-50"
+                >
+                  {busy
+                    ? 'Generating Bracket...'
+                    : 'Generate Knockout Bracket'}
+                </button>
+              </div>
+            )}
+          </section>
+        ) : null}
 
         {message ? (
           <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
@@ -752,6 +1116,13 @@ export default function TournamentPage() {
                   value.slice(1)}
             </button>
           ))}
+
+          <Link
+            href={`/tournaments/${tournamentId}/standings`}
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-sky-300"
+          >
+            Standings
+          </Link>
 
           {tournament.isLeagueAdmin ? (
             <button

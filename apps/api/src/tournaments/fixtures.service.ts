@@ -5,13 +5,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import type { GenerateFixturesDto } from './dto/generate-fixtures.dto.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import {
+  generateGroupedRoundRobinFixtures,
   generateKnockoutFixtures,
-  generateRoundRobinFixtures,
 } from './fixture-engine.js';
 import type { FixtureBlueprint } from './fixture-engine.js';
 
@@ -24,6 +25,7 @@ export class FixturesService {
   async generateFixtures(
     userId: string,
     tournamentId: string,
+    dto: GenerateFixturesDto = {},
   ) {
     const tournament =
       await this.prisma.tournament.findUnique({
@@ -93,14 +95,72 @@ export class FixturesService {
           registration.id,
       );
 
-    const blueprints =
+    const groupCount =
+      dto.groupCount ?? 1;
+
+    const shuffle =
+      dto.shuffle ?? true;
+
+    if (
       tournament.format ===
-      'ROUND_ROBIN'
-        ? generateRoundRobinFixtures(
+        'KNOCKOUT' &&
+      groupCount !== 1
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'GROUPS_REQUIRE_ROUND_ROBIN',
+          message:
+            'Group Division is available for Round Robin tournaments. Use a single table for Knockout.',
+        },
+      });
+    }
+
+    const orderedRegistrationIds =
+      shuffle
+        ? this.shuffleRegistrationIds(
             registrationIds,
           )
+        : [...registrationIds];
+
+    let roundRobinPlan:
+      ReturnType<
+        typeof generateGroupedRoundRobinFixtures
+      > | null = null;
+
+    if (
+      tournament.format ===
+      'ROUND_ROBIN'
+    ) {
+      try {
+        roundRobinPlan =
+          generateGroupedRoundRobinFixtures(
+            orderedRegistrationIds,
+            groupCount,
+          );
+      } catch (error) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'INVALID_GROUP_CONFIGURATION',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Invalid Round Robin group configuration.',
+          },
+        });
+      }
+    }
+
+    const blueprints =
+      roundRobinPlan
+        ? roundRobinPlan.blueprints
         : generateKnockoutFixtures(
-            registrationIds,
+            orderedRegistrationIds,
           );
 
     try {
@@ -204,6 +264,12 @@ export class FixturesService {
           participants:
             registrations.length,
           fixtures: fixtureCount,
+          groupCount:
+            roundRobinPlan?.groups.length ??
+            1,
+          groups:
+            roundRobinPlan?.groups ?? [],
+          shuffled: shuffle,
         },
         error: null,
       };
@@ -262,14 +328,9 @@ export class FixturesService {
         where: {
           tournamentId,
         },
-        orderBy: [
-          {
-            roundNumber: 'asc',
-          },
-          {
-            bracketPosition: 'asc',
-          },
-        ],
+        orderBy: {
+          sequence: 'asc',
+        },
         include: {
           match: true,
 
@@ -1235,6 +1296,36 @@ export class FixturesService {
         },
       });
     }
+  }
+
+  private shuffleRegistrationIds(
+    registrationIds: string[],
+  ) {
+    const result =
+      [...registrationIds];
+
+    for (
+      let index =
+        result.length - 1;
+      index > 0;
+      index--
+    ) {
+      const swapIndex =
+        randomInt(
+          0,
+          index + 1,
+        );
+
+      [
+        result[index],
+        result[swapIndex],
+      ] = [
+        result[swapIndex]!,
+        result[index]!,
+      ];
+    }
+
+    return result;
   }
 
   private createFixtureCode() {

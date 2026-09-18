@@ -7,6 +7,7 @@ import {
 } from 'next/navigation';
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { AppShell } from '@/components/app/app-shell';
@@ -19,6 +20,7 @@ import {
 interface Standing {
   position: number;
   registrationId: string;
+  groupName: string | null;
   entryName: string;
   played: number;
   wins: number;
@@ -40,6 +42,101 @@ interface Statistic {
   goalsAgainst: number;
   goalDifference: number;
   form: string;
+}
+
+function StandingsTable({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Standing[];
+}) {
+  return (
+    <section className="overflow-hidden rounded-[24px] border border-white/10 bg-[#0a1018]">
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
+            Points Table
+          </p>
+          <h2 className="mt-1 text-xl font-black">
+            {title}
+          </h2>
+        </div>
+
+        <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-bold text-slate-400">
+          {rows.length} entries
+        </span>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[850px] text-sm">
+          <thead className="border-b border-white/10 bg-white/[0.03] text-xs uppercase text-slate-500">
+            <tr>
+              <th className="p-4 text-left">#</th>
+              <th className="p-4 text-left">Entry</th>
+              <th className="p-4">P</th>
+              <th className="p-4">W</th>
+              <th className="p-4">D</th>
+              <th className="p-4">L</th>
+              <th className="p-4">GF</th>
+              <th className="p-4">GA</th>
+              <th className="p-4">GD</th>
+              <th className="p-4">PTS</th>
+              <th className="p-4">Form</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row.registrationId}
+                className="border-b border-white/5 text-center last:border-b-0"
+              >
+                <td className="p-4 text-left font-black text-sky-400">
+                  {row.position}
+                </td>
+
+                <td className="p-4 text-left font-black">
+                  {row.entryName}
+                </td>
+
+                <td className="p-4">{row.played}</td>
+                <td className="p-4">{row.wins}</td>
+                <td className="p-4">{row.draws}</td>
+                <td className="p-4">{row.losses}</td>
+                <td className="p-4">{row.goalsFor}</td>
+                <td className="p-4">{row.goalsAgainst}</td>
+
+                <td className="p-4">
+                  {row.goalDifference > 0 ? '+' : ''}
+                  {row.goalDifference}
+                </td>
+
+                <td className="p-4 text-lg font-black">
+                  {row.points}
+                </td>
+
+                <td className="p-4 font-black tracking-widest">
+                  {row.form || '—'}
+                </td>
+              </tr>
+            ))}
+
+            {rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={11}
+                  className="p-8 text-center text-slate-600"
+                >
+                  No approved entries yet.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 export default function StandingsPage() {
@@ -141,6 +238,39 @@ export default function StandingsPage() {
     router,
   ]);
 
+  const tables =
+    useMemo(() => {
+      const grouped =
+        new Map<
+          string,
+          Standing[]
+        >();
+
+      for (
+        const row
+        of standings
+      ) {
+        const key =
+          row.groupName
+            ? `Group ${row.groupName}`
+            : 'League Table';
+
+        const current =
+          grouped.get(key) ??
+          [];
+
+        current.push(row);
+        grouped.set(
+          key,
+          current,
+        );
+      }
+
+      return [
+        ...grouped.entries(),
+      ];
+    }, [standings]);
+
   if (!user) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
@@ -172,6 +302,10 @@ export default function StandingsPage() {
           <h1 className="mt-2 text-4xl font-black">
             Standings
           </h1>
+
+          <p className="mt-3 text-sm text-slate-500">
+            Single-table tournaments use one points table. Group tournaments keep each group table completely separate.
+          </p>
         </div>
 
         {statistic ? (
@@ -202,8 +336,7 @@ export default function StandingsPage() {
               </p>
 
               <p className="mt-2 text-3xl font-black">
-                {statistic.goalDifference >
-                0
+                {statistic.goalDifference > 0
                   ? '+'
                   : ''}
                 {statistic.goalDifference}
@@ -227,121 +360,27 @@ export default function StandingsPage() {
           </div>
         )}
 
-        <section className="overflow-hidden rounded-[24px] border border-white/10 bg-[#0a1018]">
-          <div className="overflow-x-auto">
-            <table className="min-w-[850px] w-full text-sm">
-              <thead className="border-b border-white/10 bg-white/[0.03] text-xs uppercase text-slate-500">
-                <tr>
-                  <th className="p-4 text-left">
-                    #
-                  </th>
-
-                  <th className="p-4 text-left">
-                    Entry
-                  </th>
-
-                  <th className="p-4">
-                    P
-                  </th>
-
-                  <th className="p-4">
-                    W
-                  </th>
-
-                  <th className="p-4">
-                    D
-                  </th>
-
-                  <th className="p-4">
-                    L
-                  </th>
-
-                  <th className="p-4">
-                    GF
-                  </th>
-
-                  <th className="p-4">
-                    GA
-                  </th>
-
-                  <th className="p-4">
-                    GD
-                  </th>
-
-                  <th className="p-4">
-                    PTS
-                  </th>
-
-                  <th className="p-4">
-                    Form
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {standings.map(
-                  (row) => (
-                    <tr
-                      key={
-                        row.registrationId
-                      }
-                      className="border-b border-white/5 text-center"
-                    >
-                      <td className="p-4 text-left font-black text-sky-400">
-                        {row.position}
-                      </td>
-
-                      <td className="p-4 text-left font-black">
-                        {row.entryName}
-                      </td>
-
-                      <td className="p-4">
-                        {row.played}
-                      </td>
-
-                      <td className="p-4">
-                        {row.wins}
-                      </td>
-
-                      <td className="p-4">
-                        {row.draws}
-                      </td>
-
-                      <td className="p-4">
-                        {row.losses}
-                      </td>
-
-                      <td className="p-4">
-                        {row.goalsFor}
-                      </td>
-
-                      <td className="p-4">
-                        {row.goalsAgainst}
-                      </td>
-
-                      <td className="p-4">
-                        {row.goalDifference >
-                        0
-                          ? '+'
-                          : ''}
-                        {row.goalDifference}
-                      </td>
-
-                      <td className="p-4 text-lg font-black">
-                        {row.points}
-                      </td>
-
-                      <td className="p-4 font-black tracking-widest">
-                        {row.form ||
-                          '—'}
-                      </td>
-                    </tr>
-                  ),
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <div className="grid gap-5">
+          {tables.length > 0 ? (
+            tables.map(
+              ([
+                title,
+                rows,
+              ]) => (
+                <StandingsTable
+                  key={title}
+                  title={title}
+                  rows={rows}
+                />
+              ),
+            )
+          ) : (
+            <StandingsTable
+              title="League Table"
+              rows={[]}
+            />
+          )}
+        </div>
       </div>
     </AppShell>
   );

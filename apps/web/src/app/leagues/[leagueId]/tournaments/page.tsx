@@ -99,7 +99,8 @@ export default function LeagueTournamentsPage() {
     setError('');
     setMessage('');
 
-    const form = new FormData(event.currentTarget);
+    const submittedForm = event.currentTarget;
+    const form = new FormData(submittedForm);
     const startAtRaw = String(form.get('startAt') ?? '');
 
     const payload = {
@@ -139,7 +140,7 @@ export default function LeagueTournamentsPage() {
         `${result.data.message} Code: ${result.data.tournament.code}`,
       );
 
-      event.currentTarget.reset();
+      submittedForm.reset();
       setMode('SOLO');
       setFormat('ROUND_ROBIN');
 

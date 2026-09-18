@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -20,6 +21,7 @@ import type {
   AccessTokenPayload,
   RefreshTokenPayload,
 } from './auth.types.js';
+import { OtpMailService } from './mail.service.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';
@@ -42,6 +44,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly mail: OtpMailService,
   ) {
     const accessSecret = process.env.JWT_ACCESS_SECRET;
     const refreshSecret = process.env.JWT_REFRESH_SECRET;
@@ -196,11 +199,40 @@ export class AuthService {
         };
       });
 
+      try {
+        await this.mail.sendVerificationOtp(
+          result.user.email,
+          otp,
+        );
+      } catch (error) {
+        await this.prisma.user
+          .delete({
+            where: {
+              id: result.user.id,
+            },
+          })
+          .catch(() => undefined);
+
+        if (error instanceof ServiceUnavailableException) {
+          throw error;
+        }
+
+        throw new ServiceUnavailableException({
+          success: false,
+          data: null,
+          error: {
+            code: 'EMAIL_DELIVERY_FAILED',
+            message:
+              'Unable to send the verification email. Please try again.',
+          },
+        });
+      }
+
       return {
         success: true,
         data: {
           message:
-            'Registration successful. Verify the account using the 6-digit OTP.',
+            'Registration successful. A 6-digit verification OTP has been sent to your email.',
           user: {
             id: result.user.id,
             fullName: result.user.fullName,
@@ -332,10 +364,34 @@ export class AuthService {
       'EMAIL_VERIFICATION',
     );
 
+    try {
+      await this.mail.sendVerificationOtp(
+        user.email,
+        otp,
+      );
+    } catch (error) {
+      const latestOtp = await this.getLatestOtp(
+        user.id,
+        'EMAIL_VERIFICATION',
+      );
+
+      if (latestOtp) {
+        await this.prisma.authOtp
+          .delete({
+            where: {
+              id: latestOtp.id,
+            },
+          })
+          .catch(() => undefined);
+      }
+
+      throw error;
+    }
+
     return {
       success: true,
       data: {
-        message: 'A new verification OTP has been generated.',
+        message: 'A new verification OTP has been sent to your email.',
         ...(process.env.NODE_ENV === 'development'
           ? { developmentOtp: otp }
           : {}),
@@ -361,6 +417,30 @@ export class AuthService {
       user.id,
       'PASSWORD_RESET',
     );
+
+    try {
+      await this.mail.sendPasswordResetOtp(
+        user.email,
+        otp,
+      );
+    } catch (error) {
+      const latestOtp = await this.getLatestOtp(
+        user.id,
+        'PASSWORD_RESET',
+      );
+
+      if (latestOtp) {
+        await this.prisma.authOtp
+          .delete({
+            where: {
+              id: latestOtp.id,
+            },
+          })
+          .catch(() => undefined);
+      }
+
+      throw error;
+    }
 
     return {
       success: true,

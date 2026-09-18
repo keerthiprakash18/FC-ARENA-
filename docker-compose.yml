@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: fc-arena-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fcarena
+      POSTGRES_USER: fcarena
+      POSTGRES_PASSWORD: fcarena_dev_password
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fcarena -d fcarena"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - fc_arena_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: fc-arena-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - fc_arena_redis_data:/data
+
+volumes:
+  fc_arena_postgres_data:
+  fc_arena_redis_data:

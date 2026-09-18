@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { AppShell } from '@/components/app/app-shell';
 import {
@@ -38,6 +38,8 @@ interface Tournament {
 export default function LeagueTournamentsPage() {
   const params = useParams<{ leagueId: string }>();
   const router = useRouter();
+
+  const createTournamentFormRef = useRef<HTMLFormElement>(null);
 
   const leagueId = params.leagueId;
 
@@ -176,7 +178,7 @@ export default function LeagueTournamentsPage() {
             href={`/leagues/${leagueId}`}
             className="text-sm font-bold text-slate-500 transition hover:text-white"
           >
-            ← Back to League
+            â† Back to League
           </Link>
 
           <p className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-sky-400">
@@ -505,3 +507,4 @@ export default function LeagueTournamentsPage() {
     </AppShell>
   );
 }
+

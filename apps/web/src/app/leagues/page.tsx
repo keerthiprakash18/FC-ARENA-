@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/app/app-shell';
 import {
@@ -39,6 +39,8 @@ interface LeaguePreview {
 
 export default function LeaguesPage() {
   const router = useRouter();
+
+  const createLeagueFormRef = useRef<HTMLFormElement>(null);
 
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [leagues, setLeagues] = useState<MyLeague[]>([]);
@@ -297,7 +299,7 @@ export default function LeaguesPage() {
 
               <input
                 name="region"
-                placeholder="Region — Tamil Nadu"
+                placeholder="Region â€” Tamil Nadu"
                 className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/60"
               />
 
@@ -493,3 +495,4 @@ export default function LeaguesPage() {
     </AppShell>
   );
 }
+

@@ -68,6 +68,11 @@ export type LeagueAdmin = Prisma.LeagueAdminModel
  */
 export type Tournament = Prisma.TournamentModel
 /**
+ * Model TournamentGroup
+ * 
+ */
+export type TournamentGroup = Prisma.TournamentGroupModel
+/**
  * Model TournamentRegistration
  * 
  */

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -12,11 +13,17 @@ import type { Request } from 'express';
 import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CreateTournamentDto } from './dto/create-tournament.dto.js';
+import { GeneratePlayoffsDto } from './dto/generate-playoffs.dto.js';
+import { SetupTournamentGroupsDto } from './dto/setup-tournament-groups.dto.js';
+import { AssignTournamentGroupDto } from './dto/assign-tournament-group.dto.js';
 import { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 import { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import { FixturesService } from './fixtures.service.js';
+import { GroupFixturesService } from './group-fixtures.service.js';
+import { PlayoffsService } from './playoffs.service.js';
 import { TournamentsService } from './tournaments.service.js';
+import { TournamentGroupsService } from './tournament-groups.service.js';
 
 type AuthenticatedRequest = Request & {
   user: AccessTokenPayload;
@@ -31,6 +38,15 @@ export class TournamentsController {
 
     private readonly fixturesService:
       FixturesService,
+
+    private readonly tournamentGroupsService:
+      TournamentGroupsService,
+
+    private readonly groupFixturesService:
+      GroupFixturesService,
+
+    private readonly playoffsService:
+      PlayoffsService,
   ) {}
 
   @Post('leagues/:leagueId/tournaments')
@@ -187,6 +203,102 @@ export class TournamentsController {
     );
   }
 
+
+  @Post(
+    'tournaments/:tournamentId/groups/setup',
+  )
+  setupTournamentGroups(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+
+    @Body()
+    dto: SetupTournamentGroupsDto,
+  ) {
+    return this.tournamentGroupsService.setupGroups(
+      request.user.sub,
+      tournamentId,
+      dto,
+    );
+  }
+
+  @Get(
+    'tournaments/:tournamentId/groups',
+  )
+  getTournamentGroups(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+  ) {
+    return this.tournamentGroupsService.getGroups(
+      request.user.sub,
+      tournamentId,
+    );
+  }
+
+  @Patch(
+    'tournaments/:tournamentId/registrations/:registrationId/group',
+  )
+  assignTournamentGroup(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+
+    @Param('registrationId')
+    registrationId: string,
+
+    @Body()
+    dto: AssignTournamentGroupDto,
+  ) {
+    return this.tournamentGroupsService.assignRegistration(
+      request.user.sub,
+      tournamentId,
+      registrationId,
+      dto,
+    );
+  }
+
+  @Delete(
+    'tournaments/:tournamentId/registrations/:registrationId/group',
+  )
+  unassignTournamentGroup(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+
+    @Param('registrationId')
+    registrationId: string,
+  ) {
+    return this.tournamentGroupsService.unassignRegistration(
+      request.user.sub,
+      tournamentId,
+      registrationId,
+    );
+  }
+
+  @Post(
+    'tournaments/:tournamentId/fixtures/generate-groups',
+  )
+  generateGroupFixtures(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+  ) {
+    return this.groupFixturesService.generateGroupFixtures(
+      request.user.sub,
+      tournamentId,
+    );
+  }
   @Post(
     'tournaments/:tournamentId/fixtures/generate',
   )
@@ -219,6 +331,26 @@ export class TournamentsController {
     );
   }
 
+
+  @Post(
+    'tournaments/:tournamentId/playoffs/generate',
+  )
+  generatePlayoffs(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+
+    @Body()
+    dto: GeneratePlayoffsDto,
+  ) {
+    return this.playoffsService.generatePlayoffs(
+      request.user.sub,
+      tournamentId,
+      dto,
+    );
+  }
   @Patch(
     'tournaments/:tournamentId/scheduling-settings',
   )

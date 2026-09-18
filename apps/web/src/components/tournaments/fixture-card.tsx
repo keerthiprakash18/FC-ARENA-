@@ -36,6 +36,12 @@ export interface FixtureForUi {
   scheduledAt: string | null;
   venue: string | null;
 
+  group: {
+    id: string;
+    name: string;
+    position: number;
+  } | null;
+
   match: {
     id: string;
     matchCode: string | null;
@@ -346,12 +352,20 @@ export function FixtureCard({
           ) : null}
         </div>
 
-        <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] font-black text-slate-400">
-          {fixture.status.replaceAll(
-            '_',
-            ' ',
-          )}
-        </span>
+        <div className="flex items-center gap-2">
+          {fixture.group ? (
+            <span className="rounded-full bg-sky-400/10 px-3 py-1 text-[10px] font-black text-sky-300">
+              {fixture.group.name}
+            </span>
+          ) : null}
+
+          <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] font-black text-slate-400">
+            {fixture.status.replaceAll(
+              '_',
+              ' ',
+            )}
+          </span>
+        </div>
       </div>
 
       <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">

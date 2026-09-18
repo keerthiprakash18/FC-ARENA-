@@ -262,16 +262,19 @@ export class FixturesService {
         where: {
           tournamentId,
         },
-        orderBy: [
-          {
-            roundNumber: 'asc',
-          },
-          {
-            bracketPosition: 'asc',
-          },
-        ],
+        orderBy: {
+          sequence: 'asc',
+        },
         include: {
           match: true,
+
+          group: {
+            select: {
+              id: true,
+              name: true,
+              position: true,
+            },
+          },
 
           homeRegistration: {
             include: {
@@ -1095,6 +1098,20 @@ export class FixturesService {
         fixture.scheduledAt,
       venue:
         fixture.venue,
+
+      group:
+        fixture.group
+          ? {
+              id:
+                fixture.group.id,
+
+              name:
+                fixture.group.name,
+
+              position:
+                fixture.group.position,
+            }
+          : null,
 
       match: fixture.match
         ? {

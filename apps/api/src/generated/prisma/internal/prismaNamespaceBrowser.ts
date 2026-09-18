@@ -61,6 +61,7 @@ export const ModelName = {
   LeagueApplication: 'LeagueApplication',
   LeagueAdmin: 'LeagueAdmin',
   Tournament: 'Tournament',
+  TournamentGroup: 'TournamentGroup',
   TournamentRegistration: 'TournamentRegistration',
   TournamentRegistrationMember: 'TournamentRegistrationMember',
   Fixture: 'Fixture',
@@ -244,9 +245,22 @@ export const TournamentScalarFieldEnum = {
 export type TournamentScalarFieldEnum = (typeof TournamentScalarFieldEnum)[keyof typeof TournamentScalarFieldEnum]
 
 
+export const TournamentGroupScalarFieldEnum = {
+  id: 'id',
+  tournamentId: 'tournamentId',
+  name: 'name',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TournamentGroupScalarFieldEnum = (typeof TournamentGroupScalarFieldEnum)[keyof typeof TournamentGroupScalarFieldEnum]
+
+
 export const TournamentRegistrationScalarFieldEnum = {
   id: 'id',
   tournamentId: 'tournamentId',
+  groupId: 'groupId',
   registeredByUserId: 'registeredByUserId',
   entryName: 'entryName',
   status: 'status',
@@ -274,6 +288,7 @@ export const FixtureScalarFieldEnum = {
   id: 'id',
   fixtureCode: 'fixtureCode',
   tournamentId: 'tournamentId',
+  groupId: 'groupId',
   sequence: 'sequence',
   matchday: 'matchday',
   roundNumber: 'roundNumber',

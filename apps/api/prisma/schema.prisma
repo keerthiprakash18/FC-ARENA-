@@ -370,15 +370,35 @@ model Tournament {
   playerStatistics    PlayerTournamentStatistic[]
   statEvents          MatchResultStatEvent[]
   achievements        Achievement[]
+  groups              TournamentGroup[]
 
   @@index([leagueId, status])
   @@index([createdByUserId])
   @@map("tournaments")
 }
 
+model TournamentGroup {
+  id           String   @id @default(uuid()) @db.Uuid
+  tournamentId String   @db.Uuid
+  name         String   @db.VarChar(40)
+  position     Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tournament   Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  registrations TournamentRegistration[]
+  fixtures      Fixture[]
+
+  @@unique([tournamentId, name])
+  @@unique([tournamentId, position])
+  @@index([tournamentId])
+  @@map("tournament_groups")
+}
+
 model TournamentRegistration {
   id                 String                       @id @default(uuid()) @db.Uuid
   tournamentId       String                       @db.Uuid
+  groupId            String?                      @db.Uuid
   registeredByUserId String                       @db.Uuid
   entryName          String?                      @db.VarChar(120)
   status             TournamentRegistrationStatus @default(PENDING)
@@ -388,6 +408,7 @@ model TournamentRegistration {
   updatedAt          DateTime                     @updatedAt
 
   tournament      Tournament                     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group           TournamentGroup?               @relation(fields: [groupId], references: [id], onDelete: SetNull)
   registeredBy    User                           @relation("TournamentRegistrant", fields: [registeredByUserId], references: [id], onDelete: Cascade)
   reviewedBy      User?                          @relation("TournamentRegistrationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
   members         TournamentRegistrationMember[]
@@ -397,6 +418,7 @@ model TournamentRegistration {
 
   @@index([tournamentId, status])
   @@index([registeredByUserId])
+  @@index([groupId])
   @@map("tournament_registrations")
 }
 
@@ -421,6 +443,7 @@ model Fixture {
   id                 String           @id @default(uuid()) @db.Uuid
   fixtureCode        String           @unique @db.VarChar(32)
   tournamentId       String           @db.Uuid
+  groupId            String?          @db.Uuid
   sequence           Int
   matchday           Int?
   roundNumber        Int
@@ -437,6 +460,7 @@ model Fixture {
   updatedAt          DateTime         @updatedAt
 
   tournament      Tournament               @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group           TournamentGroup?          @relation(fields: [groupId], references: [id], onDelete: SetNull)
   homeRegistration TournamentRegistration? @relation("FixtureHomeRegistration", fields: [homeRegistrationId], references: [id], onDelete: SetNull)
   awayRegistration TournamentRegistration? @relation("FixtureAwayRegistration", fields: [awayRegistrationId], references: [id], onDelete: SetNull)
   nextFixture      Fixture?                @relation("FixtureProgression", fields: [nextFixtureId], references: [id], onDelete: SetNull)
@@ -447,6 +471,7 @@ model Fixture {
   @@index([tournamentId, roundNumber])
   @@index([tournamentId, matchday])
   @@index([tournamentId, scheduledAt])
+  @@index([groupId])
   @@index([homeRegistrationId])
   @@index([awayRegistrationId])
   @@index([nextFixtureId])

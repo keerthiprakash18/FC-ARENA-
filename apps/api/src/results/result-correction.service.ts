@@ -39,7 +39,15 @@ export class ResultCorrectionService {
           id: matchId,
         },
         include: {
-          tournament: true,
+          tournament: {
+            include: {
+              _count: {
+                select: {
+                  groups: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -61,7 +69,15 @@ export class ResultCorrectionService {
             },
 
             include: {
-              tournament: true,
+              tournament: {
+            include: {
+              _count: {
+                select: {
+                  groups: true,
+                },
+              },
+            },
+          },
 
               confirmedResult: true,
 
@@ -128,8 +144,11 @@ export class ResultCorrectionService {
         }
 
         if (
-          match.tournament.format ===
-            'KNOCKOUT' &&
+          this.isKnockoutFixture(
+            match.tournament.format,
+            match.fixture.groupId,
+            match.tournament._count.groups,
+          ) &&
           dto.homeScore ===
             dto.awayScore
         ) {
@@ -166,8 +185,11 @@ export class ResultCorrectionService {
           );
 
         if (
-          match.tournament.format ===
-            'KNOCKOUT' &&
+          this.isKnockoutFixture(
+            match.tournament.format,
+            match.fixture.groupId,
+            match.tournament._count.groups,
+          ) &&
           oldWinner !== newWinner
         ) {
           await this.updateKnockoutProgression(
@@ -455,7 +477,15 @@ export class ResultCorrectionService {
         },
 
         include: {
-          tournament: true,
+          tournament: {
+            include: {
+              _count: {
+                select: {
+                  groups: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -478,7 +508,15 @@ export class ResultCorrectionService {
             },
 
             include: {
-              tournament: true,
+              tournament: {
+            include: {
+              _count: {
+                select: {
+                  groups: true,
+                },
+              },
+            },
+          },
 
               confirmedResult: true,
 
@@ -549,8 +587,11 @@ export class ResultCorrectionService {
           );
 
         if (
-          match.tournament.format ===
-            'KNOCKOUT' &&
+          this.isKnockoutFixture(
+            match.tournament.format,
+            match.fixture.groupId,
+            match.tournament._count.groups,
+          ) &&
           oldWinner
         ) {
           await this.updateKnockoutProgression(
@@ -712,6 +753,38 @@ export class ResultCorrectionService {
     tx: any,
     tournamentId: string,
   ) {
+    const tournament =
+      await tx.tournament.findUnique({
+        where: {
+          id: tournamentId,
+        },
+
+        select: {
+          format: true,
+
+          _count: {
+            select: {
+              groups: true,
+            },
+          },
+        },
+      });
+
+    if (!tournament) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'TOURNAMENT_NOT_FOUND',
+
+          message:
+            'Tournament could not be found.',
+        },
+      });
+    }
+
     const activeMatches =
       await tx.match.findMany({
         where: {
@@ -795,19 +868,28 @@ export class ResultCorrectionService {
           result.homeScore,
         );
 
-      await this.applyStanding(
-        tx,
-        tournamentId,
-        home.id,
-        homeDelta,
-      );
+      const isKnockoutFixture =
+        this.isKnockoutFixture(
+          tournament.format,
+          match.fixture.groupId,
+          tournament._count.groups,
+        );
 
-      await this.applyStanding(
-        tx,
-        tournamentId,
-        away.id,
-        awayDelta,
-      );
+      if (!isKnockoutFixture) {
+        await this.applyStanding(
+          tx,
+          tournamentId,
+          home.id,
+          homeDelta,
+        );
+
+        await this.applyStanding(
+          tx,
+          tournamentId,
+          away.id,
+          awayDelta,
+        );
+      }
 
       for (
         const member of
@@ -960,6 +1042,23 @@ export class ResultCorrectionService {
     });
   }
 
+  private isKnockoutFixture(
+    tournamentFormat: string,
+    fixtureGroupId: string | null,
+    tournamentGroupCount: number,
+  ) {
+    if (
+      tournamentFormat ===
+      'KNOCKOUT'
+    ) {
+      return true;
+    }
+
+    return (
+      tournamentGroupCount > 0 &&
+      fixtureGroupId === null
+    );
+  }
   private getWinnerRegistrationId(
     homeRegistrationId: string,
     awayRegistrationId: string,

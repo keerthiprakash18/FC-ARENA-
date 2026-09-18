@@ -427,58 +427,13 @@ export default function TournamentPage() {
     }
   }
 
-  async function generateFixtures() {
-    if (
-      !window.confirm(
-        'Generate fixtures using all approved entries?',
-      )
-    ) {
-      return;
-    }
-
-    setBusy(true);
-    setMessage('');
-    setError('');
-
-    try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
-
-          data: {
-            message: string;
-            participants:
-              number;
-            fixtures: number;
-          };
-
-          error: null;
-        }>(
-          `/tournaments/${tournamentId}/fixtures/generate`,
-          {
-            method: 'POST',
-          },
-        );
-
-      setMessage(
-        `${response.data.message} ${response.data.participants} entries → ${response.data.fixtures} fixtures.`,
-      );
-
-      await Promise.all([
-        loadTournament(),
-        loadFixtures(),
-      ]);
-
-      setTab('fixtures');
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to generate fixtures.',
-      );
-    } finally {
-      setBusy(false);
-    }
+  function openGroupManager() {
+    router.push(
+      `/tournaments/${tournamentId}/groups`,
+      {
+        scroll: true,
+      },
+    );
   }
 
   async function updateSettings(
@@ -628,7 +583,7 @@ export default function TournamentPage() {
           href={`/leagues/${tournament.leagueId}/tournaments`}
           className="text-sm font-bold text-slate-500 hover:text-white"
         >
-          ← Back to Tournaments
+          ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Back to Tournaments
         </Link>
 
         <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-9">
@@ -700,12 +655,12 @@ export default function TournamentPage() {
               fixtures.length === 0 ? (
                 <button
                   disabled={busy}
-                  onClick={() =>
-                    void generateFixtures()
+                  onClick={
+                    openGroupManager
                   }
                   className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-black"
                 >
-                  Generate Fixtures
+                  Manage Groups
                 </button>
               ) : null}
             </div>
@@ -728,7 +683,6 @@ export default function TournamentPage() {
           {[
             'overview',
             'register',
-            'fixtures',
           ].map((value) => (
             <button
               key={value}
@@ -753,6 +707,36 @@ export default function TournamentPage() {
             </button>
           ))}
 
+          <Link
+            href={`/tournaments/${tournamentId}/groups`}
+            scroll
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
+          >
+            Groups
+          </Link>
+
+          <Link
+            href={`/tournaments/${tournamentId}/fixtures`}
+            scroll
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
+          >
+            Fixtures
+          </Link>
+
+          <Link
+            href={`/tournaments/${tournamentId}/standings`}
+            scroll
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
+          >
+            Standings
+          </Link>
+          <Link
+            href={`/tournaments/${tournamentId}/playoffs`}
+            scroll
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
+          >
+            Playoffs
+          </Link>
           {tournament.isLeagueAdmin ? (
             <button
               onClick={() => {

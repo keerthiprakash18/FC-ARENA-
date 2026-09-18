@@ -314,7 +314,15 @@ export class ResultsService {
             include: {
               match: {
                 include: {
-                  tournament: true,
+                  tournament: {
+                    include: {
+                      _count: {
+                        select: {
+                          groups: true,
+                        },
+                      },
+                    },
+                  },
 
                   fixture: {
                     include: {
@@ -388,8 +396,11 @@ export class ResultsService {
         }
 
         if (
-          submission.match.tournament
-            .format === 'KNOCKOUT' &&
+          this.isKnockoutFixture(
+            submission.match.tournament.format,
+            fixture.groupId,
+            submission.match.tournament._count.groups,
+          ) &&
           submission.homeScore ===
             submission.awayScore
         ) {
@@ -418,19 +429,27 @@ export class ResultsService {
             submission.homeScore,
           );
 
-        await this.applyStanding(
-          tx,
-          submission.match.tournamentId,
-          home.id,
-          homeDelta,
-        );
+        if (
+          !this.isKnockoutFixture(
+            submission.match.tournament.format,
+            fixture.groupId,
+            submission.match.tournament._count.groups,
+          )
+        ) {
+          await this.applyStanding(
+            tx,
+            submission.match.tournamentId,
+            home.id,
+            homeDelta,
+          );
 
-        await this.applyStanding(
-          tx,
-          submission.match.tournamentId,
-          away.id,
-          awayDelta,
-        );
+          await this.applyStanding(
+            tx,
+            submission.match.tournamentId,
+            away.id,
+            awayDelta,
+          );
+        }
 
         for (
           const member of
@@ -572,9 +591,11 @@ export class ResultsService {
         }
 
         if (
-          submission.match.tournament
-            .format ===
-            'KNOCKOUT' &&
+          this.isKnockoutFixture(
+            submission.match.tournament.format,
+            fixture.groupId,
+            submission.match.tournament._count.groups,
+          ) &&
           fixture.nextFixtureId &&
           fixture.nextSlot
         ) {
@@ -1004,6 +1025,23 @@ export class ResultsService {
     };
   }
 
+  private isKnockoutFixture(
+    tournamentFormat: string,
+    fixtureGroupId: string | null,
+    tournamentGroupCount: number,
+  ) {
+    if (
+      tournamentFormat ===
+      'KNOCKOUT'
+    ) {
+      return true;
+    }
+
+    return (
+      tournamentGroupCount > 0 &&
+      fixtureGroupId === null
+    );
+  }
   private calculateDelta(
     goalsFor: number,
     goalsAgainst: number,

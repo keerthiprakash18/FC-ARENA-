@@ -208,14 +208,53 @@ export class AchievementsService {
           });
         }
 
+        const groupCount =
+          await tx.tournamentGroup.count({
+            where: {
+              tournamentId,
+            },
+          });
+
+        const playoffFixtureCount =
+          await tx.fixture.count({
+            where: {
+              tournamentId,
+
+              groupId: null,
+            },
+          });
+
+        if (
+          groupCount > 0 &&
+          playoffFixtureCount === 0
+        ) {
+          throw new ConflictException({
+            success: false,
+            data: null,
+
+            error: {
+              code:
+                'PLAYOFF_STAGE_REQUIRED',
+
+              message:
+                'Generate and complete the knockout stage before completing this grouped Tournament.',
+            },
+          });
+        }
+
+        const hasGroupPlayoffs =
+          groupCount > 0 &&
+          playoffFixtureCount > 0;
+
         const placement =
+          hasGroupPlayoffs ||
           currentTournament.format ===
-          'ROUND_ROBIN'
-            ? await this.getRoundRobinPlacement(
+            'KNOCKOUT'
+            ? await this.getKnockoutPlacement(
                 tx,
                 tournamentId,
               )
-            : await this.getKnockoutPlacement(
+            : await this.getRoundRobinPlacement(
                 tx,
                 tournamentId,
               );
@@ -233,7 +272,7 @@ export class AchievementsService {
               member.user.id,
               tournamentId,
               'TOURNAMENT_PARTICIPATION',
-              '🎖 Tournament Participation',
+              'ðŸŽ– Tournament Participation',
               `Participated in ${currentTournament.name}.`,
               {
                 tournament:
@@ -258,7 +297,7 @@ export class AchievementsService {
               member.userId,
               tournamentId,
               'TOURNAMENT_CHAMPION',
-              `🏆 ${currentTournament.name} Champion`,
+              `ðŸ† ${currentTournament.name} Champion`,
               `Champion of ${currentTournament.name}.`,
               {
                 registrationId:
@@ -281,7 +320,7 @@ export class AchievementsService {
               member.userId,
               tournamentId,
               'TOURNAMENT_RUNNER_UP',
-              `🥈 ${currentTournament.name} Runner-Up`,
+              `ðŸ¥ˆ ${currentTournament.name} Runner-Up`,
               `Runner-up in ${currentTournament.name}.`,
               {
                 registrationId:
@@ -373,7 +412,7 @@ export class AchievementsService {
             best.userId,
             tournamentId,
             'BEST_PLAYER',
-            '⭐ Best Player',
+            'â­ Best Player',
             `Best Player of ${currentTournament.name}.`,
             {
               matches:
@@ -422,7 +461,7 @@ export class AchievementsService {
                   player.userId,
                   tournamentId,
                   'GOLDEN_BOOT',
-                  '⚽ Golden Boot',
+                  'âš½ Golden Boot',
                   `Top scorer in ${currentTournament.name} with ${topGoals} goals.`,
                   {
                     goals:
@@ -457,7 +496,7 @@ export class AchievementsService {
             userId,
             tournamentId,
             'WINNING_STREAK',
-            '🔥 Winning Streak',
+            'ðŸ”¥ Winning Streak',
             `Recorded a ${streak}-match winning streak in ${currentTournament.name}.`,
             {
               winningStreak:
@@ -703,6 +742,8 @@ export class AchievementsService {
       await tx.fixture.findMany({
         where: {
           tournamentId,
+
+          groupId: null,
         },
 
         orderBy: [

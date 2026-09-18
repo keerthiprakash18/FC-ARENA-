@@ -22,6 +22,139 @@ interface FixtureSlot {
 
 type KnockoutSlot = RegistrationSlot | FixtureSlot;
 
+export interface RoundRobinGroupSummary {
+  name: string;
+  participants: number;
+}
+
+export interface GroupedRoundRobinPlan {
+  blueprints: FixtureBlueprint[];
+  groups: RoundRobinGroupSummary[];
+}
+
+export function generateGroupedRoundRobinFixtures(
+  registrationIds: string[],
+  groupCount: number,
+): GroupedRoundRobinPlan {
+  if (
+    !Number.isInteger(
+      groupCount,
+    ) ||
+    groupCount < 1
+  ) {
+    throw new Error(
+      'Group count must be a positive integer.',
+    );
+  }
+
+  if (
+    registrationIds.length < 2
+  ) {
+    throw new Error(
+      'At least 2 entries are required for Round Robin.',
+    );
+  }
+
+  const maximumGroups =
+    Math.floor(
+      registrationIds.length / 2,
+    );
+
+  if (
+    groupCount > 1 &&
+    groupCount > maximumGroups
+  ) {
+    throw new Error(
+      `With ${registrationIds.length} entries, use at most ${maximumGroups} groups so every group has at least 2 entries.`,
+    );
+  }
+
+  if (groupCount === 1) {
+    return {
+      blueprints:
+        generateRoundRobinFixtures(
+          registrationIds,
+        ),
+      groups: [
+        {
+          name: 'TABLE',
+          participants:
+            registrationIds.length,
+        },
+      ],
+    };
+  }
+
+  const groups =
+    Array.from(
+      {
+        length: groupCount,
+      },
+      () => [] as string[],
+    );
+
+  registrationIds.forEach(
+    (
+      registrationId,
+      index,
+    ) => {
+      groups[
+        index % groupCount
+      ]?.push(
+        registrationId,
+      );
+    },
+  );
+
+  const blueprints:
+    FixtureBlueprint[] = [];
+
+  const summaries:
+    RoundRobinGroupSummary[] =
+      [];
+
+  groups.forEach(
+    (
+      groupRegistrationIds,
+      groupIndex,
+    ) => {
+      const name =
+        getGroupName(
+          groupIndex,
+        );
+
+      summaries.push({
+        name,
+        participants:
+          groupRegistrationIds.length,
+      });
+
+      const fixtures =
+        generateRoundRobinFixtures(
+          groupRegistrationIds,
+        );
+
+      for (
+        const fixture
+        of fixtures
+      ) {
+        blueprints.push({
+          ...fixture,
+          key:
+            `group-${name}-${fixture.key}`,
+          roundName:
+            `GROUP ${name} • ${fixture.roundName}`,
+        });
+      }
+    },
+  );
+
+  return {
+    blueprints,
+    groups: summaries,
+  };
+}
+
 export function generateRoundRobinFixtures(
   registrationIds: string[],
 ): FixtureBlueprint[] {
@@ -325,6 +458,32 @@ function validateRoundRobin(
 
     pairs.add(key);
   }
+}
+
+function getGroupName(
+  index: number,
+): string {
+  let value =
+    index + 1;
+
+  let name = '';
+
+  while (value > 0) {
+    value--;
+
+    name =
+      String.fromCharCode(
+        65 +
+          (value % 26),
+      ) + name;
+
+    value =
+      Math.floor(
+        value / 26,
+      );
+  }
+
+  return name;
 }
 
 function nextPowerOfTwo(value: number): number {

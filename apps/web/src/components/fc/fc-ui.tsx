@@ -12,13 +12,13 @@ export type FcTone =
 
 const toneClasses: Record<FcTone, string> = {
   cyan:
-    'border-sky-400/20 bg-sky-400/[0.06] text-sky-300',
+    'border-[#19B7FF]/20 bg-[#19B7FF]/[0.06] text-[#19B7FF]',
   emerald:
-    'border-emerald-400/20 bg-emerald-400/[0.06] text-emerald-300',
+    'border-[#1FD18A]/20 bg-[#1FD18A]/[0.06] text-[#1FD18A]',
   amber:
-    'border-amber-400/20 bg-amber-400/[0.06] text-amber-300',
+    'border-[#F3B326]/20 bg-[#F3B326]/[0.06] text-[#F3B326]',
   red:
-    'border-red-400/20 bg-red-400/[0.06] text-red-300',
+    'border-[#EF5350]/20 bg-[#EF5350]/[0.06] text-[#EF5350]',
   slate:
     'border-[#203141] bg-[#121D28] text-[#A7B0BE]',
 };

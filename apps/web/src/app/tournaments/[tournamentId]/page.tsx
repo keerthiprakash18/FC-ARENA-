@@ -7,46 +7,55 @@ import {
 } from 'next/navigation';
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
-import type {
-  FormEvent,
-} from 'react';
-import { AppShell } from '@/components/app/app-shell';
+
 import {
-  FixtureCard,
-  type FixtureForUi,
-} from '@/components/tournaments/fixture-card';
+  AppShell,
+} from '@/components/app/app-shell';
+
+import {
+  BackHeader,
+} from '@/components/app/back-header';
+
+import {
+  competitionLabel,
+  FcCrest,
+  FcEmptyState,
+  FcLoadingScreen,
+  FcPanel,
+  FcStatCard,
+  FcStatusBadge,
+} from '@/components/fc/fc-ui';
+
+import {
+  TournamentNavigation,
+} from '@/components/tournaments/tournament-navigation';
+
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
 
+
 interface Tournament {
   id: string;
   leagueId: string;
   name: string;
   code: string;
+  logoUrl?: string | null;
   description: string | null;
-  rules: string | null;
-  mode: 'SOLO' | 'DUO' | 'TEAM';
-  format:
-    | 'ROUND_ROBIN'
-    | 'KNOCKOUT';
+  mode: string;
+  format: string;
+  competitionFormat?: string;
+  groupMode?: string;
   status: string;
-  teamSize: number;
   maxEntries: number;
   approvedEntries: number;
   startAt: string | null;
-  registrationOpenedAt: string | null;
-  registrationClosedAt: string | null;
-  fixturesGeneratedAt: string | null;
-
-  dailyMatchLimit: number;
-  matchesPerParticipantPerDay: number;
-  matchDurationMinutes: number;
-
+  endAt?: string | null;
   isLeagueAdmin: boolean;
 
   league: {
@@ -54,64 +63,69 @@ interface Tournament {
     name: string;
     code: string;
   };
-
-  createdBy: {
-    id: string;
-    fullName: string;
-
-    player: {
-      playerCode: string;
-
-      identity: {
-        inGameName: string;
-      } | null;
-    } | null;
-  };
 }
 
-interface Registration {
-  id: string;
-  entryName: string | null;
-  status: string;
 
-  registeredBy: {
-    fullName: string;
-  };
+interface Entry {
+  entryName: string | null;
 
   members: Array<{
-    user: {
-      id: string;
-      fullName: string;
-
-      player: {
-        playerCode: string;
-
-        identity: {
-          inGameName: string;
-        } | null;
-      } | null;
-    };
+    fullName: string;
+    inGameName: string | null;
   }>;
 }
 
-type Tab =
-  | 'overview'
-  | 'register'
-  | 'fixtures'
-  | 'admin';
 
-export default function TournamentPage() {
-  const params =
+interface Fixture {
+  id: string;
+  roundName: string;
+  status: string;
+  scheduledAt: string | null;
+  home: Entry | null;
+  away: Entry | null;
+
+  match: {
+    id: string;
+    status: string;
+  } | null;
+}
+
+
+interface Group {
+  id: string;
+}
+
+
+function entryName(
+  entry: Entry | null,
+) {
+  return (
+    entry?.entryName ||
+    entry?.members[0]
+      ?.inGameName ||
+    entry?.members[0]
+      ?.fullName ||
+    'TBD'
+  );
+}
+
+
+export default function TournamentOverviewPage() {
+  const {
+    tournamentId,
+  } =
     useParams<{
-      tournamentId: string;
+      tournamentId:
+        string;
     }>();
 
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const tournamentId =
-    params.tournamentId;
-
-  const [user, setUser] =
+  const [
+    user,
+    setUser,
+  ] =
     useState<CurrentUser | null>(
       null,
     );
@@ -125,935 +139,514 @@ export default function TournamentPage() {
     );
 
   const [
-    registrations,
-    setRegistrations,
-  ] =
-    useState<Registration[]>([]);
-
-  const [
     fixtures,
     setFixtures,
   ] =
-    useState<FixtureForUi[]>([]);
-
-  const [tab, setTab] =
-    useState<Tab>('overview');
+    useState<Fixture[]>(
+      [],
+    );
 
   const [
-    playerCodes,
-    setPlayerCodes,
-  ] = useState('');
-
-  const [busy, setBusy] =
-    useState(false);
-
-  const [message, setMessage] =
-    useState('');
-
-  const [error, setError] =
-    useState('');
-
-  async function loadTournament() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
-
-        data: {
-          tournament:
-            Tournament;
-        };
-
-        error: null;
-      }>(
-        `/tournaments/${tournamentId}`,
-      );
-
-    setTournament(
-      response.data.tournament,
+    groups,
+    setGroups,
+  ] =
+    useState<Group[]>(
+      [],
     );
 
-    return response.data.tournament;
-  }
-
-  async function loadFixtures() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
-
-        data: {
-          fixtures:
-            FixtureForUi[];
-        };
-
-        error: null;
-      }>(
-        `/tournaments/${tournamentId}/fixtures`,
-      );
-
-    setFixtures(
-      response.data.fixtures,
-    );
-  }
-
-  async function loadRegistrations() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
-
-        data: {
-          registrations:
-            Registration[];
-        };
-
-        error: null;
-      }>(
-        `/tournaments/${tournamentId}/registrations`,
-      );
-
-    setRegistrations(
-      response.data.registrations,
-    );
-  }
 
   useEffect(() => {
-    async function load() {
+    void (async () => {
       try {
-        const current =
-          await getCurrentUser();
+        const [
+          current,
+          tournamentResponse,
+          fixtureResponse,
+          groupResponse,
+        ] =
+          await Promise.all([
+            getCurrentUser(),
 
-        setUser(current);
+            authenticatedRequest<any>(
+              `/tournaments/${tournamentId}`,
+            ),
 
-        if (
-          current.player
-            ?.playerCode
-        ) {
-          setPlayerCodes(
-            current.player
-              .playerCode,
-          );
-        }
+            authenticatedRequest<any>(
+              `/tournaments/${tournamentId}/fixtures`,
+            ).catch(
+              () => ({
+                data: {
+                  fixtures: [],
+                },
+              }),
+            ),
 
-        const competition =
-          await loadTournament();
+            authenticatedRequest<any>(
+              `/tournaments/${tournamentId}/groups`,
+            ).catch(
+              () => ({
+                data: {
+                  groups: [],
+                },
+              }),
+            ),
+          ]);
 
-        await loadFixtures();
+        setUser(
+          current,
+        );
 
-        if (
-          competition
-            .isLeagueAdmin
-        ) {
-          await loadRegistrations();
-        }
+        setTournament(
+          tournamentResponse
+            .data
+            .tournament,
+        );
+
+        setFixtures(
+          fixtureResponse
+            .data
+            .fixtures,
+        );
+
+        setGroups(
+          groupResponse
+            .data
+            .groups,
+        );
       } catch {
         router.replace(
-          '/dashboard',
+          '/tournaments',
         );
       }
-    }
-
-    void load();
+    })();
   }, [
     router,
     tournamentId,
   ]);
 
-  async function changeRegistration(
-    action:
-      | 'open'
-      | 'close',
-  ) {
-    setBusy(true);
-    setMessage('');
-    setError('');
 
-    try {
-      const path =
-        action === 'open'
-          ? `/tournaments/${tournamentId}/open-registration`
-          : `/tournaments/${tournamentId}/close-registration`;
+  const nextFixture =
+    useMemo(
+      () =>
+        [
+          ...fixtures,
+        ]
+          .filter(
+            (
+              fixture,
+            ) => {
+              const status =
+                fixture.match
+                  ?.status ||
+                fixture.status;
 
-      const response =
-        await authenticatedRequest<{
-          success: true;
+              return ![
+                'COMPLETED',
+                'CANCELLED',
+              ].includes(
+                status,
+              );
+            },
+          )
+          .sort(
+            (
+              first,
+              second,
+            ) => {
+              if (
+                !first.scheduledAt &&
+                !second.scheduledAt
+              ) {
+                return 0;
+              }
 
-          data: {
-            message: string;
-          };
+              if (
+                !first.scheduledAt
+              ) {
+                return 1;
+              }
 
-          error: null;
-        }>(
-          path,
-          {
-            method: 'POST',
-          },
-        );
+              if (
+                !second.scheduledAt
+              ) {
+                return -1;
+              }
 
-      setMessage(
-        response.data.message,
-      );
-
-      await loadTournament();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to update registration.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function submitRegistration(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
-    setBusy(true);
-    setMessage('');
-    setError('');
-
-    const data =
-      new FormData(
-        event.currentTarget,
-      );
-
-    const codes =
-      playerCodes
-        .split(/[\n,]+/)
-        .map((value) =>
-          value
-            .trim()
-            .toUpperCase(),
-        )
-        .filter(Boolean);
-
-    try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
-
-          data: {
-            message: string;
-          };
-
-          error: null;
-        }>(
-          `/tournaments/${tournamentId}/register`,
-          {
-            method: 'POST',
-
-            body:
-              JSON.stringify({
-                entryName:
-                  String(
-                    data.get(
-                      'entryName',
-                    ) ?? '',
-                  ) ||
-                  undefined,
-
-                playerCodes:
-                  codes,
-              }),
-          },
-        );
-
-      setMessage(
-        response.data.message,
-      );
-
-      if (
-        tournament
-          ?.isLeagueAdmin
-      ) {
-        await loadRegistrations();
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to register.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function review(
-    registrationId: string,
-    action:
-      | 'approve'
-      | 'reject',
-  ) {
-    setBusy(true);
-    setMessage('');
-    setError('');
-
-    try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
-
-          data: {
-            message: string;
-          };
-
-          error: null;
-        }>(
-          `/tournaments/${tournamentId}/registrations/${registrationId}/${action}`,
-          {
-            method: 'POST',
-          },
-        );
-
-      setMessage(
-        response.data.message,
-      );
-
-      await Promise.all([
-        loadTournament(),
-        loadRegistrations(),
-      ]);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to review registration.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function openGroupManager() {
-    router.push(
-      `/tournaments/${tournamentId}/groups`,
-      {
-        scroll: true,
-      },
+              return (
+                new Date(
+                  first.scheduledAt,
+                ).getTime() -
+                new Date(
+                  second.scheduledAt,
+                ).getTime()
+              );
+            },
+          )[0] ??
+        null,
+      [
+        fixtures,
+      ],
     );
-  }
 
-  async function updateSettings(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
-    const data =
-      new FormData(
-        event.currentTarget,
-      );
-
-    setBusy(true);
-    setMessage('');
-    setError('');
-
-    try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
-
-          data: {
-            message: string;
-          };
-
-          error: null;
-        }>(
-          `/tournaments/${tournamentId}/scheduling-settings`,
-          {
-            method: 'PATCH',
-
-            body:
-              JSON.stringify({
-                dailyMatchLimit:
-                  Number(
-                    data.get(
-                      'dailyMatchLimit',
-                    ),
-                  ),
-
-                matchesPerParticipantPerDay:
-                  Number(
-                    data.get(
-                      'matchesPerParticipantPerDay',
-                    ),
-                  ),
-
-                matchDurationMinutes:
-                  Number(
-                    data.get(
-                      'matchDurationMinutes',
-                    ),
-                  ),
-              }),
-          },
-        );
-
-      setMessage(
-        response.data.message,
-      );
-
-      await loadTournament();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to update scheduling settings.',
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
 
   if (
     !user ||
     !tournament
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Tournament...
-      </div>
+      <FcLoadingScreen
+        label="Loading Tournament Overview..."
+      />
     );
   }
 
-  const registrationOpen =
-    tournament.status ===
-    'REGISTRATION_OPEN';
 
-  const registrationClosed =
-    tournament.status ===
-    'REGISTRATION_CLOSED';
+  const progress =
+    tournament.maxEntries >
+    0
+      ? Math.min(
+          100,
+          (
+            tournament.approvedEntries /
+            tournament.maxEntries
+          ) *
+            100,
+        )
+      : 0;
 
-  const pending =
-    registrations.filter(
-      (item) =>
-        item.status ===
-        'PENDING',
-    );
-
-  const approved =
-    registrations.filter(
-      (item) =>
-        item.status ===
-        'APPROVED',
-    );
-
-  const grouped =
-    fixtures.reduce<
-      Record<
-        string,
-        FixtureForUi[]
-      >
-    >(
-      (
-        result,
-        fixture,
-      ) => {
-        if (
-          !result[
-            fixture.roundName
-          ]
-        ) {
-          result[
-            fixture.roundName
-          ] = [];
-        }
-
-        result[
-          fixture.roundName
-        ].push(fixture);
-
-        return result;
-      },
-      {},
-    );
 
   return (
     <AppShell
       playerName={
-        user.player?.identity
+        user.player
+          ?.identity
           ?.inGameName
       }
     >
       <div className="space-y-6">
-        <Link
-          href={`/leagues/${tournament.leagueId}/tournaments`}
-          className="text-sm font-bold text-slate-500 hover:text-white"
-        >
-          ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Back to Tournaments
-        </Link>
-
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-9">
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-black text-sky-400">
-              {
-                tournament.mode
+        <BackHeader
+          backHref="/tournaments"
+          backLabel="Tournaments"
+          eyebrow={
+            tournament.league.name
+          }
+          title={
+            tournament.name
+          }
+          subtitle={
+            tournament.description ||
+            'Tournament overview'
+          }
+          action={
+            <FcStatusBadge
+              label={
+                tournament.status
               }
-            </span>
-
-            <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-black text-slate-400">
-              {tournament.format.replaceAll(
-                '_',
-                ' ',
-              )}
-            </span>
-
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-black text-slate-400">
-              {tournament.status.replaceAll(
-                '_',
-                ' ',
-              )}
-            </span>
-          </div>
-
-          <h1 className="mt-5 text-4xl font-black md:text-6xl">
-            {tournament.name}
-          </h1>
-
-          <p className="mt-2 font-mono text-sm text-sky-400">
-            {tournament.code}
-          </p>
-
-          {tournament.isLeagueAdmin ? (
-            <div className="mt-6 flex flex-wrap gap-2">
-              {tournament.status ===
-                'DRAFT' ||
-              (registrationClosed &&
-                fixtures.length ===
-                  0) ? (
-                <button
-                  disabled={busy}
-                  onClick={() =>
-                    void changeRegistration(
-                      'open',
-                    )
-                  }
-                  className="rounded-xl bg-emerald-400 px-4 py-3 text-sm font-black text-black"
-                >
-                  Open Registration
-                </button>
-              ) : null}
-
-              {registrationOpen ? (
-                <button
-                  disabled={busy}
-                  onClick={() =>
-                    void changeRegistration(
-                      'close',
-                    )
-                  }
-                  className="rounded-xl border border-amber-400/30 px-4 py-3 text-sm font-black text-amber-300"
-                >
-                  Close Registration
-                </button>
-              ) : null}
-
-              {registrationClosed &&
-              fixtures.length === 0 ? (
-                <button
-                  disabled={busy}
-                  onClick={
-                    openGroupManager
-                  }
-                  className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-black"
-                >
-                  Manage Groups
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-        </section>
-
-        {message ? (
-          <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
-
-        <div className="flex gap-2 overflow-x-auto">
-          {[
-            'overview',
-            'register',
-          ].map((value) => (
-            <button
-              key={value}
-              onClick={() =>
-                setTab(
-                  value as Tab,
-                )
+              tone={
+                tournament.status ===
+                'COMPLETED'
+                  ? 'emerald'
+                  : tournament.status ===
+                      'DRAFT'
+                    ? 'amber'
+                    : 'cyan'
               }
-              className={`rounded-xl px-4 py-2 text-sm font-black ${
-                tab === value
-                  ? 'bg-sky-400 text-black'
-                  : 'border border-white/10 text-slate-400'
-              }`}
-            >
-              {value ===
-              'register'
-                ? 'Registration'
-                : value
-                    .charAt(0)
-                    .toUpperCase() +
-                  value.slice(1)}
-            </button>
-          ))}
+            />
+          }
+        />
 
-          <Link
-            href={`/tournaments/${tournamentId}/groups`}
-            scroll
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
-          >
-            Groups
-          </Link>
+        <TournamentNavigation
+          tournamentId={
+            tournamentId
+          }
+        />
 
-          <Link
-            href={`/tournaments/${tournamentId}/fixtures`}
-            scroll
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
-          >
-            Fixtures
-          </Link>
 
-          <Link
-            href={`/tournaments/${tournamentId}/standings`}
-            scroll
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
-          >
-            Standings
-          </Link>
-          <Link
-            href={`/tournaments/${tournamentId}/playoffs`}
-            scroll
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-400 transition hover:border-sky-400/30 hover:text-white"
-          >
-            Playoffs
-          </Link>
-          {tournament.isLeagueAdmin ? (
-            <button
-              onClick={() => {
-                setTab('admin');
-                void loadRegistrations();
-              }}
-              className={`rounded-xl px-4 py-2 text-sm font-black ${
-                tab === 'admin'
-                  ? 'bg-sky-400 text-black'
-                  : 'border border-white/10 text-slate-400'
-              }`}
-            >
-              Admin ({pending.length})
-            </button>
-          ) : null}
-        </div>
-
-        {tab === 'overview' ? (
-          <div className="grid gap-5 lg:grid-cols-2">
-            <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-              <h2 className="text-2xl font-black">
-                Overview
-              </h2>
-
-              <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-400">
-                {tournament.description ||
-                  'No description.'}
-              </p>
-
-              <h3 className="mt-7 font-black">
-                Rules
-              </h3>
-
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-500">
-                {tournament.rules ||
-                  'No rules.'}
-              </p>
-            </section>
-
-            <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-              <h2 className="text-2xl font-black">
-                Competition
-              </h2>
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-white/[0.03] p-4">
-                  <p className="text-xs text-slate-600">
-                    Approved
-                  </p>
-
-                  <p className="mt-1 text-2xl font-black">
-                    {
-                      tournament.approvedEntries
-                    }
-                    /
-                    {
-                      tournament.maxEntries
-                    }
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-white/[0.03] p-4">
-                  <p className="text-xs text-slate-600">
-                    Fixtures
-                  </p>
-
-                  <p className="mt-1 text-2xl font-black">
-                    {
-                      fixtures.length
-                    }
-                  </p>
-                </div>
-              </div>
-            </section>
-          </div>
-        ) : null}
-
-        {tab === 'register' ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-            <h2 className="text-2xl font-black">
-              Registration
-            </h2>
-
-            {!registrationOpen ? (
-              <p className="mt-5 text-amber-300">
-                Registration is closed.
-              </p>
-            ) : (
-              <form
-                onSubmit={
-                  submitRegistration
-                }
-                className="mt-5 grid gap-4"
-              >
-                {tournament.mode !==
-                'SOLO' ? (
-                  <input
-                    name="entryName"
-                    required
-                    placeholder={
-                      tournament.mode ===
-                      'DUO'
-                        ? 'Duo Name'
-                        : 'Team Name'
-                    }
-                  />
-                ) : null}
-
-                <textarea
-                  value={playerCodes}
-                  onChange={(event) =>
-                    setPlayerCodes(
-                      event.target.value,
-                    )
+        <FcPanel className="overflow-hidden">
+          <div className="bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_65%)] p-5 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-4">
+                <FcCrest
+                  name={
+                    tournament.name
                   }
-                  rows={Math.max(
-                    3,
-                    tournament.teamSize,
-                  )}
-                  required
-                  className="rounded-xl border border-white/10 bg-[#080e15] p-4"
-                  placeholder="FC ARENA Player IDs"
+                  imageUrl={
+                    tournament.logoUrl
+                  }
+                  size="lg"
                 />
 
-                <button
-                  disabled={busy}
-                  className="rounded-xl bg-sky-400 px-5 py-3 font-black text-black"
-                >
-                  Submit Registration
-                </button>
-              </form>
-            )}
-          </section>
-        ) : null}
+                <div>
+                  <p className="font-mono text-xs font-black text-sky-400">
+                    {
+                      tournament.code
+                    }
+                  </p>
 
-        {tab === 'fixtures' ? (
-          <div className="space-y-5">
-            {tournament.isLeagueAdmin ? (
-              <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-                <h2 className="text-xl font-black">
-                  Scheduling Settings
-                </h2>
-
-                <form
-                  onSubmit={
-                    updateSettings
-                  }
-                  className="mt-5 grid gap-3 md:grid-cols-3"
-                >
-                  <label className="grid gap-2 text-sm">
-                    Daily Match Limit
-
-                    <input
-                      name="dailyMatchLimit"
-                      type="number"
-                      min="1"
-                      max="256"
-                      defaultValue={
-                        tournament.dailyMatchLimit
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <FcStatusBadge
+                      label={
+                        competitionLabel(
+                          tournament.competitionFormat ||
+                          tournament.format,
+                        )
                       }
-                      required
+                      tone="cyan"
                     />
-                  </label>
 
-                  <label className="grid gap-2 text-sm">
-                    Matches / Player / Day
-
-                    <input
-                      name="matchesPerParticipantPerDay"
-                      type="number"
-                      min="1"
-                      max="20"
-                      defaultValue={
-                        tournament.matchesPerParticipantPerDay
+                    <FcStatusBadge
+                      label={
+                        tournament.mode
                       }
-                      required
+                      tone="slate"
                     />
-                  </label>
-
-                  <label className="grid gap-2 text-sm">
-                    Match Duration Minutes
-
-                    <input
-                      name="matchDurationMinutes"
-                      type="number"
-                      min="10"
-                      max="300"
-                      defaultValue={
-                        tournament.matchDurationMinutes
-                      }
-                      required
-                    />
-                  </label>
-
-                  <button className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black md:col-span-3">
-                    Save Scheduling Settings
-                  </button>
-                </form>
-              </section>
-            ) : null}
-
-            {Object.entries(
-              grouped,
-            ).map(
-              ([
-                round,
-                items,
-              ]) => (
-                <section
-                  key={round}
-                  className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6"
-                >
-                  <h2 className="text-2xl font-black">
-                    {round}
-                  </h2>
-
-                  <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                    {items.map(
-                      (fixture) => (
-                        <FixtureCard
-                          key={
-                            fixture.id
-                          }
-                          fixture={
-                            fixture
-                          }
-                          isAdmin={
-                            tournament.isLeagueAdmin
-                          }
-                          onChanged={
-                            loadFixtures
-                          }
-                        />
-                      ),
-                    )}
                   </div>
-                </section>
-              ),
-            )}
+                </div>
+              </div>
 
-            {fixtures.length ===
-            0 ? (
-              <p className="rounded-[24px] border border-dashed border-white/10 p-12 text-center text-slate-500">
-                No fixtures generated.
-              </p>
-            ) : null}
-          </div>
-        ) : null}
 
-        {tab === 'admin' &&
-        tournament.isLeagueAdmin ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-            <h2 className="text-2xl font-black">
-              Registration Review
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Approved: {approved.length}
-            </p>
-
-            <div className="mt-5 space-y-3">
-              {registrations.map(
-                (item) => (
-                  <article
-                    key={item.id}
-                    className="flex flex-col gap-4 rounded-xl border border-white/10 p-4 md:flex-row md:items-center md:justify-between"
+              <div className="flex flex-wrap gap-2">
+                {tournament.status ===
+                  'DRAFT' &&
+                tournament.isLeagueAdmin ? (
+                  <Link
+                    href={
+                      `/tournaments/${tournamentId}/wizard/setup`
+                    }
+                    className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019]"
                   >
-                    <div>
-                      <p className="font-black">
-                        {item.entryName ||
-                          item.members[0]
-                            ?.user.player
-                            ?.identity
-                            ?.inGameName ||
-                          item.registeredBy
-                            .fullName}
-                      </p>
+                    Continue Setup
+                  </Link>
+                ) : null}
 
-                      <p className="mt-1 text-xs text-slate-500">
-                        {item.status}
-                      </p>
-                    </div>
-
-                    {item.status ===
-                    'PENDING' ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            void review(
-                              item.id,
-                              'approve',
-                            )
-                          }
-                          className="rounded-xl bg-emerald-400 px-4 py-2 font-black text-black"
-                        >
-                          Approve
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            void review(
-                              item.id,
-                              'reject',
-                            )
-                          }
-                          className="rounded-xl border border-red-400/20 px-4 py-2 font-black text-red-300"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    ) : null}
-                  </article>
-                ),
-              )}
+                <Link
+                  href={
+                    `/tournaments/${tournamentId}/registration`
+                  }
+                  className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-slate-300"
+                >
+                  Registration
+                </Link>
+              </div>
             </div>
-          </section>
-        ) : null}
+
+
+            <div className="mt-6">
+              <div className="flex justify-between text-xs font-black text-slate-500">
+                <span>
+                  Entry Progress
+                </span>
+
+                <span>
+                  {
+                    tournament.approvedEntries
+                  }
+                  /
+                  {
+                    tournament.maxEntries
+                  }
+                </span>
+              </div>
+
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.05]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
+                  style={{
+                    width:
+                      `${progress}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </FcPanel>
+
+
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <FcStatCard
+            label="Teams"
+            value={
+              tournament.approvedEntries
+            }
+            detail={
+              `Max ${tournament.maxEntries}`
+            }
+          />
+
+          <FcStatCard
+            label="Groups"
+            value={
+              groups.length
+            }
+            detail={
+              tournament.groupMode
+                ? competitionLabel(
+                    tournament.groupMode,
+                  )
+                : 'Single table'
+            }
+            tone="amber"
+          />
+
+          <FcStatCard
+            label="Fixtures"
+            value={
+              fixtures.length
+            }
+            detail="Tournament schedule"
+            tone="emerald"
+          />
+
+          <FcStatCard
+            label="Stage"
+            value={
+              competitionLabel(
+                tournament.status,
+              )
+            }
+            detail="Current state"
+            tone="slate"
+          />
+        </section>
+
+
+        {nextFixture ? (
+          <FcPanel className="p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+                  Next Match
+                </p>
+
+                <h2 className="mt-2 text-xl font-black">
+                  {
+                    nextFixture.roundName
+                  }
+                </h2>
+              </div>
+
+              <FcStatusBadge
+                label={
+                  nextFixture.match
+                    ?.status ||
+                  nextFixture.status
+                }
+                tone="cyan"
+              />
+            </div>
+
+            <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <p className="truncate text-right font-black">
+                {
+                  entryName(
+                    nextFixture.home,
+                  )
+                }
+              </p>
+
+              <span className="rounded-xl border border-sky-400/20 bg-sky-400/[0.05] px-3 py-2 text-xs font-black text-sky-300">
+                VS
+              </span>
+
+              <p className="truncate font-black">
+                {
+                  entryName(
+                    nextFixture.away,
+                  )
+                }
+              </p>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-500">
+                {nextFixture.scheduledAt
+                  ? new Date(
+                      nextFixture.scheduledAt,
+                    ).toLocaleString()
+                  : 'Schedule pending'}
+              </p>
+
+              <Link
+                href={
+                  nextFixture.match
+                    ?.id
+                    ? `/matches/${nextFixture.match.id}`
+                    : `/tournaments/${tournamentId}/fixtures`
+                }
+                className="rounded-xl bg-sky-400 px-4 py-3 text-center text-sm font-black text-[#031019]"
+              >
+                View Match
+              </Link>
+            </div>
+          </FcPanel>
+        ) : (
+          <FcEmptyState
+            title="No upcoming match"
+            description="Open Fixtures to review the Tournament schedule or generate matches when permitted."
+            actionLabel="Open Fixtures"
+            actionHref={
+              `/tournaments/${tournamentId}/fixtures`
+            }
+          />
+        )}
+
+
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            [
+              'Teams',
+              'Tournament entries and team management',
+              `/tournaments/${tournamentId}/teams`,
+            ],
+            [
+              'Groups',
+              'Group structure and assignments',
+              `/tournaments/${tournamentId}/groups`,
+            ],
+            [
+              'Standings',
+              'Live tables from confirmed results',
+              `/tournaments/${tournamentId}/standings`,
+            ],
+            [
+              'Bracket',
+              'Knockout qualification and progression',
+              `/tournaments/${tournamentId}/playoffs`,
+            ],
+          ].map(
+            ([
+              title,
+              description,
+              href,
+            ]) => (
+              <Link
+                key={
+                  title
+                }
+                href={
+                  href
+                }
+                className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
+              >
+                <p className="font-black">
+                  {
+                    title
+                  }
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-slate-600">
+                  {
+                    description
+                  }
+                </p>
+
+                <span className="mt-3 inline-flex text-xs font-black text-sky-300">
+                  Open →
+                </span>
+              </Link>
+            ),
+          )}
+        </section>
       </div>
     </AppShell>
   );

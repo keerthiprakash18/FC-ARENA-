@@ -291,3 +291,96 @@ export function competitionLabel(value: string | null | undefined) {
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
+
+
+export function FcErrorState({
+  message,
+}: {
+  message: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
+      {message}
+    </div>
+  );
+}
+
+export function FcMenuRow(
+  props: Parameters<typeof FcActionRow>[0],
+) {
+  return (
+    <FcActionRow
+      {...props}
+    />
+  );
+}
+
+export function FcConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  destructive = false,
+  busy = false,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+  busy?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="w-full max-w-md rounded-[24px] border border-white/10 bg-[#08111b] p-5 shadow-2xl"
+      >
+        <h2 className="text-xl font-black">
+          {title}
+        </h2>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {description}
+        </p>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onCancel}
+            className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400 disabled:opacity-40"
+          >
+            {cancelLabel}
+          </button>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onConfirm}
+            className={`rounded-xl px-4 py-3 text-sm font-black disabled:opacity-40 ${
+              destructive
+                ? 'bg-red-400 text-[#1b0505]'
+                : 'bg-sky-400 text-[#031019]'
+            }`}
+          >
+            {busy
+              ? 'Working...'
+              : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

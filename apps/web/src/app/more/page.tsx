@@ -218,11 +218,10 @@ export default function MorePage() {
         inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="space-y-6">
         <FcPageHeader
-          eyebrow="Secondary Hub"
           title="More"
-          subtitle="Choose a feature. Each option now opens a dedicated screen instead of expanding more content into this page."
+          subtitle="Profile, career, community and account tools."
           action={
             <FcStatusBadge
               label={
@@ -242,7 +241,7 @@ export default function MorePage() {
 
         <FcPanel className="p-5">
           <div className="flex items-center gap-4">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-sky-400/20 bg-sky-400/[0.07] font-black text-sky-300">
+            <div className="grid h-11 w-11 place-items-center rounded-xl border border-[#2B3948] bg-[#18212C] text-sm font-semibold text-[#38BDF8]">
               {inGameName
                 .slice(
                   0,
@@ -489,7 +488,7 @@ export default function MorePage() {
             onClick={() =>
               void logout()
             }
-            className="mt-4 w-full rounded-2xl border border-red-400/25 bg-red-400/[0.04] px-5 py-4 text-sm font-black uppercase tracking-[0.12em] text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-50"
+            className="mt-4 w-full rounded-[10px] border border-red-400/20 bg-red-400/[0.04] px-4 py-3 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-50"
           >
             {loggingOut
               ? 'Signing Out...'

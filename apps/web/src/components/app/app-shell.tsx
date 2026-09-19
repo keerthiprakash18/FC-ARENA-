@@ -130,7 +130,7 @@ export function AppShell({
             </span>
 
             <div>
-              <p className="text-lg font-semibold tracking-[-0.02em] text-[#F8FAFC]">
+              <p className="fc-display-strong text-xl text-[#F8FAFC]">
                 FC <span className="text-[#19B7FF]">ARENA</span>
               </p>
 
@@ -186,7 +186,7 @@ export function AppShell({
                       }
                     </span>
 
-                    <span className="font-medium">
+                    <span className="fc-display text-[15px] font-semibold">
                       {
                         item.shortLabel
                       }
@@ -225,7 +225,7 @@ export function AppShell({
                     }
                   </span>
 
-                  <span>
+                  <span className="fc-display text-[13px] font-medium">
                     {
                       item.label
                     }

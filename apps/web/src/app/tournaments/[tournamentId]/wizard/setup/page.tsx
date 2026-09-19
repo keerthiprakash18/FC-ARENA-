@@ -24,6 +24,10 @@ import {
 } from '@/components/tournaments/tournament-wizard-shell';
 
 import {
+  TournamentLogoUpload,
+} from '@/components/tournaments/tournament-logo-upload';
+
+import {
   authenticatedRequest,
   getCurrentUser,
   type CurrentUser,
@@ -400,14 +404,6 @@ export default function TournamentSetupPage() {
                     'rules',
                   ) ?? '',
                 ),
-
-              logoUrl:
-                String(
-                  form.get(
-                    'logoUrl',
-                  ) ?? '',
-                ) ||
-                undefined,
 
               mode,
 
@@ -970,21 +966,14 @@ export default function TournamentSetupPage() {
           </div>
 
 
-          <div className="field">
-            <label>
-              Tournament Logo URL
-            </label>
-
-            <input
-              name="logoUrl"
-              type="url"
-              placeholder="https://..."
-              defaultValue={
-                tournament.logoUrl ??
-                ''
-              }
-            />
-          </div>
+          <TournamentLogoUpload
+            tournamentId={
+              tournamentId
+            }
+            initialUrl={
+              tournament.logoUrl
+            }
+          />
 
 
           <div className="field">

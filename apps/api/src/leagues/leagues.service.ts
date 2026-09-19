@@ -8,6 +8,7 @@ import {
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import type { CreateLeagueDto } from './dto/create-league.dto.js';
+import type { DeleteLeagueDto } from './dto/delete-league.dto.js';
 
 const LEAGUE_MEMBER_LIMIT = 100;
 const PLAYER_LEAGUE_LIMIT = 2;
@@ -620,6 +621,117 @@ export class LeaguesService {
       error: null,
     };
   }
+
+  async deleteLeague(
+    userId: string,
+    leagueId: string,
+    dto: DeleteLeagueDto,
+  ) {
+    const league = await this.prisma.league.findUnique({
+      where: {
+        id: leagueId,
+      },
+      include: {
+        members: {
+          select: {
+            userId: true,
+            type: true,
+          },
+        },
+        _count: {
+          select: {
+            tournaments: true,
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (!league) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+        error: {
+          code: 'LEAGUE_NOT_FOUND',
+          message: 'League could not be found.',
+        },
+      });
+    }
+
+    if (league.creatorUserId !== userId) {
+      throw new ForbiddenException({
+        success: false,
+        data: null,
+        error: {
+          code: 'LEAGUE_OWNER_REQUIRED',
+          message: 'Only the League owner can delete this League.',
+        },
+      });
+    }
+
+    if (
+      dto.confirmName.trim().toLocaleLowerCase() !==
+      league.name.trim().toLocaleLowerCase()
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'LEAGUE_DELETE_CONFIRMATION_MISMATCH',
+          message: 'League name confirmation does not match.',
+        },
+      });
+    }
+
+    const primaryMemberUserIds = league.members
+      .filter((membership) => membership.type === 'PRIMARY')
+      .map((membership) => membership.userId);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.league.delete({
+        where: {
+          id: leagueId,
+        },
+      });
+
+      for (const memberUserId of primaryMemberUserIds) {
+        const replacement = await tx.leagueMember.findFirst({
+          where: {
+            userId: memberUserId,
+          },
+          orderBy: {
+            joinedAt: 'asc',
+          },
+        });
+
+        if (replacement) {
+          await tx.leagueMember.update({
+            where: {
+              id: replacement.id,
+            },
+            data: {
+              type: 'PRIMARY',
+            },
+          });
+        }
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        message: 'League deleted successfully.',
+        deletedLeague: {
+          id: league.id,
+          name: league.name,
+          members: league._count.members,
+          tournaments: league._count.tournaments,
+        },
+      },
+      error: null,
+    };
+  }
+
 
   async leaveLeague(userId: string, leagueId: string) {
     const league = await this.prisma.league.findUnique({

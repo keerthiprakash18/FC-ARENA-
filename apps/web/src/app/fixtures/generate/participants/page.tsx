@@ -922,9 +922,7 @@ export default function FixtureParticipantsPage() {
         }
 
         if (
-          registrationId &&
-          row.source ===
-          'TOURNAMENT'
+          registrationId
         ) {
           await authenticatedRequest(
             `/tournaments/${draft.tournamentId}/entries/${registrationId}`,
@@ -1330,11 +1328,6 @@ export default function FixtureParticipantsPage() {
                                 event
                                   .target
                                   .value,
-                              registrationId:
-                                row.source ===
-                                'TOURNAMENT'
-                                  ? row.registrationId
-                                  : null,
                             },
                           )
                       }

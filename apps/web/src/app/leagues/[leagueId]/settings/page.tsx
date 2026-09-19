@@ -283,6 +283,86 @@ export default function LeagueSettingsPage() {
   }
 
 
+  async function deleteLeague() {
+    if (
+      !league ||
+      league.adminRole !==
+        'OWNER'
+    ) {
+      return;
+    }
+
+    const confirmation =
+      window.prompt(
+        `This permanently deletes "${league.name}" and its tournaments, fixtures, standings and League memberships. Type the League name exactly to continue.`,
+      );
+
+    if (
+      confirmation ===
+      null
+    ) {
+      return;
+    }
+
+    if (
+      confirmation.trim() !==
+      league.name.trim()
+    ) {
+      setError(
+        'League name confirmation does not match.',
+      );
+
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError(
+      '',
+    );
+
+    setMessage(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/leagues/${leagueId}`,
+        {
+          method:
+            'DELETE',
+
+          body:
+            JSON.stringify({
+              confirmName:
+                confirmation,
+            }),
+        },
+      );
+
+      router.replace(
+        '/leagues',
+      );
+
+      router.refresh();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete League.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
   async function reviewApplication(
     applicationId:
       string,
@@ -460,7 +540,8 @@ export default function LeagueSettingsPage() {
               </button>
             ) : null}
 
-            {!league.adminRole ? (
+            {league.adminRole !==
+            'OWNER' ? (
               <button
                 type="button"
                 disabled={
@@ -614,11 +695,37 @@ export default function LeagueSettingsPage() {
         ) : null}
 
 
-        {league.adminRole ? (
-          <FcPanel className="p-5">
-            <p className="text-sm leading-6 text-slate-500">
-              The current backend does not expose a League edit endpoint, so this screen intentionally does not show fake edit controls for name, region, logo, description or rules.
-            </p>
+        {league.adminRole ===
+        'OWNER' ? (
+          <FcPanel className="border-red-400/20 p-5 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-red-300">
+                  Danger Zone
+                </p>
+
+                <h2 className="mt-2 text-lg font-semibold text-[#F8FAFC]">
+                  Delete League
+                </h2>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7B0BE]">
+                  Permanently deletes this League and all League-owned tournaments, fixtures, standings, applications and memberships. This action cannot be undone.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={
+                  busy
+                }
+                onClick={() =>
+                  void deleteLeague()
+                }
+                className="min-h-11 shrink-0 rounded-[10px] border border-red-400/35 bg-red-400/[0.06] px-5 text-sm font-semibold text-red-300 transition hover:bg-red-400/[0.10] disabled:opacity-40"
+              >
+                Delete League
+              </button>
+            </div>
           </FcPanel>
         ) : null}
       </div>

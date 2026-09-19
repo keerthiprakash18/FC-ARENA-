@@ -15,6 +15,17 @@ import {
 } from '@/components/app/app-shell';
 
 import {
+  BackHeader,
+} from '@/components/app/back-header';
+
+import {
+  FcCrest,
+  FcEmptyState,
+  FcLoadingScreen,
+  FcPanel,
+} from '@/components/fc/fc-ui';
+
+import {
   TournamentNavigation,
 } from '@/components/tournaments/tournament-navigation';
 
@@ -30,6 +41,13 @@ interface Entry {
   entryName: string | null;
   entryLogoUrl: string | null;
   fixtureCount: number;
+}
+
+
+interface Tournament {
+  id: string;
+  name: string;
+  maxEntries: number;
 }
 
 
@@ -57,7 +75,7 @@ export default function TournamentTeamsPage() {
     tournament,
     setTournament,
   ] =
-    useState<any>(
+    useState<Tournament | null>(
       null,
     );
 
@@ -71,7 +89,7 @@ export default function TournamentTeamsPage() {
 
 
   useEffect(() => {
-    async function load() {
+    void (async () => {
       try {
         const [
           current,
@@ -107,12 +125,10 @@ export default function TournamentTeamsPage() {
         );
       } catch {
         router.replace(
-          '/tournaments',
+          `/tournaments/${tournamentId}`,
         );
       }
-    }
-
-    void load();
+    })();
   }, [
     router,
     tournamentId,
@@ -124,9 +140,9 @@ export default function TournamentTeamsPage() {
     !tournament
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Teams...
-      </div>
+      <FcLoadingScreen
+        label="Loading Tournament Teams..."
+      />
     );
   }
 
@@ -139,8 +155,18 @@ export default function TournamentTeamsPage() {
           ?.inGameName
       }
     >
-
       <div className="space-y-6">
+        <BackHeader
+          backHref={
+            `/tournaments/${tournamentId}`
+          }
+          backLabel="Tournament Overview"
+          eyebrow={
+            tournament.name
+          }
+          title="Teams"
+          subtitle="Tournament entries only. Group assignment and fixture scheduling stay on their own dedicated screens."
+        />
 
         <TournamentNavigation
           tournamentId={
@@ -149,89 +175,66 @@ export default function TournamentTeamsPage() {
         />
 
 
-        <section className="rounded-[28px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
-
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-            Tournament Teams
-          </p>
-
-          <h1 className="mt-2 text-4xl font-black">
-            {
-              tournament.name
+        {entries.length ===
+        0 ? (
+          <FcEmptyState
+            title="No Tournament teams yet"
+            description="Teams will appear here once entries are added or approved."
+            actionLabel="Open Registration"
+            actionHref={
+              `/tournaments/${tournamentId}/registration`
             }
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            {
-              entries.length
-            } team(s)
-          </p>
-
-        </section>
-
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-
-          {entries.map(
-            (
-              entry,
-            ) => (
-
-              <article
-                key={
-                  entry.id
-                }
-                className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1018] p-5"
-              >
-
-                <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-xl bg-white/[0.04]">
-
-                  {entry.entryLogoUrl ? (
-                    <img
-                      src={
+          />
+        ) : (
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {entries.map(
+              (
+                entry,
+              ) => (
+                <FcPanel
+                  key={
+                    entry.id
+                  }
+                  className="p-5"
+                >
+                  <div className="flex items-center gap-4">
+                    <FcCrest
+                      name={
+                        entry.entryName ||
+                        'FC Team'
+                      }
+                      imageUrl={
                         entry.entryLogoUrl
                       }
-                      alt=""
-                      className="h-full w-full object-cover"
                     />
-                  ) : (
-                    <span className="font-black text-slate-500">
-                      {entry.entryName
-                        ?.slice(
-                          0,
-                          2,
-                        )
-                        .toUpperCase() ??
-                        'FC'}
-                    </span>
-                  )}
 
-                </div>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="truncate font-black">
+                        {entry.entryName ||
+                          'Unnamed Team'}
+                      </h2>
+
+                      <p className="mt-1 text-xs text-slate-600">
+                        {
+                          entry.fixtureCount
+                        }{' '}
+                        fixtures
+                      </p>
+                    </div>
+                  </div>
+                </FcPanel>
+              ),
+            )}
+          </section>
+        )}
 
 
-                <div>
-                  <h2 className="font-black">
-                    {
-                      entry.entryName ??
-                      'Unnamed Team'
-                    }
-                  </h2>
-
-                  <p className="mt-1 text-xs text-slate-600">
-                    {
-                      entry.fixtureCount
-                    } fixtures
-                  </p>
-                </div>
-
-              </article>
-            ),
-          )}
-
-        </div>
-
+        <FcPanel className="p-5">
+          <p className="text-sm leading-6 text-slate-500">
+            {entries.length} of {tournament.maxEntries} Tournament entry slots currently contain real team data.
+          </p>
+        </FcPanel>
       </div>
-
     </AppShell>
   );
 }

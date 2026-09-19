@@ -74,6 +74,12 @@ type Filter =
   | 'UPCOMING'
   | 'COMPLETED';
 
+type CompetitionFormat =
+  | 'LEAGUE_ROUND_ROBIN'
+  | 'DOUBLE_ROUND_ROBIN'
+  | 'SINGLE_ELIMINATION'
+  | 'GROUP_STAGE_KNOCKOUT';
+
 
 function tournamentFilter(
   tournament: Tournament,
@@ -190,6 +196,17 @@ export default function TournamentsPage() {
   ] =
     useState<Filter>(
       'ACTIVE',
+    );
+
+
+  const [
+    formatFilter,
+    setFormatFilter,
+  ] =
+    useState<
+      CompetitionFormat | null
+    >(
+      null,
     );
 
   const [
@@ -351,15 +368,36 @@ export default function TournamentsPage() {
         tournaments.filter(
           (
             tournament,
-          ) =>
-            tournamentFilter(
-              tournament,
-            ) ===
-            filter,
+          ) => {
+            if (
+              tournamentFilter(
+                tournament,
+              ) !==
+              filter
+            ) {
+              return false;
+            }
+
+            if (
+              !formatFilter
+            ) {
+              return true;
+            }
+
+            const format =
+              tournament.competitionFormat ||
+              tournament.format;
+
+            return (
+              format ===
+              formatFilter
+            );
+          },
         ),
       [
         tournaments,
         filter,
+        formatFilter,
       ],
     );
 
@@ -629,9 +667,28 @@ export default function TournamentsPage() {
                     .name
                 }
                 title={
-                  `${filter.charAt(0)}${filter
-                    .slice(1)
-                    .toLowerCase()} Tournaments`
+                  formatFilter
+                    ? `${competitionLabel(formatFilter)} · ${filter.charAt(0)}${filter
+                        .slice(1)
+                        .toLowerCase()}`
+                    : `${filter.charAt(0)}${filter
+                        .slice(1)
+                        .toLowerCase()} Tournaments`
+                }
+                action={
+                  formatFilter ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormatFilter(
+                          null,
+                        )
+                      }
+                      className="rounded-[10px] border border-[#203141] bg-[#101923] px-3 py-2 text-xs font-semibold text-[#A7B0BE] transition hover:border-[#2D4356] hover:text-[#F8FAFC]"
+                    >
+                      Clear Format
+                    </button>
+                  ) : null
                 }
               />
 
@@ -844,50 +901,185 @@ export default function TournamentsPage() {
               <FcSectionHeading
                 eyebrow="Formats"
                 title="Supported Competition Structures"
+                action={
+                  formatFilter ? (
+                    <span className="rounded-full border border-[#19B7FF]/20 bg-[#19B7FF]/[0.06] px-3 py-1.5 text-xs font-semibold text-[#19B7FF]">
+                      Filter Active
+                    </span>
+                  ) : null
+                }
               />
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  [
-                    'League / Round Robin',
-                    'Every team meets every opponent.',
-                  ],
-                  [
-                    'Double Round Robin',
-                    'Home and away reverse legs.',
-                  ],
-                  [
-                    'Knockout',
-                    'Single-elimination bracket progression.',
-                  ],
-                  [
-                    'Group + Knockout',
-                    'Groups, qualification and playoff bracket.',
-                  ],
-                ].map(
-                  ([
-                    title,
-                    description,
-                  ]) => (
-                    <div
-                      key={
-                        title
-                      }
-                      className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"
-                    >
-                      <p className="font-black">
-                        {
-                          title
-                        }
-                      </p>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6F7B8A]">
+                These are real FC ARENA tournament modes. Filter the current list by structure, or start a new tournament with the selected format already configured.
+              </p>
 
-                      <p className="mt-2 text-xs leading-5 text-slate-600">
-                        {
-                          description
+              <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {([
+                  {
+                    value:
+                      'LEAGUE_ROUND_ROBIN',
+                    title:
+                      'League / Round Robin',
+                    description:
+                      'Every team meets every opponent once.',
+                    icon:
+                      '↻',
+                    meta:
+                      'Single leg · Auto fixtures',
+                  },
+                  {
+                    value:
+                      'DOUBLE_ROUND_ROBIN',
+                    title:
+                      'Double Round Robin',
+                    description:
+                      'Every pairing is played home and away.',
+                    icon:
+                      '⇄',
+                    meta:
+                      'Home & away · 2 legs',
+                  },
+                  {
+                    value:
+                      'SINGLE_ELIMINATION',
+                    title:
+                      'Knockout',
+                    description:
+                      'Single-elimination bracket with automatic progression.',
+                    icon:
+                      '◇',
+                    meta:
+                      'Bracket · Winner advances',
+                  },
+                  {
+                    value:
+                      'GROUP_STAGE_KNOCKOUT',
+                    title:
+                      'Group + Knockout',
+                    description:
+                      'Group stage, qualification rules and playoff bracket.',
+                    icon:
+                      '▦',
+                    meta:
+                      'Groups · Qualifiers · Playoffs',
+                  },
+                ] as Array<{
+                  value:
+                    CompetitionFormat;
+                  title:
+                    string;
+                  description:
+                    string;
+                  icon:
+                    string;
+                  meta:
+                    string;
+                }>).map(
+                  (
+                    item,
+                  ) => {
+                    const selected =
+                      formatFilter ===
+                      item.value;
+
+                    return (
+                      <article
+                        key={
+                          item.value
                         }
-                      </p>
-                    </div>
-                  ),
+                        className={`group flex min-h-[230px] flex-col rounded-2xl border p-4 transition duration-200 ${
+                          selected
+                            ? 'border-[#19B7FF]/35 bg-[#19B7FF]/[0.055] shadow-[0_10px_28px_rgba(25,183,255,0.06)]'
+                            : 'border-[#203141] bg-[#101923] hover:-translate-y-0.5 hover:border-[#2D4356] hover:bg-[#121D28]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <span className={`grid h-11 w-11 place-items-center rounded-xl border text-lg ${
+                            selected
+                              ? 'border-[#19B7FF]/25 bg-[#19B7FF]/[0.08] text-[#19B7FF]'
+                              : 'border-[#203141] bg-[#14212D] text-[#A7B0BE]'
+                          }`}>
+                            {
+                              item.icon
+                            }
+                          </span>
+
+                          <FcStatusBadge
+                            label="Ready"
+                            tone="emerald"
+                          />
+                        </div>
+
+                        <h3 className="mt-4 text-base font-semibold text-[#F8FAFC]">
+                          {
+                            item.title
+                          }
+                        </h3>
+
+                        <p className="mt-2 text-xs leading-5 text-[#6F7B8A]">
+                          {
+                            item.description
+                          }
+                        </p>
+
+                        <p className="mt-3 text-[11px] font-medium text-[#8290A0]">
+                          {
+                            item.meta
+                          }
+                        </p>
+
+                        <div className="mt-auto grid gap-2 pt-5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormatFilter(
+                                selected
+                                  ? null
+                                  : item.value,
+                              );
+
+                              window.scrollTo({
+                                top:
+                                  420,
+                                behavior:
+                                  'smooth',
+                              });
+                            }}
+                            className={`min-h-10 rounded-[10px] border px-3 text-sm font-semibold transition ${
+                              selected
+                                ? 'border-[#19B7FF]/30 bg-[#19B7FF]/[0.08] text-[#19B7FF]'
+                                : 'border-[#203141] bg-[#0B1118] text-[#A7B0BE] hover:border-[#2D4356] hover:text-[#F8FAFC]'
+                            }`}
+                          >
+                            {selected
+                              ? 'Showing This Format'
+                              : 'Show Tournaments'}
+                          </button>
+
+                          {selectedMembership.adminRole ? (
+                            <Link
+                              href={
+                                `/leagues/${selectedMembership.league.id}/tournaments?create=1&format=${item.value}`
+                              }
+                              className="inline-flex min-h-10 items-center justify-center rounded-[10px] bg-[#19B7FF] px-3 text-sm font-semibold text-[#071019] transition hover:bg-[#21C3FF]"
+                            >
+                              Create with this Format →
+                            </Link>
+                          ) : (
+                            <Link
+                              href={
+                                `/leagues/${selectedMembership.league.id}/tournaments`
+                              }
+                              className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-3 text-sm font-medium text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
+                            >
+                              Open League Tournaments →
+                            </Link>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  },
                 )}
               </div>
             </FcPanel>

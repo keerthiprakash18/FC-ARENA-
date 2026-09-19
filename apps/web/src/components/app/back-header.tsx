@@ -18,10 +18,10 @@ export function BackHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <header className="space-y-5">
+    <header className="space-y-4">
       <Link
         href={backHref}
-        className="inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-sky-300"
+        className="inline-flex items-center gap-2 text-sm font-medium text-[#6F7B8A] transition hover:text-[#38BDF8]"
       >
         <span>←</span>
         <span>{backLabel}</span>
@@ -30,17 +30,17 @@ export function BackHeader({
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           {eyebrow ? (
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
+            <p className="text-xs font-medium text-[#6F7B8A]">
               {eyebrow}
             </p>
           ) : null}
 
-          <h1 className="mt-2 font-['Rajdhani','Space_Grotesk',sans-serif] text-3xl font-black uppercase tracking-[-0.03em] sm:text-4xl">
+          <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-[32px]">
             {title}
           </h1>
 
           {subtitle ? (
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7B0BE]">
               {subtitle}
             </p>
           ) : null}

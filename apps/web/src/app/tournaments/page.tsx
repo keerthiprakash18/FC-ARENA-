@@ -430,11 +430,10 @@ export default function TournamentsPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="space-y-6">
         <FcPageHeader
-          eyebrow="Competition Hub"
           title="Tournaments"
-          subtitle="Create, follow and manage competitions inside your currently selected FC ARENA League."
+          subtitle="Create, follow and manage competitions in your selected League."
           action={
             selectedMembership
               ?.adminRole ? (
@@ -442,7 +441,7 @@ export default function TournamentsPage() {
                 href={
                   `/leagues/${selectedMembership.league.id}/tournaments`
                 }
-                className="inline-flex rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019] transition hover:bg-sky-300"
+                className="inline-flex min-h-11 items-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#0EA5E9]"
               >
                 + Create Tournament
               </Link>
@@ -523,7 +522,7 @@ export default function TournamentsPage() {
         ) : (
           <>
             <FcPanel className="overflow-hidden">
-              <div className="flex flex-col gap-5 border-b border-white/[0.07] bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_60%)] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="flex flex-col gap-5 border-b border-[#253140] bg-[#151C26] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <div className="flex items-center gap-4">
                   <FcCrest
                     name={
@@ -706,9 +705,9 @@ export default function TournamentsPage() {
                           href={
                             `/tournaments/${tournament.id}`
                           }
-                          className="group overflow-hidden rounded-[26px] border border-white/10 bg-[#08111b] transition duration-200 hover:-translate-y-0.5 hover:border-sky-400/30"
+                          className="group overflow-hidden rounded-2xl border border-[#253140] bg-[#121821] transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
                         >
-                          <div className="relative min-h-28 border-b border-white/[0.07] bg-[radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.18),transparent_28%),linear-gradient(120deg,rgba(14,165,233,0.06),transparent_60%)] p-5">
+                          <div className="relative min-h-28 border-b border-[#253140] bg-[#151C26] p-5">
                             <div className="flex items-start justify-between gap-4">
                               <FcCrest
                                 name={
@@ -732,7 +731,7 @@ export default function TournamentsPage() {
                               />
                             </div>
 
-                            <h3 className="mt-4 font-['Rajdhani','Space_Grotesk',sans-serif] text-2xl font-black uppercase tracking-[-0.02em]">
+                            <h3 className="mt-4 text-xl font-semibold tracking-[-0.02em] text-[#F8FAFC]">
                               {
                                 tournament.name
                               }

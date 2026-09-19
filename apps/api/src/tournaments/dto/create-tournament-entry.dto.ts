@@ -1,10 +1,13 @@
 import {
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+
+const CREST_SOURCE =
+  /^(https?:\/\/[^\s]+|data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+)$/;
 
 export class CreateTournamentEntryDto {
   @IsString()
@@ -13,8 +16,14 @@ export class CreateTournamentEntryDto {
   entryName!: string;
 
   @IsOptional()
-  @IsUrl({
-    require_protocol: true,
-  })
+  @IsString()
+  @MaxLength(750000)
+  @Matches(
+    CREST_SOURCE,
+    {
+      message:
+        'entryLogoUrl must be an http(s) image URL or PNG/JPEG/WEBP image data.',
+    },
+  )
   entryLogoUrl?: string;
 }

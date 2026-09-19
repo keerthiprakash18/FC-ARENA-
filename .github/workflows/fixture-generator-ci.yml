@@ -1,0 +1,45 @@
+name: Fixture Generator CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/src/tournaments/**"
+      - "apps/web/src/app/fixtures/**"
+      - "apps/web/src/components/fixtures/**"
+      - "apps/web/src/lib/fixture-generator-draft.ts"
+      - ".github/workflows/fixture-generator-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fixture engine tests
+        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
+
+      - name: API build
+        run: npm run build:api
+
+      - name: Web lint
+        run: npm run lint --workspace=apps/web
+
+      - name: Web build
+        run: npm run build:web

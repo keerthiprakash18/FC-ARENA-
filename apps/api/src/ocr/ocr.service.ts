@@ -484,6 +484,8 @@ export class OcrService {
 
     if (
       extraction.match.status !==
+        'UNSCHEDULED' &&
+      extraction.match.status !==
         'SCHEDULED' &&
       extraction.match.status !==
         'LIVE'
@@ -496,7 +498,7 @@ export class OcrService {
             'MATCH_NOT_OPEN_FOR_RESULT',
 
           message:
-            'Only scheduled or live matches can accept a result.',
+            'Only unscheduled, scheduled or live matches can accept a result.',
         },
       });
     }

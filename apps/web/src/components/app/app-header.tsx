@@ -18,24 +18,24 @@ export function AppHeader({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#030812]/88 backdrop-blur-2xl">
-      <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:h-[72px] lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-[#253140] bg-[#0B0F14]/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 lg:hidden"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-xl border border-sky-400/20 bg-sky-400/[0.07] text-sky-300">
+          <span className="grid h-9 w-9 place-items-center rounded-xl border border-[#2B3948] bg-[#151C26] text-[#38BDF8]">
             ♛
           </span>
 
-          <span className="font-['Rajdhani','Space_Grotesk',sans-serif] text-xl font-black">
-            FC <span className="text-sky-400">ARENA</span>
+          <span className="text-lg font-semibold tracking-[-0.02em]">
+            FC <span className="text-[#38BDF8]">ARENA</span>
           </span>
         </Link>
 
         <div className="hidden lg:block">
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-600">
-            More Than A Game
+          <p className="text-xs font-medium text-[#6F7B8A]">
+            FC ARENA
           </p>
         </div>
 
@@ -43,20 +43,20 @@ export function AppHeader({
           <Link
             href="/notifications"
             aria-label="Notifications"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-slate-400 transition hover:border-sky-400/25 hover:text-sky-300"
+            className="grid h-10 w-10 place-items-center rounded-[10px] border border-[#253140] bg-[#121821] text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
           >
             ◉
           </Link>
 
           <Link
             href="/profile"
-            className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-2.5 transition hover:border-sky-400/25"
+            className="flex h-10 items-center gap-2 rounded-[10px] border border-[#253140] bg-[#121821] px-2.5 transition hover:bg-[#151C26]"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-sky-400 text-[10px] font-black text-[#031019]">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#18212C] text-[10px] font-semibold text-[#38BDF8]">
               {initials}
             </span>
 
-            <span className="hidden max-w-[150px] truncate text-xs font-black text-slate-300 sm:block">
+            <span className="hidden max-w-[150px] truncate text-xs font-medium text-[#A7B0BE] sm:block">
               {playerName ||
                 'Player'}
             </span>

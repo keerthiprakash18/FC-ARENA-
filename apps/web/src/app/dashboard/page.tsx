@@ -16,11 +16,10 @@ import {
 
 import {
   FcCrest,
-  FcEmptyState,
   FcLoadingScreen,
   FcPageHeader,
   FcPanel,
-  FcSectionHeading,
+  FcQuickActionTile,
   FcStatCard,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
@@ -81,6 +80,7 @@ interface CareerData {
 
     tournament: {
       name: string;
+
       league: {
         name: string;
       };
@@ -113,6 +113,7 @@ interface Membership {
     id: string;
     name: string;
     code: string;
+    logoUrl?: string | null;
     region: string | null;
     members: number;
     maxMembers: number;
@@ -124,6 +125,7 @@ interface Tournament {
   id: string;
   name: string;
   code: string;
+  logoUrl?: string | null;
   status: string;
   format: string;
   competitionFormat?: string;
@@ -187,6 +189,98 @@ function entryName(
     entry.members[0]
       ?.fullName ||
     'Entry'
+  );
+}
+
+
+function fixtureIsOpen(
+  fixture: DashboardFixture,
+) {
+  return (
+    ![
+      'COMPLETED',
+      'CANCELLED',
+    ].includes(
+      fixture.status,
+    ) &&
+    ![
+      'COMPLETED',
+      'CANCELLED',
+    ].includes(
+      fixture.match
+        ?.status ??
+        '',
+    )
+  );
+}
+
+
+function sortUpcoming(
+  first: DashboardFixture,
+  second: DashboardFixture,
+) {
+  if (
+    !first.scheduledAt &&
+    !second.scheduledAt
+  ) {
+    return 0;
+  }
+
+  if (
+    !first.scheduledAt
+  ) {
+    return 1;
+  }
+
+  if (
+    !second.scheduledAt
+  ) {
+    return -1;
+  }
+
+  return (
+    new Date(
+      first.scheduledAt,
+    ).getTime() -
+    new Date(
+      second.scheduledAt,
+    ).getTime()
+  );
+}
+
+
+function SectionTitle({
+  icon,
+  title,
+  href,
+  linkLabel = 'View All →',
+}: {
+  icon: string;
+  title: string;
+  href?: string;
+  linkLabel?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#203141] bg-[#14212D] text-base text-[#19B7FF]">
+          {icon}
+        </span>
+
+        <h2 className="text-lg font-semibold tracking-[-0.015em] text-[#F8FAFC]">
+          {title}
+        </h2>
+      </div>
+
+      {href ? (
+        <Link
+          href={href}
+          className="text-sm font-medium text-[#8290A0] transition hover:text-[#19B7FF]"
+        >
+          {linkLabel}
+        </Link>
+      ) : null}
+    </div>
   );
 }
 
@@ -450,67 +544,50 @@ export default function DashboardPage() {
 
   const nextFixture =
     useMemo(
+      () =>
+        fixtures
+          .filter(
+            fixtureIsOpen,
+          )
+          .sort(
+            sortUpcoming,
+          )[0] ??
+        null,
+      [
+        fixtures,
+      ],
+    );
+
+
+  const activeTournamentNextFixture =
+    useMemo(
       () => {
-        const open =
-          fixtures.filter(
-            (
-              fixture,
-            ) =>
-              ![
-                'COMPLETED',
-                'CANCELLED',
-              ].includes(
-                fixture.status,
-              ) &&
-              ![
-                'COMPLETED',
-                'CANCELLED',
-              ].includes(
-                fixture.match
-                  ?.status ??
-                  '',
-              ),
-          );
+        if (
+          !activeTournament
+        ) {
+          return null;
+        }
 
         return (
-          open.sort(
-            (
-              first,
-              second,
-            ) => {
-              if (
-                !first.scheduledAt &&
-                !second.scheduledAt
-              ) {
-                return 0;
-              }
-
-              if (
-                !first.scheduledAt
-              ) {
-                return 1;
-              }
-
-              if (
-                !second.scheduledAt
-              ) {
-                return -1;
-              }
-
-              return (
-                new Date(
-                  first.scheduledAt,
-                ).getTime() -
-                new Date(
-                  second.scheduledAt,
-                ).getTime()
-              );
-            },
-          )[0] ??
+          fixtures
+            .filter(
+              (
+                fixture,
+              ) =>
+                fixture.tournamentId ===
+                  activeTournament.id &&
+                fixtureIsOpen(
+                  fixture,
+                ),
+            )
+            .sort(
+              sortUpcoming,
+            )[0] ??
           null
         );
       },
       [
+        activeTournament,
         fixtures,
       ],
     );
@@ -553,18 +630,59 @@ export default function DashboardPage() {
         ?.adminRole,
     );
 
+  const leagueLogo =
+    primaryMembership
+      ?.league
+      .logoUrl ||
+    career.profile
+      .primaryLeague
+      ?.league
+      .logoUrl ||
+    null;
+
+  const createTournamentHref =
+    primaryMembership
+      ? `/leagues/${primaryMembership.league.id}/tournaments`
+      : '/leagues';
+
+  const progress =
+    activeTournament &&
+    activeTournament.maxEntries >
+      0
+      ? Math.min(
+          100,
+          (
+            activeTournament.approvedEntries /
+            activeTournament.maxEntries
+          ) *
+            100,
+        )
+      : 0;
+
+  const recentActivity =
+    career.matchHistory.slice(
+      0,
+      3,
+    );
+
 
   return (
     <AppShell
       playerName={
         inGameName
       }
+      playerRole={
+        primaryMembership
+          ?.adminRole ||
+        'Player'
+      }
     >
-      <div className="space-y-6">
+      <div className="space-y-7">
         <FcPageHeader
           title="Home"
           subtitle="Your FC ARENA overview"
         />
+
 
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
@@ -574,27 +692,33 @@ export default function DashboardPage() {
           </div>
         ) : null}
 
-        <FcPanel className="relative overflow-hidden p-5 sm:p-6">
-          <div className="absolute inset-y-0 left-0 w-1 bg-[#38BDF8]" />
 
-          <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
+        <FcPanel className="relative min-h-[190px] overflow-hidden p-5 sm:p-7">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_82%_105%,rgba(25,183,255,0.13),transparent_38%),linear-gradient(115deg,rgba(25,183,255,0.045),transparent_48%)]" />
+
+          <div className="pointer-events-none absolute -bottom-20 right-[-4%] hidden h-64 w-[46%] rounded-[50%] border border-white/[0.045] lg:block" />
+          <div className="pointer-events-none absolute -bottom-12 right-[3%] hidden h-48 w-[34%] rounded-[50%] border border-white/[0.035] lg:block" />
+          <div className="pointer-events-none absolute bottom-0 right-[10%] hidden h-24 w-px bg-white/[0.04] lg:block" />
+
+          <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
             <div>
-              <p className="text-sm font-medium text-[#A7B0BE]">
-                Welcome back
+              <p className="text-xs font-semibold tracking-[0.08em] text-[#19B7FF]">
+                WELCOME BACK
               </p>
 
-              <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-3xl">
+              <h2 className="mt-2 max-w-3xl text-[32px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#F8FAFC] sm:text-[38px] lg:text-[42px]">
                 {
                   inGameName
                 }
               </h2>
 
-              <p className="mt-2 max-w-xl text-sm leading-6 text-[#A7B0BE]">
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[#A7B0BE]">
                 Your player identity, form and next competition action in one place.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-[#253140] bg-[#151C26] p-3">
+
+            <div className="flex min-w-[220px] items-center gap-3 rounded-2xl border border-[#203141] bg-[#0B1118]/75 p-3.5 backdrop-blur-sm">
               <FcCrest
                 name={
                   inGameName
@@ -603,7 +727,7 @@ export default function DashboardPage() {
                   career.profile
                     .profileImageUrl
                 }
-                size="md"
+                size="lg"
               />
 
               <div className="min-w-0">
@@ -613,7 +737,7 @@ export default function DashboardPage() {
                   }
                 </p>
 
-                <p className="mt-1 font-mono text-xs text-[#38BDF8]">
+                <p className="mt-1 font-mono text-xs text-[#19B7FF]">
                   {
                     playerCode
                   }
@@ -642,14 +766,15 @@ export default function DashboardPage() {
         </FcPanel>
 
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Link href="/career">
             <FcStatCard
               label="Matches"
               value={
                 stats.matches
               }
-              detail="Open career stats"
+              detail="View career stats"
+              icon="▤"
             />
           </Link>
 
@@ -660,9 +785,10 @@ export default function DashboardPage() {
                 stats.wins
               }
               detail={
-                `${stats.draws} draws · ${stats.losses} losses`
+                `${stats.draws} draws • ${stats.losses} losses`
               }
               tone="emerald"
+              icon="✓"
             />
           </Link>
 
@@ -673,9 +799,10 @@ export default function DashboardPage() {
                 stats.goalsFor
               }
               detail={
-                `GD ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
+                `Goal difference: ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
               }
               tone="amber"
+              icon="⚽"
             />
           </Link>
 
@@ -685,148 +812,165 @@ export default function DashboardPage() {
               value={
                 `${stats.winRate}%`
               }
-              detail="Open career stats"
+              detail="View detailed stats"
+              icon="↗"
             />
           </Link>
         </section>
 
 
-        <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-          {nextFixture ? (
-            <FcPanel className="overflow-hidden p-5 sm:p-6">
-              <FcSectionHeading
-                eyebrow="Next Match"
-                title={
-                  nextFixture
-                    .tournamentName
-                }
-                action={
-                  <FcStatusBadge
-                    label={
-                      nextFixture.status
-                    }
-                    tone="cyan"
-                  />
-                }
-              />
+        <section className="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
+          <FcPanel className="p-5 sm:p-6">
+            <SectionTitle
+              icon="⚽"
+              title="Next Match"
+              href="/fixtures"
+            />
 
-              <p className="mt-2 text-xs text-slate-600">
-                {
-                  nextFixture.leagueName
-                }
-                {' · '}
-                {
-                  nextFixture.roundName
-                }
-              </p>
+            {nextFixture ? (
+              <>
+                <p className="mt-4 text-xs font-medium text-[#6F7B8A]">
+                  {
+                    nextFixture.tournamentName
+                  }
+                  {' • '}
+                  {
+                    nextFixture.roundName
+                  }
+                </p>
 
-              <div className="mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
-                <div className="flex min-w-0 flex-col items-center text-center">
-                  <FcCrest
-                    name={
-                      entryName(
-                        nextFixture.home,
-                      )
-                    }
-                    size="lg"
-                  />
+                <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
+                  <div className="flex min-w-0 flex-col items-center text-center">
+                    <FcCrest
+                      name={
+                        entryName(
+                          nextFixture.home,
+                        )
+                      }
+                      size="lg"
+                    />
 
-                  <p className="mt-3 w-full truncate font-black">
-                    {
-                      entryName(
-                        nextFixture.home,
-                      )
-                    }
-                  </p>
+                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#F8FAFC]">
+                      {
+                        entryName(
+                          nextFixture.home,
+                        )
+                      }
+                    </p>
+                  </div>
+
+                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#14212D] text-xs font-semibold text-[#A7B0BE]">
+                    VS
+                  </div>
+
+                  <div className="flex min-w-0 flex-col items-center text-center">
+                    <FcCrest
+                      name={
+                        entryName(
+                          nextFixture.away,
+                        )
+                      }
+                      size="lg"
+                    />
+
+                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#F8FAFC]">
+                      {
+                        entryName(
+                          nextFixture.away,
+                        )
+                      }
+                    </p>
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.06] px-4 py-3 text-sm font-black text-sky-300">
-                  VS
+                <div className="mt-6 flex flex-col gap-3 border-t border-[#203141] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs text-[#6F7B8A]">
+                      {
+                        nextFixture.leagueName
+                      }
+                    </p>
+
+                    <p className="mt-1 text-sm font-medium text-[#A7B0BE]">
+                      {nextFixture.scheduledAt
+                        ? new Date(
+                            nextFixture.scheduledAt,
+                          ).toLocaleString()
+                        : 'Schedule pending'}
+                    </p>
+                  </div>
+
+                  <Link
+                    href={
+                      nextFixture.match
+                        ?.id
+                        ? `/matches/${nextFixture.match.id}`
+                        : `/tournaments/${nextFixture.tournamentId}/fixtures`
+                    }
+                    className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#19B7FF] px-5 text-sm font-semibold text-[#071019] transition hover:bg-[#21C3FF]"
+                  >
+                    View Match →
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-dashed border-[#284154] bg-[#0B1118]/55 p-6 text-center sm:p-8">
+                <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#14212D] text-lg text-[#19B7FF]">
+                  ◷
                 </div>
 
-                <div className="flex min-w-0 flex-col items-center text-center">
-                  <FcCrest
-                    name={
-                      entryName(
-                        nextFixture.away,
-                      )
-                    }
-                    size="lg"
-                  />
+                <h3 className="mt-4 text-base font-semibold text-[#F8FAFC]">
+                  No upcoming match
+                </h3>
 
-                  <p className="mt-3 w-full truncate font-black">
-                    {
-                      entryName(
-                        nextFixture.away,
-                      )
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3 border-t border-white/[0.07] pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-bold text-slate-400">
-                  {nextFixture.scheduledAt
-                    ? new Date(
-                        nextFixture.scheduledAt,
-                      ).toLocaleString()
-                    : 'Schedule pending'}
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6F7B8A]">
+                  Your next scheduled fixture will appear here when a competition schedule is ready.
                 </p>
 
                 <Link
-                  href={
-                    nextFixture.match
-                      ?.id
-                      ? `/matches/${nextFixture.match.id}`
-                      : `/tournaments/${nextFixture.tournamentId}/fixtures`
-                  }
-                  className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9]"
+                  href="/fixtures"
+                  className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-[#19B7FF] px-5 text-sm font-semibold text-[#071019] hover:bg-[#21C3FF]"
                 >
-                  View Match
+                  View Fixtures →
                 </Link>
               </div>
-            </FcPanel>
-          ) : (
-            <FcEmptyState
-              title="No upcoming match"
-              description="Your next scheduled fixture will appear here as soon as the tournament schedule is ready."
-              actionLabel="Open Fixtures"
-              actionHref="/fixtures"
+            )}
+          </FcPanel>
+
+
+          <FcPanel className="p-5 sm:p-6">
+            <SectionTitle
+              icon="◈"
+              title="My League"
+              href="/leagues"
+              linkLabel="All Leagues →"
             />
-          )}
 
-
-          <div className="grid gap-5">
             {primaryMembership ? (
-              <FcPanel className="p-5">
-                <FcSectionHeading
-                  eyebrow="My League"
-                  title={
-                    primaryMembership
-                      .league
-                      .name
-                  }
-                  action={
-                    <FcStatusBadge
-                      label={
-                        primaryMembership.membershipType
-                      }
-                      tone="cyan"
-                    />
-                  }
-                />
-
-                <div className="mt-5 flex items-center gap-4">
+              <>
+                <div className="mt-6 flex items-center gap-4">
                   <FcCrest
                     name={
                       primaryMembership
                         .league
                         .name
                     }
+                    imageUrl={
+                      leagueLogo
+                    }
+                    size="lg"
                   />
 
-                  <div className="min-w-0">
-                    <p className="font-mono text-xs text-sky-400">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-semibold text-[#F8FAFC]">
+                      {
+                        primaryMembership
+                          .league
+                          .name
+                      }
+                    </h3>
+
+                    <p className="mt-1 font-mono text-xs text-[#19B7FF]">
                       {
                         primaryMembership
                           .league
@@ -834,215 +978,384 @@ export default function DashboardPage() {
                       }
                     </p>
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      {primaryMembership
-                        .league
-                        .region ||
-                        'FC ARENA League'}
-                    </p>
+                    <div className="mt-2">
+                      <FcStatusBadge
+                        label={
+                          primaryMembership.membershipType
+                        }
+                        tone="cyan"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-white/[0.025] p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600">
+
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                  <div className="rounded-xl border border-[#203141] bg-[#0B1118]/60 p-3">
+                    <p className="text-xs text-[#6F7B8A]">
+                      Region
+                    </p>
+
+                    <p className="mt-1 truncate text-sm font-medium text-[#F8FAFC]">
+                      {primaryMembership
+                        .league
+                        .region ||
+                        'Global'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#203141] bg-[#0B1118]/60 p-3">
+                    <p className="text-xs text-[#6F7B8A]">
                       Members
                     </p>
-                    <p className="mt-1 font-black">
+
+                    <p className="mt-1 text-sm font-medium text-[#F8FAFC]">
                       {
                         primaryMembership
                           .league
                           .members
                       }
-                      /
-                      {
-                        primaryMembership
-                          .league
-                          .maxMembers
-                      }
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-white/[0.025] p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                  <div className="rounded-xl border border-[#203141] bg-[#0B1118]/60 p-3">
+                    <p className="text-xs text-[#6F7B8A]">
                       Role
                     </p>
-                    <p className="mt-1 font-black text-sky-300">
+
+                    <p className="mt-1 truncate text-sm font-medium text-[#F8FAFC]">
                       {primaryMembership.adminRole ||
-                        'PLAYER'}
+                        'Player'}
                     </p>
                   </div>
                 </div>
+
 
                 <Link
                   href={
                     `/leagues/${primaryMembership.league.id}`
                   }
-                  className="mt-4 inline-flex text-sm font-black text-sky-300"
+                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#F8FAFC] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
                 >
                   Open League →
                 </Link>
-              </FcPanel>
+              </>
             ) : (
-              <FcEmptyState
-                title="No active league"
-                description="Join a league with a code or create your own competition community."
-                actionLabel="Open Leagues"
-                actionHref="/leagues"
-              />
-            )}
-
-
-            {activeTournament ? (
-              <FcPanel className="p-5">
-                <FcSectionHeading
-                  eyebrow="Active Tournament"
-                  title={
-                    activeTournament.name
-                  }
-                  action={
-                    <FcStatusBadge
-                      label={
-                        activeTournament.status
-                      }
-                      tone="emerald"
-                    />
-                  }
-                />
-
-                <p className="mt-2 text-xs text-slate-600">
-                  {
-                    activeTournament.competitionFormat
-                      ?.replaceAll(
-                        '_',
-                        ' ',
-                      ) ||
-                    activeTournament.format.replaceAll(
-                      '_',
-                      ' ',
-                    )
-                  }
+              <div className="mt-6 rounded-2xl border border-dashed border-[#284154] bg-[#0B1118]/55 p-6 text-center">
+                <p className="text-base font-semibold text-[#F8FAFC]">
+                  No active League
                 </p>
 
+                <p className="mt-2 text-sm leading-6 text-[#6F7B8A]">
+                  Join with an invite code or create your own FC ARENA League.
+                </p>
+
+                <Link
+                  href="/leagues"
+                  className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-[#19B7FF] px-5 text-sm font-semibold text-[#071019]"
+                >
+                  Join or Create League →
+                </Link>
+              </div>
+            )}
+          </FcPanel>
+        </section>
+
+
+        <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+          <FcPanel className="p-5 sm:p-6">
+            <SectionTitle
+              icon="🏆"
+              title="Active Tournament"
+              href="/tournaments"
+            />
+
+            {activeTournament ? (
+              <>
+                <div className="mt-6 flex items-center gap-4">
+                  <FcCrest
+                    name={
+                      activeTournament.name
+                    }
+                    imageUrl={
+                      activeTournament.logoUrl
+                    }
+                    size="lg"
+                  />
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-semibold text-[#F8FAFC]">
+                      {
+                        activeTournament.name
+                      }
+                    </h3>
+
+                    <p className="mt-1 text-xs text-[#6F7B8A]">
+                      {
+                        (
+                          activeTournament.competitionFormat ||
+                          activeTournament.format
+                        ).replaceAll(
+                          '_',
+                          ' ',
+                        )
+                      }
+                    </p>
+
+                    <div className="mt-2">
+                      <FcStatusBadge
+                        label={
+                          activeTournament.status
+                        }
+                        tone="emerald"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+
                 <div className="mt-5">
-                  <div className="flex items-center justify-between text-xs font-black">
-                    <span className="text-slate-500">
-                      Entry Progress
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#6F7B8A]">
+                      Competition progress
                     </span>
 
-                    <span>
+                    <span className="font-medium text-[#A7B0BE]">
                       {
                         activeTournament.approvedEntries
                       }
                       /
                       {
                         activeTournament.maxEntries
-                      }
+                      }{' '}
+                      entries
                     </span>
                   </div>
 
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.05]">
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#0B1118]">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
+                      className="h-full rounded-full bg-[#19B7FF]"
                       style={{
                         width:
-                          `${Math.min(
-                            100,
-                            activeTournament.maxEntries > 0
-                              ? (
-                                  activeTournament.approvedEntries /
-                                  activeTournament.maxEntries
-                                ) *
-                                  100
-                              : 0,
-                          )}%`,
+                          `${progress}%`,
                       }}
                     />
                   </div>
                 </div>
 
+
+                {activeTournamentNextFixture ? (
+                  <div className="mt-5 rounded-xl border border-[#203141] bg-[#0B1118]/55 p-4">
+                    <p className="text-xs text-[#6F7B8A]">
+                      Next fixture
+                    </p>
+
+                    <p className="mt-1 truncate text-sm font-medium text-[#F8FAFC]">
+                      {entryName(
+                        activeTournamentNextFixture.home,
+                      )}
+                      {'  vs  '}
+                      {entryName(
+                        activeTournamentNextFixture.away,
+                      )}
+                    </p>
+                  </div>
+                ) : null}
+
+
                 <Link
                   href={
                     `/tournaments/${activeTournament.id}`
                   }
-                  className="mt-4 inline-flex text-sm font-black text-sky-300"
+                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#F8FAFC] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
                 >
                   View Tournament →
                 </Link>
-              </FcPanel>
-            ) : null}
+              </>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-dashed border-[#284154] bg-[#0B1118]/55 p-6 text-center sm:p-8">
+                <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#14212D] text-lg text-[#F3B326]">
+                  🏆
+                </div>
+
+                <h3 className="mt-4 text-base font-semibold text-[#F8FAFC]">
+                  No Active Tournament
+                </h3>
+
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6F7B8A]">
+                  Browse your League competitions or start a new Tournament when you have admin access.
+                </p>
+
+                <Link
+                  href="/tournaments"
+                  className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-[#19B7FF] px-5 text-sm font-semibold text-[#071019]"
+                >
+                  Browse Tournaments →
+                </Link>
+              </div>
+            )}
+          </FcPanel>
+
+
+          <div>
+            <SectionTitle
+              icon="✦"
+              title="Quick Actions"
+            />
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FcQuickActionTile
+                href="/leagues"
+                icon="+"
+                title="Join League"
+                description="Use invite code"
+                tone="cyan"
+              />
+
+              <FcQuickActionTile
+                href={
+                  createTournamentHref
+                }
+                icon="◇"
+                title={
+                  isLeagueAdmin
+                    ? 'Create Tournament'
+                    : 'Tournaments'
+                }
+                description={
+                  isLeagueAdmin
+                    ? 'Start a new competition'
+                    : 'Browse competitions'
+                }
+                tone="emerald"
+              />
+
+              <FcQuickActionTile
+                href="/fixtures"
+                icon="⚽"
+                title="View Fixtures"
+                description="Check upcoming matches"
+                tone="slate"
+              />
+
+              <FcQuickActionTile
+                href="/profile"
+                icon="◎"
+                title="Update Profile"
+                description="Edit your information"
+                tone="amber"
+              />
+            </div>
           </div>
         </section>
 
 
-        <section>
-          <FcSectionHeading
-            eyebrow="Shortcuts"
-            title="Quick Actions"
+        <FcPanel className="p-5 sm:p-6">
+          <SectionTitle
+            icon="↺"
+            title="Latest Activity"
+            href="/career/matches"
+            linkLabel="View All Activity →"
           />
 
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Link
-              href="/leagues"
-              className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
-            >
-              <span className="text-xl">＋</span>
-              <p className="mt-3 font-black">
-                Join League
-              </p>
-              <p className="mt-1 text-xs text-slate-600">
-                Use a league code
-              </p>
-            </Link>
+          {recentActivity.length >
+          0 ? (
+            <div className="mt-5 divide-y divide-[#203141]">
+              {recentActivity.map(
+                (
+                  activity,
+                ) => (
+                  <Link
+                    key={
+                      activity.id
+                    }
+                    href={
+                      `/matches/${activity.id}`
+                    }
+                    className="flex flex-col gap-3 py-4 transition first:pt-0 last:pb-0 hover:bg-white/[0.012] sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border text-xs font-semibold ${
+                          activity.outcome ===
+                          'W'
+                            ? 'border-[#1FD18A]/20 bg-[#1FD18A]/[0.07] text-[#1FD18A]'
+                            : activity.outcome ===
+                                'D'
+                              ? 'border-[#F3B326]/20 bg-[#F3B326]/[0.07] text-[#F3B326]'
+                              : 'border-[#EF5350]/20 bg-[#EF5350]/[0.07] text-[#EF5350]'
+                        }`}
+                      >
+                        {
+                          activity.outcome
+                        }
+                      </span>
 
-            <Link
-              href={
-                primaryMembership
-                  ? `/leagues/${primaryMembership.league.id}/tournaments`
-                  : '/leagues'
-              }
-              className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
-            >
-              <span className="text-xl">🏆</span>
-              <p className="mt-3 font-black">
-                {isLeagueAdmin
-                  ? 'Create Tournament'
-                  : 'Tournaments'}
-              </p>
-              <p className="mt-1 text-xs text-slate-600">
-                Competition center
-              </p>
-            </Link>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-[#F8FAFC]">
+                          {
+                            activity.tournament.name
+                          }
+                        </p>
 
-            <Link
-              href="/fixtures"
-              className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
-            >
-              <span className="text-xl">⚽</span>
-              <p className="mt-3 font-black">
-                Fixtures
-              </p>
-              <p className="mt-1 text-xs text-slate-600">
-                Match schedule
-              </p>
-            </Link>
+                        <p className="mt-1 truncate text-xs text-[#6F7B8A]">
+                          {
+                            activity.tournament.league.name
+                          }
+                        </p>
+                      </div>
+                    </div>
 
-            <Link
-              href="/matches"
-              className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
-            >
-              <span className="text-xl">✓</span>
-              <p className="mt-3 font-black">
-                Submit Result
-              </p>
-              <p className="mt-1 text-xs text-slate-600">
-                Open match center
-              </p>
-            </Link>
-          </div>
-        </section>
+                    <div className="sm:text-right">
+                      <p className="text-sm font-semibold text-[#A7B0BE]">
+                        {
+                          activity.home.name
+                        }{' '}
+                        <span className="text-[#F8FAFC]">
+                          {
+                            activity.home.score
+                          }
+                          -
+                          {
+                            activity.away.score
+                          }
+                        </span>{' '}
+                        {
+                          activity.away.name
+                        }
+                      </p>
 
+                      <p className="mt-1 text-xs text-[#536273]">
+                        {new Date(
+                          activity.confirmedAt,
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </Link>
+                ),
+              )}
+            </div>
+          ) : (
+            <div className="mt-5 flex flex-col gap-4 rounded-xl border border-dashed border-[#284154] bg-[#0B1118]/45 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[#F8FAFC]">
+                  No recent activity
+                </p>
 
+                <p className="mt-1 text-sm text-[#6F7B8A]">
+                  Verified match results will appear here.
+                </p>
+              </div>
+
+              <Link
+                href="/fixtures"
+                className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#F8FAFC]"
+              >
+                View Fixtures →
+              </Link>
+            </div>
+          )}
+        </FcPanel>
       </div>
     </AppShell>
   );

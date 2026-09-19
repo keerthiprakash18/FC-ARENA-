@@ -54,9 +54,8 @@ export function TournamentNavigation({
     `/tournaments/${tournamentId}`;
 
   return (
-    <nav className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0a1018] p-2">
-      <div className="flex min-w-max gap-2">
-
+    <nav className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#08111b]/95 p-2 backdrop-blur-xl">
+      <div className="flex min-w-max gap-1.5">
         {items.map(
           (
             item,
@@ -65,7 +64,8 @@ export function TournamentNavigation({
               `${base}${item.path}`;
 
             const active =
-              item.path === ''
+              item.path ===
+              ''
                 ? pathname ===
                   base
                 : pathname ===
@@ -82,10 +82,10 @@ export function TournamentNavigation({
                 href={
                   href
                 }
-                className={`rounded-xl px-4 py-3 text-sm font-black transition ${
+                className={`rounded-xl border px-4 py-2.5 text-xs font-black transition sm:text-sm ${
                   active
-                    ? 'bg-sky-400 text-[#041019]'
-                    : 'text-slate-500 hover:bg-white/[0.04] hover:text-white'
+                    ? 'border-sky-400/30 bg-sky-400/[0.09] text-sky-300 shadow-[0_0_20px_rgba(14,165,233,0.05)]'
+                    : 'border-transparent text-slate-500 hover:border-white/[0.07] hover:bg-white/[0.025] hover:text-white'
                 }`}
               >
                 {
@@ -95,7 +95,6 @@ export function TournamentNavigation({
             );
           },
         )}
-
       </div>
     </nav>
   );

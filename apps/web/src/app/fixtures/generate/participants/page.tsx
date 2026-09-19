@@ -921,6 +921,33 @@ export default function FixtureParticipantsPage() {
               : 'MANUAL';
         }
 
+        if (
+          registrationId &&
+          row.source ===
+          'TOURNAMENT'
+        ) {
+          await authenticatedRequest(
+            `/tournaments/${draft.tournamentId}/entries/${registrationId}`,
+            {
+              method:
+                'PATCH',
+
+              body:
+                JSON.stringify({
+                  entryName:
+                    row.name.trim(),
+
+                  ...(row.logoUrl
+                    ? {
+                        entryLogoUrl:
+                          row.logoUrl,
+                      }
+                    : {}),
+                }),
+            },
+          );
+        }
+
         const targetGroupId =
           draft.scope ===
           'GROUP'

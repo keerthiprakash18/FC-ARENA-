@@ -34,12 +34,38 @@ import {
 interface AppShellProps {
   children: ReactNode;
   playerName?: string | null;
+  playerRole?: string | null;
 }
+
+
+const quickLinks = [
+  {
+    label: 'Join League',
+    href: '/leagues',
+    icon: '+',
+  },
+  {
+    label: 'Create Tournament',
+    href: '/tournaments',
+    icon: '◇',
+  },
+  {
+    label: 'View Profile',
+    href: '/profile',
+    icon: '◎',
+  },
+  {
+    label: 'Help & Support',
+    href: '/help',
+    icon: '?',
+  },
+] as const;
 
 
 export function AppShell({
   children,
   playerName,
+  playerRole,
 }: AppShellProps) {
   const pathname =
     usePathname();
@@ -92,83 +118,131 @@ export function AppShell({
 
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] text-[#F8FAFC]">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[232px] border-r border-[#253140] bg-[#0E141B] lg:flex lg:flex-col">
-        <div className="border-b border-[#253140] px-5 py-5">
+    <div className="min-h-screen bg-[#071019] text-[#F8FAFC]">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] border-r border-[#203141] bg-[#0B1118] lg:flex lg:flex-col">
+        <div className="border-b border-[#203141] px-5 py-5">
           <Link
             href="/dashboard"
             className="flex items-center gap-3"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-[#2B3948] bg-[#151C26] text-base text-[#38BDF8]">
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#284154] bg-[#101923] text-base font-semibold text-[#19B7FF]">
               ♛
             </span>
 
             <div>
               <p className="text-lg font-semibold tracking-[-0.02em] text-[#F8FAFC]">
-                FC <span className="text-[#38BDF8]">ARENA</span>
+                FC <span className="text-[#19B7FF]">ARENA</span>
               </p>
 
-              <p className="mt-0.5 text-[10px] font-medium text-[#6F7B8A]">
-                Play · Compete · Belong
+              <p className="mt-0.5 text-[10px] font-medium tracking-[0.06em] text-[#6F7B8A]">
+                PLAY • COMPETE • BELONG
               </p>
             </div>
           </Link>
         </div>
 
 
-        <nav className="flex-1 space-y-1.5 p-3">
-          {primaryNavigation.map(
-            (
-              item,
-            ) => {
-              const selected =
-                active ===
-                item.href;
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          <p className="px-3 text-[11px] font-medium text-[#536273]">
+            Main
+          </p>
 
-              return (
+          <nav className="mt-2 space-y-1.5">
+            {primaryNavigation.map(
+              (
+                item,
+              ) => {
+                const selected =
+                  active ===
+                  item.href;
+
+                return (
+                  <Link
+                    key={
+                      item.href
+                    }
+                    href={
+                      item.href
+                    }
+                    className={`group relative flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm transition duration-200 ${
+                      selected
+                        ? 'bg-[linear-gradient(90deg,rgba(25,183,255,0.12),rgba(25,183,255,0.04))] text-[#F8FAFC]'
+                        : 'text-[#A7B0BE] hover:bg-[#101923] hover:text-[#F8FAFC]'
+                    }`}
+                  >
+                    {selected ? (
+                      <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-[#19B7FF]" />
+                    ) : null}
+
+                    <span
+                      className={`grid h-9 w-9 place-items-center rounded-xl text-[17px] transition ${
+                        selected
+                          ? 'bg-[#19B7FF]/[0.08] text-[#19B7FF]'
+                          : 'text-[#6F7B8A] group-hover:text-[#A7B0BE]'
+                      }`}
+                    >
+                      {
+                        item.icon
+                      }
+                    </span>
+
+                    <span className="font-medium">
+                      {
+                        item.shortLabel
+                      }
+                    </span>
+                  </Link>
+                );
+              },
+            )}
+          </nav>
+
+
+          <div className="mx-3 my-5 h-px bg-[#203141]" />
+
+          <p className="px-3 text-[11px] font-medium text-[#536273]">
+            Quick Links
+          </p>
+
+          <div className="mt-2 space-y-1">
+            {quickLinks.map(
+              (
+                item,
+              ) => (
                 <Link
                   key={
-                    item.href
+                    item.href +
+                    item.label
                   }
                   href={
                     item.href
                   }
-                  className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition duration-200 ${
-                    selected
-                      ? 'bg-sky-400/[0.10] text-[#F8FAFC]'
-                      : 'text-[#A7B0BE] hover:bg-[#151C26] hover:text-[#F8FAFC]'
-                  }`}
+                  className="group flex min-h-10 items-center gap-3 rounded-[10px] px-3 text-sm text-[#8290A0] transition hover:bg-[#101923] hover:text-[#F8FAFC]"
                 >
-                  <span
-                    className={`grid h-8 w-8 place-items-center rounded-lg text-sm transition ${
-                      selected
-                        ? 'text-[#38BDF8]'
-                        : 'text-[#6F7B8A] group-hover:text-[#A7B0BE]'
-                    }`}
-                  >
+                  <span className="grid h-7 w-7 place-items-center rounded-lg border border-[#203141] bg-[#101923] text-xs text-[#19B7FF]">
                     {
                       item.icon
                     }
                   </span>
 
-                  <span className="font-medium">
+                  <span>
                     {
-                      item.shortLabel
+                      item.label
                     }
                   </span>
                 </Link>
-              );
-            },
-          )}
-        </nav>
+              ),
+            )}
+          </div>
+        </div>
 
 
-        <div className="border-t border-[#253140] p-3">
+        <div className="border-t border-[#203141] p-3">
           <Link
             href="/profile"
-            className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-[#151C26]"
+            className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-[#101923]"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-[#2B3948] bg-[#151C26] text-xs font-semibold text-[#38BDF8]">
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#284154] bg-[#101923] text-xs font-semibold text-[#19B7FF]">
               {(playerName ||
                 'FC')
                 .slice(
@@ -179,44 +253,54 @@ export function AppShell({
             </span>
 
             <span className="min-w-0 flex-1">
-              <span className="block text-xs text-[#6F7B8A]">
-                Signed in
-              </span>
-
-              <span className="mt-0.5 block truncate text-sm font-medium text-[#F8FAFC]">
+              <span className="block truncate text-sm font-medium text-[#F8FAFC]">
                 {playerName ||
                   'FC ARENA Player'}
+              </span>
+
+              <span className="mt-0.5 block text-xs text-[#6F7B8A]">
+                {playerRole ||
+                  'Player'}
               </span>
             </span>
           </Link>
 
-          <button
-            type="button"
-            disabled={
-              loggingOut
-            }
-            onClick={() =>
-              void logout()
-            }
-            className="mt-1 w-full rounded-[10px] border border-red-400/20 bg-red-400/[0.04] px-3 py-2.5 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-50"
-          >
-            {loggingOut
-              ? 'Signing out...'
-              : 'Sign out'}
-          </button>
+          <div className="mt-1 flex items-center justify-between gap-2 px-3 py-2">
+            <span className="text-[10px] text-[#536273]">
+              FC ARENA v1.0
+            </span>
+
+            <button
+              type="button"
+              disabled={
+                loggingOut
+              }
+              onClick={() =>
+                void logout()
+              }
+              className="text-xs font-medium text-[#8290A0] transition hover:text-red-300 disabled:opacity-50"
+            >
+              {loggingOut
+                ? 'Signing out...'
+                : 'Sign out'}
+            </button>
+          </div>
         </div>
       </aside>
 
 
-      <div className="lg:pl-[232px]">
+      <div className="lg:pl-[260px]">
         <AppHeader
           playerName={
             playerName
           }
+          playerRole={
+            playerRole
+          }
         />
 
         <main
-          className={`mx-auto min-h-[calc(100vh-4rem)] w-full max-w-[1280px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-8 lg:pb-10 lg:pt-7 ${
+          className={`mx-auto min-h-[calc(100vh-4.25rem)] w-full max-w-[1440px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-8 lg:pb-10 lg:pt-7 ${
             showBottomNavigation
               ? 'pb-28'
               : 'pb-8'

@@ -1080,7 +1080,7 @@ export default function FixturesPage() {
                     onChange={
                       (
                         event,
-                      ) =>
+                      ) => {
                         setSelectedTournamentId(
                           event.target.value,
                         );
@@ -1097,6 +1097,7 @@ export default function FixturesPage() {
                           'ALL',
                         );
                       }
+                    }
                     className="rounded-xl border border-white/10 bg-[#07101a] px-4 py-3 text-sm font-black outline-none"
                   >
                     <option value="ALL">

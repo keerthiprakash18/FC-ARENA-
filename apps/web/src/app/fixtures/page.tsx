@@ -769,11 +769,10 @@ export default function FixturesPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="space-y-6">
         <FcPageHeader
-          eyebrow="Match Center"
           title="Fixtures"
-          subtitle="Every match in one place. Admin generation and management now live on dedicated workflow screens."
+          subtitle="Every match in one place, with simple filters for League, Tournament and status."
           action={
             selectedMembership
               ?.adminRole ? (
@@ -819,7 +818,7 @@ export default function FixturesPage() {
             <FcPanel className="p-4 sm:p-5">
               <div className="grid gap-4 lg:grid-cols-2">
                 <label className="grid gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
+                  <span className="text-xs font-medium text-[#A7B0BE]">
                     League
                   </span>
 
@@ -860,7 +859,7 @@ export default function FixturesPage() {
 
 
                 <label className="grid gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
+                  <span className="text-xs font-medium text-[#A7B0BE]">
                     Tournament
                   </span>
 
@@ -1088,11 +1087,11 @@ export default function FixturesPage() {
                                   href={
                                     href
                                   }
-                                  className="group rounded-[22px] border border-white/10 bg-[#08111b] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-sky-400/30 sm:p-5"
+                                  className="group rounded-2xl border border-[#253140] bg-[#121821] p-4 transition duration-200 hover:border-[#334155] hover:bg-[#151C26] sm:p-5"
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div>
-                                      <p className="text-[10px] font-black uppercase tracking-[0.17em] text-sky-400">
+                                      <p className="text-xs font-medium text-[#38BDF8]">
                                         {
                                           fixture.tournamentName
                                         }

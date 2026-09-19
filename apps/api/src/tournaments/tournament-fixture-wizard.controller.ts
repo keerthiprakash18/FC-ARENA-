@@ -23,6 +23,10 @@ import {
 } from '../auth/guards/jwt-auth.guard.js';
 
 import {
+  GenerateFixturePreviewDto,
+} from './dto/generate-fixture-preview.dto.js';
+
+import {
   UpdateFixtureWizardSettingsDto,
 } from './dto/update-fixture-wizard-settings.dto.js';
 
@@ -103,10 +107,15 @@ export class TournamentFixtureWizardController {
     @Param('tournamentId')
     tournamentId:
       string,
+
+    @Body()
+    dto:
+      GenerateFixturePreviewDto,
   ) {
     return this.service.generatePreview(
       request.user.sub,
       tournamentId,
+      dto,
     );
   }
 
@@ -145,6 +154,30 @@ export class TournamentFixtureWizardController {
     return this.service.resetPreview(
       request.user.sub,
       tournamentId,
+    );
+  }
+
+
+  @Delete(
+    'tournaments/:tournamentId/wizard/fixture-preview/group/:groupId',
+  )
+  resetGroup(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId:
+      string,
+
+    @Param('groupId')
+    groupId:
+      string,
+  ) {
+    return this.service.resetPreview(
+      request.user.sub,
+      tournamentId,
+      groupId,
     );
   }
 }

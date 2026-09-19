@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   useParams,
   useRouter,
+  useSearchParams,
 } from 'next/navigation';
 import type {
   FormEvent,
@@ -39,6 +40,12 @@ type TournamentMode =
   | 'SOLO'
   | 'DUO'
   | 'TEAM';
+
+type CompetitionFormat =
+  | 'LEAGUE_ROUND_ROBIN'
+  | 'DOUBLE_ROUND_ROBIN'
+  | 'SINGLE_ELIMINATION'
+  | 'GROUP_STAGE_KNOCKOUT';
 
 
 interface LeagueInfo {
@@ -80,6 +87,9 @@ export default function LeagueTournamentsPage() {
   const router =
     useRouter();
 
+  const searchParams =
+    useSearchParams();
+
   const leagueId =
     params.leagueId;
 
@@ -113,6 +123,15 @@ export default function LeagueTournamentsPage() {
   ] =
     useState<TournamentMode>(
       'SOLO',
+    );
+
+
+  const [
+    competitionFormat,
+    setCompetitionFormat,
+  ] =
+    useState<CompetitionFormat>(
+      'LEAGUE_ROUND_ROBIN',
     );
 
   const [
@@ -200,6 +219,42 @@ export default function LeagueTournamentsPage() {
   ]);
 
 
+  useEffect(() => {
+    const requestedFormat =
+      searchParams.get(
+        'format',
+      );
+
+    if (
+      requestedFormat ===
+        'LEAGUE_ROUND_ROBIN' ||
+      requestedFormat ===
+        'DOUBLE_ROUND_ROBIN' ||
+      requestedFormat ===
+        'SINGLE_ELIMINATION' ||
+      requestedFormat ===
+        'GROUP_STAGE_KNOCKOUT'
+    ) {
+      setCompetitionFormat(
+        requestedFormat,
+      );
+    }
+
+    if (
+      searchParams.get(
+        'create',
+      ) ===
+      '1'
+    ) {
+      setShowCreate(
+        true,
+      );
+    }
+  }, [
+    searchParams,
+  ]);
+
+
   async function createTournament(
     event:
       FormEvent<HTMLFormElement>,
@@ -252,6 +307,23 @@ export default function LeagueTournamentsPage() {
                   ),
 
                 mode,
+
+                competitionFormat,
+
+                groupMode:
+                  competitionFormat ===
+                  'GROUP_STAGE_KNOCKOUT'
+                    ? 'MULTIPLE_GROUPS'
+                    : 'SINGLE_GROUP',
+
+                legType:
+                  competitionFormat ===
+                  'DOUBLE_ROUND_ROBIN'
+                    ? 'HOME_AWAY'
+                    : 'SINGLE_LEG',
+
+                fixtureMode:
+                  'AUTOMATIC',
 
                 maxEntries:
                   Number(
@@ -380,7 +452,7 @@ export default function LeagueTournamentsPage() {
               </h2>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                Create the draft here. Format, groups, teams, fixture rules, preview, qualification and review are configured on separate wizard screens.
+                Choose the competition structure, create the draft, then continue through Teams, Groups when required, Fixture Settings, Preview, Qualification and Review.
               </p>
             </div>
 
@@ -424,6 +496,90 @@ export default function LeagueTournamentsPage() {
                     className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
                 </label>
+              </div>
+
+
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Competition Format
+                  </p>
+
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.05] px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                    Ready
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {([
+                    [
+                      'LEAGUE_ROUND_ROBIN',
+                      'League / Round Robin',
+                      'Every team meets every opponent once.',
+                    ],
+                    [
+                      'DOUBLE_ROUND_ROBIN',
+                      'Double Round Robin',
+                      'Home and away reverse legs.',
+                    ],
+                    [
+                      'SINGLE_ELIMINATION',
+                      'Knockout',
+                      'Single-elimination bracket.',
+                    ],
+                    [
+                      'GROUP_STAGE_KNOCKOUT',
+                      'Group + Knockout',
+                      'Groups, qualifiers and playoffs.',
+                    ],
+                  ] as Array<
+                    [
+                      CompetitionFormat,
+                      string,
+                      string,
+                    ]
+                  >).map(
+                    ([
+                      value,
+                      label,
+                      description,
+                    ]) => (
+                      <button
+                        key={
+                          value
+                        }
+                        type="button"
+                        onClick={() =>
+                          setCompetitionFormat(
+                            value,
+                          )
+                        }
+                        className={`rounded-2xl border p-4 text-left transition duration-200 ${
+                          competitionFormat ===
+                          value
+                            ? 'border-sky-400/35 bg-sky-400/[0.08]'
+                            : 'border-white/10 bg-white/[0.02] hover:border-white/20'
+                        }`}
+                      >
+                        <p className="font-black">
+                          {
+                            label
+                          }
+                        </p>
+
+                        <p className="mt-2 text-xs leading-5 text-slate-600">
+                          {
+                            description
+                          }
+                        </p>
+                      </button>
+                    ),
+                  )}
+                </div>
+
+                <p className="mt-3 text-xs text-slate-600">
+                  Selected Competition Format: <span className="font-semibold text-sky-300">{competitionLabel(competitionFormat)}</span>. You can still fine-tune it on the next Setup screen.
+                </p>
               </div>
 
 

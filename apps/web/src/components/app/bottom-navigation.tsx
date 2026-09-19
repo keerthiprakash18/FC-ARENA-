@@ -12,7 +12,7 @@ export function BottomNavigation({
   active: string;
 }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#253140] bg-[#0E141B]/98 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#203141] bg-[#0B1118]/98 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
       <div className="mx-auto grid max-w-xl grid-cols-5">
         {primaryNavigation.map(
           (
@@ -37,13 +37,13 @@ export function BottomNavigation({
                 }`}
               >
                 {selected ? (
-                  <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[#38BDF8]" />
+                  <span className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-[#19B7FF]" />
                 ) : null}
 
                 <span
                   className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${
                     selected
-                      ? 'bg-sky-400/[0.10] text-[#38BDF8]'
+                      ? 'bg-sky-400/[0.10] text-[#19B7FF]'
                       : 'text-[#6F7B8A]'
                   }`}
                 >

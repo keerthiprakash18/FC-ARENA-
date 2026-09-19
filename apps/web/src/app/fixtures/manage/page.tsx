@@ -180,10 +180,10 @@ export default function FixtureManagementPage() {
           subtitle="Open the existing Tournament fixture and match tools without cluttering the normal player Match Center."
           action={
             <Link
-              href="/fixtures/generator"
+              href="/fixtures/generate"
               className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
             >
-              Open Generator
+              Create Fixtures
             </Link>
           }
         />
@@ -270,11 +270,11 @@ export default function FixtureManagementPage() {
                     'DRAFT' ? (
                       <Link
                         href={
-                          `/tournaments/${tournament.id}/wizard/fixture-settings`
+                          `/fixtures/generate`
                         }
                         className="rounded-xl border border-emerald-400/20 px-4 py-3 text-sm font-black text-emerald-300"
                       >
-                        Draft Generator
+                        Fixture Generator
                       </Link>
                     ) : null}
                   </div>

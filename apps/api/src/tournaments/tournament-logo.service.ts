@@ -544,6 +544,60 @@ export class TournamentLogoService {
 
 
   private cloudinaryConfig() {
+    const cloudinaryUrl =
+      process.env
+        .CLOUDINARY_URL
+        ?.trim();
+
+    if (
+      cloudinaryUrl
+    ) {
+      try {
+        const parsed =
+          new URL(
+            cloudinaryUrl,
+          );
+
+        if (
+          parsed.protocol !==
+          'cloudinary:'
+        ) {
+          throw new Error(
+            'Invalid Cloudinary protocol.',
+          );
+        }
+
+        const apiKey =
+          decodeURIComponent(
+            parsed.username,
+          );
+
+        const apiSecret =
+          decodeURIComponent(
+            parsed.password,
+          );
+
+        const cloudName =
+          parsed.hostname;
+
+        if (
+          cloudName &&
+          apiKey &&
+          apiSecret
+        ) {
+          return {
+            cloudName,
+            apiKey,
+            apiSecret,
+          };
+        }
+      } catch {
+        // Fall through to
+        // individual environment
+        // variables.
+      }
+    }
+
     const cloudName =
       process.env
         .CLOUDINARY_CLOUD_NAME
@@ -571,7 +625,7 @@ export class TournamentLogoService {
           code:
             'IMAGE_STORAGE_NOT_CONFIGURED',
           message:
-            'Image storage is not configured. Add the Cloudinary environment variables to the API service.',
+            'Tournament image storage is not configured. Add CLOUDINARY_URL to the Railway API service.',
         },
       });
     }

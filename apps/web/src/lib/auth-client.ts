@@ -165,7 +165,7 @@ function sendUpload<T>(
       xhr.onerror = () => {
         reject(
           new Error(
-            'Unable to upload screenshot.',
+            'Unable to upload file.',
           ),
         );
       };
@@ -200,7 +200,7 @@ function sendUpload<T>(
           new Error(
             payload?.error
               ?.message ??
-              'Screenshot upload failed.',
+              'File upload failed.',
           ),
         );
       };

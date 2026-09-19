@@ -19,6 +19,8 @@ import { AssignTournamentGroupDto } from './dto/assign-tournament-group.dto.js';
 import { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 import { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
+import { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
+import { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import { FixturesService } from './fixtures.service.js';
 import { GroupFixturesService } from './group-fixtures.service.js';
 import { PlayoffsService } from './playoffs.service.js';
@@ -95,6 +97,64 @@ export class TournamentsController {
     );
   }
 
+
+  @Get(
+    'tournaments/:tournamentId/wizard',
+  )
+  getTournamentWizard(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+  ) {
+    return this.tournamentsService.getTournamentWizard(
+      request.user.sub,
+      tournamentId,
+    );
+  }
+
+
+  @Patch(
+    'tournaments/:tournamentId/setup',
+  )
+  updateTournamentSetup(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+
+    @Body()
+    dto: UpdateTournamentSetupDto,
+  ) {
+    return this.tournamentsService.updateTournamentSetup(
+      request.user.sub,
+      tournamentId,
+      dto,
+    );
+  }
+
+
+  @Patch(
+    'tournaments/:tournamentId/wizard-step',
+  )
+  updateTournamentWizardStep(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+
+    @Body()
+    dto: UpdateTournamentWizardStepDto,
+  ) {
+    return this.tournamentsService.updateWizardStep(
+      request.user.sub,
+      tournamentId,
+      dto,
+    );
+  }
   @Post(
     'tournaments/:tournamentId/open-registration',
   )

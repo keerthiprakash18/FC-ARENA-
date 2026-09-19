@@ -78,6 +78,84 @@ export const TournamentFormat = {
 export type TournamentFormat = (typeof TournamentFormat)[keyof typeof TournamentFormat]
 
 
+export const TournamentCompetitionFormat = {
+  LEAGUE_ROUND_ROBIN: 'LEAGUE_ROUND_ROBIN',
+  DOUBLE_ROUND_ROBIN: 'DOUBLE_ROUND_ROBIN',
+  SINGLE_ELIMINATION: 'SINGLE_ELIMINATION',
+  GROUP_STAGE_KNOCKOUT: 'GROUP_STAGE_KNOCKOUT',
+  CUSTOM_MANUAL: 'CUSTOM_MANUAL'
+} as const
+
+export type TournamentCompetitionFormat = (typeof TournamentCompetitionFormat)[keyof typeof TournamentCompetitionFormat]
+
+
+export const TournamentGroupMode = {
+  SINGLE_GROUP: 'SINGLE_GROUP',
+  MULTIPLE_GROUPS: 'MULTIPLE_GROUPS'
+} as const
+
+export type TournamentGroupMode = (typeof TournamentGroupMode)[keyof typeof TournamentGroupMode]
+
+
+export const TournamentLegType = {
+  SINGLE_LEG: 'SINGLE_LEG',
+  HOME_AWAY: 'HOME_AWAY'
+} as const
+
+export type TournamentLegType = (typeof TournamentLegType)[keyof typeof TournamentLegType]
+
+
+export const TournamentFixtureMode = {
+  AUTOMATIC: 'AUTOMATIC',
+  RANDOMIZED: 'RANDOMIZED',
+  MANUAL: 'MANUAL'
+} as const
+
+export type TournamentFixtureMode = (typeof TournamentFixtureMode)[keyof typeof TournamentFixtureMode]
+
+
+export const TournamentVisibility = {
+  PRIVATE: 'PRIVATE',
+  LEAGUE: 'LEAGUE',
+  PUBLIC: 'PUBLIC'
+} as const
+
+export type TournamentVisibility = (typeof TournamentVisibility)[keyof typeof TournamentVisibility]
+
+
+export const TournamentRegistrationMode = {
+  OPEN: 'OPEN',
+  APPROVAL: 'APPROVAL',
+  ADMIN_ONLY: 'ADMIN_ONLY'
+} as const
+
+export type TournamentRegistrationMode = (typeof TournamentRegistrationMode)[keyof typeof TournamentRegistrationMode]
+
+
+export const TournamentPairingMethod = {
+  CROSS_GROUP: 'CROSS_GROUP',
+  SEEDED: 'SEEDED',
+  RANDOM: 'RANDOM',
+  MANUAL: 'MANUAL'
+} as const
+
+export type TournamentPairingMethod = (typeof TournamentPairingMethod)[keyof typeof TournamentPairingMethod]
+
+
+export const TournamentWizardStep = {
+  SETUP: 'SETUP',
+  TEAMS: 'TEAMS',
+  GROUPS: 'GROUPS',
+  FIXTURE_SETTINGS: 'FIXTURE_SETTINGS',
+  FIXTURE_PREVIEW: 'FIXTURE_PREVIEW',
+  QUALIFICATION: 'QUALIFICATION',
+  REVIEW: 'REVIEW',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type TournamentWizardStep = (typeof TournamentWizardStep)[keyof typeof TournamentWizardStep]
+
+
 export const TournamentStatus = {
   DRAFT: 'DRAFT',
   REGISTRATION_OPEN: 'REGISTRATION_OPEN',

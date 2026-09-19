@@ -11,19 +11,36 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CreateTournamentDto {
+export class UpdateTournamentSetupDto {
+  @IsOptional()
   @IsString()
   @MinLength(3)
   @MaxLength(120)
-  name!: string;
+  name?: string;
 
-  @IsIn(['SOLO', 'DUO', 'TEAM'])
-  mode!: 'SOLO' | 'DUO' | 'TEAM';
-
-  // Legacy field kept so the current FC ARENA UI does not break.
   @IsOptional()
-  @IsIn(['ROUND_ROBIN', 'KNOCKOUT'])
-  format?: 'ROUND_ROBIN' | 'KNOCKOUT';
+  @IsString()
+  @MaxLength(3000)
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10000)
+  rules?: string;
+
+  @IsOptional()
+  @IsUrl({
+    require_protocol: true,
+  })
+  logoUrl?: string;
+
+  @IsOptional()
+  @IsIn([
+    'SOLO',
+    'DUO',
+    'TEAM',
+  ])
+  mode?: 'SOLO' | 'DUO' | 'TEAM';
 
   @IsOptional()
   @IsIn([
@@ -91,32 +108,17 @@ export class CreateTournamentDto {
     | 'APPROVAL'
     | 'ADMIN_ONLY';
 
+  @IsOptional()
   @IsInt()
   @Min(2)
   @Max(128)
-  maxEntries!: number;
+  maxEntries?: number;
 
   @IsOptional()
   @IsInt()
   @Min(3)
   @Max(11)
   teamSize?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(3000)
-  description?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(10000)
-  rules?: string;
-
-  @IsOptional()
-  @IsUrl({
-    require_protocol: true,
-  })
-  logoUrl?: string;
 
   @IsOptional()
   @IsISO8601()

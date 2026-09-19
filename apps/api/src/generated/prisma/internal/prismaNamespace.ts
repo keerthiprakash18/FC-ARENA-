@@ -2389,10 +2389,23 @@ export const TournamentScalarFieldEnum = {
   rules: 'rules',
   mode: 'mode',
   format: 'format',
+  competitionFormat: 'competitionFormat',
+  groupMode: 'groupMode',
+  legType: 'legType',
+  fixtureMode: 'fixtureMode',
+  visibility: 'visibility',
+  registrationMode: 'registrationMode',
+  wizardStep: 'wizardStep',
   status: 'status',
   teamSize: 'teamSize',
   maxEntries: 'maxEntries',
+  logoUrl: 'logoUrl',
   startAt: 'startAt',
+  endAt: 'endAt',
+  publishedAt: 'publishedAt',
+  qualifiersPerGroup: 'qualifiersPerGroup',
+  playoffPairingMethod: 'playoffPairingMethod',
+  fixturesPublishedAt: 'fixturesPublishedAt',
   registrationOpenedAt: 'registrationOpenedAt',
   registrationClosedAt: 'registrationClosedAt',
   fixturesGeneratedAt: 'fixturesGeneratedAt',
@@ -2425,6 +2438,8 @@ export const TournamentRegistrationScalarFieldEnum = {
   groupId: 'groupId',
   registeredByUserId: 'registeredByUserId',
   entryName: 'entryName',
+  entryLogoUrl: 'entryLogoUrl',
+  sortOrder: 'sortOrder',
   status: 'status',
   reviewedByUserId: 'reviewedByUserId',
   reviewedAt: 'reviewedAt',
@@ -2462,6 +2477,7 @@ export const FixtureScalarFieldEnum = {
   nextSlot: 'nextSlot',
   scheduledAt: 'scheduledAt',
   venue: 'venue',
+  publishedAt: 'publishedAt',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -2867,6 +2883,104 @@ export type ListEnumTournamentFormatFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'TournamentCompetitionFormat'
+ */
+export type EnumTournamentCompetitionFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentCompetitionFormat'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentCompetitionFormat[]'
+ */
+export type ListEnumTournamentCompetitionFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentCompetitionFormat[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentGroupMode'
+ */
+export type EnumTournamentGroupModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentGroupMode'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentGroupMode[]'
+ */
+export type ListEnumTournamentGroupModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentGroupMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentLegType'
+ */
+export type EnumTournamentLegTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentLegType'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentLegType[]'
+ */
+export type ListEnumTournamentLegTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentLegType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentFixtureMode'
+ */
+export type EnumTournamentFixtureModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentFixtureMode'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentFixtureMode[]'
+ */
+export type ListEnumTournamentFixtureModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentFixtureMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentVisibility'
+ */
+export type EnumTournamentVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentVisibility'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentVisibility[]'
+ */
+export type ListEnumTournamentVisibilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentVisibility[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentRegistrationMode'
+ */
+export type EnumTournamentRegistrationModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentRegistrationMode'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentRegistrationMode[]'
+ */
+export type ListEnumTournamentRegistrationModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentRegistrationMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentWizardStep'
+ */
+export type EnumTournamentWizardStepFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentWizardStep'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentWizardStep[]'
+ */
+export type ListEnumTournamentWizardStepFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentWizardStep[]'>
+    
+
+
+/**
  * Reference to a field of type 'TournamentStatus'
  */
 export type EnumTournamentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentStatus'>
@@ -2877,6 +2991,20 @@ export type EnumTournamentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'TournamentStatus[]'
  */
 export type ListEnumTournamentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentPairingMethod'
+ */
+export type EnumTournamentPairingMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentPairingMethod'>
+    
+
+
+/**
+ * Reference to a field of type 'TournamentPairingMethod[]'
+ */
+export type ListEnumTournamentPairingMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentPairingMethod[]'>
     
 
 

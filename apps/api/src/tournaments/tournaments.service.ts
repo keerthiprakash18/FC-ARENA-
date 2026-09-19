@@ -8,6 +8,8 @@ import {
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import type { CreateTournamentDto } from './dto/create-tournament.dto.js';
+import type { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
+import type { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import type { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -51,12 +53,75 @@ export class TournamentsService {
         name: dto.name.trim(),
         code,
         mode: dto.mode,
-        format: dto.format,
+
+        format:
+          this.resolveLegacyFormat(
+            dto.competitionFormat,
+            dto.format,
+          ),
+
+        competitionFormat:
+          dto.competitionFormat ??
+          this.resolveCompetitionFormat(
+            dto.format,
+          ),
+
+        groupMode:
+          dto.groupMode ??
+          (dto.competitionFormat ===
+          'GROUP_STAGE_KNOCKOUT'
+            ? 'MULTIPLE_GROUPS'
+            : 'SINGLE_GROUP'),
+
+        legType:
+          dto.competitionFormat ===
+          'DOUBLE_ROUND_ROBIN'
+            ? 'HOME_AWAY'
+            : dto.legType ??
+              'SINGLE_LEG',
+
+        fixtureMode:
+          dto.competitionFormat ===
+          'CUSTOM_MANUAL'
+            ? 'MANUAL'
+            : dto.fixtureMode ??
+              'AUTOMATIC',
+
+        visibility:
+          dto.visibility ??
+          'LEAGUE',
+
+        registrationMode:
+          dto.registrationMode ??
+          'APPROVAL',
+
+        wizardStep:
+          'SETUP',
+
         teamSize,
         maxEntries: dto.maxEntries,
-        description: dto.description?.trim() || null,
-        rules: dto.rules?.trim() || null,
-        startAt: dto.startAt ? new Date(dto.startAt) : null,
+
+        description:
+          dto.description?.trim() ||
+          null,
+
+        rules:
+          dto.rules?.trim() ||
+          null,
+
+        logoUrl:
+          dto.logoUrl?.trim() ||
+          null,
+
+        startAt:
+          dto.startAt
+            ? new Date(dto.startAt)
+            : null,
+
+        endAt:
+          dto.endAt
+            ? new Date(dto.endAt)
+            : null,
       },
     });
 
@@ -688,6 +753,467 @@ export class TournamentsService {
     };
   }
 
+
+  async getTournamentWizard(
+    userId: string,
+    tournamentId: string,
+  ) {
+    const tournament =
+      await this.getTournamentForAdmin(
+        userId,
+        tournamentId,
+      );
+
+    return {
+      success: true,
+
+      data: {
+        tournamentId:
+          tournament.id,
+
+        currentStep:
+          tournament.wizardStep,
+
+        steps:
+          this.buildWizardSteps(
+            tournament,
+          ),
+
+        configuration: {
+          competitionFormat:
+            tournament.competitionFormat,
+
+          groupMode:
+            tournament.groupMode,
+
+          legType:
+            tournament.legType,
+
+          fixtureMode:
+            tournament.fixtureMode,
+
+          visibility:
+            tournament.visibility,
+
+          registrationMode:
+            tournament.registrationMode,
+
+          maxEntries:
+            tournament.maxEntries,
+
+          startAt:
+            tournament.startAt,
+
+          endAt:
+            tournament.endAt,
+
+          publishedAt:
+            tournament.publishedAt,
+        },
+      },
+
+      error: null,
+    };
+  }
+
+
+  async updateTournamentSetup(
+    userId: string,
+    tournamentId: string,
+    dto: UpdateTournamentSetupDto,
+  ) {
+    const tournament =
+      await this.getTournamentForAdmin(
+        userId,
+        tournamentId,
+      );
+
+    if (
+      tournament.status !==
+      'DRAFT'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'TOURNAMENT_SETUP_LOCKED',
+
+          message:
+            'Tournament setup can only be edited while the Tournament is in Draft.',
+        },
+      });
+    }
+
+    const competitionFormat =
+      dto.competitionFormat ??
+      tournament.competitionFormat;
+
+    const groupMode =
+      dto.groupMode ??
+      tournament.groupMode;
+
+    if (
+      competitionFormat ===
+        'GROUP_STAGE_KNOCKOUT' &&
+      groupMode !==
+        'MULTIPLE_GROUPS'
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'GROUP_STAGE_REQUIRES_GROUPS',
+
+          message:
+            'Group Stage + Knockout requires Multiple Groups.',
+        },
+      });
+    }
+
+    const startAt =
+      dto.startAt
+        ? new Date(
+            dto.startAt,
+          )
+        : tournament.startAt;
+
+    const endAt =
+      dto.endAt
+        ? new Date(
+            dto.endAt,
+          )
+        : tournament.endAt;
+
+    if (
+      startAt &&
+      endAt &&
+      endAt.getTime() <
+        startAt.getTime()
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_TOURNAMENT_DATES',
+
+          message:
+            'Tournament end date cannot be earlier than the start date.',
+        },
+      });
+    }
+
+    const nextMode =
+      dto.mode ??
+      tournament.mode;
+
+    const teamSize =
+      nextMode ===
+      'SOLO'
+        ? 1
+        : nextMode ===
+            'DUO'
+          ? 2
+          : dto.teamSize ??
+            tournament.teamSize;
+
+    if (
+      nextMode ===
+        'TEAM' &&
+      (
+        teamSize < 3 ||
+        teamSize > 11
+      )
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_TEAM_SIZE',
+
+          message:
+            'TEAM tournaments require a team size between 3 and 11.',
+        },
+      });
+    }
+
+    const updated =
+      await this.prisma.tournament.update({
+        where: {
+          id: tournamentId,
+        },
+
+        data: {
+          name:
+            dto.name?.trim(),
+
+          description:
+            dto.description ===
+            undefined
+              ? undefined
+              : dto.description.trim() ||
+                null,
+
+          rules:
+            dto.rules ===
+            undefined
+              ? undefined
+              : dto.rules.trim() ||
+                null,
+
+          logoUrl:
+            dto.logoUrl ===
+            undefined
+              ? undefined
+              : dto.logoUrl.trim() ||
+                null,
+
+          mode:
+            dto.mode,
+
+          competitionFormat,
+
+          format:
+            this.resolveLegacyFormat(
+              competitionFormat,
+              tournament.format,
+            ),
+
+          groupMode,
+
+          legType:
+            competitionFormat ===
+            'DOUBLE_ROUND_ROBIN'
+              ? 'HOME_AWAY'
+              : dto.legType,
+
+          fixtureMode:
+            competitionFormat ===
+            'CUSTOM_MANUAL'
+              ? 'MANUAL'
+              : dto.fixtureMode,
+
+          visibility:
+            dto.visibility,
+
+          registrationMode:
+            dto.registrationMode,
+
+          maxEntries:
+            dto.maxEntries,
+
+          teamSize,
+
+          startAt,
+
+          endAt,
+
+          wizardStep:
+            'TEAMS',
+        },
+      });
+
+    return {
+      success: true,
+
+      data: {
+        message:
+          'Tournament setup saved.',
+
+        tournament:
+          updated,
+
+        nextStep:
+          'TEAMS',
+      },
+
+      error: null,
+    };
+  }
+
+
+  async updateWizardStep(
+    userId: string,
+    tournamentId: string,
+    dto: UpdateTournamentWizardStepDto,
+  ) {
+    const tournament =
+      await this.getTournamentForAdmin(
+        userId,
+        tournamentId,
+      );
+
+    if (
+      tournament.status !==
+      'DRAFT'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'TOURNAMENT_WIZARD_LOCKED',
+
+          message:
+            'Wizard navigation is only available while the Tournament is in Draft.',
+        },
+      });
+    }
+
+    const allowedSteps =
+      this.buildWizardSteps(
+        tournament,
+      );
+
+    if (
+      !allowedSteps.includes(
+        dto.step,
+      )
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_WIZARD_STEP',
+
+          message:
+            'This wizard step does not apply to the current Tournament configuration.',
+        },
+      });
+    }
+
+    const updated =
+      await this.prisma.tournament.update({
+        where: {
+          id:
+            tournamentId,
+        },
+
+        data: {
+          wizardStep:
+            dto.step,
+        },
+
+        select: {
+          id: true,
+          wizardStep: true,
+        },
+      });
+
+    return {
+      success: true,
+
+      data: {
+        message:
+          'Tournament wizard step updated.',
+
+        currentStep:
+          updated.wizardStep,
+
+        steps:
+          allowedSteps,
+      },
+
+      error: null,
+    };
+  }
+
+
+  private buildWizardSteps(
+    tournament: {
+      groupMode: string;
+      competitionFormat: string;
+    },
+  ) {
+    const steps = [
+      'SETUP',
+      'TEAMS',
+    ];
+
+    if (
+      tournament.groupMode ===
+      'MULTIPLE_GROUPS'
+    ) {
+      steps.push(
+        'GROUPS',
+      );
+    }
+
+    steps.push(
+      'FIXTURE_SETTINGS',
+      'FIXTURE_PREVIEW',
+    );
+
+    if (
+      tournament.competitionFormat ===
+      'GROUP_STAGE_KNOCKOUT'
+    ) {
+      steps.push(
+        'QUALIFICATION',
+      );
+    }
+
+    steps.push(
+      'REVIEW',
+    );
+
+    return steps;
+  }
+
+
+  private resolveCompetitionFormat(
+    legacyFormat:
+      | 'ROUND_ROBIN'
+      | 'KNOCKOUT'
+      | undefined,
+  ) {
+    return legacyFormat ===
+      'KNOCKOUT'
+      ? 'SINGLE_ELIMINATION'
+      : 'LEAGUE_ROUND_ROBIN';
+  }
+
+
+  private resolveLegacyFormat(
+    competitionFormat:
+      | 'LEAGUE_ROUND_ROBIN'
+      | 'DOUBLE_ROUND_ROBIN'
+      | 'SINGLE_ELIMINATION'
+      | 'GROUP_STAGE_KNOCKOUT'
+      | 'CUSTOM_MANUAL'
+      | undefined,
+
+    legacyFormat:
+      | 'ROUND_ROBIN'
+      | 'KNOCKOUT'
+      | undefined,
+  ): 'ROUND_ROBIN' | 'KNOCKOUT' {
+    if (
+      competitionFormat ===
+      'SINGLE_ELIMINATION'
+    ) {
+      return 'KNOCKOUT';
+    }
+
+    if (competitionFormat) {
+      return 'ROUND_ROBIN';
+    }
+
+    return (
+      legacyFormat ??
+      'ROUND_ROBIN'
+    );
+  }
   private async getTournamentForAdmin(
     userId: string,
     tournamentId: string,

@@ -56,6 +56,7 @@ export type FixtureMinAggregateOutputType = {
   nextSlot: $Enums.FixtureNextSlot | null
   scheduledAt: Date | null
   venue: string | null
+  publishedAt: Date | null
   status: $Enums.FixtureStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -77,6 +78,7 @@ export type FixtureMaxAggregateOutputType = {
   nextSlot: $Enums.FixtureNextSlot | null
   scheduledAt: Date | null
   venue: string | null
+  publishedAt: Date | null
   status: $Enums.FixtureStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -98,6 +100,7 @@ export type FixtureCountAggregateOutputType = {
   nextSlot: number
   scheduledAt: number
   venue: number
+  publishedAt: number
   status: number
   createdAt: number
   updatedAt: number
@@ -135,6 +138,7 @@ export type FixtureMinAggregateInputType = {
   nextSlot?: true
   scheduledAt?: true
   venue?: true
+  publishedAt?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -156,6 +160,7 @@ export type FixtureMaxAggregateInputType = {
   nextSlot?: true
   scheduledAt?: true
   venue?: true
+  publishedAt?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -177,6 +182,7 @@ export type FixtureCountAggregateInputType = {
   nextSlot?: true
   scheduledAt?: true
   venue?: true
+  publishedAt?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -285,6 +291,7 @@ export type FixtureGroupByOutputType = {
   nextSlot: $Enums.FixtureNextSlot | null
   scheduledAt: Date | null
   venue: string | null
+  publishedAt: Date | null
   status: $Enums.FixtureStatus
   createdAt: Date
   updatedAt: Date
@@ -329,6 +336,7 @@ export type FixtureWhereInput = {
   nextSlot?: Prisma.EnumFixtureNextSlotNullableFilter<"Fixture"> | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.DateTimeNullableFilter<"Fixture"> | Date | string | null
   venue?: Prisma.StringNullableFilter<"Fixture"> | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Fixture"> | Date | string | null
   status?: Prisma.EnumFixtureStatusFilter<"Fixture"> | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFilter<"Fixture"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Fixture"> | Date | string
@@ -357,6 +365,7 @@ export type FixtureOrderByWithRelationInput = {
   nextSlot?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   venue?: Prisma.SortOrderInput | Prisma.SortOrder
+  publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -389,6 +398,7 @@ export type FixtureWhereUniqueInput = Prisma.AtLeast<{
   nextSlot?: Prisma.EnumFixtureNextSlotNullableFilter<"Fixture"> | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.DateTimeNullableFilter<"Fixture"> | Date | string | null
   venue?: Prisma.StringNullableFilter<"Fixture"> | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Fixture"> | Date | string | null
   status?: Prisma.EnumFixtureStatusFilter<"Fixture"> | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFilter<"Fixture"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Fixture"> | Date | string
@@ -417,6 +427,7 @@ export type FixtureOrderByWithAggregationInput = {
   nextSlot?: Prisma.SortOrderInput | Prisma.SortOrder
   scheduledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   venue?: Prisma.SortOrderInput | Prisma.SortOrder
+  publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -446,6 +457,7 @@ export type FixtureScalarWhereWithAggregatesInput = {
   nextSlot?: Prisma.EnumFixtureNextSlotNullableWithAggregatesFilter<"Fixture"> | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Fixture"> | Date | string | null
   venue?: Prisma.StringNullableWithAggregatesFilter<"Fixture"> | string | null
+  publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Fixture"> | Date | string | null
   status?: Prisma.EnumFixtureStatusWithAggregatesFilter<"Fixture"> | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Fixture"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Fixture"> | Date | string
@@ -462,6 +474,7 @@ export type FixtureCreateInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -490,6 +503,7 @@ export type FixtureUncheckedCreateInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -508,6 +522,7 @@ export type FixtureUpdateInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -536,6 +551,7 @@ export type FixtureUncheckedUpdateInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -559,6 +575,7 @@ export type FixtureCreateManyInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -575,6 +592,7 @@ export type FixtureUpdateManyMutationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -596,6 +614,7 @@ export type FixtureUncheckedUpdateManyInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -637,6 +656,7 @@ export type FixtureCountOrderByAggregateInput = {
   nextSlot?: Prisma.SortOrder
   scheduledAt?: Prisma.SortOrder
   venue?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -665,6 +685,7 @@ export type FixtureMaxOrderByAggregateInput = {
   nextSlot?: Prisma.SortOrder
   scheduledAt?: Prisma.SortOrder
   venue?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -686,6 +707,7 @@ export type FixtureMinOrderByAggregateInput = {
   nextSlot?: Prisma.SortOrder
   scheduledAt?: Prisma.SortOrder
   venue?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -891,14 +913,6 @@ export type FixtureUncheckedCreateNestedManyWithoutNextFixtureInput = {
   connect?: Prisma.FixtureWhereUniqueInput | Prisma.FixtureWhereUniqueInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type NullableEnumFixtureNextSlotFieldUpdateOperationsInput = {
   set?: $Enums.FixtureNextSlot | null
 }
@@ -970,6 +984,7 @@ export type FixtureCreateWithoutTournamentInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -996,6 +1011,7 @@ export type FixtureUncheckedCreateWithoutTournamentInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1048,6 +1064,7 @@ export type FixtureScalarWhereInput = {
   nextSlot?: Prisma.EnumFixtureNextSlotNullableFilter<"Fixture"> | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.DateTimeNullableFilter<"Fixture"> | Date | string | null
   venue?: Prisma.StringNullableFilter<"Fixture"> | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Fixture"> | Date | string | null
   status?: Prisma.EnumFixtureStatusFilter<"Fixture"> | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFilter<"Fixture"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Fixture"> | Date | string
@@ -1064,6 +1081,7 @@ export type FixtureCreateWithoutGroupInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1090,6 +1108,7 @@ export type FixtureUncheckedCreateWithoutGroupInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1134,6 +1153,7 @@ export type FixtureCreateWithoutHomeRegistrationInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1160,6 +1180,7 @@ export type FixtureUncheckedCreateWithoutHomeRegistrationInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1188,6 +1209,7 @@ export type FixtureCreateWithoutAwayRegistrationInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1214,6 +1236,7 @@ export type FixtureUncheckedCreateWithoutAwayRegistrationInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1274,6 +1297,7 @@ export type FixtureCreateWithoutPreviousFixturesInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1301,6 +1325,7 @@ export type FixtureUncheckedCreateWithoutPreviousFixturesInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1323,6 +1348,7 @@ export type FixtureCreateWithoutNextFixtureInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1349,6 +1375,7 @@ export type FixtureUncheckedCreateWithoutNextFixtureInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1388,6 +1415,7 @@ export type FixtureUpdateWithoutPreviousFixturesInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1415,6 +1443,7 @@ export type FixtureUncheckedUpdateWithoutPreviousFixturesInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1448,6 +1477,7 @@ export type FixtureCreateWithoutMatchInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1475,6 +1505,7 @@ export type FixtureUncheckedCreateWithoutMatchInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1508,6 +1539,7 @@ export type FixtureUpdateWithoutMatchInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1535,6 +1567,7 @@ export type FixtureUncheckedUpdateWithoutMatchInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1556,6 +1589,7 @@ export type FixtureCreateManyTournamentInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1572,6 +1606,7 @@ export type FixtureUpdateWithoutTournamentInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1598,6 +1633,7 @@ export type FixtureUncheckedUpdateWithoutTournamentInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1620,6 +1656,7 @@ export type FixtureUncheckedUpdateManyWithoutTournamentInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1640,6 +1677,7 @@ export type FixtureCreateManyGroupInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1656,6 +1694,7 @@ export type FixtureUpdateWithoutGroupInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1682,6 +1721,7 @@ export type FixtureUncheckedUpdateWithoutGroupInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1704,6 +1744,7 @@ export type FixtureUncheckedUpdateManyWithoutGroupInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1724,6 +1765,7 @@ export type FixtureCreateManyHomeRegistrationInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1744,6 +1786,7 @@ export type FixtureCreateManyAwayRegistrationInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1760,6 +1803,7 @@ export type FixtureUpdateWithoutHomeRegistrationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1786,6 +1830,7 @@ export type FixtureUncheckedUpdateWithoutHomeRegistrationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1808,6 +1853,7 @@ export type FixtureUncheckedUpdateManyWithoutHomeRegistrationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1824,6 +1870,7 @@ export type FixtureUpdateWithoutAwayRegistrationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1850,6 +1897,7 @@ export type FixtureUncheckedUpdateWithoutAwayRegistrationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1872,6 +1920,7 @@ export type FixtureUncheckedUpdateManyWithoutAwayRegistrationInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1892,6 +1941,7 @@ export type FixtureCreateManyNextFixtureInput = {
   nextSlot?: $Enums.FixtureNextSlot | null
   scheduledAt?: Date | string | null
   venue?: string | null
+  publishedAt?: Date | string | null
   status?: $Enums.FixtureStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1908,6 +1958,7 @@ export type FixtureUpdateWithoutNextFixtureInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1934,6 +1985,7 @@ export type FixtureUncheckedUpdateWithoutNextFixtureInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1956,6 +2008,7 @@ export type FixtureUncheckedUpdateManyWithoutNextFixtureInput = {
   nextSlot?: Prisma.NullableEnumFixtureNextSlotFieldUpdateOperationsInput | $Enums.FixtureNextSlot | null
   scheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   venue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumFixtureStatusFieldUpdateOperationsInput | $Enums.FixtureStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2008,6 +2061,7 @@ export type FixtureSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   nextSlot?: boolean
   scheduledAt?: boolean
   venue?: boolean
+  publishedAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2037,6 +2091,7 @@ export type FixtureSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   nextSlot?: boolean
   scheduledAt?: boolean
   venue?: boolean
+  publishedAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2063,6 +2118,7 @@ export type FixtureSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   nextSlot?: boolean
   scheduledAt?: boolean
   venue?: boolean
+  publishedAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2089,12 +2145,13 @@ export type FixtureSelectScalar = {
   nextSlot?: boolean
   scheduledAt?: boolean
   venue?: boolean
+  publishedAt?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FixtureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fixtureCode" | "tournamentId" | "groupId" | "sequence" | "matchday" | "roundNumber" | "roundName" | "bracketPosition" | "homeRegistrationId" | "awayRegistrationId" | "nextFixtureId" | "nextSlot" | "scheduledAt" | "venue" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["fixture"]>
+export type FixtureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fixtureCode" | "tournamentId" | "groupId" | "sequence" | "matchday" | "roundNumber" | "roundName" | "bracketPosition" | "homeRegistrationId" | "awayRegistrationId" | "nextFixtureId" | "nextSlot" | "scheduledAt" | "venue" | "publishedAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["fixture"]>
 export type FixtureInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
   group?: boolean | Prisma.Fixture$groupArgs<ExtArgs>
@@ -2147,6 +2204,7 @@ export type $FixturePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     nextSlot: $Enums.FixtureNextSlot | null
     scheduledAt: Date | null
     venue: string | null
+    publishedAt: Date | null
     status: $Enums.FixtureStatus
     createdAt: Date
     updatedAt: Date
@@ -2595,6 +2653,7 @@ export interface FixtureFieldRefs {
   readonly nextSlot: Prisma.FieldRef<"Fixture", 'FixtureNextSlot'>
   readonly scheduledAt: Prisma.FieldRef<"Fixture", 'DateTime'>
   readonly venue: Prisma.FieldRef<"Fixture", 'String'>
+  readonly publishedAt: Prisma.FieldRef<"Fixture", 'DateTime'>
   readonly status: Prisma.FieldRef<"Fixture", 'FixtureStatus'>
   readonly createdAt: Prisma.FieldRef<"Fixture", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Fixture", 'DateTime'>

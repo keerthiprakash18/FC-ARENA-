@@ -52,6 +52,60 @@ enum TournamentFormat {
   KNOCKOUT
 }
 
+enum TournamentCompetitionFormat {
+  LEAGUE_ROUND_ROBIN
+  DOUBLE_ROUND_ROBIN
+  SINGLE_ELIMINATION
+  GROUP_STAGE_KNOCKOUT
+  CUSTOM_MANUAL
+}
+
+enum TournamentGroupMode {
+  SINGLE_GROUP
+  MULTIPLE_GROUPS
+}
+
+enum TournamentLegType {
+  SINGLE_LEG
+  HOME_AWAY
+}
+
+enum TournamentFixtureMode {
+  AUTOMATIC
+  RANDOMIZED
+  MANUAL
+}
+
+enum TournamentVisibility {
+  PRIVATE
+  LEAGUE
+  PUBLIC
+}
+
+enum TournamentRegistrationMode {
+  OPEN
+  APPROVAL
+  ADMIN_ONLY
+}
+
+enum TournamentPairingMethod {
+  CROSS_GROUP
+  SEEDED
+  RANDOM
+  MANUAL
+}
+
+enum TournamentWizardStep {
+  SETUP
+  TEAMS
+  GROUPS
+  FIXTURE_SETTINGS
+  FIXTURE_PREVIEW
+  QUALIFICATION
+  REVIEW
+  PUBLISHED
+}
+
 enum TournamentStatus {
   DRAFT
   REGISTRATION_OPEN
@@ -123,7 +177,6 @@ enum AchievementType {
   TOURNAMENT_PARTICIPATION
 }
 
-
 enum NotificationType {
   LEAGUE_JOIN_REQUESTED
   LEAGUE_REQUEST_APPROVED
@@ -156,6 +209,7 @@ enum RoleScopeType {
   LEAGUE
   TOURNAMENT
 }
+
 model User {
   id              String     @id @default(uuid()) @db.Uuid
   fullName        String     @db.VarChar(120)
@@ -171,28 +225,28 @@ model User {
   player                     Player?
   authOtps                   AuthOtp[]
   refreshSessions            RefreshSession[]
-  createdLeagues             League[]                        @relation("LeagueCreator")
+  createdLeagues             League[]                       @relation("LeagueCreator")
   leagueMemberships          LeagueMember[]
-  leagueApplications         LeagueApplication[]             @relation("LeagueApplicant")
-  reviewedLeagueApplications LeagueApplication[]             @relation("LeagueApplicationReviewer")
+  leagueApplications         LeagueApplication[]            @relation("LeagueApplicant")
+  reviewedLeagueApplications LeagueApplication[]            @relation("LeagueApplicationReviewer")
   leagueAdminRoles           LeagueAdmin[]
-  createdTournaments         Tournament[]                     @relation("TournamentCreator")
-  tournamentRegistrations    TournamentRegistration[]         @relation("TournamentRegistrant")
-  tournamentEntryMemberships TournamentRegistrationMember[]   @relation("TournamentRegistrationMemberUser")
-  reviewedRegistrations      TournamentRegistration[]         @relation("TournamentRegistrationReviewer")
+  createdTournaments         Tournament[]                   @relation("TournamentCreator")
+  tournamentRegistrations    TournamentRegistration[]       @relation("TournamentRegistrant")
+  tournamentEntryMemberships TournamentRegistrationMember[] @relation("TournamentRegistrationMemberUser")
+  reviewedRegistrations      TournamentRegistration[]       @relation("TournamentRegistrationReviewer")
 
-  submittedResultSubmissions ResultSubmission[]               @relation("ResultSubmitter")
-  reviewedResultSubmissions  ResultSubmission[]               @relation("ResultReviewer")
+  submittedResultSubmissions ResultSubmission[]          @relation("ResultSubmitter")
+  reviewedResultSubmissions  ResultSubmission[]          @relation("ResultReviewer")
   playerTournamentStatistics PlayerTournamentStatistic[]
 
-  ocrSubmissions             OcrExtraction[]                  @relation("OcrSubmitter")
-  ocrHomeMatches             OcrExtraction[]                  @relation("OcrHomeMatchedUser")
-  ocrAwayMatches             OcrExtraction[]                  @relation("OcrAwayMatchedUser")
-  achievements               Achievement[]
-  notifications              Notification[]
-  roleAssignments            RoleAssignment[] @relation("AssignedRoleUser")
-  rolesAssigned              RoleAssignment[] @relation("RoleAssigner")
-  auditLogs                  AuditLog[] @relation("AuditActor")
+  ocrSubmissions  OcrExtraction[]  @relation("OcrSubmitter")
+  ocrHomeMatches  OcrExtraction[]  @relation("OcrHomeMatchedUser")
+  ocrAwayMatches  OcrExtraction[]  @relation("OcrAwayMatchedUser")
+  achievements    Achievement[]
+  notifications   Notification[]
+  roleAssignments RoleAssignment[] @relation("AssignedRoleUser")
+  rolesAssigned   RoleAssignment[] @relation("RoleAssigner")
+  auditLogs       AuditLog[]       @relation("AuditActor")
 
   @@index([status])
   @@map("users")
@@ -214,16 +268,16 @@ model Player {
 }
 
 model PlayerIdentity {
-  id                   String   @id @default(uuid()) @db.Uuid
-  playerId             String   @unique @db.Uuid
-  inGameName           String   @db.VarChar(80)
-  inGameNameNormalized String   @unique @db.VarChar(80)
-  gameUid              String?  @unique @db.VarChar(100)
-  isVerified           Boolean  @default(false)
+  id                   String    @id @default(uuid()) @db.Uuid
+  playerId             String    @unique @db.Uuid
+  inGameName           String    @db.VarChar(80)
+  inGameNameNormalized String    @unique @db.VarChar(80)
+  gameUid              String?   @unique @db.VarChar(100)
+  isVerified           Boolean   @default(false)
   verifiedAt           DateTime?
   lockedAt             DateTime?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
@@ -337,28 +391,41 @@ model LeagueAdmin {
 }
 
 model Tournament {
-  id                          String           @id @default(uuid()) @db.Uuid
-  leagueId                    String           @db.Uuid
-  createdByUserId             String           @db.Uuid
-  name                        String           @db.VarChar(120)
-  code                        String           @unique @db.VarChar(20)
-  description                 String?          @db.Text
-  rules                       String?          @db.Text
+  id                          String                      @id @default(uuid()) @db.Uuid
+  leagueId                    String                      @db.Uuid
+  createdByUserId             String                      @db.Uuid
+  name                        String                      @db.VarChar(120)
+  code                        String                      @unique @db.VarChar(20)
+  description                 String?                     @db.Text
+  rules                       String?                     @db.Text
   mode                        TournamentMode
   format                      TournamentFormat
-  status                      TournamentStatus @default(DRAFT)
+  competitionFormat           TournamentCompetitionFormat @default(LEAGUE_ROUND_ROBIN)
+  groupMode                   TournamentGroupMode         @default(SINGLE_GROUP)
+  legType                     TournamentLegType           @default(SINGLE_LEG)
+  fixtureMode                 TournamentFixtureMode       @default(AUTOMATIC)
+  visibility                  TournamentVisibility        @default(LEAGUE)
+  registrationMode            TournamentRegistrationMode  @default(APPROVAL)
+  wizardStep                  TournamentWizardStep        @default(SETUP)
+  status                      TournamentStatus            @default(DRAFT)
   teamSize                    Int
   maxEntries                  Int
+  logoUrl                     String?                     @db.Text
   startAt                     DateTime?
+  endAt                       DateTime?
+  publishedAt                 DateTime?
+  qualifiersPerGroup          Int?
+  playoffPairingMethod        TournamentPairingMethod     @default(CROSS_GROUP)
+  fixturesPublishedAt         DateTime?
   registrationOpenedAt        DateTime?
   registrationClosedAt        DateTime?
   fixturesGeneratedAt         DateTime?
-  dailyMatchLimit             Int              @default(20)
-  matchesPerParticipantPerDay Int              @default(2)
-  matchDurationMinutes        Int              @default(30)
-  createdAt                   DateTime         @default(now())
-  updatedAt                   DateTime         @updatedAt
-  completedAt                  DateTime?
+  dailyMatchLimit             Int                         @default(20)
+  matchesPerParticipantPerDay Int                         @default(2)
+  matchDurationMinutes        Int                         @default(30)
+  createdAt                   DateTime                    @default(now())
+  updatedAt                   DateTime                    @updatedAt
+  completedAt                 DateTime?
 
   league              League                         @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   createdBy           User                           @relation("TournamentCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
@@ -385,7 +452,7 @@ model TournamentGroup {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tournament   Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  tournament    Tournament               @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   registrations TournamentRegistration[]
   fixtures      Fixture[]
 
@@ -401,20 +468,22 @@ model TournamentRegistration {
   groupId            String?                      @db.Uuid
   registeredByUserId String                       @db.Uuid
   entryName          String?                      @db.VarChar(120)
+  entryLogoUrl       String?                      @db.Text
+  sortOrder          Int                          @default(0)
   status             TournamentRegistrationStatus @default(PENDING)
   reviewedByUserId   String?                      @db.Uuid
   reviewedAt         DateTime?
   createdAt          DateTime                     @default(now())
   updatedAt          DateTime                     @updatedAt
 
-  tournament      Tournament                     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  group           TournamentGroup?               @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  registeredBy    User                           @relation("TournamentRegistrant", fields: [registeredByUserId], references: [id], onDelete: Cascade)
-  reviewedBy      User?                          @relation("TournamentRegistrationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
-  members         TournamentRegistrationMember[]
-  homeFixtures    Fixture[]                      @relation("FixtureHomeRegistration")
-  awayFixtures    Fixture[]                      @relation("FixtureAwayRegistration")
-  standing        TournamentStanding?
+  tournament   Tournament                     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group        TournamentGroup?               @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  registeredBy User                           @relation("TournamentRegistrant", fields: [registeredByUserId], references: [id], onDelete: Cascade)
+  reviewedBy   User?                          @relation("TournamentRegistrationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  members      TournamentRegistrationMember[]
+  homeFixtures Fixture[]                      @relation("FixtureHomeRegistration")
+  awayFixtures Fixture[]                      @relation("FixtureAwayRegistration")
+  standing     TournamentStanding?
 
   @@index([tournamentId, status])
   @@index([registeredByUserId])
@@ -455,12 +524,13 @@ model Fixture {
   nextSlot           FixtureNextSlot?
   scheduledAt        DateTime?
   venue              String?          @db.VarChar(160)
+  publishedAt        DateTime?
   status             FixtureStatus    @default(UNSCHEDULED)
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
-  tournament      Tournament               @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  group           TournamentGroup?          @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  tournament       Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group            TournamentGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   homeRegistration TournamentRegistration? @relation("FixtureHomeRegistration", fields: [homeRegistrationId], references: [id], onDelete: SetNull)
   awayRegistration TournamentRegistration? @relation("FixtureAwayRegistration", fields: [awayRegistrationId], references: [id], onDelete: SetNull)
   nextFixture      Fixture?                @relation("FixtureProgression", fields: [nextFixtureId], references: [id], onDelete: SetNull)
@@ -489,12 +559,12 @@ model Match {
   createdAt                   DateTime    @default(now())
   updatedAt                   DateTime    @updatedAt
 
-  tournament       Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  fixture          Fixture            @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
-  resultSubmissions ResultSubmission[] @relation("MatchResultSubmissions")
-  confirmedResult  ResultSubmission?  @relation("ConfirmedMatchResult", fields: [confirmedResultSubmissionId], references: [id], onDelete: SetNull)
-  statEvents       MatchResultStatEvent[]
-  ocrExtractions   OcrExtraction[]
+  tournament        Tournament             @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  fixture           Fixture                @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  resultSubmissions ResultSubmission[]     @relation("MatchResultSubmissions")
+  confirmedResult   ResultSubmission?      @relation("ConfirmedMatchResult", fields: [confirmedResultSubmissionId], references: [id], onDelete: SetNull)
+  statEvents        MatchResultStatEvent[]
+  ocrExtractions    OcrExtraction[]
 
   @@index([tournamentId, status])
   @@map("matches")
@@ -553,10 +623,10 @@ model OcrExtraction {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  match           Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  submittedBy     User              @relation("OcrSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
-  homeMatchedUser User?             @relation("OcrHomeMatchedUser", fields: [homeMatchedUserId], references: [id], onDelete: SetNull)
-  awayMatchedUser User?             @relation("OcrAwayMatchedUser", fields: [awayMatchedUserId], references: [id], onDelete: SetNull)
+  match            Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  submittedBy      User              @relation("OcrSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+  homeMatchedUser  User?             @relation("OcrHomeMatchedUser", fields: [homeMatchedUserId], references: [id], onDelete: SetNull)
+  awayMatchedUser  User?             @relation("OcrAwayMatchedUser", fields: [awayMatchedUserId], references: [id], onDelete: SetNull)
   resultSubmission ResultSubmission?
 
   @@index([matchId, createdAt])
@@ -564,8 +634,6 @@ model OcrExtraction {
   @@index([status])
   @@map("ocr_extractions")
 }
-
-
 
 model RoleAssignment {
   id               String        @id @default(uuid()) @db.Uuid
@@ -607,6 +675,7 @@ model AuditLog {
   @@index([action, createdAt])
   @@map("audit_logs")
 }
+
 model Notification {
   id         String           @id @default(uuid()) @db.Uuid
   userId     String           @db.Uuid
@@ -628,6 +697,7 @@ model Notification {
   @@index([userId, eventAt])
   @@map("notifications")
 }
+
 model Achievement {
   id           String          @id @default(uuid()) @db.Uuid
   userId       String          @db.Uuid
@@ -647,6 +717,7 @@ model Achievement {
   @@index([tournamentId, type])
   @@map("achievements")
 }
+
 model TournamentStanding {
   id             String   @id @default(uuid()) @db.Uuid
   tournamentId   String   @db.Uuid

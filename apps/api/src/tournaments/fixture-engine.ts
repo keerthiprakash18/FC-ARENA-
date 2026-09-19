@@ -108,6 +108,87 @@ export function generateRoundRobinFixtures(
   return fixtures;
 }
 
+
+export function generateDoubleRoundRobinFixtures(
+  registrationIds: string[],
+): FixtureBlueprint[] {
+  const firstLeg =
+    generateRoundRobinFixtures(
+      registrationIds,
+    );
+
+  const rounds =
+    registrationIds.length % 2 === 0
+      ? registrationIds.length - 1
+      : registrationIds.length;
+
+  const secondLeg =
+    firstLeg.map(
+      (
+        fixture,
+        index,
+      ) => ({
+        ...fixture,
+
+        key:
+          `drr-${index + 1}`,
+
+        roundNumber:
+          fixture.roundNumber +
+          rounds,
+
+        roundName:
+          `MATCHDAY ${
+            fixture.roundNumber +
+            rounds
+          }`,
+
+        matchday:
+          fixture.matchday === null
+            ? null
+            : fixture.matchday +
+              rounds,
+
+        homeRegistrationId:
+          fixture.awayRegistrationId,
+
+        awayRegistrationId:
+          fixture.homeRegistrationId,
+      }),
+    );
+
+  const fixtures = [
+    ...firstLeg.map(
+      (
+        fixture,
+        index,
+      ) => ({
+        ...fixture,
+
+        key:
+          `drr-first-${index + 1}`,
+      }),
+    ),
+
+    ...secondLeg,
+  ];
+
+  const expected =
+    registrationIds.length *
+    (registrationIds.length - 1);
+
+  if (
+    fixtures.length !==
+    expected
+  ) {
+    throw new Error(
+      `Invalid Double Round Robin fixture count. Expected ${expected}, received ${fixtures.length}.`,
+    );
+  }
+
+  return fixtures;
+}
+
 export function generateKnockoutFixtures(
   registrationIds: string[],
 ): FixtureBlueprint[] {

@@ -20,8 +20,18 @@ export type TournamentRegistrationModel = runtime.Types.Result.DefaultSelection<
 
 export type AggregateTournamentRegistration = {
   _count: TournamentRegistrationCountAggregateOutputType | null
+  _avg: TournamentRegistrationAvgAggregateOutputType | null
+  _sum: TournamentRegistrationSumAggregateOutputType | null
   _min: TournamentRegistrationMinAggregateOutputType | null
   _max: TournamentRegistrationMaxAggregateOutputType | null
+}
+
+export type TournamentRegistrationAvgAggregateOutputType = {
+  sortOrder: number | null
+}
+
+export type TournamentRegistrationSumAggregateOutputType = {
+  sortOrder: number | null
 }
 
 export type TournamentRegistrationMinAggregateOutputType = {
@@ -30,6 +40,8 @@ export type TournamentRegistrationMinAggregateOutputType = {
   groupId: string | null
   registeredByUserId: string | null
   entryName: string | null
+  entryLogoUrl: string | null
+  sortOrder: number | null
   status: $Enums.TournamentRegistrationStatus | null
   reviewedByUserId: string | null
   reviewedAt: Date | null
@@ -43,6 +55,8 @@ export type TournamentRegistrationMaxAggregateOutputType = {
   groupId: string | null
   registeredByUserId: string | null
   entryName: string | null
+  entryLogoUrl: string | null
+  sortOrder: number | null
   status: $Enums.TournamentRegistrationStatus | null
   reviewedByUserId: string | null
   reviewedAt: Date | null
@@ -56,6 +70,8 @@ export type TournamentRegistrationCountAggregateOutputType = {
   groupId: number
   registeredByUserId: number
   entryName: number
+  entryLogoUrl: number
+  sortOrder: number
   status: number
   reviewedByUserId: number
   reviewedAt: number
@@ -65,12 +81,22 @@ export type TournamentRegistrationCountAggregateOutputType = {
 }
 
 
+export type TournamentRegistrationAvgAggregateInputType = {
+  sortOrder?: true
+}
+
+export type TournamentRegistrationSumAggregateInputType = {
+  sortOrder?: true
+}
+
 export type TournamentRegistrationMinAggregateInputType = {
   id?: true
   tournamentId?: true
   groupId?: true
   registeredByUserId?: true
   entryName?: true
+  entryLogoUrl?: true
+  sortOrder?: true
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
@@ -84,6 +110,8 @@ export type TournamentRegistrationMaxAggregateInputType = {
   groupId?: true
   registeredByUserId?: true
   entryName?: true
+  entryLogoUrl?: true
+  sortOrder?: true
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
@@ -97,6 +125,8 @@ export type TournamentRegistrationCountAggregateInputType = {
   groupId?: true
   registeredByUserId?: true
   entryName?: true
+  entryLogoUrl?: true
+  sortOrder?: true
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
@@ -143,6 +173,18 @@ export type TournamentRegistrationAggregateArgs<ExtArgs extends runtime.Types.Ex
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: TournamentRegistrationAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: TournamentRegistrationSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: TournamentRegistrationMinAggregateInputType
@@ -173,6 +215,8 @@ export type TournamentRegistrationGroupByArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   _count?: TournamentRegistrationCountAggregateInputType | true
+  _avg?: TournamentRegistrationAvgAggregateInputType
+  _sum?: TournamentRegistrationSumAggregateInputType
   _min?: TournamentRegistrationMinAggregateInputType
   _max?: TournamentRegistrationMaxAggregateInputType
 }
@@ -183,12 +227,16 @@ export type TournamentRegistrationGroupByOutputType = {
   groupId: string | null
   registeredByUserId: string
   entryName: string | null
+  entryLogoUrl: string | null
+  sortOrder: number
   status: $Enums.TournamentRegistrationStatus
   reviewedByUserId: string | null
   reviewedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: TournamentRegistrationCountAggregateOutputType | null
+  _avg: TournamentRegistrationAvgAggregateOutputType | null
+  _sum: TournamentRegistrationSumAggregateOutputType | null
   _min: TournamentRegistrationMinAggregateOutputType | null
   _max: TournamentRegistrationMaxAggregateOutputType | null
 }
@@ -217,6 +265,8 @@ export type TournamentRegistrationWhereInput = {
   groupId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   registeredByUserId?: Prisma.UuidFilter<"TournamentRegistration"> | string
   entryName?: Prisma.StringNullableFilter<"TournamentRegistration"> | string | null
+  entryLogoUrl?: Prisma.StringNullableFilter<"TournamentRegistration"> | string | null
+  sortOrder?: Prisma.IntFilter<"TournamentRegistration"> | number
   status?: Prisma.EnumTournamentRegistrationStatusFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"TournamentRegistration"> | Date | string | null
@@ -238,6 +288,8 @@ export type TournamentRegistrationOrderByWithRelationInput = {
   groupId?: Prisma.SortOrderInput | Prisma.SortOrder
   registeredByUserId?: Prisma.SortOrder
   entryName?: Prisma.SortOrderInput | Prisma.SortOrder
+  entryLogoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -262,6 +314,8 @@ export type TournamentRegistrationWhereUniqueInput = Prisma.AtLeast<{
   groupId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   registeredByUserId?: Prisma.UuidFilter<"TournamentRegistration"> | string
   entryName?: Prisma.StringNullableFilter<"TournamentRegistration"> | string | null
+  entryLogoUrl?: Prisma.StringNullableFilter<"TournamentRegistration"> | string | null
+  sortOrder?: Prisma.IntFilter<"TournamentRegistration"> | number
   status?: Prisma.EnumTournamentRegistrationStatusFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"TournamentRegistration"> | Date | string | null
@@ -283,14 +337,18 @@ export type TournamentRegistrationOrderByWithAggregationInput = {
   groupId?: Prisma.SortOrderInput | Prisma.SortOrder
   registeredByUserId?: Prisma.SortOrder
   entryName?: Prisma.SortOrderInput | Prisma.SortOrder
+  entryLogoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TournamentRegistrationCountOrderByAggregateInput
+  _avg?: Prisma.TournamentRegistrationAvgOrderByAggregateInput
   _max?: Prisma.TournamentRegistrationMaxOrderByAggregateInput
   _min?: Prisma.TournamentRegistrationMinOrderByAggregateInput
+  _sum?: Prisma.TournamentRegistrationSumOrderByAggregateInput
 }
 
 export type TournamentRegistrationScalarWhereWithAggregatesInput = {
@@ -302,6 +360,8 @@ export type TournamentRegistrationScalarWhereWithAggregatesInput = {
   groupId?: Prisma.UuidNullableWithAggregatesFilter<"TournamentRegistration"> | string | null
   registeredByUserId?: Prisma.UuidWithAggregatesFilter<"TournamentRegistration"> | string
   entryName?: Prisma.StringNullableWithAggregatesFilter<"TournamentRegistration"> | string | null
+  entryLogoUrl?: Prisma.StringNullableWithAggregatesFilter<"TournamentRegistration"> | string | null
+  sortOrder?: Prisma.IntWithAggregatesFilter<"TournamentRegistration"> | number
   status?: Prisma.EnumTournamentRegistrationStatusWithAggregatesFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableWithAggregatesFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TournamentRegistration"> | Date | string | null
@@ -312,6 +372,8 @@ export type TournamentRegistrationScalarWhereWithAggregatesInput = {
 export type TournamentRegistrationCreateInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -332,6 +394,8 @@ export type TournamentRegistrationUncheckedCreateInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -346,6 +410,8 @@ export type TournamentRegistrationUncheckedCreateInput = {
 export type TournamentRegistrationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -366,6 +432,8 @@ export type TournamentRegistrationUncheckedUpdateInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -383,6 +451,8 @@ export type TournamentRegistrationCreateManyInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -393,6 +463,8 @@ export type TournamentRegistrationCreateManyInput = {
 export type TournamentRegistrationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -405,6 +477,8 @@ export type TournamentRegistrationUncheckedUpdateManyInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -428,11 +502,17 @@ export type TournamentRegistrationCountOrderByAggregateInput = {
   groupId?: Prisma.SortOrder
   registeredByUserId?: Prisma.SortOrder
   entryName?: Prisma.SortOrder
+  entryLogoUrl?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type TournamentRegistrationAvgOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
 }
 
 export type TournamentRegistrationMaxOrderByAggregateInput = {
@@ -441,6 +521,8 @@ export type TournamentRegistrationMaxOrderByAggregateInput = {
   groupId?: Prisma.SortOrder
   registeredByUserId?: Prisma.SortOrder
   entryName?: Prisma.SortOrder
+  entryLogoUrl?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
@@ -454,11 +536,17 @@ export type TournamentRegistrationMinOrderByAggregateInput = {
   groupId?: Prisma.SortOrder
   registeredByUserId?: Prisma.SortOrder
   entryName?: Prisma.SortOrder
+  entryLogoUrl?: Prisma.SortOrder
+  sortOrder?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type TournamentRegistrationSumOrderByAggregateInput = {
+  sortOrder?: Prisma.SortOrder
 }
 
 export type TournamentRegistrationScalarRelationFilter = {
@@ -706,6 +794,8 @@ export type TournamentRegistrationUpdateOneRequiredWithoutStandingNestedInput = 
 export type TournamentRegistrationCreateWithoutRegisteredByInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -724,6 +814,8 @@ export type TournamentRegistrationUncheckedCreateWithoutRegisteredByInput = {
   tournamentId: string
   groupId?: string | null
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -748,6 +840,8 @@ export type TournamentRegistrationCreateManyRegisteredByInputEnvelope = {
 export type TournamentRegistrationCreateWithoutReviewedByInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -767,6 +861,8 @@ export type TournamentRegistrationUncheckedCreateWithoutReviewedByInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -812,6 +908,8 @@ export type TournamentRegistrationScalarWhereInput = {
   groupId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   registeredByUserId?: Prisma.UuidFilter<"TournamentRegistration"> | string
   entryName?: Prisma.StringNullableFilter<"TournamentRegistration"> | string | null
+  entryLogoUrl?: Prisma.StringNullableFilter<"TournamentRegistration"> | string | null
+  sortOrder?: Prisma.IntFilter<"TournamentRegistration"> | number
   status?: Prisma.EnumTournamentRegistrationStatusFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"TournamentRegistration"> | Date | string | null
@@ -838,6 +936,8 @@ export type TournamentRegistrationUpdateManyWithWhereWithoutReviewedByInput = {
 export type TournamentRegistrationCreateWithoutTournamentInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -856,6 +956,8 @@ export type TournamentRegistrationUncheckedCreateWithoutTournamentInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -896,6 +998,8 @@ export type TournamentRegistrationUpdateManyWithWhereWithoutTournamentInput = {
 export type TournamentRegistrationCreateWithoutGroupInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -914,6 +1018,8 @@ export type TournamentRegistrationUncheckedCreateWithoutGroupInput = {
   tournamentId: string
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -954,6 +1060,8 @@ export type TournamentRegistrationUpdateManyWithWhereWithoutGroupInput = {
 export type TournamentRegistrationCreateWithoutMembersInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -973,6 +1081,8 @@ export type TournamentRegistrationUncheckedCreateWithoutMembersInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1002,6 +1112,8 @@ export type TournamentRegistrationUpdateToOneWithWhereWithoutMembersInput = {
 export type TournamentRegistrationUpdateWithoutMembersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1021,6 +1133,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutMembersInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1034,6 +1148,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutMembersInput = {
 export type TournamentRegistrationCreateWithoutHomeFixturesInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -1053,6 +1169,8 @@ export type TournamentRegistrationUncheckedCreateWithoutHomeFixturesInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1071,6 +1189,8 @@ export type TournamentRegistrationCreateOrConnectWithoutHomeFixturesInput = {
 export type TournamentRegistrationCreateWithoutAwayFixturesInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -1090,6 +1210,8 @@ export type TournamentRegistrationUncheckedCreateWithoutAwayFixturesInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1119,6 +1241,8 @@ export type TournamentRegistrationUpdateToOneWithWhereWithoutHomeFixturesInput =
 export type TournamentRegistrationUpdateWithoutHomeFixturesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1138,6 +1262,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutHomeFixturesInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1162,6 +1288,8 @@ export type TournamentRegistrationUpdateToOneWithWhereWithoutAwayFixturesInput =
 export type TournamentRegistrationUpdateWithoutAwayFixturesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1181,6 +1309,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutAwayFixturesInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1194,6 +1324,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutAwayFixturesInput = {
 export type TournamentRegistrationCreateWithoutStandingInput = {
   id?: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -1213,6 +1345,8 @@ export type TournamentRegistrationUncheckedCreateWithoutStandingInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1242,6 +1376,8 @@ export type TournamentRegistrationUpdateToOneWithWhereWithoutStandingInput = {
 export type TournamentRegistrationUpdateWithoutStandingInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1261,6 +1397,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutStandingInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1276,6 +1414,8 @@ export type TournamentRegistrationCreateManyRegisteredByInput = {
   tournamentId: string
   groupId?: string | null
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1289,6 +1429,8 @@ export type TournamentRegistrationCreateManyReviewedByInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
   createdAt?: Date | string
@@ -1298,6 +1440,8 @@ export type TournamentRegistrationCreateManyReviewedByInput = {
 export type TournamentRegistrationUpdateWithoutRegisteredByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1316,6 +1460,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutRegisteredByInput = {
   tournamentId?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1332,6 +1478,8 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByInput = 
   tournamentId?: Prisma.StringFieldUpdateOperationsInput | string
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1342,6 +1490,8 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByInput = 
 export type TournamentRegistrationUpdateWithoutReviewedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1361,6 +1511,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutReviewedByInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1377,6 +1529,8 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutReviewedByInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1388,6 +1542,8 @@ export type TournamentRegistrationCreateManyTournamentInput = {
   groupId?: string | null
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1398,6 +1554,8 @@ export type TournamentRegistrationCreateManyTournamentInput = {
 export type TournamentRegistrationUpdateWithoutTournamentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1416,6 +1574,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutTournamentInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1432,6 +1592,8 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutTournamentInput = {
   groupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1444,6 +1606,8 @@ export type TournamentRegistrationCreateManyGroupInput = {
   tournamentId: string
   registeredByUserId: string
   entryName?: string | null
+  entryLogoUrl?: string | null
+  sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1454,6 +1618,8 @@ export type TournamentRegistrationCreateManyGroupInput = {
 export type TournamentRegistrationUpdateWithoutGroupInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1472,6 +1638,8 @@ export type TournamentRegistrationUncheckedUpdateWithoutGroupInput = {
   tournamentId?: Prisma.StringFieldUpdateOperationsInput | string
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1488,6 +1656,8 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutGroupInput = {
   tournamentId?: Prisma.StringFieldUpdateOperationsInput | string
   registeredByUserId?: Prisma.StringFieldUpdateOperationsInput | string
   entryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entryLogoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1550,6 +1720,8 @@ export type TournamentRegistrationSelect<ExtArgs extends runtime.Types.Extension
   groupId?: boolean
   registeredByUserId?: boolean
   entryName?: boolean
+  entryLogoUrl?: boolean
+  sortOrder?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1572,6 +1744,8 @@ export type TournamentRegistrationSelectCreateManyAndReturn<ExtArgs extends runt
   groupId?: boolean
   registeredByUserId?: boolean
   entryName?: boolean
+  entryLogoUrl?: boolean
+  sortOrder?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1589,6 +1763,8 @@ export type TournamentRegistrationSelectUpdateManyAndReturn<ExtArgs extends runt
   groupId?: boolean
   registeredByUserId?: boolean
   entryName?: boolean
+  entryLogoUrl?: boolean
+  sortOrder?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1606,6 +1782,8 @@ export type TournamentRegistrationSelectScalar = {
   groupId?: boolean
   registeredByUserId?: boolean
   entryName?: boolean
+  entryLogoUrl?: boolean
+  sortOrder?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1613,7 +1791,7 @@ export type TournamentRegistrationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type TournamentRegistrationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tournamentId" | "groupId" | "registeredByUserId" | "entryName" | "status" | "reviewedByUserId" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["tournamentRegistration"]>
+export type TournamentRegistrationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tournamentId" | "groupId" | "registeredByUserId" | "entryName" | "entryLogoUrl" | "sortOrder" | "status" | "reviewedByUserId" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["tournamentRegistration"]>
 export type TournamentRegistrationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
   group?: boolean | Prisma.TournamentRegistration$groupArgs<ExtArgs>
@@ -1656,6 +1834,8 @@ export type $TournamentRegistrationPayload<ExtArgs extends runtime.Types.Extensi
     groupId: string | null
     registeredByUserId: string
     entryName: string | null
+    entryLogoUrl: string | null
+    sortOrder: number
     status: $Enums.TournamentRegistrationStatus
     reviewedByUserId: string | null
     reviewedAt: Date | null
@@ -2097,6 +2277,8 @@ export interface TournamentRegistrationFieldRefs {
   readonly groupId: Prisma.FieldRef<"TournamentRegistration", 'String'>
   readonly registeredByUserId: Prisma.FieldRef<"TournamentRegistration", 'String'>
   readonly entryName: Prisma.FieldRef<"TournamentRegistration", 'String'>
+  readonly entryLogoUrl: Prisma.FieldRef<"TournamentRegistration", 'String'>
+  readonly sortOrder: Prisma.FieldRef<"TournamentRegistration", 'Int'>
   readonly status: Prisma.FieldRef<"TournamentRegistration", 'TournamentRegistrationStatus'>
   readonly reviewedByUserId: Prisma.FieldRef<"TournamentRegistration", 'String'>
   readonly reviewedAt: Prisma.FieldRef<"TournamentRegistration", 'DateTime'>

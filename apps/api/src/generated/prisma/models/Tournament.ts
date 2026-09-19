@@ -29,6 +29,7 @@ export type AggregateTournament = {
 export type TournamentAvgAggregateOutputType = {
   teamSize: number | null
   maxEntries: number | null
+  qualifiersPerGroup: number | null
   dailyMatchLimit: number | null
   matchesPerParticipantPerDay: number | null
   matchDurationMinutes: number | null
@@ -37,6 +38,7 @@ export type TournamentAvgAggregateOutputType = {
 export type TournamentSumAggregateOutputType = {
   teamSize: number | null
   maxEntries: number | null
+  qualifiersPerGroup: number | null
   dailyMatchLimit: number | null
   matchesPerParticipantPerDay: number | null
   matchDurationMinutes: number | null
@@ -52,10 +54,23 @@ export type TournamentMinAggregateOutputType = {
   rules: string | null
   mode: $Enums.TournamentMode | null
   format: $Enums.TournamentFormat | null
+  competitionFormat: $Enums.TournamentCompetitionFormat | null
+  groupMode: $Enums.TournamentGroupMode | null
+  legType: $Enums.TournamentLegType | null
+  fixtureMode: $Enums.TournamentFixtureMode | null
+  visibility: $Enums.TournamentVisibility | null
+  registrationMode: $Enums.TournamentRegistrationMode | null
+  wizardStep: $Enums.TournamentWizardStep | null
   status: $Enums.TournamentStatus | null
   teamSize: number | null
   maxEntries: number | null
+  logoUrl: string | null
   startAt: Date | null
+  endAt: Date | null
+  publishedAt: Date | null
+  qualifiersPerGroup: number | null
+  playoffPairingMethod: $Enums.TournamentPairingMethod | null
+  fixturesPublishedAt: Date | null
   registrationOpenedAt: Date | null
   registrationClosedAt: Date | null
   fixturesGeneratedAt: Date | null
@@ -77,10 +92,23 @@ export type TournamentMaxAggregateOutputType = {
   rules: string | null
   mode: $Enums.TournamentMode | null
   format: $Enums.TournamentFormat | null
+  competitionFormat: $Enums.TournamentCompetitionFormat | null
+  groupMode: $Enums.TournamentGroupMode | null
+  legType: $Enums.TournamentLegType | null
+  fixtureMode: $Enums.TournamentFixtureMode | null
+  visibility: $Enums.TournamentVisibility | null
+  registrationMode: $Enums.TournamentRegistrationMode | null
+  wizardStep: $Enums.TournamentWizardStep | null
   status: $Enums.TournamentStatus | null
   teamSize: number | null
   maxEntries: number | null
+  logoUrl: string | null
   startAt: Date | null
+  endAt: Date | null
+  publishedAt: Date | null
+  qualifiersPerGroup: number | null
+  playoffPairingMethod: $Enums.TournamentPairingMethod | null
+  fixturesPublishedAt: Date | null
   registrationOpenedAt: Date | null
   registrationClosedAt: Date | null
   fixturesGeneratedAt: Date | null
@@ -102,10 +130,23 @@ export type TournamentCountAggregateOutputType = {
   rules: number
   mode: number
   format: number
+  competitionFormat: number
+  groupMode: number
+  legType: number
+  fixtureMode: number
+  visibility: number
+  registrationMode: number
+  wizardStep: number
   status: number
   teamSize: number
   maxEntries: number
+  logoUrl: number
   startAt: number
+  endAt: number
+  publishedAt: number
+  qualifiersPerGroup: number
+  playoffPairingMethod: number
+  fixturesPublishedAt: number
   registrationOpenedAt: number
   registrationClosedAt: number
   fixturesGeneratedAt: number
@@ -122,6 +163,7 @@ export type TournamentCountAggregateOutputType = {
 export type TournamentAvgAggregateInputType = {
   teamSize?: true
   maxEntries?: true
+  qualifiersPerGroup?: true
   dailyMatchLimit?: true
   matchesPerParticipantPerDay?: true
   matchDurationMinutes?: true
@@ -130,6 +172,7 @@ export type TournamentAvgAggregateInputType = {
 export type TournamentSumAggregateInputType = {
   teamSize?: true
   maxEntries?: true
+  qualifiersPerGroup?: true
   dailyMatchLimit?: true
   matchesPerParticipantPerDay?: true
   matchDurationMinutes?: true
@@ -145,10 +188,23 @@ export type TournamentMinAggregateInputType = {
   rules?: true
   mode?: true
   format?: true
+  competitionFormat?: true
+  groupMode?: true
+  legType?: true
+  fixtureMode?: true
+  visibility?: true
+  registrationMode?: true
+  wizardStep?: true
   status?: true
   teamSize?: true
   maxEntries?: true
+  logoUrl?: true
   startAt?: true
+  endAt?: true
+  publishedAt?: true
+  qualifiersPerGroup?: true
+  playoffPairingMethod?: true
+  fixturesPublishedAt?: true
   registrationOpenedAt?: true
   registrationClosedAt?: true
   fixturesGeneratedAt?: true
@@ -170,10 +226,23 @@ export type TournamentMaxAggregateInputType = {
   rules?: true
   mode?: true
   format?: true
+  competitionFormat?: true
+  groupMode?: true
+  legType?: true
+  fixtureMode?: true
+  visibility?: true
+  registrationMode?: true
+  wizardStep?: true
   status?: true
   teamSize?: true
   maxEntries?: true
+  logoUrl?: true
   startAt?: true
+  endAt?: true
+  publishedAt?: true
+  qualifiersPerGroup?: true
+  playoffPairingMethod?: true
+  fixturesPublishedAt?: true
   registrationOpenedAt?: true
   registrationClosedAt?: true
   fixturesGeneratedAt?: true
@@ -195,10 +264,23 @@ export type TournamentCountAggregateInputType = {
   rules?: true
   mode?: true
   format?: true
+  competitionFormat?: true
+  groupMode?: true
+  legType?: true
+  fixtureMode?: true
+  visibility?: true
+  registrationMode?: true
+  wizardStep?: true
   status?: true
   teamSize?: true
   maxEntries?: true
+  logoUrl?: true
   startAt?: true
+  endAt?: true
+  publishedAt?: true
+  qualifiersPerGroup?: true
+  playoffPairingMethod?: true
+  fixturesPublishedAt?: true
   registrationOpenedAt?: true
   registrationClosedAt?: true
   fixturesGeneratedAt?: true
@@ -307,10 +389,23 @@ export type TournamentGroupByOutputType = {
   rules: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat: $Enums.TournamentCompetitionFormat
+  groupMode: $Enums.TournamentGroupMode
+  legType: $Enums.TournamentLegType
+  fixtureMode: $Enums.TournamentFixtureMode
+  visibility: $Enums.TournamentVisibility
+  registrationMode: $Enums.TournamentRegistrationMode
+  wizardStep: $Enums.TournamentWizardStep
   status: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl: string | null
   startAt: Date | null
+  endAt: Date | null
+  publishedAt: Date | null
+  qualifiersPerGroup: number | null
+  playoffPairingMethod: $Enums.TournamentPairingMethod
+  fixturesPublishedAt: Date | null
   registrationOpenedAt: Date | null
   registrationClosedAt: Date | null
   fixturesGeneratedAt: Date | null
@@ -355,10 +450,23 @@ export type TournamentWhereInput = {
   rules?: Prisma.StringNullableFilter<"Tournament"> | string | null
   mode?: Prisma.EnumTournamentModeFilter<"Tournament"> | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFilter<"Tournament"> | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFilter<"Tournament"> | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFilter<"Tournament"> | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFilter<"Tournament"> | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFilter<"Tournament"> | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFilter<"Tournament"> | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFilter<"Tournament"> | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFilter<"Tournament"> | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFilter<"Tournament"> | $Enums.TournamentStatus
   teamSize?: Prisma.IntFilter<"Tournament"> | number
   maxEntries?: Prisma.IntFilter<"Tournament"> | number
+  logoUrl?: Prisma.StringNullableFilter<"Tournament"> | string | null
   startAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  endAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  qualifiersPerGroup?: Prisma.IntNullableFilter<"Tournament"> | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFilter<"Tournament"> | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   registrationOpenedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   registrationClosedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   fixturesGeneratedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
@@ -391,10 +499,23 @@ export type TournamentOrderByWithRelationInput = {
   rules?: Prisma.SortOrderInput | Prisma.SortOrder
   mode?: Prisma.SortOrder
   format?: Prisma.SortOrder
+  competitionFormat?: Prisma.SortOrder
+  groupMode?: Prisma.SortOrder
+  legType?: Prisma.SortOrder
+  fixtureMode?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
+  registrationMode?: Prisma.SortOrder
+  wizardStep?: Prisma.SortOrder
   status?: Prisma.SortOrder
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   startAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  endAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrderInput | Prisma.SortOrder
+  playoffPairingMethod?: Prisma.SortOrder
+  fixturesPublishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registrationOpenedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registrationClosedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   fixturesGeneratedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -430,10 +551,23 @@ export type TournamentWhereUniqueInput = Prisma.AtLeast<{
   rules?: Prisma.StringNullableFilter<"Tournament"> | string | null
   mode?: Prisma.EnumTournamentModeFilter<"Tournament"> | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFilter<"Tournament"> | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFilter<"Tournament"> | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFilter<"Tournament"> | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFilter<"Tournament"> | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFilter<"Tournament"> | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFilter<"Tournament"> | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFilter<"Tournament"> | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFilter<"Tournament"> | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFilter<"Tournament"> | $Enums.TournamentStatus
   teamSize?: Prisma.IntFilter<"Tournament"> | number
   maxEntries?: Prisma.IntFilter<"Tournament"> | number
+  logoUrl?: Prisma.StringNullableFilter<"Tournament"> | string | null
   startAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  endAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  qualifiersPerGroup?: Prisma.IntNullableFilter<"Tournament"> | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFilter<"Tournament"> | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   registrationOpenedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   registrationClosedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   fixturesGeneratedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
@@ -466,10 +600,23 @@ export type TournamentOrderByWithAggregationInput = {
   rules?: Prisma.SortOrderInput | Prisma.SortOrder
   mode?: Prisma.SortOrder
   format?: Prisma.SortOrder
+  competitionFormat?: Prisma.SortOrder
+  groupMode?: Prisma.SortOrder
+  legType?: Prisma.SortOrder
+  fixtureMode?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
+  registrationMode?: Prisma.SortOrder
+  wizardStep?: Prisma.SortOrder
   status?: Prisma.SortOrder
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   startAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  endAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrderInput | Prisma.SortOrder
+  playoffPairingMethod?: Prisma.SortOrder
+  fixturesPublishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registrationOpenedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   registrationClosedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   fixturesGeneratedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -499,10 +646,23 @@ export type TournamentScalarWhereWithAggregatesInput = {
   rules?: Prisma.StringNullableWithAggregatesFilter<"Tournament"> | string | null
   mode?: Prisma.EnumTournamentModeWithAggregatesFilter<"Tournament"> | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatWithAggregatesFilter<"Tournament"> | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatWithAggregatesFilter<"Tournament"> | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeWithAggregatesFilter<"Tournament"> | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeWithAggregatesFilter<"Tournament"> | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeWithAggregatesFilter<"Tournament"> | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityWithAggregatesFilter<"Tournament"> | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeWithAggregatesFilter<"Tournament"> | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepWithAggregatesFilter<"Tournament"> | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusWithAggregatesFilter<"Tournament"> | $Enums.TournamentStatus
   teamSize?: Prisma.IntWithAggregatesFilter<"Tournament"> | number
   maxEntries?: Prisma.IntWithAggregatesFilter<"Tournament"> | number
+  logoUrl?: Prisma.StringNullableWithAggregatesFilter<"Tournament"> | string | null
   startAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
+  endAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
+  publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
+  qualifiersPerGroup?: Prisma.IntNullableWithAggregatesFilter<"Tournament"> | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodWithAggregatesFilter<"Tournament"> | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
   registrationOpenedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
   registrationClosedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
   fixturesGeneratedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Tournament"> | Date | string | null
@@ -522,10 +682,23 @@ export type TournamentCreateInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -558,10 +731,23 @@ export type TournamentUncheckedCreateInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -590,10 +776,23 @@ export type TournamentUpdateInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -626,10 +825,23 @@ export type TournamentUncheckedUpdateInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -660,10 +872,23 @@ export type TournamentCreateManyInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -683,10 +908,23 @@ export type TournamentUpdateManyMutationInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -708,10 +946,23 @@ export type TournamentUncheckedUpdateManyInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -743,10 +994,23 @@ export type TournamentCountOrderByAggregateInput = {
   rules?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   format?: Prisma.SortOrder
+  competitionFormat?: Prisma.SortOrder
+  groupMode?: Prisma.SortOrder
+  legType?: Prisma.SortOrder
+  fixtureMode?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
+  registrationMode?: Prisma.SortOrder
+  wizardStep?: Prisma.SortOrder
   status?: Prisma.SortOrder
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrder
   startAt?: Prisma.SortOrder
+  endAt?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrder
+  playoffPairingMethod?: Prisma.SortOrder
+  fixturesPublishedAt?: Prisma.SortOrder
   registrationOpenedAt?: Prisma.SortOrder
   registrationClosedAt?: Prisma.SortOrder
   fixturesGeneratedAt?: Prisma.SortOrder
@@ -761,6 +1025,7 @@ export type TournamentCountOrderByAggregateInput = {
 export type TournamentAvgOrderByAggregateInput = {
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrder
   dailyMatchLimit?: Prisma.SortOrder
   matchesPerParticipantPerDay?: Prisma.SortOrder
   matchDurationMinutes?: Prisma.SortOrder
@@ -776,10 +1041,23 @@ export type TournamentMaxOrderByAggregateInput = {
   rules?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   format?: Prisma.SortOrder
+  competitionFormat?: Prisma.SortOrder
+  groupMode?: Prisma.SortOrder
+  legType?: Prisma.SortOrder
+  fixtureMode?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
+  registrationMode?: Prisma.SortOrder
+  wizardStep?: Prisma.SortOrder
   status?: Prisma.SortOrder
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrder
   startAt?: Prisma.SortOrder
+  endAt?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrder
+  playoffPairingMethod?: Prisma.SortOrder
+  fixturesPublishedAt?: Prisma.SortOrder
   registrationOpenedAt?: Prisma.SortOrder
   registrationClosedAt?: Prisma.SortOrder
   fixturesGeneratedAt?: Prisma.SortOrder
@@ -801,10 +1079,23 @@ export type TournamentMinOrderByAggregateInput = {
   rules?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   format?: Prisma.SortOrder
+  competitionFormat?: Prisma.SortOrder
+  groupMode?: Prisma.SortOrder
+  legType?: Prisma.SortOrder
+  fixtureMode?: Prisma.SortOrder
+  visibility?: Prisma.SortOrder
+  registrationMode?: Prisma.SortOrder
+  wizardStep?: Prisma.SortOrder
   status?: Prisma.SortOrder
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  logoUrl?: Prisma.SortOrder
   startAt?: Prisma.SortOrder
+  endAt?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrder
+  playoffPairingMethod?: Prisma.SortOrder
+  fixturesPublishedAt?: Prisma.SortOrder
   registrationOpenedAt?: Prisma.SortOrder
   registrationClosedAt?: Prisma.SortOrder
   fixturesGeneratedAt?: Prisma.SortOrder
@@ -819,6 +1110,7 @@ export type TournamentMinOrderByAggregateInput = {
 export type TournamentSumOrderByAggregateInput = {
   teamSize?: Prisma.SortOrder
   maxEntries?: Prisma.SortOrder
+  qualifiersPerGroup?: Prisma.SortOrder
   dailyMatchLimit?: Prisma.SortOrder
   matchesPerParticipantPerDay?: Prisma.SortOrder
   matchDurationMinutes?: Prisma.SortOrder
@@ -921,8 +1213,48 @@ export type EnumTournamentFormatFieldUpdateOperationsInput = {
   set?: $Enums.TournamentFormat
 }
 
+export type EnumTournamentCompetitionFormatFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentCompetitionFormat
+}
+
+export type EnumTournamentGroupModeFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentGroupMode
+}
+
+export type EnumTournamentLegTypeFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentLegType
+}
+
+export type EnumTournamentFixtureModeFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentFixtureMode
+}
+
+export type EnumTournamentVisibilityFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentVisibility
+}
+
+export type EnumTournamentRegistrationModeFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentRegistrationMode
+}
+
+export type EnumTournamentWizardStepFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentWizardStep
+}
+
 export type EnumTournamentStatusFieldUpdateOperationsInput = {
   set?: $Enums.TournamentStatus
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type EnumTournamentPairingMethodFieldUpdateOperationsInput = {
+  set?: $Enums.TournamentPairingMethod
 }
 
 export type TournamentCreateNestedOneWithoutGroupsInput = {
@@ -1059,10 +1391,23 @@ export type TournamentCreateWithoutCreatedByInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1093,10 +1438,23 @@ export type TournamentUncheckedCreateWithoutCreatedByInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1156,10 +1514,23 @@ export type TournamentScalarWhereInput = {
   rules?: Prisma.StringNullableFilter<"Tournament"> | string | null
   mode?: Prisma.EnumTournamentModeFilter<"Tournament"> | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFilter<"Tournament"> | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFilter<"Tournament"> | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFilter<"Tournament"> | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFilter<"Tournament"> | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFilter<"Tournament"> | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFilter<"Tournament"> | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFilter<"Tournament"> | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFilter<"Tournament"> | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFilter<"Tournament"> | $Enums.TournamentStatus
   teamSize?: Prisma.IntFilter<"Tournament"> | number
   maxEntries?: Prisma.IntFilter<"Tournament"> | number
+  logoUrl?: Prisma.StringNullableFilter<"Tournament"> | string | null
   startAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  endAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
+  qualifiersPerGroup?: Prisma.IntNullableFilter<"Tournament"> | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFilter<"Tournament"> | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   registrationOpenedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   registrationClosedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
   fixturesGeneratedAt?: Prisma.DateTimeNullableFilter<"Tournament"> | Date | string | null
@@ -1179,10 +1550,23 @@ export type TournamentCreateWithoutLeagueInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1213,10 +1597,23 @@ export type TournamentUncheckedCreateWithoutLeagueInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1271,10 +1668,23 @@ export type TournamentCreateWithoutGroupsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1306,10 +1716,23 @@ export type TournamentUncheckedCreateWithoutGroupsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1353,10 +1776,23 @@ export type TournamentUpdateWithoutGroupsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1388,10 +1824,23 @@ export type TournamentUncheckedUpdateWithoutGroupsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1419,10 +1868,23 @@ export type TournamentCreateWithoutRegistrationsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1454,10 +1916,23 @@ export type TournamentUncheckedCreateWithoutRegistrationsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1501,10 +1976,23 @@ export type TournamentUpdateWithoutRegistrationsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1536,10 +2024,23 @@ export type TournamentUncheckedUpdateWithoutRegistrationsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1567,10 +2068,23 @@ export type TournamentCreateWithoutRegistrationMembersInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1602,10 +2116,23 @@ export type TournamentUncheckedCreateWithoutRegistrationMembersInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1649,10 +2176,23 @@ export type TournamentUpdateWithoutRegistrationMembersInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1684,10 +2224,23 @@ export type TournamentUncheckedUpdateWithoutRegistrationMembersInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1715,10 +2268,23 @@ export type TournamentCreateWithoutFixturesInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1750,10 +2316,23 @@ export type TournamentUncheckedCreateWithoutFixturesInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1797,10 +2376,23 @@ export type TournamentUpdateWithoutFixturesInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1832,10 +2424,23 @@ export type TournamentUncheckedUpdateWithoutFixturesInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1863,10 +2468,23 @@ export type TournamentCreateWithoutMatchesInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1898,10 +2516,23 @@ export type TournamentUncheckedCreateWithoutMatchesInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -1945,10 +2576,23 @@ export type TournamentUpdateWithoutMatchesInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1980,10 +2624,23 @@ export type TournamentUncheckedUpdateWithoutMatchesInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2011,10 +2668,23 @@ export type TournamentCreateWithoutAchievementsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2046,10 +2716,23 @@ export type TournamentUncheckedCreateWithoutAchievementsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2093,10 +2776,23 @@ export type TournamentUpdateWithoutAchievementsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2128,10 +2824,23 @@ export type TournamentUncheckedUpdateWithoutAchievementsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2159,10 +2868,23 @@ export type TournamentCreateWithoutStandingsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2194,10 +2916,23 @@ export type TournamentUncheckedCreateWithoutStandingsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2241,10 +2976,23 @@ export type TournamentUpdateWithoutStandingsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2276,10 +3024,23 @@ export type TournamentUncheckedUpdateWithoutStandingsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2307,10 +3068,23 @@ export type TournamentCreateWithoutPlayerStatisticsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2342,10 +3116,23 @@ export type TournamentUncheckedCreateWithoutPlayerStatisticsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2389,10 +3176,23 @@ export type TournamentUpdateWithoutPlayerStatisticsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2424,10 +3224,23 @@ export type TournamentUncheckedUpdateWithoutPlayerStatisticsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2455,10 +3268,23 @@ export type TournamentCreateWithoutStatEventsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2490,10 +3316,23 @@ export type TournamentUncheckedCreateWithoutStatEventsInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2537,10 +3376,23 @@ export type TournamentUpdateWithoutStatEventsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2572,10 +3424,23 @@ export type TournamentUncheckedUpdateWithoutStatEventsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2604,10 +3469,23 @@ export type TournamentCreateManyCreatedByInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2627,10 +3505,23 @@ export type TournamentUpdateWithoutCreatedByInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2661,10 +3552,23 @@ export type TournamentUncheckedUpdateWithoutCreatedByInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2694,10 +3598,23 @@ export type TournamentUncheckedUpdateManyWithoutCreatedByInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2718,10 +3635,23 @@ export type TournamentCreateManyLeagueInput = {
   rules?: string | null
   mode: $Enums.TournamentMode
   format: $Enums.TournamentFormat
+  competitionFormat?: $Enums.TournamentCompetitionFormat
+  groupMode?: $Enums.TournamentGroupMode
+  legType?: $Enums.TournamentLegType
+  fixtureMode?: $Enums.TournamentFixtureMode
+  visibility?: $Enums.TournamentVisibility
+  registrationMode?: $Enums.TournamentRegistrationMode
+  wizardStep?: $Enums.TournamentWizardStep
   status?: $Enums.TournamentStatus
   teamSize: number
   maxEntries: number
+  logoUrl?: string | null
   startAt?: Date | string | null
+  endAt?: Date | string | null
+  publishedAt?: Date | string | null
+  qualifiersPerGroup?: number | null
+  playoffPairingMethod?: $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Date | string | null
   registrationOpenedAt?: Date | string | null
   registrationClosedAt?: Date | string | null
   fixturesGeneratedAt?: Date | string | null
@@ -2741,10 +3671,23 @@ export type TournamentUpdateWithoutLeagueInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2775,10 +3718,23 @@ export type TournamentUncheckedUpdateWithoutLeagueInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2808,10 +3764,23 @@ export type TournamentUncheckedUpdateManyWithoutLeagueInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mode?: Prisma.EnumTournamentModeFieldUpdateOperationsInput | $Enums.TournamentMode
   format?: Prisma.EnumTournamentFormatFieldUpdateOperationsInput | $Enums.TournamentFormat
+  competitionFormat?: Prisma.EnumTournamentCompetitionFormatFieldUpdateOperationsInput | $Enums.TournamentCompetitionFormat
+  groupMode?: Prisma.EnumTournamentGroupModeFieldUpdateOperationsInput | $Enums.TournamentGroupMode
+  legType?: Prisma.EnumTournamentLegTypeFieldUpdateOperationsInput | $Enums.TournamentLegType
+  fixtureMode?: Prisma.EnumTournamentFixtureModeFieldUpdateOperationsInput | $Enums.TournamentFixtureMode
+  visibility?: Prisma.EnumTournamentVisibilityFieldUpdateOperationsInput | $Enums.TournamentVisibility
+  registrationMode?: Prisma.EnumTournamentRegistrationModeFieldUpdateOperationsInput | $Enums.TournamentRegistrationMode
+  wizardStep?: Prisma.EnumTournamentWizardStepFieldUpdateOperationsInput | $Enums.TournamentWizardStep
   status?: Prisma.EnumTournamentStatusFieldUpdateOperationsInput | $Enums.TournamentStatus
   teamSize?: Prisma.IntFieldUpdateOperationsInput | number
   maxEntries?: Prisma.IntFieldUpdateOperationsInput | number
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  qualifiersPerGroup?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  playoffPairingMethod?: Prisma.EnumTournamentPairingMethodFieldUpdateOperationsInput | $Enums.TournamentPairingMethod
+  fixturesPublishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   registrationClosedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   fixturesGeneratedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2936,10 +3905,23 @@ export type TournamentSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   rules?: boolean
   mode?: boolean
   format?: boolean
+  competitionFormat?: boolean
+  groupMode?: boolean
+  legType?: boolean
+  fixtureMode?: boolean
+  visibility?: boolean
+  registrationMode?: boolean
+  wizardStep?: boolean
   status?: boolean
   teamSize?: boolean
   maxEntries?: boolean
+  logoUrl?: boolean
   startAt?: boolean
+  endAt?: boolean
+  publishedAt?: boolean
+  qualifiersPerGroup?: boolean
+  playoffPairingMethod?: boolean
+  fixturesPublishedAt?: boolean
   registrationOpenedAt?: boolean
   registrationClosedAt?: boolean
   fixturesGeneratedAt?: boolean
@@ -2973,10 +3955,23 @@ export type TournamentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   rules?: boolean
   mode?: boolean
   format?: boolean
+  competitionFormat?: boolean
+  groupMode?: boolean
+  legType?: boolean
+  fixtureMode?: boolean
+  visibility?: boolean
+  registrationMode?: boolean
+  wizardStep?: boolean
   status?: boolean
   teamSize?: boolean
   maxEntries?: boolean
+  logoUrl?: boolean
   startAt?: boolean
+  endAt?: boolean
+  publishedAt?: boolean
+  qualifiersPerGroup?: boolean
+  playoffPairingMethod?: boolean
+  fixturesPublishedAt?: boolean
   registrationOpenedAt?: boolean
   registrationClosedAt?: boolean
   fixturesGeneratedAt?: boolean
@@ -3000,10 +3995,23 @@ export type TournamentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   rules?: boolean
   mode?: boolean
   format?: boolean
+  competitionFormat?: boolean
+  groupMode?: boolean
+  legType?: boolean
+  fixtureMode?: boolean
+  visibility?: boolean
+  registrationMode?: boolean
+  wizardStep?: boolean
   status?: boolean
   teamSize?: boolean
   maxEntries?: boolean
+  logoUrl?: boolean
   startAt?: boolean
+  endAt?: boolean
+  publishedAt?: boolean
+  qualifiersPerGroup?: boolean
+  playoffPairingMethod?: boolean
+  fixturesPublishedAt?: boolean
   registrationOpenedAt?: boolean
   registrationClosedAt?: boolean
   fixturesGeneratedAt?: boolean
@@ -3027,10 +4035,23 @@ export type TournamentSelectScalar = {
   rules?: boolean
   mode?: boolean
   format?: boolean
+  competitionFormat?: boolean
+  groupMode?: boolean
+  legType?: boolean
+  fixtureMode?: boolean
+  visibility?: boolean
+  registrationMode?: boolean
+  wizardStep?: boolean
   status?: boolean
   teamSize?: boolean
   maxEntries?: boolean
+  logoUrl?: boolean
   startAt?: boolean
+  endAt?: boolean
+  publishedAt?: boolean
+  qualifiersPerGroup?: boolean
+  playoffPairingMethod?: boolean
+  fixturesPublishedAt?: boolean
   registrationOpenedAt?: boolean
   registrationClosedAt?: boolean
   fixturesGeneratedAt?: boolean
@@ -3042,7 +4063,7 @@ export type TournamentSelectScalar = {
   completedAt?: boolean
 }
 
-export type TournamentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "leagueId" | "createdByUserId" | "name" | "code" | "description" | "rules" | "mode" | "format" | "status" | "teamSize" | "maxEntries" | "startAt" | "registrationOpenedAt" | "registrationClosedAt" | "fixturesGeneratedAt" | "dailyMatchLimit" | "matchesPerParticipantPerDay" | "matchDurationMinutes" | "createdAt" | "updatedAt" | "completedAt", ExtArgs["result"]["tournament"]>
+export type TournamentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "leagueId" | "createdByUserId" | "name" | "code" | "description" | "rules" | "mode" | "format" | "competitionFormat" | "groupMode" | "legType" | "fixtureMode" | "visibility" | "registrationMode" | "wizardStep" | "status" | "teamSize" | "maxEntries" | "logoUrl" | "startAt" | "endAt" | "publishedAt" | "qualifiersPerGroup" | "playoffPairingMethod" | "fixturesPublishedAt" | "registrationOpenedAt" | "registrationClosedAt" | "fixturesGeneratedAt" | "dailyMatchLimit" | "matchesPerParticipantPerDay" | "matchDurationMinutes" | "createdAt" | "updatedAt" | "completedAt", ExtArgs["result"]["tournament"]>
 export type TournamentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   league?: boolean | Prisma.LeagueDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -3091,10 +4112,23 @@ export type $TournamentPayload<ExtArgs extends runtime.Types.Extensions.Internal
     rules: string | null
     mode: $Enums.TournamentMode
     format: $Enums.TournamentFormat
+    competitionFormat: $Enums.TournamentCompetitionFormat
+    groupMode: $Enums.TournamentGroupMode
+    legType: $Enums.TournamentLegType
+    fixtureMode: $Enums.TournamentFixtureMode
+    visibility: $Enums.TournamentVisibility
+    registrationMode: $Enums.TournamentRegistrationMode
+    wizardStep: $Enums.TournamentWizardStep
     status: $Enums.TournamentStatus
     teamSize: number
     maxEntries: number
+    logoUrl: string | null
     startAt: Date | null
+    endAt: Date | null
+    publishedAt: Date | null
+    qualifiersPerGroup: number | null
+    playoffPairingMethod: $Enums.TournamentPairingMethod
+    fixturesPublishedAt: Date | null
     registrationOpenedAt: Date | null
     registrationClosedAt: Date | null
     fixturesGeneratedAt: Date | null
@@ -3547,10 +4581,23 @@ export interface TournamentFieldRefs {
   readonly rules: Prisma.FieldRef<"Tournament", 'String'>
   readonly mode: Prisma.FieldRef<"Tournament", 'TournamentMode'>
   readonly format: Prisma.FieldRef<"Tournament", 'TournamentFormat'>
+  readonly competitionFormat: Prisma.FieldRef<"Tournament", 'TournamentCompetitionFormat'>
+  readonly groupMode: Prisma.FieldRef<"Tournament", 'TournamentGroupMode'>
+  readonly legType: Prisma.FieldRef<"Tournament", 'TournamentLegType'>
+  readonly fixtureMode: Prisma.FieldRef<"Tournament", 'TournamentFixtureMode'>
+  readonly visibility: Prisma.FieldRef<"Tournament", 'TournamentVisibility'>
+  readonly registrationMode: Prisma.FieldRef<"Tournament", 'TournamentRegistrationMode'>
+  readonly wizardStep: Prisma.FieldRef<"Tournament", 'TournamentWizardStep'>
   readonly status: Prisma.FieldRef<"Tournament", 'TournamentStatus'>
   readonly teamSize: Prisma.FieldRef<"Tournament", 'Int'>
   readonly maxEntries: Prisma.FieldRef<"Tournament", 'Int'>
+  readonly logoUrl: Prisma.FieldRef<"Tournament", 'String'>
   readonly startAt: Prisma.FieldRef<"Tournament", 'DateTime'>
+  readonly endAt: Prisma.FieldRef<"Tournament", 'DateTime'>
+  readonly publishedAt: Prisma.FieldRef<"Tournament", 'DateTime'>
+  readonly qualifiersPerGroup: Prisma.FieldRef<"Tournament", 'Int'>
+  readonly playoffPairingMethod: Prisma.FieldRef<"Tournament", 'TournamentPairingMethod'>
+  readonly fixturesPublishedAt: Prisma.FieldRef<"Tournament", 'DateTime'>
   readonly registrationOpenedAt: Prisma.FieldRef<"Tournament", 'DateTime'>
   readonly registrationClosedAt: Prisma.FieldRef<"Tournament", 'DateTime'>
   readonly fixturesGeneratedAt: Prisma.FieldRef<"Tournament", 'DateTime'>

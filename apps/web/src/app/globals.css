@@ -656,3 +656,71 @@ body {
     #071019;
   color: #F8FAFC;
 }
+
+
+/* FC ARENA REFERENCE TYPOGRAPHY */
+body {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  letter-spacing: -0.005em;
+}
+
+.fc-display {
+  font-family:
+    "Bahnschrift SemiCondensed",
+    "Bahnschrift",
+    "Arial Narrow",
+    "Roboto Condensed",
+    "Inter",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  font-stretch: semi-condensed;
+}
+
+.fc-display-strong {
+  font-family:
+    "Bahnschrift SemiCondensed",
+    "Bahnschrift",
+    "Arial Narrow",
+    "Roboto Condensed",
+    "Inter",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  font-stretch: semi-condensed;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.fc-card {
+  border: 1px solid #203141;
+  background: linear-gradient(180deg, rgba(18, 33, 45, 0.96), rgba(11, 25, 35, 0.96));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.17);
+}
+
+.fc-stadium-surface {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(0, 123, 179, 0.22), transparent 42%),
+    linear-gradient(180deg, rgba(6, 18, 29, 0.22), rgba(5, 14, 22, 0.92)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(25, 183, 255, 0.025) 0,
+      rgba(25, 183, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 72px
+    ),
+    #071019;
+}
+
+@media (max-width: 640px) {
+  .fc-display-strong {
+    letter-spacing: -0.02em;
+  }
+}

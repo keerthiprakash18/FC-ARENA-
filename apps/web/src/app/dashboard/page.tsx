@@ -17,7 +17,6 @@ import {
 import {
   FcCrest,
   FcLoadingScreen,
-  FcPageHeader,
   FcPanel,
   FcQuickActionTile,
   FcStatCard,
@@ -267,7 +266,7 @@ function SectionTitle({
           {icon}
         </span>
 
-        <h2 className="text-lg font-semibold tracking-[-0.015em] text-[#F8FAFC]">
+        <h2 className="fc-display text-[19px] font-semibold text-[#F8FAFC]">
           {title}
         </h2>
       </div>
@@ -677,13 +676,7 @@ export default function DashboardPage() {
         'Player'
       }
     >
-      <div className="space-y-7">
-        <FcPageHeader
-          title="Home"
-          subtitle="Your FC ARENA overview"
-        />
-
-
+      <div className="space-y-5 sm:space-y-6">
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {
@@ -693,77 +686,84 @@ export default function DashboardPage() {
         ) : null}
 
 
-        <FcPanel className="relative min-h-[190px] overflow-hidden p-5 sm:p-7">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_82%_105%,rgba(25,183,255,0.13),transparent_38%),linear-gradient(115deg,rgba(25,183,255,0.045),transparent_48%)]" />
+        <section className="fc-stadium-surface relative overflow-hidden rounded-2xl border border-[#203141] shadow-[0_12px_32px_rgba(0,0,0,0.22)]">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,13,22,0.96)_0%,rgba(5,17,27,0.82)_42%,rgba(4,17,27,0.36)_74%,rgba(3,13,22,0.84)_100%)]" />
 
-          <div className="pointer-events-none absolute -bottom-20 right-[-4%] hidden h-64 w-[46%] rounded-[50%] border border-white/[0.045] lg:block" />
-          <div className="pointer-events-none absolute -bottom-12 right-[3%] hidden h-48 w-[34%] rounded-[50%] border border-white/[0.035] lg:block" />
-          <div className="pointer-events-none absolute bottom-0 right-[10%] hidden h-24 w-px bg-white/[0.04] lg:block" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(25,183,255,0.45),transparent)]" />
 
-          <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.08em] text-[#19B7FF]">
+          <div className="relative grid min-h-[165px] gap-5 px-5 py-6 sm:px-7 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-8">
+            <div className="hidden lg:block">
+              <div className="grid h-20 w-20 place-items-center rounded-full border-[3px] border-[#19B7FF]/25 bg-[#071019]/85 shadow-[0_0_0_8px_rgba(25,183,255,0.03)]">
+                <FcCrest
+                  name={
+                    inGameName
+                  }
+                  imageUrl={
+                    career.profile
+                      .profileImageUrl
+                  }
+                  size="lg"
+                />
+              </div>
+            </div>
+
+
+            <div className="min-w-0">
+              <p className="fc-display text-[12px] font-semibold tracking-[0.22em] text-[#19B7FF]">
                 WELCOME BACK
               </p>
 
-              <h2 className="mt-2 max-w-3xl text-[32px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#F8FAFC] sm:text-[38px] lg:text-[42px]">
+              <h1 className="fc-display-strong mt-1 truncate text-[34px] leading-none text-[#F8FAFC] sm:text-[42px] lg:text-[48px]">
                 {
                   inGameName
                 }
-              </h2>
+              </h1>
 
-              <p className="mt-3 max-w-xl text-sm leading-6 text-[#A7B0BE]">
+              <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#A7B0BE] sm:text-sm">
                 Your player identity, form and next competition action in one place.
               </p>
-            </div>
 
-
-            <div className="flex min-w-[220px] items-center gap-3 rounded-2xl border border-[#203141] bg-[#0B1118]/75 p-3.5 backdrop-blur-sm">
-              <FcCrest
-                name={
-                  inGameName
-                }
-                imageUrl={
-                  career.profile
-                    .profileImageUrl
-                }
-                size="lg"
-              />
-
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[#F8FAFC]">
-                  {
-                    inGameName
-                  }
-                </p>
-
-                <p className="mt-1 font-mono text-xs text-[#19B7FF]">
+              <div className="mt-3 flex flex-wrap items-center gap-2 lg:hidden">
+                <span className="font-mono text-[11px] text-[#19B7FF]">
                   {
                     playerCode
                   }
-                </p>
+                </span>
 
-                <div className="mt-2 flex flex-wrap gap-2">
+                <FcStatusBadge
+                  label={
+                    user.status
+                  }
+                  tone="emerald"
+                />
+
+                {career.profile
+                  .identity
+                  ?.isVerified ? (
                   <FcStatusBadge
-                    label={
-                      user.status
-                    }
-                    tone="emerald"
+                    label="Verified"
+                    tone="cyan"
                   />
-
-                  {career.profile
-                    .identity
-                    ?.isVerified ? (
-                    <FcStatusBadge
-                      label="Verified"
-                      tone="cyan"
-                    />
-                  ) : null}
-                </div>
+                ) : null}
               </div>
             </div>
+
+
+            <div className="hidden text-right xl:block">
+              <p className="fc-display-strong rotate-[-4deg] text-[24px] leading-[0.92] text-[#DCEBFA]/75">
+                MORE
+                <br />
+                THAN A GAME
+              </p>
+
+              <p className="mt-4 font-mono text-[10px] tracking-[0.08em] text-[#6F7B8A]">
+                {
+                  playerCode
+                }
+              </p>
+            </div>
           </div>
-        </FcPanel>
+        </section>
 
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
@@ -820,10 +820,13 @@ export default function DashboardPage() {
 
 
         <section className="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
-          <FcPanel className="p-5 sm:p-6">
-            <SectionTitle
-              icon="⚽"
-              title="Next Match"
+          <FcPanel className="relative overflow-hidden p-5 sm:p-6">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-[radial-gradient(ellipse_at_50%_125%,rgba(25,183,255,0.11),transparent_48%),linear-gradient(180deg,transparent,rgba(4,16,25,0.56))]" />
+
+            <div className="relative">
+              <SectionTitle
+                icon="⚽"
+                title="Next Match"
               href="/fixtures"
             />
 
@@ -935,6 +938,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
             )}
+            </div>
           </FcPanel>
 
 

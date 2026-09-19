@@ -47,6 +47,10 @@ import {
 } from './tournament-groups.service.js';
 
 import {
+  TournamentLogoService,
+} from './tournament-logo.service.js';
+
+import {
   TournamentsController,
 } from './tournaments.controller.js';
 
@@ -81,6 +85,7 @@ import {
     TournamentEntriesService,
     FixturesService,
     TournamentGroupsService,
+    TournamentLogoService,
     GroupFixturesService,
     PlayoffsService,
     TournamentFixtureWizardService,

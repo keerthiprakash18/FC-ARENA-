@@ -579,6 +579,10 @@ export default function MatchCenterPage() {
 
           data: {
             message: string;
+
+            submission: {
+              id: string;
+            };
           };
 
           error: null;
@@ -606,13 +610,43 @@ export default function MatchCenterPage() {
           },
         );
 
-      setMessage(
-        response.data.message,
-      );
+      if (
+        isLeagueAdmin
+      ) {
+        const confirmedResponse =
+          await authenticatedRequest<{
+            success: true;
 
-      formElement.reset();
+            data: {
+              message:
+                string;
+            };
 
-      await loadResults();
+            error: null;
+          }>(
+            `/results/${response.data.submission.id}/confirm`,
+            {
+              method:
+                'POST',
+            },
+          );
+
+        setMessage(
+          `${confirmedResponse.data.message} Player career stats and standings are now updated.`,
+        );
+
+        formElement.reset();
+
+        await refreshMatchCenter();
+      } else {
+        setMessage(
+          response.data.message,
+        );
+
+        formElement.reset();
+
+        await loadResults();
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -775,6 +809,10 @@ export default function MatchCenterPage() {
 
           data: {
             message: string;
+
+            submission: {
+              id: string;
+            };
           };
 
           error: null;
@@ -798,14 +836,42 @@ export default function MatchCenterPage() {
           },
         );
 
-      setMessage(
-        response.data.message,
-      );
+      if (
+        isLeagueAdmin
+      ) {
+        const confirmedResponse =
+          await authenticatedRequest<{
+            success: true;
 
-      await Promise.all([
-        loadLatestOcr(),
-        loadResults(),
-      ]);
+            data: {
+              message:
+                string;
+            };
+
+            error: null;
+          }>(
+            `/results/${response.data.submission.id}/confirm`,
+            {
+              method:
+                'POST',
+            },
+          );
+
+        setMessage(
+          `${confirmedResponse.data.message} OCR matched the Match participants and the confirmed data is now reflected in standings and player career statistics.`,
+        );
+
+        await refreshMatchCenter();
+      } else {
+        setMessage(
+          response.data.message,
+        );
+
+        await Promise.all([
+          loadLatestOcr(),
+          loadResults(),
+        ]);
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -1125,6 +1191,8 @@ export default function MatchCenterPage() {
     !confirmedId &&
     (
       match.status ===
+        'UNSCHEDULED' ||
+      match.status ===
         'SCHEDULED' ||
       match.status ===
         'LIVE'
@@ -1285,7 +1353,7 @@ export default function MatchCenterPage() {
         </section>
 
         {canSubmit ? (
-          <section className="rounded-[26px] border border-sky-400/20 bg-[#0a1018] p-6">
+          <section id="result-update" className="scroll-mt-24 rounded-[26px] border border-sky-400/20 bg-[#0a1018] p-6">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
               AI Result Scanner
             </p>
@@ -1295,7 +1363,7 @@ export default function MatchCenterPage() {
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-              Upload the FC Mobile result screenshot. FC ARENA will scan the image, detect the score and compare detected player names only against this Match.
+              Upload the FC Mobile result screenshot. FC ARENA scans the score and in-game names, matches them only against the players registered in this Match, and prepares the result for verification. Once confirmed, standings and each matched player's career statistics update automatically.
             </p>
 
             <form
@@ -1587,7 +1655,9 @@ export default function MatchCenterPage() {
                       disabled={busy}
                       className="mt-5 w-full rounded-xl bg-emerald-400 px-5 py-3 font-black text-black disabled:opacity-50"
                     >
-                      Submit OCR Result for Admin Verification
+                      {isLeagueAdmin
+                        ? 'Confirm OCR Result & Update Stats'
+                        : 'Submit OCR Result for Admin Verification'}
                     </button>
                   </form>
                 ) : null}
@@ -1670,7 +1740,9 @@ export default function MatchCenterPage() {
                 disabled={busy}
                 className="col-span-3 rounded-xl border border-white/10 bg-white px-5 py-3 font-black text-black disabled:opacity-50"
               >
-                Submit Manual Result
+                {isLeagueAdmin
+                  ? 'Save Result & Update Stats'
+                  : 'Submit Manual Result'}
               </button>
             </form>
           </section>

@@ -397,11 +397,10 @@ export default function LeaguesPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="space-y-6">
         <FcPageHeader
-          eyebrow="Primary Section"
           title="Leagues"
-          subtitle="Choose a League to open its dedicated overview. Joining and creation stay here; standings, fixtures, members, teams and settings live on separate screens."
+          subtitle="Manage your League memberships and join or create a competition."
           action={
             <button
               type="button"
@@ -416,7 +415,7 @@ export default function LeaguesPage() {
                     !value,
                 )
               }
-              className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019] disabled:cursor-not-allowed disabled:opacity-40"
+              className="min-h-11 rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-40"
             >
               + Create League
             </button>
@@ -476,7 +475,7 @@ export default function LeaguesPage() {
                     href={
                       `/leagues/${item.league.id}`
                     }
-                    className="group rounded-[24px] border border-white/10 bg-[#08111b] p-5 transition hover:-translate-y-0.5 hover:border-sky-400/30"
+                    className="group rounded-2xl border border-[#253140] bg-[#121821] p-5 transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
                   >
                     <div className="flex items-start gap-4">
                       <FcCrest
@@ -513,7 +512,7 @@ export default function LeaguesPage() {
                           ) : null}
                         </div>
 
-                        <h2 className="mt-3 truncate text-xl font-black">
+                        <h2 className="mt-3 truncate text-lg font-semibold">
                           {
                             item.league.name
                           }

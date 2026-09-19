@@ -48,6 +48,13 @@ interface ExistingEntry {
 }
 
 
+interface LeagueTeamCandidate {
+  key: string;
+  name: string;
+  logoUrl: string | null;
+}
+
+
 interface LeagueMember {
   membershipId: string;
 
@@ -262,6 +269,14 @@ export default function FixtureParticipantsPage() {
     );
 
   const [
+    leagueTeams,
+    setLeagueTeams,
+  ] =
+    useState<LeagueTeamCandidate[]>(
+      [],
+    );
+
+  const [
     groups,
     setGroups,
   ] =
@@ -380,6 +395,114 @@ export default function FixtureParticipantsPage() {
             .members ??
             [],
         );
+
+
+        // League-wide team import is derived from existing Tournament entries,
+        // because FC ARENA currently has no separate persistent League Team model.
+        try {
+          const tournamentResponse =
+            await authenticatedRequest<any>(
+              `/leagues/${draft.leagueId}/tournaments`,
+            );
+
+          const leagueTournaments:
+            Array<{
+              id: string;
+            }> =
+            tournamentResponse
+              .data
+              .tournaments ??
+            [];
+
+          const entryGroups =
+            await Promise.all(
+              leagueTournaments
+                .filter(
+                  (
+                    tournament,
+                  ) =>
+                    tournament.id !==
+                    draft.tournamentId,
+                )
+                .map(
+                  async (
+                    tournament,
+                  ) => {
+                    try {
+                      const response =
+                        await authenticatedRequest<any>(
+                          `/tournaments/${tournament.id}/entries`,
+                        );
+
+                      return (
+                        response
+                          .data
+                          .entries as ExistingEntry[]
+                      ).filter(
+                        (
+                          entry,
+                        ) =>
+                          entry.status ===
+                          'APPROVED',
+                      );
+                    } catch {
+                      return [];
+                    }
+                  },
+                ),
+            );
+
+          const unique =
+            new Map<
+              string,
+              LeagueTeamCandidate
+            >();
+
+          for (
+            const entry
+            of entryGroups.flat()
+          ) {
+            const name =
+              entry.entryName
+                ?.trim();
+
+            if (!name) {
+              continue;
+            }
+
+            const normalized =
+              name.toLocaleLowerCase();
+
+            if (
+              unique.has(
+                normalized,
+              )
+            ) {
+              continue;
+            }
+
+            unique.set(
+              normalized,
+              {
+                key:
+                  `league-team-${entry.id}`,
+                name,
+                logoUrl:
+                  entry.entryLogoUrl,
+              },
+            );
+          }
+
+          setLeagueTeams(
+            Array.from(
+              unique.values(),
+            ),
+          );
+        } catch {
+          setLeagueTeams(
+            [],
+          );
+        }
 
         if (
           draft.participants.length >
@@ -681,6 +804,65 @@ export default function FixtureParticipantsPage() {
           entry.groupId,
         source:
           'TOURNAMENT',
+      },
+    );
+  }
+
+
+  function importLeagueTeam(
+    team:
+      LeagueTeamCandidate,
+  ) {
+    const normalized =
+      team.name
+        .trim()
+        .toLocaleLowerCase();
+
+    if (
+      rows.some(
+        (
+          row,
+        ) =>
+          row.name
+            .trim()
+            .toLocaleLowerCase() ===
+          normalized,
+      )
+    ) {
+      return;
+    }
+
+    const emptyIndex =
+      rows.findIndex(
+        (
+          row,
+        ) =>
+          !row.name.trim(),
+      );
+
+    if (
+      emptyIndex <
+      0
+    ) {
+      setError(
+        'All participant slots are filled.',
+      );
+
+      return;
+    }
+
+    updateRow(
+      emptyIndex,
+      {
+        registrationId:
+          null,
+        name:
+          team.name,
+        logoUrl:
+          team.logoUrl ??
+          '',
+        source:
+          'LEAGUE',
       },
     );
   }
@@ -1175,6 +1357,63 @@ export default function FixtureParticipantsPage() {
                 ),
               )}
             </div>
+
+
+            {draft.participantType ===
+              'TEAM' &&
+            leagueTeams.length >
+              0 ? (
+              <>
+                <h3 className="mt-6 text-base font-semibold">
+                  League Teams
+                </h3>
+
+                <p className="mt-1 text-sm text-[#6F7B8A]">
+                  Existing team names from other Tournaments in this League can be copied into the current fixture setup.
+                </p>
+
+                <div className="mt-4 grid gap-2 md:grid-cols-2">
+                  {leagueTeams.map(
+                    (
+                      team,
+                    ) => (
+                      <button
+                        key={
+                          team.key
+                        }
+                        type="button"
+                        onClick={() =>
+                          importLeagueTeam(
+                            team,
+                          )
+                        }
+                        className="flex items-center gap-3 rounded-xl border border-[#253140] bg-[#151C26] p-3 text-left"
+                      >
+                        <FcCrest
+                          name={
+                            team.name
+                          }
+                          imageUrl={
+                            team.logoUrl
+                          }
+                          size="sm"
+                        />
+
+                        <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                          {
+                            team.name
+                          }
+                        </span>
+
+                        <span className="text-[#38BDF8]">
+                          +
+                        </span>
+                      </button>
+                    ),
+                  )}
+                </div>
+              </>
+            ) : null}
 
 
             {draft.participantType ===

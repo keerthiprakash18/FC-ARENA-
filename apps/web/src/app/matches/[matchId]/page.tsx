@@ -560,9 +560,12 @@ export default function MatchCenterPage() {
   ) {
     event.preventDefault();
 
+    const formElement =
+      event.currentTarget;
+
     const data =
       new FormData(
-        event.currentTarget,
+        formElement,
       );
 
     setBusy(true);
@@ -607,7 +610,7 @@ export default function MatchCenterPage() {
         response.data.message,
       );
 
-      event.currentTarget.reset();
+      formElement.reset();
 
       await loadResults();
     } catch (err) {
@@ -627,9 +630,12 @@ export default function MatchCenterPage() {
   ) {
     event.preventDefault();
 
+    const formElement =
+      event.currentTarget;
+
     const form =
       new FormData(
-        event.currentTarget,
+        formElement,
       );
 
     const screenshot =
@@ -723,7 +729,7 @@ export default function MatchCenterPage() {
         response.data.message,
       );
 
-      event.currentTarget.reset();
+      formElement.reset();
 
       await loadLatestOcr();
     } catch (err) {

@@ -68,7 +68,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body data-ui-build="reference-home-v2">
         <ServiceWorkerRegister />
         {children}
       </body>

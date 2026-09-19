@@ -1,13 +1,20 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import {
   usePathname,
   useRouter,
 } from 'next/navigation';
-import type { ReactNode } from 'react';
-import { useState } from 'react';
-import { logoutCurrentUser } from '@/lib/auth-client';
+import type {
+  ReactNode,
+} from 'react';
+import {
+  useState,
+} from 'react';
+
+import {
+  logoutCurrentUser,
+} from '@/lib/auth-client';
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,121 +23,118 @@ interface AppShellProps {
 
 interface NavigationItem {
   label: string;
+  shortLabel: string;
   href: string;
   icon: string;
-  mobile: boolean;
-  desktop: boolean;
 }
 
 const navigation: NavigationItem[] = [
   {
-    label: 'Dashboard',
+    label: 'HOME',
+    shortLabel: 'Home',
     href: '/dashboard',
     icon: '⌂',
-    mobile: true,
-    desktop: true,
   },
   {
-    label: 'Leagues',
+    label: 'LEAGUE',
+    shortLabel: 'League',
     href: '/leagues',
     icon: '◈',
-    mobile: true,
-    desktop: true,
   },
   {
-    label: 'Tournaments',
+    label: 'TOURNAMENT',
+    shortLabel: 'Tournament',
     href: '/tournaments',
     icon: '◇',
-    mobile: true,
-    desktop: true,
   },
   {
-    label: 'Fixtures',
+    label: 'FIXTURES',
+    shortLabel: 'Fixtures',
     href: '/fixtures',
-    icon: '≡',
-    mobile: true,
-    desktop: true,
+    icon: '⚽',
   },
   {
-    label: 'Matches',
-    href: '/matches',
-    icon: '⚔',
-    mobile: false,
-    desktop: true,
-  },
-  {
-    label: 'Career',
-    href: '/career',
-    icon: '★',
-    mobile: false,
-    desktop: true,
-  },
-  {
-    label: 'Notifications',
-    href: '/notifications',
-    icon: '●',
-    mobile: false,
-    desktop: true,
-  },
-  {
-    label: 'Profile',
-    href: '/profile',
-    icon: '◎',
-    mobile: false,
-    desktop: true,
-  },
-  {
-    label: 'More',
+    label: 'MORE',
+    shortLabel: 'More',
     href: '/more',
     icon: '•••',
-    mobile: true,
-    desktop: false,
   },
 ];
 
-function isActive(
+function activeSection(
   pathname: string,
-  item: NavigationItem,
 ) {
-  if (item.href === '/dashboard') {
-    return pathname === '/dashboard';
+  if (
+    pathname === '/dashboard'
+  ) {
+    return '/dashboard';
   }
 
-  if (item.href === '/more') {
-    return (
-      pathname === '/more' ||
-      pathname.startsWith('/matches') ||
-      pathname.startsWith('/career') ||
-      pathname.startsWith('/notifications') ||
-      pathname.startsWith('/profile')
-    );
+  if (
+    pathname.startsWith(
+      '/leagues',
+    )
+  ) {
+    return '/leagues';
   }
 
-  return (
-    pathname === item.href ||
-    pathname.startsWith(`${item.href}/`)
-  );
+  if (
+    pathname.startsWith(
+      '/tournaments',
+    )
+  ) {
+    return '/tournaments';
+  }
+
+  if (
+    pathname.startsWith(
+      '/fixtures',
+    ) ||
+    pathname.startsWith(
+      '/matches',
+    )
+  ) {
+    return '/fixtures';
+  }
+
+  return '/more';
 }
 
 export function AppShell({
   children,
   playerName,
 }: AppShellProps) {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname =
+    usePathname();
 
-  const [loggingOut, setLoggingOut] =
+  const router =
+    useRouter();
+
+  const [
+    loggingOut,
+    setLoggingOut,
+  ] =
     useState(false);
 
+  const active =
+    activeSection(
+      pathname,
+    );
+
   async function logout() {
-    if (loggingOut) return;
+    if (loggingOut) {
+      return;
+    }
 
     setLoggingOut(true);
 
     try {
       await logoutCurrentUser();
 
-      router.replace('/login');
+      router.replace(
+        '/login',
+      );
+
       router.refresh();
     } finally {
       setLoggingOut(false);
@@ -138,155 +142,237 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-[#05080d] text-white">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] border-r border-white/10 bg-[#070b11]/95 backdrop-blur-xl lg:flex lg:flex-col">
-        <div className="border-b border-white/10 px-6 py-6">
-          <Link href="/dashboard" className="block">
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-sky-400">
-              Football Esports
-            </p>
+    <div className="min-h-screen bg-[#030812] text-white">
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute left-[-12rem] top-[-12rem] h-[30rem] w-[30rem] rounded-full bg-sky-500/[0.07] blur-3xl" />
+        <div className="absolute right-[-12rem] top-[18%] h-[26rem] w-[26rem] rounded-full bg-blue-700/[0.05] blur-3xl" />
+        <div className="absolute inset-x-0 top-0 h-[280px] bg-[linear-gradient(180deg,rgba(0,167,255,0.05),transparent)]" />
+      </div>
 
-            <h1 className="mt-2 text-2xl font-black tracking-tight">
-              FC ARENA
-            </h1>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[252px] border-r border-white/[0.08] bg-[#050b14]/95 backdrop-blur-2xl lg:flex lg:flex-col">
+        <div className="border-b border-white/[0.08] px-6 py-6">
+          <Link
+            href="/dashboard"
+            className="block"
+          >
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-sky-400/25 bg-sky-400/[0.08] text-xl text-sky-300">
+                ♛
+              </span>
+
+              <div>
+                <p className="font-['Rajdhani','Space_Grotesk',sans-serif] text-2xl font-black leading-none tracking-[-0.02em]">
+                  FC <span className="text-sky-400">ARENA</span>
+                </p>
+
+                <p className="mt-1 text-[9px] font-black uppercase tracking-[0.28em] text-slate-600">
+                  Play · Compete · Belong
+                </p>
+              </div>
+            </div>
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-2 overflow-y-auto p-4">
-          {navigation
-            .filter((item) => item.desktop)
-            .map((item) => {
-              const active = isActive(
-                pathname,
-                item,
-              );
+        <nav className="flex-1 space-y-2 p-4">
+          {navigation.map(
+            (
+              item,
+            ) => {
+              const selected =
+                active ===
+                item.href;
 
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  scroll
-                  className={`flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-black transition ${
-                    active
-                      ? 'border border-sky-400/20 bg-sky-400/10 text-sky-300'
-                      : 'border border-transparent text-slate-500 hover:bg-white/[0.04] hover:text-white'
+                  key={
+                    item.href
+                  }
+                  href={
+                    item.href
+                  }
+                  className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 transition duration-200 ${
+                    selected
+                      ? 'border-sky-400/25 bg-sky-400/[0.09] text-white shadow-[0_0_26px_rgba(14,165,233,0.07)]'
+                      : 'border-transparent text-slate-500 hover:border-white/[0.07] hover:bg-white/[0.025] hover:text-slate-200'
                   }`}
                 >
                   <span
-                    className={`grid h-9 w-9 place-items-center rounded-xl ${
-                      active
-                        ? 'bg-sky-400 text-[#041019]'
-                        : 'bg-white/[0.04]'
+                    className={`grid h-10 w-10 place-items-center rounded-xl border text-sm font-black transition ${
+                      selected
+                        ? 'border-sky-400/20 bg-sky-400 text-[#031019]'
+                        : 'border-white/[0.06] bg-white/[0.025] text-slate-500 group-hover:text-sky-300'
                     }`}
                   >
-                    {item.icon}
+                    {
+                      item.icon
+                    }
                   </span>
 
-                  {item.label}
+                  <span className="font-['Rajdhani','Space_Grotesk',sans-serif] text-sm font-black tracking-[0.08em]">
+                    {
+                      item.label
+                    }
+                  </span>
                 </Link>
               );
-            })}
+            },
+          )}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
-          <div className="mb-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
-              Signed in as
-            </p>
+        <div className="border-t border-white/[0.08] p-4">
+          <Link
+            href="/profile"
+            className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3 transition hover:border-sky-400/20"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-sky-400/20 bg-sky-400/[0.06] text-sm font-black text-sky-300">
+              {(playerName ||
+                'FC')
+                .slice(
+                  0,
+                  2,
+                )
+                .toUpperCase()}
+            </span>
 
-            <p className="mt-1 truncate font-black">
-              {playerName || 'FC ARENA Player'}
-            </p>
-          </div>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[9px] font-black uppercase tracking-[0.15em] text-slate-600">
+                Signed in
+              </span>
+
+              <span className="mt-0.5 block truncate text-sm font-black">
+                {playerName ||
+                  'FC ARENA Player'}
+              </span>
+            </span>
+          </Link>
 
           <button
             type="button"
-            disabled={loggingOut}
-            onClick={() => void logout()}
-            className="w-full rounded-xl border border-red-400/15 bg-red-400/[0.03] px-4 py-3 text-sm font-black text-red-300 transition hover:bg-red-400/10 disabled:opacity-50"
+            disabled={
+              loggingOut
+            }
+            onClick={() =>
+              void logout()
+            }
+            className="mt-2 w-full rounded-xl border border-red-400/10 px-4 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-red-300/70 transition hover:border-red-400/25 hover:bg-red-400/[0.04] hover:text-red-300 disabled:opacity-50"
           >
             {loggingOut
-              ? 'Signing out...'
+              ? 'Signing Out...'
               : 'Sign Out'}
           </button>
         </div>
       </aside>
 
-      <div className="lg:pl-[260px]">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#05080d]/90 backdrop-blur-xl lg:hidden">
-          <div className="flex h-16 items-center justify-between px-4">
-            <Link href="/dashboard">
-              <p className="text-lg font-black">
-                FC{' '}
-                <span className="text-sky-400">
-                  ARENA
-                </span>
-              </p>
+      <div className="relative z-10 lg:pl-[252px]">
+        <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#030812]/88 backdrop-blur-2xl">
+          <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:h-[72px] lg:px-8">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 lg:hidden"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-xl border border-sky-400/20 bg-sky-400/[0.07] text-sky-300">
+                ♛
+              </span>
+
+              <span className="font-['Rajdhani','Space_Grotesk',sans-serif] text-xl font-black">
+                FC <span className="text-sky-400">ARENA</span>
+              </span>
             </Link>
+
+            <div className="hidden lg:block">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-600">
+                More Than A Game
+              </p>
+            </div>
 
             <div className="flex items-center gap-2">
               <Link
                 href="/notifications"
-                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-slate-400"
                 aria-label="Notifications"
+                className="relative grid h-10 w-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.025] text-slate-400 transition hover:border-sky-400/25 hover:text-sky-300"
               >
-                ●
+                ◉
               </Link>
 
               <Link
                 href="/profile"
-                className="grid h-10 max-w-[150px] place-items-center rounded-xl border border-white/10 bg-white/[0.03] px-3 text-xs font-black"
+                className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-2.5 transition hover:border-sky-400/25"
               >
-                <span className="truncate">
-                  {playerName || 'Player'}
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-sky-400 text-[10px] font-black text-[#031019]">
+                  {(playerName ||
+                    'FC')
+                    .slice(
+                      0,
+                      2,
+                    )
+                    .toUpperCase()}
+                </span>
+
+                <span className="hidden max-w-[150px] truncate text-xs font-black text-slate-300 sm:block">
+                  {playerName ||
+                    'Player'}
                 </span>
               </Link>
             </div>
           </div>
         </header>
 
-        <main className="mx-auto min-h-screen w-full max-w-[1600px] px-4 pb-28 pt-5 sm:px-6 md:pt-7 lg:px-8 lg:pb-10 lg:pt-8">
-          {children}
+        <main className="mx-auto min-h-[calc(100vh-4rem)] w-full max-w-[1600px] px-4 pb-28 pt-5 sm:px-6 md:pt-7 lg:px-8 lg:pb-10 lg:pt-8">
+          {
+            children
+          }
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#070b11]/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.09] bg-[#050b14]/96 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl lg:hidden">
         <div className="mx-auto grid max-w-xl grid-cols-5">
-          {navigation
-            .filter((item) => item.mobile)
-            .map((item) => {
-              const active = isActive(
-                pathname,
-                item,
-              );
+          {navigation.map(
+            (
+              item,
+            ) => {
+              const selected =
+                active ===
+                item.href;
 
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  scroll
-                  className={`flex min-w-0 flex-col items-center gap-1 px-1 py-3 text-[9px] font-black transition ${
-                    active
+                  key={
+                    item.href
+                  }
+                  href={
+                    item.href
+                  }
+                  className={`relative flex min-w-0 flex-col items-center gap-1 px-1 py-2.5 text-[9px] font-black transition ${
+                    selected
                       ? 'text-sky-300'
                       : 'text-slate-600'
                   }`}
                 >
+                  {selected ? (
+                    <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]" />
+                  ) : null}
+
                   <span
                     className={`grid h-8 w-8 place-items-center rounded-xl text-sm ${
-                      active
-                        ? 'bg-sky-400 text-[#041019]'
-                        : 'bg-white/[0.03]'
+                      selected
+                        ? 'bg-sky-400 text-[#031019]'
+                        : 'bg-white/[0.025]'
                     }`}
                   >
-                    {item.icon}
+                    {
+                      item.icon
+                    }
                   </span>
 
                   <span className="max-w-full truncate">
-                    {item.label}
+                    {
+                      item.shortLabel
+                    }
                   </span>
                 </Link>
               );
-            })}
+            },
+          )}
         </div>
       </nav>
     </div>

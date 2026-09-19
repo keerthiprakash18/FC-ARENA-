@@ -258,9 +258,12 @@ export default function GroupsWizardPage() {
   ) {
     event.preventDefault();
 
+    const formElement =
+      event.currentTarget;
+
     const form =
       new FormData(
-        event.currentTarget,
+        formElement,
       );
 
     const name =
@@ -292,7 +295,7 @@ export default function GroupsWizardPage() {
         },
       );
 
-      event.currentTarget.reset();
+      formElement.reset();
 
       setMessage(
         `${name} created.`,

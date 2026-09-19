@@ -233,6 +233,41 @@ function dateGroup(
 }
 
 
+function fixtureStage(
+  fixture:
+    FixtureItem,
+) {
+  if (
+    fixture.group
+  ) {
+    return 'GROUP_STAGE';
+  }
+
+  const name =
+    fixture.roundName
+      .toUpperCase();
+
+  if (
+    name.includes(
+      'ROUND OF',
+    ) ||
+    name.includes(
+      'QUARTER',
+    ) ||
+    name.includes(
+      'SEMI',
+    ) ||
+    name.includes(
+      'FINAL',
+    )
+  ) {
+    return 'KNOCKOUT';
+  }
+
+  return 'LEAGUE';
+}
+
+
 function statusTone(
   fixture:
     FixtureItem,
@@ -322,6 +357,31 @@ export default function FixturesPage() {
     setFilter,
   ] =
     useState<Filter>(
+      'ALL',
+    );
+
+
+  const [
+    selectedGroupId,
+    setSelectedGroupId,
+  ] =
+    useState(
+      'ALL',
+    );
+
+  const [
+    selectedMatchday,
+    setSelectedMatchday,
+  ] =
+    useState(
+      'ALL',
+    );
+
+  const [
+    selectedStage,
+    setSelectedStage,
+  ] =
+    useState(
       'ALL',
     );
 
@@ -458,6 +518,18 @@ export default function FixturesPage() {
           'ALL',
         );
 
+        setSelectedGroupId(
+          'ALL',
+        );
+
+        setSelectedMatchday(
+          'ALL',
+        );
+
+        setSelectedStage(
+          'ALL',
+        );
+
         const groups =
           await Promise.all(
             competitionList.map(
@@ -586,6 +658,54 @@ export default function FixturesPage() {
             );
         }
 
+        if (
+          selectedGroupId !==
+          'ALL'
+        ) {
+          values =
+            values.filter(
+              (
+                fixture,
+              ) =>
+                fixture.group
+                  ?.id ===
+                selectedGroupId,
+            );
+        }
+
+        if (
+          selectedMatchday !==
+          'ALL'
+        ) {
+          values =
+            values.filter(
+              (
+                fixture,
+              ) =>
+                String(
+                  fixture.matchday ??
+                  '',
+                ) ===
+                selectedMatchday,
+            );
+        }
+
+        if (
+          selectedStage !==
+          'ALL'
+        ) {
+          values =
+            values.filter(
+              (
+                fixture,
+              ) =>
+                fixtureStage(
+                  fixture,
+                ) ===
+                selectedStage,
+            );
+        }
+
         return [
           ...values,
         ].sort(
@@ -627,6 +747,96 @@ export default function FixturesPage() {
         fixtures,
         selectedTournamentId,
         filter,
+        selectedGroupId,
+        selectedMatchday,
+        selectedStage,
+      ],
+    );
+
+
+  const availableGroups =
+    useMemo(
+      () => {
+        const map =
+          new Map<
+            string,
+            string
+          >();
+
+        for (
+          const fixture
+          of fixtures
+        ) {
+          if (
+            selectedTournamentId !==
+              'ALL' &&
+            fixture.tournamentId !==
+              selectedTournamentId
+          ) {
+            continue;
+          }
+
+          if (
+            fixture.group
+          ) {
+            map.set(
+              fixture.group.id,
+              fixture.group.name,
+            );
+          }
+        }
+
+        return Array.from(
+          map.entries(),
+        );
+      },
+      [
+        fixtures,
+        selectedTournamentId,
+      ],
+    );
+
+
+  const availableMatchdays =
+    useMemo(
+      () =>
+        Array.from(
+          new Set(
+            fixtures
+              .filter(
+                (
+                  fixture,
+                ) =>
+                  selectedTournamentId ===
+                    'ALL' ||
+                  fixture.tournamentId ===
+                    selectedTournamentId,
+              )
+              .map(
+                (
+                  fixture,
+                ) =>
+                  fixture.matchday,
+              )
+              .filter(
+                (
+                  value,
+                ): value is number =>
+                  typeof value ===
+                  'number',
+              ),
+          ),
+        ).sort(
+          (
+            a,
+            b,
+          ) =>
+            a -
+            b,
+        ),
+      [
+        fixtures,
+        selectedTournamentId,
       ],
     );
 
@@ -873,8 +1083,20 @@ export default function FixturesPage() {
                       ) =>
                         setSelectedTournamentId(
                           event.target.value,
-                        )
-                    }
+                        );
+
+                        setSelectedGroupId(
+                          'ALL',
+                        );
+
+                        setSelectedMatchday(
+                          'ALL',
+                        );
+
+                        setSelectedStage(
+                          'ALL',
+                        );
+                      }
                     className="rounded-xl border border-white/10 bg-[#07101a] px-4 py-3 text-sm font-black outline-none"
                   >
                     <option value="ALL">
@@ -899,6 +1121,139 @@ export default function FixturesPage() {
                         </option>
                       ),
                     )}
+                  </select>
+                </label>
+              </div>
+            </FcPanel>
+
+
+            <FcPanel className="p-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="grid gap-2">
+                  <span className="text-xs font-medium text-[#A7B0BE]">
+                    Group
+                  </span>
+
+                  <select
+                    value={
+                      selectedGroupId
+                    }
+                    onChange={
+                      (
+                        event,
+                      ) =>
+                        setSelectedGroupId(
+                          event.target.value,
+                        )
+                    }
+                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                  >
+                    <option value="ALL">
+                      All Groups
+                    </option>
+
+                    {availableGroups.map(
+                      ([
+                        id,
+                        name,
+                      ]) => (
+                        <option
+                          key={
+                            id
+                          }
+                          value={
+                            id
+                          }
+                        >
+                          {
+                            name
+                          }
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </label>
+
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-medium text-[#A7B0BE]">
+                    Matchday
+                  </span>
+
+                  <select
+                    value={
+                      selectedMatchday
+                    }
+                    onChange={
+                      (
+                        event,
+                      ) =>
+                        setSelectedMatchday(
+                          event.target.value,
+                        )
+                    }
+                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                  >
+                    <option value="ALL">
+                      All Matchdays
+                    </option>
+
+                    {availableMatchdays.map(
+                      (
+                        matchday,
+                      ) => (
+                        <option
+                          key={
+                            matchday
+                          }
+                          value={
+                            matchday
+                          }
+                        >
+                          Matchday {
+                            matchday
+                          }
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </label>
+
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-medium text-[#A7B0BE]">
+                    Stage
+                  </span>
+
+                  <select
+                    value={
+                      selectedStage
+                    }
+                    onChange={
+                      (
+                        event,
+                      ) =>
+                        setSelectedStage(
+                          event.target.value,
+                        )
+                    }
+                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                  >
+                    <option value="ALL">
+                      All Stages
+                    </option>
+
+                    <option value="LEAGUE">
+                      League / Round Robin
+                    </option>
+
+                    <option value="GROUP_STAGE">
+                      Group Stage
+                    </option>
+
+                    <option value="KNOCKOUT">
+                      Knockout
+                    </option>
                   </select>
                 </label>
               </div>

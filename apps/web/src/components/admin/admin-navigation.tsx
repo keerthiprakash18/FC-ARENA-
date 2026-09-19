@@ -16,17 +16,17 @@ export function AdminNavigation() {
     usePathname();
 
   return (
-    <nav className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#08111b]/95 p-2">
+    <nav className="overflow-x-auto rounded-2xl border border-[#253140] bg-[#121821] p-1.5">
       <div className="flex min-w-max gap-1.5">
         {items.map(
           ([label, href]) => (
             <Link
               key={href}
               href={href}
-              className={`rounded-xl border px-4 py-2.5 text-xs font-black transition sm:text-sm ${
+              className={`rounded-[10px] border px-3.5 py-2.5 text-xs font-medium transition sm:text-sm ${
                 pathname === href
-                  ? 'border-amber-400/30 bg-amber-400/[0.08] text-amber-300'
-                  : 'border-transparent text-slate-500 hover:border-white/[0.07] hover:text-white'
+                  ? 'border-transparent bg-amber-400/[0.08] text-[#F8FAFC]'
+                  : 'border-transparent text-[#A7B0BE] hover:bg-[#151C26] hover:text-[#F8FAFC]'
               }`}
             >
               {label}

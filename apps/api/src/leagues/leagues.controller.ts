@@ -13,6 +13,7 @@ import type { Request } from 'express';
 import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CreateLeagueDto } from './dto/create-league.dto.js';
+import { DeleteLeagueDto } from './dto/delete-league.dto.js';
 import { JoinLeagueDto } from './dto/join-league.dto.js';
 import { LeagueManagementService } from './league-management.service.js';
 import { LeaguesService } from './leagues.service.js';
@@ -153,6 +154,19 @@ export class LeaguesController {
     return this.leaguesService.setPrimary(
       request.user.sub,
       leagueId,
+    );
+  }
+
+  @Delete(':leagueId')
+  deleteLeague(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+    @Body() dto: DeleteLeagueDto,
+  ) {
+    return this.leaguesService.deleteLeague(
+      request.user.sub,
+      leagueId,
+      dto,
     );
   }
 

@@ -1143,8 +1143,7 @@ export default function LeaguesPage() {
           <FcEmptyState
             title="Build your first League"
             description="Create a league or join one with a unique code. Each player can hold a maximum of two memberships."
-            actionLabel="Create League"
-            actionHref="/leagues"
+
           />
         )}
       </div>

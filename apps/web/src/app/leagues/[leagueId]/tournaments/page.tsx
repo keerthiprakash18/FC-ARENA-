@@ -1,33 +1,67 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
-import { AppShell } from '@/components/app/app-shell';
+import {
+  useParams,
+  useRouter,
+} from 'next/navigation';
+import type {
+  FormEvent,
+} from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  AppShell,
+} from '@/components/app/app-shell';
+
+import {
+  competitionLabel,
+  FcCrest,
+  FcEmptyState,
+  FcLoadingScreen,
+  FcPageHeader,
+  FcPanel,
+  FcSectionHeading,
+  FcStatusBadge,
+} from '@/components/fc/fc-ui';
+
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
 
-type TournamentMode = 'SOLO' | 'DUO' | 'TEAM';
-type TournamentFormat = 'ROUND_ROBIN' | 'KNOCKOUT';
+
+type TournamentMode =
+  | 'SOLO'
+  | 'DUO'
+  | 'TEAM';
+
 
 interface LeagueInfo {
   id: string;
   name: string;
   code: string;
-  adminRole: 'OWNER' | 'ADMIN' | null;
+
+  adminRole:
+    | 'OWNER'
+    | 'ADMIN'
+    | null;
 }
+
 
 interface Tournament {
   id: string;
   name: string;
   code: string;
   description: string | null;
+  logoUrl?: string | null;
   mode: TournamentMode;
-  format: TournamentFormat;
+  format: string;
+  competitionFormat?: string;
   status: string;
   teamSize: number;
   maxEntries: number;
@@ -35,247 +69,408 @@ interface Tournament {
   startAt: string | null;
 }
 
+
 export default function LeagueTournamentsPage() {
-  const params = useParams<{ leagueId: string }>();
-  const router = useRouter();
+  const params =
+    useParams<{
+      leagueId:
+        string;
+    }>();
 
-  const createTournamentFormRef = useRef<HTMLFormElement>(null);
+  const router =
+    useRouter();
 
-  const leagueId = params.leagueId;
+  const leagueId =
+    params.leagueId;
 
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [league, setLeague] = useState<LeagueInfo | null>(null);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [
+    user,
+    setUser,
+  ] =
+    useState<CurrentUser | null>(
+      null,
+    );
 
-  const [mode, setMode] = useState<TournamentMode>('SOLO');
-  const [format, setFormat] =
-    useState<TournamentFormat>('ROUND_ROBIN');
+  const [
+    league,
+    setLeague,
+  ] =
+    useState<LeagueInfo | null>(
+      null,
+    );
 
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [
+    tournaments,
+    setTournaments,
+  ] =
+    useState<Tournament[]>(
+      [],
+    );
+
+  const [
+    mode,
+    setMode,
+  ] =
+    useState<TournamentMode>(
+      'SOLO',
+    );
+
+  const [
+    showCreate,
+    setShowCreate,
+  ] =
+    useState(false);
+
+  const [
+    busy,
+    setBusy,
+  ] =
+    useState(false);
+
+  const [
+    error,
+    setError,
+  ] =
+    useState('');
+
 
   async function loadTournaments() {
-    const result = await authenticatedRequest<{
-      success: true;
-      data: {
-        tournaments: Tournament[];
-      };
-      error: null;
-    }>(`/leagues/${leagueId}/tournaments`);
+    const result =
+      await authenticatedRequest<{
+        success: true;
 
-    setTournaments(result.data.tournaments);
+        data: {
+          tournaments:
+            Tournament[];
+        };
+
+        error: null;
+      }>(
+        `/leagues/${leagueId}/tournaments`,
+      );
+
+    setTournaments(
+      result.data.tournaments,
+    );
   }
+
 
   useEffect(() => {
     async function load() {
       try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
+        const currentUser =
+          await getCurrentUser();
 
-        const leagueResult = await authenticatedRequest<{
-          success: true;
-          data: {
-            league: LeagueInfo;
-          };
-          error: null;
-        }>(`/leagues/${leagueId}`);
+        setUser(
+          currentUser,
+        );
 
-        setLeague(leagueResult.data.league);
+        const leagueResult =
+          await authenticatedRequest<{
+            success: true;
+
+            data: {
+              league:
+                LeagueInfo;
+            };
+
+            error: null;
+          }>(
+            `/leagues/${leagueId}`,
+          );
+
+        setLeague(
+          leagueResult
+            .data
+            .league,
+        );
 
         await loadTournaments();
       } catch {
-        router.replace('/leagues');
+        router.replace(
+          '/leagues',
+        );
       }
     }
 
     void load();
-  }, [leagueId, router]);
+  }, [
+    leagueId,
+    router,
+  ]);
+
 
   async function createTournament(
-    event: FormEvent<HTMLFormElement>,
+    event:
+      FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    setBusy(true);
-    setError('');
-    setMessage('');
+    setBusy(
+      true,
+    );
 
-    const submittedForm = event.currentTarget;
-    const form = new FormData(submittedForm);
-    const startAtRaw = String(form.get('startAt') ?? '');
+    setError(
+      '',
+    );
 
-    const payload = {
-      name: String(form.get('name') ?? ''),
-      mode,
-      format,
-      maxEntries: Number(form.get('maxEntries')),
-      ...(mode === 'TEAM'
-        ? {
-            teamSize: Number(form.get('teamSize')),
-          }
-        : {}),
-      description:
-        String(form.get('description') ?? '') || undefined,
-      rules: String(form.get('rules') ?? '') || undefined,
-      startAt: startAtRaw
-        ? new Date(startAtRaw).toISOString()
-        : undefined,
-    };
-
-    try {
-      const result = await authenticatedRequest<{
-        success: true;
-        data: {
-          message: string;
-          tournament: {
-            code: string;
-          };
-        };
-        error: null;
-      }>(`/leagues/${leagueId}/tournaments`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-
-      setMessage(
-        `${result.data.message} Code: ${result.data.tournament.code}`,
+    const form =
+      new FormData(
+        event.currentTarget,
       );
 
-      submittedForm.reset();
-      setMode('SOLO');
-      setFormat('ROUND_ROBIN');
+    try {
+      const result =
+        await authenticatedRequest<{
+          success: true;
 
-      await loadTournaments();
-    } catch (err) {
+          data: {
+            message:
+              string;
+
+            tournament: {
+              id: string;
+              code: string;
+            };
+          };
+
+          error: null;
+        }>(
+          `/leagues/${leagueId}/tournaments`,
+          {
+            method:
+              'POST',
+
+            body:
+              JSON.stringify({
+                name:
+                  String(
+                    form.get(
+                      'name',
+                    ) ??
+                    '',
+                  ),
+
+                mode,
+
+                maxEntries:
+                  Number(
+                    form.get(
+                      'maxEntries',
+                    ),
+                  ),
+
+                ...(mode ===
+                'TEAM'
+                  ? {
+                      teamSize:
+                        Number(
+                          form.get(
+                            'teamSize',
+                          ),
+                        ),
+                    }
+                  : {}),
+              }),
+          },
+        );
+
+      router.push(
+        `/tournaments/${result.data.tournament.id}/wizard/setup`,
+      );
+    } catch (
+      err
+    ) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Unable to create tournament.',
+          : 'Unable to create Tournament.',
       );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
-  if (!user || !league) {
+
+  if (
+    !user ||
+    !league
+  ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-sm text-slate-500">
-        Loading tournaments...
-      </div>
+      <FcLoadingScreen
+        label="Loading League Tournaments..."
+      />
     );
   }
 
-  const isAdmin = Boolean(league.adminRole);
+
+  const isAdmin =
+    Boolean(
+      league.adminRole,
+    );
+
 
   return (
     <AppShell
-      playerName={user.player?.identity?.inGameName}
+      playerName={
+        user.player
+          ?.identity
+          ?.inGameName
+      }
     >
       <div className="space-y-7">
-        <div>
-          <Link
-            href={`/leagues/${leagueId}`}
-            className="text-sm font-bold text-slate-500 transition hover:text-white"
-          >
-            â† Back to League
-          </Link>
+        <Link
+          href={
+            `/leagues/${leagueId}`
+          }
+          className="inline-flex text-sm font-black text-slate-500 transition hover:text-sky-300"
+        >
+          ← Back to League
+        </Link>
 
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-            {league.name}
-          </p>
 
-          <h1 className="mt-2 text-4xl font-black tracking-[-0.05em] md:text-5xl">
-            Tournaments
-          </h1>
+        <FcPageHeader
+          eyebrow={
+            league.name
+          }
+          title="Tournaments"
+          subtitle="Tournament creation now starts with a lightweight draft, then continues through the full step-by-step FC ARENA wizard."
+          action={
+            isAdmin ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setShowCreate(
+                    (
+                      value,
+                    ) =>
+                      !value,
+                  )
+                }
+                className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019]"
+              >
+                + New Tournament
+              </button>
+            ) : null
+          }
+        />
 
-          <p className="mt-3 text-sm text-slate-500">
-            Create and manage competitions inside this League.
-          </p>
-        </div>
-
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
 
         {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
+            {
+              error
+            }
           </div>
         ) : null}
 
-        {isAdmin ? (
-          <section className="rounded-[26px] border border-white/10 bg-[#0a1018] p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-              League Admin
-            </p>
 
-            <h2 className="mt-2 text-2xl font-black">
-              Create Tournament
-            </h2>
+        {showCreate &&
+        isAdmin ? (
+          <FcPanel className="overflow-hidden">
+            <div className="border-b border-white/[0.07] bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_60%)] p-5 sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
+                Start Draft
+              </p>
+
+              <h2 className="mt-2 text-2xl font-black">
+                Create Tournament
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                Create the draft here. Format, groups, teams, fixture rules, preview, qualification and review are configured on separate wizard screens.
+              </p>
+            </div>
+
 
             <form
-              className="mt-6 grid gap-5"
-              onSubmit={createTournament}
+              onSubmit={
+                createTournament
+              }
+              className="grid gap-5 p-5 sm:p-6"
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="field">
-                  <label>Tournament Name</label>
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Tournament Name
+                  </span>
+
                   <input
                     name="name"
                     required
-                    placeholder="FC ARENA SOLO CHAMPIONSHIP"
+                    minLength={
+                      3
+                    }
+                    placeholder="Indian State Championship"
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
-                </div>
+                </label>
 
-                <div className="field">
-                  <label>Maximum Entries</label>
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Number of Entries
+                  </span>
+
                   <input
                     name="maxEntries"
                     type="number"
                     min="2"
                     max="128"
-                    defaultValue="20"
+                    defaultValue="16"
                     required
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
-                </div>
+                </label>
               </div>
 
+
               <div>
-                <p className="mb-3 text-sm font-bold text-slate-300">
+                <p className="mb-3 text-xs font-black uppercase tracking-wider text-slate-500">
                   Participation Type
                 </p>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {(['SOLO', 'DUO', 'TEAM'] as TournamentMode[]).map(
-                    (value) => (
+                  {([
+                    'SOLO',
+                    'DUO',
+                    'TEAM',
+                  ] as TournamentMode[]).map(
+                    (
+                      value,
+                    ) => (
                       <button
-                        key={value}
+                        key={
+                          value
+                        }
                         type="button"
-                        onClick={() => setMode(value)}
+                        onClick={() =>
+                          setMode(
+                            value,
+                          )
+                        }
                         className={`rounded-2xl border p-4 text-left transition ${
-                          mode === value
-                            ? 'border-sky-400/50 bg-sky-400/10'
-                            : 'border-white/10 bg-black/10'
+                          mode ===
+                          value
+                            ? 'border-sky-400/30 bg-sky-400/[0.08]'
+                            : 'border-white/10 bg-white/[0.02]'
                         }`}
                       >
-                        <p
-                          className={`font-black ${
-                            mode === value
-                              ? 'text-sky-400'
-                              : 'text-white'
-                          }`}
-                        >
-                          {value}
+                        <p className="font-black">
+                          {
+                            value
+                          }
                         </p>
 
-                        <p className="mt-1 text-xs text-slate-500">
-                          {value === 'SOLO'
-                            ? '1 player per entry'
-                            : value === 'DUO'
-                              ? '2 players per entry'
+                        <p className="mt-1 text-xs text-slate-600">
+                          {value ===
+                          'SOLO'
+                            ? 'One player per entry'
+                            : value ===
+                                'DUO'
+                              ? 'Two players per entry'
                               : 'Custom team size'}
                         </p>
                       </button>
@@ -284,9 +479,14 @@ export default function LeagueTournamentsPage() {
                 </div>
               </div>
 
-              {mode === 'TEAM' ? (
-                <div className="field">
-                  <label>Players Per Team</label>
+
+              {mode ===
+              'TEAM' ? (
+                <label className="grid max-w-sm gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Players Per Team
+                  </span>
+
                   <input
                     name="teamSize"
                     type="number"
@@ -294,212 +494,230 @@ export default function LeagueTournamentsPage() {
                     max="11"
                     defaultValue="4"
                     required
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
-                </div>
+                </label>
               ) : null}
 
-              <div>
-                <p className="mb-3 text-sm font-bold text-slate-300">
-                  Competition Format
+
+              <div className="flex flex-col gap-3 border-t border-white/[0.07] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs leading-5 text-slate-600">
+                  Next: Setup → Teams → Groups when required → Fixture Settings → Preview → Qualification when required → Review.
                 </p>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex shrink-0 gap-2">
                   <button
                     type="button"
                     onClick={() =>
-                      setFormat('ROUND_ROBIN')
+                      setShowCreate(
+                        false,
+                      )
                     }
-                    className={`rounded-2xl border p-4 text-left ${
-                      format === 'ROUND_ROBIN'
-                        ? 'border-sky-400/50 bg-sky-400/10'
-                        : 'border-white/10 bg-black/10'
-                    }`}
+                    className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400"
                   >
-                    <p className="font-black">
-                      Round Robin
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      Every approved entry competes against every
-                      other entry.
-                    </p>
+                    Cancel
                   </button>
 
                   <button
-                    type="button"
-                    onClick={() =>
-                      setFormat('KNOCKOUT')
+                    disabled={
+                      busy
                     }
-                    className={`rounded-2xl border p-4 text-left ${
-                      format === 'KNOCKOUT'
-                        ? 'border-sky-400/50 bg-sky-400/10'
-                        : 'border-white/10 bg-black/10'
-                    }`}
+                    className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019] disabled:opacity-50"
                   >
-                    <p className="font-black">
-                      Knockout
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      Single-elimination tournament bracket.
-                    </p>
+                    {busy
+                      ? 'Creating...'
+                      : 'Create Draft & Continue →'}
                   </button>
                 </div>
               </div>
-
-              <div className="field">
-                <label>Tournament Start - optional</label>
-                <input
-                  name="startAt"
-                  type="datetime-local"
-                />
-              </div>
-
-              <div className="field">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  rows={3}
-                  placeholder="Tournament description"
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 outline-none focus:border-sky-400/60"
-                />
-              </div>
-
-              <div className="field">
-                <label>Rules</label>
-                <textarea
-                  name="rules"
-                  rows={4}
-                  placeholder="Tournament rules"
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 outline-none focus:border-sky-400/60"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] disabled:opacity-50"
-              >
-                {busy
-                  ? 'Creating Tournament...'
-                  : 'Create Tournament'}
-              </button>
             </form>
-          </section>
+          </FcPanel>
         ) : null}
 
+
         <section>
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-600">
-                Competition List
-              </p>
+          <FcSectionHeading
+            eyebrow="Competition List"
+            title="League Tournaments"
+            action={
+              <span className="text-xs font-black text-slate-600">
+                {
+                  tournaments.length
+                }{' '}
+                tournament
+                {tournaments.length ===
+                1
+                  ? ''
+                  : 's'}
+              </span>
+            }
+          />
 
-              <h2 className="mt-1 text-2xl font-black">
-                League Tournaments
-              </h2>
-            </div>
 
-            <span className="text-sm text-slate-500">
-              {tournaments.length} tournament
-              {tournaments.length === 1 ? '' : 's'}
-            </span>
-          </div>
-
-          {tournaments.length === 0 ? (
-            <div className="mt-5 rounded-[24px] border border-dashed border-white/10 p-12 text-center">
-              <p className="font-bold text-slate-400">
-                No tournaments created yet.
-              </p>
-
-              <p className="mt-2 text-sm text-slate-600">
-                League Admins can create the first competition above.
-              </p>
+          {tournaments.length ===
+          0 ? (
+            <div className="mt-4">
+              <FcEmptyState
+                title="No tournaments created yet"
+                description={
+                  isAdmin
+                    ? 'Start a Tournament draft and configure the complete competition through the wizard.'
+                    : 'League admins have not published any Tournament yet.'
+                }
+                actionLabel={
+                  isAdmin
+                    ? 'Create Tournament'
+                    : 'Back to League'
+                }
+                actionHref={
+                  isAdmin
+                    ? `/leagues/${leagueId}/tournaments`
+                    : `/leagues/${leagueId}`
+                }
+              />
             </div>
           ) : (
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              {tournaments.map((tournament) => (
-                <article
-                  key={tournament.id}
-                  className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-sky-400/10 px-3 py-1 text-[10px] font-black text-sky-400">
-                          {tournament.mode}
-                        </span>
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              {tournaments.map(
+                (
+                  tournament,
+                ) => (
+                  <FcPanel
+                    key={
+                      tournament.id
+                    }
+                    className="overflow-hidden transition hover:border-sky-400/25"
+                  >
+                    <div className="border-b border-white/[0.07] bg-[linear-gradient(120deg,rgba(14,165,233,0.06),transparent_60%)] p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <FcCrest
+                            name={
+                              tournament.name
+                            }
+                            imageUrl={
+                              tournament.logoUrl
+                            }
+                          />
 
-                        <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] font-black text-slate-400">
-                          {tournament.format.replace(
-                            '_',
-                            ' ',
-                          )}
-                        </span>
+                          <div>
+                            <p className="font-mono text-[10px] text-sky-400">
+                              {
+                                tournament.code
+                              }
+                            </p>
+
+                            <h3 className="mt-1 text-xl font-black">
+                              {
+                                tournament.name
+                              }
+                            </h3>
+                          </div>
+                        </div>
+
+                        <FcStatusBadge
+                          label={
+                            tournament.status
+                          }
+                          tone={
+                            tournament.status ===
+                            'COMPLETED'
+                              ? 'emerald'
+                              : tournament.status ===
+                                  'DRAFT'
+                                ? 'amber'
+                                : 'cyan'
+                          }
+                        />
+                      </div>
+                    </div>
+
+
+                    <div className="p-5">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="rounded-xl bg-white/[0.025] p-3">
+                          <p className="text-[9px] uppercase tracking-wider text-slate-600">
+                            Format
+                          </p>
+
+                          <p className="mt-1 truncate text-xs font-black">
+                            {
+                              competitionLabel(
+                                tournament.competitionFormat ||
+                                tournament.format,
+                              )
+                            }
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-white/[0.025] p-3">
+                          <p className="text-[9px] uppercase tracking-wider text-slate-600">
+                            Entries
+                          </p>
+
+                          <p className="mt-1 text-xs font-black">
+                            {
+                              tournament.approvedEntries
+                            }
+                            /
+                            {
+                              tournament.maxEntries
+                            }
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-white/[0.025] p-3">
+                          <p className="text-[9px] uppercase tracking-wider text-slate-600">
+                            Start
+                          </p>
+
+                          <p className="mt-1 text-xs font-black">
+                            {tournament.startAt
+                              ? new Date(
+                                  tournament.startAt,
+                                ).toLocaleDateString()
+                              : 'TBD'}
+                          </p>
+                        </div>
                       </div>
 
-                      <h3 className="mt-4 text-2xl font-black">
-                        {tournament.name}
-                      </h3>
 
-                      <p className="mt-1 font-mono text-xs text-slate-600">
-                        {tournament.code}
-                      </p>
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        {tournament.status ===
+                          'DRAFT' &&
+                        isAdmin ? (
+                          <Link
+                            href={
+                              `/tournaments/${tournament.id}/wizard/setup`
+                            }
+                            className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
+                          >
+                            Continue Setup
+                          </Link>
+                        ) : (
+                          <Link
+                            href={
+                              `/tournaments/${tournament.id}`
+                            }
+                            className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
+                          >
+                            View Tournament
+                          </Link>
+                        )}
+
+                        <Link
+                          href={
+                            `/tournaments/${tournament.id}/fixtures`
+                          }
+                          className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
+                        >
+                          Fixtures
+                        </Link>
+                      </div>
                     </div>
-
-                    <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black text-slate-400">
-                      {tournament.status.replaceAll(
-                        '_',
-                        ' ',
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="mt-6 grid grid-cols-3 gap-3">
-                    <div className="rounded-xl bg-white/[0.03] p-3">
-                      <p className="text-[10px] uppercase text-slate-600">
-                        Entries
-                      </p>
-
-                      <p className="mt-1 font-black">
-                        {tournament.approvedEntries}/
-                        {tournament.maxEntries}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-white/[0.03] p-3">
-                      <p className="text-[10px] uppercase text-slate-600">
-                        Team Size
-                      </p>
-
-                      <p className="mt-1 font-black">
-                        {tournament.teamSize}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-white/[0.03] p-3">
-                      <p className="text-[10px] uppercase text-slate-600">
-                        Start
-                      </p>
-
-                      <p className="mt-1 text-xs font-bold">
-                        {tournament.startAt
-                          ? new Date(
-                              tournament.startAt,
-                            ).toLocaleDateString()
-                          : 'TBD'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <Link
-                    href={`/tournaments/${tournament.id}`}
-                    className="mt-5 inline-flex rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#041019]"
-                  >
-                    Enter Tournament
-                  </Link>
-                </article>
-              ))}
+                  </FcPanel>
+                ),
+              )}
             </div>
           )}
         </section>
@@ -507,4 +725,3 @@ export default function LeagueTournamentsPage() {
     </AppShell>
   );
 }
-

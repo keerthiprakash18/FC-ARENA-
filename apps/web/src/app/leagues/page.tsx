@@ -375,6 +375,151 @@ export default function LeaguesPage() {
   }
 
 
+  async function deleteLeague(
+    item:
+      MyLeague,
+  ) {
+    if (
+      item.adminRole !==
+      'OWNER'
+    ) {
+      return;
+    }
+
+    const confirmation =
+      window.prompt(
+        `Delete "${item.league.name}" permanently? This also removes its tournaments, fixtures, standings and League memberships. Type the League name exactly to continue.`,
+      );
+
+    if (
+      confirmation ===
+      null
+    ) {
+      return;
+    }
+
+    if (
+      confirmation.trim() !==
+      item.league.name.trim()
+    ) {
+      setError(
+        'League name confirmation does not match.',
+      );
+
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError(
+      '',
+    );
+
+    setMessage(
+      '',
+    );
+
+    try {
+      const response =
+        await authenticatedRequest<any>(
+          `/leagues/${item.league.id}`,
+          {
+            method:
+              'DELETE',
+
+            body:
+              JSON.stringify({
+                confirmName:
+                  confirmation,
+              }),
+          },
+        );
+
+      setMessage(
+        response.data.message,
+      );
+
+      await loadLeagues();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete League.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
+  async function leaveLeague(
+    item:
+      MyLeague,
+  ) {
+    if (
+      item.adminRole ===
+      'OWNER'
+    ) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Leave "${item.league.name}"?`,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError(
+      '',
+    );
+
+    setMessage(
+      '',
+    );
+
+    try {
+      const response =
+        await authenticatedRequest<any>(
+          `/leagues/${item.league.id}/leave`,
+          {
+            method:
+              'DELETE',
+          },
+        );
+
+      setMessage(
+        response.data.message,
+      );
+
+      await loadLeagues();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to leave League.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
   if (!user) {
     return (
       <FcLoadingScreen
@@ -417,7 +562,7 @@ export default function LeaguesPage() {
               }
               className="min-h-11 rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              + Create League
+              + Add League
             </button>
           }
         />
@@ -468,85 +613,145 @@ export default function LeaguesPage() {
                 (
                   item,
                 ) => (
-                  <Link
+                  <article
                     key={
                       item.league.id
                     }
-                    href={
-                      `/leagues/${item.league.id}`
-                    }
-                    className="group rounded-2xl border border-[#253140] bg-[#121821] p-5 transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
+                    className="rounded-2xl border border-[#203141] bg-[#101923] p-5 transition duration-200 hover:border-[#2D4356] hover:bg-[#121D28]"
                   >
-                    <div className="flex items-start gap-4">
-                      <FcCrest
-                        name={
-                          item.league.name
-                        }
-                        imageUrl={
-                          item.league.logoUrl
-                        }
-                        size="lg"
-                      />
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap gap-2">
-                          <FcStatusBadge
-                            label={
-                              item.membershipType
-                            }
-                            tone={
-                              item.membershipType ===
-                              'PRIMARY'
-                                ? 'cyan'
-                                : 'slate'
-                            }
-                          />
-
-                          {item.adminRole ? (
-                            <FcStatusBadge
-                              label={
-                                item.adminRole
-                              }
-                              tone="amber"
-                            />
-                          ) : null}
-                        </div>
-
-                        <h2 className="mt-3 truncate text-lg font-semibold">
-                          {
+                    <Link
+                      href={
+                        `/leagues/${item.league.id}`
+                      }
+                      className="group block"
+                    >
+                      <div className="flex items-start gap-4">
+                        <FcCrest
+                          name={
                             item.league.name
                           }
-                        </h2>
+                          imageUrl={
+                            item.league.logoUrl
+                          }
+                          size="lg"
+                        />
 
-                        <p className="mt-1 text-xs text-slate-600">
-                          {
-                            item.league.region ||
-                            'Region not specified'
-                          }
-                          {' · '}
-                          {
-                            item.league.members
-                          }
-                          /
-                          {
-                            item.league.maxMembers
-                          }{' '}
-                          members
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap gap-2">
+                            <FcStatusBadge
+                              label={
+                                item.membershipType
+                              }
+                              tone={
+                                item.membershipType ===
+                                'PRIMARY'
+                                  ? 'cyan'
+                                  : 'slate'
+                              }
+                            />
+
+                            {item.adminRole ? (
+                              <FcStatusBadge
+                                label={
+                                  item.adminRole
+                                }
+                                tone="amber"
+                              />
+                            ) : null}
+                          </div>
+
+                          <h2 className="mt-3 truncate text-lg font-semibold">
+                            {
+                              item.league.name
+                            }
+                          </h2>
+
+                          <p className="mt-1 text-xs text-[#6F7B8A]">
+                            {
+                              item.league.region ||
+                              'Region not specified'
+                            }
+                            {' · '}
+                            {
+                              item.league.members
+                            }
+                            /
+                            {
+                              item.league.maxMembers
+                            }{' '}
+                            members
+                          </p>
+                        </div>
+
+                        <span className="text-xl text-[#536273] transition group-hover:translate-x-1 group-hover:text-[#19B7FF]">
+                          ›
+                        </span>
                       </div>
 
-                      <span className="text-xl text-slate-700 transition group-hover:translate-x-1 group-hover:text-sky-300">
-                        ›
-                      </span>
-                    </div>
+                      <div className="mt-5 border-t border-[#203141] pt-4">
+                        <p className="line-clamp-2 text-sm leading-6 text-[#A7B0BE]">
+                          {item.league.description ||
+                            'Open the League for overview, standings, fixtures, members, teams and settings.'}
+                        </p>
+                      </div>
+                    </Link>
 
-                    <div className="mt-5 border-t border-white/[0.06] pt-4">
-                      <p className="line-clamp-2 text-sm leading-6 text-slate-500">
-                        {item.league.description ||
-                          'Open the League for overview, standings, fixtures, members, teams and settings.'}
-                      </p>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#203141] pt-4">
+                      <Link
+                        href={
+                          `/leagues/${item.league.id}`
+                        }
+                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#F8FAFC] transition hover:border-[#19B7FF]/35"
+                      >
+                        Open League
+                      </Link>
+
+                      <Link
+                        href={
+                          `/leagues/${item.league.id}/settings`
+                        }
+                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-medium text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
+                      >
+                        Manage
+                      </Link>
+
+                      <div className="ml-auto">
+                        {item.adminRole ===
+                        'OWNER' ? (
+                          <button
+                            type="button"
+                            disabled={
+                              busy
+                            }
+                            onClick={() =>
+                              void deleteLeague(
+                                item,
+                              )
+                            }
+                            className="min-h-10 rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                          >
+                            Delete League
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={
+                              busy
+                            }
+                            onClick={() =>
+                              void leaveLeague(
+                                item,
+                              )
+                            }
+                            className="min-h-10 rounded-[10px] border border-red-400/20 px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.06] disabled:opacity-40"
+                          >
+                            Leave League
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </Link>
+                  </article>
                 ),
               )}
             </div>

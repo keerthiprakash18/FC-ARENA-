@@ -616,3 +616,43 @@ textarea:focus-visible {
     font-size: 14px;
   }
 }
+
+
+/* FC ARENA HOME REFERENCE PALETTE */
+:root {
+  --background: #071019;
+  --panel: #101923;
+  --panel-2: #121D28;
+  --border: #203141;
+  --text: #F8FAFC;
+  --muted: #6F7B8A;
+  --secondary-text: #A7B0BE;
+  --accent: #19B7FF;
+  --accent-strong: #21C3FF;
+  --success: #1FD18A;
+  --warning: #F3B326;
+  --danger: #EF5350;
+
+  --fc-bg: #071019;
+  --fc-sidebar: #0B1118;
+  --fc-panel: #101923;
+  --fc-panel-2: #121D28;
+  --fc-elevated: #14212D;
+  --fc-border: #203141;
+  --fc-text: #F8FAFC;
+  --fc-secondary: #A7B0BE;
+  --fc-muted: #6F7B8A;
+  --fc-cyan: #19B7FF;
+  --fc-emerald: #1FD18A;
+}
+
+html {
+  background: #071019;
+}
+
+body {
+  background:
+    radial-gradient(circle at 78% -8%, rgba(25, 183, 255, 0.055), transparent 24rem),
+    #071019;
+  color: #F8FAFC;
+}

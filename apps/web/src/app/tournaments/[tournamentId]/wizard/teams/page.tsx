@@ -280,9 +280,12 @@ export default function TeamsWizardPage() {
   ) {
     event.preventDefault();
 
+    const formElement =
+      event.currentTarget;
+
     const form =
       new FormData(
-        event.currentTarget,
+        formElement,
       );
 
     setBusy(true);
@@ -325,7 +328,7 @@ export default function TeamsWizardPage() {
         },
       );
 
-      event.currentTarget.reset();
+      formElement.reset();
 
       setMessage(
         'Team added successfully.',

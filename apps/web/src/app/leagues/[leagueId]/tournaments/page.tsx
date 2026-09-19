@@ -367,7 +367,7 @@ export default function LeagueTournamentsPage() {
         ) : null}
 
 
-        {showCreate &&
+        {(showCreate || (isAdmin && tournaments.length === 0)) &&
         isAdmin ? (
           <FcPanel className="overflow-hidden">
             <div className="border-b border-white/[0.07] bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_60%)] p-5 sm:p-6">
@@ -566,12 +566,12 @@ export default function LeagueTournamentsPage() {
                 }
                 actionLabel={
                   isAdmin
-                    ? 'Create Tournament'
+                    ? undefined
                     : 'Back to League'
                 }
                 actionHref={
                   isAdmin
-                    ? `/leagues/${leagueId}/tournaments`
+                    ? undefined
                     : `/leagues/${leagueId}`
                 }
               />

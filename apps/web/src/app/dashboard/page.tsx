@@ -644,43 +644,51 @@ export default function DashboardPage() {
 
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <FcStatCard
-            label="Matches"
-            value={
-              stats.matches
-            }
-            detail="Career total"
-          />
+          <Link href="/career">
+            <FcStatCard
+              label="Matches"
+              value={
+                stats.matches
+              }
+              detail="Open career stats"
+            />
+          </Link>
 
-          <FcStatCard
-            label="Wins"
-            value={
-              stats.wins
-            }
-            detail={
-              `${stats.draws} draws · ${stats.losses} losses`
-            }
-            tone="emerald"
-          />
+          <Link href="/career">
+            <FcStatCard
+              label="Wins"
+              value={
+                stats.wins
+              }
+              detail={
+                `${stats.draws} draws · ${stats.losses} losses`
+              }
+              tone="emerald"
+            />
+          </Link>
 
-          <FcStatCard
-            label="Goals"
-            value={
-              stats.goalsFor
-            }
-            detail={
-              `GD ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
-            }
-            tone="amber"
-          />
+          <Link href="/career">
+            <FcStatCard
+              label="Goals"
+              value={
+                stats.goalsFor
+              }
+              detail={
+                `GD ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
+              }
+              tone="amber"
+            />
+          </Link>
 
-          <FcStatCard
-            label="Win Rate"
-            value={
-              `${stats.winRate}%`
-            }
-            detail="Verified results"
-          />
+          <Link href="/career">
+            <FcStatCard
+              label="Win Rate"
+              value={
+                `${stats.winRate}%`
+              }
+              detail="Open career stats"
+            />
+          </Link>
         </section>
 
 
@@ -1036,103 +1044,6 @@ export default function DashboardPage() {
         </section>
 
 
-        <section>
-          <FcSectionHeading
-            eyebrow="Latest"
-            title="Recent Activity"
-            action={
-              <Link
-                href="/career"
-                className="text-xs font-black text-sky-300"
-              >
-                Full Career →
-              </Link>
-            }
-          />
-
-          {career.matchHistory.length >
-          0 ? (
-            <div className="mt-4 grid gap-3 lg:grid-cols-3">
-              {career.matchHistory
-                .slice(
-                  0,
-                  3,
-                )
-                .map(
-                  (
-                    match,
-                  ) => (
-                    <FcPanel
-                      key={
-                        match.id
-                      }
-                      className="p-4"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <FcStatusBadge
-                          label={
-                            match.outcome
-                          }
-                          tone={
-                            match.outcome ===
-                            'W'
-                              ? 'emerald'
-                              : match.outcome ===
-                                  'D'
-                                ? 'amber'
-                                : 'red'
-                          }
-                        />
-
-                        <span className="text-[10px] text-slate-600">
-                          {new Date(
-                            match.confirmedAt,
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      <p className="mt-4 text-sm font-black">
-                        {
-                          match.home.name
-                        }{' '}
-                        <span className="text-sky-300">
-                          {
-                            match.home.score
-                          }
-                          -
-                          {
-                            match.away.score
-                          }
-                        </span>{' '}
-                        {
-                          match.away.name
-                        }
-                      </p>
-
-                      <p className="mt-2 text-xs text-slate-600">
-                        {
-                          match.tournament.name
-                        }
-                        {' · '}
-                        {
-                          match.tournament
-                            .league
-                            .name
-                        }
-                      </p>
-                    </FcPanel>
-                  ),
-                )}
-            </div>
-          ) : (
-            <FcEmptyState
-              title="No recent results"
-              description="Verified match results will build your recent activity and career form here."
-              actionLabel="Open Match Center"
-              actionHref="/matches"
-            />
-          )}
-        </section>
       </div>
     </AppShell>
   );

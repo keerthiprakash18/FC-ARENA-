@@ -68,6 +68,7 @@ export class ResultsService {
     }
 
     if (
+      match.status !== 'UNSCHEDULED' &&
       match.status !== 'SCHEDULED' &&
       match.status !== 'LIVE'
     ) {
@@ -77,7 +78,7 @@ export class ResultsService {
         error: {
           code: 'MATCH_NOT_OPEN_FOR_RESULT',
           message:
-            'Only scheduled or live matches can accept a result submission.',
+            'Only unscheduled, scheduled or live matches can accept a result submission.',
         },
       });
     }

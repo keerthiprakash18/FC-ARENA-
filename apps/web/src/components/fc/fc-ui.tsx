@@ -20,7 +20,7 @@ const toneClasses: Record<FcTone, string> = {
   red:
     'border-red-400/20 bg-red-400/[0.06] text-red-300',
   slate:
-    'border-[#253140] bg-[#151C26] text-[#A7B0BE]',
+    'border-[#203141] bg-[#121D28] text-[#A7B0BE]',
 };
 
 export function FcPanel({
@@ -32,7 +32,7 @@ export function FcPanel({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-[#253140] bg-[#121821] shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${className}`}
+      className={`rounded-2xl border border-[#203141] bg-[#101923] shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${className}`}
     >
       {children}
     </section>
@@ -136,16 +136,16 @@ export function FcStatCard({
   tone?: FcTone;
   icon?: ReactNode;
 }) {
-  const markerClass =
+  const iconClass =
     tone === 'emerald'
-      ? 'bg-emerald-400'
+      ? 'text-[#1FD18A]'
       : tone === 'amber'
-        ? 'bg-amber-400'
+        ? 'text-[#F3B326]'
         : tone === 'red'
-          ? 'bg-red-400'
+          ? 'text-[#EF5350]'
           : tone === 'slate'
-            ? 'bg-[#6F7B8A]'
-            : 'bg-sky-400';
+            ? 'text-[#A7B0BE]'
+            : 'text-[#19B7FF]';
 
   return (
     <article className="h-full rounded-2xl border border-[#203141] bg-[#101923] p-4 shadow-[0_8px_22px_rgba(0,0,0,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#2D4356] sm:p-5">
@@ -161,7 +161,7 @@ export function FcStatCard({
         </div>
 
         <span
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.035] text-base ${markerClass.replace('bg-', 'text-')}`}
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.035] text-base ${iconClass}`}
         >
           {icon ?? '•'}
         </span>
@@ -201,7 +201,7 @@ export function FcCrest({
 
   return (
     <div
-      className={`grid shrink-0 place-items-center overflow-hidden border border-[#2B3948] bg-[#18212C] font-semibold text-[#38BDF8] ${sizeClass}`}
+      className={`grid shrink-0 place-items-center overflow-hidden border border-[#284154] bg-[#14212D] font-semibold text-[#19B7FF] ${sizeClass}`}
     >
       {imageUrl ? (
         <img
@@ -229,7 +229,7 @@ export function FcEmptyState({
 }) {
   return (
     <FcPanel className="border-dashed p-7 text-center sm:p-8">
-      <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#2B3948] bg-[#151C26] text-lg text-[#38BDF8]">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#121D28] text-lg text-[#19B7FF]">
         ⚽
       </div>
 
@@ -244,7 +244,7 @@ export function FcEmptyState({
       {actionLabel && actionHref ? (
         <Link
           href={actionHref}
-          className="mt-5 inline-flex min-h-11 items-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#0EA5E9]"
+          className="mt-5 inline-flex min-h-11 items-center rounded-[10px] bg-[#19B7FF] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#21C3FF]"
         >
           {actionLabel}
         </Link>
@@ -259,9 +259,9 @@ export function FcLoadingScreen({
   label?: string;
 }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-[#0B0F14] text-sm font-medium text-[#6F7B8A]">
+    <div className="grid min-h-screen place-items-center bg-[#071019] text-sm font-medium text-[#6F7B8A]">
       <div className="flex items-center gap-3">
-        <span className="h-2 w-2 rounded-full bg-[#38BDF8]" />
+        <span className="h-2 w-2 rounded-full bg-[#19B7FF]" />
         {label}
       </div>
     </div>
@@ -286,7 +286,7 @@ export function FcActionRow({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-[#253140] bg-[#121821] p-4 transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
+      className="group flex items-center gap-4 rounded-2xl border border-[#203141] bg-[#101923] p-4 transition duration-200 hover:border-[#2D4356] hover:bg-[#121D28]"
     >
       <span
         className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-base ${toneClasses[tone]}`}
@@ -305,12 +305,12 @@ export function FcActionRow({
       </span>
 
       {badge !== undefined ? (
-        <span className="rounded-full bg-[#38BDF8] px-2.5 py-1 text-[10px] font-semibold text-[#071018]">
+        <span className="rounded-full bg-[#19B7FF] px-2.5 py-1 text-[10px] font-semibold text-[#071018]">
           {badge}
         </span>
       ) : null}
 
-      <span className="text-[#6F7B8A] transition group-hover:translate-x-0.5 group-hover:text-[#38BDF8]">
+      <span className="text-[#6F7B8A] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
         ›
       </span>
     </Link>
@@ -378,7 +378,7 @@ export function FcConfirmDialog({
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-2xl border border-[#253140] bg-[#121821] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
+        className="w-full max-w-md rounded-2xl border border-[#203141] bg-[#101923] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
       >
         <h2 className="text-lg font-semibold text-[#F8FAFC]">
           {title}
@@ -393,7 +393,7 @@ export function FcConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className="min-h-11 rounded-[10px] border border-[#253140] bg-transparent px-4 text-sm font-medium text-[#A7B0BE] hover:bg-[#151C26] disabled:opacity-40"
+            className="min-h-11 rounded-[10px] border border-[#203141] bg-transparent px-4 text-sm font-medium text-[#A7B0BE] hover:bg-[#121D28] disabled:opacity-40"
           >
             {cancelLabel}
           </button>
@@ -405,7 +405,7 @@ export function FcConfirmDialog({
             className={`min-h-11 rounded-[10px] px-4 text-sm font-semibold disabled:opacity-40 ${
               destructive
                 ? 'border border-red-400/25 bg-red-400/[0.08] text-red-300 hover:bg-red-400/[0.12]'
-                : 'bg-[#38BDF8] text-[#071018] hover:bg-[#0EA5E9]'
+                : 'bg-[#19B7FF] text-[#071018] hover:bg-[#21C3FF]'
             }`}
           >
             {busy

@@ -11,14 +11,16 @@ export type FcTone =
   | 'slate';
 
 const toneClasses: Record<FcTone, string> = {
-  cyan: 'border-sky-400/25 bg-sky-400/[0.07] text-sky-300',
+  cyan:
+    'border-sky-400/20 bg-sky-400/[0.06] text-sky-300',
   emerald:
-    'border-emerald-400/25 bg-emerald-400/[0.07] text-emerald-300',
+    'border-emerald-400/20 bg-emerald-400/[0.06] text-emerald-300',
   amber:
-    'border-amber-400/25 bg-amber-400/[0.07] text-amber-300',
-  red: 'border-red-400/25 bg-red-400/[0.07] text-red-300',
+    'border-amber-400/20 bg-amber-400/[0.06] text-amber-300',
+  red:
+    'border-red-400/20 bg-red-400/[0.06] text-red-300',
   slate:
-    'border-white/10 bg-white/[0.035] text-slate-300',
+    'border-[#253140] bg-[#151C26] text-[#A7B0BE]',
 };
 
 export function FcPanel({
@@ -30,7 +32,7 @@ export function FcPanel({
 }) {
   return (
     <section
-      className={`rounded-[24px] border border-white/10 bg-[#08111b]/95 shadow-[0_18px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl ${className}`}
+      className={`rounded-2xl border border-[#253140] bg-[#121821] shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${className}`}
     >
       {children}
     </section>
@@ -49,26 +51,30 @@ export function FcPageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+    <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
         {eyebrow ? (
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-400">
+          <p className="text-xs font-medium text-[#6F7B8A]">
             {eyebrow}
           </p>
         ) : null}
 
-        <h1 className="mt-2 font-['Rajdhani','Space_Grotesk',sans-serif] text-4xl font-black uppercase tracking-[-0.035em] text-white sm:text-5xl">
+        <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-[32px]">
           {title}
         </h1>
 
         {subtitle ? (
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7B0BE]">
             {subtitle}
           </p>
         ) : null}
       </div>
 
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {action ? (
+        <div className="shrink-0">
+          {action}
+        </div>
+      ) : null}
     </header>
   );
 }
@@ -86,12 +92,12 @@ export function FcSectionHeading({
     <div className="flex items-end justify-between gap-4">
       <div>
         {eyebrow ? (
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+          <p className="text-xs font-medium text-[#6F7B8A]">
             {eyebrow}
           </p>
         ) : null}
 
-        <h2 className="mt-1 font-['Rajdhani','Space_Grotesk',sans-serif] text-2xl font-black uppercase tracking-[-0.02em]">
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.015em] text-[#F8FAFC] sm:text-xl">
           {title}
         </h2>
       </div>
@@ -110,7 +116,7 @@ export function FcStatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${toneClasses[tone]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${toneClasses[tone]}`}
     >
       {label.replaceAll('_', ' ')}
     </span>
@@ -128,27 +134,34 @@ export function FcStatCard({
   detail?: string;
   tone?: FcTone;
 }) {
-  const valueClass =
+  const markerClass =
     tone === 'emerald'
-      ? 'text-emerald-300'
+      ? 'bg-emerald-400'
       : tone === 'amber'
-        ? 'text-amber-300'
+        ? 'bg-amber-400'
         : tone === 'red'
-          ? 'text-red-300'
+          ? 'bg-red-400'
           : tone === 'slate'
-            ? 'text-white'
-            : 'text-sky-300';
+            ? 'bg-[#6F7B8A]'
+            : 'bg-sky-400';
 
   return (
-    <article className="rounded-2xl border border-white/10 bg-[#0a1520] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-600">
-        {label}
-      </p>
-      <p className={`mt-2 text-2xl font-black ${valueClass}`}>
+    <article className="h-full rounded-2xl border border-[#253140] bg-[#151C26] p-4 shadow-[0_6px_18px_rgba(0,0,0,0.10)] transition duration-200 hover:border-[#334155]">
+      <div className="flex items-center gap-2">
+        <span className={`h-2 w-2 rounded-full ${markerClass}`} />
+        <p className="text-xs font-medium text-[#A7B0BE]">
+          {label}
+        </p>
+      </div>
+
+      <p className="mt-3 text-2xl font-semibold tracking-[-0.025em] text-[#F8FAFC]">
         {value}
       </p>
+
       {detail ? (
-        <p className="mt-1 text-[11px] text-slate-600">{detail}</p>
+        <p className="mt-1 text-xs leading-5 text-[#6F7B8A]">
+          {detail}
+        </p>
       ) : null}
     </article>
   );
@@ -165,10 +178,10 @@ export function FcCrest({
 }) {
   const sizeClass =
     size === 'lg'
-      ? 'h-16 w-16 rounded-2xl text-lg'
+      ? 'h-14 w-14 rounded-2xl text-base'
       : size === 'sm'
         ? 'h-9 w-9 rounded-xl text-[10px]'
-        : 'h-12 w-12 rounded-2xl text-sm';
+        : 'h-11 w-11 rounded-xl text-sm';
 
   const initials = name
     .split(/\s+/)
@@ -179,7 +192,7 @@ export function FcCrest({
 
   return (
     <div
-      className={`grid shrink-0 place-items-center overflow-hidden border border-sky-400/20 bg-gradient-to-br from-sky-400/15 to-blue-950/30 font-black text-sky-300 ${sizeClass}`}
+      className={`grid shrink-0 place-items-center overflow-hidden border border-[#2B3948] bg-[#18212C] font-semibold text-[#38BDF8] ${sizeClass}`}
     >
       {imageUrl ? (
         <img
@@ -206,18 +219,23 @@ export function FcEmptyState({
   actionHref?: string;
 }) {
   return (
-    <FcPanel className="border-dashed p-8 text-center sm:p-10">
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-sky-400/20 bg-sky-400/[0.06] text-xl text-sky-300">
+    <FcPanel className="border-dashed p-7 text-center sm:p-8">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#2B3948] bg-[#151C26] text-lg text-[#38BDF8]">
         ⚽
       </div>
-      <h3 className="mt-4 text-xl font-black">{title}</h3>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
+
+      <h3 className="mt-4 text-lg font-semibold text-[#F8FAFC]">
+        {title}
+      </h3>
+
+      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#A7B0BE]">
         {description}
       </p>
+
       {actionLabel && actionHref ? (
         <Link
           href={actionHref}
-          className="mt-5 inline-flex rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019] transition hover:bg-sky-300"
+          className="mt-5 inline-flex min-h-11 items-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#0EA5E9]"
         >
           {actionLabel}
         </Link>
@@ -232,9 +250,9 @@ export function FcLoadingScreen({
   label?: string;
 }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-[#030812] text-sm font-black uppercase tracking-[0.16em] text-slate-600">
+    <div className="grid min-h-screen place-items-center bg-[#0B0F14] text-sm font-medium text-[#6F7B8A]">
       <div className="flex items-center gap-3">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-sky-400" />
+        <span className="h-2 w-2 rounded-full bg-[#38BDF8]" />
         {label}
       </div>
     </div>
@@ -259,25 +277,31 @@ export function FcActionRow({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1520] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-sky-400/30 hover:bg-[#0c1925]"
+      className="group flex items-center gap-4 rounded-2xl border border-[#253140] bg-[#121821] p-4 transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
     >
       <span
-        className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-lg ${toneClasses[tone]}`}
+        className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-base ${toneClasses[tone]}`}
       >
         {icon}
       </span>
+
       <span className="min-w-0 flex-1">
-        <span className="block font-black text-slate-100">{title}</span>
-        <span className="mt-0.5 block text-xs leading-5 text-slate-600">
+        <span className="block text-[15px] font-semibold text-[#F8FAFC]">
+          {title}
+        </span>
+
+        <span className="mt-0.5 block text-xs leading-5 text-[#6F7B8A]">
           {description}
         </span>
       </span>
+
       {badge !== undefined ? (
-        <span className="rounded-full bg-sky-400 px-2.5 py-1 text-[10px] font-black text-[#031019]">
+        <span className="rounded-full bg-[#38BDF8] px-2.5 py-1 text-[10px] font-semibold text-[#071018]">
           {badge}
         </span>
       ) : null}
-      <span className="text-slate-700 transition group-hover:translate-x-0.5 group-hover:text-sky-300">
+
+      <span className="text-[#6F7B8A] transition group-hover:translate-x-0.5 group-hover:text-[#38BDF8]">
         ›
       </span>
     </Link>
@@ -286,12 +310,12 @@ export function FcActionRow({
 
 export function competitionLabel(value: string | null | undefined) {
   if (!value) return 'Tournament';
+
   return value
     .replaceAll('_', ' ')
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
-
 
 export function FcErrorState({
   message,
@@ -341,17 +365,17 @@ export function FcConfirmDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/65 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-[24px] border border-white/10 bg-[#08111b] p-5 shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-[#253140] bg-[#121821] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
       >
-        <h2 className="text-xl font-black">
+        <h2 className="text-lg font-semibold text-[#F8FAFC]">
           {title}
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-[#A7B0BE]">
           {description}
         </p>
 
@@ -360,7 +384,7 @@ export function FcConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400 disabled:opacity-40"
+            className="min-h-11 rounded-[10px] border border-[#253140] bg-transparent px-4 text-sm font-medium text-[#A7B0BE] hover:bg-[#151C26] disabled:opacity-40"
           >
             {cancelLabel}
           </button>
@@ -369,10 +393,10 @@ export function FcConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onConfirm}
-            className={`rounded-xl px-4 py-3 text-sm font-black disabled:opacity-40 ${
+            className={`min-h-11 rounded-[10px] px-4 text-sm font-semibold disabled:opacity-40 ${
               destructive
-                ? 'bg-red-400 text-[#1b0505]'
-                : 'bg-sky-400 text-[#031019]'
+                ? 'border border-red-400/25 bg-red-400/[0.08] text-red-300 hover:bg-red-400/[0.12]'
+                : 'bg-[#38BDF8] text-[#071018] hover:bg-[#0EA5E9]'
             }`}
           >
             {busy

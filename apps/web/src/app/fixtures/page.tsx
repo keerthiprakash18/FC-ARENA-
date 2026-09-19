@@ -785,10 +785,10 @@ export default function FixturesPage() {
                 </Link>
 
                 <Link
-                  href="/fixtures/generator"
+                  href="/fixtures/generate"
                   className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
                 >
-                  Generator
+                  + Create Fixtures
                 </Link>
               </div>
             ) : null

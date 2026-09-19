@@ -13,35 +13,16 @@ interface Props {
 
 
 const items = [
-  {
-    label: 'Overview',
-    path: '',
-  },
-  {
-    label: 'Teams',
-    path: '/teams',
-  },
-  {
-    label: 'Groups',
-    path: '/groups',
-  },
-  {
-    label: 'Fixtures',
-    path: '/fixtures',
-  },
-  {
-    label: 'Standings',
-    path: '/standings',
-  },
-  {
-    label: 'Knockout',
-    path: '/playoffs',
-  },
-  {
-    label: 'Settings',
-    path: '/settings',
-  },
-];
+  ['Overview', ''],
+  ['Registration', '/registration'],
+  ['Teams', '/teams'],
+  ['Groups', '/groups'],
+  ['Fixtures', '/fixtures'],
+  ['Standings', '/standings'],
+  ['Bracket', '/playoffs'],
+  ['Stats', '/stats'],
+  ['Settings', '/settings'],
+] as const;
 
 
 export function TournamentNavigation({
@@ -57,15 +38,15 @@ export function TournamentNavigation({
     <nav className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#08111b]/95 p-2 backdrop-blur-xl">
       <div className="flex min-w-max gap-1.5">
         {items.map(
-          (
-            item,
-          ) => {
+          ([
+            label,
+            suffix,
+          ]) => {
             const href =
-              `${base}${item.path}`;
+              `${base}${suffix}`;
 
             const active =
-              item.path ===
-              ''
+              suffix === ''
                 ? pathname ===
                   base
                 : pathname ===
@@ -77,7 +58,7 @@ export function TournamentNavigation({
             return (
               <Link
                 key={
-                  item.label
+                  label
                 }
                 href={
                   href
@@ -89,7 +70,7 @@ export function TournamentNavigation({
                 }`}
               >
                 {
-                  item.label
+                  label
                 }
               </Link>
             );

@@ -773,7 +773,27 @@ export default function FixturesPage() {
         <FcPageHeader
           eyebrow="Match Center"
           title="Fixtures"
-          subtitle="Every match in one place — filter by League, Tournament, status and matchday, then open the existing Match Center for results."
+          subtitle="Every match in one place. Admin generation and management now live on dedicated workflow screens."
+          action={
+            selectedMembership
+              ?.adminRole ? (
+              <div className="flex gap-2">
+                <Link
+                  href="/fixtures/manage"
+                  className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
+                >
+                  Manage
+                </Link>
+
+                <Link
+                  href="/fixtures/generator"
+                  className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
+                >
+                  Generator
+                </Link>
+              </div>
+            ) : null
+          }
         />
 
 
@@ -965,51 +985,6 @@ export default function FixturesPage() {
                 )}
               </div>
             </FcPanel>
-
-
-            {selectedMembership
-              ?.adminRole ? (
-              <FcPanel className="border-sky-400/15 p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
-                      Admin Match Tools
-                    </p>
-
-                    <h2 className="mt-1 text-xl font-black">
-                      Fixture Management
-                    </h2>
-
-                    <p className="mt-2 text-sm leading-6 text-slate-500">
-                      Generation, preview, schedule editing, postponement and match controls remain connected to the existing Tournament workflow.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTournamentId !==
-                    'ALL' ? (
-                      <Link
-                        href={
-                          `/tournaments/${selectedTournamentId}/fixtures`
-                        }
-                        className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
-                      >
-                        Manage Fixtures
-                      </Link>
-                    ) : null}
-
-                    <Link
-                      href={
-                        `/leagues/${selectedMembership.league.id}/tournaments`
-                      }
-                      className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
-                    >
-                      Tournament Setup
-                    </Link>
-                  </div>
-                </div>
-              </FcPanel>
-            ) : null}
 
 
             <section>

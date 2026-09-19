@@ -7,8 +7,16 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import {
+  FileInterceptor,
+} from '@nestjs/platform-express';
+import {
+  memoryStorage,
+} from 'multer';
 import type { Request } from 'express';
 import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -26,6 +34,7 @@ import { GroupFixturesService } from './group-fixtures.service.js';
 import { PlayoffsService } from './playoffs.service.js';
 import { TournamentsService } from './tournaments.service.js';
 import { TournamentGroupsService } from './tournament-groups.service.js';
+import { TournamentLogoService } from './tournament-logo.service.js';
 
 type AuthenticatedRequest = Request & {
   user: AccessTokenPayload;
@@ -49,6 +58,9 @@ export class TournamentsController {
 
     private readonly playoffsService:
       PlayoffsService,
+
+    private readonly tournamentLogoService:
+      TournamentLogoService,
   ) {}
 
   @Post('leagues/:leagueId/tournaments')
@@ -82,6 +94,63 @@ export class TournamentsController {
       leagueId,
     );
   }
+
+  @Post(
+    'tournaments/:tournamentId/logo',
+  )
+  @UseInterceptors(
+    FileInterceptor(
+      'logo',
+      {
+        storage:
+          memoryStorage(),
+
+        limits: {
+          fileSize:
+            5 * 1024 * 1024,
+        },
+      },
+    ),
+  )
+  uploadTournamentLogo(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId:
+      string,
+
+    @UploadedFile()
+    file:
+      Express.Multer.File,
+  ) {
+    return this.tournamentLogoService.uploadLogo(
+      request.user.sub,
+      tournamentId,
+      file,
+    );
+  }
+
+
+  @Delete(
+    'tournaments/:tournamentId/logo',
+  )
+  removeTournamentLogo(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId:
+      string,
+  ) {
+    return this.tournamentLogoService.removeLogo(
+      request.user.sub,
+      tournamentId,
+    );
+  }
+
 
   @Get('tournaments/:tournamentId')
   getTournament(

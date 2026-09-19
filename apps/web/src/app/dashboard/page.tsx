@@ -560,11 +560,10 @@ export default function DashboardPage() {
         inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="space-y-6">
         <FcPageHeader
-          eyebrow="Player Command Center"
           title="Home"
-          subtitle="Your live FC ARENA snapshot — identity, form, league, tournaments and next action."
+          subtitle="Your FC ARENA overview"
         />
 
         {error ? (
@@ -575,27 +574,27 @@ export default function DashboardPage() {
           </div>
         ) : null}
 
-        <FcPanel className="relative overflow-hidden p-6 sm:p-7 lg:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_18%,rgba(14,165,233,0.16),transparent_28%),linear-gradient(120deg,rgba(14,165,233,0.04),transparent_55%)]" />
+        <FcPanel className="relative overflow-hidden p-5 sm:p-6">
+          <div className="absolute inset-y-0 left-0 w-1 bg-[#38BDF8]" />
 
-          <div className="relative grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-                Welcome Back
+              <p className="text-sm font-medium text-[#A7B0BE]">
+                Welcome back
               </p>
 
-              <h2 className="mt-2 font-['Rajdhani','Space_Grotesk',sans-serif] text-4xl font-black uppercase tracking-[-0.035em] sm:text-5xl">
+              <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-3xl">
                 {
                   inGameName
                 }
               </h2>
 
-              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">
-                Keep your competition identity sharp, track form, and jump directly into the next match.
+              <p className="mt-2 max-w-xl text-sm leading-6 text-[#A7B0BE]">
+                Your player identity, form and next competition action in one place.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+            <div className="flex items-center gap-3 rounded-2xl border border-[#253140] bg-[#151C26] p-3">
               <FcCrest
                 name={
                   inGameName
@@ -604,17 +603,17 @@ export default function DashboardPage() {
                   career.profile
                     .profileImageUrl
                 }
-                size="lg"
+                size="md"
               />
 
               <div className="min-w-0">
-                <p className="truncate text-lg font-black">
+                <p className="truncate text-sm font-semibold text-[#F8FAFC]">
                   {
                     inGameName
                   }
                 </p>
 
-                <p className="mt-1 font-mono text-xs text-sky-400">
+                <p className="mt-1 font-mono text-xs text-[#38BDF8]">
                   {
                     playerCode
                   }
@@ -781,7 +780,7 @@ export default function DashboardPage() {
                       ? `/matches/${nextFixture.match.id}`
                       : `/tournaments/${nextFixture.tournamentId}/fixtures`
                   }
-                  className="rounded-xl bg-sky-400 px-5 py-3 text-center text-sm font-black text-[#031019]"
+                  className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9]"
                 >
                   View Match
                 </Link>

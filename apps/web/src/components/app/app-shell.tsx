@@ -38,28 +38,443 @@ interface AppShellProps {
 }
 
 
+type SidebarIconName =
+  | 'home'
+  | 'league'
+  | 'tournament'
+  | 'fixtures'
+  | 'more'
+  | 'join'
+  | 'create'
+  | 'profile'
+  | 'help'
+  | 'chevron'
+  | 'logout';
+
+
 const quickLinks = [
   {
     label: 'Join League',
     href: '/leagues',
-    icon: '+',
+    icon: 'join' as const,
   },
   {
     label: 'Create Tournament',
     href: '/tournaments',
-    icon: '◇',
+    icon: 'create' as const,
   },
   {
     label: 'View Profile',
     href: '/profile',
-    icon: '◎',
+    icon: 'profile' as const,
   },
   {
     label: 'Help & Support',
     href: '/help',
-    icon: '?',
+    icon: 'help' as const,
   },
 ] as const;
+
+
+function SidebarIcon({
+  name,
+  className = 'h-[22px] w-[22px]',
+}: {
+  name:
+    SidebarIconName;
+  className?: string;
+}) {
+  if (
+    name ===
+    'home'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="m3 10.5 9-7 9 7" />
+        <path d="M5.5 9.5V21h13V9.5" />
+        <path d="M9.5 21v-6h5v6" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'league'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="M12 3 4.5 6v5.2c0 4.6 3.1 8 7.5 9.8 4.4-1.8 7.5-5.2 7.5-9.8V6L12 3Z" />
+        <path d="M8.5 10.5h7" />
+        <path d="M10 7.8h4v5.4h-4z" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'tournament'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="M8 4h8v3.3c0 3.3-1.8 5.7-4 6.7-2.2-1-4-3.4-4-6.7V4Z" />
+        <path d="M8 6H4.5v1.3c0 2.4 1.5 4.2 4.2 4.7" />
+        <path d="M16 6h3.5v1.3c0 2.4-1.5 4.2-4.2 4.7" />
+        <path d="M12 14v4" />
+        <path d="M8.5 21h7" />
+        <path d="M10 18h4" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'fixtures'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <rect
+          x="3"
+          y="5.5"
+          width="18"
+          height="15.5"
+          rx="2.5"
+        />
+        <path d="M7 3v5" />
+        <path d="M17 3v5" />
+        <path d="M3 10h18" />
+        <path d="m8 15 2 2 5-5" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'more'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className={className}
+        aria-hidden="true"
+      >
+        <circle
+          cx="5"
+          cy="12"
+          r="1.65"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="1.65"
+        />
+        <circle
+          cx="19"
+          cy="12"
+          r="1.65"
+        />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'join'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <circle
+          cx="9"
+          cy="8"
+          r="3"
+        />
+        <path d="M3.5 19c.7-3.1 2.6-4.8 5.5-4.8s4.8 1.7 5.5 4.8" />
+        <path d="M18 8v6" />
+        <path d="M15 11h6" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'create'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="M8 4h8v3c0 3-1.8 5.2-4 6.2C9.8 12.2 8 10 8 7V4Z" />
+        <path d="M12 13.2V18" />
+        <path d="M9 21h6" />
+        <path d="M18.5 4.5v5" />
+        <path d="M16 7h5" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'profile'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <circle
+          cx="12"
+          cy="8"
+          r="3.5"
+        />
+        <path d="M4.5 20c.9-4 3.4-6 7.5-6s6.6 2 7.5 6" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'help'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+        />
+        <path d="M9.7 9a2.4 2.4 0 0 1 4.7.7c0 1.8-2.4 2.2-2.4 3.8" />
+        <path d="M12 17h.01" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'logout'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="M10 5H5.5A1.5 1.5 0 0 0 4 6.5v11A1.5 1.5 0 0 0 5.5 19H10" />
+        <path d="m14 8 4 4-4 4" />
+        <path d="M9 12h9" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+
+function mainIconForHref(
+  href:
+    string,
+): SidebarIconName {
+  if (
+    href ===
+    '/dashboard'
+  ) {
+    return 'home';
+  }
+
+  if (
+    href ===
+    '/leagues'
+  ) {
+    return 'league';
+  }
+
+  if (
+    href ===
+    '/tournaments'
+  ) {
+    return 'tournament';
+  }
+
+  if (
+    href ===
+    '/fixtures'
+  ) {
+    return 'fixtures';
+  }
+
+  return 'more';
+}
+
+
+function DesktopNavItem({
+  href,
+  label,
+  icon,
+  selected,
+}: {
+  href: string;
+  label: string;
+  icon:
+    SidebarIconName;
+  selected: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={
+        selected
+          ? 'page'
+          : undefined
+      }
+      className={`group relative flex h-[56px] items-center gap-4 overflow-hidden rounded-[13px] border px-[17px] text-[15px] font-semibold transition duration-200 ${
+        selected
+          ? 'border-[#38BDF8]/30 bg-[linear-gradient(90deg,rgba(14,165,233,0.22),rgba(14,165,233,0.08))] text-white shadow-[0_8px_24px_rgba(14,165,233,0.07)]'
+          : 'border-transparent bg-transparent text-[#C5CED8] hover:border-white/[0.035] hover:bg-white/[0.045] hover:text-white'
+      }`}
+    >
+      {selected ? (
+        <span className="absolute inset-y-2.5 left-0 w-[3px] rounded-r-full bg-[#22B8F5]" />
+      ) : null}
+
+      <span
+        className={`grid h-7 w-7 shrink-0 place-items-center transition duration-200 ${
+          selected
+            ? 'text-[#38BDF8]'
+            : 'text-[#83919F] group-hover:text-[#38BDF8]'
+        }`}
+      >
+        <SidebarIcon
+          name={icon}
+        />
+      </span>
+
+      <span className="truncate">
+        {label}
+      </span>
+    </Link>
+  );
+}
+
+
+function QuickActionItem({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon:
+    SidebarIconName;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-[46px] items-center gap-3 rounded-[11px] border border-[#1C2A37] bg-[#0B151F]/78 px-3.5 text-[14px] font-medium text-[#A2AEBB] transition duration-200 hover:border-[#294051] hover:bg-[#0E1A25] hover:text-[#F3F6F8]"
+    >
+      <span className="grid h-7 w-7 shrink-0 place-items-center text-[#83919F] transition duration-200 group-hover:text-[#22B8F5]">
+        <SidebarIcon
+          name={icon}
+          className="h-[19px] w-[19px]"
+        />
+      </span>
+
+      <span className="min-w-0 flex-1 truncate">
+        {label}
+      </span>
+
+      <span className="text-[#52606E] transition duration-200 group-hover:translate-x-0.5 group-hover:text-[#83919F]">
+        <SidebarIcon
+          name="chevron"
+          className="h-4 w-4"
+        />
+      </span>
+    </Link>
+  );
+}
 
 
 export function AppShell({
@@ -117,99 +532,115 @@ export function AppShell({
   }
 
 
+  const initials =
+    (
+      playerName ||
+      'FC'
+    )
+      .slice(
+        0,
+        2,
+      )
+      .toUpperCase();
+
+
   return (
     <div className="min-h-screen bg-[#071019] text-[#F8FAFC]">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] border-r border-[#203141] bg-[#0B1118] lg:flex lg:flex-col">
-        <div className="border-b border-[#203141] px-5 py-5">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[270px] border-r border-[#1C2A37] bg-[#071019] lg:flex lg:flex-col">
+        <div className="shrink-0 border-b border-[#1C2A37] px-[22px] py-5">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3"
+            className="flex min-h-[58px] items-center gap-3.5"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#284154] bg-[#101923] text-base font-semibold text-[#19B7FF]">
-              ♛
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[13px] border border-[#214154] bg-[#0B151F] text-[#22B8F5] shadow-[0_8px_22px_rgba(0,0,0,0.18)]">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                className="h-8 w-8"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 17.5 13 31h22l5-13.5-9 6-7-12-7 12-9-6Z"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M13 35h22"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M10 10.5h.01M38 10.5h.01M24 6h.01"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+              </svg>
             </span>
 
-            <div>
-              <p className="fc-display-strong text-xl text-[#F8FAFC]">
-                FC <span className="text-[#19B7FF]">ARENA</span>
-              </p>
+            <span className="min-w-0">
+              <span className="block text-[22px] font-bold leading-none tracking-[-0.025em] text-[#F3F6F8]">
+                FC <span className="text-[#22B8F5]">ARENA</span>
+              </span>
 
-              <p className="mt-0.5 text-[10px] font-medium tracking-[0.06em] text-[#6F7B8A]">
+              <span className="mt-2 block text-[11px] font-medium tracking-[0.045em] text-[#677481]">
                 PLAY • COMPETE • BELONG
-              </p>
-            </div>
+              </span>
+            </span>
           </Link>
         </div>
 
 
-        <div className="flex-1 overflow-y-auto px-3 py-4">
-          <p className="px-3 text-[11px] font-medium text-[#536273]">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#687684]">
             Main
           </p>
 
-          <nav className="mt-2 space-y-1.5">
+          <nav className="mt-3 space-y-2">
             {primaryNavigation.map(
               (
                 item,
-              ) => {
-                const selected =
-                  active ===
-                  item.href;
-
-                return (
-                  <Link
-                    key={
-                      item.href
-                    }
-                    href={
-                      item.href
-                    }
-                    className={`group relative flex min-h-12 items-center gap-3 rounded-xl px-3 text-sm transition duration-200 ${
-                      selected
-                        ? 'bg-[linear-gradient(90deg,rgba(25,183,255,0.12),rgba(25,183,255,0.04))] text-[#F8FAFC]'
-                        : 'text-[#A7B0BE] hover:bg-[#101923] hover:text-[#F8FAFC]'
-                    }`}
-                  >
-                    {selected ? (
-                      <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-[#19B7FF]" />
-                    ) : null}
-
-                    <span
-                      className={`grid h-9 w-9 place-items-center rounded-xl text-[17px] transition ${
-                        selected
-                          ? 'bg-[#19B7FF]/[0.08] text-[#19B7FF]'
-                          : 'text-[#6F7B8A] group-hover:text-[#A7B0BE]'
-                      }`}
-                    >
-                      {
-                        item.icon
-                      }
-                    </span>
-
-                    <span className="fc-display text-[15px] font-semibold">
-                      {
-                        item.shortLabel
-                      }
-                    </span>
-                  </Link>
-                );
-              },
+              ) => (
+                <DesktopNavItem
+                  key={
+                    item.href
+                  }
+                  href={
+                    item.href
+                  }
+                  label={
+                    item.shortLabel
+                  }
+                  icon={
+                    mainIconForHref(
+                      item.href,
+                    )
+                  }
+                  selected={
+                    active ===
+                    item.href
+                  }
+                />
+              ),
             )}
           </nav>
 
 
-          <div className="mx-3 my-5 h-px bg-[#203141]" />
+          <div className="my-6 h-px bg-[#1C2A37]" />
 
-          <p className="px-3 text-[11px] font-medium text-[#536273]">
-            Quick Links
+
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#687684]">
+            Quick Actions
           </p>
 
-          <div className="mt-2 space-y-1">
+          <div className="mt-3 space-y-2">
             {quickLinks.map(
               (
                 item,
               ) => (
-                <Link
+                <QuickActionItem
                   key={
                     item.href +
                     item.label
@@ -217,79 +648,94 @@ export function AppShell({
                   href={
                     item.href
                   }
-                  className="group flex min-h-10 items-center gap-3 rounded-[10px] px-3 text-sm text-[#8290A0] transition hover:bg-[#101923] hover:text-[#F8FAFC]"
-                >
-                  <span className="grid h-7 w-7 place-items-center rounded-lg border border-[#203141] bg-[#101923] text-xs text-[#19B7FF]">
-                    {
-                      item.icon
-                    }
-                  </span>
-
-                  <span className="fc-display text-[13px] font-medium">
-                    {
-                      item.label
-                    }
-                  </span>
-                </Link>
+                  label={
+                    item.label
+                  }
+                  icon={
+                    item.icon
+                  }
+                />
               ),
             )}
           </div>
         </div>
 
 
-        <div className="border-t border-[#203141] p-3">
+        <div className="shrink-0 border-t border-[#1C2A37] bg-[#071019] px-5 pb-4 pt-4">
           <Link
             href="/profile"
-            className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-[#101923]"
+            className="group flex items-center gap-3 rounded-[13px] border border-[#1C2A37] bg-[#0B151F] p-3 transition duration-200 hover:border-[#294051] hover:bg-[#0E1A25]"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#284154] bg-[#101923] text-xs font-semibold text-[#19B7FF]">
-              {(playerName ||
-                'FC')
-                .slice(
-                  0,
-                  2,
-                )
-                .toUpperCase()}
+            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#214154] bg-[#0E1A25] text-xs font-semibold text-[#22B8F5]">
+              {
+                initials
+              }
+
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0B151F] bg-[#22C55E]" />
             </span>
 
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-[#F8FAFC]">
+              <span className="block truncate text-[14px] font-semibold text-[#F3F6F8]">
                 {playerName ||
                   'FC ARENA Player'}
               </span>
 
-              <span className="mt-0.5 block text-xs text-[#6F7B8A]">
+              <span className="mt-0.5 block text-[12px] font-normal text-[#677481]">
                 {playerRole ||
                   'Player'}
               </span>
             </span>
+
+            <span className="text-[#52606E] transition duration-200 group-hover:text-[#83919F]">
+              <SidebarIcon
+                name="chevron"
+                className="h-4 w-4"
+              />
+            </span>
           </Link>
 
-          <div className="mt-1 flex items-center justify-between gap-2 px-3 py-2">
-            <span className="text-[10px] text-[#536273]">
-              FC ARENA v1.0
-            </span>
 
-            <button
-              type="button"
-              disabled={
-                loggingOut
-              }
-              onClick={() =>
-                void logout()
-              }
-              className="text-xs font-medium text-[#8290A0] transition hover:text-red-300 disabled:opacity-50"
-            >
-              {loggingOut
-                ? 'Signing out...'
-                : 'Sign out'}
-            </button>
+          <button
+            type="button"
+            disabled={
+              loggingOut
+            }
+            onClick={() =>
+              void logout()
+            }
+            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[11px] border border-[#EF5350]/35 bg-transparent px-4 text-[13px] font-semibold text-[#FF6B67] transition duration-200 hover:bg-[#EF5350]/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <SidebarIcon
+              name="logout"
+              className="h-[18px] w-[18px]"
+            />
+
+            {loggingOut
+              ? 'Signing out...'
+              : 'Sign Out'}
+          </button>
+
+
+          <div className="mt-4 flex items-end justify-between gap-3 px-1">
+            <div>
+              <p className="text-[10px] font-medium text-[#52606E]">
+                FC ARENA v1.0.0
+              </p>
+
+              <p className="mt-1 text-[9px] font-medium tracking-[0.08em] text-[#3F4C58]">
+                MORE THAN A GAME
+              </p>
+            </div>
+
+            <span className="text-[10px] text-[#3F4C58]">
+              ●
+            </span>
           </div>
         </div>
       </aside>
 
 
-      <div className="lg:pl-[260px]">
+      <div className="lg:pl-[270px]">
         <AppHeader
           playerName={
             playerName

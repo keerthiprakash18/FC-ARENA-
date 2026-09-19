@@ -412,25 +412,6 @@ export default function FixturePreviewPage() {
     );
 
 
-  const participantName =
-    useMemo(
-      () =>
-        new Map(
-          participants.map(
-            (
-              participant,
-            ) => [
-              participant.registrationId,
-              participant.name,
-            ],
-          ),
-        ),
-      [
-        participants,
-      ],
-    );
-
-
   const groupByRegistration =
     useMemo(
       () => {

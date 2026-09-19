@@ -57,7 +57,7 @@ export const viewport: Viewport = {
     'cover',
 
   themeColor:
-    '#05080d',
+    '#0B0F14',
 };
 
 export default function RootLayout({

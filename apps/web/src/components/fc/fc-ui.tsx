@@ -59,7 +59,7 @@ export function FcPageHeader({
           </p>
         ) : null}
 
-        <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-[32px]">
+        <h1 className="fc-display-strong mt-1 text-[28px] text-[#F8FAFC] sm:text-[34px]">
           {title}
         </h1>
 
@@ -97,7 +97,7 @@ export function FcSectionHeading({
           </p>
         ) : null}
 
-        <h2 className="mt-1 text-lg font-semibold tracking-[-0.015em] text-[#F8FAFC] sm:text-xl">
+        <h2 className="fc-display mt-1 text-[18px] font-semibold text-[#F8FAFC] sm:text-[20px]">
           {title}
         </h2>
       </div>
@@ -295,7 +295,7 @@ export function FcActionRow({
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-semibold text-[#F8FAFC]">
+        <span className="fc-display block text-[15px] font-semibold text-[#F8FAFC]">
           {title}
         </span>
 
@@ -455,7 +455,7 @@ export function FcQuickActionTile({
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-semibold text-[#F8FAFC]">
+        <span className="fc-display block text-[15px] font-semibold text-[#F8FAFC]">
           {title}
         </span>
 

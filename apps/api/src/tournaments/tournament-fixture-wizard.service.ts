@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -14,16 +15,20 @@ import {
   PrismaService,
 } from '../database/prisma.service.js';
 
+import type {
+  GenerateFixturePreviewDto,
+} from './dto/generate-fixture-preview.dto.js';
+
+import type {
+  UpdateFixtureWizardSettingsDto,
+} from './dto/update-fixture-wizard-settings.dto.js';
+
 import {
   generateDoubleRoundRobinFixtures,
   generateKnockoutFixtures,
   generateRoundRobinFixtures,
   type FixtureBlueprint,
 } from './fixture-engine.js';
-
-import type {
-  UpdateFixtureWizardSettingsDto,
-} from './dto/update-fixture-wizard-settings.dto.js';
 
 
 @Injectable()
@@ -140,6 +145,8 @@ export class TournamentFixtureWizardService {
   async generatePreview(
     userId: string,
     tournamentId: string,
+    dto:
+      GenerateFixturePreviewDto = {},
   ) {
     const tournament =
       await this.getTournamentForAdmin(
@@ -151,10 +158,45 @@ export class TournamentFixtureWizardService {
       tournament.status,
     );
 
+    if (
+      dto.groupId &&
+      tournament.groupMode !==
+        'MULTIPLE_GROUPS'
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'GROUP_SCOPE_NOT_AVAILABLE',
+
+          message:
+            'Specific Group generation is only available for Multiple Group tournaments.',
+        },
+      });
+    }
+
+    if (
+      dto.groupId
+    ) {
+      await this.assertGroupBelongsToTournament(
+        tournamentId,
+        dto.groupId,
+      );
+    }
+
     const published =
       await this.prisma.fixture.count({
         where: {
           tournamentId,
+
+          ...(dto.groupId
+            ? {
+                groupId:
+                  dto.groupId,
+              }
+            : {}),
 
           publishedAt: {
             not: null,
@@ -175,7 +217,9 @@ export class TournamentFixtureWizardService {
             'PUBLISHED_FIXTURES_LOCKED',
 
           message:
-            'Published fixtures cannot be regenerated from the Tournament wizard.',
+            dto.groupId
+              ? 'This Group already contains published fixtures. Existing official fixtures cannot be regenerated.'
+              : 'Published fixtures cannot be regenerated from the Tournament wizard.',
         },
       });
     }
@@ -183,6 +227,13 @@ export class TournamentFixtureWizardService {
     await this.prisma.fixture.deleteMany({
       where: {
         tournamentId,
+
+        ...(dto.groupId
+          ? {
+              groupId:
+                dto.groupId,
+            }
+          : {}),
 
         publishedAt:
           null,
@@ -198,7 +249,7 @@ export class TournamentFixtureWizardService {
 
         data: {
           message:
-            'Manual fixture mode selected. Add fixtures from Fixture Preview.',
+            'Manual fixture mode selected. Add matches from Fixture Preview.',
 
           fixtures:
             0,
@@ -207,6 +258,15 @@ export class TournamentFixtureWizardService {
         error: null,
       };
     }
+
+    const selectedIds =
+      dto.registrationIds
+        ? await this.validateSelectedRegistrations(
+            tournamentId,
+            dto.registrationIds,
+            dto.groupId,
+          )
+        : null;
 
     const plans:
       Array<{
@@ -225,6 +285,50 @@ export class TournamentFixtureWizardService {
 
 
     if (
+      dto.groupId
+    ) {
+      const group =
+        await this.prisma.tournamentGroup.findUniqueOrThrow({
+          where: {
+            id:
+              dto.groupId,
+          },
+
+          select: {
+            id: true,
+            name: true,
+          },
+        });
+
+      const ids =
+        selectedIds ??
+        await this.getApprovedRegistrationIds(
+          tournamentId,
+          group.id,
+        );
+
+      this.assertEnoughParticipants(
+        ids,
+        group.name,
+      );
+
+      plans.push({
+        groupId:
+          group.id,
+
+        groupName:
+          group.name,
+
+        registrationIds:
+          this.maybeShuffle(
+            ids,
+            tournament.fixtureMode,
+          ),
+
+        blueprints:
+          [],
+      });
+    } else if (
       tournament.groupMode ===
       'MULTIPLE_GROUPS'
     ) {
@@ -244,6 +348,15 @@ export class TournamentFixtureWizardService {
               where: {
                 status:
                   'APPROVED',
+
+                ...(selectedIds
+                  ? {
+                      id: {
+                        in:
+                          selectedIds,
+                      },
+                    }
+                  : {}),
               },
 
               orderBy: {
@@ -276,11 +389,58 @@ export class TournamentFixtureWizardService {
         });
       }
 
+      if (
+        selectedIds
+      ) {
+        const assigned =
+          new Set(
+            groups.flatMap(
+              (
+                group,
+              ) =>
+                group.registrations.map(
+                  (
+                    registration,
+                  ) =>
+                    registration.id,
+                ),
+            ),
+          );
+
+        const unassignedSelection =
+          selectedIds.filter(
+            (
+              id,
+            ) =>
+              !assigned.has(
+                id,
+              ),
+          );
+
+        if (
+          unassignedSelection.length >
+          0
+        ) {
+          throw new BadRequestException({
+            success: false,
+            data: null,
+
+            error: {
+              code:
+                'SELECTED_PARTICIPANTS_NOT_GROUPED',
+
+              message:
+                'Every selected participant must be assigned to a Tournament Group before Whole Tournament group-stage generation.',
+            },
+          });
+        }
+      }
+
       for (
         const group
         of groups
       ) {
-        let ids =
+        const ids =
           group.registrations.map(
             (
               registration,
@@ -289,32 +449,17 @@ export class TournamentFixtureWizardService {
           );
 
         if (
-          ids.length <
-          2
+          selectedIds &&
+          ids.length ===
+          0
         ) {
-          throw new ConflictException({
-            success: false,
-            data: null,
-
-            error: {
-              code:
-                'GROUP_NOT_READY',
-
-              message:
-                `${group.name} requires at least two teams.`,
-            },
-          });
+          continue;
         }
 
-        if (
-          tournament.fixtureMode ===
-          'RANDOMIZED'
-        ) {
-          ids =
-            this.shuffle(
-              ids,
-            );
-        }
+        this.assertEnoughParticipants(
+          ids,
+          group.name,
+        );
 
         plans.push({
           groupId:
@@ -324,70 +469,26 @@ export class TournamentFixtureWizardService {
             group.name,
 
           registrationIds:
-            ids,
+            this.maybeShuffle(
+              ids,
+              tournament.fixtureMode,
+            ),
 
           blueprints:
-            this.generateBlueprints(
-              tournament.competitionFormat,
-              tournament.legType,
-              ids,
-            ),
+            [],
         });
       }
     } else {
-      let ids =
-        (
-          await this.prisma.tournamentRegistration.findMany({
-            where: {
-              tournamentId,
-
-              status:
-                'APPROVED',
-            },
-
-            orderBy: {
-              sortOrder:
-                'asc',
-            },
-
-            select: {
-              id: true,
-            },
-          })
-        ).map(
-          (
-            registration,
-          ) =>
-            registration.id,
+      const ids =
+        selectedIds ??
+        await this.getApprovedRegistrationIds(
+          tournamentId,
         );
 
-      if (
-        ids.length <
-        2
-      ) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-
-          error: {
-            code:
-              'NOT_ENOUGH_TEAMS',
-
-            message:
-              'At least two Tournament teams are required.',
-          },
-        });
-      }
-
-      if (
-        tournament.fixtureMode ===
-        'RANDOMIZED'
-      ) {
-        ids =
-          this.shuffle(
-            ids,
-          );
-      }
+      this.assertEnoughParticipants(
+        ids,
+        'Tournament',
+      );
 
       plans.push({
         groupId:
@@ -397,20 +498,79 @@ export class TournamentFixtureWizardService {
           null,
 
         registrationIds:
-          ids,
+          this.maybeShuffle(
+            ids,
+            tournament.fixtureMode,
+          ),
 
         blueprints:
-          this.generateBlueprints(
-            tournament.competitionFormat,
-            tournament.legType,
-            ids,
-          ),
+          [],
       });
     }
 
 
+    if (
+      plans.length ===
+      0
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'NO_FIXTURE_SCOPE',
+
+          message:
+            'No valid participants are available for this fixture scope.',
+        },
+      });
+    }
+
+    const matchdayPrefix =
+      dto.matchdayPrefix
+        ?.trim() ||
+      'Matchday';
+
+    for (
+      const plan
+      of plans
+    ) {
+      const generated =
+        this.generateBlueprints(
+          tournament.competitionFormat,
+          tournament.legType,
+          plan.registrationIds,
+        );
+
+      plan.blueprints =
+        this.applyHomeAwayMode(
+          generated,
+          tournament.legType,
+          dto.homeAwayMode ??
+            'BALANCED',
+        );
+    }
+
+
     let sequence =
-      1;
+      (
+        await this.prisma.fixture.findFirst({
+          where: {
+            tournamentId,
+          },
+
+          orderBy: {
+            sequence:
+              'desc',
+          },
+
+          select: {
+            sequence: true,
+          },
+        })
+      )?.sequence ??
+      0;
 
     await this.prisma.$transaction(
       async (
@@ -424,6 +584,14 @@ export class TournamentFixtureWizardService {
             const blueprint
             of plan.blueprints
           ) {
+            sequence++;
+
+            const scheduledAt =
+              this.buildScheduledAt(
+                dto,
+                blueprint.roundNumber,
+              );
+
             await tx.fixture.create({
               data: {
                 fixtureCode:
@@ -444,8 +612,8 @@ export class TournamentFixtureWizardService {
 
                 roundName:
                   plan.groupName
-                    ? `${plan.groupName} - ${blueprint.roundName}`
-                    : blueprint.roundName,
+                    ? `${plan.groupName} - ${matchdayPrefix} ${blueprint.roundNumber}`
+                    : `${matchdayPrefix} ${blueprint.roundNumber}`,
 
                 bracketPosition:
                   blueprint.bracketPosition,
@@ -456,12 +624,12 @@ export class TournamentFixtureWizardService {
                 awayRegistrationId:
                   blueprint.awayRegistrationId,
 
+                scheduledAt,
+
                 publishedAt:
                   null,
               },
             });
-
-            sequence++;
           }
         }
       },
@@ -480,8 +648,34 @@ export class TournamentFixtureWizardService {
           'Fixture preview generated successfully.',
 
         fixtures:
-          sequence -
-          1,
+          plans.reduce(
+            (
+              total,
+              plan,
+            ) =>
+              total +
+              plan.blueprints.length,
+            0,
+          ),
+
+        groups:
+          plans.map(
+            (
+              plan,
+            ) => ({
+              groupId:
+                plan.groupId,
+
+              groupName:
+                plan.groupName,
+
+              participants:
+                plan.registrationIds.length,
+
+              fixtures:
+                plan.blueprints.length,
+            }),
+          ),
       },
 
       error: null,
@@ -562,6 +756,12 @@ export class TournamentFixtureWizardService {
 
           fixtureMode:
             tournament.fixtureMode,
+
+          legType:
+            tournament.legType,
+
+          groupMode:
+            tournament.groupMode,
         },
 
         fixtures,
@@ -575,6 +775,7 @@ export class TournamentFixtureWizardService {
   async resetPreview(
     userId: string,
     tournamentId: string,
+    groupId?: string,
   ) {
     const tournament =
       await this.getTournamentForAdmin(
@@ -586,10 +787,25 @@ export class TournamentFixtureWizardService {
       tournament.status,
     );
 
+    if (
+      groupId
+    ) {
+      await this.assertGroupBelongsToTournament(
+        tournamentId,
+        groupId,
+      );
+    }
+
     const deleted =
       await this.prisma.fixture.deleteMany({
         where: {
           tournamentId,
+
+          ...(groupId
+            ? {
+                groupId,
+              }
+            : {}),
 
           publishedAt:
             null,
@@ -601,7 +817,9 @@ export class TournamentFixtureWizardService {
 
       data: {
         message:
-          'Fixture preview reset.',
+          groupId
+            ? 'Group fixture preview reset.'
+            : 'Fixture preview reset.',
 
         deleted:
           deleted.count,
@@ -645,6 +863,410 @@ export class TournamentFixtureWizardService {
     return generateRoundRobinFixtures(
       registrationIds,
     );
+  }
+
+
+  private applyHomeAwayMode(
+    source:
+      FixtureBlueprint[],
+
+    legType:
+      string,
+
+    mode:
+      | 'BALANCED'
+      | 'RANDOM'
+      | 'MANUAL',
+  ) {
+    const fixtures =
+      source.map(
+        (
+          fixture,
+        ) => ({
+          ...fixture,
+        }),
+      );
+
+    if (
+      mode !==
+      'RANDOM'
+    ) {
+      return fixtures;
+    }
+
+    if (
+      legType ===
+      'HOME_AWAY'
+    ) {
+      const pairs =
+        new Map<
+          string,
+          FixtureBlueprint[]
+        >();
+
+      for (
+        const fixture
+        of fixtures
+      ) {
+        const home =
+          fixture.homeRegistrationId;
+
+        const away =
+          fixture.awayRegistrationId;
+
+        if (
+          !home ||
+          !away
+        ) {
+          continue;
+        }
+
+        const key =
+          [
+            home,
+            away,
+          ]
+            .sort()
+            .join(':');
+
+        const list =
+          pairs.get(
+            key,
+          ) ??
+          [];
+
+        list.push(
+          fixture,
+        );
+
+        pairs.set(
+          key,
+          list,
+        );
+      }
+
+      for (
+        const pair
+        of pairs.values()
+      ) {
+        if (
+          randomInt(
+            0,
+            2,
+          ) ===
+          0
+        ) {
+          continue;
+        }
+
+        for (
+          const fixture
+          of pair
+        ) {
+          [
+            fixture.homeRegistrationId,
+            fixture.awayRegistrationId,
+          ] = [
+            fixture.awayRegistrationId,
+            fixture.homeRegistrationId,
+          ];
+        }
+      }
+
+      return fixtures;
+    }
+
+    for (
+      const fixture
+      of fixtures
+    ) {
+      if (
+        randomInt(
+          0,
+          2,
+        ) ===
+        1
+      ) {
+        [
+          fixture.homeRegistrationId,
+          fixture.awayRegistrationId,
+        ] = [
+          fixture.awayRegistrationId,
+          fixture.homeRegistrationId,
+        ];
+      }
+    }
+
+    return fixtures;
+  }
+
+
+  private maybeShuffle(
+    ids:
+      string[],
+
+    fixtureMode:
+      string,
+  ) {
+    if (
+      fixtureMode !==
+      'RANDOMIZED'
+    ) {
+      return [
+        ...ids,
+      ];
+    }
+
+    return this.shuffle(
+      ids,
+    );
+  }
+
+
+  private async validateSelectedRegistrations(
+    tournamentId:
+      string,
+
+    registrationIds:
+      string[],
+
+    groupId?:
+      string,
+  ) {
+    const registrations =
+      await this.prisma.tournamentRegistration.findMany({
+        where: {
+          tournamentId,
+
+          id: {
+            in:
+              registrationIds,
+          },
+
+          status:
+            'APPROVED',
+        },
+
+        select: {
+          id: true,
+          groupId: true,
+        },
+      });
+
+    if (
+      registrations.length !==
+      registrationIds.length
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_FIXTURE_PARTICIPANTS',
+
+          message:
+            'Every selected participant must be an approved entry in this Tournament.',
+        },
+      });
+    }
+
+    if (
+      groupId &&
+      registrations.some(
+        (
+          registration,
+        ) =>
+          registration.groupId !==
+          groupId,
+      )
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'CROSS_GROUP_SELECTION',
+
+          message:
+            'Every selected participant must belong to the selected Group.',
+        },
+      });
+    }
+
+    return [
+      ...registrationIds,
+    ];
+  }
+
+
+  private async getApprovedRegistrationIds(
+    tournamentId:
+      string,
+
+    groupId?:
+      string,
+  ) {
+    return (
+      await this.prisma.tournamentRegistration.findMany({
+        where: {
+          tournamentId,
+
+          status:
+            'APPROVED',
+
+          ...(groupId
+            ? {
+                groupId,
+              }
+            : {}),
+        },
+
+        orderBy: [
+          {
+            sortOrder:
+              'asc',
+          },
+          {
+            createdAt:
+              'asc',
+          },
+        ],
+
+        select: {
+          id: true,
+        },
+      })
+    ).map(
+      (
+        registration,
+      ) =>
+        registration.id,
+    );
+  }
+
+
+  private assertEnoughParticipants(
+    ids:
+      string[],
+
+    scopeName:
+      string,
+  ) {
+    if (
+      ids.length <
+      2
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'NOT_ENOUGH_TEAMS',
+
+          message:
+            `${scopeName} requires at least two participants.`,
+        },
+      });
+    }
+  }
+
+
+  private buildScheduledAt(
+    dto:
+      GenerateFixturePreviewDto,
+
+    roundNumber:
+      number,
+  ) {
+    if (
+      !dto.startDate
+    ) {
+      return null;
+    }
+
+    const value =
+      new Date(
+        dto.startDate,
+      );
+
+    const interval =
+      dto.matchdayIntervalDays ??
+      0;
+
+    value.setUTCDate(
+      value.getUTCDate() +
+      (
+        roundNumber -
+        1
+      ) *
+      interval,
+    );
+
+    if (
+      dto.defaultMatchTime
+    ) {
+      const [
+        hour,
+        minute,
+      ] =
+        dto.defaultMatchTime
+          .split(':')
+          .map(
+            Number,
+          );
+
+      value.setUTCHours(
+        hour,
+        minute,
+        0,
+        0,
+      );
+    }
+
+    return value;
+  }
+
+
+  private async assertGroupBelongsToTournament(
+    tournamentId:
+      string,
+
+    groupId:
+      string,
+  ) {
+    const group =
+      await this.prisma.tournamentGroup.findUnique({
+        where: {
+          id:
+            groupId,
+        },
+
+        select: {
+          tournamentId: true,
+        },
+      });
+
+    if (
+      !group ||
+      group.tournamentId !==
+      tournamentId
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_FIXTURE_GROUP',
+
+          message:
+            'Selected Group does not belong to this Tournament.',
+        },
+      });
+    }
   }
 
 

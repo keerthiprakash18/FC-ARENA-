@@ -128,11 +128,13 @@ export function FcStatCard({
   value,
   detail,
   tone = 'cyan',
+  icon,
 }: {
   label: string;
   value: ReactNode;
   detail?: string;
   tone?: FcTone;
+  icon?: ReactNode;
 }) {
   const markerClass =
     tone === 'emerald'
@@ -146,20 +148,27 @@ export function FcStatCard({
             : 'bg-sky-400';
 
   return (
-    <article className="h-full rounded-2xl border border-[#253140] bg-[#151C26] p-4 shadow-[0_6px_18px_rgba(0,0,0,0.10)] transition duration-200 hover:border-[#334155]">
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${markerClass}`} />
-        <p className="text-xs font-medium text-[#A7B0BE]">
-          {label}
-        </p>
+    <article className="h-full rounded-2xl border border-[#203141] bg-[#101923] p-4 shadow-[0_8px_22px_rgba(0,0,0,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#2D4356] sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium text-[#8290A0]">
+            {label}
+          </p>
+
+          <p className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-[28px]">
+            {value}
+          </p>
+        </div>
+
+        <span
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.06] bg-white/[0.035] text-base ${markerClass.replace('bg-', 'text-')}`}
+        >
+          {icon ?? '•'}
+        </span>
       </div>
 
-      <p className="mt-3 text-2xl font-semibold tracking-[-0.025em] text-[#F8FAFC]">
-        {value}
-      </p>
-
       {detail ? (
-        <p className="mt-1 text-xs leading-5 text-[#6F7B8A]">
+        <p className="mt-3 text-xs leading-5 text-[#6F7B8A]">
           {detail}
         </p>
       ) : null}
@@ -406,5 +415,58 @@ export function FcConfirmDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+
+export function FcQuickActionTile({
+  href,
+  icon,
+  title,
+  description,
+  tone = 'cyan',
+}: {
+  href: string;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  tone?: FcTone;
+}) {
+  const accent =
+    tone === 'emerald'
+      ? 'text-[#1FD18A] bg-[#1FD18A]/[0.08] border-[#1FD18A]/20'
+      : tone === 'amber'
+        ? 'text-[#F3B326] bg-[#F3B326]/[0.08] border-[#F3B326]/20'
+        : tone === 'red'
+          ? 'text-[#EF5350] bg-[#EF5350]/[0.08] border-[#EF5350]/20'
+          : tone === 'slate'
+            ? 'text-[#A7B0BE] bg-white/[0.035] border-white/[0.06]'
+            : 'text-[#19B7FF] bg-[#19B7FF]/[0.08] border-[#19B7FF]/20';
+
+  return (
+    <Link
+      href={href}
+      className="group flex min-h-24 items-center gap-4 rounded-2xl border border-[#203141] bg-[#101923] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[#2D4356] hover:bg-[#121D28] sm:p-5"
+    >
+      <span
+        className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border text-lg ${accent}`}
+      >
+        {icon}
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold text-[#F8FAFC]">
+          {title}
+        </span>
+
+        <span className="mt-1 block text-xs leading-5 text-[#6F7B8A]">
+          {description}
+        </span>
+      </span>
+
+      <span className="text-lg text-[#536273] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
+        →
+      </span>
+    </Link>
   );
 }

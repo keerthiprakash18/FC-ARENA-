@@ -31,6 +31,10 @@ import {
 } from './dto/update-preview-fixture.dto.js';
 
 import {
+  PublishFixturePreviewDto,
+} from './dto/publish-fixture-preview.dto.js';
+
+import {
   UpdateQualificationSettingsDto,
 } from './dto/update-qualification-settings.dto.js';
 
@@ -176,10 +180,15 @@ export class TournamentWizardFinalController {
     @Param('tournamentId')
     tournamentId:
       string,
+
+    @Body()
+    dto:
+      PublishFixturePreviewDto,
   ) {
     return this.preview.publishFixtures(
       request.user.sub,
       tournamentId,
+      dto,
     );
   }
 

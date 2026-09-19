@@ -1435,87 +1435,103 @@ export default function FixturesPage() {
                                   ? `/matches/${fixture.match.id}`
                                   : `/tournaments/${fixture.tournamentId}/fixtures`;
 
+                              const resultHref =
+                                fixture.match
+                                  ?.id
+                                  ? `/matches/${fixture.match.id}#result-update`
+                                  : href;
+
+                              const completed =
+                                fixtureFilter(
+                                  fixture,
+                                ) ===
+                                'COMPLETED';
+
                               return (
-                                <Link
+                                <article
                                   key={
                                     fixture.id
                                   }
-                                  href={
-                                    href
-                                  }
                                   className="group rounded-2xl border border-[#253140] bg-[#121821] p-4 transition duration-200 hover:border-[#334155] hover:bg-[#151C26] sm:p-5"
                                 >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                      <p className="text-xs font-medium text-[#38BDF8]">
-                                        {
-                                          fixture.tournamentName
+                                  <Link
+                                    href={
+                                      href
+                                    }
+                                    className="block"
+                                  >
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div>
+                                        <p className="text-xs font-medium text-[#38BDF8]">
+                                          {
+                                            fixture.tournamentName
+                                          }
+                                        </p>
+
+                                        <p className="mt-1 text-xs text-slate-600">
+                                          {
+                                            fixture.roundName
+                                          }
+                                          {fixture.group
+                                            ? ` · ${fixture.group.name}`
+                                            : ''}
+                                        </p>
+                                      </div>
+
+                                      <FcStatusBadge
+                                        label={
+                                          fixture.match
+                                            ?.status ||
+                                          fixture.status
                                         }
-                                      </p>
-
-                                      <p className="mt-1 text-xs text-slate-600">
-                                        {
-                                          fixture.roundName
+                                        tone={
+                                          statusTone(
+                                            fixture,
+                                          )
                                         }
-                                        {fixture.group
-                                          ? ` · ${fixture.group.name}`
-                                          : ''}
-                                      </p>
-                                    </div>
-
-                                    <FcStatusBadge
-                                      label={
-                                        fixture.match
-                                          ?.status ||
-                                        fixture.status
-                                      }
-                                      tone={
-                                        statusTone(
-                                          fixture,
-                                        )
-                                      }
-                                    />
-                                  </div>
-
-
-                                  <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                                    <div className="flex min-w-0 items-center justify-end gap-2">
-                                      <p className="truncate text-right text-sm font-black">
-                                        {
-                                          home
-                                        }
-                                      </p>
-
-                                      <FcCrest
-                                        name={
-                                          home
-                                        }
-                                        size="sm"
                                       />
                                     </div>
 
-                                    <span className="rounded-lg border border-sky-400/15 bg-sky-400/[0.05] px-3 py-2 text-[10px] font-black text-sky-300">
-                                      VS
-                                    </span>
 
-                                    <div className="flex min-w-0 items-center gap-2">
-                                      <FcCrest
-                                        name={
-                                          away
-                                        }
-                                        size="sm"
-                                      />
+                                    <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                                      <div className="flex min-w-0 items-center justify-end gap-2">
+                                        <p className="truncate text-right text-sm font-black">
+                                          {
+                                            home
+                                          }
+                                        </p>
 
-                                      <p className="truncate text-sm font-black">
-                                        {
-                                          away
-                                        }
-                                      </p>
+                                        <FcCrest
+                                          name={
+                                            home
+                                          }
+                                          size="sm"
+                                        />
+                                      </div>
+
+                                      <span className="rounded-lg border border-sky-400/15 bg-sky-400/[0.05] px-3 py-2 text-[10px] font-black text-sky-300">
+                                        VS
+                                      </span>
+
+                                      <div className="flex min-w-0 items-center gap-2">
+                                        <FcCrest
+                                          name={
+                                            away
+                                          }
+                                          size="sm"
+                                        />
+
+                                        <p className="truncate text-sm font-black">
+                                          {
+                                            away
+                                          }
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
+                                  </Link>
 
 
-                                  <div className="mt-5 flex items-center justify-between gap-4 border-t border-white/[0.06] pt-4">
+                                  <div className="mt-5 flex flex-col gap-3 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                       <p className="text-xs font-black text-slate-300">
                                         {fixture.scheduledAt
@@ -1531,11 +1547,41 @@ export default function FixturesPage() {
                                       </p>
                                     </div>
 
-                                    <span className="text-xs font-black text-sky-300 transition group-hover:translate-x-0.5">
-                                      View Match →
-                                    </span>
+
+                                    <div className="flex flex-wrap gap-2">
+                                      <Link
+                                        href={
+                                          href
+                                        }
+                                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-3.5 text-xs font-semibold text-[#F8FAFC] transition hover:border-[#38BDF8]/35"
+                                      >
+                                        View Match
+                                      </Link>
+
+                                      {fixture.match
+                                        ?.id ? (
+                                        <Link
+                                          href={
+                                            resultHref
+                                          }
+                                          className={`inline-flex min-h-10 items-center justify-center rounded-[10px] px-3.5 text-xs font-semibold transition ${
+                                            completed
+                                              ? 'border border-emerald-400/25 bg-emerald-400/[0.06] text-emerald-300 hover:bg-emerald-400/[0.10]'
+                                              : 'bg-[#38BDF8] text-[#071018] hover:bg-[#0EA5E9]'
+                                          }`}
+                                        >
+                                          {completed
+                                            ? 'View Result'
+                                            : 'Update Result / OCR'}
+                                        </Link>
+                                      ) : (
+                                        <span className="inline-flex min-h-10 items-center rounded-[10px] border border-white/[0.06] px-3.5 text-xs font-medium text-[#536273]">
+                                          Match not ready
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
-                                </Link>
+                                </article>
                               );
                             },
                           )}

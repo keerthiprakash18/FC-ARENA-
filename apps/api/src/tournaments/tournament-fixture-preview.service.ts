@@ -19,6 +19,10 @@ import type {
 } from './dto/create-preview-fixture.dto.js';
 
 import type {
+  PublishFixturePreviewDto,
+} from './dto/publish-fixture-preview.dto.js';
+
+import type {
   UpdatePreviewFixtureDto,
 } from './dto/update-preview-fixture.dto.js';
 
@@ -57,6 +61,8 @@ export class TournamentFixturePreviewService {
       tournamentId,
       dto.homeRegistrationId,
       dto.awayRegistrationId,
+      tournament.legType,
+      tournament.competitionFormat,
     );
 
     const latest =
@@ -99,7 +105,7 @@ export class TournamentFixturePreviewService {
             dto.roundNumber,
 
           roundName:
-            `MATCHDAY ${dto.roundNumber}`,
+            `Matchday ${dto.roundNumber}`,
 
           bracketPosition:
             1,
@@ -202,6 +208,8 @@ export class TournamentFixturePreviewService {
       tournamentId,
       homeId,
       awayId,
+      tournament.legType,
+      tournament.competitionFormat,
       fixture.id,
     );
 
@@ -234,7 +242,7 @@ export class TournamentFixturePreviewService {
 
           roundName:
             dto.roundNumber
-              ? `MATCHDAY ${roundNumber}`
+              ? `Matchday ${roundNumber}`
               : undefined,
 
           scheduledAt:
@@ -307,6 +315,15 @@ export class TournamentFixturePreviewService {
         },
       });
     }
+
+    await this.assertNoDuplicate(
+      tournamentId,
+      fixture.awayRegistrationId,
+      fixture.homeRegistrationId,
+      tournament.legType,
+      tournament.competitionFormat,
+      fixture.id,
+    );
 
     const updated =
       await this.prisma.fixture.update({
@@ -384,6 +401,8 @@ export class TournamentFixturePreviewService {
   async publishFixtures(
     userId: string,
     tournamentId: string,
+    dto:
+      PublishFixturePreviewDto = {},
   ) {
     const tournament =
       await this.getAdminTournament(
@@ -395,10 +414,26 @@ export class TournamentFixturePreviewService {
       tournament.status,
     );
 
+    if (
+      dto.groupId
+    ) {
+      await this.assertGroupBelongsToTournament(
+        tournamentId,
+        dto.groupId,
+      );
+    }
+
     const fixtures =
       await this.prisma.fixture.findMany({
         where: {
           tournamentId,
+
+          ...(dto.groupId
+            ? {
+                groupId:
+                  dto.groupId,
+              }
+            : {}),
 
           publishedAt:
             null,
@@ -434,10 +469,13 @@ export class TournamentFixturePreviewService {
       });
     }
 
-    this.validateFixtureSet(
+    await this.validateFixtureSet(
+      tournamentId,
       fixtures,
       tournament.legType,
       tournament.competitionFormat,
+      dto.registrationIds,
+      dto.groupId,
     );
 
     const publishedAt =
@@ -502,6 +540,7 @@ export class TournamentFixturePreviewService {
         }
 
         if (
+          !dto.groupId &&
           tournament.competitionFormat ===
           'SINGLE_ELIMINATION'
         ) {
@@ -545,11 +584,11 @@ export class TournamentFixturePreviewService {
 
           for (
             let index =
-              0;
-            index <
-            rounds.length -
-              1;
-            index++
+                0;
+              index <
+              rounds.length -
+                1;
+              index++
           ) {
             const current =
               byRound.get(
@@ -568,9 +607,9 @@ export class TournamentFixturePreviewService {
 
             for (
               let position =
-                0;
-              position <
-              current.length;
+                  0;
+                position <
+                current.length;
               position++
             ) {
               const target =
@@ -616,17 +655,21 @@ export class TournamentFixturePreviewService {
           },
 
           data: {
-            fixturesPublishedAt:
-              publishedAt,
-
             fixturesGeneratedAt:
               publishedAt,
 
-            wizardStep:
-              tournament.competitionFormat ===
-              'GROUP_STAGE_KNOCKOUT'
-                ? 'QUALIFICATION'
-                : 'REVIEW',
+            ...(dto.groupId
+              ? {}
+              : {
+                  fixturesPublishedAt:
+                    publishedAt,
+
+                  wizardStep:
+                    tournament.competitionFormat ===
+                    'GROUP_STAGE_KNOCKOUT'
+                      ? 'QUALIFICATION'
+                      : 'REVIEW',
+                }),
           },
         });
       },
@@ -637,16 +680,25 @@ export class TournamentFixturePreviewService {
 
       data: {
         message:
-          `${fixtures.length} fixture(s) published.`,
+          dto.groupId
+            ? `${fixtures.length} Group fixture(s) saved.`
+            : `${fixtures.length} fixture(s) published.`,
 
         fixtures:
           fixtures.length,
 
+        scope:
+          dto.groupId
+            ? 'GROUP'
+            : 'TOURNAMENT',
+
         nextStep:
-          tournament.competitionFormat ===
-          'GROUP_STAGE_KNOCKOUT'
-            ? 'QUALIFICATION'
-            : 'REVIEW',
+          dto.groupId
+            ? 'FIXTURES'
+            : tournament.competitionFormat ===
+              'GROUP_STAGE_KNOCKOUT'
+              ? 'QUALIFICATION'
+              : 'REVIEW',
       },
 
       error: null,
@@ -654,7 +706,10 @@ export class TournamentFixturePreviewService {
   }
 
 
-  private validateFixtureSet(
+  private async validateFixtureSet(
+    tournamentId:
+      string,
+
     fixtures:
       Array<{
         id: string;
@@ -669,6 +724,12 @@ export class TournamentFixturePreviewService {
 
     competitionFormat:
       string,
+
+    selectedRegistrationIds?:
+      string[],
+
+    selectedGroupId?:
+      string,
   ) {
     const exactPairs =
       new Set<string>();
@@ -681,6 +742,15 @@ export class TournamentFixturePreviewService {
 
     const roundTeams =
       new Set<string>();
+
+    const participantIds =
+      new Set<string>();
+
+    const roundNumbersByGroup =
+      new Map<
+        string,
+        Set<number>
+      >();
 
     for (
       const fixture
@@ -712,7 +782,7 @@ export class TournamentFixturePreviewService {
               'INCOMPLETE_FIXTURE',
 
             message:
-              'Every published fixture requires both Home and Away teams.',
+              'Every saved fixture requires both Home and Away participants.',
           },
         });
       }
@@ -730,10 +800,18 @@ export class TournamentFixturePreviewService {
               'SELF_FIXTURE',
 
             message:
-              'A team cannot play itself.',
+              'A participant cannot play itself.',
           },
         });
       }
+
+      participantIds.add(
+        home,
+      );
+
+      participantIds.add(
+        away,
+      );
 
       const groupKey =
         fixture.groupId ??
@@ -756,7 +834,7 @@ export class TournamentFixturePreviewService {
               'DUPLICATE_FIXTURE',
 
             message:
-              'Duplicate fixture detected.',
+              'Duplicate Home/Away fixture detected.',
           },
         });
       }
@@ -807,7 +885,7 @@ export class TournamentFixturePreviewService {
               'TEAM_DUPLICATED_IN_ROUND',
 
             message:
-              'A team cannot appear twice in the same round.',
+              'A participant cannot appear twice in the same Matchday.',
           },
         });
       }
@@ -819,43 +897,337 @@ export class TournamentFixturePreviewService {
       roundTeams.add(
         awayRound,
       );
+
+      const rounds =
+        roundNumbersByGroup.get(
+          groupKey,
+        ) ??
+        new Set<number>();
+
+      rounds.add(
+        fixture.roundNumber,
+      );
+
+      roundNumbersByGroup.set(
+        groupKey,
+        rounds,
+      );
     }
 
     if (
-      competitionFormat !==
-        'SINGLE_ELIMINATION' &&
-      competitionFormat !==
-        'CUSTOM_MANUAL'
+      competitionFormat ===
+      'SINGLE_ELIMINATION' ||
+      competitionFormat ===
+      'CUSTOM_MANUAL'
     ) {
-      const expectedPerPair =
-        legType ===
-        'HOME_AWAY'
-          ? 2
-          : 1;
+      return;
+    }
 
-      for (
-        const count
-        of unordered.values()
+    const expectedPerPair =
+      legType ===
+      'HOME_AWAY'
+        ? 2
+        : 1;
+
+    for (
+      const count
+      of unordered.values()
+    ) {
+      if (
+        count >
+        expectedPerPair
       ) {
-        if (
-          count >
-          expectedPerPair
-        ) {
-          throw new ConflictException({
-            success: false,
-            data: null,
+        throw new ConflictException({
+          success: false,
+          data: null,
 
-            error: {
-              code:
-                'TOO_MANY_PAIRINGS',
+          error: {
+            code:
+              'TOO_MANY_PAIRINGS',
 
-              message:
-                'One or more teams are scheduled against each other too many times.',
-            },
-          });
-        }
+            message:
+              'One or more participants are scheduled against each other too many times.',
+          },
+        });
       }
     }
+
+    const expectedParticipants =
+      await this.getExpectedParticipantsByGroup(
+        tournamentId,
+        selectedRegistrationIds ??
+          Array.from(
+            participantIds,
+          ),
+        selectedGroupId,
+      );
+
+    for (
+      const [
+        groupKey,
+        ids,
+      ]
+      of expectedParticipants.entries()
+    ) {
+      if (
+        ids.length <
+        2
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+
+          error: {
+            code:
+              'NOT_ENOUGH_FIXTURE_PARTICIPANTS',
+
+            message:
+              'Each fixture scope requires at least two participants.',
+          },
+        });
+      }
+
+      const expectedPairCount =
+        (
+          ids.length *
+          (
+            ids.length -
+            1
+          )
+        ) /
+        2;
+
+      const expectedFixtures =
+        expectedPairCount *
+        expectedPerPair;
+
+      const actualFixtures =
+        fixtures.filter(
+          (
+            fixture,
+          ) =>
+            (
+              fixture.groupId ??
+              'NO_GROUP'
+            ) ===
+            groupKey,
+        );
+
+      if (
+        actualFixtures.length !==
+        expectedFixtures
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+
+          error: {
+            code:
+              'INCOMPLETE_ROUND_ROBIN',
+
+            message:
+              `Fixture set is incomplete. Expected ${expectedFixtures} match(es) for this scope, received ${actualFixtures.length}.`,
+          },
+        });
+      }
+
+      for (
+        let left =
+            0;
+          left <
+          ids.length;
+        left++
+      ) {
+        for (
+          let right =
+              left +
+              1;
+            right <
+            ids.length;
+          right++
+        ) {
+          const pair =
+            [
+              ids[left],
+              ids[right],
+            ]
+              .sort()
+              .join(':');
+
+          const count =
+            unordered.get(
+              `${groupKey}:${pair}`,
+            ) ??
+            0;
+
+          if (
+            count !==
+            expectedPerPair
+          ) {
+            throw new ConflictException({
+              success: false,
+              data: null,
+
+              error: {
+                code:
+                  'MISSING_PAIRING',
+
+                message:
+                  'Every selected participant must play every other selected participant the required number of times.',
+              },
+            });
+          }
+        }
+      }
+
+      const expectedRounds =
+        (
+          ids.length %
+          2 ===
+          0
+            ? ids.length -
+              1
+            : ids.length
+        ) *
+        expectedPerPair;
+
+      const actualRounds =
+        roundNumbersByGroup.get(
+          groupKey,
+        )?.size ??
+        0;
+
+      if (
+        actualRounds !==
+        expectedRounds
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+
+          error: {
+            code:
+              'INVALID_MATCHDAY_COUNT',
+
+            message:
+              `Fixture set requires ${expectedRounds} Matchday(s), received ${actualRounds}.`,
+          },
+        });
+      }
+    }
+  }
+
+
+  private async getExpectedParticipantsByGroup(
+    tournamentId:
+      string,
+
+    registrationIds:
+      string[],
+
+    selectedGroupId?:
+      string,
+  ) {
+    const unique =
+      [
+        ...new Set(
+          registrationIds,
+        ),
+      ];
+
+    const registrations =
+      await this.prisma.tournamentRegistration.findMany({
+        where: {
+          tournamentId,
+
+          status:
+            'APPROVED',
+
+          id: {
+            in:
+              unique,
+          },
+        },
+
+        select: {
+          id: true,
+          groupId: true,
+        },
+      });
+
+    if (
+      registrations.length !==
+      unique.length
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_FIXTURE_PARTICIPANTS',
+
+          message:
+            'One or more selected participants no longer belong to this Tournament.',
+        },
+      });
+    }
+
+    if (
+      selectedGroupId &&
+      registrations.some(
+        (
+          registration,
+        ) =>
+          registration.groupId !==
+          selectedGroupId,
+      )
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'CROSS_GROUP_SELECTION',
+
+          message:
+            'Every selected participant must belong to the selected Group.',
+        },
+      });
+    }
+
+    const result =
+      new Map<
+        string,
+        string[]
+      >();
+
+    for (
+      const registration
+      of registrations
+    ) {
+      const key =
+        registration.groupId ??
+        'NO_GROUP';
+
+      const ids =
+        result.get(
+          key,
+        ) ??
+        [];
+
+      ids.push(
+        registration.id,
+      );
+
+      result.set(
+        key,
+        ids,
+      );
+    }
+
+    return result;
   }
 
 
@@ -869,11 +1241,17 @@ export class TournamentFixturePreviewService {
     awayId:
       string,
 
+    legType:
+      string,
+
+    competitionFormat:
+      string,
+
     ignoreFixtureId?:
       string,
   ) {
-    const duplicate =
-      await this.prisma.fixture.findFirst({
+    const matches =
+      await this.prisma.fixture.findMany({
         where: {
           tournamentId,
 
@@ -907,10 +1285,26 @@ export class TournamentFixturePreviewService {
             },
           ],
         },
+
+        select: {
+          homeRegistrationId:
+            true,
+
+          awayRegistrationId:
+            true,
+        },
       });
 
     if (
-      duplicate
+      matches.some(
+        (
+          fixture,
+        ) =>
+          fixture.homeRegistrationId ===
+            homeId &&
+          fixture.awayRegistrationId ===
+            awayId,
+      )
     ) {
       throw new ConflictException({
         success: false,
@@ -921,7 +1315,34 @@ export class TournamentFixturePreviewService {
             'DUPLICATE_FIXTURE',
 
           message:
-            'These teams already have a draft fixture.',
+            'This exact Home/Away fixture already exists.',
+        },
+      });
+    }
+
+    const allowedPairCount =
+      competitionFormat ===
+        'CUSTOM_MANUAL'
+        ? 2
+        : legType ===
+          'HOME_AWAY'
+          ? 2
+          : 1;
+
+    if (
+      matches.length >=
+      allowedPairCount
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'TOO_MANY_PAIRINGS',
+
+          message:
+            'These participants already meet the maximum number of times for this fixture setup.',
         },
       });
     }
@@ -954,7 +1375,7 @@ export class TournamentFixturePreviewService {
             'SELF_FIXTURE',
 
           message:
-            'Home and Away teams must be different.',
+            'Home and Away participants must be different.',
         },
       });
     }
@@ -989,7 +1410,7 @@ export class TournamentFixturePreviewService {
             'INVALID_FIXTURE_TEAMS',
 
           message:
-            'Both teams must belong to this Tournament.',
+            'Both participants must belong to this Tournament.',
         },
       });
     }
@@ -1013,7 +1434,47 @@ export class TournamentFixturePreviewService {
             'CROSS_GROUP_FIXTURE',
 
           message:
-            'Group-stage fixtures must contain teams from the same group.',
+            'Group-stage fixtures must contain participants from the same Group.',
+        },
+      });
+    }
+  }
+
+
+  private async assertGroupBelongsToTournament(
+    tournamentId:
+      string,
+
+    groupId:
+      string,
+  ) {
+    const group =
+      await this.prisma.tournamentGroup.findUnique({
+        where: {
+          id:
+            groupId,
+        },
+
+        select: {
+          tournamentId: true,
+        },
+      });
+
+    if (
+      !group ||
+      group.tournamentId !==
+      tournamentId
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'INVALID_FIXTURE_GROUP',
+
+          message:
+            'Selected Group does not belong to this Tournament.',
         },
       });
     }

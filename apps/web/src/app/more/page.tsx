@@ -14,8 +14,8 @@ import {
 } from '@/components/app/app-shell';
 
 import {
-  FcActionRow,
   FcLoadingScreen,
+  FcMenuRow,
   FcPageHeader,
   FcPanel,
   FcSectionHeading,
@@ -77,18 +77,6 @@ export default function MorePage() {
     );
 
   const [
-    infoPanel,
-    setInfoPanel,
-  ] =
-    useState<
-      'ABOUT'
-      | 'HELP'
-      | null
-    >(
-      null,
-    );
-
-  const [
     loggingOut,
     setLoggingOut,
   ] =
@@ -143,7 +131,9 @@ export default function MorePage() {
         );
 
         setMemberships(
-          leagues.data.leagues,
+          leagues
+            .data
+            .leagues,
         );
 
         setUnread(
@@ -232,7 +222,7 @@ export default function MorePage() {
         <FcPageHeader
           eyebrow="Secondary Hub"
           title="More"
-          subtitle="Profile, career, competition records, community tools and account controls — organized without duplicating the five primary sections."
+          subtitle="Choose a feature. Each option now opens a dedicated screen instead of expanding more content into this page."
           action={
             <FcStatusBadge
               label={
@@ -250,9 +240,9 @@ export default function MorePage() {
         />
 
 
-        <FcPanel className="p-5 sm:p-6">
+        <FcPanel className="p-5">
           <div className="flex items-center gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl border border-sky-400/20 bg-sky-400/[0.07] text-lg font-black text-sky-300">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-sky-400/20 bg-sky-400/[0.07] font-black text-sky-300">
               {inGameName
                 .slice(
                   0,
@@ -262,25 +252,18 @@ export default function MorePage() {
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xl font-black">
+              <p className="truncate font-black">
                 {
                   inGameName
                 }
               </p>
 
-              <p className="mt-1 font-mono text-xs text-sky-400">
+              <p className="mt-1 font-mono text-[10px] text-sky-400">
                 {user.player
                   ?.playerCode ||
                   'FC ARENA Player'}
               </p>
             </div>
-
-            <FcStatusBadge
-              label={
-                user.status
-              }
-              tone="emerald"
-            />
           </div>
         </FcPanel>
 
@@ -292,33 +275,33 @@ export default function MorePage() {
           />
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <FcActionRow
+            <FcMenuRow
               href="/profile"
               icon="◎"
               title="My Profile"
-              description="Player identity, FC ARENA ID and account information"
+              description="Player identity and account details"
             />
 
-            <FcActionRow
+            <FcMenuRow
               href="/career"
               icon="▥"
               title="Career Stats"
-              description="Matches, wins, goals, form and competition history"
+              description="Matches, wins, goals and form"
             />
 
-            <FcActionRow
-              href="/career"
+            <FcMenuRow
+              href="/career/matches"
               icon="↺"
               title="Match History"
-              description="Verified result history and performance record"
+              description="Verified result history"
               tone="emerald"
             />
 
-            <FcActionRow
-              href="/career"
+            <FcMenuRow
+              href="/career/achievements"
               icon="★"
-              title="Trophies & Achievements"
-              description="Tournament awards, milestones and career honours"
+              title="Achievements"
+              description="Trophies, awards and milestones"
               tone="amber"
             />
           </div>
@@ -328,37 +311,37 @@ export default function MorePage() {
         <section>
           <FcSectionHeading
             eyebrow="Competition"
-            title="Records & Results"
+            title="Results & Records"
           />
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <FcActionRow
+            <FcMenuRow
               href="/matches"
               icon="⚔"
-              title="Results & Match Center"
-              description="Open matches, result submission and verification"
+              title="Results"
+              description="Match result and verification center"
             />
 
-            <FcActionRow
-              href="/tournaments"
+            <FcMenuRow
+              href="/leaderboards"
               icon="≣"
-              title="Standings"
-              description="Open a Tournament to view its live standings"
+              title="Leaderboards"
+              description="Tournament ranking access"
             />
 
-            <FcActionRow
-              href="/career"
+            <FcMenuRow
+              href="/awards"
               icon="🏆"
               title="Awards"
-              description="Career achievements and tournament honours"
+              description="Career and Tournament honours"
               tone="amber"
             />
 
-            <FcActionRow
-              href="/fixtures"
+            <FcMenuRow
+              href="/match-system"
               icon="⚽"
               title="Match System"
-              description="Fixtures, schedules, matchdays and knockout rounds"
+              description="Fixture and match workflow guide"
             />
           </div>
         </section>
@@ -371,38 +354,37 @@ export default function MorePage() {
           />
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <FcActionRow
-              href="/leagues"
+            <FcMenuRow
+              href="/community/teams"
               icon="◈"
-              title="Teams & Members"
-              description="League communities, members and competition access"
+              title="Teams"
+              description="Teams from your current League competitions"
             />
 
-            <FcActionRow
-              href="/leagues"
+            <FcMenuRow
+              href="/community/invitations"
               icon="+"
               title="Invitations & Join Requests"
-              description="League-code joining and pending membership requests"
+              description="League membership request access"
             />
 
-            <FcActionRow
+            <FcMenuRow
               href="/notifications"
               icon="●"
               title="Notifications"
-              description="Competition alerts, results and system activity"
+              description="Competition and system activity"
               badge={
-                unread >
-                0
+                unread > 0
                   ? unread
                   : undefined
               }
             />
 
-            <FcActionRow
-              href="/leagues"
+            <FcMenuRow
+              href="/announcements"
               icon="⌁"
               title="Announcements"
-              description="League and competition information from your communities"
+              description="Community notice area"
               tone="slate"
             />
           </div>
@@ -413,39 +395,47 @@ export default function MorePage() {
           <section>
             <FcSectionHeading
               eyebrow="Authorized"
-              title="Admin & Management"
+              title="Admin"
             />
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <FcActionRow
-                href="/leagues"
+              <FcMenuRow
+                href="/admin/leagues"
                 icon="⚙"
                 title="League Management"
-                description="Members, applications and League competition controls"
+                description="Members, applications and League controls"
                 tone="amber"
               />
 
-              <FcActionRow
-                href="/tournaments"
+              <FcMenuRow
+                href="/admin/tournaments"
                 icon="◇"
                 title="Tournament Management"
-                description="Create and manage Tournament structures and rules"
+                description="Competition setup and administration"
                 tone="amber"
               />
 
-              <FcActionRow
-                href="/matches"
+              <FcMenuRow
+                href="/admin/teams"
+                icon="◎"
+                title="Team Management"
+                description="Tournament team administration"
+                tone="amber"
+              />
+
+              <FcMenuRow
+                href="/admin/results"
                 icon="✓"
                 title="Result Verification"
-                description="Review submitted results in the existing Match Center"
+                description="Match results and verification workflow"
                 tone="emerald"
               />
 
-              <FcActionRow
-                href="/fixtures"
+              <FcMenuRow
+                href="/admin/disputes"
                 icon="!"
-                title="Fixtures & Disputes"
-                description="Schedule controls and match-level administration"
+                title="Disputes"
+                description="Match-level dispute access"
                 tone="red"
               />
             </div>
@@ -460,114 +450,35 @@ export default function MorePage() {
           />
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <FcActionRow
-              href="/profile"
-              icon="✎"
-              title="Edit Profile"
-              description="Review and maintain your player identity"
+            <FcMenuRow
+              href="/settings"
+              icon="⚙"
+              title="Settings"
+              description="Account and app preferences"
             />
 
-            <FcActionRow
-              href="/notifications"
+            <FcMenuRow
+              href="/privacy"
               icon="◉"
-              title="Notification Settings"
-              description="Open notification center and activity controls"
+              title="Privacy"
+              description="Privacy and account data information"
             />
 
-            <button
-              type="button"
-              onClick={() =>
-                setInfoPanel(
-                  infoPanel ===
-                  'HELP'
-                    ? null
-                    : 'HELP',
-                )
-              }
-              className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1520] p-4 text-left transition hover:border-sky-400/30"
-            >
-              <span className="grid h-11 w-11 place-items-center rounded-xl border border-sky-400/20 bg-sky-400/[0.06] text-lg text-sky-300">
-                ?
-              </span>
+            <FcMenuRow
+              href="/help"
+              icon="?"
+              title="Help"
+              description="Get help with FC ARENA workflows"
+            />
 
-              <span className="min-w-0 flex-1">
-                <span className="block font-black">
-                  Help & Support
-                </span>
-
-                <span className="mt-0.5 block text-xs leading-5 text-slate-600">
-                  Get guidance for account and competition issues
-                </span>
-              </span>
-
-              <span className="text-slate-700">
-                ›
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                setInfoPanel(
-                  infoPanel ===
-                  'ABOUT'
-                    ? null
-                    : 'ABOUT',
-                )
-              }
-              className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0a1520] p-4 text-left transition hover:border-sky-400/30"
-            >
-              <span className="grid h-11 w-11 place-items-center rounded-xl border border-white/10 bg-white/[0.035] text-lg text-slate-300">
-                i
-              </span>
-
-              <span className="min-w-0 flex-1">
-                <span className="block font-black">
-                  About FC ARENA
-                </span>
-
-                <span className="mt-0.5 block text-xs leading-5 text-slate-600">
-                  Platform information, version and competition philosophy
-                </span>
-              </span>
-
-              <span className="text-slate-700">
-                ›
-              </span>
-            </button>
+            <FcMenuRow
+              href="/about"
+              icon="i"
+              title="About"
+              description="Platform information and version"
+              tone="slate"
+            />
           </div>
-
-
-          {infoPanel ===
-          'HELP' ? (
-            <FcPanel className="mt-3 p-5">
-              <p className="font-black text-sky-300">
-                Help & Support
-              </p>
-
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                For competition issues, open the relevant League, Tournament or Match page so the existing admin and verification tools have the correct context. Account identity details are available from My Profile.
-              </p>
-            </FcPanel>
-          ) : null}
-
-
-          {infoPanel ===
-          'ABOUT' ? (
-            <FcPanel className="mt-3 p-5">
-              <p className="font-black text-sky-300">
-                FC ARENA
-              </p>
-
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                A football competition community platform for Leagues, Tournaments, Fixtures, verified results and player career history.
-              </p>
-
-              <p className="mt-3 font-mono text-xs text-slate-600">
-                App Version 1.0.0
-              </p>
-            </FcPanel>
-          ) : null}
 
 
           <button

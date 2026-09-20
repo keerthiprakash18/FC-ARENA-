@@ -197,25 +197,25 @@ export function AppHeader({
 
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[#DED8CD] bg-[#FFFDF9]/96 backdrop-blur-xl">
+    <header className="theme-top-header sticky top-0 z-30 border-b backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 lg:hidden"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-xl border border-[#DED8CD] bg-[#FFFDF9] text-[#C9972D]">
+          <span className="theme-brand-mark grid h-9 w-9 place-items-center rounded-xl border">
             ♛
           </span>
 
           <span className="fc-display text-lg font-semibold tracking-[-0.02em]">
-            FC <span className="text-[#C9972D]">ARENA</span>
+            FC <span className="theme-brand-accent">ARENA</span>
           </span>
         </Link>
 
 
         <div className="relative hidden w-full max-w-[440px] lg:block">
-          <label className="flex h-10 items-center gap-3 rounded-xl border border-[#DED8CD] bg-white px-3.5 text-[#54657A] shadow-[0_4px_14px_rgba(11,37,69,0.04)] transition focus-within:border-[#C9972D]/55 focus-within:bg-[#FFFDF9] focus-within:shadow-[0_0_0_3px_rgba(201,151,45,0.08)]">
-            <span className="text-base text-[#8792A1]">
+          <label className="theme-search flex h-10 items-center gap-3 rounded-xl border px-3.5 shadow-[0_4px_14px_rgba(11,37,69,0.04)] transition">
+            <span className="theme-muted text-base">
               ⌕
             </span>
 
@@ -240,10 +240,10 @@ export function AppHeader({
                   )
               }
               placeholder="Search leagues, tournaments, fixtures..."
-              className="min-w-0 flex-1 bg-transparent text-xs text-[#0B2545] outline-none placeholder:text-[#8792A1]"
+              className="theme-search-input min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
 
-            <span className="rounded-md border border-[#DED8CD] bg-[#FBF8F2] px-2 py-1 text-[10px] font-medium text-[#8792A1]">
+            <span className="theme-kbd rounded-md border px-2 py-1 text-[10px] font-medium">
               Ctrl K
             </span>
           </label>
@@ -262,7 +262,7 @@ export function AppHeader({
                 className="fixed inset-0 z-[-1] cursor-default"
               />
 
-              <div className="absolute left-0 right-0 top-12 overflow-hidden rounded-xl border border-[#DED8CD] bg-[#FFFDF9] p-1.5 shadow-[0_18px_42px_rgba(11,37,69,0.12)]">
+              <div className="theme-search-menu absolute left-0 right-0 top-12 overflow-hidden rounded-xl border p-1.5 shadow-[0_18px_42px_rgba(11,37,69,0.12)]">
                 {results.length >
                 0 ? (
                   results.map(
@@ -279,7 +279,7 @@ export function AppHeader({
                             item.href,
                           )
                         }
-                        className="flex min-h-10 w-full items-center justify-between rounded-[9px] px-3 text-left text-xs text-[#A7B0BE] transition hover:bg-[#14212D] hover:text-[#0B2545]"
+                        className="theme-search-result flex min-h-10 w-full items-center justify-between rounded-[9px] px-3 text-left text-xs transition"
                       >
                         <span>
                           {
@@ -287,14 +287,14 @@ export function AppHeader({
                           }
                         </span>
 
-                        <span className="text-[#8792A1]">
+                        <span className="theme-muted">
                           →
                         </span>
                       </button>
                     ),
                   )
                 ) : (
-                  <p className="px-3 py-3 text-xs text-[#54657A]">
+                  <p className="theme-secondary-text px-3 py-3 text-xs">
                     No matching app section.
                   </p>
                 )}
@@ -308,38 +308,38 @@ export function AppHeader({
           <Link
             href="/notifications"
             aria-label="Notifications"
-            className="relative grid h-11 w-11 place-items-center rounded-xl border border-transparent text-[#0B2545] transition duration-200 hover:border-[#DED8CD] hover:bg-[#FBF8F2]"
+            className="theme-header-icon relative grid h-11 w-11 place-items-center rounded-xl border border-transparent transition duration-200"
           >
             ♧
 
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#E34C4C] ring-2 ring-[#FFFDF9]" />
+            <span className="theme-notification-dot absolute right-2 top-2 h-2 w-2 rounded-full ring-2" />
           </Link>
 
 
-          <div className="h-8 w-px bg-[#DED8CD]" />
+          <div className="theme-divider h-8 w-px" />
 
 
           <Link
             href="/profile"
-            className="flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200 hover:bg-[#FBF8F2]"
+            className="theme-profile-chip flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-full border border-[#D9B45A]/45 bg-[#0B2545] text-xs font-semibold text-[#D9B45A]">
+            <span className="theme-avatar grid h-9 w-9 place-items-center rounded-full border text-xs font-semibold">
               {initials}
             </span>
 
             <span className="hidden min-w-0 sm:block">
-              <span className="fc-display block max-w-[180px] truncate text-xs font-semibold tracking-[0.01em] text-[#0B2545]">
+              <span className="theme-text fc-display block max-w-[180px] truncate text-xs font-semibold tracking-[0.01em]">
                 {playerName ||
                   'Player'}
               </span>
 
-              <span className="mt-0.5 block text-[10px] text-[#54657A]">
+              <span className="theme-secondary-text mt-0.5 block text-[10px]">
                 {playerRole ||
                   'Player'}
               </span>
             </span>
 
-            <span className="hidden text-[10px] text-[#8792A1] sm:block">
+            <span className="theme-muted hidden text-[10px] sm:block">
               ▾
             </span>
           </Link>

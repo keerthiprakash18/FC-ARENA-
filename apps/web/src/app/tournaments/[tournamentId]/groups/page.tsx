@@ -853,10 +853,10 @@ export default function TournamentGroupsPage() {
                               index,
                             )
                           }
-                          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-red-400/20 text-red-300 disabled:opacity-30"
-                          aria-label="Remove group"
+                          className="min-h-10 shrink-0 rounded-xl border border-red-400/25 bg-red-400/[0.04] px-3 text-xs font-semibold text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-30"
+                          aria-label="Delete group"
                         >
-                          ÃƒÆ’Ã¢â‚¬â€
+                          Delete
                         </button>
                       ) : null}
                     </div>

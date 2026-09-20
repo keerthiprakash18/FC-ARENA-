@@ -136,7 +136,16 @@ export function ThemeProvider({
     if (
       isPublicPath(
         pathname,
-      ) ||
+      )
+    ) {
+      setSyncedAuthenticatedUser(
+        false,
+      );
+
+      return;
+    }
+
+    if (
       syncedAuthenticatedUser
     ) {
       return;

@@ -1,50 +1,127 @@
 'use client';
 
-import { FcMenuRow, FcPanel } from '@/components/fc/fc-ui';
-import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
+import {
+  useRouter,
+} from 'next/navigation';
+
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  AppShell,
+} from '@/components/app/app-shell';
+
+import {
+  FcLoadingScreen,
+  FcMenuRow,
+  FcPageHeader,
+  FcPanel,
+} from '@/components/fc/fc-ui';
+
+import {
+  getCurrentUser,
+  type CurrentUser,
+} from '@/lib/auth-client';
+
 
 export default function SettingsPage() {
+  const router =
+    useRouter();
+
+  const [
+    user,
+    setUser,
+  ] =
+    useState<CurrentUser | null>(
+      null,
+    );
+
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        setUser(
+          await getCurrentUser(),
+        );
+      } catch {
+        router.replace(
+          '/login',
+        );
+      }
+    })();
+  }, [
+    router,
+  ]);
+
+
+  if (
+    !user
+  ) {
+    return (
+      <FcLoadingScreen
+        label="Loading Settings..."
+      />
+    );
+  }
+
+
+  const playerName =
+    user.player
+      ?.identity
+      ?.inGameName ||
+    user.fullName;
+
+
   return (
-    <SecondaryFeaturePage
-      eyebrow="Account"
-      title="Settings"
-      subtitle="Account and app settings are separated into focused screens."
+    <AppShell
+      playerName={
+        playerName
+      }
+      playerRole={
+        user.role ===
+        'SUPER_ADMIN'
+          ? 'Super Admin'
+          : 'Player'
+      }
     >
-      <div className="grid gap-3 md:grid-cols-2">
-        <FcMenuRow
-          href="/profile"
-          icon="✎"
-          title="Profile"
-          description="Identity and player account details"
+      <div className="space-y-6">
+        <FcPageHeader
+          eyebrow="Account"
+          title="Settings"
+          subtitle="Manage appearance and account preferences."
         />
 
-        <FcMenuRow
-          href="/notifications"
-          icon="◉"
-          title="Notifications"
-          description="Notification center and read status"
-        />
 
-        <FcMenuRow
-          href="/privacy"
-          icon="◈"
-          title="Privacy"
-          description="Privacy and account data information"
-        />
+        <FcPanel className="p-5 sm:p-6">
+          <div className="grid gap-3">
+            <FcMenuRow
+              href="/settings/appearance"
+              icon="◐"
+              title="Appearance"
+              description="Choose the FC ARENA visual theme used across the app"
+              tone="cyan"
+            />
 
-        <FcMenuRow
-          href="/help"
-          icon="?"
-          title="Help"
-          description="FC ARENA workflow support"
-        />
+            <FcMenuRow
+              href="/notifications"
+              icon="●"
+              title="Notifications"
+              description="Review competition and system notifications"
+              tone="slate"
+            />
+
+            <FcMenuRow
+              href="/privacy"
+              icon="◉"
+              title="Privacy"
+              description="Privacy and account data information"
+              tone="slate"
+            />
+          </div>
+        </FcPanel>
       </div>
-
-      <FcPanel className="p-5">
-        <p className="text-sm leading-6 text-slate-500">
-          Appearance and theme preferences are not exposed by the current backend, so this page does not show controls that cannot be persisted.
-        </p>
-      </FcPanel>
-    </SecondaryFeaturePage>
+    </AppShell>
   );
 }

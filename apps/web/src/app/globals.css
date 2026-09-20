@@ -724,3 +724,342 @@ body {
     letter-spacing: -0.02em;
   }
 }
+
+
+/* =========================================================
+   FC ARENA — CREAM WHITE + NAVY + GOLD LUXURY SYSTEM
+   Final production visual layer. This intentionally sits last
+   so legacy dark utility colors inherit the new shared system.
+   ========================================================= */
+:root {
+  --fc-cream: #F8F5EE;
+  --fc-cream-2: #F3EFE6;
+  --fc-surface: #FFFDF9;
+  --fc-navy: #0B2545;
+  --fc-navy-2: #163A5F;
+  --fc-sidebar: #071E35;
+  --fc-sidebar-2: #0B2D4C;
+  --fc-gold: #C9972D;
+  --fc-gold-2: #D5AE5C;
+  --fc-gold-soft: #F5E8C8;
+  --fc-text: #10213A;
+  --fc-secondary: #667085;
+  --fc-muted: #8B95A5;
+  --fc-border: #E4DFD5;
+  --fc-success: #1F9D68;
+  --fc-warning: #C9972D;
+  --fc-danger: #D94B4B;
+
+  --background: #F8F5EE;
+  --panel: #FFFDF9;
+  --panel-2: #F3EFE6;
+  --border: #E4DFD5;
+  --text: #10213A;
+  --muted: #8B95A5;
+  --secondary-text: #667085;
+  --accent: #C9972D;
+  --accent-strong: #B98924;
+  --success: #1F9D68;
+  --warning: #C9972D;
+  --danger: #D94B4B;
+}
+
+html {
+  background: var(--fc-cream);
+  color-scheme: light;
+}
+
+body {
+  background: var(--fc-cream);
+  color: var(--fc-text);
+  font-family:
+    "Inter",
+    "Manrope",
+    "DM Sans",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: -0.004em;
+}
+
+.fc-display,
+.fc-display-strong {
+  font-family:
+    "Inter",
+    "Manrope",
+    "DM Sans",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-stretch: normal;
+}
+
+.fc-display {
+  letter-spacing: -0.015em;
+}
+
+.fc-display-strong {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.fc-app-shell {
+  background:
+    radial-gradient(circle at 92% 4%, rgba(213, 174, 92, 0.08), transparent 22rem),
+    var(--fc-cream);
+}
+
+.fc-main {
+  color: var(--fc-text);
+}
+
+.fc-main h1,
+.fc-main h2,
+.fc-main h3,
+.fc-main h4,
+.fc-main h5,
+.fc-main h6 {
+  color: var(--fc-text);
+}
+
+.fc-main p {
+  text-wrap: pretty;
+}
+
+.fc-stadium-surface {
+  background:
+    radial-gradient(ellipse at 78% 125%, rgba(11, 37, 69, 0.11), transparent 44%),
+    radial-gradient(circle at 92% 18%, rgba(213, 174, 92, 0.11), transparent 16rem),
+    repeating-linear-gradient(
+      90deg,
+      rgba(11, 37, 69, 0.025) 0,
+      rgba(11, 37, 69, 0.025) 1px,
+      transparent 1px,
+      transparent 82px
+    ),
+    linear-gradient(135deg, #FFFDF9 0%, #F8F5EE 58%, #F3EFE6 100%);
+}
+
+/* Legacy page surfaces -> luxury light surfaces */
+.fc-main [class~="bg-[#071019]"],
+.fc-main [class~="bg-[#0B0F14]"],
+.fc-main [class~="bg-[#05080d]"],
+.fc-main [class~="bg-[#030812]"] {
+  background-color: var(--fc-cream) !important;
+}
+
+.fc-main [class~="bg-[#0B1118]"],
+.fc-main [class~="bg-[#0B151F]"],
+.fc-main [class~="bg-[#0a1018]"],
+.fc-main [class~="bg-[#080e15]"],
+.fc-main [class~="bg-[#0E141B]"],
+.fc-main [class~="bg-[#121D28]"],
+.fc-main [class~="bg-[#121821]"],
+.fc-main [class~="bg-[#101923]"] {
+  background-color: var(--fc-surface) !important;
+}
+
+.fc-main [class~="bg-[#14212D]"],
+.fc-main [class~="bg-[#151C26]"],
+.fc-main [class~="bg-[#18212C]"],
+.fc-main [class~="bg-[#0E1A25]"],
+.fc-main [class~="bg-[#182936]"] {
+  background-color: var(--fc-cream-2) !important;
+}
+
+.fc-main [class~="bg-black/10"],
+.fc-main [class~="bg-black/[0.10]"],
+.fc-main [class~="bg-white/[0.02]"],
+.fc-main [class~="bg-white/[0.025]"],
+.fc-main [class~="bg-white/[0.03]"],
+.fc-main [class~="bg-white/[0.035]"],
+.fc-main [class~="bg-white/[0.04]"],
+.fc-main [class~="bg-white/[0.05]"] {
+  background-color: rgba(243, 239, 230, 0.72) !important;
+}
+
+/* Old dark borders -> warm subtle borders */
+.fc-main [class~="border-[#203141]"],
+.fc-main [class~="border-[#253140]"],
+.fc-main [class~="border-[#284154]"],
+.fc-main [class~="border-[#2B3948]"],
+.fc-main [class~="border-white/10"],
+.fc-main [class~="border-white/[0.10]"],
+.fc-main [class~="border-white/[0.09]"],
+.fc-main [class~="border-white/[0.08]"],
+.fc-main [class~="border-white/[0.07]"],
+.fc-main [class~="border-white/[0.06]"] {
+  border-color: var(--fc-border) !important;
+}
+
+/* Typography migration */
+.fc-main [class~="text-[#F8FAFC]"],
+.fc-main [class~="text-[#F3F6F8]"],
+.fc-main [class~="text-white"] {
+  color: var(--fc-text) !important;
+}
+
+.fc-main [class~="text-[#A7B0BE]"],
+.fc-main [class~="text-slate-300"],
+.fc-main [class~="text-slate-400"],
+.fc-main [class~="text-slate-500"] {
+  color: var(--fc-secondary) !important;
+}
+
+.fc-main [class~="text-[#6F7B8A]"],
+.fc-main [class~="text-[#536273]"],
+.fc-main [class~="text-[#8290A0]"],
+.fc-main [class~="text-slate-600"],
+.fc-main [class~="text-slate-700"] {
+  color: var(--fc-muted) !important;
+}
+
+.fc-main [class~="text-[#19B7FF]"],
+.fc-main [class~="text-[#38BDF8]"],
+.fc-main [class~="text-sky-300"],
+.fc-main [class~="text-sky-400"] {
+  color: var(--fc-gold) !important;
+}
+
+.fc-main [class~="text-[#F3B326]"],
+.fc-main [class~="text-amber-300"],
+.fc-main [class~="text-amber-400"] {
+  color: var(--fc-gold) !important;
+}
+
+.fc-main [class~="text-[#1FD18A]"],
+.fc-main [class~="text-emerald-300"],
+.fc-main [class~="text-emerald-400"] {
+  color: var(--fc-success) !important;
+}
+
+.fc-main [class~="text-[#EF5350]"],
+.fc-main [class~="text-red-300"],
+.fc-main [class~="text-red-400"] {
+  color: var(--fc-danger) !important;
+}
+
+/* Primary legacy cyan actions -> premium gold actions */
+.fc-main [class~="bg-[#19B7FF]"],
+.fc-main [class~="bg-[#38BDF8]"],
+.fc-main [class~="bg-sky-400"] {
+  background-color: var(--fc-gold) !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+.fc-main [class~="bg-[#19B7FF]"]:hover,
+.fc-main [class~="bg-[#38BDF8]"]:hover,
+.fc-main [class~="bg-sky-400"]:hover {
+  background-color: #B98924 !important;
+}
+
+.fc-main [class~="bg-[#1FD18A]"],
+.fc-main [class~="bg-emerald-400"] {
+  background-color: var(--fc-success) !important;
+}
+
+.fc-main [class~="bg-[#F3B326]"],
+.fc-main [class~="bg-amber-300"],
+.fc-main [class~="bg-amber-400"] {
+  background-color: var(--fc-gold) !important;
+}
+
+.fc-main [class~="bg-[#EF5350]"],
+.fc-main [class~="bg-red-400"] {
+  background-color: var(--fc-danger) !important;
+}
+
+/* Forms */
+.fc-main input,
+.fc-main select,
+.fc-main textarea {
+  color: var(--fc-text);
+  border-color: var(--fc-border);
+  background: #FFFFFF;
+  box-shadow: none;
+}
+
+.fc-main input::placeholder,
+.fc-main textarea::placeholder {
+  color: var(--fc-muted);
+}
+
+.fc-main input:focus,
+.fc-main select:focus,
+.fc-main textarea:focus {
+  border-color: rgba(201, 151, 45, 0.58);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(201, 151, 45, 0.09);
+}
+
+/* Tables and separators */
+.fc-main table {
+  color: var(--fc-text);
+}
+
+.fc-main thead {
+  background: var(--fc-cream-2);
+  color: var(--fc-navy);
+}
+
+.fc-main tbody tr {
+  border-color: var(--fc-border);
+}
+
+.fc-main hr,
+.fc-main [class~="divide-[#203141]"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--fc-border);
+}
+
+/* Comfortable focus and motion */
+.fc-main button,
+.fc-main a,
+.fc-main input,
+.fc-main select,
+.fc-main textarea {
+  transition-duration: 180ms;
+}
+
+.fc-main button:focus-visible,
+.fc-main a:focus-visible,
+.fc-main input:focus-visible,
+.fc-main select:focus-visible,
+.fc-main textarea:focus-visible {
+  outline: 2px solid rgba(201, 151, 45, 0.72);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(213, 174, 92, 0.30);
+  color: var(--fc-navy);
+}
+
+* {
+  scrollbar-color: rgba(11, 37, 69, 0.22) rgba(243, 239, 230, 0.72);
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(243, 239, 230, 0.72);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(11, 37, 69, 0.20);
+}
+
+@media (max-width: 640px) {
+  .fc-main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .fc-main h1 {
+    font-size: clamp(26px, 8vw, 32px);
+  }
+}

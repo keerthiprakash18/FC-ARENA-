@@ -412,19 +412,19 @@ function DesktopNavItem({
       }
       className={`group relative flex h-[56px] items-center gap-4 overflow-hidden rounded-[13px] border px-[17px] text-[15px] font-semibold transition duration-200 ${
         selected
-          ? 'border-[#38BDF8]/30 bg-[linear-gradient(90deg,rgba(14,165,233,0.22),rgba(14,165,233,0.08))] text-white shadow-[0_8px_24px_rgba(14,165,233,0.07)]'
-          : 'border-transparent bg-transparent text-[#C5CED8] hover:border-white/[0.035] hover:bg-white/[0.045] hover:text-white'
+          ? 'border-[#D5AE5C]/35 bg-[#D5AE5C]/[0.14] text-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
+          : 'border-transparent bg-transparent text-[#D5DCE5] hover:border-white/[0.05] hover:bg-white/[0.055] hover:text-white'
       }`}
     >
       {selected ? (
-        <span className="absolute inset-y-2.5 left-0 w-[3px] rounded-r-full bg-[#22B8F5]" />
+        <span className="absolute inset-y-2.5 left-0 w-[3px] rounded-r-full bg-[#D5AE5C]" />
       ) : null}
 
       <span
         className={`grid h-7 w-7 shrink-0 place-items-center transition duration-200 ${
           selected
-            ? 'text-[#38BDF8]'
-            : 'text-[#83919F] group-hover:text-[#38BDF8]'
+            ? 'text-[#E0B95F]'
+            : 'text-[#9BA8B6] group-hover:text-[#E0B95F]'
         }`}
       >
         <SidebarIcon
@@ -453,9 +453,9 @@ function QuickActionItem({
   return (
     <Link
       href={href}
-      className="group flex h-[46px] items-center gap-3 rounded-[11px] border border-[#1C2A37] bg-[#0B151F]/78 px-3.5 text-[14px] font-medium text-[#A2AEBB] transition duration-200 hover:border-[#294051] hover:bg-[#0E1A25] hover:text-[#F3F6F8]"
+      className="group flex h-[46px] items-center gap-3 rounded-[11px] border border-[#173A57] bg-[#0B2D4C]/55 px-3.5 text-[14px] font-medium text-[#D5DCE5] transition duration-200 hover:border-[#36546E] hover:bg-[#0B2D4C] hover:text-white"
     >
-      <span className="grid h-7 w-7 shrink-0 place-items-center text-[#83919F] transition duration-200 group-hover:text-[#22B8F5]">
+      <span className="grid h-7 w-7 shrink-0 place-items-center text-[#9BA8B6] transition duration-200 group-hover:text-[#E0B95F]">
         <SidebarIcon
           name={icon}
           className="h-[19px] w-[19px]"
@@ -466,7 +466,7 @@ function QuickActionItem({
         {label}
       </span>
 
-      <span className="text-[#52606E] transition duration-200 group-hover:translate-x-0.5 group-hover:text-[#83919F]">
+      <span className="text-[#758697] transition duration-200 group-hover:translate-x-0.5 group-hover:text-[#D5AE5C]">
         <SidebarIcon
           name="chevron"
           className="h-4 w-4"
@@ -545,14 +545,14 @@ export function AppShell({
 
 
   return (
-    <div className="min-h-screen bg-[#071019] text-[#F8FAFC]">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[270px] border-r border-[#1C2A37] bg-[#071019] lg:flex lg:flex-col">
-        <div className="shrink-0 border-b border-[#1C2A37] px-[22px] py-5">
+    <div className="fc-app-shell min-h-screen bg-[#F8F5EE] text-[#10213A]">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[270px] border-r border-[#173A57] bg-[#071E35] lg:flex lg:flex-col">
+        <div className="shrink-0 border-b border-[#173A57] px-[22px] py-5">
           <Link
             href="/dashboard"
             className="flex min-h-[58px] items-center gap-3.5"
           >
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[13px] border border-[#214154] bg-[#0B151F] text-[#22B8F5] shadow-[0_8px_22px_rgba(0,0,0,0.18)]">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[13px] border border-[#36546E] bg-[#0B2D4C] text-[#D5AE5C] shadow-[0_8px_22px_rgba(0,0,0,0.18)]">
               <svg
                 viewBox="0 0 48 48"
                 fill="none"
@@ -581,11 +581,11 @@ export function AppShell({
             </span>
 
             <span className="min-w-0">
-              <span className="block text-[22px] font-bold leading-none tracking-[-0.025em] text-[#F3F6F8]">
-                FC <span className="text-[#22B8F5]">ARENA</span>
+              <span className="block text-[22px] font-bold leading-none tracking-[-0.025em] text-white">
+                FC <span className="text-[#D5AE5C]">ARENA</span>
               </span>
 
-              <span className="mt-2 block text-[11px] font-medium tracking-[0.045em] text-[#677481]">
+              <span className="mt-2 block text-[11px] font-medium tracking-[0.045em] text-[#9BA8B6]">
                 PLAY • COMPETE • BELONG
               </span>
             </span>
@@ -594,7 +594,7 @@ export function AppShell({
 
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#687684]">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8391A0]">
             Main
           </p>
 
@@ -628,10 +628,10 @@ export function AppShell({
           </nav>
 
 
-          <div className="my-6 h-px bg-[#1C2A37]" />
+          <div className="my-6 h-px bg-[#173A57]" />
 
 
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#687684]">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8391A0]">
             Quick Actions
           </p>
 
@@ -661,32 +661,32 @@ export function AppShell({
         </div>
 
 
-        <div className="shrink-0 border-t border-[#1C2A37] bg-[#071019] px-5 pb-4 pt-4">
+        <div className="shrink-0 border-t border-[#173A57] bg-[#071E35] px-5 pb-4 pt-4">
           <Link
             href="/profile"
-            className="group flex items-center gap-3 rounded-[13px] border border-[#1C2A37] bg-[#0B151F] p-3 transition duration-200 hover:border-[#294051] hover:bg-[#0E1A25]"
+            className="group flex items-center gap-3 rounded-[13px] border border-[#173A57] bg-[#0B2D4C]/70 p-3 transition duration-200 hover:border-[#36546E] hover:bg-[#0B2D4C]"
           >
-            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#214154] bg-[#0E1A25] text-xs font-semibold text-[#22B8F5]">
+            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#214154] bg-[#0E1A25] text-xs font-semibold text-[#D5AE5C]">
               {
                 initials
               }
 
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0B151F] bg-[#22C55E]" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#071E35] bg-[#22C55E]" />
             </span>
 
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[14px] font-semibold text-[#F3F6F8]">
+              <span className="block truncate text-[14px] font-semibold text-white">
                 {playerName ||
                   'FC ARENA Player'}
               </span>
 
-              <span className="mt-0.5 block text-[12px] font-normal text-[#677481]">
+              <span className="mt-0.5 block text-[12px] font-normal text-[#9BA8B6]">
                 {playerRole ||
                   'Player'}
               </span>
             </span>
 
-            <span className="text-[#52606E] transition duration-200 group-hover:text-[#83919F]">
+            <span className="text-[#7D8B99] transition duration-200 group-hover:text-[#83919F]">
               <SidebarIcon
                 name="chevron"
                 className="h-4 w-4"
@@ -718,16 +718,16 @@ export function AppShell({
 
           <div className="mt-4 flex items-end justify-between gap-3 px-1">
             <div>
-              <p className="text-[10px] font-medium text-[#52606E]">
+              <p className="text-[10px] font-medium text-[#7D8B99]">
                 FC ARENA v1.0.0
               </p>
 
-              <p className="mt-1 text-[9px] font-medium tracking-[0.08em] text-[#3F4C58]">
+              <p className="mt-1 text-[9px] font-medium tracking-[0.08em] text-[#738392]">
                 MORE THAN A GAME
               </p>
             </div>
 
-            <span className="text-[10px] text-[#3F4C58]">
+            <span className="text-[10px] text-[#738392]">
               ●
             </span>
           </div>
@@ -746,7 +746,7 @@ export function AppShell({
         />
 
         <main
-          className={`mx-auto min-h-[calc(100vh-4.25rem)] w-full max-w-[1440px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-8 lg:pb-10 lg:pt-7 ${
+          className={`fc-main mx-auto min-h-[calc(100vh-4.25rem)] w-full max-w-[1280px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-8 lg:pb-10 lg:pt-7 ${
             showBottomNavigation
               ? 'pb-28'
               : 'pb-8'

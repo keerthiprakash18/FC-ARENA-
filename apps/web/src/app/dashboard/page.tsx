@@ -1179,7 +1179,7 @@ export default function DashboardPage() {
                   href={
                     `/tournaments/${activeTournament.id}`
                   }
-                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#0B2545] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
+                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#0B2545] transition hover:border-[#D9B45A]/45 hover:bg-[#182936]"
                 >
                   View Tournament →
                 </Link>

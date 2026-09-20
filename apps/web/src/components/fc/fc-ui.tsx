@@ -144,7 +144,7 @@ export function FcStatCard({
         : tone === 'red'
           ? 'text-[#D53F3F] bg-[#E34C4C]/[0.06] border-[#E34C4C]/15'
           : tone === 'slate'
-            ? 'text-[#54657A] bg-white/[0.035] border-white/[0.06]'
+            ? 'text-[#54657A] bg-[#FBF8F2] border-[#DED8CD]'
             : 'text-[#A06B13] bg-[#FAF2DD] border-[#D9B45A]/30';
 
   return (
@@ -310,7 +310,7 @@ export function FcActionRow({
         </span>
       ) : null}
 
-      <span className="text-[#8792A1] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
+      <span className="text-[#8792A1] transition group-hover:translate-x-0.5 group-hover:text-[#C9972D]">
         ›
       </span>
     </Link>
@@ -434,14 +434,14 @@ export function FcQuickActionTile({
 }) {
   const accent =
     tone === 'emerald'
-      ? 'text-[#1FD18A] bg-[#1FD18A]/[0.08] border-[#1FD18A]/20'
+      ? 'text-[#1D875C] bg-[#22A06B]/[0.08] border-[#22A06B]/20'
       : tone === 'amber'
-        ? 'text-[#F3B326] bg-[#F3B326]/[0.08] border-[#F3B326]/20'
+        ? 'text-[#A06B13] bg-[#FAF2DD] border-[#D9B45A]/30'
         : tone === 'red'
-          ? 'text-[#EF5350] bg-[#EF5350]/[0.08] border-[#EF5350]/20'
+          ? 'text-[#D53F3F] bg-[#E34C4C]/[0.06] border-[#E34C4C]/15'
           : tone === 'slate'
             ? 'text-[#54657A] bg-white/[0.035] border-white/[0.06]'
-            : 'text-[#19B7FF] bg-[#19B7FF]/[0.08] border-[#19B7FF]/20';
+            : 'text-[#A06B13] bg-[#FAF2DD] border-[#D9B45A]/30';
 
   return (
     <Link

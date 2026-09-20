@@ -686,14 +686,13 @@ export default function DashboardPage() {
         ) : null}
 
 
-        <section className="fc-stadium-surface relative overflow-hidden rounded-2xl border border-[#203141] shadow-[0_12px_32px_rgba(0,0,0,0.22)]">
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,13,22,0.96)_0%,rgba(5,17,27,0.82)_42%,rgba(4,17,27,0.36)_74%,rgba(3,13,22,0.84)_100%)]" />
+        <section className="fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border border-[#DED8CD] shadow-[0_8px_24px_rgba(20,33,50,0.07)]">
+          <div className="fc-hero-art" />
+          <div className="fc-hero-right hidden lg:block" />
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(25,183,255,0.45),transparent)]" />
-
-          <div className="relative grid min-h-[165px] gap-5 px-5 py-6 sm:px-7 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-8">
+          <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
             <div className="hidden lg:block">
-              <div className="grid h-20 w-20 place-items-center rounded-full border-[3px] border-[#19B7FF]/25 bg-[#071019]/85 shadow-[0_0_0_8px_rgba(25,183,255,0.03)]">
+              <div className="grid h-[86px] w-[86px] place-items-center rounded-full border-[3px] border-[#D9B45A]/55 bg-[#0B2545] shadow-[0_0_0_8px_rgba(217,180,90,0.09)]">
                 <FcCrest
                   name={
                     inGameName
@@ -707,24 +706,23 @@ export default function DashboardPage() {
               </div>
             </div>
 
-
-            <div className="min-w-0">
-              <p className="fc-display text-[12px] font-semibold tracking-[0.22em] text-[#19B7FF]">
+            <div className="min-w-0 lg:pr-5">
+              <p className="text-[12px] font-bold tracking-[0.16em] text-[#B17C17]">
                 WELCOME BACK
               </p>
 
-              <h1 className="fc-display-strong mt-1 truncate text-[34px] leading-none text-[#F8FAFC] sm:text-[42px] lg:text-[48px]">
+              <h1 className="mt-2 truncate text-[38px] font-bold leading-[0.98] tracking-[-0.035em] text-[#0B2545] sm:text-[44px] lg:text-[48px]">
                 {
                   inGameName
                 }
               </h1>
 
-              <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#A7B0BE] sm:text-sm">
+              <p className="mt-3 max-w-2xl text-[14px] leading-6 text-[#54657A]">
                 Your player identity, form and next competition action in one place.
               </p>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2 lg:hidden">
-                <span className="font-mono text-[11px] text-[#19B7FF]">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-[#D9B45A]/35 bg-[#FAF2DD] px-3 py-1.5 font-mono text-[11px] font-semibold text-[#A06B13]">
                   {
                     playerCode
                   }
@@ -742,29 +740,39 @@ export default function DashboardPage() {
                   ?.isVerified ? (
                   <FcStatusBadge
                     label="Verified"
-                    tone="cyan"
+                    tone="amber"
                   />
                 ) : null}
               </div>
             </div>
 
+            <div className="relative hidden h-full min-h-[168px] text-white lg:block">
+              <div className="absolute right-2 top-2 text-right">
+                <p className="rotate-[-5deg] text-[21px] font-semibold italic leading-[0.95] tracking-[-0.025em] text-[#F7E7BE]">
+                  More Than
+                  <br />
+                  A Game
+                </p>
+              </div>
 
-            <div className="hidden text-right xl:block">
-              <p className="fc-display-strong rotate-[-4deg] text-[24px] leading-[0.92] text-[#DCEBFA]/75">
-                MORE
-                <br />
-                THAN A GAME
-              </p>
+              <div className="absolute bottom-1 right-2 text-right">
+                <p className="text-[10px] font-semibold tracking-[0.18em] text-[#D9B45A]">
+                  PLAY
+                  <br />
+                  COMPETE
+                  <br />
+                  BELONG
+                </p>
 
-              <p className="mt-4 font-mono text-[10px] tracking-[0.08em] text-[#6F7B8A]">
-                {
-                  playerCode
-                }
-              </p>
+                <p className="mt-3 font-mono text-[10px] tracking-[0.08em] text-white/55">
+                  {
+                    playerCode
+                  }
+                </p>
+              </div>
             </div>
           </div>
         </section>
-
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Link href="/career">

@@ -137,18 +137,10 @@ export function FcStatCard({
   icon?: ReactNode;
 }) {
   const iconClass =
-    tone === 'emerald'
-      ? 'text-[#1D875C] bg-[#22A06B]/[0.08] border-[#22A06B]/15'
-      : tone === 'amber'
-        ? 'text-[#A06B13] bg-[#FAF2DD] border-[#D9B45A]/30'
-        : tone === 'red'
-          ? 'text-[#D53F3F] bg-[#E34C4C]/[0.06] border-[#E34C4C]/15'
-          : tone === 'slate'
-            ? 'text-[#54657A] bg-[#FBF8F2] border-[#DED8CD]'
-            : 'text-[#A06B13] bg-[#FAF2DD] border-[#D9B45A]/30';
+    'text-[#A06B13] bg-[#FAF2DD] border-[#D9B45A]/30';
 
   return (
-    <article className="h-full rounded-2xl border border-[#DED8CD] bg-[#FFFDF9] p-4 shadow-[0_4px_16px_rgba(20,33,50,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#D9B45A]/55 hover:shadow-[0_8px_24px_rgba(20,33,50,0.07)] sm:p-5">
+    <article className="h-full min-h-[145px] rounded-2xl border border-[#DED8CD] bg-[#FFFDF9] p-4 shadow-[0_4px_16px_rgba(20,33,50,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#D9B45A]/55 hover:shadow-[0_8px_24px_rgba(20,33,50,0.07)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="fc-display text-[13px] font-medium text-[#54657A]">

@@ -724,3 +724,436 @@ body {
     letter-spacing: -0.02em;
   }
 }
+
+
+/* =========================================================
+   FC ARENA — REFERENCE-LOCKED CREAM / NAVY / GOLD DASHBOARD
+   ========================================================= */
+:root {
+  --background: #F7F3EB;
+  --panel: #FFFDF9;
+  --panel-2: #FBF8F2;
+  --border: #DED8CD;
+  --text: #0B2545;
+  --muted: #8792A1;
+  --secondary-text: #54657A;
+  --accent: #C9972D;
+  --accent-strong: #B9811E;
+  --success: #22A06B;
+  --danger: #E34C4C;
+
+  --fc-bg: #F7F3EB;
+  --fc-sidebar: #061E35;
+  --fc-panel: #FFFDF9;
+  --fc-panel-2: #FBF8F2;
+  --fc-elevated: #FAF7F0;
+  --fc-border: #DED8CD;
+  --fc-text: #0B2545;
+  --fc-secondary: #54657A;
+  --fc-muted: #8792A1;
+  --fc-cyan: #C9972D;
+  --fc-emerald: #22A06B;
+}
+
+html {
+  background: #F7F3EB;
+  color-scheme: light;
+}
+
+body {
+  background:
+    radial-gradient(circle at 84% 2%, rgba(217, 180, 90, 0.08), transparent 24rem),
+    #F7F3EB;
+  color: #0B2545;
+  font-family:
+    "Inter",
+    "Manrope",
+    "Space Grotesk",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.004em;
+}
+
+.fc-display,
+.fc-display-strong {
+  font-family:
+    "Inter",
+    "Manrope",
+    "Space Grotesk",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-stretch: normal;
+}
+
+.fc-display {
+  letter-spacing: -0.015em;
+}
+
+.fc-display-strong {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.fc-main {
+  color: #0B2545;
+}
+
+.fc-main h1,
+.fc-main h2,
+.fc-main h3,
+.fc-main h4,
+.fc-main h5,
+.fc-main h6 {
+  color: #0B2545;
+}
+
+.fc-sidebar-art::before {
+  content: "";
+  position: absolute;
+  left: -44px;
+  right: -44px;
+  bottom: 150px;
+  height: 300px;
+  pointer-events: none;
+  opacity: 0.10;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(217,180,90,0.60), transparent 42%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 40px,
+      rgba(255,255,255,0.14) 40px,
+      rgba(255,255,255,0.14) 41px,
+      transparent 41px,
+      transparent 82px
+    ),
+    linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.08) 100%);
+  mask-image: linear-gradient(to bottom, transparent, black 30%, black 85%, transparent);
+}
+
+.fc-sidebar-art::after {
+  content: "MORE THAN A GAME";
+  position: absolute;
+  left: 24px;
+  bottom: 190px;
+  pointer-events: none;
+  color: rgba(255,255,255,0.26);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  transform: rotate(-3deg);
+}
+
+/* Legacy dark app utilities rendered inside the main canvas */
+.fc-main [class~="bg-[#071019]"],
+.fc-main [class~="bg-[#0B0F14]"],
+.fc-main [class~="bg-[#030812]"],
+.fc-main [class~="bg-[#05080d]"] {
+  background-color: #F7F3EB !important;
+}
+
+.fc-main [class~="bg-[#0B1118]"],
+.fc-main [class~="bg-[#0B151F]"],
+.fc-main [class~="bg-[#101923]"],
+.fc-main [class~="bg-[#121821]"],
+.fc-main [class~="bg-[#121D28]"],
+.fc-main [class~="bg-[#0a1018]"] {
+  background-color: #FFFDF9 !important;
+}
+
+.fc-main [class~="bg-[#14212D]"],
+.fc-main [class~="bg-[#151C26]"],
+.fc-main [class~="bg-[#18212C]"],
+.fc-main [class~="bg-[#182936]"],
+.fc-main [class~="bg-[#0E1A25]"] {
+  background-color: #FAF7F0 !important;
+}
+
+.fc-main [class~="bg-white/[0.02]"],
+.fc-main [class~="bg-white/[0.025]"],
+.fc-main [class~="bg-white/[0.03]"],
+.fc-main [class~="bg-white/[0.035]"],
+.fc-main [class~="bg-white/[0.04]"],
+.fc-main [class~="bg-white/[0.05]"] {
+  background-color: rgba(251, 248, 242, 0.82) !important;
+}
+
+.fc-main [class~="border-[#203141]"],
+.fc-main [class~="border-[#253140]"],
+.fc-main [class~="border-[#284154]"],
+.fc-main [class~="border-[#2B3948]"],
+.fc-main [class~="border-white/10"],
+.fc-main [class~="border-white/[0.10]"],
+.fc-main [class~="border-white/[0.09]"],
+.fc-main [class~="border-white/[0.08]"],
+.fc-main [class~="border-white/[0.07]"],
+.fc-main [class~="border-white/[0.06]"] {
+  border-color: #DED8CD !important;
+}
+
+.fc-main [class~="text-[#F8FAFC]"],
+.fc-main [class~="text-[#F3F6F8]"],
+.fc-main [class~="text-white"] {
+  color: #0B2545 !important;
+}
+
+.fc-main [class~="text-[#A7B0BE]"],
+.fc-main [class~="text-slate-300"],
+.fc-main [class~="text-slate-400"],
+.fc-main [class~="text-slate-500"] {
+  color: #54657A !important;
+}
+
+.fc-main [class~="text-[#6F7B8A]"],
+.fc-main [class~="text-[#536273]"],
+.fc-main [class~="text-[#8290A0]"],
+.fc-main [class~="text-slate-600"],
+.fc-main [class~="text-slate-700"] {
+  color: #8792A1 !important;
+}
+
+.fc-main [class~="text-[#19B7FF]"],
+.fc-main [class~="text-[#38BDF8]"],
+.fc-main [class~="text-sky-300"],
+.fc-main [class~="text-sky-400"],
+.fc-main [class~="text-[#F3B326]"],
+.fc-main [class~="text-amber-300"],
+.fc-main [class~="text-amber-400"] {
+  color: #C9972D !important;
+}
+
+.fc-main [class~="text-[#1FD18A]"],
+.fc-main [class~="text-emerald-300"],
+.fc-main [class~="text-emerald-400"] {
+  color: #22A06B !important;
+}
+
+.fc-main [class~="text-[#EF5350]"],
+.fc-main [class~="text-red-300"],
+.fc-main [class~="text-red-400"] {
+  color: #E34C4C !important;
+}
+
+.fc-main [class~="bg-[#19B7FF]"],
+.fc-main [class~="bg-[#38BDF8]"],
+.fc-main [class~="bg-sky-400"] {
+  background: linear-gradient(135deg, #B9811E, #D5A33D) !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+.fc-main [class~="bg-[#1FD18A]"],
+.fc-main [class~="bg-emerald-400"] {
+  background-color: #22A06B !important;
+}
+
+.fc-main [class~="bg-[#F3B326]"],
+.fc-main [class~="bg-amber-300"],
+.fc-main [class~="bg-amber-400"] {
+  background-color: #C9972D !important;
+}
+
+.fc-main [class~="bg-[#EF5350]"],
+.fc-main [class~="bg-red-400"] {
+  background-color: #E34C4C !important;
+}
+
+.fc-main input,
+.fc-main select,
+.fc-main textarea {
+  color: #0B2545;
+  border-color: #DED8CD;
+  background: #FFFDF9;
+  box-shadow: none;
+}
+
+.fc-main input::placeholder,
+.fc-main textarea::placeholder {
+  color: #8792A1;
+}
+
+.fc-main input:focus,
+.fc-main select:focus,
+.fc-main textarea:focus {
+  border-color: rgba(201, 151, 45, 0.62);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(201, 151, 45, 0.10);
+}
+
+.fc-main button:focus-visible,
+.fc-main a:focus-visible,
+.fc-main input:focus-visible,
+.fc-main select:focus-visible,
+.fc-main textarea:focus-visible {
+  outline: 2px solid rgba(201,151,45,0.70);
+  outline-offset: 2px;
+}
+
+.fc-stadium-surface {
+  background:
+    radial-gradient(ellipse at 63% 115%, rgba(11,37,69,0.16), transparent 45%),
+    radial-gradient(circle at 86% 24%, rgba(217,180,90,0.15), transparent 13rem),
+    repeating-linear-gradient(
+      90deg,
+      rgba(11,37,69,0.028) 0,
+      rgba(11,37,69,0.028) 1px,
+      transparent 1px,
+      transparent 78px
+    ),
+    linear-gradient(135deg, #FFFDF9 0%, #FBF8F2 56%, #F3E4BD 100%);
+}
+
+.fc-hero-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fc-hero-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 60% 100%, rgba(11,37,69,0.16), transparent 38%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 56px,
+      rgba(11,37,69,0.035) 56px,
+      rgba(11,37,69,0.035) 57px,
+      transparent 57px,
+      transparent 112px
+    );
+  opacity: 0.9;
+}
+
+.fc-hero-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 38%;
+  height: 100%;
+  background:
+    linear-gradient(90deg, rgba(255,253,249,0) 0%, rgba(7,28,51,0.58) 24%, rgba(7,28,51,0.96) 100%),
+    radial-gradient(circle at 62% 38%, rgba(217,180,90,0.30), transparent 18%),
+    #071C33;
+}
+
+.fc-hero-right::before {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 150px;
+  right: 112px;
+  bottom: -14px;
+  border-radius: 42% 42% 24% 24%;
+  background:
+    radial-gradient(circle at 50% 14%, #0B2545 0 17px, transparent 18px),
+    linear-gradient(180deg, #0B2545 0%, #061E35 100%);
+  transform: skewX(-3deg);
+  box-shadow: 0 0 0 1px rgba(217,180,90,0.15);
+}
+
+.fc-hero-right::after {
+  content: "";
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  right: 52px;
+  bottom: 27px;
+  border-radius: 50%;
+  border: 2px solid rgba(217,180,90,0.55);
+  background:
+    radial-gradient(circle at 35% 35%, #FFFDF9 0 5px, transparent 6px),
+    conic-gradient(from 18deg, #0B2545 0 12%, #FFFDF9 12% 24%, #0B2545 24% 36%, #FFFDF9 36% 48%, #0B2545 48% 60%, #FFFDF9 60% 72%, #0B2545 72% 84%, #FFFDF9 84% 100%);
+  box-shadow: 0 7px 22px rgba(0,0,0,0.24);
+}
+
+.fc-luxury-card {
+  background: #FFFDF9;
+  border: 1px solid #DED8CD;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(20,33,50,0.05);
+}
+
+.fc-luxury-info {
+  background: #FAF7F0;
+  border: 1px solid #E3DCCF;
+  border-radius: 12px;
+}
+
+.fc-gold-cta {
+  min-height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #B9811E, #D5A33D);
+  color: #FFFFFF !important;
+  font-weight: 700;
+  box-shadow: 0 7px 18px rgba(185,129,30,0.18);
+}
+
+.fc-gold-cta:hover {
+  filter: brightness(0.98);
+  transform: translateY(-1px);
+}
+
+.primary-button {
+  min-height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #B9811E, #D5A33D);
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.primary-button:hover {
+  background: linear-gradient(135deg, #A97317, #C9972D);
+  transform: translateY(-1px);
+  filter: none;
+}
+
+.secondary-button {
+  min-height: 46px;
+  border: 1px solid #DED8CD;
+  border-radius: 10px;
+  background: #FBF8F2;
+  color: #0B2545;
+}
+
+.text-link {
+  color: #B17C17;
+}
+
+::selection {
+  background: rgba(217,180,90,0.28);
+  color: #0B2545;
+}
+
+* {
+  scrollbar-color: rgba(11,37,69,0.22) rgba(251,248,242,0.72);
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(251,248,242,0.72);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(11,37,69,0.20);
+}
+
+@media (max-width: 640px) {
+  .fc-main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

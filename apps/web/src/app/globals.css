@@ -1063,3 +1063,42 @@ body {
     font-size: clamp(26px, 8vw, 32px);
   }
 }
+
+
+/* Luxury action contrast + legacy hover normalization */
+.fc-main [class~="bg-[#C9972D]"],
+.fc-main [class~="bg-[#B98924]"],
+.fc-main [class~="bg-[#0B2545]"],
+.fc-main [class~="bg-[#163A5F]"] {
+  color: #FFFFFF !important;
+}
+
+.fc-main [class~="hover:bg-[#14212D]"]:hover,
+.fc-main [class~="hover:bg-[#151C26]"]:hover,
+.fc-main [class~="hover:bg-[#182936]"]:hover,
+.fc-main [class~="hover:bg-[#121D28]"]:hover {
+  background-color: var(--fc-cream-2) !important;
+}
+
+.fc-main [class~="hover:border-[#19B7FF]/40"]:hover,
+.fc-main [class~="hover:border-[#38BDF8]/35"]:hover,
+.fc-main [class~="hover:border-[#2D4356]"]:hover {
+  border-color: rgba(201, 151, 45, 0.48) !important;
+}
+
+.fc-main [class~="hover:text-[#19B7FF]"]:hover,
+.fc-main [class~="hover:text-[#38BDF8]"]:hover {
+  color: var(--fc-gold) !important;
+}
+
+.fc-main [class~="text-[#071018]"],
+.fc-main [class~="text-[#071019]"],
+.fc-main [class~="text-black"] {
+  color: var(--fc-text);
+}
+
+.fc-main [class~="bg-[#C9972D]"][class~="text-[#071018]"],
+.fc-main [class~="bg-[#C9972D]"][class~="text-[#071019]"],
+.fc-main [class~="bg-[#C9972D]"][class~="text-black"] {
+  color: #FFFFFF !important;
+}

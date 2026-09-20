@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
+import {
+  applyThemePreference,
+  type ThemePreference,
+} from '@/lib/theme';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,15 +23,47 @@ export default function LoginPage() {
     const form = new FormData(event.currentTarget);
 
     try {
-      await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: String(form.get('email') ?? ''),
-          password: String(form.get('password') ?? ''),
-        }),
-      });
+      const response =
+        await apiRequest<{
+          success: true;
+          data: {
+            user: {
+              themePreference:
+                ThemePreference;
+            };
+          };
+          error: null;
+        }>(
+          '/auth/login',
+          {
+            method:
+              'POST',
+            body:
+              JSON.stringify({
+                email:
+                  String(
+                    form.get(
+                      'email',
+                    ) ?? '',
+                  ),
+                password:
+                  String(
+                    form.get(
+                      'password',
+                    ) ?? '',
+                  ),
+              }),
+          },
+        );
 
-      router.push('/dashboard');
+      applyThemePreference(
+        response.data.user
+          .themePreference,
+      );
+
+      router.push(
+        '/dashboard',
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.');
     } finally {

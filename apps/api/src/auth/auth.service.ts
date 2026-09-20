@@ -28,6 +28,7 @@ import type { RegisterDto } from './dto/register.dto.js';
 import type { ResendVerificationDto } from './dto/resend-verification.dto.js';
 import type { ResetPasswordDto } from './dto/reset-password.dto.js';
 import type { VerifyEmailDto } from './dto/verify-email.dto.js';
+import type { ThemePreferenceValue } from './dto/update-theme-preference.dto.js';
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
 const REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60;
@@ -576,13 +577,21 @@ export class AuthService {
       role: user.role,
     });
 
+    const themePreference =
+      await this.getThemePreference(
+        user.id,
+      );
+
     return {
       success: true,
       data: {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresIn: ACCESS_TOKEN_SECONDS,
-        user: this.publicUser(user),
+        user: this.publicUser({
+          ...user,
+          themePreference,
+        }),
       },
       error: null,
     };
@@ -680,13 +689,21 @@ export class AuthService {
       }),
     ]);
 
+    const themePreference =
+      await this.getThemePreference(
+        session.user.id,
+      );
+
     return {
       success: true,
       data: {
         accessToken: newTokens.accessToken,
         refreshToken: newTokens.refreshToken,
         expiresIn: ACCESS_TOKEN_SECONDS,
-        user: this.publicUser(session.user),
+        user: this.publicUser({
+          ...session.user,
+          themePreference,
+        }),
       },
       error: null,
     };
@@ -751,13 +768,87 @@ export class AuthService {
       });
     }
 
+    const themePreference =
+      await this.getThemePreference(
+        user.id,
+      );
+
     return {
       success: true,
       data: {
-        user: this.publicUser(user),
+        user: this.publicUser({
+          ...user,
+          themePreference,
+        }),
       },
       error: null,
     };
+  }
+
+  async updateThemePreference(
+    userId: string,
+    themePreference: ThemePreferenceValue,
+  ) {
+    const updated =
+      await this.prisma.$executeRaw`
+        UPDATE "users"
+        SET
+          "themePreference" =
+            ${themePreference}::"ThemePreference",
+          "updatedAt" = NOW()
+        WHERE "id" = ${userId}::uuid
+      `;
+
+    if (
+      updated ===
+      0
+    ) {
+      throw new UnauthorizedException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ACCOUNT_NOT_FOUND',
+          message:
+            'Account could not be found.',
+        },
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        message:
+          'Theme preference updated.',
+        themePreference,
+      },
+      error: null,
+    };
+  }
+
+  private async getThemePreference(
+    userId: string,
+  ): Promise<ThemePreferenceValue> {
+    const rows =
+      await this.prisma.$queryRaw<
+        Array<{
+          themePreference:
+            ThemePreferenceValue;
+        }>
+      >`
+        SELECT
+          "themePreference"
+        FROM "users"
+        WHERE "id" =
+          ${userId}::uuid
+        LIMIT 1
+      `;
+
+    return (
+      rows[0]
+        ?.themePreference ??
+      'CLASSIC_BLUE'
+    );
   }
 
   private async getLatestOtp(
@@ -998,6 +1089,8 @@ export class AuthService {
     phoneNumber: string | null;
     role: string;
     status: string;
+    themePreference:
+      ThemePreferenceValue;
     player: {
       playerCode: string;
       profileImageUrl: string | null;
@@ -1015,6 +1108,8 @@ export class AuthService {
       phoneNumber: user.phoneNumber,
       role: user.role,
       status: user.status,
+      themePreference:
+        user.themePreference,
       player: user.player
         ? {
             playerCode: user.player.playerCode,

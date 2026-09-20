@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -17,6 +18,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { ResendVerificationDto } from './dto/resend-verification.dto.js';
 import { VerifyEmailDto } from './dto/verify-email.dto.js';
+import { UpdateThemePreferenceDto } from './dto/update-theme-preference.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 
 const REFRESH_COOKIE_NAME = 'fc_arena_refresh_token';
@@ -116,6 +118,21 @@ export class AuthController {
     });
 
     return result;
+  }
+
+  @Patch('preferences/theme')
+  @UseGuards(JwtAuthGuard)
+  async updateThemePreference(
+    @Req()
+    request: Request & {
+      user: AccessTokenPayload;
+    },
+    @Body() dto: UpdateThemePreferenceDto,
+  ) {
+    return this.authService.updateThemePreference(
+      request.user.sub,
+      dto.themePreference,
+    );
   }
 
   @Get('me')

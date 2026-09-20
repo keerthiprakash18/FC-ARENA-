@@ -222,6 +222,15 @@ export default function TournamentsPage() {
     useState('');
 
 
+  const [
+    deletingTournamentId,
+    setDeletingTournamentId,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+
   useEffect(() => {
     async function load() {
       try {
@@ -442,6 +451,91 @@ export default function TournamentsPage() {
         tournaments,
       ],
     );
+
+
+  async function deleteTournament(
+    tournament:
+      Tournament,
+  ) {
+    if (
+      !selectedMembership
+        ?.adminRole
+    ) {
+      return;
+    }
+
+    const confirmation =
+      window.prompt(
+        `Delete "${tournament.name}" permanently? This removes its teams, groups, fixtures, matches, standings and stats. Type the Tournament name exactly to continue.`,
+      );
+
+    if (
+      confirmation ===
+      null
+    ) {
+      return;
+    }
+
+    if (
+      confirmation.trim() !==
+      tournament.name.trim()
+    ) {
+      setError(
+        'Tournament name confirmation does not match.',
+      );
+
+      return;
+    }
+
+    setDeletingTournamentId(
+      tournament.id,
+    );
+
+    setError(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/tournaments/${tournament.id}`,
+        {
+          method:
+            'DELETE',
+
+          body:
+            JSON.stringify({
+              confirmName:
+                confirmation,
+            }),
+        },
+      );
+
+      setTournaments(
+        (
+          current,
+        ) =>
+          current.filter(
+            (
+              item,
+            ) =>
+              item.id !==
+              tournament.id,
+          ),
+      );
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete Tournament.',
+      );
+    } finally {
+      setDeletingTournamentId(
+        null,
+      );
+    }
+  }
 
 
   if (
@@ -755,140 +849,173 @@ export default function TournamentsPage() {
                           : 0;
 
                       return (
-                        <Link
+                        <article
                           key={
                             tournament.id
                           }
-                          href={
-                            `/tournaments/${tournament.id}`
-                          }
                           className="group overflow-hidden rounded-2xl border border-[#253140] bg-[#121821] transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
                         >
-                          <div className="relative min-h-28 border-b border-[#253140] bg-[#151C26] p-5">
-                            <div className="flex items-start justify-between gap-4">
-                              <FcCrest
-                                name={
-                                  tournament.name
-                                }
-                                imageUrl={
-                                  tournament.logoUrl
-                                }
-                                size="lg"
-                              />
-
-                              <FcStatusBadge
-                                label={
-                                  tournament.status
-                                }
-                                tone={
-                                  toneForStatus(
-                                    tournament.status,
-                                  )
-                                }
-                              />
-                            </div>
-
-                            <h3 className="mt-4 text-xl font-semibold tracking-[-0.02em] text-[#F8FAFC]">
-                              {
-                                tournament.name
-                              }
-                            </h3>
-
-                            <p className="mt-1 font-mono text-[10px] text-slate-600">
-                              {
-                                tournament.code
-                              }
-                            </p>
-                          </div>
-
-
-                          <div className="p-5">
-                            <div className="grid grid-cols-3 gap-2">
-                              <div className="rounded-xl bg-white/[0.025] p-3">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Format
-                                </p>
-                                <p className="mt-1 truncate text-xs font-black">
-                                  {
-                                    competitionLabel(
-                                      format,
-                                    )
+                          <Link
+                            href={
+                              `/tournaments/${tournament.id}`
+                            }
+                            className="block"
+                          >
+                            <div className="relative min-h-28 border-b border-[#253140] bg-[#151C26] p-5">
+                              <div className="flex items-start justify-between gap-4">
+                                <FcCrest
+                                  name={
+                                    tournament.name
                                   }
-                                </p>
-                              </div>
-
-                              <div className="rounded-xl bg-white/[0.025] p-3">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Teams
-                                </p>
-                                <p className="mt-1 text-xs font-black">
-                                  {
-                                    tournament.approvedEntries
+                                  imageUrl={
+                                    tournament.logoUrl
                                   }
-                                  /
-                                  {
-                                    tournament.maxEntries
-                                  }
-                                </p>
-                              </div>
+                                  size="lg"
+                                />
 
-                              <div className="rounded-xl bg-white/[0.025] p-3">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Stage
-                                </p>
-                                <p className="mt-1 truncate text-xs font-black text-sky-300">
-                                  {
-                                    competitionLabel(
+                                <FcStatusBadge
+                                  label={
+                                    tournament.status
+                                  }
+                                  tone={
+                                    toneForStatus(
                                       tournament.status,
                                     )
                                   }
-                                </p>
-                              </div>
-                            </div>
-
-
-                            <div className="mt-4">
-                              <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-600">
-                                <span>
-                                  Registration
-                                </span>
-                                <span>
-                                  {
-                                    Math.round(
-                                      progress,
-                                    )
-                                  }
-                                  %
-                                </span>
-                              </div>
-
-                              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-                                <div
-                                  className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
-                                  style={{
-                                    width:
-                                      `${progress}%`,
-                                  }}
                                 />
                               </div>
+
+                              <h3 className="mt-4 text-xl font-semibold tracking-[-0.02em] text-[#F8FAFC]">
+                                {
+                                  tournament.name
+                                }
+                              </h3>
+
+                              <p className="mt-1 font-mono text-[10px] text-slate-600">
+                                {
+                                  tournament.code
+                                }
+                              </p>
                             </div>
 
 
-                            <div className="mt-5 flex items-center justify-between gap-4">
-                              <p className="text-xs text-slate-600">
-                                {tournament.startAt
-                                  ? new Date(
-                                      tournament.startAt,
-                                    ).toLocaleDateString()
-                                  : 'Start date TBD'}
-                              </p>
+                            <div className="p-5 pb-3">
+                              <div className="grid grid-cols-3 gap-2">
+                                <div className="rounded-xl bg-white/[0.025] p-3">
+                                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
+                                    Format
+                                  </p>
+                                  <p className="mt-1 truncate text-xs font-black">
+                                    {
+                                      competitionLabel(
+                                        format,
+                                      )
+                                    }
+                                  </p>
+                                </div>
 
-                              <span className="text-sm font-black text-sky-300 transition group-hover:translate-x-0.5">
-                                View Details →
-                              </span>
+                                <div className="rounded-xl bg-white/[0.025] p-3">
+                                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
+                                    Teams
+                                  </p>
+                                  <p className="mt-1 text-xs font-black">
+                                    {
+                                      tournament.approvedEntries
+                                    }
+                                    /
+                                    {
+                                      tournament.maxEntries
+                                    }
+                                  </p>
+                                </div>
+
+                                <div className="rounded-xl bg-white/[0.025] p-3">
+                                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
+                                    Stage
+                                  </p>
+                                  <p className="mt-1 truncate text-xs font-black text-sky-300">
+                                    {
+                                      competitionLabel(
+                                        tournament.status,
+                                      )
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+
+
+                              <div className="mt-4">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-600">
+                                  <span>
+                                    Registration
+                                  </span>
+                                  <span>
+                                    {
+                                      Math.round(
+                                        progress,
+                                      )
+                                    }
+                                    %
+                                  </span>
+                                </div>
+
+                                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+                                  <div
+                                    className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
+                                    style={{
+                                      width:
+                                        `${progress}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+
+
+                          <div className="flex flex-col gap-2 border-t border-white/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-xs text-slate-600">
+                              {tournament.startAt
+                                ? new Date(
+                                    tournament.startAt,
+                                  ).toLocaleDateString()
+                                : 'Start date TBD'}
+                            </p>
+
+                            <div className="flex flex-wrap gap-2">
+                              <Link
+                                href={
+                                  `/tournaments/${tournament.id}`
+                                }
+                                className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-semibold text-[#A7B0BE] transition hover:bg-[#151C26]"
+                              >
+                                View Details
+                              </Link>
+
+                              {selectedMembership
+                                ?.adminRole ? (
+                                <button
+                                  type="button"
+                                  disabled={
+                                    deletingTournamentId ===
+                                    tournament.id
+                                  }
+                                  onClick={() =>
+                                    void deleteTournament(
+                                      tournament,
+                                    )
+                                  }
+                                  className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-4 text-sm font-semibold text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                                >
+                                  {deletingTournamentId ===
+                                  tournament.id
+                                    ? 'Deleting...'
+                                    : 'Delete Tournament'}
+                                </button>
+                              ) : null}
                             </div>
                           </div>
-                        </Link>
+                        </article>
                       );
                     },
                   )}

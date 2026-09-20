@@ -201,7 +201,7 @@ export function FcCrest({
 
   return (
     <div
-      className={`grid shrink-0 place-items-center overflow-hidden border border-[#E3DCCF] bg-[#FAF7F0] font-semibold text-[#A06B13] ${sizeClass}`}
+      className={`grid shrink-0 place-items-center overflow-hidden border border-[#D9B45A]/45 bg-[#0B2545] font-semibold text-[#F3E4BD] shadow-[0_6px_16px_rgba(11,37,69,0.10)] ${sizeClass}`}
     >
       {imageUrl ? (
         <img

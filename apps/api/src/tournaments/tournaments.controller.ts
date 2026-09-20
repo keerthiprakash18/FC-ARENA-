@@ -21,6 +21,7 @@ import type { Request } from 'express';
 import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CreateTournamentDto } from './dto/create-tournament.dto.js';
+import { DeleteTournamentDto } from './dto/delete-tournament.dto.js';
 import { GeneratePlayoffsDto } from './dto/generate-playoffs.dto.js';
 import { SetupTournamentGroupsDto } from './dto/setup-tournament-groups.dto.js';
 import { AssignTournamentGroupDto } from './dto/assign-tournament-group.dto.js';
@@ -148,6 +149,30 @@ export class TournamentsController {
     return this.tournamentLogoService.removeLogo(
       request.user.sub,
       tournamentId,
+    );
+  }
+
+
+  @Delete(
+    'tournaments/:tournamentId',
+  )
+  deleteTournament(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId:
+      string,
+
+    @Body()
+    dto:
+      DeleteTournamentDto,
+  ) {
+    return this.tournamentsService.deleteTournament(
+      request.user.sub,
+      tournamentId,
+      dto,
     );
   }
 

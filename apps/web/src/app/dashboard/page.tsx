@@ -262,11 +262,11 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#E4DFD5] bg-[#F5E8C8] text-base text-[#9B6E14]">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#203141] bg-[#14212D] text-base text-[#19B7FF]">
           {icon}
         </span>
 
-        <h2 className="fc-display text-[19px] font-semibold text-[#10213A]">
+        <h2 className="fc-display text-[19px] font-semibold text-[#F8FAFC]">
           {title}
         </h2>
       </div>
@@ -274,7 +274,7 @@ function SectionTitle({
       {href ? (
         <Link
           href={href}
-          className="text-sm font-medium text-[#667085] transition hover:text-[#C9972D]"
+          className="text-sm font-medium text-[#8290A0] transition hover:text-[#19B7FF]"
         >
           {linkLabel}
         </Link>
@@ -686,14 +686,14 @@ export default function DashboardPage() {
         ) : null}
 
 
-        <section className="fc-stadium-surface relative overflow-hidden rounded-2xl border border-[#E4DFD5] shadow-[0_14px_34px_rgba(16,33,58,0.07)]">
-          <div className="absolute inset-y-0 right-0 w-[46%] bg-[radial-gradient(circle_at_72%_44%,rgba(213,174,92,0.18),transparent_35%),linear-gradient(90deg,transparent,rgba(11,37,69,0.035))]" />
+        <section className="fc-stadium-surface relative overflow-hidden rounded-2xl border border-[#203141] shadow-[0_12px_32px_rgba(0,0,0,0.22)]">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,13,22,0.96)_0%,rgba(5,17,27,0.82)_42%,rgba(4,17,27,0.36)_74%,rgba(3,13,22,0.84)_100%)]" />
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(213,174,92,0.70),transparent)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(25,183,255,0.45),transparent)]" />
 
           <div className="relative grid min-h-[165px] gap-5 px-5 py-6 sm:px-7 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-8">
             <div className="hidden lg:block">
-              <div className="grid h-20 w-20 place-items-center rounded-full border-[3px] border-[#D5AE5C]/45 bg-[#FFFDF9] shadow-[0_0_0_8px_rgba(213,174,92,0.08)]">
+              <div className="grid h-20 w-20 place-items-center rounded-full border-[3px] border-[#19B7FF]/25 bg-[#071019]/85 shadow-[0_0_0_8px_rgba(25,183,255,0.03)]">
                 <FcCrest
                   name={
                     inGameName
@@ -709,22 +709,22 @@ export default function DashboardPage() {
 
 
             <div className="min-w-0">
-              <p className="fc-display text-[12px] font-semibold tracking-[0.18em] text-[#C9972D]">
+              <p className="fc-display text-[12px] font-semibold tracking-[0.22em] text-[#19B7FF]">
                 WELCOME BACK
               </p>
 
-              <h1 className="fc-display-strong mt-1 truncate text-[34px] leading-none text-[#10213A] sm:text-[42px] lg:text-[48px]">
+              <h1 className="fc-display-strong mt-1 truncate text-[34px] leading-none text-[#F8FAFC] sm:text-[42px] lg:text-[48px]">
                 {
                   inGameName
                 }
               </h1>
 
-              <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#667085] sm:text-sm">
+              <p className="mt-2 max-w-2xl text-[13px] leading-5 text-[#A7B0BE] sm:text-sm">
                 Your player identity, form and next competition action in one place.
               </p>
 
               <div className="mt-3 flex flex-wrap items-center gap-2 lg:hidden">
-                <span className="font-mono text-[11px] text-[#9B6E14]">
+                <span className="font-mono text-[11px] text-[#19B7FF]">
                   {
                     playerCode
                   }
@@ -750,13 +750,13 @@ export default function DashboardPage() {
 
 
             <div className="hidden text-right xl:block">
-              <p className="fc-display-strong rotate-[-4deg] text-[24px] leading-[0.92] text-[#0B2545]/80">
+              <p className="fc-display-strong rotate-[-4deg] text-[24px] leading-[0.92] text-[#DCEBFA]/75">
                 MORE
                 <br />
                 THAN A GAME
               </p>
 
-              <p className="mt-4 font-mono text-[10px] tracking-[0.08em] text-[#8B95A5]">
+              <p className="mt-4 font-mono text-[10px] tracking-[0.08em] text-[#6F7B8A]">
                 {
                   playerCode
                 }
@@ -821,7 +821,7 @@ export default function DashboardPage() {
 
         <section className="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
           <FcPanel className="relative overflow-hidden p-5 sm:p-6">
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-[radial-gradient(ellipse_at_50%_125%,rgba(213,174,92,0.10),transparent_48%),linear-gradient(180deg,transparent,rgba(243,239,230,0.42))]" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-[radial-gradient(ellipse_at_50%_125%,rgba(25,183,255,0.11),transparent_48%),linear-gradient(180deg,transparent,rgba(4,16,25,0.56))]" />
 
             <div className="relative">
               <SectionTitle
@@ -853,7 +853,7 @@ export default function DashboardPage() {
                       size="lg"
                     />
 
-                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#10213A]">
+                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#F8FAFC]">
                       {
                         entryName(
                           nextFixture.home,
@@ -862,7 +862,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#14212D] text-xs font-semibold text-[#667085]">
+                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#14212D] text-xs font-semibold text-[#A7B0BE]">
                     VS
                   </div>
 
@@ -876,7 +876,7 @@ export default function DashboardPage() {
                       size="lg"
                     />
 
-                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#10213A]">
+                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#F8FAFC]">
                       {
                         entryName(
                           nextFixture.away,
@@ -894,7 +894,7 @@ export default function DashboardPage() {
                       }
                     </p>
 
-                    <p className="mt-1 text-sm font-medium text-[#667085]">
+                    <p className="mt-1 text-sm font-medium text-[#A7B0BE]">
                       {nextFixture.scheduledAt
                         ? new Date(
                             nextFixture.scheduledAt,
@@ -922,7 +922,7 @@ export default function DashboardPage() {
                   ◷
                 </div>
 
-                <h3 className="mt-4 text-base font-semibold text-[#10213A]">
+                <h3 className="mt-4 text-base font-semibold text-[#F8FAFC]">
                   No upcoming match
                 </h3>
 
@@ -966,7 +966,7 @@ export default function DashboardPage() {
                   />
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-semibold text-[#10213A]">
+                    <h3 className="truncate text-lg font-semibold text-[#F8FAFC]">
                       {
                         primaryMembership
                           .league
@@ -1000,7 +1000,7 @@ export default function DashboardPage() {
                       Region
                     </p>
 
-                    <p className="mt-1 truncate text-sm font-medium text-[#10213A]">
+                    <p className="mt-1 truncate text-sm font-medium text-[#F8FAFC]">
                       {primaryMembership
                         .league
                         .region ||
@@ -1013,7 +1013,7 @@ export default function DashboardPage() {
                       Members
                     </p>
 
-                    <p className="mt-1 text-sm font-medium text-[#10213A]">
+                    <p className="mt-1 text-sm font-medium text-[#F8FAFC]">
                       {
                         primaryMembership
                           .league
@@ -1027,7 +1027,7 @@ export default function DashboardPage() {
                       Role
                     </p>
 
-                    <p className="mt-1 truncate text-sm font-medium text-[#10213A]">
+                    <p className="mt-1 truncate text-sm font-medium text-[#F8FAFC]">
                       {primaryMembership.adminRole ||
                         'Player'}
                     </p>
@@ -1039,14 +1039,14 @@ export default function DashboardPage() {
                   href={
                     `/leagues/${primaryMembership.league.id}`
                   }
-                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#10213A] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
+                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#F8FAFC] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
                 >
                   Open League →
                 </Link>
               </>
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-[#284154] bg-[#0B1118]/55 p-6 text-center">
-                <p className="text-base font-semibold text-[#10213A]">
+                <p className="text-base font-semibold text-[#F8FAFC]">
                   No active League
                 </p>
 
@@ -1088,7 +1088,7 @@ export default function DashboardPage() {
                   />
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-semibold text-[#10213A]">
+                    <h3 className="truncate text-lg font-semibold text-[#F8FAFC]">
                       {
                         activeTournament.name
                       }
@@ -1124,7 +1124,7 @@ export default function DashboardPage() {
                       Competition progress
                     </span>
 
-                    <span className="font-medium text-[#667085]">
+                    <span className="font-medium text-[#A7B0BE]">
                       {
                         activeTournament.approvedEntries
                       }
@@ -1154,7 +1154,7 @@ export default function DashboardPage() {
                       Next fixture
                     </p>
 
-                    <p className="mt-1 truncate text-sm font-medium text-[#10213A]">
+                    <p className="mt-1 truncate text-sm font-medium text-[#F8FAFC]">
                       {entryName(
                         activeTournamentNextFixture.home,
                       )}
@@ -1171,7 +1171,7 @@ export default function DashboardPage() {
                   href={
                     `/tournaments/${activeTournament.id}`
                   }
-                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#10213A] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
+                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#F8FAFC] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
                 >
                   View Tournament →
                 </Link>
@@ -1182,7 +1182,7 @@ export default function DashboardPage() {
                   🏆
                 </div>
 
-                <h3 className="mt-4 text-base font-semibold text-[#10213A]">
+                <h3 className="mt-4 text-base font-semibold text-[#F8FAFC]">
                   No Active Tournament
                 </h3>
 
@@ -1296,7 +1296,7 @@ export default function DashboardPage() {
                       </span>
 
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-[#10213A]">
+                        <p className="truncate text-sm font-medium text-[#F8FAFC]">
                           {
                             activity.tournament.name
                           }
@@ -1311,11 +1311,11 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="sm:text-right">
-                      <p className="text-sm font-semibold text-[#667085]">
+                      <p className="text-sm font-semibold text-[#A7B0BE]">
                         {
                           activity.home.name
                         }{' '}
-                        <span className="text-[#10213A]">
+                        <span className="text-[#F8FAFC]">
                           {
                             activity.home.score
                           }
@@ -1342,7 +1342,7 @@ export default function DashboardPage() {
           ) : (
             <div className="mt-5 flex flex-col gap-4 rounded-xl border border-dashed border-[#284154] bg-[#0B1118]/45 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#10213A]">
+                <p className="text-sm font-semibold text-[#F8FAFC]">
                   No recent activity
                 </p>
 
@@ -1353,7 +1353,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/fixtures"
-                className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#10213A]"
+                className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#F8FAFC]"
               >
                 View Fixtures →
               </Link>

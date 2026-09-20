@@ -14,13 +14,48 @@ async function bootstrap(): Promise<void> {
 
   app.use(cookieParser());
 
-  const allowedOrigins = [
-    'http://localhost:3000',
-    process.env.WEB_ORIGIN,
-  ].filter((origin): origin is string => Boolean(origin));
+  const configuredOrigins =
+    (process.env.WEB_ORIGIN ?? '')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+
+  const allowedOrigins = Array.from(
+    new Set([
+      'http://localhost:3000',
+      'https://fcarena.in',
+      'https://www.fcarena.in',
+      'https://fc-arena-sand.vercel.app',
+      ...configuredOrigins,
+    ]),
+  );
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (
+      origin,
+      callback,
+    ) => {
+      if (
+        !origin ||
+        allowedOrigins.includes(
+          origin,
+        )
+      ) {
+        callback(
+          null,
+          true,
+        );
+
+        return;
+      }
+
+      callback(
+        new Error(
+          `Origin not allowed by CORS: ${origin}`,
+        ),
+        false,
+      );
+    },
     credentials: true,
   });
 

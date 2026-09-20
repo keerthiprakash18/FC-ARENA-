@@ -10,6 +10,9 @@ export interface CurrentUser {
   phoneNumber: string | null;
   role: string;
   status: string;
+  themePreference:
+    | 'LUXURY_GOLD'
+    | 'CLASSIC_BLUE';
 
   player: {
     playerCode: string;
@@ -282,5 +285,19 @@ export async function logoutCurrentUser(): Promise<void> {
     accessToken = null;
     accessTokenExpiresAt = 0;
     refreshPromise = null;
+
+    if (
+      typeof window !==
+      'undefined'
+    ) {
+      window.localStorage.removeItem(
+        'fc-arena-theme-preference',
+      );
+
+      document.documentElement
+        .dataset
+        .theme =
+        'classic-blue';
+    }
   }
 }

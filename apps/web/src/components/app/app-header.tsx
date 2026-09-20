@@ -279,7 +279,7 @@ export function AppHeader({
                             item.href,
                           )
                         }
-                        className="flex min-h-10 w-full items-center justify-between rounded-[9px] px-3 text-left text-xs text-[#A7B0BE] transition hover:bg-[#14212D] hover:text-[#10213A]"
+                        className="flex min-h-10 w-full items-center justify-between rounded-[9px] px-3 text-left text-xs text-[#667085] transition hover:bg-[#F3EFE6] hover:text-[#10213A]"
                       >
                         <span>
                           {
@@ -323,7 +323,7 @@ export function AppHeader({
             href="/profile"
             className="flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200 hover:bg-[#F3EFE6]"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-full border border-[#19B7FF]/25 bg-[#0B1C25] text-xs font-semibold text-[#C9972D]">
+            <span className="grid h-9 w-9 place-items-center rounded-full border border-[#D5AE5C]/45 bg-[#F5E8C8] text-xs font-semibold text-[#9B6E14]">
               {initials}
             </span>
 

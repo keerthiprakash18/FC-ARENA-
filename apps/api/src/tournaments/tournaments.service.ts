@@ -8,6 +8,7 @@ import {
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import type { CreateTournamentDto } from './dto/create-tournament.dto.js';
+import type { DeleteTournamentDto } from './dto/delete-tournament.dto.js';
 import type { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
 import type { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import type { RegisterTournamentDto } from './dto/register-tournament.dto.js';
@@ -134,6 +135,81 @@ export class TournamentsService {
       error: null,
     };
   }
+
+  async deleteTournament(
+    userId: string,
+    tournamentId: string,
+    dto: DeleteTournamentDto,
+  ) {
+    const tournament =
+      await this.getTournamentForAdmin(
+        userId,
+        tournamentId,
+      );
+
+    if (
+      dto.confirmName.trim().toLocaleLowerCase() !==
+      tournament.name.trim().toLocaleLowerCase()
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'TOURNAMENT_DELETE_CONFIRMATION_MISMATCH',
+          message:
+            'Tournament name confirmation does not match.',
+        },
+      });
+    }
+
+    const counts =
+      await this.prisma.tournament.findUnique({
+        where: {
+          id: tournamentId,
+        },
+        select: {
+          _count: {
+            select: {
+              registrations: true,
+              fixtures: true,
+              matches: true,
+              groups: true,
+            },
+          },
+        },
+      });
+
+    await this.prisma.tournament.delete({
+      where: {
+        id: tournamentId,
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        message:
+          'Tournament deleted successfully.',
+        deletedTournament: {
+          id:
+            tournament.id,
+          name:
+            tournament.name,
+          registrations:
+            counts?._count.registrations ?? 0,
+          fixtures:
+            counts?._count.fixtures ?? 0,
+          matches:
+            counts?._count.matches ?? 0,
+          groups:
+            counts?._count.groups ?? 0,
+        },
+      },
+      error: null,
+    };
+  }
+
 
   async getLeagueTournaments(
     userId: string,

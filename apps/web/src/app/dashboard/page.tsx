@@ -829,7 +829,7 @@ export default function DashboardPage() {
 
         <section className="grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
           <FcPanel className="relative overflow-hidden p-5 sm:p-6">
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%] bg-[radial-gradient(ellipse_at_50%_125%,rgba(11,37,69,0.10),transparent_48%),radial-gradient(circle_at_84%_82%,rgba(217,180,90,0.10),transparent_18%),linear-gradient(180deg,transparent,rgba(243,228,189,0.18))]" />
+            <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
             <div className="relative">
               <SectionTitle
@@ -1047,7 +1047,7 @@ export default function DashboardPage() {
                   href={
                     `/leagues/${primaryMembership.league.id}`
                   }
-                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#0B2545] transition hover:border-[#D9B45A]/45 hover:bg-[#182936]"
+                  className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
                 >
                   Open League →
                 </Link>
@@ -1144,9 +1144,9 @@ export default function DashboardPage() {
                     </span>
                   </div>
 
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#F3E4BD]">
+                  <div className="theme-progress-track mt-2 h-2 overflow-hidden rounded-full">
                     <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#B9811E,#D9B45A)]"
+                      className="theme-progress-bar h-full rounded-full"
                       style={{
                         width:
                           `${progress}%`,
@@ -1179,7 +1179,7 @@ export default function DashboardPage() {
                   href={
                     `/tournaments/${activeTournament.id}`
                   }
-                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#0B2545] transition hover:border-[#D9B45A]/45 hover:bg-[#182936]"
+                  className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
                 >
                   View Tournament →
                 </Link>
@@ -1361,7 +1361,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/fixtures"
-                className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#0B2545]"
+                className="theme-secondary-button inline-flex min-h-11 items-center justify-center rounded-[10px] border px-4 text-sm font-medium"
               >
                 View Fixtures →
               </Link>

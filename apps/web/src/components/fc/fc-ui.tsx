@@ -12,15 +12,15 @@ export type FcTone =
 
 const toneClasses: Record<FcTone, string> = {
   cyan:
-    'border-[#19B7FF]/20 bg-[#19B7FF]/[0.06] text-[#19B7FF]',
+    'border-[#0B2545]/15 bg-[#0B2545]/[0.05] text-[#0B2545]',
   emerald:
-    'border-[#1FD18A]/20 bg-[#1FD18A]/[0.06] text-[#1FD18A]',
+    'border-[#1F9D68]/20 bg-[#1F9D68]/[0.06] text-[#1F9D68]',
   amber:
-    'border-[#F3B326]/20 bg-[#F3B326]/[0.06] text-[#F3B326]',
+    'border-[#C9972D]/25 bg-[#F5E8C8] text-[#9B6E14]',
   red:
-    'border-[#EF5350]/20 bg-[#EF5350]/[0.06] text-[#EF5350]',
+    'border-[#D94B4B]/20 bg-[#D94B4B]/[0.05] text-[#D94B4B]',
   slate:
-    'border-[#203141] bg-[#121D28] text-[#A7B0BE]',
+    'border-[#E4DFD5] bg-[#F3EFE6] text-[#667085]',
 };
 
 export function FcPanel({
@@ -32,7 +32,7 @@ export function FcPanel({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-[#203141] bg-[#101923] shadow-[0_8px_24px_rgba(0,0,0,0.14)] ${className}`}
+      className={`rounded-2xl border border-[#E4DFD5] bg-[#FFFDF9] shadow-[0_8px_24px_rgba(16,33,58,0.06)] ${className}`}
     >
       {children}
     </section>
@@ -54,17 +54,17 @@ export function FcPageHeader({
     <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
         {eyebrow ? (
-          <p className="text-xs font-medium text-[#6F7B8A]">
+          <p className="text-xs font-medium text-[#8B95A5]">
             {eyebrow}
           </p>
         ) : null}
 
-        <h1 className="fc-display-strong mt-1 text-[28px] text-[#F8FAFC] sm:text-[34px]">
+        <h1 className="fc-display-strong mt-1 text-[28px] text-[#10213A] sm:text-[34px]">
           {title}
         </h1>
 
         {subtitle ? (
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7B0BE]">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#667085]">
             {subtitle}
           </p>
         ) : null}
@@ -92,12 +92,12 @@ export function FcSectionHeading({
     <div className="flex items-end justify-between gap-4">
       <div>
         {eyebrow ? (
-          <p className="text-xs font-medium text-[#6F7B8A]">
+          <p className="text-xs font-medium text-[#8B95A5]">
             {eyebrow}
           </p>
         ) : null}
 
-        <h2 className="fc-display mt-1 text-[18px] font-semibold text-[#F8FAFC] sm:text-[20px]">
+        <h2 className="fc-display mt-1 text-[18px] font-semibold text-[#10213A] sm:text-[20px]">
           {title}
         </h2>
       </div>
@@ -138,24 +138,24 @@ export function FcStatCard({
 }) {
   const iconClass =
     tone === 'emerald'
-      ? 'text-[#1FD18A] bg-[#1FD18A]/[0.09] border-[#1FD18A]/15'
+      ? 'text-[#1F9D68] bg-[#1F9D68]/[0.08] border-[#1F9D68]/15'
       : tone === 'amber'
-        ? 'text-[#F3B326] bg-[#F3B326]/[0.09] border-[#F3B326]/15'
+        ? 'text-[#9B6E14] bg-[#F5E8C8] border-[#D5AE5C]/35'
         : tone === 'red'
-          ? 'text-[#EF5350] bg-[#EF5350]/[0.09] border-[#EF5350]/15'
+          ? 'text-[#D94B4B] bg-[#D94B4B]/[0.06] border-[#D94B4B]/15'
           : tone === 'slate'
-            ? 'text-[#A7B0BE] bg-white/[0.035] border-white/[0.06]'
-            : 'text-[#19B7FF] bg-[#19B7FF]/[0.09] border-[#19B7FF]/15';
+            ? 'text-[#667085] bg-white/[0.035] border-white/[0.06]'
+            : 'text-[#0B2545] bg-[#F3EFE6] border-[#D8D2C8]';
 
   return (
-    <article className="h-full rounded-2xl border border-[#203141] bg-[#101923] p-4 shadow-[0_8px_22px_rgba(0,0,0,0.14)] transition duration-200 hover:-translate-y-0.5 hover:border-[#2D4356] sm:p-5">
+    <article className="h-full rounded-2xl border border-[#E4DFD5] bg-[#FFFDF9] p-4 shadow-[0_8px_20px_rgba(16,33,58,0.055)] transition duration-200 hover:-translate-y-0.5 hover:border-[#D5AE5C]/55 hover:shadow-[0_12px_26px_rgba(16,33,58,0.075)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="fc-display text-[13px] font-medium text-[#A7B0BE]">
+          <p className="fc-display text-[13px] font-medium text-[#667085]">
             {label}
           </p>
 
-          <p className="fc-display-strong mt-1 text-[28px] leading-none text-[#F8FAFC] sm:text-[30px]">
+          <p className="fc-display-strong mt-1 text-[28px] leading-none text-[#10213A] sm:text-[30px]">
             {value}
           </p>
         </div>
@@ -168,7 +168,7 @@ export function FcStatCard({
       </div>
 
       {detail ? (
-        <p className="mt-3 text-xs leading-5 text-[#6F7B8A]">
+        <p className="mt-3 text-xs leading-5 text-[#8B95A5]">
           {detail}
         </p>
       ) : null}
@@ -201,7 +201,7 @@ export function FcCrest({
 
   return (
     <div
-      className={`grid shrink-0 place-items-center overflow-hidden border border-[#284154] bg-[#14212D] font-semibold text-[#19B7FF] ${sizeClass}`}
+      className={`grid shrink-0 place-items-center overflow-hidden border border-[#E4DFD5] bg-[#F5E8C8] font-semibold text-[#9B6E14] ${sizeClass}`}
     >
       {imageUrl ? (
         <img
@@ -229,22 +229,22 @@ export function FcEmptyState({
 }) {
   return (
     <FcPanel className="border-dashed p-7 text-center sm:p-8">
-      <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#121D28] text-lg text-[#19B7FF]">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#E4DFD5] bg-[#F5E8C8] text-lg text-[#9B6E14]">
         ⚽
       </div>
 
-      <h3 className="mt-4 text-lg font-semibold text-[#F8FAFC]">
+      <h3 className="mt-4 text-lg font-semibold text-[#10213A]">
         {title}
       </h3>
 
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#A7B0BE]">
+      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#667085]">
         {description}
       </p>
 
       {actionLabel && actionHref ? (
         <Link
           href={actionHref}
-          className="mt-5 inline-flex min-h-11 items-center rounded-[10px] bg-[#19B7FF] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#21C3FF]"
+          className="mt-5 inline-flex min-h-11 items-center rounded-[10px] bg-[#C9972D] px-4 text-sm font-semibold text-white transition hover:bg-[#B98924]"
         >
           {actionLabel}
         </Link>
@@ -259,9 +259,9 @@ export function FcLoadingScreen({
   label?: string;
 }) {
   return (
-    <div className="grid min-h-screen place-items-center bg-[#071019] text-sm font-medium text-[#6F7B8A]">
+    <div className="grid min-h-screen place-items-center bg-[#F8F5EE] text-sm font-medium text-[#8B95A5]">
       <div className="flex items-center gap-3">
-        <span className="h-2 w-2 rounded-full bg-[#19B7FF]" />
+        <span className="h-2 w-2 rounded-full bg-[#C9972D]" />
         {label}
       </div>
     </div>
@@ -286,7 +286,7 @@ export function FcActionRow({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-4 rounded-2xl border border-[#203141] bg-[#101923] p-4 transition duration-200 hover:border-[#2D4356] hover:bg-[#121D28]"
+      className="group flex items-center gap-4 rounded-2xl border border-[#E4DFD5] bg-[#FFFDF9] p-4 transition duration-200 hover:border-[#D5AE5C]/45 hover:bg-[#FFFDF9] hover:shadow-[0_8px_20px_rgba(16,33,58,0.05)]"
     >
       <span
         className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-base ${toneClasses[tone]}`}
@@ -295,22 +295,22 @@ export function FcActionRow({
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="fc-display block text-[15px] font-semibold text-[#F8FAFC]">
+        <span className="fc-display block text-[15px] font-semibold text-[#10213A]">
           {title}
         </span>
 
-        <span className="mt-0.5 block text-xs leading-5 text-[#6F7B8A]">
+        <span className="mt-0.5 block text-xs leading-5 text-[#8B95A5]">
           {description}
         </span>
       </span>
 
       {badge !== undefined ? (
-        <span className="rounded-full bg-[#19B7FF] px-2.5 py-1 text-[10px] font-semibold text-[#071018]">
+        <span className="rounded-full bg-[#F5E8C8] px-2.5 py-1 text-[10px] font-semibold text-[#9B6E14]">
           {badge}
         </span>
       ) : null}
 
-      <span className="text-[#6F7B8A] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
+      <span className="text-[#8B95A5] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
         ›
       </span>
     </Link>
@@ -332,7 +332,7 @@ export function FcErrorState({
   message: string;
 }) {
   return (
-    <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
+    <div className="rounded-2xl border border-[#D94B4B]/20 bg-[#D94B4B]/[0.05] p-4 text-sm text-[#D94B4B]">
       {message}
     </div>
   );
@@ -374,17 +374,17 @@ export function FcConfirmDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/65 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-[#071E35]/55 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-2xl border border-[#203141] bg-[#101923] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.28)]"
+        className="w-full max-w-md rounded-2xl border border-[#E4DFD5] bg-[#FFFDF9] p-5 shadow-[0_18px_44px_rgba(16,33,58,0.16)]"
       >
-        <h2 className="text-lg font-semibold text-[#F8FAFC]">
+        <h2 className="text-lg font-semibold text-[#10213A]">
           {title}
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-[#A7B0BE]">
+        <p className="mt-2 text-sm leading-6 text-[#667085]">
           {description}
         </p>
 
@@ -393,7 +393,7 @@ export function FcConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className="min-h-11 rounded-[10px] border border-[#203141] bg-transparent px-4 text-sm font-medium text-[#A7B0BE] hover:bg-[#121D28] disabled:opacity-40"
+            className="min-h-11 rounded-[10px] border border-[#203141] bg-transparent px-4 text-sm font-medium text-[#667085] hover:bg-[#121D28] disabled:opacity-40"
           >
             {cancelLabel}
           </button>
@@ -405,7 +405,7 @@ export function FcConfirmDialog({
             className={`min-h-11 rounded-[10px] px-4 text-sm font-semibold disabled:opacity-40 ${
               destructive
                 ? 'border border-red-400/25 bg-red-400/[0.08] text-red-300 hover:bg-red-400/[0.12]'
-                : 'bg-[#19B7FF] text-[#071018] hover:bg-[#21C3FF]'
+                : 'bg-[#C9972D] text-white hover:bg-[#B98924]'
             }`}
           >
             {busy
@@ -434,19 +434,19 @@ export function FcQuickActionTile({
 }) {
   const accent =
     tone === 'emerald'
-      ? 'text-[#1FD18A] bg-[#1FD18A]/[0.08] border-[#1FD18A]/20'
+      ? 'text-[#1F9D68] bg-[#1F9D68]/[0.07] border-[#1F9D68]/20'
       : tone === 'amber'
-        ? 'text-[#F3B326] bg-[#F3B326]/[0.08] border-[#F3B326]/20'
+        ? 'text-[#9B6E14] bg-[#F5E8C8] border-[#D5AE5C]/35'
         : tone === 'red'
-          ? 'text-[#EF5350] bg-[#EF5350]/[0.08] border-[#EF5350]/20'
+          ? 'text-[#D94B4B] bg-[#D94B4B]/[0.05] border-[#D94B4B]/20'
           : tone === 'slate'
-            ? 'text-[#A7B0BE] bg-white/[0.035] border-white/[0.06]'
-            : 'text-[#19B7FF] bg-[#19B7FF]/[0.08] border-[#19B7FF]/20';
+            ? 'text-[#667085] bg-white/[0.035] border-white/[0.06]'
+            : 'text-[#0B2545] bg-[#F3EFE6] border-[#D8D2C8]';
 
   return (
     <Link
       href={href}
-      className="group flex min-h-24 items-center gap-4 rounded-2xl border border-[#203141] bg-[#101923] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[#2D4356] hover:bg-[#121D28] sm:p-5"
+      className="group flex min-h-24 items-center gap-4 rounded-2xl border border-[#E4DFD5] bg-[#FFFDF9] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[#D5AE5C]/45 hover:shadow-[0_10px_22px_rgba(16,33,58,0.06)] sm:p-5"
     >
       <span
         className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border text-lg ${accent}`}
@@ -455,16 +455,16 @@ export function FcQuickActionTile({
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="fc-display block text-[15px] font-semibold text-[#F8FAFC]">
+        <span className="fc-display block text-[15px] font-semibold text-[#10213A]">
           {title}
         </span>
 
-        <span className="mt-1 block text-xs leading-5 text-[#6F7B8A]">
+        <span className="mt-1 block text-xs leading-5 text-[#8B95A5]">
           {description}
         </span>
       </span>
 
-      <span className="text-lg text-[#536273] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
+      <span className="text-lg text-[#8B95A5] transition group-hover:translate-x-0.5 group-hover:text-[#C9972D]">
         →
       </span>
     </Link>

@@ -153,6 +153,15 @@ export default function LeagueTournamentsPage() {
     useState('');
 
 
+  const [
+    deletingTournamentId,
+    setDeletingTournamentId,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+
   async function loadTournaments() {
     const result =
       await authenticatedRequest<{
@@ -366,6 +375,85 @@ export default function LeagueTournamentsPage() {
   }
 
 
+  async function deleteTournament(
+    tournament:
+      Tournament,
+  ) {
+    if (
+      !isAdmin
+    ) {
+      return;
+    }
+
+    const confirmation =
+      window.prompt(
+        `Delete "${tournament.name}" permanently? This removes all Tournament teams, groups, fixtures, matches, standings and stats. Type the Tournament name exactly to continue.`,
+      );
+
+    if (
+      confirmation ===
+      null
+    ) {
+      return;
+    }
+
+    if (
+      confirmation.trim() !==
+      tournament.name.trim()
+    ) {
+      setError(
+        'Tournament name confirmation does not match.',
+      );
+
+      return;
+    }
+
+    setDeletingTournamentId(
+      tournament.id,
+    );
+
+    setError(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/tournaments/${tournament.id}`,
+        {
+          method:
+            'DELETE',
+
+          body:
+            JSON.stringify({
+              confirmName:
+                confirmation,
+            }),
+        },
+      );
+
+      await loadTournaments();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete Tournament.',
+      );
+    } finally {
+      setDeletingTournamentId(
+        null,
+      );
+    }
+  }
+
+
+  const isAdmin =
+    Boolean(
+      league?.adminRole,
+    );
+
+
   if (
     !user ||
     !league
@@ -376,12 +464,6 @@ export default function LeagueTournamentsPage() {
       />
     );
   }
-
-
-  const isAdmin =
-    Boolean(
-      league.adminRole,
-    );
 
 
   return (
@@ -863,12 +945,42 @@ export default function LeagueTournamentsPage() {
 
                         <Link
                           href={
+                            `/tournaments/${tournament.id}/teams`
+                          }
+                          className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
+                        >
+                          Manage Teams
+                        </Link>
+
+                        <Link
+                          href={
                             `/tournaments/${tournament.id}/fixtures`
                           }
                           className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
                         >
                           Fixtures
                         </Link>
+
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            disabled={
+                              deletingTournamentId ===
+                              tournament.id
+                            }
+                            onClick={() =>
+                              void deleteTournament(
+                                tournament,
+                              )
+                            }
+                            className="rounded-xl border border-red-400/30 bg-red-400/[0.04] px-4 py-3 text-sm font-black text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                          >
+                            {deletingTournamentId ===
+                            tournament.id
+                              ? 'Deleting...'
+                              : 'Delete Tournament'}
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </FcPanel>

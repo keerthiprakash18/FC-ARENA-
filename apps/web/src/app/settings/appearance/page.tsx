@@ -381,7 +381,7 @@ export default function AppearancePage() {
 
                     {current ? (
                       <FcStatusBadge
-                        label="✓ Current Theme"
+                        label="✓ CURRENT THEME"
                         tone="emerald"
                       />
                     ) : null}

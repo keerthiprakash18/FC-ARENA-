@@ -262,7 +262,7 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#203141] bg-[#14212D] text-base text-[#19B7FF]">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#E3DCCF] bg-[#FAF2DD] text-base text-[#A06B13]">
           {icon}
         </span>
 
@@ -274,7 +274,7 @@ function SectionTitle({
       {href ? (
         <Link
           href={href}
-          className="text-sm font-medium text-[#8290A0] transition hover:text-[#19B7FF]"
+          className="text-sm font-medium text-[#8792A1] transition hover:text-[#C9972D]"
         >
           {linkLabel}
         </Link>
@@ -1047,7 +1047,7 @@ export default function DashboardPage() {
                   href={
                     `/leagues/${primaryMembership.league.id}`
                   }
-                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#0B2545] transition hover:border-[#19B7FF]/40 hover:bg-[#182936]"
+                  className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#284154] bg-[#14212D] px-5 text-sm font-semibold text-[#0B2545] transition hover:border-[#D9B45A]/45 hover:bg-[#182936]"
                 >
                   Open League →
                 </Link>

@@ -48,6 +48,7 @@ interface Tournament {
   id: string;
   name: string;
   maxEntries: number;
+  isLeagueAdmin: boolean;
 }
 
 
@@ -86,6 +87,39 @@ export default function TournamentTeamsPage() {
     useState<Entry[]>(
       [],
     );
+
+
+  const [
+    busy,
+    setBusy,
+  ] =
+    useState(false);
+
+  const [
+    message,
+    setMessage,
+  ] =
+    useState('');
+
+  const [
+    error,
+    setError,
+  ] =
+    useState('');
+
+
+  async function loadEntries() {
+    const teams =
+      await authenticatedRequest<any>(
+        `/tournaments/${tournamentId}/entries`,
+      );
+
+    setEntries(
+      teams
+        .data
+        .entries,
+    );
+  }
 
 
   useEffect(() => {
@@ -135,6 +169,73 @@ export default function TournamentTeamsPage() {
   ]);
 
 
+  async function deleteTeam(
+    entry:
+      Entry,
+  ) {
+    if (
+      !tournament
+        ?.isLeagueAdmin
+    ) {
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        entry.fixtureCount >
+        0
+          ? `Delete "${entry.entryName ?? 'this team'}"? It is already linked to ${entry.fixtureCount} fixture(s). The server will block unsafe removal when required.`
+          : `Delete "${entry.entryName ?? 'this team'}" from this Tournament?`,
+      );
+
+    if (
+      !confirmed
+    ) {
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError(
+      '',
+    );
+
+    setMessage(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/tournaments/${tournamentId}/entries/${entry.id}`,
+        {
+          method:
+            'DELETE',
+        },
+      );
+
+      setMessage(
+        'Team deleted from Tournament.',
+      );
+
+      await loadEntries();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete team.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
   if (
     !user ||
     !tournament
@@ -173,6 +274,50 @@ export default function TournamentTeamsPage() {
             tournamentId
           }
         />
+
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  Team Management
+                </p>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Add, edit, import, reorder or delete Tournament teams.
+                </p>
+              </div>
+
+              <Link
+                href={
+                  `/tournaments/${tournamentId}/wizard/teams`
+                }
+                className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-sky-400 px-4 text-sm font-black text-[#031019]"
+              >
+                + Add / Manage Teams
+              </Link>
+            </div>
+          </FcPanel>
+        ) : null}
+
+
+        {message ? (
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
+            {
+              message
+            }
+          </div>
+        ) : null}
+
+
+        {error ? (
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
+            {
+              error
+            }
+          </div>
+        ) : null}
 
 
         {entries.length ===
@@ -222,6 +367,34 @@ export default function TournamentTeamsPage() {
                       </p>
                     </div>
                   </div>
+
+                  {tournament.isLeagueAdmin ? (
+                    <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4">
+                      <Link
+                        href={
+                          `/tournaments/${tournamentId}/wizard/teams`
+                        }
+                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-white/10 px-3.5 text-xs font-semibold text-slate-500 transition hover:text-white"
+                      >
+                        Edit Team
+                      </Link>
+
+                      <button
+                        type="button"
+                        disabled={
+                          busy
+                        }
+                        onClick={() =>
+                          void deleteTeam(
+                            entry,
+                          )
+                        }
+                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-3.5 text-xs font-semibold text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                      >
+                        Delete Team
+                      </button>
+                    </div>
+                  ) : null}
                 </FcPanel>
               ),
             )}

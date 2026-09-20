@@ -410,22 +410,19 @@ function DesktopNavItem({
           ? 'page'
           : undefined
       }
-      className={`group relative flex h-[56px] items-center gap-4 overflow-hidden rounded-[13px] border px-[17px] text-[15px] font-semibold transition duration-200 ${
+      data-active={
         selected
-          ? 'border-[#D9B45A]/40 bg-[linear-gradient(90deg,rgba(201,151,45,0.20),rgba(255,255,255,0.06))] text-white shadow-[0_8px_24px_rgba(0,0,0,0.10)]'
-          : 'border-transparent bg-transparent text-[#E8EDF3] hover:border-white/[0.06] hover:bg-white/[0.05] hover:text-white'
-      }`}
+          ? 'true'
+          : 'false'
+      }
+      className="theme-nav-item group relative flex h-[56px] items-center gap-4 overflow-hidden rounded-[13px] border px-[17px] text-[15px] font-semibold transition duration-200"
     >
       {selected ? (
-        <span className="absolute inset-y-2.5 left-0 w-[3px] rounded-r-full bg-[#D9B45A]" />
+        <span className="theme-nav-accent absolute inset-y-2.5 left-0 w-[3px] rounded-r-full" />
       ) : null}
 
       <span
-        className={`grid h-7 w-7 shrink-0 place-items-center transition duration-200 ${
-          selected
-            ? 'text-[#E5BD65]'
-            : 'text-[#A8B3C0] group-hover:text-[#E5BD65]'
-        }`}
+        className="theme-nav-icon grid h-7 w-7 shrink-0 place-items-center transition duration-200"
       >
         <SidebarIcon
           name={icon}
@@ -453,9 +450,9 @@ function QuickActionItem({
   return (
     <Link
       href={href}
-      className="group flex h-[46px] items-center gap-3 rounded-[11px] border border-white/[0.08] bg-white/[0.025] px-3.5 text-[14px] font-medium text-[#D6DEE8] transition duration-200 hover:border-[#D9B45A]/25 hover:bg-white/[0.05] hover:text-white"
+      className="theme-quick-action group flex h-[46px] items-center gap-3 rounded-[11px] border px-3.5 text-[14px] font-medium transition duration-200"
     >
-      <span className="grid h-7 w-7 shrink-0 place-items-center text-[#A8B3C0] transition duration-200 group-hover:text-[#E5BD65]">
+      <span className="theme-quick-action-icon grid h-7 w-7 shrink-0 place-items-center transition duration-200">
         <SidebarIcon
           name={icon}
           className="h-[19px] w-[19px]"
@@ -466,7 +463,7 @@ function QuickActionItem({
         {label}
       </span>
 
-      <span className="text-[#728095] transition duration-200 group-hover:translate-x-0.5 group-hover:text-[#D9B45A]">
+      <span className="theme-quick-action-chevron transition duration-200 group-hover:translate-x-0.5">
         <SidebarIcon
           name="chevron"
           className="h-4 w-4"
@@ -545,14 +542,14 @@ export function AppShell({
 
 
   return (
-    <div className="min-h-screen bg-[#F7F3EB] text-[#0B2545]">
-      <aside className="fc-sidebar-art fixed inset-y-0 left-0 z-40 hidden w-[270px] overflow-hidden border-r border-white/[0.07] bg-[linear-gradient(180deg,#061E35_0%,#082944_100%)] lg:flex lg:flex-col">
-        <div className="shrink-0 border-b border-white/[0.08] px-[22px] py-5">
+    <div className="fc-app-shell min-h-screen">
+      <aside className="theme-sidebar fc-sidebar-art fixed inset-y-0 left-0 z-40 hidden w-[270px] overflow-hidden border-r lg:flex lg:flex-col">
+        <div className="theme-sidebar-divider shrink-0 border-b px-[22px] py-5">
           <Link
             href="/dashboard"
             className="flex min-h-[58px] items-center gap-3.5"
           >
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[13px] border border-[#D9B45A]/45 bg-[#0B2545] text-[#D9B45A] shadow-[0_8px_22px_rgba(0,0,0,0.18)]">
+            <span className="theme-brand-mark grid h-12 w-12 shrink-0 place-items-center rounded-[13px] border shadow-[0_8px_22px_rgba(0,0,0,0.10)]">
               <svg
                 viewBox="0 0 48 48"
                 fill="none"
@@ -581,11 +578,11 @@ export function AppShell({
             </span>
 
             <span className="min-w-0">
-              <span className="block text-[22px] font-bold leading-none tracking-[-0.025em] text-[#FFFDF9]">
-                FC <span className="text-[#D9B45A]">ARENA</span>
+              <span className="theme-brand-title block text-[22px] font-bold leading-none tracking-[-0.025em]">
+                FC <span className="theme-brand-accent">ARENA</span>
               </span>
 
-              <span className="mt-2 block text-[11px] font-medium tracking-[0.045em] text-[#A9B4C2]">
+              <span className="theme-sidebar-muted mt-2 block text-[11px] font-medium tracking-[0.045em]">
                 PLAY • COMPETE • BELONG
               </span>
             </span>
@@ -594,7 +591,7 @@ export function AppShell({
 
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#8C9AAA]">
+          <p className="theme-sidebar-label px-1 text-[11px] font-semibold uppercase tracking-[0.06em]">
             Main
           </p>
 
@@ -628,10 +625,10 @@ export function AppShell({
           </nav>
 
 
-          <div className="my-6 h-px bg-white/[0.08]" />
+          <div className="theme-sidebar-separator my-6 h-px" />
 
 
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#687684]">
+          <p className="theme-sidebar-label px-1 text-[11px] font-semibold uppercase tracking-[0.06em]">
             Quick Actions
           </p>
 
@@ -661,32 +658,32 @@ export function AppShell({
         </div>
 
 
-        <div className="shrink-0 border-t border-white/[0.08] bg-[#061E35]/90 px-5 pb-4 pt-4 backdrop-blur-sm">
+        <div className="theme-sidebar-footer shrink-0 border-t px-5 pb-4 pt-4 backdrop-blur-sm">
           <Link
             href="/profile"
-            className="group flex items-center gap-3 rounded-[13px] border border-white/[0.08] bg-white/[0.035] p-3 transition duration-200 hover:border-[#D9B45A]/28 hover:bg-white/[0.055]"
+            className="theme-user-card group flex items-center gap-3 rounded-[13px] border p-3 transition duration-200"
           >
-            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#D9B45A]/45 bg-[#0B2545] text-xs font-semibold text-[#D9B45A]">
+            <span className="theme-avatar relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-xs font-semibold">
               {
                 initials
               }
 
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#061E35] bg-[#22A06B]" />
+              <span className="theme-online-indicator absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2" />
             </span>
 
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[14px] font-semibold text-white">
+              <span className="theme-sidebar-user-name block truncate text-[14px] font-semibold">
                 {playerName ||
                   'FC ARENA Player'}
               </span>
 
-              <span className="mt-0.5 block text-[12px] font-normal text-[#A9B4C2]">
+              <span className="theme-sidebar-muted mt-0.5 block text-[12px] font-normal">
                 {playerRole ||
                   'Player'}
               </span>
             </span>
 
-            <span className="text-[#75859A] transition duration-200 group-hover:text-[#D9B45A]">
+            <span className="theme-user-chevron transition duration-200">
               <SidebarIcon
                 name="chevron"
                 className="h-4 w-4"
@@ -703,7 +700,7 @@ export function AppShell({
             onClick={() =>
               void logout()
             }
-            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[11px] border border-[#E34C4C]/40 bg-transparent px-4 text-[13px] font-semibold text-[#FF7B7B] transition duration-200 hover:bg-[#E34C4C]/[0.10] disabled:cursor-not-allowed disabled:opacity-50"
+            className="theme-danger-button mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-[11px] border bg-transparent px-4 text-[13px] font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <SidebarIcon
               name="logout"
@@ -718,16 +715,16 @@ export function AppShell({
 
           <div className="mt-4 flex items-end justify-between gap-3 px-1">
             <div>
-              <p className="text-[10px] font-medium text-[#8C9AAA]">
+              <p className="theme-sidebar-muted text-[10px] font-medium">
                 FC ARENA v1.0.0
               </p>
 
-              <p className="mt-1 text-[9px] font-medium tracking-[0.08em] text-[#728095]">
+              <p className="theme-sidebar-muted mt-1 text-[9px] font-medium tracking-[0.08em]">
                 © FC ARENA · MORE THAN A GAME
               </p>
             </div>
 
-            <span className="text-[10px] text-[#D9B45A]/45">
+            <span className="theme-brand-accent text-[10px] opacity-45">
               ●
             </span>
           </div>

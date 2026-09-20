@@ -262,11 +262,11 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#E3DCCF] bg-[#FAF2DD] text-base text-[#A06B13]">
+        <span className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border text-base">
           {icon}
         </span>
 
-        <h2 className="fc-display text-[19px] font-semibold text-[#0B2545]">
+        <h2 className="theme-text fc-display text-[19px] font-semibold">
           {title}
         </h2>
       </div>
@@ -274,7 +274,7 @@ function SectionTitle({
       {href ? (
         <Link
           href={href}
-          className="text-sm font-medium text-[#8792A1] transition hover:text-[#C9972D]"
+          className="theme-text-link text-sm font-medium transition"
         >
           {linkLabel}
         </Link>
@@ -692,7 +692,7 @@ export default function DashboardPage() {
 
           <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
             <div className="hidden lg:block">
-              <div className="grid h-[86px] w-[86px] place-items-center rounded-full border-[3px] border-[#D9B45A]/55 bg-[#0B2545] shadow-[0_0_0_8px_rgba(217,180,90,0.09)]">
+              <div className="theme-hero-avatar-ring grid h-[86px] w-[86px] place-items-center rounded-full border-[3px]">
                 <FcCrest
                   name={
                     inGameName
@@ -707,22 +707,22 @@ export default function DashboardPage() {
             </div>
 
             <div className="min-w-0 lg:pr-5">
-              <p className="text-[12px] font-bold tracking-[0.16em] text-[#B17C17]">
+              <p className="theme-hero-kicker text-[12px] font-bold tracking-[0.16em]">
                 WELCOME BACK
               </p>
 
-              <h1 className="mt-2 truncate text-[38px] font-bold leading-[0.98] tracking-[-0.035em] text-[#0B2545] sm:text-[44px] lg:text-[48px]">
+              <h1 className="theme-text mt-2 truncate text-[38px] font-bold leading-[0.98] tracking-[-0.035em] sm:text-[44px] lg:text-[48px]">
                 {
                   inGameName
                 }
               </h1>
 
-              <p className="mt-3 max-w-2xl text-[14px] leading-6 text-[#54657A]">
+              <p className="theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
                 Your player identity, form and next competition action in one place.
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-[#D9B45A]/35 bg-[#FAF2DD] px-3 py-1.5 font-mono text-[11px] font-semibold text-[#A06B13]">
+                <span className="theme-soft-accent rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold">
                   {
                     playerCode
                   }
@@ -746,9 +746,9 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="relative hidden h-full min-h-[168px] text-white lg:block">
+            <div className="theme-hero-side-copy relative hidden h-full min-h-[168px] lg:block">
               <div className="absolute right-2 top-2 text-right">
-                <p className="rotate-[-5deg] text-[21px] font-semibold italic leading-[0.95] tracking-[-0.025em] text-[#F7E7BE]">
+                <p className="theme-hero-slogan rotate-[-5deg] text-[21px] font-semibold italic leading-[0.95] tracking-[-0.025em]">
                   More Than
                   <br />
                   A Game
@@ -756,7 +756,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="absolute bottom-1 right-2 text-right">
-                <p className="text-[10px] font-semibold tracking-[0.18em] text-[#D9B45A]">
+                <p className="theme-hero-side-label text-[10px] font-semibold tracking-[0.18em]">
                   PLAY
                   <br />
                   COMPETE
@@ -764,7 +764,7 @@ export default function DashboardPage() {
                   BELONG
                 </p>
 
-                <p className="mt-3 font-mono text-[10px] tracking-[0.08em] text-white/55">
+                <p className="theme-hero-side-code mt-3 font-mono text-[10px] tracking-[0.08em]">
                   {
                     playerCode
                   }
@@ -870,7 +870,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <div className="grid h-12 w-12 place-items-center rounded-xl border border-[#284154] bg-[#14212D] text-xs font-semibold text-[#54657A]">
+                  <div className="theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold">
                     VS
                   </div>
 
@@ -918,7 +918,7 @@ export default function DashboardPage() {
                         ? `/matches/${nextFixture.match.id}`
                         : `/tournaments/${nextFixture.tournamentId}/fixtures`
                     }
-                    className="fc-gold-cta inline-flex min-h-12 items-center justify-center px-5 text-sm"
+                    className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                   >
                     View Match →
                   </Link>
@@ -926,7 +926,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
-                <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#E3DCCF] bg-[#FAF2DD] text-lg text-[#A06B13]">
+                <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
                   ◷
                 </div>
 
@@ -940,7 +940,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/fixtures"
-                  className="fc-gold-cta mt-5 inline-flex min-h-12 items-center justify-center px-5 text-sm"
+                  className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                 >
                   View Fixtures →
                 </Link>
@@ -1064,7 +1064,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/leagues"
-                  className="fc-gold-cta mt-5 inline-flex min-h-12 items-center justify-center px-5 text-sm"
+                  className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                 >
                   Join or Create League →
                 </Link>
@@ -1186,7 +1186,7 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
-                <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-[#E3DCCF] bg-[#FAF2DD] text-lg text-[#A06B13]">
+                <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
                   🏆
                 </div>
 
@@ -1200,7 +1200,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/tournaments"
-                  className="fc-gold-cta mt-5 inline-flex min-h-12 items-center justify-center px-5 text-sm"
+                  className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                 >
                   Browse Tournaments →
                 </Link>

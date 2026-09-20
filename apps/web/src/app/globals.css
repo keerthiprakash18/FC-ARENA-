@@ -1102,3 +1102,43 @@ body {
 .fc-main [class~="bg-[#C9972D]"][class~="text-black"] {
   color: #FFFFFF !important;
 }
+
+
+/* Shared button hierarchy */
+.primary-button {
+  min-height: 48px;
+  border-radius: 11px;
+  background: var(--fc-gold);
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.primary-button:hover {
+  background: #B98924;
+  transform: translateY(-1px);
+  filter: none;
+}
+
+.secondary-button {
+  min-height: 46px;
+  border: 1px solid var(--fc-navy);
+  border-radius: 11px;
+  background: var(--fc-navy);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.secondary-button:hover {
+  background: var(--fc-navy-2);
+  border-color: var(--fc-navy-2);
+}
+
+.text-link {
+  color: var(--fc-gold);
+  font-weight: 700;
+}
+
+.text-link:hover {
+  color: #B98924;
+}

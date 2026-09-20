@@ -19,6 +19,11 @@ enum GlobalRole {
   SUPER_ADMIN
 }
 
+enum ThemePreference {
+  LUXURY_GOLD
+  CLASSIC_BLUE
+}
+
 enum OtpPurpose {
   EMAIL_VERIFICATION
   PASSWORD_RESET
@@ -217,7 +222,8 @@ model User {
   phoneNumber     String?    @unique @db.VarChar(30)
   passwordHash    String     @db.VarChar(255)
   role            GlobalRole @default(USER)
-  status          UserStatus @default(PENDING_VERIFICATION)
+  status          UserStatus       @default(PENDING_VERIFICATION)
+  themePreference ThemePreference  @default(CLASSIC_BLUE)
   emailVerifiedAt DateTime?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt

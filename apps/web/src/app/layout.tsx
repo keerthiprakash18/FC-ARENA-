@@ -10,6 +10,9 @@ import {
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase:
+    new URL('https://fcarena.in'),
+
   title: 'FC ARENA',
 
   description:

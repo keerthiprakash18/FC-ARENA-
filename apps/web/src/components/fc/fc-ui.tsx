@@ -137,7 +137,9 @@ export function FcStatCard({
   icon?: ReactNode;
 }) {
   const iconClass =
-    'theme-stat-icon';
+    toneClasses[
+      tone
+    ];
 
   return (
     <article className="theme-stat-card h-full min-h-[145px] rounded-2xl border p-4 transition duration-200 hover:-translate-y-0.5 sm:p-5">

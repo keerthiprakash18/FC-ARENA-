@@ -385,27 +385,27 @@ export default function LeagueOverviewPage() {
                 href={
                   href
                 }
-                className="group rounded-[22px] border border-white/10 bg-[#08111b] p-5 transition hover:-translate-y-0.5 hover:border-sky-400/30"
+                className="theme-action-row group rounded-[22px] border p-5 transition hover:-translate-y-0.5"
               >
-                <span className="grid h-11 w-11 place-items-center rounded-xl border border-sky-400/20 bg-sky-400/[0.06] text-lg text-sky-300">
+                <span className="theme-soft-accent grid h-11 w-11 place-items-center rounded-xl border text-lg">
                   {
                     icon
                   }
                 </span>
 
-                <h2 className="mt-4 text-lg font-black">
+                <h2 className="theme-text mt-4 text-lg font-semibold">
                   {
                     title
                   }
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+                <p className="theme-secondary-text mt-2 text-sm leading-6">
                   {
                     description
                   }
                 </p>
 
-                <span className="mt-4 inline-flex text-sm font-black text-sky-300">
+                <span className="theme-text-link mt-4 inline-flex text-sm font-semibold">
                   Open →
                 </span>
               </Link>

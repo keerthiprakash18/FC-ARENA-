@@ -144,7 +144,7 @@ export function FcStatCard({
         : tone === 'red'
           ? 'text-[#D94B4B] bg-[#D94B4B]/[0.06] border-[#D94B4B]/15'
           : tone === 'slate'
-            ? 'text-[#667085] bg-white/[0.035] border-white/[0.06]'
+            ? 'text-[#667085] bg-[#F3EFE6] border-[#E4DFD5]'
             : 'text-[#0B2545] bg-[#F3EFE6] border-[#D8D2C8]';
 
   return (
@@ -310,7 +310,7 @@ export function FcActionRow({
         </span>
       ) : null}
 
-      <span className="text-[#8B95A5] transition group-hover:translate-x-0.5 group-hover:text-[#19B7FF]">
+      <span className="text-[#8B95A5] transition group-hover:translate-x-0.5 group-hover:text-[#C9972D]">
         ›
       </span>
     </Link>
@@ -393,7 +393,7 @@ export function FcConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onCancel}
-            className="min-h-11 rounded-[10px] border border-[#203141] bg-transparent px-4 text-sm font-medium text-[#667085] hover:bg-[#121D28] disabled:opacity-40"
+            className="min-h-11 rounded-[10px] border border-[#D8D2C8] bg-transparent px-4 text-sm font-medium text-[#0B2545] hover:bg-[#F3EFE6] disabled:opacity-40"
           >
             {cancelLabel}
           </button>

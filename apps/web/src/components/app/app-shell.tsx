@@ -746,7 +746,7 @@ export function AppShell({
         />
 
         <main
-          className={`fc-main mx-auto min-h-[calc(100vh-4.25rem)] w-full max-w-[1440px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-8 lg:pb-10 lg:pt-7 ${
+          className={`fc-main mx-auto min-h-[calc(100vh-4.25rem)] w-full max-w-[1440px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-7 lg:pb-10 lg:pt-6 ${
             showBottomNavigation
               ? 'pb-28'
               : 'pb-8'

@@ -155,6 +155,19 @@ export default function TournamentOverviewPage() {
     );
 
 
+  const [
+    deletingTournament,
+    setDeletingTournament,
+  ] =
+    useState(false);
+
+  const [
+    deleteError,
+    setDeleteError,
+  ] =
+    useState('');
+
+
   useEffect(() => {
     void (async () => {
       try {
@@ -289,6 +302,82 @@ export default function TournamentOverviewPage() {
     );
 
 
+  async function deleteTournament() {
+    if (
+      !tournament ||
+      !tournament.isLeagueAdmin ||
+      deletingTournament
+    ) {
+      return;
+    }
+
+    const confirmation =
+      window.prompt(
+        `Delete "${tournament.name}" permanently? This removes all teams, groups, fixtures, matches, standings and Tournament stats. Type the Tournament name exactly to continue.`,
+      );
+
+    if (
+      confirmation ===
+      null
+    ) {
+      return;
+    }
+
+    if (
+      confirmation.trim() !==
+      tournament.name.trim()
+    ) {
+      setDeleteError(
+        'Tournament name confirmation does not match.',
+      );
+
+      return;
+    }
+
+    setDeletingTournament(
+      true,
+    );
+
+    setDeleteError(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/tournaments/${tournamentId}`,
+        {
+          method:
+            'DELETE',
+
+          body:
+            JSON.stringify({
+              confirmName:
+                confirmation,
+            }),
+        },
+      );
+
+      router.replace(
+        '/tournaments',
+      );
+
+      router.refresh();
+    } catch (
+      err
+    ) {
+      setDeleteError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete Tournament.',
+      );
+    } finally {
+      setDeletingTournament(
+        false,
+      );
+    }
+  }
+
+
   if (
     !user ||
     !tournament
@@ -362,6 +451,15 @@ export default function TournamentOverviewPage() {
         />
 
 
+        {deleteError ? (
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
+            {
+              deleteError
+            }
+          </div>
+        ) : null}
+
+
         <FcPanel className="overflow-hidden">
           <div className="bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_65%)] p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -421,12 +519,38 @@ export default function TournamentOverviewPage() {
 
                 <Link
                   href={
+                    `/tournaments/${tournamentId}/teams`
+                  }
+                  className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-slate-300"
+                >
+                  Manage Teams
+                </Link>
+
+                <Link
+                  href={
                     `/tournaments/${tournamentId}/registration`
                   }
                   className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-slate-300"
                 >
                   Registration
                 </Link>
+
+                {tournament.isLeagueAdmin ? (
+                  <button
+                    type="button"
+                    disabled={
+                      deletingTournament
+                    }
+                    onClick={() =>
+                      void deleteTournament()
+                    }
+                    className="rounded-xl border border-red-400/30 bg-red-400/[0.04] px-5 py-3 text-sm font-black text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                  >
+                    {deletingTournament
+                      ? 'Deleting...'
+                      : 'Delete Tournament'}
+                  </button>
+                ) : null}
               </div>
             </div>
 

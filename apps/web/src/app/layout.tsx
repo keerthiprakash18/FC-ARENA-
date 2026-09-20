@@ -7,6 +7,10 @@ import {
   ServiceWorkerRegister,
 } from '@/components/pwa/service-worker-register';
 
+import {
+  ThemeProvider,
+} from '@/components/theme/theme-provider';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -69,11 +73,40 @@ export default function RootLayout({
   children:
     React.ReactNode;
 }>) {
+  const themeBootstrap = `
+    (function () {
+      try {
+        var value = localStorage.getItem('fc-arena-theme-preference');
+        var theme = value === 'LUXURY_GOLD'
+          ? 'luxury-gold'
+          : 'classic-blue';
+        document.documentElement.dataset.theme = theme;
+      } catch (_) {
+        document.documentElement.dataset.theme = 'classic-blue';
+      }
+    })();
+  `;
+
   return (
-    <html lang="en">
-      <body data-ui-build="reference-home-v2">
-        <ServiceWorkerRegister />
-        {children}
+    <html
+      lang="en"
+      data-theme="classic-blue"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              themeBootstrap,
+          }}
+        />
+      </head>
+
+      <body data-ui-build="theme-system-v1">
+        <ThemeProvider>
+          <ServiceWorkerRegister />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

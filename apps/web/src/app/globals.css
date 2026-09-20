@@ -2030,3 +2030,85 @@ body {
 [data-theme="classic-blue"] .fc-main [class~="text-[#F3E4BD]"] {
   color: var(--theme-text) !important;
 }
+
+
+/* Complete legacy compatibility for all five primary app sections */
+.fc-main [class~="bg-[#0a1520]"],
+.fc-main [class~="bg-[#07101a]"] {
+  background: var(--theme-surface) !important;
+}
+
+.fc-main [class~="bg-[#19B7FF]/[0.055]"],
+.fc-main [class~="bg-[#19B7FF]/[0.06]"],
+.fc-main [class~="bg-[#19B7FF]/[0.08]"],
+.fc-main [class~="bg-[#38BDF8]/[0.08]"] {
+  background: var(--theme-primary-soft) !important;
+}
+
+.fc-main [class~="border-[#19B7FF]/20"],
+.fc-main [class~="border-[#19B7FF]/25"],
+.fc-main [class~="border-[#19B7FF]/30"],
+.fc-main [class~="border-[#19B7FF]/35"],
+.fc-main [class~="border-[#38BDF8]/35"] {
+  border-color: color-mix(in srgb, var(--theme-primary) 30%, var(--theme-border)) !important;
+}
+
+.fc-main [class~="hover:bg-[#0EA5E9]"]:hover,
+.fc-main [class~="hover:bg-[#21C3FF]"]:hover {
+  background: var(--theme-primary-hover) !important;
+  color: #FFFFFF !important;
+}
+
+.fc-main [class~="hover:border-[#2D4356]"]:hover,
+.fc-main [class~="hover:border-[#334155]"]:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 38%, var(--theme-border)) !important;
+}
+
+.fc-main [class~="hover:bg-[#121D28]"]:hover,
+.fc-main [class~="hover:bg-[#151C26]"]:hover,
+.fc-main [class~="hover:bg-[#182936]"]:hover {
+  background: var(--theme-secondary-background) !important;
+}
+
+.fc-luxury-card {
+  background: var(--theme-surface) !important;
+  border-color: var(--theme-border) !important;
+  box-shadow: var(--theme-card-shadow) !important;
+}
+
+.fc-luxury-info {
+  background: var(--theme-secondary-background) !important;
+  border-color: var(--theme-border) !important;
+}
+
+.theme-match-art {
+  background:
+    radial-gradient(
+      ellipse at 50% 125%,
+      color-mix(in srgb, var(--theme-text) 8%, transparent),
+      transparent 48%
+    ),
+    radial-gradient(
+      circle at 84% 82%,
+      color-mix(in srgb, var(--theme-primary) 10%, transparent),
+      transparent 18%
+    ),
+    linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--theme-primary-soft) 42%, transparent)
+    );
+}
+
+.theme-progress-track {
+  background: var(--theme-primary-soft);
+}
+
+.theme-progress-bar {
+  background:
+    linear-gradient(
+      90deg,
+      var(--theme-primary),
+      var(--theme-primary-bright)
+    );
+}

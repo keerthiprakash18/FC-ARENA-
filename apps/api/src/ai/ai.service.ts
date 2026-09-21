@@ -1,7 +1,8 @@
 import {
+  HttpException,
+  HttpStatus,
   Injectable,
   ServiceUnavailableException,
-  TooManyRequestsException,
 } from '@nestjs/common';
 
 import {
@@ -195,7 +196,7 @@ export class AiService {
       bucket.minuteCount >=
       MINUTE_LIMIT
     ) {
-      throw new TooManyRequestsException({
+      throw new HttpException({
         success: false,
         data: null,
         error: {
@@ -204,14 +205,14 @@ export class AiService {
           message:
             'Too many AI questions. Try again in a minute.',
         },
-      });
+      }, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     if (
       bucket.dayCount >=
       DAILY_LIMIT
     ) {
-      throw new TooManyRequestsException({
+      throw new HttpException({
         success: false,
         data: null,
         error: {
@@ -220,7 +221,7 @@ export class AiService {
           message:
             'Your FC ARENA AI daily limit has been reached.',
         },
-      });
+      }, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     bucket.minuteCount += 1;

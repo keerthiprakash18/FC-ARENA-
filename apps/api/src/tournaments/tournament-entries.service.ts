@@ -164,7 +164,8 @@ export class TournamentEntriesService {
         tournamentId,
       );
 
-    this.assertDraft(
+    await this.assertEntriesEditable(
+      tournamentId,
       tournament.status,
     );
 
@@ -294,7 +295,8 @@ export class TournamentEntriesService {
         tournamentId,
       );
 
-    this.assertDraft(
+    await this.assertEntriesEditable(
+      tournamentId,
       tournament.status,
     );
 
@@ -493,7 +495,8 @@ export class TournamentEntriesService {
         tournamentId,
       );
 
-    this.assertDraft(
+    await this.assertEntriesEditable(
+      tournamentId,
       tournament.status,
     );
 
@@ -582,7 +585,8 @@ export class TournamentEntriesService {
         tournamentId,
       );
 
-    this.assertDraft(
+    await this.assertEntriesEditable(
+      tournamentId,
       tournament.status,
     );
 
@@ -658,7 +662,8 @@ export class TournamentEntriesService {
         tournamentId,
       );
 
-    this.assertDraft(
+    await this.assertEntriesEditable(
+      tournamentId,
       tournament.status,
     );
 
@@ -871,12 +876,18 @@ export class TournamentEntriesService {
   }
 
 
-  private assertDraft(
+  private async assertEntriesEditable(
+    tournamentId: string,
     status: string,
   ) {
     if (
-      status !==
-      'DRAFT'
+      ![
+        'DRAFT',
+        'REGISTRATION_OPEN',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        status,
+      )
     ) {
       throw new ConflictException({
         success: false,
@@ -887,7 +898,32 @@ export class TournamentEntriesService {
             'TOURNAMENT_TEAMS_LOCKED',
 
           message:
-            'Tournament teams can only be edited while the Tournament is in Draft.',
+            'Tournament participants are locked after the Tournament becomes active.',
+        },
+      });
+    }
+
+    const fixtureCount =
+      await this.prisma.fixture.count({
+        where: {
+          tournamentId,
+        },
+      });
+
+    if (
+      fixtureCount >
+      0
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'TOURNAMENT_TEAMS_HAVE_FIXTURES',
+
+          message:
+            'Reset or remove generated fixtures before adding, editing, deleting or reordering Tournament participants.',
         },
       });
     }

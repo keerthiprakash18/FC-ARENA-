@@ -799,6 +799,21 @@ export default function TeamsWizardPage() {
     'REGISTRATION_OPEN';
 
 
+  const participantManagementOpen =
+    [
+      'DRAFT',
+      'REGISTRATION_OPEN',
+      'REGISTRATION_CLOSED',
+    ].includes(
+      tournament.status,
+    ) &&
+    entries.every(
+      (entry) =>
+        entry.fixtureCount ===
+        0,
+    );
+
+
   return (
     <AppShell
       playerName={
@@ -1019,8 +1034,7 @@ export default function TeamsWizardPage() {
                   >
                     {editingId ===
                       entry.id &&
-                    tournament.status ===
-                      'DRAFT' ? (
+                    participantManagementOpen ? (
                       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
                         <input
                           value={
@@ -1140,10 +1154,7 @@ export default function TeamsWizardPage() {
                         </div>
 
 
-                        {tournament.status ===
-                          'DRAFT' &&
-                        tournament.registrationMode ===
-                          'ADMIN_ONLY' ? (
+                        {participantManagementOpen ? (
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
@@ -1215,8 +1226,7 @@ export default function TeamsWizardPage() {
         </section>
 
 
-        {tournament.status ===
-          'DRAFT' ? (
+        {participantManagementOpen ? (
           <details
             open={
               tournament.registrationMode ===
@@ -1230,7 +1240,7 @@ export default function TeamsWizardPage() {
               </p>
 
               <p className="mt-2 text-sm text-slate-500">
-                Use this only when you want to add entries yourself. For normal League tournaments, use Player Self-Registration above.
+                Use this only when you want to add entries yourself. Manual participant management stays available until fixtures are generated.
               </p>
             </summary>
 

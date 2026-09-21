@@ -404,6 +404,22 @@ export default function TournamentRegistrationPage() {
     );
 
 
+  const approvedRegistrations =
+    useMemo(
+      () =>
+        registrations.filter(
+          (
+            registration,
+          ) =>
+            registration.status ===
+            'APPROVED',
+        ),
+      [
+        registrations,
+      ],
+    );
+
+
   async function submitRegistration(
     event:
       FormEvent<HTMLFormElement>,
@@ -581,6 +597,68 @@ export default function TournamentRegistrationPage() {
   }
 
 
+  async function changeRegistration(
+    action:
+      'open'
+      | 'close',
+  ) {
+    if (
+      !tournament
+        ?.isLeagueAdmin
+    ) {
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setMessage(
+      '',
+    );
+
+    setError(
+      '',
+    );
+
+    try {
+      const response =
+        await authenticatedRequest<MutationResponse>(
+          `/tournaments/${tournamentId}/${action}-registration`,
+          {
+            method:
+              'POST',
+          },
+        );
+
+      setMessage(
+        response
+          .data
+          .message,
+      );
+
+      const updatedTournament =
+        await refreshTournament();
+
+      await refreshRegistrationState(
+        updatedTournament,
+      );
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Unable to ${action} registration.`,
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
   if (
     !user ||
     !tournament
@@ -738,6 +816,147 @@ export default function TournamentRegistrationPage() {
             </div>
           </div>
         </FcPanel>
+
+
+        {tournament
+          .isLeagueAdmin ? (
+          <FcPanel className="p-5 sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+                  Registration Control
+                </p>
+
+                <h2 className="mt-2 text-xl font-black">
+                  Player Self-Registration
+                </h2>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                  Open registration so League players can join from their own account. Close it when entries are ready, resolve any pending applications, then continue Tournament setup.
+                </p>
+              </div>
+
+
+              <div className="flex flex-wrap gap-2">
+                {tournament.status ===
+                  'DRAFT' &&
+                tournament.registrationMode !==
+                  'ADMIN_ONLY' ? (
+                  <button
+                    type="button"
+                    disabled={
+                      busy
+                    }
+                    onClick={() =>
+                      void changeRegistration(
+                        'open',
+                      )
+                    }
+                    className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-[#03150f] disabled:opacity-40"
+                  >
+                    {busy
+                      ? 'Opening...'
+                      : 'Open Registration'}
+                  </button>
+                ) : null}
+
+
+                {tournament.status ===
+                'REGISTRATION_OPEN' ? (
+                  <button
+                    type="button"
+                    disabled={
+                      busy
+                    }
+                    onClick={() =>
+                      void changeRegistration(
+                        'close',
+                      )
+                    }
+                    className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] px-5 py-3 text-sm font-black text-amber-300 disabled:opacity-40"
+                  >
+                    {busy
+                      ? 'Closing...'
+                      : 'Close Registration'}
+                  </button>
+                ) : null}
+
+
+                {tournament.status ===
+                  'REGISTRATION_CLOSED' &&
+                pendingRegistrations.length ===
+                  0 &&
+                approvedRegistrations.length >=
+                  2 ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        `/tournaments/${tournamentId}/wizard/teams`,
+                      )
+                    }
+                    className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019]"
+                  >
+                    Continue Tournament Setup
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                  Status
+                </p>
+
+                <p className="mt-2 font-black">
+                  {
+                    tournament.status
+                      .replaceAll(
+                        '_',
+                        ' ',
+                      )
+                  }
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                  Approved
+                </p>
+
+                <p className="mt-2 text-xl font-black text-emerald-300">
+                  {
+                    approvedRegistrations.length
+                  }
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                <p className="text-[10px] uppercase tracking-wider text-slate-600">
+                  Pending
+                </p>
+
+                <p className="mt-2 text-xl font-black text-amber-300">
+                  {
+                    pendingRegistrations.length
+                  }
+                </p>
+              </div>
+            </div>
+
+
+            {tournament.status ===
+              'REGISTRATION_CLOSED' &&
+            pendingRegistrations.length >
+              0 ? (
+              <p className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-4 text-sm leading-6 text-amber-300">
+                Registration is closed, but {pendingRegistrations.length} application(s) still need a decision. Approve or reject them below before continuing.
+              </p>
+            ) : null}
+          </FcPanel>
+        ) : null}
 
 
         {tournament

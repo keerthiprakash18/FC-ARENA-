@@ -1586,8 +1586,12 @@ export class TournamentFixturePreviewService {
       string,
   ) {
     if (
-      status !==
-      'DRAFT'
+      ![
+        'DRAFT',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        status,
+      )
     ) {
       throw new ConflictException({
         success: false,
@@ -1598,7 +1602,7 @@ export class TournamentFixturePreviewService {
             'TOURNAMENT_WIZARD_LOCKED',
 
           message:
-            'Fixture preview can only be edited before the Tournament is published.',
+            'Close Tournament registration before editing the fixture preview.',
         },
       });
     }

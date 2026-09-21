@@ -1423,8 +1423,12 @@ export class TournamentsService {
       );
 
     if (
-      tournament.status !==
-      'DRAFT'
+      ![
+        'DRAFT',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        tournament.status,
+      )
     ) {
       throw new ConflictException({
         success: false,
@@ -1435,7 +1439,7 @@ export class TournamentsService {
             'TOURNAMENT_WIZARD_LOCKED',
 
           message:
-            'Wizard navigation is only available while the Tournament is in Draft.',
+            'Close Tournament registration before continuing setup.',
         },
       });
     }

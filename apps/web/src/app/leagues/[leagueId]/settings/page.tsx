@@ -585,6 +585,39 @@ export default function LeagueSettingsPage() {
 
 
         {league.adminRole ? (
+          <FcPanel className="p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+                  Security
+                </p>
+
+                <h2 className="mt-2 text-xl font-black">
+                  Roles & Audit
+                </h2>
+
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                  Assign scoped responsibilities and review permission changes recorded by FC ARENA.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/leagues/${leagueId}/roles`,
+                  )
+                }
+                className="min-h-11 shrink-0 rounded-xl border border-sky-400/20 px-4 text-sm font-black text-sky-300"
+              >
+                Manage Roles
+              </button>
+            </div>
+          </FcPanel>
+        ) : null}
+
+
+        {league.adminRole ? (
           <section>
             <div className="mb-3 flex items-center justify-between">
               <div>

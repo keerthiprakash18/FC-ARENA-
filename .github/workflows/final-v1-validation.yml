@@ -1,0 +1,87 @@
+name: FC ARENA Final V1 Validation
+
+on:
+  push:
+    branches:
+      - feature/final-v1-completion
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fcarena?schema=public
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: final-v1-ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: final-v1-ci-refresh-secret-at-least-32-characters
+      NODE_ENV: test
+      AI_ASSISTANT_ENABLED: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma schema validation
+        working-directory: apps/api
+        run: npx prisma validate --schema=prisma/schema.prisma
+
+      - name: Apply test database migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: API build
+        run: npm run build:api
+
+      - name: Full API unit tests
+        run: npm run test --workspace=apps/api
+
+      - name: Full API E2E tests
+        run: npm run test:e2e --workspace=apps/api
+
+      - name: New feature web lint
+        working-directory: apps/web
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx'
+
+      - name: Web production build
+        run: npm run build:web
+
+      - name: Diff whitespace check
+        run: git diff --check HEAD^ HEAD

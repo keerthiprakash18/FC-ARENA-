@@ -450,6 +450,13 @@ export default function MorePage() {
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <FcMenuRow
+              href="/ai"
+              icon="✦"
+              title="FC ARENA AI"
+              description="Read-only help, match context and stats assistant"
+              tone="cyan"
+            />
+            <FcMenuRow
               href="/settings"
               icon="⚙"
               title="Settings"

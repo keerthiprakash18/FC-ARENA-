@@ -33,7 +33,7 @@ jobs:
 
       - name: New feature web lint
         working-directory: apps/web
-        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx'
 
       - name: Web production build
         run: npm run build:web

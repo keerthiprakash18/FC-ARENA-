@@ -11,6 +11,10 @@ import {
   useState,
 } from 'react';
 
+import {
+  NotificationBell,
+} from './notification-bell';
+
 
 const quickSearchItems = [
   {
@@ -305,15 +309,7 @@ export function AppHeader({
 
 
         <div className="flex items-center gap-2.5">
-          <Link
-            href="/notifications"
-            aria-label="Notifications"
-            className="theme-header-icon relative grid h-11 w-11 place-items-center rounded-xl border border-transparent transition duration-200"
-          >
-            ♧
-
-            <span className="theme-notification-dot absolute right-2 top-2 h-2 w-2 rounded-full ring-2" />
-          </Link>
+          <NotificationBell />
 
 
           <div className="theme-divider h-8 w-px" />

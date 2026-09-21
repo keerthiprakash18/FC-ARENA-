@@ -18,7 +18,8 @@
     "build:web": "npm run build --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
     "build": "npm run build:api && npm run build:web",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "db:reset:test-data": "npm run db:reset:test-data --workspace=apps/api"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

@@ -32,7 +32,7 @@ import type { ThemePreferenceValue } from './dto/update-theme-preference.dto.js'
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
 const REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60;
-const OTP_EXPIRY_MINUTES = 5;
+const OTP_EXPIRY_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_HOURLY_LIMIT = 5;
@@ -83,6 +83,22 @@ export class AuthService {
     });
 
     if (existingUser) {
+      if (
+        existingUser.status ===
+        'PENDING_VERIFICATION'
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'EMAIL_PENDING_VERIFICATION',
+            message:
+              'This email already has an unverified account. Verify the existing account or resend the OTP.',
+          },
+        });
+      }
+
       throw new ConflictException({
         success: false,
         data: null,
@@ -360,31 +376,34 @@ export class AuthService {
 
     await this.enforceOtpRateLimit(user.id, 'EMAIL_VERIFICATION');
 
-    const otp = await this.createOtp(
-      user.id,
-      'EMAIL_VERIFICATION',
-    );
-
-    try {
-      await this.mail.sendVerificationOtp(
-        user.email,
-        otp,
-      );
-    } catch (error) {
-      const latestOtp = await this.getLatestOtp(
+    const otpRecord =
+      await this.createOtp(
         user.id,
         'EMAIL_VERIFICATION',
       );
 
-      if (latestOtp) {
-        await this.prisma.authOtp
-          .delete({
-            where: {
-              id: latestOtp.id,
-            },
-          })
-          .catch(() => undefined);
-      }
+    try {
+      await this.mail.sendVerificationOtp(
+        user.email,
+        otpRecord.otp,
+      );
+
+      await this.consumeOlderOtps(
+        user.id,
+        'EMAIL_VERIFICATION',
+        otpRecord.id,
+      );
+    } catch (error) {
+      await this.prisma.authOtp
+        .delete({
+          where: {
+            id: otpRecord.id,
+          },
+        })
+        .catch(
+          () =>
+            undefined,
+        );
 
       throw error;
     }
@@ -392,9 +411,14 @@ export class AuthService {
     return {
       success: true,
       data: {
-        message: 'A new verification OTP has been sent to your email.',
-        ...(process.env.NODE_ENV === 'development'
-          ? { developmentOtp: otp }
+        message:
+          'A new verification OTP has been sent to your email.',
+        ...(process.env.NODE_ENV ===
+        'development'
+          ? {
+              developmentOtp:
+                otpRecord.otp,
+            }
           : {}),
       },
       error: null,
@@ -414,31 +438,34 @@ export class AuthService {
 
     await this.enforceOtpRateLimit(user.id, 'PASSWORD_RESET');
 
-    const otp = await this.createOtp(
-      user.id,
-      'PASSWORD_RESET',
-    );
-
-    try {
-      await this.mail.sendPasswordResetOtp(
-        user.email,
-        otp,
-      );
-    } catch (error) {
-      const latestOtp = await this.getLatestOtp(
+    const otpRecord =
+      await this.createOtp(
         user.id,
         'PASSWORD_RESET',
       );
 
-      if (latestOtp) {
-        await this.prisma.authOtp
-          .delete({
-            where: {
-              id: latestOtp.id,
-            },
-          })
-          .catch(() => undefined);
-      }
+    try {
+      await this.mail.sendPasswordResetOtp(
+        user.email,
+        otpRecord.otp,
+      );
+
+      await this.consumeOlderOtps(
+        user.id,
+        'PASSWORD_RESET',
+        otpRecord.id,
+      );
+    } catch (error) {
+      await this.prisma.authOtp
+        .delete({
+          where: {
+            id: otpRecord.id,
+          },
+        })
+        .catch(
+          () =>
+            undefined,
+        );
 
       throw error;
     }
@@ -448,8 +475,12 @@ export class AuthService {
       data: {
         message:
           'If the account exists, a password reset OTP has been generated.',
-        ...(process.env.NODE_ENV === 'development'
-          ? { developmentOtp: otp }
+        ...(process.env.NODE_ENV ===
+        'development'
+          ? {
+              developmentOtp:
+                otpRecord.otp,
+            }
           : {}),
       },
       error: null,
@@ -989,37 +1020,75 @@ export class AuthService {
 
   private async createOtp(
     userId: string,
-    purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET',
-  ): Promise<string> {
-    const otp = this.generateOtp();
-    const codeHash = await bcrypt.hash(otp, 10);
-    const now = new Date();
-    const expiresAt = new Date(
-      Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000,
-    );
+    purpose:
+      | 'EMAIL_VERIFICATION'
+      | 'PASSWORD_RESET',
+  ): Promise<{
+    id: string;
+    otp: string;
+  }> {
+    const otp =
+      this.generateOtp();
 
-    await this.prisma.$transaction([
-      this.prisma.authOtp.updateMany({
-        where: {
-          userId,
-          purpose,
-          consumedAt: null,
-        },
-        data: {
-          consumedAt: now,
-        },
-      }),
-      this.prisma.authOtp.create({
+    const codeHash =
+      await bcrypt.hash(
+        otp,
+        10,
+      );
+
+    const expiresAt =
+      new Date(
+        Date.now() +
+          OTP_EXPIRY_MINUTES *
+            60 *
+            1000,
+      );
+
+    const record =
+      await this.prisma.authOtp.create({
         data: {
           userId,
           purpose,
           codeHash,
           expiresAt,
         },
-      }),
-    ]);
 
-    return otp;
+        select: {
+          id: true,
+        },
+      });
+
+    return {
+      id: record.id,
+      otp,
+    };
+  }
+
+
+  private async consumeOlderOtps(
+    userId: string,
+    purpose:
+      | 'EMAIL_VERIFICATION'
+      | 'PASSWORD_RESET',
+    keepOtpId: string,
+  ): Promise<void> {
+    await this.prisma.authOtp.updateMany({
+      where: {
+        userId,
+        purpose,
+        consumedAt: null,
+
+        id: {
+          not:
+            keepOtpId,
+        },
+      },
+
+      data: {
+        consumedAt:
+          new Date(),
+      },
+    });
   }
 
   private async createSession(user: {

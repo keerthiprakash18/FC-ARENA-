@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiRequest } from '@/lib/api';
 import {
   applyThemePreference,
   type ThemePreference,
@@ -22,6 +22,15 @@ export default function LoginPage() {
     setLoading(true);
 
     const form = new FormData(event.currentTarget);
+
+    const email =
+      String(
+        form.get(
+          'email',
+        ) ?? '',
+      )
+        .trim()
+        .toLowerCase();
 
     try {
       const response =
@@ -41,12 +50,7 @@ export default function LoginPage() {
               'POST',
             body:
               JSON.stringify({
-                email:
-                  String(
-                    form.get(
-                      'email',
-                    ) ?? '',
-                  ),
+                email,
                 password:
                   String(
                     form.get(
@@ -66,7 +70,37 @@ export default function LoginPage() {
         '/dashboard',
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed.');
+      if (
+        err instanceof
+          ApiError &&
+        err.code ===
+          'EMAIL_NOT_VERIFIED'
+      ) {
+        sessionStorage.setItem(
+          'fc_auth_email',
+          email,
+        );
+
+        sessionStorage.removeItem(
+          'fc_auth_dev_otp',
+        );
+
+        sessionStorage.removeItem(
+          'fc_auth_otp_sent_at',
+        );
+
+        router.push(
+          '/verify-email',
+        );
+
+        return;
+      }
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Login failed.',
+      );
     } finally {
       setLoading(false);
     }

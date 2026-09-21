@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
-import { apiRequest } from '@/lib/api';
+import { ApiError, apiRequest } from '@/lib/api';
 
 interface RegisterResponse {
   success: true;
@@ -32,7 +32,9 @@ export default function RegisterPage() {
 
     const payload = {
       fullName: String(form.get('fullName') ?? ''),
-      email: String(form.get('email') ?? ''),
+      email: String(form.get('email') ?? '')
+        .trim()
+        .toLowerCase(),
       phoneNumber: String(form.get('phoneNumber') ?? '') || undefined,
       inGameName: String(form.get('inGameName') ?? ''),
       gameUid: String(form.get('gameUid') ?? '') || undefined,
@@ -46,7 +48,17 @@ export default function RegisterPage() {
         body: JSON.stringify(payload),
       });
 
-      sessionStorage.setItem('fc_auth_email', payload.email);
+      sessionStorage.setItem(
+        'fc_auth_email',
+        payload.email,
+      );
+
+      sessionStorage.setItem(
+        'fc_auth_otp_sent_at',
+        String(
+          Date.now(),
+        ),
+      );
 
       if (result.data.developmentOtp) {
         sessionStorage.setItem(
@@ -57,8 +69,36 @@ export default function RegisterPage() {
 
       router.push('/verify-email');
     } catch (err) {
+      if (
+        err instanceof
+          ApiError &&
+        err.code ===
+          'EMAIL_PENDING_VERIFICATION'
+      ) {
+        sessionStorage.setItem(
+          'fc_auth_email',
+          payload.email,
+        );
+
+        sessionStorage.removeItem(
+          'fc_auth_dev_otp',
+        );
+
+        sessionStorage.removeItem(
+          'fc_auth_otp_sent_at',
+        );
+
+        router.push(
+          '/verify-email',
+        );
+
+        return;
+      }
+
       setError(
-        err instanceof Error ? err.message : 'Registration failed.',
+        err instanceof Error
+          ? err.message
+          : 'Registration failed.',
       );
     } finally {
       setLoading(false);

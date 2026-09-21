@@ -3,7 +3,7 @@ name: FC ARENA Final V1 Validation
 on:
   push:
     branches:
-      - feature/final-v1-completion
+      - feature/complete-test-state-reset
 
 jobs:
   verify:
@@ -64,6 +64,15 @@ jobs:
         run: npx prisma validate --schema=prisma/schema.prisma
 
       - name: Apply test database migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: Validate guarded fresh-testing reset
+        env:
+          FC_ARENA_RESET_CONFIRM: RESET_ALL_FC_ARENA_TEST_DATA
+        run: npm run db:reset:test-data
+
+      - name: Verify migration history survives reset
         working-directory: apps/api
         run: npx prisma migrate deploy --schema=prisma/schema.prisma
 

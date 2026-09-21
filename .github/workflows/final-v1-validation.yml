@@ -9,8 +9,28 @@ jobs:
   verify:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fcarena?schema=public
+      JWT_ACCESS_SECRET: final-v1-ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: final-v1-ci-refresh-secret-at-least-32-characters
+      NODE_ENV: test
+      AI_ASSISTANT_ENABLED: "false"
 
     steps:
       - name: Checkout
@@ -25,14 +45,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prisma schema validation
+        working-directory: apps/api
+        run: npx prisma validate --schema=prisma/schema.prisma
+
+      - name: Apply test database migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
       - name: API build
         run: npm run build:api
 
-      - name: Fixture engine regression tests
-        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
+      - name: Full API unit tests
+        run: npm run test --workspace=apps/api
 
-      - name: Authorization regression tests
-        run: npm run test --workspace=apps/api -- src/security/authorization.service.spec.ts
+      - name: Full API E2E tests
+        run: npm run test:e2e --workspace=apps/api
 
       - name: New feature web lint
         working-directory: apps/web
@@ -40,3 +68,6 @@ jobs:
 
       - name: Web production build
         run: npm run build:web
+
+      - name: Diff whitespace check
+        run: git diff --check HEAD^ HEAD

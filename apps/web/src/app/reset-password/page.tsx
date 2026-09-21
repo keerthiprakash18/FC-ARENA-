@@ -2,28 +2,31 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [devOtp, setDevOtp] = useState('');
+  const [email, setEmail] = useState(() =>
+    typeof window === 'undefined'
+      ? ''
+      : sessionStorage.getItem('fc_reset_email') ?? '',
+  );
+  const [otp, setOtp] = useState(() =>
+    typeof window === 'undefined'
+      ? ''
+      : sessionStorage.getItem('fc_reset_dev_otp') ?? '',
+  );
+  const [devOtp] = useState(() =>
+    typeof window === 'undefined'
+      ? ''
+      : sessionStorage.getItem('fc_reset_dev_otp') ?? '',
+  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    const savedEmail = sessionStorage.getItem('fc_reset_email') ?? '';
-    const savedOtp = sessionStorage.getItem('fc_reset_dev_otp') ?? '';
-
-    setEmail(savedEmail);
-    setOtp(savedOtp);
-    setDevOtp(savedOtp);
-  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

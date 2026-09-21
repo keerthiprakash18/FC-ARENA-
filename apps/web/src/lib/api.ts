@@ -11,6 +11,27 @@ export interface ApiFailure {
   };
 }
 
+
+export class ApiError extends Error {
+  readonly code: string;
+  readonly status: number;
+  readonly details?: string[];
+
+  constructor(input: {
+    code: string;
+    message: string;
+    status: number;
+    details?: string[];
+  }) {
+    super(input.message);
+    this.name = 'ApiError';
+    this.code = input.code;
+    this.status = input.status;
+    this.details = input.details;
+  }
+}
+
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -24,12 +45,26 @@ export async function apiRequest<T>(
     },
   });
 
-  const payload = await response.json();
+  const payload =
+    await response
+      .json()
+      .catch(
+        () => null,
+      );
 
   if (!response.ok) {
-    throw new Error(
-      payload?.error?.message ?? 'Something went wrong. Please try again.',
-    );
+    throw new ApiError({
+      code:
+        payload?.error?.code ??
+        'REQUEST_FAILED',
+      message:
+        payload?.error?.message ??
+        'Something went wrong. Please try again.',
+      status:
+        response.status,
+      details:
+        payload?.error?.details,
+    });
   }
 
   return payload as T;

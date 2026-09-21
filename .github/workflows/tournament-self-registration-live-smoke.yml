@@ -1,4 +1,4 @@
-name: Tournament Self Registration Live Smoke
+name: FC ARENA Live Auth Smoke
 
 on:
   push:
@@ -8,8 +8,9 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Verify live FC ARENA routes
+      - name: Verify live auth infrastructure
         shell: bash
         run: |
           set -euo pipefail
@@ -32,5 +33,26 @@ jobs:
 
           check_status "https://fcarena.in/" "200"
           check_status "https://fcarena.in/login" "200"
-          check_status "https://fc-arena-production.up.railway.app/api/health" "200"
-          check_status "https://fc-arena-production.up.railway.app/api/tournaments/00000000-0000-0000-0000-000000000000/my-registration" "401"
+
+          health_code="$(curl --retry 6 --retry-delay 5 --retry-all-errors -sS -o /tmp/fc-health.json -w '%{http_code}' "https://fc-arena-production.up.railway.app/api/health")"
+
+          echo "API health -> HTTP $health_code"
+          cat /tmp/fc-health.json
+          echo
+
+          if [ "$health_code" != "200" ]; then
+            exit 1
+          fi
+
+          node -e '
+            const fs = require("fs");
+            const health = JSON.parse(fs.readFileSync("/tmp/fc-health.json", "utf8"));
+            const value = health?.data?.emailDelivery;
+            console.log("emailDelivery:", value);
+            if (value !== "configured") {
+              console.error("OTP email delivery is not configured in production.");
+              process.exit(1);
+            }
+          '
+
+          check_status "https://fc-arena-production.up.railway.app/api/auth/login" "404"

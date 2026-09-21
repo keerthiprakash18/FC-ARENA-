@@ -72,8 +72,12 @@ export default function RegisterPage() {
       if (
         err instanceof
           ApiError &&
-        err.code ===
-          'EMAIL_PENDING_VERIFICATION'
+        [
+          'EMAIL_PENDING_VERIFICATION',
+          'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING',
+        ].includes(
+          err.code,
+        )
       ) {
         sessionStorage.setItem(
           'fc_auth_email',
@@ -86,6 +90,14 @@ export default function RegisterPage() {
 
         sessionStorage.removeItem(
           'fc_auth_otp_sent_at',
+        );
+
+        sessionStorage.setItem(
+          'fc_auth_verification_notice',
+          err.code ===
+            'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING'
+            ? 'Your account was created, but the first OTP email could not be delivered. Tap Resend OTP now.'
+            : 'This account is waiting for email verification. Enter the latest OTP or tap Resend OTP.',
         );
 
         router.push(

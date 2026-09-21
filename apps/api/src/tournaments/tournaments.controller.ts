@@ -302,6 +302,22 @@ export class TournamentsController {
   }
 
   @Get(
+    'tournaments/:tournamentId/my-registration',
+  )
+  myRegistration(
+    @Req()
+    request: AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+  ) {
+    return this.tournamentsService.getMyRegistration(
+      request.user.sub,
+      tournamentId,
+    );
+  }
+
+  @Get(
     'tournaments/:tournamentId/registrations',
   )
   registrations(

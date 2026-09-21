@@ -201,18 +201,25 @@ export class AuthService {
           },
         });
 
-        await tx.authOtp.create({
-          data: {
-            userId: user.id,
-            purpose: 'EMAIL_VERIFICATION',
-            codeHash: otpHash,
-            expiresAt: otpExpiresAt,
-          },
-        });
+        const createdOtp =
+          await tx.authOtp.create({
+            data: {
+              userId: user.id,
+              purpose: 'EMAIL_VERIFICATION',
+              codeHash: otpHash,
+              expiresAt: otpExpiresAt,
+            },
+
+            select: {
+              id: true,
+            },
+          });
 
         return {
           user,
           player: updatedPlayer,
+          otpId:
+            createdOtp.id,
         };
       });
 
@@ -221,26 +228,27 @@ export class AuthService {
           result.user.email,
           otp,
         );
-      } catch (error) {
-        await this.prisma.user
+      } catch {
+        await this.prisma.authOtp
           .delete({
             where: {
-              id: result.user.id,
+              id:
+                result.otpId,
             },
           })
-          .catch(() => undefined);
-
-        if (error instanceof ServiceUnavailableException) {
-          throw error;
-        }
+          .catch(
+            () =>
+              undefined,
+          );
 
         throw new ServiceUnavailableException({
           success: false,
           data: null,
           error: {
-            code: 'EMAIL_DELIVERY_FAILED',
+            code:
+              'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING',
             message:
-              'Unable to send the verification email. Please try again.',
+              'Your account was created, but the verification email could not be delivered. Continue to email verification and use Resend OTP.',
           },
         });
       }

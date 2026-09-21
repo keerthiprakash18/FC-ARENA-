@@ -89,6 +89,11 @@ export default function LoginPage() {
           'fc_auth_otp_sent_at',
         );
 
+        sessionStorage.setItem(
+          'fc_auth_verification_notice',
+          'Your account is not verified yet. Enter the OTP or tap Resend OTP.',
+        );
+
         router.push(
           '/verify-email',
         );

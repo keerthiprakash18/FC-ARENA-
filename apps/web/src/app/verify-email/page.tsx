@@ -130,7 +130,12 @@ export default function VerifyEmailPage() {
     message,
     setMessage,
   ] =
-    useState('');
+    useState(
+      () =>
+        storedValue(
+          'fc_auth_verification_notice',
+        ),
+    );
 
   const [
     loading,
@@ -222,6 +227,10 @@ export default function VerifyEmailPage() {
         'fc_auth_email',
       );
 
+      sessionStorage.removeItem(
+        'fc_auth_verification_notice',
+      );
+
       router.push(
         '/login',
       );
@@ -305,6 +314,10 @@ export default function VerifyEmailPage() {
 
       setCooldown(
         RESEND_COOLDOWN_SECONDS,
+      );
+
+      sessionStorage.removeItem(
+        'fc_auth_verification_notice',
       );
 
       setMessage(

@@ -32,7 +32,8 @@ jobs:
         run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
 
       - name: New feature web lint
-        run: npx eslint apps/web/src/app/ai/page.tsx apps/web/src/app/more/page.tsx
+        working-directory: apps/web
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx
 
       - name: Web production build
         run: npm run build:web

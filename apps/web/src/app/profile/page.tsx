@@ -195,7 +195,7 @@ export default function ProfilePage() {
     >
       <div className="mx-auto max-w-6xl space-y-6">
         <FcPanel className="overflow-hidden">
-          <div className="h-28 bg-gradient-to-r from-sky-500/20 via-sky-400/5 to-transparent md:h-36" />
+          <div className="fc-profile-banner h-28 md:h-36" />
 
           <div className="px-5 pb-6 sm:px-7">
             <div className="-mt-10 flex flex-col gap-5 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">

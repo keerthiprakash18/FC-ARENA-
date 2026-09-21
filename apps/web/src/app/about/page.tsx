@@ -1,24 +1,41 @@
-'use client';
-
-import { FcPanel } from '@/components/fc/fc-ui';
-import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
+import {
+  PublicInfoCard,
+  PublicInfoPage,
+} from '@/components/fc/public-info-page';
 
 export default function AboutPage() {
   return (
-    <SecondaryFeaturePage
+    <PublicInfoPage
       eyebrow="FC ARENA"
-      title="About"
-      subtitle="More Than A Game."
+      title="About FC ARENA"
+      description="A football competition platform built around real leagues, tournaments, fixtures, verified results and player history."
     >
-      <FcPanel className="p-6 sm:p-8">
-        <p className="text-sm leading-7 text-slate-400">
-          FC ARENA is a football competition community platform for League memberships, Tournament management, fixture generation, verified results, standings, knockout progression and player career history.
+      <PublicInfoCard
+        title="Competition first"
+        icon="tournament"
+      >
+        <p>
+          FC ARENA organizes League membership, Tournament setup, fixture generation, standings, knockout progression and verified match results in one connected competition workflow.
         </p>
+      </PublicInfoCard>
 
-        <p className="mt-5 font-mono text-xs text-slate-600">
-          App Version 1.0.0
+      <PublicInfoCard
+        title="Player identity"
+        icon="profile"
+      >
+        <p>
+          Authenticated player profiles use the real account, League and competition data already stored by FC ARENA. The interface does not populate fabricated players, teams or statistics.
         </p>
-      </FcPanel>
-    </SecondaryFeaturePage>
+      </PublicInfoCard>
+
+      <PublicInfoCard
+        title="Product version"
+        icon="info"
+      >
+        <p>
+          FC ARENA v1.0.0 · More Than A Game.
+        </p>
+      </PublicInfoCard>
+    </PublicInfoPage>
   );
 }

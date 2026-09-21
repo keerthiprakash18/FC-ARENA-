@@ -14,6 +14,14 @@ import {
   AppShell,
 } from '@/components/app/app-shell';
 
+import type {
+  FcIconName,
+} from '@/components/fc/fc-icons';
+
+import {
+  FcIcon,
+} from '@/components/fc/fc-icons';
+
 import {
   FcCrest,
   FcLoadingScreen,
@@ -254,7 +262,7 @@ function SectionTitle({
   href,
   linkLabel = 'View All →',
 }: {
-  icon: string;
+  icon: FcIconName;
   title: string;
   href?: string;
   linkLabel?: string;
@@ -262,8 +270,11 @@ function SectionTitle({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <span className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border text-base">
-          {icon}
+        <span className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border" aria-hidden="true">
+          <FcIcon
+            name={icon}
+            size={19}
+          />
         </span>
 
         <h2 className="theme-text fc-display text-[19px] font-semibold">
@@ -686,7 +697,7 @@ export default function DashboardPage() {
         ) : null}
 
 
-        <section className="fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border border-[#DED8CD] shadow-[0_8px_24px_rgba(20,33,50,0.07)]">
+        <section className="fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
           <div className="fc-hero-art" />
           <div className="fc-hero-right hidden lg:block" />
 
@@ -810,7 +821,7 @@ export default function DashboardPage() {
                 `Goal difference: ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
               }
               tone="amber"
-              icon="⚽"
+              icon="fixtures"
             />
           </Link>
 
@@ -833,7 +844,7 @@ export default function DashboardPage() {
 
             <div className="relative">
               <SectionTitle
-                icon="⚽"
+                icon="fixtures"
                 title="Next Match"
               href="/fixtures"
             />
@@ -952,7 +963,7 @@ export default function DashboardPage() {
 
           <FcPanel className="p-5 sm:p-6">
             <SectionTitle
-              icon="◈"
+              icon="league"
               title="My League"
               href="/leagues"
               linkLabel="All Leagues →"
@@ -1077,7 +1088,7 @@ export default function DashboardPage() {
         <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
           <FcPanel className="p-5 sm:p-6">
             <SectionTitle
-              icon="🏆"
+              icon="tournament"
               title="Active Tournament"
               href="/tournaments"
             />
@@ -1211,7 +1222,7 @@ export default function DashboardPage() {
 
           <div>
             <SectionTitle
-              icon="✦"
+              icon="activity"
               title="Quick Actions"
             />
 
@@ -1244,7 +1255,7 @@ export default function DashboardPage() {
 
               <FcQuickActionTile
                 href="/fixtures"
-                icon="⚽"
+                icon="fixtures"
                 title="View Fixtures"
                 description="Check upcoming matches"
                 tone="slate"
@@ -1264,7 +1275,7 @@ export default function DashboardPage() {
 
         <FcPanel className="p-5 sm:p-6">
           <SectionTitle
-            icon="↺"
+            icon="history"
             title="Latest Activity"
             href="/career/matches"
             linkLabel="View All Activity →"

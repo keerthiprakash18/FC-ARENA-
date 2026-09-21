@@ -1,48 +1,74 @@
+import type {
+  FcIconName,
+} from '@/components/fc/fc-icons';
+
 export interface PrimaryNavigationItem {
   label: string;
   shortLabel: string;
   href: string;
-  icon: string;
+  icon: FcIconName;
 }
 
-export const primaryNavigation: PrimaryNavigationItem[] = [
-  {
-    label: 'HOME',
-    shortLabel: 'Home',
-    href: '/dashboard',
-    icon: '⌂',
-  },
-  {
-    label: 'LEAGUE',
-    shortLabel: 'League',
-    href: '/leagues',
-    icon: '◈',
-  },
-  {
-    label: 'TOURNAMENT',
-    shortLabel: 'Tournament',
-    href: '/tournaments',
-    icon: '◇',
-  },
-  {
-    label: 'FIXTURES',
-    shortLabel: 'Fixtures',
-    href: '/fixtures',
-    icon: '⚽',
-  },
-  {
-    label: 'MORE',
-    shortLabel: 'More',
-    href: '/more',
-    icon: '•••',
-  },
-];
+export const primaryNavigation:
+  PrimaryNavigationItem[] = [
+    {
+      label:
+        'HOME',
+      shortLabel:
+        'Home',
+      href:
+        '/dashboard',
+      icon:
+        'home',
+    },
+    {
+      label:
+        'LEAGUE',
+      shortLabel:
+        'League',
+      href:
+        '/leagues',
+      icon:
+        'league',
+    },
+    {
+      label:
+        'TOURNAMENT',
+      shortLabel:
+        'Tournament',
+      href:
+        '/tournaments',
+      icon:
+        'tournament',
+    },
+    {
+      label:
+        'FIXTURES',
+      shortLabel:
+        'Fixtures',
+      href:
+        '/fixtures',
+      icon:
+        'fixtures',
+    },
+    {
+      label:
+        'MORE',
+      shortLabel:
+        'More',
+      href:
+        '/more',
+      icon:
+        'more',
+    },
+  ];
 
 export function getActivePrimarySection(
   pathname: string,
 ) {
   if (
-    pathname === '/dashboard'
+    pathname ===
+    '/dashboard'
   ) {
     return '/dashboard';
   }

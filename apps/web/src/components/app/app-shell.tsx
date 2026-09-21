@@ -658,7 +658,7 @@ export function AppShell({
         </div>
 
 
-        <div className="theme-sidebar-footer shrink-0 border-t px-5 pb-4 pt-4 backdrop-blur-sm">
+        <div className="theme-sidebar-footer shrink-0 border-t px-5 pb-4 pt-4">
           <Link
             href="/profile"
             className="theme-user-card group flex items-center gap-3 rounded-[13px] border p-3 transition duration-200"
@@ -719,14 +719,11 @@ export function AppShell({
                 FC ARENA v1.0.0
               </p>
 
-              <p className="theme-sidebar-muted mt-1 text-[9px] font-medium tracking-[0.08em]">
+              <p className="theme-sidebar-muted mt-1 text-[10px] font-medium tracking-[0.06em]">
                 © FC ARENA · MORE THAN A GAME
               </p>
             </div>
 
-            <span className="theme-brand-accent text-[10px] opacity-45">
-              ●
-            </span>
           </div>
         </div>
       </aside>

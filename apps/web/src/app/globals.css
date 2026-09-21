@@ -2616,3 +2616,528 @@ body {
 .fc-main [class~="border-white/10"] {
   border-color: var(--theme-border) !important;
 }
+
+
+/* =========================================================
+   FC ARENA — PROFESSIONAL PRODUCT CLEANUP V2
+   Final presentation layer. Existing business logic and
+   page structure remain unchanged; these rules standardize
+   the shared visual system across both user-selectable themes.
+   ========================================================= */
+
+:root,
+[data-theme="classic-blue"],
+[data-theme="luxury-gold"] {
+  --fc-card-radius: 16px;
+  --fc-control-radius: 10px;
+  --fc-motion: 180ms ease;
+  --fc-shadow-subtle: 0 1px 2px rgba(11,31,68,0.04), 0 5px 16px rgba(11,31,68,0.045);
+  --fc-shadow-raised: 0 2px 4px rgba(11,31,68,0.05), 0 10px 22px rgba(11,31,68,0.07);
+}
+
+body {
+  background: var(--theme-background) !important;
+  color: var(--theme-text);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  letter-spacing: -0.003em;
+}
+
+.fc-display,
+.fc-display-strong {
+  font-family: "Bahnschrift", "Inter", sans-serif;
+  font-stretch: semi-condensed;
+}
+
+.fc-display {
+  letter-spacing: -0.012em;
+}
+
+.fc-display-strong {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.fc-app-shell,
+.theme-app-background {
+  background: var(--theme-background) !important;
+}
+
+.fc-main {
+  width: 100%;
+}
+
+.theme-top-header {
+  border-color: var(--theme-border);
+  background: var(--theme-header-alpha);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--theme-border) 82%, transparent);
+}
+
+.theme-sidebar {
+  background: var(--theme-sidebar) !important;
+  box-shadow: none;
+}
+
+[data-theme="luxury-gold"] .theme-sidebar {
+  background: var(--theme-sidebar) !important;
+}
+
+.theme-sidebar-footer {
+  background: var(--theme-sidebar) !important;
+  backdrop-filter: none !important;
+}
+
+.fc-sidebar-art::before,
+.fc-sidebar-art::after {
+  opacity: 0.06;
+}
+
+[data-theme="classic-blue"] .fc-sidebar-art::before,
+[data-theme="classic-blue"] .fc-sidebar-art::after {
+  display: none;
+}
+
+.theme-nav-item {
+  min-height: 52px;
+  border-radius: 12px !important;
+  transition: background-color var(--fc-motion), border-color var(--fc-motion), color var(--fc-motion);
+}
+
+.theme-nav-item:hover {
+  border-color: var(--theme-border);
+  background: var(--theme-secondary-background);
+}
+
+.theme-nav-item[data-active="true"] {
+  border-color: color-mix(in srgb, var(--theme-primary) 24%, var(--theme-border));
+  background: var(--theme-primary-soft) !important;
+  color: var(--theme-primary) !important;
+  box-shadow: none !important;
+}
+
+.theme-nav-item[data-active="true"] .theme-nav-icon {
+  color: var(--theme-primary) !important;
+}
+
+.theme-nav-accent {
+  background: var(--theme-primary);
+}
+
+.theme-quick-action,
+.theme-user-card {
+  min-height: 44px;
+  border-radius: 11px !important;
+}
+
+.theme-quick-action:hover,
+.theme-user-card:hover {
+  background: color-mix(in srgb, var(--theme-primary-soft) 52%, var(--theme-sidebar));
+}
+
+.theme-bottom-nav {
+  background: var(--theme-surface);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 -1px 0 var(--theme-border);
+}
+
+.theme-bottom-item {
+  font-size: 11px;
+}
+
+.theme-bottom-item[data-active="true"] {
+  color: var(--theme-primary);
+}
+
+.theme-bottom-item[data-active="true"] .theme-bottom-icon {
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
+}
+
+.theme-panel,
+.theme-stat-card,
+.theme-action-row,
+.theme-dialog,
+.fc-luxury-card {
+  border-color: var(--theme-border) !important;
+  border-radius: var(--fc-card-radius) !important;
+  background: var(--theme-surface) !important;
+  box-shadow: var(--fc-shadow-subtle) !important;
+}
+
+.theme-stat-card,
+.theme-action-row {
+  transition:
+    border-color var(--fc-motion),
+    box-shadow var(--fc-motion),
+    background-color var(--fc-motion);
+}
+
+.theme-stat-card:hover,
+.theme-action-row:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 28%, var(--theme-border)) !important;
+  background: var(--theme-surface) !important;
+  box-shadow: var(--fc-shadow-raised) !important;
+  transform: none !important;
+}
+
+.theme-selected-card {
+  border-color: color-mix(in srgb, var(--theme-primary) 42%, var(--theme-border)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-primary) 8%, transparent) !important;
+}
+
+.theme-primary-button,
+.primary-button,
+.theme-secondary-button,
+.secondary-button,
+.theme-danger-button,
+.theme-ghost-button {
+  min-height: 44px;
+  border-radius: var(--fc-control-radius) !important;
+  font-weight: 600;
+  transition:
+    background-color var(--fc-motion),
+    border-color var(--fc-motion),
+    color var(--fc-motion),
+    box-shadow var(--fc-motion);
+  transform: none !important;
+}
+
+.theme-primary-button,
+.primary-button {
+  border: 1px solid var(--theme-primary);
+  background: var(--theme-primary) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.theme-primary-button:hover,
+.primary-button:hover {
+  border-color: var(--theme-primary-hover);
+  background: var(--theme-primary-hover) !important;
+  transform: none !important;
+}
+
+.theme-secondary-button,
+.secondary-button {
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
+}
+
+.theme-secondary-button:hover,
+.secondary-button:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 35%, var(--theme-border));
+  background: var(--theme-secondary-background) !important;
+}
+
+.theme-ghost-button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--theme-text-secondary);
+}
+
+.theme-ghost-button:hover {
+  background: var(--theme-secondary-background);
+  color: var(--theme-text);
+}
+
+.theme-danger-button {
+  border-color: color-mix(in srgb, var(--theme-danger) 26%, var(--theme-border)) !important;
+  background: color-mix(in srgb, var(--theme-danger) 5%, var(--theme-surface)) !important;
+  color: var(--theme-danger) !important;
+}
+
+.theme-danger-button:hover {
+  background: color-mix(in srgb, var(--theme-danger) 9%, var(--theme-surface)) !important;
+}
+
+.theme-soft-accent,
+.theme-tone-primary,
+.theme-tone-premium,
+.theme-tone-success,
+.theme-tone-danger,
+.theme-tone-neutral {
+  box-shadow: none !important;
+}
+
+.theme-crest {
+  box-shadow: none !important;
+}
+
+.theme-profile-chip {
+  border-radius: 11px !important;
+}
+
+.theme-search {
+  border-color: var(--theme-border);
+  border-radius: 11px !important;
+  background: var(--theme-surface);
+  box-shadow: none !important;
+}
+
+.theme-search:focus-within {
+  border-color: color-mix(in srgb, var(--theme-primary) 50%, var(--theme-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 8%, transparent) !important;
+}
+
+.theme-search-menu {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
+  box-shadow: var(--fc-shadow-raised) !important;
+}
+
+.fc-stadium-surface {
+  position: relative;
+  isolation: isolate;
+  border-color: var(--theme-border) !important;
+  background: var(--theme-surface) !important;
+  box-shadow: var(--fc-shadow-subtle) !important;
+}
+
+.fc-stadium-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.42;
+  background:
+    linear-gradient(90deg, transparent 49.8%, color-mix(in srgb, var(--theme-primary) 8%, transparent) 50%, transparent 50.2%),
+    linear-gradient(0deg, transparent 49.8%, color-mix(in srgb, var(--theme-primary) 7%, transparent) 50%, transparent 50.2%);
+}
+
+.fc-stadium-surface::after {
+  content: "";
+  position: absolute;
+  right: clamp(18px, 5vw, 64px);
+  top: 50%;
+  width: 132px;
+  height: 132px;
+  z-index: -1;
+  pointer-events: none;
+  transform: translateY(-50%);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 14%, var(--theme-border));
+  border-radius: 50%;
+  opacity: 0.55;
+}
+
+.fc-hero-art,
+.fc-hero-right,
+.theme-match-art {
+  display: none !important;
+}
+
+.theme-hero-avatar-ring {
+  border-color: color-mix(in srgb, var(--theme-primary) 34%, var(--theme-border));
+  background: var(--theme-surface);
+  box-shadow: none !important;
+}
+
+.theme-hero-slogan,
+.theme-hero-side-label,
+.theme-hero-side-code {
+  color: var(--theme-text-secondary) !important;
+}
+
+.theme-progress-bar {
+  background: var(--theme-primary) !important;
+}
+
+.fc-profile-banner {
+  position: relative;
+  overflow: hidden;
+  background: var(--theme-secondary-background);
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.fc-profile-banner::before {
+  content: "";
+  position: absolute;
+  inset: 22% 5% auto auto;
+  width: 112px;
+  height: 112px;
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 18%, var(--theme-border));
+  border-radius: 50%;
+}
+
+.fc-profile-banner::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 22% 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--theme-primary) 11%, transparent);
+}
+
+.fc-main [class*="bg-gradient"],
+.fc-main [class*="from-sky"],
+.fc-main [class*="via-sky"] {
+  background-image: none !important;
+}
+
+.fc-main [class*="shadow-["] {
+  box-shadow: var(--fc-shadow-subtle) !important;
+}
+
+.fc-main [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.fc-main [class~="rounded-full"] {
+  box-shadow: none;
+}
+
+.fc-main input,
+.fc-main select,
+.fc-main textarea {
+  min-height: 44px;
+  border-radius: var(--fc-control-radius) !important;
+}
+
+.fc-main textarea {
+  min-height: auto;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--theme-primary) !important;
+  outline-offset: 2px !important;
+}
+
+.fc-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--theme-text) 7%, var(--theme-secondary-background));
+}
+
+.fc-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--theme-surface) 72%, transparent),
+    transparent
+  );
+  animation: fcSkeleton 1.35s ease-in-out infinite;
+}
+
+@keyframes fcSkeleton {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.auth-page.auth-premium {
+  background: #07111b !important;
+}
+
+.auth-premium .auth-brand-panel {
+  background: #07131f !important;
+  border-right-color: #203245;
+}
+
+.auth-premium .auth-form-panel {
+  background: #0b1621 !important;
+}
+
+.auth-premium .auth-card {
+  border-radius: 16px !important;
+  background: #101c28 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.20) !important;
+  backdrop-filter: none !important;
+}
+
+.auth-card-accent,
+.auth-stadium-glow,
+.auth-form-orb,
+.auth-floating-ball {
+  display: none !important;
+}
+
+.auth-pitch-lines {
+  opacity: 0.28 !important;
+  animation: none !important;
+}
+
+.auth-premium .brand-mark,
+.auth-premium .field input,
+.auth-feature-row span {
+  box-shadow: none !important;
+}
+
+.auth-premium .auth-brand-panel h1 span {
+  color: #8fd7f5 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+.auth-premium .primary-button,
+.auth-premium .primary-button:hover {
+  background: #20b8f5 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.auth-live-dot {
+  box-shadow: none !important;
+}
+
+.fc-public-page {
+  background: var(--theme-background);
+  color: var(--theme-text);
+}
+
+.fc-public-header {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
+}
+
+@media (max-width: 1023px) {
+  .fc-main {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-main {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .theme-panel,
+  .theme-stat-card,
+  .theme-action-row {
+    border-radius: 14px !important;
+  }
+
+  .theme-stat-card {
+    min-height: 128px;
+  }
+
+  .fc-stadium-surface::after {
+    width: 92px;
+    height: 92px;
+    right: 18px;
+    opacity: 0.34;
+  }
+
+  .auth-premium .auth-card {
+    border-radius: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-skeleton::after {
+    animation: none;
+  }
+}

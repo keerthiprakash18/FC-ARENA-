@@ -3,7 +3,7 @@ name: FC ARENA Final V1 Validation
 on:
   push:
     branches:
-      - hotfix/auth-live-frontend-compat
+      - feature/final-v1-completion
 
 jobs:
   verify:

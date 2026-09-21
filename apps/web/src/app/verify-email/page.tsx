@@ -147,13 +147,6 @@ export default function VerifyEmailPage() {
 
   useEffect(
     () => {
-      if (
-        cooldown <=
-        0
-      ) {
-        return;
-      }
-
       const timer =
         window.setInterval(
           () => {
@@ -161,11 +154,11 @@ export default function VerifyEmailPage() {
               (
                 current,
               ) =>
-                Math.max(
-                  0,
-                  current -
-                    1,
-                ),
+                current >
+                0
+                  ? current -
+                    1
+                  : 0,
             );
           },
           1000,
@@ -176,10 +169,7 @@ export default function VerifyEmailPage() {
           timer,
         );
     },
-    [
-      cooldown >
-        0,
-    ],
+    [],
   );
 
 

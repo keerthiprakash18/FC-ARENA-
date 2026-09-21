@@ -1,0 +1,36 @@
+name: Tournament Self Registration Live Smoke
+
+on:
+  push:
+    branches:
+      - smoke/tournament-self-registration-live
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify live FC ARENA routes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_status() {
+            local url="$1"
+            local expected="$2"
+            local actual
+
+            actual="$(curl --retry 6 --retry-delay 5 --retry-all-errors -sS -L -o /tmp/fc-arena-smoke-body -w '%{http_code}' "$url")"
+
+            echo "$url -> HTTP $actual (expected $expected)"
+
+            if [ "$actual" != "$expected" ]; then
+              echo "Unexpected response body:"
+              head -c 1200 /tmp/fc-arena-smoke-body || true
+              exit 1
+            fi
+          }
+
+          check_status "https://fcarena.in/" "200"
+          check_status "https://fcarena.in/login" "200"
+          check_status "https://fc-arena-production.up.railway.app/api/health" "200"
+          check_status "https://fc-arena-production.up.railway.app/api/tournaments/00000000-0000-0000-0000-000000000000/my-registration" "401"

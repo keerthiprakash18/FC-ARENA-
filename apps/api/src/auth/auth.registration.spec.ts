@@ -165,7 +165,7 @@ describe(
           response: {
             error: {
               code:
-                'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING',
+                'EMAIL_PENDING_VERIFICATION',
             },
           },
         });

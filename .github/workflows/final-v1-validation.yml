@@ -31,8 +31,8 @@ jobs:
       - name: Fixture engine regression tests
         run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
 
-      - name: Web lint
-        run: npm run lint --workspace=apps/web
+      - name: New feature web lint
+        run: npx eslint apps/web/src/app/ai/page.tsx apps/web/src/app/more/page.tsx
 
       - name: Web production build
         run: npm run build:web

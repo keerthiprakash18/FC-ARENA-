@@ -305,6 +305,17 @@ export default function TournamentRegistrationPage() {
     nextTournament:
       Tournament,
   ) {
+    const myResponse =
+      await authenticatedRequest<MyRegistrationResponse>(
+        `/tournaments/${tournamentId}/my-registration`,
+      );
+
+    setMyRegistration(
+      myResponse
+        .data
+        .registration,
+    );
+
     if (
       nextTournament
         .isLeagueAdmin
@@ -319,20 +330,7 @@ export default function TournamentRegistrationPage() {
           .data
           .registrations,
       );
-
-      return;
     }
-
-    const response =
-      await authenticatedRequest<MyRegistrationResponse>(
-        `/tournaments/${tournamentId}/my-registration`,
-      );
-
-    setMyRegistration(
-      response
-        .data
-        .registration,
-    );
   }
 
 
@@ -690,8 +688,6 @@ export default function TournamentRegistrationPage() {
     tournament
       .registrationMode !==
       'ADMIN_ONLY' &&
-    !tournament
-      .isLeagueAdmin &&
     !hasActiveRegistration;
 
 
@@ -716,7 +712,7 @@ export default function TournamentRegistrationPage() {
           subtitle={
             tournament
               .isLeagueAdmin
-              ? 'Review player applications and approve only verified Tournament entries.'
+              ? 'Manage player applications and, if you are also competing, register yourself as a Tournament participant.'
               : 'Join this Tournament with your FC ARENA identity and wait for admin approval.'
           }
           action={
@@ -1153,9 +1149,7 @@ export default function TournamentRegistrationPage() {
         ) : null}
 
 
-        {!tournament
-          .isLeagueAdmin &&
-        myRegistration ? (
+        {myRegistration ? (
           <FcPanel className="p-5 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1241,12 +1235,16 @@ export default function TournamentRegistrationPage() {
             </p>
 
             <h2 className="mt-2 text-xl font-black">
-              Join Tournament
+              {tournament.isLeagueAdmin
+                ? 'Join as Player'
+                : 'Join Tournament'}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
               {isIndividualEntry
-                ? 'Your FC ARENA Player ID is linked automatically. Enter your Game Name and Team Name, then submit for admin approval.'
+                ? tournament.isLeagueAdmin
+                  ? 'You are managing this Tournament, but you can also compete. Your FC ARENA Player ID is linked automatically; enter your Game Name and Team Name to register yourself as a participant.'
+                  : 'Your FC ARENA Player ID is linked automatically. Enter your Game Name and Team Name, then submit for admin approval.'
                 : 'Submit the complete roster for this team entry. Every Player ID must already belong to this League.'}
             </p>
 

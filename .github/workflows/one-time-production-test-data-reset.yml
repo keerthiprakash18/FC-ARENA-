@@ -1,0 +1,84 @@
+name: One-time FC ARENA production test-data reset
+
+on:
+  push:
+    branches:
+      - ops/reset-production-test-data-20260921
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+
+    env:
+      FC_ARENA_PROJECT_ID: "48b92e42-cc7b-4d4e-bc5a-cf4aad5a73f1"
+      FC_ARENA_ENVIRONMENT_ID: "73b3546b-e451-46d0-b63b-50d42b9b8746"
+      FC_ARENA_SERVICE_ID: "31802bb6-3657-4515-8efb-282e6d544f8d"
+      PROJECT_RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      ACCOUNT_RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install Railway CLI
+        run: npm install --global @railway/cli
+
+      - name: Authenticate Railway safely
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${PROJECT_RAILWAY_TOKEN}" ]; then
+            echo "Using repository RAILWAY_TOKEN."
+            echo "RAILWAY_TOKEN=${PROJECT_RAILWAY_TOKEN}" >> "${GITHUB_ENV}"
+          elif [ -n "${ACCOUNT_RAILWAY_TOKEN}" ]; then
+            echo "Using repository RAILWAY_API_TOKEN."
+            echo "RAILWAY_API_TOKEN=${ACCOUNT_RAILWAY_TOKEN}" >> "${GITHUB_ENV}"
+          else
+            echo "No Railway token secret is available in this GitHub repository."
+            echo "The production database was NOT modified."
+            exit 78
+          fi
+
+      - name: Link exact production target
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway link \
+            --project "${FC_ARENA_PROJECT_ID}" \
+            --environment "${FC_ARENA_ENVIRONMENT_ID}" \
+            --service "${FC_ARENA_SERVICE_ID}" \
+            --json
+
+      - name: Reset FC ARENA application test data
+        shell: bash
+        env:
+          FC_ARENA_RESET_CONFIRM: RESET_ALL_FC_ARENA_TEST_DATA
+        run: |
+          set -euo pipefail
+
+          railway run \
+            --project "${FC_ARENA_PROJECT_ID}" \
+            --environment "${FC_ARENA_ENVIRONMENT_ID}" \
+            --service "${FC_ARENA_SERVICE_ID}" \
+            --no-local \
+            npm run db:reset:test-data
+
+      - name: Verify production API health after reset
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          body="$(curl --retry 8 --retry-delay 3 --retry-all-errors -fsS https://fc-arena-production.up.railway.app/api/health)"
+          echo "$body"
+          echo "$body" | grep -q '"database":"connected"'
+          echo "$body" | grep -q '"status":"healthy"'

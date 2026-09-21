@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 import type { CreateTournamentDto } from './dto/create-tournament.dto.js';
 import type { DeleteTournamentDto } from './dto/delete-tournament.dto.js';
 import type { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
@@ -17,7 +18,11 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 @Injectable()
 export class TournamentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authorizationService:
+      AuthorizationService,
+  ) {}
 
   async createTournament(
     userId: string,
@@ -302,15 +307,11 @@ export class TournamentsService {
       tournament.leagueId,
     );
 
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId: tournament.leagueId,
-            userId,
-          },
-        },
-      });
+    const canManageTournament =
+      await this.authorizationService.canManageTournament(
+        userId,
+        tournamentId,
+      );
 
     return {
       success: true,
@@ -319,7 +320,9 @@ export class TournamentsService {
           ...tournament,
           approvedEntries:
             tournament._count.registrations,
-          isLeagueAdmin: Boolean(admin),
+          isLeagueAdmin:
+            canManageTournament,
+          canManageTournament,
           _count: undefined,
         },
       },
@@ -1598,9 +1601,9 @@ export class TournamentsService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorizationService.assertCanManageTournament(
       userId,
-      tournament.leagueId,
+      tournamentId,
     );
 
     return tournament;

@@ -56,7 +56,7 @@ export class DisputesController {
 
     @Param('matchId')
     matchId: string,
-  ) {
+  ): Promise<unknown> {
     return this.disputesService.getMatchDisputes(
       request.user.sub,
       matchId,
@@ -77,7 +77,7 @@ export class DisputesController {
     @Body()
     dto:
       CreateDisputeDto,
-  ) {
+  ): Promise<unknown> {
     return this.disputesService.createDispute(
       request.user.sub,
       matchId,
@@ -92,7 +92,7 @@ export class DisputesController {
     @Req()
     request:
       AuthenticatedRequest,
-  ) {
+  ): Promise<unknown> {
     return this.disputesService.getAdminDisputes(
       request.user.sub,
     );
@@ -112,7 +112,7 @@ export class DisputesController {
     @Body()
     dto:
       ResolveDisputeDto,
-  ) {
+  ): Promise<unknown> {
     return this.disputesService.resolveDispute(
       request.user.sub,
       disputeId,

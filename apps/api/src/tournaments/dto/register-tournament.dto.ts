@@ -13,9 +13,15 @@ export class RegisterTournamentDto {
   @MaxLength(120)
   entryName?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  inGameName?: string;
+
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(11)
   @IsString({ each: true })
-  playerCodes!: string[];
+  playerCodes?: string[];
 }

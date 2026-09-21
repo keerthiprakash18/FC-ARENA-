@@ -253,6 +253,8 @@ model User {
   roleAssignments RoleAssignment[] @relation("AssignedRoleUser")
   rolesAssigned   RoleAssignment[] @relation("RoleAssigner")
   auditLogs       AuditLog[]       @relation("AuditActor")
+  raisedDisputes  MatchDispute[]    @relation("DisputeRaiser")
+  resolvedDisputes MatchDispute[]   @relation("DisputeResolver")
 
   @@index([status])
   @@map("users")
@@ -571,6 +573,7 @@ model Match {
   confirmedResult   ResultSubmission?      @relation("ConfirmedMatchResult", fields: [confirmedResultSubmissionId], references: [id], onDelete: SetNull)
   statEvents        MatchResultStatEvent[]
   ocrExtractions    OcrExtraction[]
+  disputes          MatchDispute[]
 
   @@index([tournamentId, status])
   @@map("matches")
@@ -702,6 +705,28 @@ model Notification {
   @@index([userId, readAt])
   @@index([userId, eventAt])
   @@map("notifications")
+}
+
+model MatchDispute {
+  id               String   @id @default(uuid()) @db.Uuid
+  matchId          String   @db.Uuid
+  raisedByUserId   String   @db.Uuid
+  reason           String   @db.VarChar(1000)
+  evidenceUrl      String?  @db.Text
+  status           String   @default("OPEN") @db.VarChar(30)
+  resolutionNote   String?  @db.VarChar(1000)
+  resolvedByUserId String?  @db.Uuid
+  resolvedAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  match      Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  raisedBy   User  @relation("DisputeRaiser", fields: [raisedByUserId], references: [id], onDelete: Cascade)
+  resolvedBy User? @relation("DisputeResolver", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([matchId, status])
+  @@index([raisedByUserId, status])
+  @@map("match_disputes")
 }
 
 model Achievement {

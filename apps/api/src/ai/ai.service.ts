@@ -46,16 +46,17 @@ export class AiService {
     const configured =
       this.isConfigured();
 
-    const enabled =
-      this.isEnabled() &&
-      configured;
-
     return {
       success: true,
 
       data: {
-        enabled,
+        enabled: true,
         configured,
+        providerEnabled:
+          this.isEnabled() &&
+          configured,
+        fallbackEnabled:
+          true,
         mode:
           'READ_ONLY',
         limits: {
@@ -74,22 +75,6 @@ export class AiService {
     userId: string,
     dto: AiChatDto,
   ) {
-    if (
-      !this.isEnabled() ||
-      !this.isConfigured()
-    ) {
-      throw new ServiceUnavailableException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'AI_ASSISTANT_UNAVAILABLE',
-          message:
-            'FC ARENA AI is not enabled yet.',
-        },
-      });
-    }
-
     this.consumeLimit(
       userId,
     );
@@ -99,11 +84,41 @@ export class AiService {
         userId,
       );
 
-    const answer =
-      await this.requestProvider(
-        dto,
-        context,
-      );
+    let answer:
+      string;
+
+    let engine:
+      'PROVIDER'
+      | 'LOCAL_FALLBACK' =
+      'LOCAL_FALLBACK';
+
+    if (
+      this.isEnabled() &&
+      this.isConfigured()
+    ) {
+      try {
+        answer =
+          await this.requestProvider(
+            dto,
+            context,
+          );
+
+        engine =
+          'PROVIDER';
+      } catch {
+        answer =
+          this.localAnswer(
+            dto.message,
+            context,
+          );
+      }
+    } else {
+      answer =
+        this.localAnswer(
+          dto.message,
+          context,
+        );
+    }
 
     return {
       success: true,
@@ -114,6 +129,7 @@ export class AiService {
           new Date().toISOString(),
         mode:
           'READ_ONLY',
+        engine,
       },
 
       error: null,
@@ -630,6 +646,271 @@ export class AiService {
       upcomingFixtures:
         sortedFixtures,
     };
+  }
+
+  private localAnswer(
+    rawMessage: string,
+    context: {
+      player: {
+        name: string;
+        playerCode: string | null;
+        verified: boolean;
+      };
+      leagues: Array<{
+        id: string;
+        name: string;
+        membershipType: string;
+      }>;
+      tournaments: Array<{
+        id: string;
+        name: string;
+        status: string;
+        competitionFormat: string;
+        league: string;
+        entryName: string | null;
+        registrationStatus: string;
+      }>;
+      recentStatistics: Array<{
+        tournament: string;
+        tournamentStatus: string;
+        matches: number;
+        wins: number;
+        draws: number;
+        losses: number;
+        goalsFor: number;
+        goalsAgainst: number;
+        goalDifference: number;
+        form: string;
+      }>;
+      upcomingFixtures: Array<{
+        id: string;
+        fixtureCode: string;
+        tournamentId: string;
+        tournament: string;
+        roundName: string;
+        matchday: number | null;
+        scheduledAt: string | null;
+        status: string;
+        home: string;
+        away: string;
+        matchId: string | null;
+        matchStatus: string | null;
+      }>;
+    },
+  ): string {
+    const message =
+      rawMessage
+        .trim()
+        .toLowerCase();
+
+    const includesAny = (
+      words: string[],
+    ) =>
+      words.some(
+        (word) =>
+          message.includes(
+            word,
+          ),
+      );
+
+    if (
+      includesAny([
+        'next match',
+        'upcoming match',
+        'next fixture',
+        'fixture',
+        'அடுத்த மேட்ச்',
+        'அடுத்த match',
+      ])
+    ) {
+      const fixture =
+        context.upcomingFixtures[0];
+
+      if (!fixture) {
+        return 'I cannot find an upcoming fixture for you right now. Open Fixtures to check newly generated or unscheduled matches.';
+      }
+
+      const schedule =
+        fixture.scheduledAt
+          ? new Date(
+              fixture.scheduledAt,
+            ).toLocaleString(
+              'en-IN',
+              {
+                dateStyle:
+                  'medium',
+                timeStyle:
+                  'short',
+              },
+            )
+          : 'Schedule pending';
+
+      return `Your next recorded fixture is ${fixture.home} vs ${fixture.away} in ${fixture.tournament} · ${fixture.roundName}. ${schedule}. Open Fixtures for Match Center details.`;
+    }
+
+    if (
+      includesAny([
+        'league',
+        'லீக்',
+      ])
+    ) {
+      if (
+        context.leagues.length ===
+        0
+      ) {
+        return 'You are not currently linked to a League. Open League to join with a League Code or create a new League.';
+      }
+
+      const leagues =
+        context.leagues
+          .map(
+            (league) =>
+              `${league.name} (${league.membershipType})`,
+          )
+          .join(', ');
+
+      return `Your current FC ARENA Leagues: ${leagues}. A player can belong to a maximum of two Leagues: Primary and Secondary.`;
+    }
+
+    if (
+      includesAny([
+        'tournament',
+        'டோர்னமெண்ட்',
+        'டூர்னமெண்ட்',
+      ])
+    ) {
+      if (
+        includesAny([
+          'create',
+          'setup',
+          'how',
+          'எப்படி',
+        ])
+      ) {
+        return 'League admins can create a Tournament and complete it through Setup → Teams → Groups when required → Fixture Settings → Fixture Preview → Qualification when required → Review → Publish.';
+      }
+
+      if (
+        context.tournaments.length ===
+        0
+      ) {
+        return 'I cannot find a Tournament registration for you right now. Open Tournament to view competitions in your selected League.';
+      }
+
+      const recent =
+        context.tournaments
+          .slice(
+            0,
+            3,
+          )
+          .map(
+            (tournament) =>
+              `${tournament.name} (${tournament.status})`,
+          )
+          .join(', ');
+
+      return `Your recent Tournament context: ${recent}.`;
+    }
+
+    if (
+      includesAny([
+        'stat',
+        'record',
+        'win',
+        'loss',
+        'goal',
+        'form',
+        'ஸ்டாட்',
+      ])
+    ) {
+      if (
+        context.recentStatistics.length ===
+        0
+      ) {
+        return 'No verified Tournament statistics are available for your account yet. Stats are updated from confirmed Match Results.';
+      }
+
+      const totals =
+        context.recentStatistics.reduce(
+          (
+            sum,
+            stat,
+          ) => ({
+            matches:
+              sum.matches +
+              stat.matches,
+            wins:
+              sum.wins +
+              stat.wins,
+            draws:
+              sum.draws +
+              stat.draws,
+            losses:
+              sum.losses +
+              stat.losses,
+            goalsFor:
+              sum.goalsFor +
+              stat.goalsFor,
+            goalsAgainst:
+              sum.goalsAgainst +
+              stat.goalsAgainst,
+          }),
+          {
+            matches: 0,
+            wins: 0,
+            draws: 0,
+            losses: 0,
+            goalsFor: 0,
+            goalsAgainst: 0,
+          },
+        );
+
+      return `Across your recent recorded Tournament stats: ${totals.matches} matches, ${totals.wins} wins, ${totals.draws} draws, ${totals.losses} losses, ${totals.goalsFor} goals for and ${totals.goalsAgainst} goals against. Open More → Career Stats for the full record.`;
+    }
+
+    if (
+      includesAny([
+        'result',
+        'score',
+        'ocr',
+        'screenshot',
+        'ரிசல்ட்',
+      ])
+    ) {
+      return 'Open the relevant Match from Fixtures. A permitted participant or admin can submit the score manually or upload a result screenshot for OCR. Standings and player statistics update only after the normal admin verification flow.';
+    }
+
+    if (
+      includesAny([
+        'group',
+        'குரூப்',
+      ])
+    ) {
+      return 'Tournament groups are admin-controlled. Admins can create, rename and delete groups, move teams between groups, or use supported even/random distribution before generating group fixtures.';
+    }
+
+    if (
+      includesAny([
+        'poster',
+        'போஸ்டர்',
+      ])
+    ) {
+      return 'Open a Tournament and choose Auto Poster. FC ARENA can generate share graphics from real Fixture, Result, Standings and Champion data.';
+    }
+
+    if (
+      includesAny([
+        'role',
+        'admin',
+        'permission',
+        'audit',
+        'ரோல்',
+      ])
+    ) {
+      return 'League admins can open League Settings → Roles & Audit to assign supported scoped roles and review recorded permission changes. Tournament Admin and Match Admin permissions are enforced by the backend.';
+    }
+
+    return `Hi ${context.player.name}. FC ARENA Assist is ready in read-only mode. I can explain app workflows and use your current League, Tournament, Fixture and verified statistics context. Try “What is my next match?”, “Show my stats”, “How do I submit a result?”, or “How do Auto Posters work?”`;
   }
 
   private async requestProvider(

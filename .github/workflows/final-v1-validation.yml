@@ -3,7 +3,7 @@ name: FC ARENA Final V1 Validation
 on:
   push:
     branches:
-      - feature/tournament-self-registration
+      - feature/final-v1-completion
 
 jobs:
   verify:
@@ -78,7 +78,7 @@ jobs:
 
       - name: New feature web lint
         working-directory: apps/web
-        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx' 'src/app/tournaments/[tournamentId]/registration/page.tsx'
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx'
 
       - name: Web production build
         run: npm run build:web

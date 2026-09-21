@@ -339,8 +339,12 @@ export class TournamentWizardFinalizeService {
       );
 
     if (
-      tournament.status !==
-      'DRAFT'
+      ![
+        'DRAFT',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        tournament.status,
+      )
     ) {
       throw new ConflictException({
         success: false,
@@ -351,7 +355,7 @@ export class TournamentWizardFinalizeService {
             'TOURNAMENT_ALREADY_PUBLISHED',
 
           message:
-            'Tournament is no longer in Draft.',
+            'Tournament cannot be published from the current state.',
         },
       });
     }

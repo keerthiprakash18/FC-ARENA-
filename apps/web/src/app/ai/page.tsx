@@ -176,7 +176,7 @@ export default function AiPage() {
     const userMessage:
       ChatMessage = {
         id:
-          `user-${Date.now()}`,
+          `user-${messages.length}`,
         role:
           'user',
         content:
@@ -235,7 +235,7 @@ export default function AiPage() {
           ...current,
           {
             id:
-              `assistant-${Date.now()}`,
+              `assistant-${messages.length + 1}`,
             role:
               'assistant',
             content:

@@ -246,7 +246,7 @@ export class AuthService {
           data: null,
           error: {
             code:
-              'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING',
+              'EMAIL_PENDING_VERIFICATION',
             message:
               'Your account was created, but the verification email could not be delivered. Continue to email verification and use Resend OTP.',
           },

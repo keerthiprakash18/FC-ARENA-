@@ -1,0 +1,38 @@
+name: FC ARENA Final V1 Validation
+
+on:
+  push:
+    branches:
+      - feature/final-v1-completion
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: API build
+        run: npm run build:api
+
+      - name: Fixture engine regression tests
+        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
+
+      - name: Web lint
+        run: npm run lint --workspace=apps/web
+
+      - name: Web production build
+        run: npm run build:web

@@ -78,6 +78,14 @@ interface Registration {
   registeredBy?: {
     id: string;
     fullName: string;
+
+    player: {
+      playerCode: string;
+
+      identity: {
+        inGameName: string;
+      } | null;
+    } | null;
   };
 
   members: RegistrationMember[];
@@ -157,9 +165,17 @@ function memberGameName(
       ?.identity
       ?.inGameName ||
     registration
+      .registeredBy
+      ?.player
+      ?.identity
+      ?.inGameName ||
+    registration
       .members[0]
       ?.user
       .fullName ||
+    registration
+      .registeredBy
+      ?.fullName ||
     'Unknown Player'
   );
 }
@@ -174,6 +190,10 @@ function memberPlayerCode(
       .members[0]
       ?.user
       .player
+      ?.playerCode ||
+    registration
+      .registeredBy
+      ?.player
       ?.playerCode ||
     '—'
   );

@@ -1836,9 +1836,18 @@ export default function MatchCenterPage() {
         ) : null}
 
         <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-          <h2 className="text-2xl font-black">
-            Result Verification
-          </h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-2xl font-black">
+              Result Verification
+            </h2>
+
+            <Link
+              href={'/matches/' + params.matchId + '/dispute'}
+              className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] px-4 py-2 text-sm font-black text-amber-300 transition hover:bg-amber-400/[0.08]"
+            >
+              Dispute Center
+            </Link>
+          </div>
 
           <div className="mt-5 space-y-3">
             {submissions.map(

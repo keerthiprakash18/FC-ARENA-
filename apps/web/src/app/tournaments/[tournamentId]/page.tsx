@@ -52,6 +52,7 @@ interface Tournament {
   competitionFormat?: string;
   groupMode?: string;
   status: string;
+  visibility: string;
   maxEntries: number;
   approvedEntries: number;
   startAt: string | null;
@@ -514,6 +515,17 @@ export default function TournamentOverviewPage() {
                     className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019]"
                   >
                     Continue Setup
+                  </Link>
+                ) : null}
+
+                {tournament.visibility ===
+                'PUBLIC' ? (
+                  <Link
+                    href={'/public/tournaments/' + tournament.code}
+                    target="_blank"
+                    className="rounded-xl border border-emerald-400/25 bg-emerald-400/[0.04] px-5 py-3 text-sm font-black text-emerald-300"
+                  >
+                    Public Page ↗
                   </Link>
                 ) : null}
 

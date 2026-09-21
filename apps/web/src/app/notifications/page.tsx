@@ -1,15 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
 import {
   AppShell,
 } from '@/components/app/app-shell';
+
+import {
+  FcEmptyState,
+  FcErrorState,
+  FcLoadingScreen,
+  FcPageHeader,
+  FcPanel,
+  FcStatusBadge,
+} from '@/components/fc/fc-ui';
 
 import {
   authenticatedRequest,
@@ -32,10 +41,12 @@ interface NotificationItem {
 
 interface NotificationData {
   unreadCount: number;
-
-  notifications:
-    NotificationItem[];
+  notifications: NotificationItem[];
 }
+
+type NotificationFilter =
+  | 'all'
+  | 'unread';
 
 function notificationIcon(
   type: string,
@@ -43,90 +54,157 @@ function notificationIcon(
   switch (type) {
     case 'LEAGUE_JOIN_REQUESTED':
       return '👥';
-
     case 'LEAGUE_REQUEST_APPROVED':
-      return '✅';
-
+      return '✓';
     case 'LEAGUE_REQUEST_REJECTED':
-      return '❌';
-
+      return '×';
     case 'TOURNAMENT_CREATED':
-      return '🏟️';
-
-    case 'TOURNAMENT_REGISTRATION_OPENED':
-      return '📝';
-
-    case 'TOURNAMENT_APPLICATION_APPROVED':
-      return '✅';
-
-    case 'TOURNAMENT_APPLICATION_REJECTED':
-      return '❌';
-
-    case 'FIXTURE_CREATED':
-      return '📅';
-
-    case 'FIXTURE_CHANGED':
-      return '🔄';
-
-    case 'MATCH_REMINDER':
-      return '⏰';
-
-    case 'RESULT_SUBMITTED':
-      return '📤';
-
-    case 'RESULT_CONFIRMED':
-      return '✅';
-
-    case 'STATISTICS_UPDATED':
-      return '📊';
-
-    case 'TOURNAMENT_COMPLETED':
-      return '🏁';
-
-    case 'ACHIEVEMENT_RECEIVED':
       return '🏆';
-
+    case 'TOURNAMENT_REGISTRATION_OPENED':
+      return '＋';
+    case 'TOURNAMENT_APPLICATION_APPROVED':
+      return '✓';
+    case 'TOURNAMENT_APPLICATION_REJECTED':
+      return '×';
+    case 'FIXTURE_CREATED':
+      return '⚽';
+    case 'FIXTURE_CHANGED':
+      return '↻';
+    case 'MATCH_REMINDER':
+      return '⏱';
+    case 'RESULT_SUBMITTED':
+      return '↑';
+    case 'RESULT_CONFIRMED':
+      return '✓';
+    case 'STATISTICS_UPDATED':
+      return '▥';
+    case 'TOURNAMENT_COMPLETED':
+      return '★';
+    case 'ACHIEVEMENT_RECEIVED':
+      return '🏅';
     default:
-      return '🔔';
+      return '●';
   }
 }
 
+function formatEventTime(
+  value: string,
+) {
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return '';
+  }
+
+  const diff =
+    Date.now() -
+    date.getTime();
+
+  const minute =
+    60 * 1000;
+
+  const hour =
+    60 * minute;
+
+  const day =
+    24 * hour;
+
+  if (diff < minute) {
+    return 'Just now';
+  }
+
+  if (diff < hour) {
+    return `${Math.floor(diff / minute)}m ago`;
+  }
+
+  if (diff < day) {
+    return `${Math.floor(diff / hour)}h ago`;
+  }
+
+  if (diff < 7 * day) {
+    return `${Math.floor(diff / day)}d ago`;
+  }
+
+  return date.toLocaleString();
+}
+
+function notifyBellChanged() {
+  window.dispatchEvent(
+    new Event(
+      'fc-arena:notifications-changed',
+    ),
+  );
+}
+
 export default function NotificationsPage() {
-  const [user, setUser] =
+  const [
+    user,
+    setUser,
+  ] =
     useState<CurrentUser | null>(
       null,
     );
 
-  const [data, setData] =
+  const [
+    data,
+    setData,
+  ] =
     useState<NotificationData>({
       unreadCount: 0,
       notifications: [],
     });
 
-  const [loading, setLoading] =
+  const [
+    filter,
+    setFilter,
+  ] =
+    useState<NotificationFilter>(
+      'all',
+    );
+
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
-  const [busy, setBusy] =
+  const [
+    refreshing,
+    setRefreshing,
+  ] =
     useState(false);
 
-  const [error, setError] =
+  const [
+    busy,
+    setBusy,
+  ] =
+    useState(false);
+
+  const [
+    error,
+    setError,
+  ] =
     useState('');
 
   async function loadNotifications(
     silent = false,
   ) {
     try {
-      if (!silent) {
+      if (silent) {
+        setRefreshing(true);
+      } else {
         setLoading(true);
       }
 
       const response =
         await authenticatedRequest<{
           success: true;
-
-          data:
-            NotificationData;
-
+          data: NotificationData;
           error: null;
         }>('/notifications');
 
@@ -136,17 +214,14 @@ export default function NotificationsPage() {
 
       setError('');
     } catch (err) {
-      if (!silent) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load notifications.',
-        );
-      }
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to load notifications.',
+      );
     } finally {
-      if (!silent) {
-        setLoading(false);
-      }
+      setLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -156,7 +231,9 @@ export default function NotificationsPage() {
         const current =
           await getCurrentUser();
 
-        setUser(current);
+        setUser(
+          current,
+        );
 
         await loadNotifications();
       } catch (err) {
@@ -171,10 +248,6 @@ export default function NotificationsPage() {
     })();
   }, []);
 
-  /*
-   * Cross-device near-realtime refresh.
-   * No manual page reload required.
-   */
   useEffect(() => {
     if (!user) {
       return;
@@ -187,7 +260,7 @@ export default function NotificationsPage() {
             true,
           );
         },
-        5000,
+        30_000,
       );
 
     return () => {
@@ -195,11 +268,42 @@ export default function NotificationsPage() {
         timer,
       );
     };
-  }, [user]);
+  }, [
+    user,
+  ]);
+
+  const visibleNotifications =
+    useMemo(
+      () =>
+        filter === 'unread'
+          ? data.notifications.filter(
+              (notification) =>
+                !notification.readAt,
+            )
+          : data.notifications,
+      [
+        data.notifications,
+        filter,
+      ],
+    );
 
   async function markAsRead(
     notificationId: string,
   ) {
+    const currentNotification =
+      data.notifications.find(
+        (notification) =>
+          notification.id ===
+          notificationId,
+      );
+
+    if (
+      !currentNotification ||
+      currentNotification.readAt
+    ) {
+      return;
+    }
+
     try {
       await authenticatedRequest(
         `/notifications/${notificationId}/read`,
@@ -214,16 +318,7 @@ export default function NotificationsPage() {
             Math.max(
               0,
               current.unreadCount -
-                (
-                  current.notifications.find(
-                    (notification) =>
-                      notification.id ===
-                        notificationId &&
-                      !notification.readAt,
-                  )
-                    ? 1
-                    : 0
-                ),
+                1,
             ),
 
           notifications:
@@ -234,13 +329,14 @@ export default function NotificationsPage() {
                   ? {
                       ...notification,
                       readAt:
-                        notification.readAt ??
                         new Date().toISOString(),
                     }
                   : notification,
             ),
         }),
       );
+
+      notifyBellChanged();
     } catch (err) {
       setError(
         err instanceof Error
@@ -251,7 +347,16 @@ export default function NotificationsPage() {
   }
 
   async function markAllAsRead() {
-    setBusy(true);
+    if (
+      busy ||
+      data.unreadCount === 0
+    ) {
+      return;
+    }
+
+    setBusy(
+      true,
+    );
 
     try {
       await authenticatedRequest(
@@ -272,7 +377,6 @@ export default function NotificationsPage() {
             current.notifications.map(
               (notification) => ({
                 ...notification,
-
                 readAt:
                   notification.readAt ??
                   now,
@@ -280,6 +384,8 @@ export default function NotificationsPage() {
             ),
         }),
       );
+
+      notifyBellChanged();
     } catch (err) {
       setError(
         err instanceof Error
@@ -287,7 +393,9 @@ export default function NotificationsPage() {
           : 'Unable to mark all notifications as read.',
       );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
@@ -296,111 +404,182 @@ export default function NotificationsPage() {
     !user
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        {error ||
-          'Loading Notifications...'}
-      </div>
+      <FcLoadingScreen
+        label="Loading Notifications..."
+      />
     );
   }
+
+  const playerName =
+    user.player
+      ?.identity
+      ?.inGameName ||
+    user.fullName;
 
   return (
     <AppShell
       playerName={
-        user.player?.identity
-          ?.inGameName
+        playerName
       }
     >
       <div className="space-y-6">
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-7 md:p-10">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-                FC ARENA Activity
-              </p>
-
-              <h1 className="mt-3 text-4xl font-black md:text-5xl">
-                Notifications
-              </h1>
-
-              <p className="mt-3 text-sm text-slate-500">
-                {
-                  data.unreadCount
-                }{' '}
-                unread notification
-                {data.unreadCount ===
-                1
-                  ? ''
-                  : 's'}
-              </p>
-            </div>
-
-            {data.unreadCount >
-            0 ? (
+        <FcPageHeader
+          eyebrow="FC ARENA Activity"
+          title="Notifications"
+          subtitle="Match alerts, league requests, tournament activity, result updates and achievements in one place."
+          action={
+            data.unreadCount > 0 ? (
               <button
                 type="button"
-                disabled={busy}
+                disabled={
+                  busy
+                }
                 onClick={() =>
                   void markAllAsRead()
                 }
-                className="rounded-xl border border-sky-400/20 bg-sky-400/5 px-5 py-3 text-sm font-black text-sky-300 disabled:opacity-50"
+                className="theme-primary-button min-h-11 rounded-[10px] px-4 text-sm font-semibold transition disabled:opacity-50"
               >
-                Mark All Read
+                {busy
+                  ? 'Updating...'
+                  : 'Mark all read'}
               </button>
-            ) : null}
-          </div>
-        </section>
+            ) : (
+              <FcStatusBadge
+                label="All caught up"
+                tone="emerald"
+              />
+            )
+          }
+        />
 
         {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
+          <FcErrorState
+            message={
+              error
+            }
+          />
         ) : null}
 
+        <FcPanel className="p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setFilter(
+                    'all',
+                  )
+                }
+                className={
+                  filter === 'all'
+                    ? 'theme-primary-button min-h-10 rounded-[10px] px-4 text-sm font-semibold'
+                    : 'theme-secondary-button min-h-10 rounded-[10px] border px-4 text-sm font-medium'
+                }
+              >
+                All ({data.notifications.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setFilter(
+                    'unread',
+                  )
+                }
+                className={
+                  filter === 'unread'
+                    ? 'theme-primary-button min-h-10 rounded-[10px] px-4 text-sm font-semibold'
+                    : 'theme-secondary-button min-h-10 rounded-[10px] border px-4 text-sm font-medium'
+                }
+              >
+                Unread ({data.unreadCount})
+              </button>
+            </div>
+
+            <button
+              type="button"
+              disabled={
+                refreshing
+              }
+              onClick={() =>
+                void loadNotifications(
+                  true,
+                )
+              }
+              className="theme-secondary-button min-h-10 rounded-[10px] border px-4 text-sm font-medium disabled:opacity-50"
+            >
+              {refreshing
+                ? 'Refreshing...'
+                : 'Refresh'}
+            </button>
+          </div>
+        </FcPanel>
+
         <section className="space-y-3">
-          {data.notifications.map(
-            (notification) => {
+          {visibleNotifications.map(
+            (
+              notification,
+            ) => {
               const unread =
                 !notification.readAt;
 
-              const body = (
+              const content = (
                 <article
-                  className={`rounded-[22px] border p-5 transition ${
+                  className={
                     unread
-                      ? 'border-sky-400/25 bg-sky-400/[0.04]'
-                      : 'border-white/10 bg-[#0a1018]'
-                  }`}
+                      ? 'theme-action-row rounded-2xl border p-4 transition sm:p-5'
+                      : 'theme-panel rounded-2xl border p-4 opacity-80 transition sm:p-5'
+                  }
                 >
-                  <div className="flex gap-4">
-                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.03] text-xl">
+                  <div className="flex items-start gap-4">
+                    <span className="theme-soft-accent grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-base font-semibold">
                       {notificationIcon(
                         notification.type,
                       )}
-                    </div>
+                    </span>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-black">
+                        <h2 className="theme-text fc-display text-[15px] font-semibold sm:text-base">
                           {
                             notification.title
                           }
                         </h2>
 
                         {unread ? (
-                          <span className="h-2 w-2 rounded-full bg-sky-400" />
+                          <span className="theme-tone-primary inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold">
+                            New
+                          </span>
                         ) : null}
                       </div>
 
-                      <p className="mt-2 text-sm leading-6 text-slate-400">
+                      <p className="theme-secondary-text mt-1.5 text-sm leading-6">
                         {
                           notification.message
                         }
                       </p>
 
-                      <p className="mt-3 text-xs text-slate-600">
-                        {new Date(
-                          notification.eventAt,
-                        ).toLocaleString()}
-                      </p>
+                      <div className="theme-muted mt-3 flex flex-wrap items-center gap-2 text-xs">
+                        <span>
+                          {formatEventTime(
+                            notification.eventAt,
+                          )}
+                        </span>
+
+                        {notification.entityType ? (
+                          <>
+                            <span>
+                              •
+                            </span>
+
+                            <span>
+                              {
+                                notification.entityType
+                              }
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
                     </div>
 
                     {unread ? (
@@ -410,14 +589,13 @@ export default function NotificationsPage() {
                           event,
                         ) => {
                           event.preventDefault();
-
                           event.stopPropagation();
 
                           void markAsRead(
                             notification.id,
                           );
                         }}
-                        className="h-fit shrink-0 rounded-lg border border-white/10 px-3 py-2 text-xs font-black text-slate-400 hover:text-white"
+                        className="theme-secondary-button shrink-0 rounded-[9px] border px-3 py-2 text-xs font-semibold"
                       >
                         Read
                       </button>
@@ -444,8 +622,11 @@ export default function NotificationsPage() {
                         );
                       }
                     }}
+                    className="block"
                   >
-                    {body}
+                    {
+                      content
+                    }
                   </Link>
                 );
               }
@@ -456,27 +637,28 @@ export default function NotificationsPage() {
                     notification.id
                   }
                 >
-                  {body}
+                  {
+                    content
+                  }
                 </div>
               );
             },
           )}
 
-          {data.notifications
-            .length === 0 ? (
-            <div className="rounded-[24px] border border-white/10 bg-[#0a1018] p-12 text-center">
-              <p className="text-5xl">
-                🔔
-              </p>
-
-              <h2 className="mt-4 text-xl font-black">
-                No notifications yet
-              </h2>
-
-              <p className="mt-2 text-sm text-slate-500">
-                League, Tournament, Match and Achievement activity will appear here.
-              </p>
-            </div>
+          {visibleNotifications.length ===
+          0 ? (
+            <FcEmptyState
+              title={
+                filter === 'unread'
+                  ? 'No unread notifications'
+                  : 'No notifications yet'
+              }
+              description={
+                filter === 'unread'
+                  ? 'You are fully caught up. New FC ARENA activity will appear here.'
+                  : 'League, tournament, fixture, match result and achievement activity will appear here.'
+              }
+            />
           ) : null}
         </section>
       </div>

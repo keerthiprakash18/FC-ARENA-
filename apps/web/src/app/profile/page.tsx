@@ -1,187 +1,567 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { AppShell } from '@/components/app/app-shell';
+import Link from 'next/link';
+
 import {
-  CurrentUser,
+  useRouter,
+} from 'next/navigation';
+
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  AppShell,
+} from '@/components/app/app-shell';
+
+import {
+  FcCrest,
+  FcLoadingScreen,
+  FcPanel,
+  FcStatCard,
+  FcStatusBadge,
+} from '@/components/fc/fc-ui';
+
+import {
+  authenticatedRequest,
+  type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
+
+interface CareerData {
+  profile: {
+    fullName: string;
+    email: string;
+    phoneNumber: string | null;
+    joinedAt: string;
+    playerCode: string | null;
+    profileImageUrl: string | null;
+
+    identity: {
+      inGameName: string;
+      gameUid: string | null;
+      isVerified: boolean;
+      verifiedAt: string | null;
+    } | null;
+
+    primaryLeague: {
+      league: {
+        id: string;
+        name: string;
+        code: string;
+      };
+    } | null;
+
+    secondaryLeague: {
+      league: {
+        id: string;
+        name: string;
+        code: string;
+      };
+    } | null;
+  };
+
+  lifetimeStatistics: {
+    matches: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDifference: number;
+    winRate: number;
+    form: string[];
+    tournaments: number;
+    achievements: number;
+  };
+
+  achievements: Array<{
+    id: string;
+    title: string;
+    type: string;
+    awardedAt: string;
+  }>;
+}
 
 function Detail({
   label,
   value,
 }: {
   label: string;
-  value: string | null | undefined;
+  value:
+    | string
+    | null
+    | undefined;
 }) {
   return (
-    <div className="border-b border-white/5 py-4 last:border-0">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
-        {label}
+    <div className="border-b border-black/5 py-3 last:border-0">
+      <p className="theme-muted text-[10px] font-semibold uppercase tracking-[0.15em]">
+        {
+          label
+        }
       </p>
 
-      <p className="mt-2 break-all text-sm font-semibold text-slate-200">
-        {value || 'Not provided'}
+      <p className="theme-text mt-1 break-all text-sm font-medium">
+        {
+          value ||
+          'Not provided'
+        }
       </p>
     </div>
   );
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<CurrentUser | null>(null);
+  const router =
+    useRouter();
+
+  const [
+    user,
+    setUser,
+  ] =
+    useState<CurrentUser | null>(
+      null,
+    );
+
+  const [
+    career,
+    setCareer,
+  ] =
+    useState<CareerData | null>(
+      null,
+    );
 
   useEffect(() => {
-    async function loadProfile() {
+    void (async () => {
       try {
-        setUser(await getCurrentUser());
+        const [
+          current,
+          response,
+        ] =
+          await Promise.all([
+            getCurrentUser(),
+
+            authenticatedRequest<any>(
+              '/players/me/career',
+            ),
+          ]);
+
+        setUser(
+          current,
+        );
+
+        setCareer(
+          response.data,
+        );
       } catch {
-        router.replace('/login');
+        router.replace(
+          '/login',
+        );
       }
-    }
+    })();
+  }, [
+    router,
+  ]);
 
-    void loadProfile();
-  }, [router]);
-
-  if (!user) {
+  if (
+    !user ||
+    !career
+  ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-sm font-semibold text-slate-500">
-        Loading Player Profile...
-      </div>
+      <FcLoadingScreen
+        label="Loading Player Profile..."
+      />
     );
   }
 
-  const identity = user.player?.identity;
+  const identity =
+    career.profile
+      .identity;
 
-  const initials = user.fullName
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const playerName =
+    identity?.inGameName ||
+    career.profile
+      .fullName;
+
+  const stats =
+    career.lifetimeStatistics;
 
   return (
-    <AppShell playerName={identity?.inGameName}>
+    <AppShell
+      playerName={
+        playerName
+      }
+    >
       <div className="mx-auto max-w-6xl space-y-6">
-        <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[#0a1018]">
+        <FcPanel className="overflow-hidden">
           <div className="h-28 bg-gradient-to-r from-sky-500/20 via-sky-400/5 to-transparent md:h-36" />
 
-          <div className="px-5 pb-7 md:px-8">
-            <div className="-mt-10 flex flex-col gap-5 md:-mt-12 md:flex-row md:items-end md:justify-between">
+          <div className="px-5 pb-6 sm:px-7">
+            <div className="-mt-10 flex flex-col gap-5 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                <div className="grid h-24 w-24 place-items-center rounded-[26px] border-4 border-[#0a1018] bg-sky-400 text-2xl font-black text-[#041019]">
-                  {initials}
-                </div>
+                <FcCrest
+                  name={
+                    playerName
+                  }
+                  imageUrl={
+                    career.profile
+                      .profileImageUrl
+                  }
+                  size="lg"
+                />
 
                 <div className="pb-1">
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-                    FC ARENA PLAYER
+                  <p className="theme-text-link text-xs font-semibold uppercase tracking-[0.16em]">
+                    FC ARENA Player
                   </p>
 
-                  <h1 className="mt-1 text-3xl font-black tracking-[-0.04em] md:text-4xl">
-                    {user.fullName}
+                  <h1 className="theme-text mt-1 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+                    {
+                      career.profile
+                        .fullName
+                    }
                   </h1>
 
-                  <p className="mt-1 text-sm font-semibold text-slate-500">
-                    {identity?.inGameName ?? 'No in-game name'}
+                  <p className="theme-secondary-text mt-1 text-sm">
+                    {
+                      playerName
+                    }
+                    {career.profile
+                      .playerCode
+                      ? ' · ' +
+                        career.profile
+                          .playerCode
+                      : ''}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-4 py-2 text-xs font-black uppercase tracking-wider text-emerald-400">
-                {user.status}
-              </div>
+              <FcStatusBadge
+                label={
+                  identity?.isVerified
+                    ? 'Verified Player'
+                    : 'Active Player'
+                }
+                tone={
+                  identity?.isVerified
+                    ? 'emerald'
+                    : 'cyan'
+                }
+              />
             </div>
           </div>
+        </FcPanel>
+
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <FcStatCard
+            label="Matches"
+            value={
+              stats.matches
+            }
+            detail={
+              stats.wins +
+              ' wins · ' +
+              stats.draws +
+              ' draws'
+            }
+          />
+
+          <FcStatCard
+            label="Win Rate"
+            value={
+              stats.winRate +
+              '%'
+            }
+            detail={
+              stats.losses +
+              ' losses'
+            }
+            tone="emerald"
+          />
+
+          <FcStatCard
+            label="Goals"
+            value={
+              stats.goalsFor
+            }
+            detail={
+              'GA ' +
+              stats.goalsAgainst +
+              ' · GD ' +
+              (
+                stats.goalDifference >
+                0
+                  ? '+'
+                  : ''
+              ) +
+              stats.goalDifference
+            }
+            tone="amber"
+          />
+
+          <FcStatCard
+            label="Achievements"
+            value={
+              stats.achievements
+            }
+            detail={
+              stats.tournaments +
+              ' tournaments'
+            }
+            tone="slate"
+          />
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-[0.7fr_1.3fr]">
-          <article className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
+        <section className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+          <FcPanel className="p-5 sm:p-6">
+            <h2 className="theme-text text-lg font-semibold">
               Player Identity
-            </p>
+            </h2>
 
-            <div className="mt-4">
+            <div className="mt-3">
               <Detail
                 label="FC ARENA ID"
-                value={user.player?.playerCode}
+                value={
+                  career.profile
+                    .playerCode
+                }
               />
 
               <Detail
                 label="In-Game Name"
-                value={identity?.inGameName}
+                value={
+                  identity?.inGameName
+                }
               />
 
               <Detail
                 label="Game UID"
-                value={identity?.gameUid}
+                value={
+                  identity?.gameUid
+                }
               />
 
               <Detail
-                label="Identity Verification"
+                label="Verification"
                 value={
                   identity?.isVerified
-                    ? 'Verified & Locked'
+                    ? 'Verified & locked'
                     : 'Not yet verified'
                 }
               />
             </div>
-          </article>
+          </FcPanel>
 
-          <article className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-              Account Information
-            </p>
+          <FcPanel className="p-5 sm:p-6">
+            <h2 className="theme-text text-lg font-semibold">
+              Career Context
+            </h2>
 
-            <div className="mt-4 grid gap-x-8 md:grid-cols-2">
-              <div>
-                <Detail label="Full Name" value={user.fullName} />
-                <Detail label="Email" value={user.email} />
-              </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Link
+                href={
+                  career.profile
+                    .primaryLeague
+                    ? '/leagues/' +
+                      career.profile
+                        .primaryLeague
+                        .league.id
+                    : '/leagues'
+                }
+                className="theme-action-row rounded-2xl border p-4"
+              >
+                <p className="theme-muted text-xs">
+                  Primary League
+                </p>
 
-              <div>
-                <Detail
-                  label="Phone Number"
-                  value={user.phoneNumber}
-                />
+                <p className="theme-text mt-1 font-semibold">
+                  {career.profile
+                    .primaryLeague
+                    ?.league.name ||
+                    'Not joined'}
+                </p>
+              </Link>
 
-                <Detail label="Account Role" value={user.role} />
+              <Link
+                href={
+                  career.profile
+                    .secondaryLeague
+                    ? '/leagues/' +
+                      career.profile
+                        .secondaryLeague
+                        .league.id
+                    : '/leagues'
+                }
+                className="theme-action-row rounded-2xl border p-4"
+              >
+                <p className="theme-muted text-xs">
+                  Secondary League
+                </p>
+
+                <p className="theme-text mt-1 font-semibold">
+                  {career.profile
+                    .secondaryLeague
+                    ?.league.name ||
+                    'Not joined'}
+                </p>
+              </Link>
+            </div>
+
+            <div className="mt-5">
+              <p className="theme-muted text-xs font-medium">
+                Recent Form
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {stats.form.length >
+                0 ? (
+                  stats.form.map(
+                    (
+                      result,
+                      index,
+                    ) => (
+                      <span
+                        key={
+                          result +
+                          index
+                        }
+                        className={
+                          'grid h-9 w-9 place-items-center rounded-xl border text-sm font-bold ' +
+                          (
+                            result ===
+                            'W'
+                              ? 'theme-tone-success'
+                              : result ===
+                                  'D'
+                                ? 'theme-tone-premium'
+                                : 'theme-tone-danger'
+                          )
+                        }
+                      >
+                        {
+                          result
+                        }
+                      </span>
+                    ),
+                  )
+                ) : (
+                  <span className="theme-secondary-text text-sm">
+                    No completed matches yet.
+                  </span>
+                )}
               </div>
             </div>
-          </article>
+          </FcPanel>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-600">
-              Primary League
-            </p>
+        <FcPanel className="p-5 sm:p-6">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="theme-muted text-xs">
+                Account
+              </p>
 
-            <p className="mt-4 text-lg font-black text-slate-400">
-              Not joined
-            </p>
-          </article>
+              <h2 className="theme-text mt-1 text-lg font-semibold">
+                Contact & membership
+              </h2>
+            </div>
 
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-600">
-              Career Matches
-            </p>
+            <Link
+              href="/settings"
+              className="theme-text-link text-sm font-semibold"
+            >
+              Settings →
+            </Link>
+          </div>
 
-            <p className="mt-4 text-lg font-black text-slate-400">
-              No matches yet
-            </p>
-          </article>
+          <div className="mt-4 grid gap-x-8 sm:grid-cols-2">
+            <div>
+              <Detail
+                label="Full Name"
+                value={
+                  career.profile
+                    .fullName
+                }
+              />
 
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-600">
-              Achievements
-            </p>
+              <Detail
+                label="Email"
+                value={
+                  career.profile
+                    .email
+                }
+              />
+            </div>
 
-            <p className="mt-4 text-lg font-black text-slate-400">
-              No achievements yet
-            </p>
-          </article>
+            <div>
+              <Detail
+                label="Phone"
+                value={
+                  career.profile
+                    .phoneNumber
+                }
+              />
+
+              <Detail
+                label="Member Since"
+                value={
+                  new Date(
+                    career.profile
+                      .joinedAt,
+                  ).toLocaleDateString()
+                }
+              />
+            </div>
+          </div>
+        </FcPanel>
+
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            [
+              'Career Stats',
+              '/career',
+            ],
+            [
+              'Match History',
+              '/career/matches',
+            ],
+            [
+              'Achievements',
+              '/career/achievements',
+            ],
+            [
+              'Leaderboards',
+              '/leaderboards',
+            ],
+          ].map(
+            (
+              [
+                title,
+                href,
+              ],
+            ) => (
+              <Link
+                key={
+                  href
+                }
+                href={
+                  href
+                }
+                className="theme-action-row rounded-2xl border p-4"
+              >
+                <p className="theme-text font-semibold">
+                  {
+                    title
+                  }
+                </p>
+
+                <p className="theme-muted mt-2 text-xs">
+                  Open →
+                </p>
+              </Link>
+            ),
+          )}
         </section>
       </div>
     </AppShell>

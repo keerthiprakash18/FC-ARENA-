@@ -32,7 +32,7 @@ import type { ThemePreferenceValue } from './dto/update-theme-preference.dto.js'
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
 const REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60;
-const OTP_EXPIRY_MINUTES = 5;
+const OTP_EXPIRY_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_HOURLY_LIMIT = 5;
@@ -83,6 +83,22 @@ export class AuthService {
     });
 
     if (existingUser) {
+      if (
+        existingUser.status ===
+        'PENDING_VERIFICATION'
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'EMAIL_PENDING_VERIFICATION',
+            message:
+              'This email already has an unverified account. Verify the existing account or resend the OTP.',
+          },
+        });
+      }
+
       throw new ConflictException({
         success: false,
         data: null,

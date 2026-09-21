@@ -31,9 +31,12 @@ jobs:
       - name: Fixture engine regression tests
         run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
 
+      - name: Authorization regression tests
+        run: npm run test --workspace=apps/api -- src/security/authorization.service.spec.ts
+
       - name: New feature web lint
         working-directory: apps/web
-        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx'
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx'
 
       - name: Web production build
         run: npm run build:web

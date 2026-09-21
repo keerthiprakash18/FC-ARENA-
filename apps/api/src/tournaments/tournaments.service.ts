@@ -448,13 +448,107 @@ export class TournamentsService {
       });
     }
 
-    const playerCodes = [
-      ...new Set(
-        dto.playerCodes.map((code) =>
-          code.trim().toUpperCase(),
-        ),
-      ),
-    ];
+    if (tournament.registrationMode === 'ADMIN_ONLY') {
+      throw new ForbiddenException({
+        success: false,
+        data: null,
+        error: {
+          code: 'SELF_REGISTRATION_DISABLED',
+          message:
+            'This Tournament only allows admins to add entries.',
+        },
+      });
+    }
+
+    const currentPlayer =
+      await this.prisma.player.findUnique({
+        where: {
+          userId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+            },
+          },
+          identity: {
+            select: {
+              inGameName: true,
+            },
+          },
+        },
+      });
+
+    if (!currentPlayer) {
+      throw new ForbiddenException({
+        success: false,
+        data: null,
+        error: {
+          code: 'PLAYER_PROFILE_REQUIRED',
+          message:
+            'Create your FC ARENA Player profile before joining a Tournament.',
+        },
+      });
+    }
+
+    const isIndividualEntry =
+      tournament.teamSize === 1;
+
+    if (
+      isIndividualEntry &&
+      !currentPlayer.identity?.inGameName
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'IN_GAME_NAME_REQUIRED',
+          message:
+            'Add your Game Name to your FC ARENA profile before joining this Tournament.',
+        },
+      });
+    }
+
+    if (
+      dto.inGameName &&
+      currentPlayer.identity?.inGameName &&
+      dto.inGameName
+        .trim()
+        .toLocaleLowerCase() !==
+        currentPlayer.identity.inGameName
+          .trim()
+          .toLocaleLowerCase()
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'GAME_NAME_MISMATCH',
+          message:
+            'Game Name must match the Game Name saved in your FC ARENA profile.',
+        },
+      });
+    }
+
+    const playerCodes =
+      isIndividualEntry
+        ? [
+            currentPlayer.playerCode,
+          ]
+        : [
+            ...new Set(
+              (
+                dto.playerCodes ??
+                []
+              ).map(
+                (code) =>
+                  code
+                    .trim()
+                    .toUpperCase(),
+              ),
+            ),
+          ];
 
     if (playerCodes.length !== tournament.teamSize) {
       throw new BadRequestException({
@@ -467,26 +561,27 @@ export class TournamentsService {
       });
     }
 
-    const players = await this.prisma.player.findMany({
-      where: {
-        playerCode: {
-          in: playerCodes,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
+    const players =
+      await this.prisma.player.findMany({
+        where: {
+          playerCode: {
+            in: playerCodes,
           },
         },
-        identity: {
-          select: {
-            inGameName: true,
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+            },
+          },
+          identity: {
+            select: {
+              inGameName: true,
+            },
           },
         },
-      },
-    });
+      });
 
     if (players.length !== playerCodes.length) {
       throw new BadRequestException({
@@ -500,9 +595,11 @@ export class TournamentsService {
       });
     }
 
-    const userIds = players.map(
-      (player) => player.userId,
-    );
+    const userIds =
+      players.map(
+        (player) =>
+          player.userId,
+      );
 
     if (!userIds.includes(userId)) {
       throw new ForbiddenException({
@@ -519,14 +616,20 @@ export class TournamentsService {
     const leagueMemberships =
       await this.prisma.leagueMember.count({
         where: {
-          leagueId: tournament.leagueId,
+          leagueId:
+            tournament.leagueId,
+
           userId: {
-            in: userIds,
+            in:
+              userIds,
           },
         },
       });
 
-    if (leagueMemberships !== userIds.length) {
+    if (
+      leagueMemberships !==
+      userIds.length
+    ) {
       throw new ForbiddenException({
         success: false,
         data: null,
@@ -542,66 +645,225 @@ export class TournamentsService {
       await this.prisma.tournamentRegistrationMember.findMany({
         where: {
           tournamentId,
+
           userId: {
-            in: userIds,
+            in:
+              userIds,
           },
         },
+
         select: {
           userId: true,
         },
       });
 
-    if (existingMembers.length > 0) {
+    if (
+      existingMembers.length >
+      0
+    ) {
       throw new ConflictException({
         success: false,
         data: null,
         error: {
           code: 'PLAYER_ALREADY_REGISTERED',
           message:
-            'One or more players are already registered in this tournament.',
+            'One or more players already have an active registration in this Tournament.',
         },
       });
     }
 
-    const registration = await this.prisma.$transaction(
-      async (tx) => {
-        const created =
-          await tx.tournamentRegistration.create({
-            data: {
-              tournamentId,
-              registeredByUserId: userId,
-              entryName:
-                dto.entryName?.trim() ||
-                (tournament.mode === 'SOLO'
-                  ? players[0]?.identity?.inGameName ??
-                    players[0]?.user.fullName
-                  : null),
-              status: 'PENDING',
-            },
+    const autoApprove =
+      tournament.registrationMode ===
+      'OPEN';
+
+    const registration =
+      await this.prisma.$transaction(
+        async (tx) => {
+          if (autoApprove) {
+            const approvedCount =
+              await tx.tournamentRegistration.count({
+                where: {
+                  tournamentId,
+                  status:
+                    'APPROVED',
+                },
+              });
+
+            if (
+              approvedCount >=
+              tournament.maxEntries
+            ) {
+              throw new ConflictException({
+                success: false,
+                data: null,
+                error: {
+                  code:
+                    'TOURNAMENT_FULL',
+                  message:
+                    'The Tournament has reached its entry limit.',
+                },
+              });
+            }
+          }
+
+          const created =
+            await tx.tournamentRegistration.create({
+              data: {
+                tournamentId,
+
+                registeredByUserId:
+                  userId,
+
+                entryName:
+                  dto.entryName
+                    ?.trim() ||
+                  (
+                    isIndividualEntry
+                      ? currentPlayer
+                          .identity
+                          ?.inGameName ??
+                        currentPlayer
+                          .user
+                          .fullName
+                      : null
+                  ),
+
+                status:
+                  autoApprove
+                    ? 'APPROVED'
+                    : 'PENDING',
+              },
+            });
+
+          await tx.tournamentRegistrationMember.createMany({
+            data:
+              userIds.map(
+                (
+                  memberUserId,
+                ) => ({
+                  tournamentId,
+                  registrationId:
+                    created.id,
+                  userId:
+                    memberUserId,
+                }),
+              ),
           });
 
-        await tx.tournamentRegistrationMember.createMany({
-          data: userIds.map((memberUserId) => ({
-            tournamentId,
-            registrationId: created.id,
-            userId: memberUserId,
-          })),
-        });
-
-        return created;
-      },
-    );
+          return created;
+        },
+        {
+          isolationLevel:
+            'Serializable',
+        },
+      );
 
     return {
       success: true,
       data: {
         message:
-          'Tournament registration submitted for admin approval.',
+          autoApprove
+            ? 'Tournament registration approved automatically.'
+            : 'Tournament registration submitted for admin approval.',
         registration,
       },
       error: null,
     };
   }
+
+
+  async getMyRegistration(
+    userId: string,
+    tournamentId: string,
+  ) {
+    const tournament =
+      await this.prisma.tournament.findUnique({
+        where: {
+          id:
+            tournamentId,
+        },
+
+        select: {
+          leagueId:
+            true,
+        },
+      });
+
+    if (!tournament) {
+      throw this.tournamentNotFound();
+    }
+
+    await this.assertLeagueMember(
+      userId,
+      tournament.leagueId,
+    );
+
+    const registration =
+      await this.prisma.tournamentRegistration.findFirst({
+        where: {
+          tournamentId,
+
+          OR: [
+            {
+              registeredByUserId:
+                userId,
+            },
+            {
+              members: {
+                some: {
+                  userId,
+                },
+              },
+            },
+          ],
+        },
+
+        orderBy: {
+          createdAt:
+            'desc',
+        },
+
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id:
+                    true,
+                  fullName:
+                    true,
+
+                  player: {
+                    select: {
+                      playerCode:
+                        true,
+
+                      identity: {
+                        select: {
+                          inGameName:
+                            true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+    return {
+      success: true,
+
+      data: {
+        registration,
+      },
+
+      error: null,
+    };
+  }
+
 
   async getRegistrations(
     userId: string,

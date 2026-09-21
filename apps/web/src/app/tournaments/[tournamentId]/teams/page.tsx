@@ -5,31 +5,28 @@ import {
   useParams,
   useRouter,
 } from 'next/navigation';
-
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
 import {
   AppShell,
 } from '@/components/app/app-shell';
-
 import {
   BackHeader,
 } from '@/components/app/back-header';
-
 import {
   FcCrest,
   FcEmptyState,
   FcLoadingScreen,
   FcPanel,
+  FcStatusBadge,
 } from '@/components/fc/fc-ui';
-
 import {
   TournamentNavigation,
 } from '@/components/tournaments/tournament-navigation';
-
 import {
   authenticatedRequest,
   getCurrentUser,
@@ -42,14 +39,35 @@ interface Entry {
   entryName: string | null;
   entryLogoUrl: string | null;
   fixtureCount: number;
+  status: string;
 }
 
 
 interface Tournament {
   id: string;
   name: string;
+  status: string;
   maxEntries: number;
   isLeagueAdmin: boolean;
+}
+
+
+interface TournamentResponse {
+  success: true;
+  data: {
+    tournament: Tournament;
+  };
+  error: null;
+}
+
+
+interface EntriesResponse {
+  success: true;
+  data: {
+    maxEntries: number;
+    entries: Entry[];
+  };
+  error: null;
 }
 
 
@@ -58,8 +76,7 @@ export default function TournamentTeamsPage() {
     tournamentId,
   } =
     useParams<{
-      tournamentId:
-        string;
+      tournamentId: string;
     }>();
 
   const router =
@@ -89,6 +106,25 @@ export default function TournamentTeamsPage() {
       [],
     );
 
+  const [
+    editingId,
+    setEditingId,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  const [
+    editName,
+    setEditName,
+  ] =
+    useState('');
+
+  const [
+    editLogo,
+    setEditLogo,
+  ] =
+    useState('');
 
   const [
     busy,
@@ -111,14 +147,12 @@ export default function TournamentTeamsPage() {
 
   async function loadEntries() {
     const teams =
-      await authenticatedRequest<any>(
+      await authenticatedRequest<EntriesResponse>(
         `/tournaments/${tournamentId}/entries`,
       );
 
     setEntries(
-      teams
-        .data
-        .entries,
+      teams.data.entries,
     );
   }
 
@@ -134,11 +168,11 @@ export default function TournamentTeamsPage() {
           await Promise.all([
             getCurrentUser(),
 
-            authenticatedRequest<any>(
+            authenticatedRequest<TournamentResponse>(
               `/tournaments/${tournamentId}`,
             ),
 
-            authenticatedRequest<any>(
+            authenticatedRequest<EntriesResponse>(
               `/tournaments/${tournamentId}/entries`,
             ),
           ]);
@@ -170,23 +204,159 @@ export default function TournamentTeamsPage() {
   ]);
 
 
-  async function deleteTeam(
-    entry:
-      Entry,
+  const totalFixtures =
+    useMemo(
+      () =>
+        entries.reduce(
+          (
+            sum,
+            entry,
+          ) =>
+            sum +
+            entry.fixtureCount,
+          0,
+        ),
+      [
+        entries,
+      ],
+    );
+
+
+  const preActive =
+    tournament
+      ? [
+          'DRAFT',
+          'REGISTRATION_OPEN',
+          'REGISTRATION_CLOSED',
+        ].includes(
+          tournament.status,
+        )
+      : false;
+
+
+  const canManageEntries =
+    Boolean(
+      tournament
+        ?.isLeagueAdmin &&
+      preActive &&
+      totalFixtures ===
+        0,
+    );
+
+
+  function beginEdit(
+    entry: Entry,
+  ) {
+    setEditingId(
+      entry.id,
+    );
+
+    setEditName(
+      entry.entryName ??
+      '',
+    );
+
+    setEditLogo(
+      entry.entryLogoUrl ??
+      '',
+    );
+
+    setError(
+      '',
+    );
+
+    setMessage(
+      '',
+    );
+  }
+
+
+  async function saveEdit(
+    entryId: string,
   ) {
     if (
-      !tournament
-        ?.isLeagueAdmin
+      !canManageEntries
+    ) {
+      return;
+    }
+
+    if (
+      !editName.trim()
+    ) {
+      setError(
+        'Team name cannot be empty.',
+      );
+
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError(
+      '',
+    );
+
+    setMessage(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/tournaments/${tournamentId}/entries/${entryId}`,
+        {
+          method:
+            'PATCH',
+
+          body:
+            JSON.stringify({
+              entryName:
+                editName.trim(),
+
+              entryLogoUrl:
+                editLogo.trim(),
+            }),
+        },
+      );
+
+      setEditingId(
+        null,
+      );
+
+      setMessage(
+        'Team updated successfully.',
+      );
+
+      await loadEntries();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to update team.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
+  async function deleteTeam(
+    entry: Entry,
+  ) {
+    if (
+      !canManageEntries
     ) {
       return;
     }
 
     const confirmed =
       window.confirm(
-        entry.fixtureCount >
-        0
-          ? `Delete "${entry.entryName ?? 'this team'}"? It is already linked to ${entry.fixtureCount} fixture(s). The server will block unsafe removal when required.`
-          : `Delete "${entry.entryName ?? 'this team'}" from this Tournament?`,
+        `Delete "${entry.entryName ?? 'this team'}" from this Tournament? This cannot be undone.`,
       );
 
     if (
@@ -215,6 +385,15 @@ export default function TournamentTeamsPage() {
             'DELETE',
         },
       );
+
+      if (
+        editingId ===
+        entry.id
+      ) {
+        setEditingId(
+          null,
+        );
+      }
 
       setMessage(
         'Team deleted from Tournament.',
@@ -267,7 +446,20 @@ export default function TournamentTeamsPage() {
             tournament.name
           }
           title="Teams"
-          subtitle="Tournament entries only. Group assignment and fixture scheduling stay on their own dedicated screens."
+          subtitle="Approved Tournament participants. Admins can manage entries safely before fixtures are generated."
+          action={
+            <FcStatusBadge
+              label={
+                tournament.status
+              }
+              tone={
+                tournament.status ===
+                'ACTIVE'
+                  ? 'emerald'
+                  : 'amber'
+              }
+            />
+          }
         />
 
         <TournamentNavigation
@@ -279,27 +471,51 @@ export default function TournamentTeamsPage() {
 
         {tournament.isLeagueAdmin ? (
           <FcPanel className="p-4 sm:p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  Team Management
+                  Participant Management
                 </p>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Add, edit, import, reorder or delete Tournament teams.
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                  Add, edit or delete participants before fixtures are generated. Once fixtures exist, participant changes are locked to protect the schedule.
                 </p>
               </div>
 
-              <Link
-                href={
-                  `/tournaments/${tournamentId}/wizard/teams`
-                }
-                className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-sky-400 px-4 text-sm font-black text-[#031019]"
-              >
-                + Add / Manage Teams
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={
+                    `/tournaments/${tournamentId}/registration`
+                  }
+                  className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-white/10 px-4 text-sm font-black text-slate-400 transition hover:text-white"
+                >
+                  Registrations
+                </Link>
+
+                {canManageEntries ? (
+                  <Link
+                    href={
+                      `/tournaments/${tournamentId}/wizard/teams`
+                    }
+                    className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-sky-400 px-4 text-sm font-black text-[#031019]"
+                  >
+                    + Add / Manage Teams
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </FcPanel>
+        ) : null}
+
+
+        {tournament.isLeagueAdmin &&
+        !canManageEntries ? (
+          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4 text-sm leading-6 text-amber-300">
+            {totalFixtures >
+            0
+              ? 'Participant editing is locked because fixtures already exist. Reset/remove the generated fixtures before changing Tournament participants.'
+              : 'Participant editing is locked because this Tournament is already active or completed.'}
+          </div>
         ) : null}
 
 
@@ -343,59 +559,169 @@ export default function TournamentTeamsPage() {
                   }
                   className="p-5"
                 >
-                  <div className="flex items-center gap-4">
-                    <FcCrest
-                      name={
-                        entry.entryName ||
-                        'FC Team'
-                      }
-                      imageUrl={
-                        entry.entryLogoUrl
-                      }
-                    />
+                  {editingId ===
+                    entry.id &&
+                  canManageEntries ? (
+                    <div className="space-y-3">
+                      <label className="grid gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                          Team Name
+                        </span>
 
-                    <div className="min-w-0 flex-1">
-                      <h2 className="truncate font-black">
-                        {entry.entryName ||
-                          'Unnamed Team'}
-                      </h2>
+                        <input
+                          value={
+                            editName
+                          }
+                          onChange={
+                            (
+                              event,
+                            ) =>
+                              setEditName(
+                                event
+                                  .target
+                                  .value,
+                              )
+                          }
+                          className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                        />
+                      </label>
 
-                      <p className="mt-1 text-xs text-slate-600">
-                        {
-                          entry.fixtureCount
-                        }{' '}
-                        fixtures
-                      </p>
+                      <label className="grid gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                          Logo URL — optional
+                        </span>
+
+                        <input
+                          value={
+                            editLogo
+                          }
+                          onChange={
+                            (
+                              event,
+                            ) =>
+                              setEditLogo(
+                                event
+                                  .target
+                                  .value,
+                              )
+                          }
+                          placeholder="https://..."
+                          className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                        />
+                      </label>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={
+                            busy
+                          }
+                          onClick={() =>
+                            void saveEdit(
+                              entry.id,
+                            )
+                          }
+                          className="rounded-xl bg-emerald-400 px-4 py-2.5 text-xs font-black text-[#03150f] disabled:opacity-40"
+                        >
+                          {busy
+                            ? 'Saving...'
+                            : 'Save Changes'}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={
+                            busy
+                          }
+                          onClick={() =>
+                            setEditingId(
+                              null,
+                            )
+                          }
+                          className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-slate-400 disabled:opacity-40"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-4">
+                        <FcCrest
+                          name={
+                            entry.entryName ||
+                            'FC Team'
+                          }
+                          imageUrl={
+                            entry.entryLogoUrl
+                          }
+                        />
 
-                  {tournament.isLeagueAdmin ? (
-                    <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4">
-                      <Link
-                        href={
-                          `/tournaments/${tournamentId}/wizard/teams`
-                        }
-                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-white/10 px-3.5 text-xs font-semibold text-slate-500 transition hover:text-white"
-                      >
-                        Edit Team
-                      </Link>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h2 className="truncate font-black">
+                              {entry.entryName ||
+                                'Unnamed Team'}
+                            </h2>
 
-                      <button
-                        type="button"
-                        disabled={
-                          busy
-                        }
-                        onClick={() =>
-                          void deleteTeam(
-                            entry,
-                          )
-                        }
-                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-3.5 text-xs font-semibold text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
-                      >
-                        Delete Team
-                      </button>
-                    </div>
-                  ) : null}
+                            <FcStatusBadge
+                              label={
+                                entry.status
+                              }
+                              tone={
+                                entry.status ===
+                                'APPROVED'
+                                  ? 'emerald'
+                                  : 'amber'
+                              }
+                            />
+                          </div>
+
+                          <p className="mt-1 text-xs text-slate-600">
+                            {
+                              entry.fixtureCount
+                            }{' '}
+                            fixtures
+                          </p>
+                        </div>
+                      </div>
+
+                      {tournament.isLeagueAdmin &&
+                      canManageEntries ? (
+                        <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4">
+                          <button
+                            type="button"
+                            disabled={
+                              busy
+                            }
+                            onClick={() =>
+                              beginEdit(
+                                entry,
+                              )
+                            }
+                            className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-white/10 px-3.5 text-xs font-semibold text-slate-500 transition hover:text-white disabled:opacity-40"
+                          >
+                            Edit Team
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={
+                              busy
+                            }
+                            onClick={() =>
+                              void deleteTeam(
+                                entry,
+                              )
+                            }
+                            className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-3.5 text-xs font-semibold text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                          >
+                            Delete Team
+                          </button>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
                 </FcPanel>
               ),
             )}

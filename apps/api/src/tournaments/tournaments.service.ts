@@ -824,6 +824,25 @@ export class TournamentsService {
         },
 
         include: {
+          registeredBy: {
+            select: {
+              id: true,
+              fullName: true,
+
+              player: {
+                select: {
+                  playerCode: true,
+
+                  identity: {
+                    select: {
+                      inGameName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+
           members: {
             include: {
               user: {
@@ -887,6 +906,18 @@ export class TournamentsService {
             select: {
               id: true,
               fullName: true,
+
+              player: {
+                select: {
+                  playerCode: true,
+
+                  identity: {
+                    select: {
+                      inGameName: true,
+                    },
+                  },
+                },
+              },
             },
           },
           members: {

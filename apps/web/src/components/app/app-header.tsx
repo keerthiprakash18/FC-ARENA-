@@ -12,6 +12,10 @@ import {
 } from 'react';
 
 import {
+  FcIcon,
+} from '@/components/fc/fc-icons';
+
+import {
   NotificationBell,
 } from './notification-bell';
 
@@ -201,14 +205,17 @@ export function AppHeader({
 
 
   return (
-    <header className="theme-top-header sticky top-0 z-30 border-b backdrop-blur-xl">
+    <header className="theme-top-header sticky top-0 z-30 border-b">
       <div className="mx-auto flex h-[68px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/dashboard"
           className="flex items-center gap-2 lg:hidden"
         >
-          <span className="theme-brand-mark grid h-9 w-9 place-items-center rounded-xl border">
-            ♛
+          <span className="theme-brand-mark grid h-9 w-9 place-items-center rounded-xl border" aria-hidden="true">
+            <FcIcon
+              name="football"
+              size={20}
+            />
           </span>
 
           <span className="fc-display text-lg font-semibold tracking-[-0.02em]">
@@ -219,8 +226,11 @@ export function AppHeader({
 
         <div className="relative hidden w-full max-w-[440px] lg:block">
           <label className="theme-search flex h-10 items-center gap-3 rounded-xl border px-3.5 shadow-[0_4px_14px_rgba(11,37,69,0.04)] transition">
-            <span className="theme-muted text-base">
-              ⌕
+            <span className="theme-muted" aria-hidden="true">
+              <FcIcon
+                name="search"
+                size={18}
+              />
             </span>
 
             <input
@@ -291,8 +301,11 @@ export function AppHeader({
                           }
                         </span>
 
-                        <span className="theme-muted">
-                          →
+                        <span className="theme-muted" aria-hidden="true">
+                          <FcIcon
+                            name="chevronRight"
+                            size={16}
+                          />
                         </span>
                       </button>
                     ),
@@ -335,8 +348,11 @@ export function AppHeader({
               </span>
             </span>
 
-            <span className="theme-muted hidden text-[10px] sm:block">
-              ▾
+            <span className="theme-muted hidden sm:block" aria-hidden="true">
+              <FcIcon
+                name="chevronDown"
+                size={15}
+              />
             </span>
           </Link>
         </div>

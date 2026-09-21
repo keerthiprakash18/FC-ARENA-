@@ -59,6 +59,11 @@ const publicPaths = [
   '/forgot-password',
   '/reset-password',
   '/verify-email',
+  '/about',
+  '/help',
+  '/privacy',
+  '/terms',
+  '/public',
 ] as const;
 
 

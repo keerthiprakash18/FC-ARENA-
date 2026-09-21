@@ -1,7 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import type {
+  ReactNode,
+} from 'react';
+
+import {
+  FcIcon,
+  iconNameFromLegacy,
+} from './fc-icons';
 
 export type FcTone =
   | 'cyan'
@@ -10,29 +17,66 @@ export type FcTone =
   | 'red'
   | 'slate';
 
-const toneClasses: Record<FcTone, string> = {
-  cyan:
-    'theme-tone-primary',
-  emerald:
-    'theme-tone-success',
-  amber:
-    'theme-tone-premium',
-  red:
-    'theme-tone-danger',
-  slate:
-    'theme-tone-neutral',
-};
+const toneClasses:
+  Record<FcTone, string> = {
+    cyan:
+      'theme-tone-primary',
+    emerald:
+      'theme-tone-success',
+    amber:
+      'theme-tone-premium',
+    red:
+      'theme-tone-danger',
+    slate:
+      'theme-tone-neutral',
+  };
+
+function renderIcon(
+  icon:
+    ReactNode,
+  fallback:
+    Parameters<
+      typeof FcIcon
+    >[0]['name'],
+) {
+  if (
+    typeof icon ===
+    'string' ||
+    icon ===
+    undefined ||
+    icon ===
+    null
+  ) {
+    return (
+      <FcIcon
+        name={
+          iconNameFromLegacy(
+            icon,
+            fallback,
+          )
+        }
+        size={20}
+      />
+    );
+  }
+
+  return icon;
+}
 
 export function FcPanel({
   children,
   className = '',
 }: {
-  children: ReactNode;
+  children:
+    ReactNode;
   className?: string;
 }) {
   return (
     <section
-      className={`theme-panel rounded-2xl border ${className}`}
+      className={
+        'theme-panel rounded-2xl border ' +
+        className
+      }
     >
       {children}
     </section>
@@ -59,7 +103,7 @@ export function FcPageHeader({
           </p>
         ) : null}
 
-        <h1 className="theme-text fc-display-strong mt-1 text-[28px] sm:text-[34px]">
+        <h1 className="theme-text fc-display-strong mt-1 text-[28px] leading-tight sm:text-[34px]">
           {title}
         </h1>
 
@@ -116,9 +160,15 @@ export function FcStatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium ${toneClasses[tone]}`}
+      className={
+        'inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-medium ' +
+        toneClasses[tone]
+      }
     >
-      {label.replaceAll('_', ' ')}
+      {label.replaceAll(
+        '_',
+        ' ',
+      )}
     </span>
   );
 }
@@ -136,13 +186,27 @@ export function FcStatCard({
   tone?: FcTone;
   icon?: ReactNode;
 }) {
-  const iconClass =
-    toneClasses[
-      tone
-    ];
+  const fallback =
+    /win/i.test(
+      label,
+    )
+      ? 'trophy'
+      : /goal/i.test(
+            label,
+          )
+        ? 'football'
+        : /match/i.test(
+              label,
+            )
+          ? 'fixtures'
+          : /rank|rate|stat/i.test(
+                label,
+              )
+            ? 'chart'
+            : 'activity';
 
   return (
-    <article className="theme-stat-card h-full min-h-[145px] rounded-2xl border p-4 transition duration-200 hover:-translate-y-0.5 sm:p-5">
+    <article className="theme-stat-card h-full min-h-[138px] rounded-2xl border p-5 transition duration-200">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="theme-secondary-text fc-display text-[13px] font-medium">
@@ -155,9 +219,16 @@ export function FcStatCard({
         </div>
 
         <span
-          className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border text-xl ${iconClass}`}
+          className={
+            'grid h-11 w-11 shrink-0 place-items-center rounded-xl border ' +
+            toneClasses[tone]
+          }
+          aria-hidden="true"
         >
-          {icon ?? '•'}
+          {renderIcon(
+            icon,
+            fallback,
+          )}
         </span>
       </div>
 
@@ -177,34 +248,59 @@ export function FcCrest({
 }: {
   name: string;
   imageUrl?: string | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?:
+    | 'sm'
+    | 'md'
+    | 'lg';
 }) {
   const sizeClass =
-    size === 'lg'
+    size ===
+    'lg'
       ? 'h-14 w-14 rounded-2xl text-base'
-      : size === 'sm'
+      : size ===
+          'sm'
         ? 'h-9 w-9 rounded-xl text-[10px]'
         : 'h-11 w-11 rounded-xl text-sm';
 
-  const initials = name
-    .split(/\s+/)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const initials =
+    name
+      .split(
+        /\s+/,
+      )
+      .map(
+        (
+          part,
+        ) =>
+          part[0],
+      )
+      .join('')
+      .slice(
+        0,
+        2,
+      )
+      .toUpperCase();
 
   return (
     <div
-      className={`theme-crest grid shrink-0 place-items-center overflow-hidden border font-semibold ${sizeClass}`}
+      className={
+        'theme-crest grid shrink-0 place-items-center overflow-hidden border font-semibold ' +
+        sizeClass
+      }
     >
       {imageUrl ? (
         <img
-          src={imageUrl}
-          alt=""
+          src={
+            imageUrl
+          }
+          alt={
+            name +
+            ' crest'
+          }
           className="h-full w-full object-cover"
         />
       ) : (
-        initials || 'FC'
+        initials ||
+        'FC'
       )}
     </div>
   );
@@ -215,16 +311,26 @@ export function FcEmptyState({
   description,
   actionLabel,
   actionHref,
+  icon = 'football',
 }: {
   title: string;
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  icon?:
+    Parameters<
+      typeof FcIcon
+    >[0]['name'];
 }) {
   return (
     <FcPanel className="border-dashed p-7 text-center sm:p-8">
-      <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
-        ⚽
+      <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border">
+        <FcIcon
+          name={
+            icon
+          }
+          size={22}
+        />
       </div>
 
       <h3 className="theme-text mt-4 text-lg font-semibold">
@@ -235,9 +341,12 @@ export function FcEmptyState({
         {description}
       </p>
 
-      {actionLabel && actionHref ? (
+      {actionLabel &&
+      actionHref ? (
         <Link
-          href={actionHref}
+          href={
+            actionHref
+          }
           className="theme-primary-button mt-5 inline-flex min-h-11 items-center rounded-[10px] px-4 text-sm font-semibold transition"
         >
           {actionLabel}
@@ -247,16 +356,96 @@ export function FcEmptyState({
   );
 }
 
+export function FcSkeleton({
+  className = '',
+}: {
+  className?: string;
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className={
+        'fc-skeleton rounded-xl ' +
+        className
+      }
+    />
+  );
+}
+
 export function FcLoadingScreen({
-  label = 'Loading FC ARENA...',
+  label =
+    'Loading FC ARENA...',
 }: {
   label?: string;
 }) {
   return (
-    <div className="theme-app-background theme-muted grid min-h-screen place-items-center text-sm font-medium">
-      <div className="flex items-center gap-3">
-        <span className="theme-primary-dot h-2 w-2 rounded-full" />
+    <div
+      className="theme-app-background min-h-screen p-4 sm:p-6 lg:p-8"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="sr-only">
         {label}
+      </span>
+
+      <div className="mx-auto w-full max-w-[1180px] space-y-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-3">
+            <FcSkeleton className="h-3 w-28" />
+            <FcSkeleton className="h-9 w-64 max-w-[72vw]" />
+          </div>
+
+          <FcSkeleton className="h-11 w-28" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[
+            0,
+            1,
+            2,
+            3,
+          ].map(
+            (
+              item,
+            ) => (
+              <div
+                key={
+                  item
+                }
+                className="theme-panel rounded-2xl border p-5"
+              >
+                <FcSkeleton className="h-3 w-20" />
+                <FcSkeleton className="mt-4 h-8 w-24" />
+                <FcSkeleton className="mt-4 h-3 w-full" />
+              </div>
+            ),
+          )}
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[
+            0,
+            1,
+          ].map(
+            (
+              item,
+            ) => (
+              <div
+                key={
+                  item
+                }
+                className="theme-panel rounded-2xl border p-5"
+              >
+                <FcSkeleton className="h-4 w-36" />
+                <FcSkeleton className="mt-5 h-28 w-full" />
+              </div>
+            ),
+          )}
+        </div>
+
+        <p className="theme-muted text-center text-xs">
+          {label}
+        </p>
       </div>
     </div>
   );
@@ -274,18 +463,34 @@ export function FcActionRow({
   icon: string;
   title: string;
   description: string;
-  badge?: string | number;
+  badge?:
+    | string
+    | number;
   tone?: FcTone;
 }) {
   return (
     <Link
-      href={href}
-      className="theme-action-row group flex items-center gap-4 rounded-2xl border p-4 transition duration-200"
+      href={
+        href
+      }
+      className="theme-action-row group flex min-h-[78px] items-center gap-4 rounded-2xl border p-4 transition duration-200"
     >
       <span
-        className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border text-base ${toneClasses[tone]}`}
+        className={
+          'grid h-10 w-10 shrink-0 place-items-center rounded-xl border ' +
+          toneClasses[tone]
+        }
+        aria-hidden="true"
       >
-        {icon}
+        <FcIcon
+          name={
+            iconNameFromLegacy(
+              icon,
+              'activity',
+            )
+          }
+          size={19}
+        />
       </span>
 
       <span className="min-w-0 flex-1">
@@ -298,26 +503,49 @@ export function FcActionRow({
         </span>
       </span>
 
-      {badge !== undefined ? (
-        <span className="theme-soft-accent rounded-full border px-2.5 py-1 text-[10px] font-semibold">
+      {badge !==
+      undefined ? (
+        <span className="theme-soft-accent rounded-lg border px-2.5 py-1 text-[11px] font-semibold">
           {badge}
         </span>
       ) : null}
 
-      <span className="theme-action-chevron transition group-hover:translate-x-0.5">
-        ›
+      <span
+        className="theme-action-chevron"
+        aria-hidden="true"
+      >
+        <FcIcon
+          name="chevronRight"
+          size={17}
+        />
       </span>
     </Link>
   );
 }
 
-export function competitionLabel(value: string | null | undefined) {
-  if (!value) return 'Tournament';
+export function competitionLabel(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  if (!value) {
+    return 'Tournament';
+  }
 
   return value
-    .replaceAll('_', ' ')
+    .replaceAll(
+      '_',
+      ' ',
+    )
     .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    .replace(
+      /\b\w/g,
+      (
+        letter,
+      ) =>
+        letter.toUpperCase(),
+    );
 }
 
 export function FcErrorState({
@@ -326,14 +554,20 @@ export function FcErrorState({
   message: string;
 }) {
   return (
-    <div className="theme-error-box rounded-2xl border p-4 text-sm">
+    <div
+      className="theme-error-box rounded-2xl border p-4 text-sm"
+      role="alert"
+    >
       {message}
     </div>
   );
 }
 
 export function FcMenuRow(
-  props: Parameters<typeof FcActionRow>[0],
+  props:
+    Parameters<
+      typeof FcActionRow
+    >[0],
 ) {
   return (
     <FcActionRow
@@ -346,10 +580,14 @@ export function FcConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
-  destructive = false,
-  busy = false,
+  confirmLabel =
+    'Confirm',
+  cancelLabel =
+    'Cancel',
+  destructive =
+    false,
+  busy =
+    false,
   onConfirm,
   onCancel,
 }: {
@@ -368,13 +606,17 @@ export function FcConfirmDialog({
   }
 
   return (
-    <div className="theme-dialog-overlay fixed inset-0 z-[80] grid place-items-center p-4 backdrop-blur-sm">
+    <div className="theme-dialog-overlay fixed inset-0 z-[80] grid place-items-center p-4">
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="fc-dialog-title"
         className="theme-dialog w-full max-w-md rounded-2xl border p-5"
       >
-        <h2 className="theme-text text-lg font-semibold">
+        <h2
+          id="fc-dialog-title"
+          className="theme-text text-lg font-semibold"
+        >
           {title}
         </h2>
 
@@ -385,22 +627,35 @@ export function FcConfirmDialog({
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
-            disabled={busy}
-            onClick={onCancel}
+            disabled={
+              busy
+            }
+            onClick={
+              onCancel
+            }
             className="theme-secondary-button min-h-11 rounded-[10px] border px-4 text-sm font-medium disabled:opacity-40"
           >
-            {cancelLabel}
+            {
+              cancelLabel
+            }
           </button>
 
           <button
             type="button"
-            disabled={busy}
-            onClick={onConfirm}
-            className={`min-h-11 rounded-[10px] px-4 text-sm font-semibold disabled:opacity-40 ${
-              destructive
-                ? 'theme-danger-button border'
-                : 'theme-primary-button'
-            }`}
+            disabled={
+              busy
+            }
+            onClick={
+              onConfirm
+            }
+            className={
+              'min-h-11 rounded-[10px] px-4 text-sm font-semibold disabled:opacity-40 ' +
+              (
+                destructive
+                  ? 'theme-danger-button border'
+                  : 'theme-primary-button'
+              )
+            }
           >
             {busy
               ? 'Working...'
@@ -411,7 +666,6 @@ export function FcConfirmDialog({
     </div>
   );
 }
-
 
 export function FcQuickActionTile({
   href,
@@ -426,20 +680,24 @@ export function FcQuickActionTile({
   description: string;
   tone?: FcTone;
 }) {
-  const accent =
-    toneClasses[
-      tone
-    ];
-
   return (
     <Link
-      href={href}
-      className="theme-action-row group flex min-h-24 items-center gap-4 rounded-2xl border p-4 transition duration-200 hover:-translate-y-0.5 sm:p-5"
+      href={
+        href
+      }
+      className="theme-action-row group flex min-h-24 items-center gap-4 rounded-2xl border p-4 transition duration-200 sm:p-5"
     >
       <span
-        className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl border text-lg ${accent}`}
+        className={
+          'grid h-11 w-11 shrink-0 place-items-center rounded-xl border ' +
+          toneClasses[tone]
+        }
+        aria-hidden="true"
       >
-        {icon}
+        {renderIcon(
+          icon,
+          'activity',
+        )}
       </span>
 
       <span className="min-w-0 flex-1">
@@ -452,8 +710,14 @@ export function FcQuickActionTile({
         </span>
       </span>
 
-      <span className="theme-action-chevron text-lg transition group-hover:translate-x-0.5">
-        →
+      <span
+        className="theme-action-chevron"
+        aria-hidden="true"
+      >
+        <FcIcon
+          name="chevronRight"
+          size={17}
+        />
       </span>
     </Link>
   );

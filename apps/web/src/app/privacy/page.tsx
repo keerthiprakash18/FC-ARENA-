@@ -1,34 +1,59 @@
-'use client';
-
-import { FcPanel } from '@/components/fc/fc-ui';
-import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
+import {
+  PublicInfoCard,
+  PublicInfoPage,
+} from '@/components/fc/public-info-page';
 
 export default function PrivacyPage() {
   return (
-    <SecondaryFeaturePage
-      eyebrow="Account"
-      title="Privacy"
-      subtitle="How privacy-related information is currently handled in the FC ARENA app."
+    <PublicInfoPage
+      eyebrow="Legal"
+      title="Privacy Policy"
+      description="This page summarizes the data FC ARENA currently uses to provide account and competition features."
     >
-      <FcPanel className="p-5 sm:p-6">
-        <h2 className="text-lg font-black">
-          Player Data
-        </h2>
-
-        <p className="mt-3 text-sm leading-7 text-slate-500">
-          FC ARENA uses the existing authenticated profile, League membership, Tournament entry and Match records to provide competition features. This frontend refactor does not change how those records are stored or accessed.
+      <PublicInfoCard
+        title="Account & player data"
+        icon="profile"
+      >
+        <p>
+          FC ARENA uses authenticated account information and player identity data to provide sign-in, profiles and competition participation.
         </p>
-      </FcPanel>
+      </PublicInfoCard>
 
-      <FcPanel className="p-5 sm:p-6">
-        <h2 className="text-lg font-black">
-          Privacy Controls
-        </h2>
-
-        <p className="mt-3 text-sm leading-7 text-slate-500">
-          The current backend does not expose dedicated privacy-preference fields. No fake toggles are shown here. Profile data can be reviewed from the Profile screen.
+      <PublicInfoCard
+        title="Competition records"
+        icon="fixtures"
+      >
+        <p>
+          League memberships, Tournament entries, fixtures, standings, match results, career statistics, achievements and related admin actions are used to operate the competition features visible in the app.
         </p>
-      </FcPanel>
-    </SecondaryFeaturePage>
+      </PublicInfoCard>
+
+      <PublicInfoCard
+        title="Uploaded match evidence"
+        icon="document"
+      >
+        <p>
+          When a user submits screenshots or other evidence for result verification, FC ARENA may process that material through the existing OCR and result-verification workflow.
+        </p>
+      </PublicInfoCard>
+
+      <PublicInfoCard
+        title="Public Tournament visibility"
+        icon="shield"
+      >
+        <p>
+          A Tournament configured as public can expose the Tournament information provided by the public Tournament endpoint, such as fixtures, standings and competition participants. Private or League-only competitions are not made public by this page.
+        </p>
+      </PublicInfoCard>
+
+      <PublicInfoCard
+        title="Current privacy controls"
+        icon="settings"
+      >
+        <p>
+          The current backend does not expose a separate privacy-preferences panel or a self-service data deletion control. FC ARENA does not present non-functional privacy toggles.
+        </p>
+      </PublicInfoCard>
+    </PublicInfoPage>
   );
 }

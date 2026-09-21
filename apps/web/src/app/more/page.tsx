@@ -464,6 +464,14 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/terms"
+              icon="document"
+              title="Terms of Service"
+              description="Platform use, competition and account terms"
+              tone="slate"
+            />
+
+            <FcMenuRow
               href="/help"
               icon="?"
               title="Help"
@@ -488,7 +496,7 @@ export default function MorePage() {
             onClick={() =>
               void logout()
             }
-            className="mt-4 w-full rounded-[10px] border border-red-400/20 bg-red-400/[0.04] px-4 py-3 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-50"
+            className="theme-danger-button mt-4 min-h-11 w-full rounded-[10px] border px-4 text-sm font-semibold transition disabled:opacity-50"
           >
             {loggingOut
               ? 'Signing Out...'

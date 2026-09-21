@@ -1,0 +1,36 @@
+name: Web Build Gate
+
+on:
+  push:
+    branches:
+      - main
+      - "ui/**"
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/web-build-gate.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web
+        run: npm run build:web

@@ -1386,8 +1386,12 @@ export class TournamentFixtureWizardService {
       string,
   ) {
     if (
-      status !==
-      'DRAFT'
+      ![
+        'DRAFT',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        status,
+      )
     ) {
       throw new ConflictException({
         success: false,
@@ -1398,7 +1402,7 @@ export class TournamentFixtureWizardService {
             'TOURNAMENT_WIZARD_LOCKED',
 
           message:
-            'Tournament wizard fixtures can only be changed while the Tournament is Draft.',
+            'Close Tournament registration before configuring fixtures.',
         },
       });
     }

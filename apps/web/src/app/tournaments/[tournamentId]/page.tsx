@@ -531,6 +531,14 @@ export default function TournamentOverviewPage() {
 
                 <Link
                   href={
+                    `/tournaments/${tournamentId}/poster`
+                  }
+                  className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] px-5 py-3 text-sm font-black text-amber-300"
+                >
+                  Auto Poster
+                </Link>
+                <Link
+                  href={
                     `/tournaments/${tournamentId}/teams`
                   }
                   className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-slate-300"

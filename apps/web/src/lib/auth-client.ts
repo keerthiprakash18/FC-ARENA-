@@ -32,6 +32,21 @@ let accessTokenExpiresAt = 0;
 let refreshPromise:
   Promise<string> | null = null;
 
+
+export function establishLoginSession(
+  token: string,
+  expiresInSeconds: number,
+): void {
+  accessToken = token;
+
+  accessTokenExpiresAt =
+    Date.now() +
+    expiresInSeconds *
+      1000;
+
+  refreshPromise = null;
+}
+
 export async function refreshAccessToken(
   force = false,
 ): Promise<string> {

@@ -34,14 +34,20 @@ export default function LoginPage() {
 
     const form = new FormData(event.currentTarget);
 
-    const email =
+    const identifier =
       String(
         form.get(
-          'email',
+          'identifier',
         ) ?? '',
       )
-        .trim()
-        .toLowerCase();
+        .normalize(
+          'NFKC',
+        )
+        .replace(
+          /[\u200B-\u200D\uFEFF]/g,
+          '',
+        )
+        .trim();
 
     try {
       const response =
@@ -64,7 +70,7 @@ export default function LoginPage() {
               'POST',
             body:
               JSON.stringify({
-                email,
+                identifier,
                 password:
                   String(
                     form.get(
@@ -113,21 +119,25 @@ export default function LoginPage() {
     <AuthCard
       eyebrow="PLAYER ACCESS"
       title="Welcome back"
-      description="Sign in to continue your FC ARENA career."
+      description="Sign in with your email or In-Game Name to continue your FC ARENA career."
     >
       <form className="auth-form" onSubmit={submit}>
         <div className="field">
-          <label>Email</label>
+          <label>Email or Game Name</label>
           <input
-            name="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
+            name="identifier"
+            type="text"
+            inputMode="text"
+            autoComplete="username"
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
+            placeholder="you@example.com or your IGN"
             required
           />
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            Use either your registered email address or the In-Game Name saved in your FC ARENA profile.
+          </p>
         </div>
 
         <div className="field">

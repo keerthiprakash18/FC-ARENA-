@@ -117,7 +117,7 @@ export class AuthController {
         isProduction
           ? 'none'
           : 'lax',
-      path: '/',
+      path: '/api/auth',
     });
 
     return result;
@@ -159,7 +159,7 @@ export class AuthController {
         isProduction
           ? 'none'
           : 'lax',
-      path: '/',
+      path: '/api/auth',
       maxAge: REFRESH_COOKIE_MAX_AGE,
     });
   }

@@ -33,7 +33,7 @@ describe(
     );
 
     it(
-      'sets the production refresh cookie as first-party compatible Lax',
+      'sets the production refresh cookie for cross-browser secure sessions',
       async () => {
         const authService = {
           login:
@@ -99,7 +99,7 @@ describe(
               true,
 
             sameSite:
-              'lax',
+              'none',
 
             path:
               '/api/auth',

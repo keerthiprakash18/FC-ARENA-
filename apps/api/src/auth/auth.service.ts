@@ -520,10 +520,11 @@ export class AuthService {
       throw this.invalidCredentials();
     }
 
-    const passwordValid = await bcrypt.compare(
-      dto.password,
-      user.passwordHash,
-    );
+    const passwordValid =
+      await this.passwordMatches(
+        dto.password,
+        user.passwordHash,
+      );
 
     if (!passwordValid) {
       throw this.invalidCredentials();
@@ -1132,6 +1133,38 @@ export class AuthService {
         : null,
     };
   }
+
+  private async passwordMatches(
+    submittedPassword: string,
+    storedHash: string,
+  ): Promise<boolean> {
+    if (
+      await bcrypt.compare(
+        submittedPassword,
+        storedHash,
+      )
+    ) {
+      return true;
+    }
+
+    const mobileNormalized =
+      submittedPassword
+        .normalize('NFKC')
+        .trim();
+
+    if (
+      mobileNormalized ===
+      submittedPassword
+    ) {
+      return false;
+    }
+
+    return bcrypt.compare(
+      mobileNormalized,
+      storedHash,
+    );
+  }
+
 
   private generateOtp(): string {
     return randomInt(100000, 1000000).toString();

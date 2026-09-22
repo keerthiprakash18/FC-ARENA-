@@ -190,7 +190,7 @@ function sendUpload<T>(
 
       xhr.onload = () => {
         let payload:
-          any = null;
+          unknown = null;
 
         try {
           payload =
@@ -214,9 +214,16 @@ function sendUpload<T>(
           return;
         }
 
+        const failure =
+          payload as {
+            error?: {
+              message?: string;
+            };
+          } | null;
+
         reject(
           new Error(
-            payload?.error
+            failure?.error
               ?.message ??
               'File upload failed.',
           ),

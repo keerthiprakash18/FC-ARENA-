@@ -102,7 +102,7 @@ describe(
               'none',
 
             path:
-              '/',
+              '/api/auth',
 
             maxAge:
               7 *

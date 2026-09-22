@@ -4,7 +4,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -83,22 +82,6 @@ export class AuthService {
     });
 
     if (existingUser) {
-      if (
-        existingUser.status ===
-        'PENDING_VERIFICATION'
-      ) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-          error: {
-            code:
-              'EMAIL_PENDING_VERIFICATION',
-            message:
-              'This email already has an unverified account. Verify the existing account or resend the OTP.',
-          },
-        });
-      }
-
       throw new ConflictException({
         success: false,
         data: null,
@@ -159,11 +142,6 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
-    const otp = this.generateOtp();
-    const otpHash = await bcrypt.hash(otp, 10);
-    const otpExpiresAt = new Date(
-      Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000,
-    );
 
     try {
       const result = await this.prisma.$transaction(async (tx) => {
@@ -173,6 +151,7 @@ export class AuthService {
             email,
             phoneNumber,
             passwordHash,
+            status: 'ACTIVE',
           },
         });
 
@@ -201,63 +180,17 @@ export class AuthService {
           },
         });
 
-        const createdOtp =
-          await tx.authOtp.create({
-            data: {
-              userId: user.id,
-              purpose: 'EMAIL_VERIFICATION',
-              codeHash: otpHash,
-              expiresAt: otpExpiresAt,
-            },
-
-            select: {
-              id: true,
-            },
-          });
-
         return {
           user,
           player: updatedPlayer,
-          otpId:
-            createdOtp.id,
         };
       });
-
-      try {
-        await this.mail.sendVerificationOtp(
-          result.user.email,
-          otp,
-        );
-      } catch {
-        await this.prisma.authOtp
-          .delete({
-            where: {
-              id:
-                result.otpId,
-            },
-          })
-          .catch(
-            () =>
-              undefined,
-          );
-
-        throw new ServiceUnavailableException({
-          success: false,
-          data: null,
-          error: {
-            code:
-              'EMAIL_PENDING_VERIFICATION',
-            message:
-              'Your account was created, but the verification email could not be delivered. Continue to email verification and use Resend OTP.',
-          },
-        });
-      }
 
       return {
         success: true,
         data: {
           message:
-            'Registration successful. A 6-digit verification OTP has been sent to your email.',
+            'Registration successful. Your account is ready to sign in.',
           user: {
             id: result.user.id,
             fullName: result.user.fullName,
@@ -267,9 +200,6 @@ export class AuthService {
           player: {
             playerCode: result.player.playerCode,
           },
-          ...(process.env.NODE_ENV === 'development'
-            ? { developmentOtp: otp }
-            : {}),
         },
         error: null,
       };
@@ -604,8 +534,8 @@ export class AuthService {
         success: false,
         data: null,
         error: {
-          code: 'EMAIL_NOT_VERIFIED',
-          message: 'Verify your account before logging in.',
+          code: 'ACCOUNT_NOT_ACTIVE',
+          message: 'This account is not active. Contact an administrator if you need help.',
         },
       });
     }

@@ -4,15 +4,24 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
-import { ApiError, apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 import {
   applyThemePreference,
   type ThemePreference,
 } from '@/lib/theme';
 
+function initialRegistrationNotice(): string {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return sessionStorage.getItem('fc_auth_registration_notice') ?? '';
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState(initialRegistrationNotice);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -69,38 +78,13 @@ export default function LoginPage() {
       router.push(
         '/dashboard',
       );
+      sessionStorage.removeItem(
+        'fc_auth_registration_notice',
+      );
+
+      setNotice('');
+
     } catch (err) {
-      if (
-        err instanceof
-          ApiError &&
-        err.code ===
-          'EMAIL_NOT_VERIFIED'
-      ) {
-        sessionStorage.setItem(
-          'fc_auth_email',
-          email,
-        );
-
-        sessionStorage.removeItem(
-          'fc_auth_dev_otp',
-        );
-
-        sessionStorage.removeItem(
-          'fc_auth_otp_sent_at',
-        );
-
-        sessionStorage.setItem(
-          'fc_auth_verification_notice',
-          'Your account is not verified yet. Enter the OTP or tap Resend OTP.',
-        );
-
-        router.push(
-          '/verify-email',
-        );
-
-        return;
-      }
-
       setError(
         err instanceof Error
           ? err.message
@@ -144,6 +128,12 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {notice ? (
+          <div className="success-box">
+            {notice}
+          </div>
+        ) : null}
 
         {error ? <div className="error-box">{error}</div> : null}
 

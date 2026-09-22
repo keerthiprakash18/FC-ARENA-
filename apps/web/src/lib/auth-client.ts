@@ -32,6 +32,21 @@ let accessTokenExpiresAt = 0;
 let refreshPromise:
   Promise<string> | null = null;
 
+
+export function establishLoginSession(
+  token: string,
+  expiresInSeconds: number,
+): void {
+  accessToken = token;
+
+  accessTokenExpiresAt =
+    Date.now() +
+    expiresInSeconds *
+      1000;
+
+  refreshPromise = null;
+}
+
 export async function refreshAccessToken(
   force = false,
 ): Promise<string> {
@@ -175,7 +190,7 @@ function sendUpload<T>(
 
       xhr.onload = () => {
         let payload:
-          any = null;
+          unknown = null;
 
         try {
           payload =
@@ -199,9 +214,16 @@ function sendUpload<T>(
           return;
         }
 
+        const failure =
+          payload as {
+            error?: {
+              message?: string;
+            };
+          } | null;
+
         reject(
           new Error(
-            payload?.error
+            failure?.error
               ?.message ??
               'File upload failed.',
           ),

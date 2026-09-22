@@ -7,6 +7,7 @@ import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
 import {
   establishLoginSession,
+  refreshAccessToken,
 } from '@/lib/auth-client';
 import {
   applyThemePreference,
@@ -81,12 +82,16 @@ export default function LoginPage() {
         response.data.expiresIn,
       );
 
+      await refreshAccessToken(
+        true,
+      );
+
       applyThemePreference(
         response.data.user
           .themePreference,
       );
 
-      router.push(
+      router.replace(
         '/dashboard',
       );
       sessionStorage.removeItem(
@@ -115,7 +120,16 @@ export default function LoginPage() {
       <form className="auth-form" onSubmit={submit}>
         <div className="field">
           <label>Email</label>
-          <input name="email" type="email" required />
+          <input
+            name="email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            required
+          />
         </div>
 
         <div className="field">
@@ -125,6 +139,9 @@ export default function LoginPage() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               required
               style={{ paddingRight: '5rem' }}
             />

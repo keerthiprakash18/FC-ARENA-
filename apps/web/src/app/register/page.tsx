@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
-import { ApiError, apiRequest } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 
 interface RegisterResponse {
   success: true;
   data: {
-    developmentOtp?: string;
+    message: string;
     player: {
       playerCode: string;
     };
@@ -49,64 +49,12 @@ export default function RegisterPage() {
       });
 
       sessionStorage.setItem(
-        'fc_auth_email',
-        payload.email,
+        'fc_auth_registration_notice',
+        result.data.message,
       );
 
-      sessionStorage.setItem(
-        'fc_auth_otp_sent_at',
-        String(
-          Date.now(),
-        ),
-      );
-
-      if (result.data.developmentOtp) {
-        sessionStorage.setItem(
-          'fc_auth_dev_otp',
-          result.data.developmentOtp,
-        );
-      }
-
-      router.push('/verify-email');
+      router.push('/login');
     } catch (err) {
-      if (
-        err instanceof
-          ApiError &&
-        [
-          'EMAIL_PENDING_VERIFICATION',
-          'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING',
-        ].includes(
-          err.code,
-        )
-      ) {
-        sessionStorage.setItem(
-          'fc_auth_email',
-          payload.email,
-        );
-
-        sessionStorage.removeItem(
-          'fc_auth_dev_otp',
-        );
-
-        sessionStorage.removeItem(
-          'fc_auth_otp_sent_at',
-        );
-
-        sessionStorage.setItem(
-          'fc_auth_verification_notice',
-          err.code ===
-            'EMAIL_DELIVERY_FAILED_ACCOUNT_PENDING'
-            ? 'Your account was created, but the first OTP email could not be delivered. Tap Resend OTP now.'
-            : 'This account is waiting for email verification. Enter the latest OTP or tap Resend OTP.',
-        );
-
-        router.push(
-          '/verify-email',
-        );
-
-        return;
-      }
-
       setError(
         err instanceof Error
           ? err.message

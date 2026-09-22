@@ -1,0 +1,29 @@
+name: Email or IGN Login Live Smoke
+
+on:
+  push:
+    branches:
+      - smoke/email-or-ign-login-live
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production auth accepts identifier
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          body_file="$(mktemp)"
+
+          status="$(curl --retry 6 --retry-delay 5 --retry-all-errors -sS -o "$body_file" -w '%{http_code}'             -X POST             -H 'Content-Type: application/json'             --data '{"identifier":"definitely-not-a-real-fc-arena-user","password":"WrongPassword123"}'             https://fcarena.in/api/auth/login)"
+
+          echo "POST /api/auth/login with identifier -> HTTP $status"
+          cat "$body_file"
+
+          if [ "$status" != "401" ]; then
+            echo "Expected the new backend to accept identifier and return INVALID_CREDENTIALS (401)."
+            exit 1
+          fi
+
+          grep -q 'INVALID_CREDENTIALS' "$body_file"

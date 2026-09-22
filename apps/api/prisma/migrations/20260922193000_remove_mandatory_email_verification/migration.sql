@@ -1,0 +1,6 @@
+ALTER TABLE "users"
+ALTER COLUMN "status" SET DEFAULT 'ACTIVE';
+
+UPDATE "users"
+SET "status" = 'ACTIVE'
+WHERE "status" = 'PENDING_VERIFICATION';

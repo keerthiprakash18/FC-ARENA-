@@ -33,48 +33,63 @@ describe(
           4,
         );
 
+      const storedUser = {
+        id:
+          'user-1',
+
+        fullName:
+          'Test Player',
+
+        email:
+          'player@example.com',
+
+        phoneNumber:
+          null,
+
+        passwordHash,
+
+        role:
+          'PLAYER',
+
+        status:
+          'ACTIVE',
+
+        player: {
+          playerCode:
+            'FCA-P-000001',
+
+          profileImageUrl:
+            null,
+
+          identity: {
+            inGameName:
+              'Tester',
+
+            gameUid:
+              null,
+
+            isVerified:
+              false,
+          },
+        },
+      };
+
       const prisma = {
         user: {
           findUnique:
             vi.fn()
+              .mockResolvedValue(
+                storedUser,
+              ),
+        },
+
+        playerIdentity: {
+          findUnique:
+            vi.fn()
               .mockResolvedValue({
-                id:
-                  'user-1',
-
-                fullName:
-                  'Test Player',
-
-                email:
-                  'player@example.com',
-
-                phoneNumber:
-                  null,
-
-                passwordHash,
-
-                role:
-                  'PLAYER',
-
-                status:
-                  'ACTIVE',
-
                 player: {
-                  playerCode:
-                    'FCA-P-000001',
-
-                  profileImageUrl:
-                    null,
-
-                  identity: {
-                    inGameName:
-                      'Tester',
-
-                    gameUid:
-                      null,
-
-                    isVerified:
-                      false,
-                  },
+                  user:
+                    storedUser,
                 },
               }),
         },
@@ -176,6 +191,82 @@ describe(
           result.success,
         ).toBe(
           true,
+        );
+      },
+    );
+
+
+    it(
+      'accepts a unique in-game name as the login identifier',
+      async () => {
+        const {
+          service,
+          prisma,
+        } =
+          await createService();
+
+        const result =
+          await service.login({
+            identifier:
+              '  TESTER  ',
+
+            password:
+              'Password123',
+          });
+
+        expect(
+          result.success,
+        ).toBe(
+          true,
+        );
+
+        expect(
+          prisma.playerIdentity.findUnique,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: {
+              inGameNameNormalized:
+                'tester',
+            },
+          }),
+        );
+      },
+    );
+
+
+    it(
+      'removes invisible mobile copy-paste characters from an email identifier',
+      async () => {
+        const {
+          service,
+          prisma,
+        } =
+          await createService();
+
+        const result =
+          await service.login({
+            identifier:
+              '\u200BPLAYER@EXAMPLE.COM\uFEFF',
+
+            password:
+              'Password123',
+          });
+
+        expect(
+          result.success,
+        ).toBe(
+          true,
+        );
+
+        expect(
+          prisma.user.findUnique,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: {
+              email:
+                'player@example.com',
+            },
+          }),
         );
       },
     );

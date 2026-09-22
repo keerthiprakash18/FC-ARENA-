@@ -503,18 +503,54 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const email = dto.email.trim().toLowerCase();
+    const identifier =
+      this.normalizeLoginIdentifier(
+        dto.identifier ??
+        dto.email ??
+        '',
+      );
 
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        player: {
-          include: {
-            identity: true,
-          },
+    if (!identifier) {
+      throw this.invalidCredentials();
+    }
+
+    const userInclude = {
+      player: {
+        include: {
+          identity: true,
         },
       },
-    });
+    } as const;
+
+    const user =
+      identifier.includes('@')
+        ? await this.prisma.user.findUnique({
+            where: {
+              email:
+                identifier.toLowerCase(),
+            },
+            include:
+              userInclude,
+          })
+        : (
+            await this.prisma.playerIdentity.findUnique({
+              where: {
+                inGameNameNormalized:
+                  identifier.toLowerCase(),
+              },
+              include: {
+                player: {
+                  include: {
+                    user: {
+                      include:
+                        userInclude,
+                    },
+                  },
+                },
+              },
+            })
+          )?.player.user ??
+          null;
 
     if (!user) {
       throw this.invalidCredentials();
@@ -1134,6 +1170,19 @@ export class AuthService {
     };
   }
 
+  private normalizeLoginIdentifier(
+    value: string,
+  ): string {
+    return value
+      .normalize('NFKC')
+      .replace(
+        /[\u200B-\u200D\uFEFF]/g,
+        '',
+      )
+      .trim();
+  }
+
+
   private async passwordMatches(
     submittedPassword: string,
     storedHash: string,
@@ -1206,7 +1255,7 @@ export class AuthService {
       data: null,
       error: {
         code: 'INVALID_CREDENTIALS',
-        message: 'Email or password is incorrect.',
+        message: 'Email, Game Name, or password is incorrect.',
       },
     });
   }

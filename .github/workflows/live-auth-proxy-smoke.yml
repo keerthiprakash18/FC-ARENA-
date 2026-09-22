@@ -1,0 +1,25 @@
+name: Live same-site auth proxy smoke
+
+on:
+  push:
+    branches:
+      - smoke/live-same-site-auth
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify live auth proxy and cookie forwarding
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          response="$(curl --retry 8 --retry-delay 2 --retry-all-errors -si -X POST https://fcarena.in/api/auth/logout)"
+
+          echo "$response"
+
+          echo "$response" | grep -q 'HTTP/2 200\|HTTP/1.1 200'
+          echo "$response" | grep -qi '^set-cookie: fc_arena_refresh_token='
+          echo "$response" | grep -qi 'path=/api/auth'
+          echo "$response" | grep -q '"success":true'

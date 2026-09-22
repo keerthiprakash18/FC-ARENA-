@@ -12,7 +12,7 @@ import {
 
 
 describe(
-  'AuthService registration OTP recovery',
+  'AuthService registration without mandatory email OTP',
   () => {
     beforeEach(
       () => {
@@ -26,22 +26,25 @@ describe(
 
 
     it(
-      'keeps a pending account when the first verification email fails',
+      'creates a new player account as active without sending a verification OTP',
       async () => {
+        const userCreate =
+          vi.fn()
+            .mockResolvedValue({
+              id:
+                'user-1',
+              fullName:
+                'Test Player',
+              email:
+                'player@example.com',
+              status:
+                'ACTIVE',
+            });
+
         const tx = {
           user: {
             create:
-              vi.fn()
-                .mockResolvedValue({
-                  id:
-                    'user-1',
-                  fullName:
-                    'Test Player',
-                  email:
-                    'player@example.com',
-                  status:
-                    'PENDING_VERIFICATION',
-                }),
+              userCreate,
           },
 
           player: {
@@ -72,23 +75,7 @@ describe(
                     'identity-1',
                 }),
           },
-
-          authOtp: {
-            create:
-              vi.fn()
-                .mockResolvedValue({
-                  id:
-                    'otp-1',
-                }),
-          },
         };
-
-        const userDelete =
-          vi.fn();
-
-        const otpDelete =
-          vi.fn()
-            .mockResolvedValue({});
 
         const prisma = {
           user: {
@@ -97,9 +84,6 @@ describe(
                 .mockResolvedValue(
                   null,
                 ),
-
-            delete:
-              userDelete,
           },
 
           playerIdentity: {
@@ -108,11 +92,6 @@ describe(
                 .mockResolvedValue(
                   null,
                 ),
-          },
-
-          authOtp: {
-            delete:
-              otpDelete,
           },
 
           $transaction:
@@ -133,12 +112,7 @@ describe(
 
         const mail = {
           sendVerificationOtp:
-            vi.fn()
-              .mockRejectedValue(
-                new Error(
-                  'provider unavailable',
-                ),
-              ),
+            vi.fn(),
         };
 
         const service =
@@ -148,8 +122,8 @@ describe(
             mail as never,
           );
 
-        await expect(
-          service.register({
+        const result =
+          await service.register({
             fullName:
               'Test Player',
             email:
@@ -160,28 +134,44 @@ describe(
               'password1',
             confirmPassword:
               'password1',
+          });
+
+        expect(
+          userCreate,
+        ).toHaveBeenCalledWith({
+          data: expect.objectContaining({
+            email:
+              'player@example.com',
+            status:
+              'ACTIVE',
           }),
-        ).rejects.toMatchObject({
-          response: {
-            error: {
-              code:
-                'EMAIL_PENDING_VERIFICATION',
+        });
+
+        expect(
+          mail.sendVerificationOtp,
+        ).not.toHaveBeenCalled();
+
+        expect(
+          result,
+        ).toMatchObject({
+          success:
+            true,
+
+          data: {
+            message:
+              'Registration successful. Your account is ready to sign in.',
+
+            user: {
+              status:
+                'ACTIVE',
+            },
+
+            player: {
+              playerCode:
+                'FCA-P-000001',
             },
           },
         });
-
-        expect(
-          otpDelete,
-        ).toHaveBeenCalledWith({
-          where: {
-            id:
-              'otp-1',
-          },
-        });
-
-        expect(
-          userDelete,
-        ).not.toHaveBeenCalled();
       },
     );
   },

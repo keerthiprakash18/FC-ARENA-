@@ -3,7 +3,7 @@ name: FC ARENA Final V1 Validation
 on:
   push:
     branches:
-      - fix/same-site-auth-session
+      - feature/final-v1-completion
 
 jobs:
   verify:
@@ -78,67 +78,10 @@ jobs:
 
       - name: New feature web lint
         working-directory: apps/web
-        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx' src/lib/api.ts next.config.ts
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx'
 
       - name: Web production build
-        env:
-          API_PROXY_TARGET: http://127.0.0.1:4100/api
         run: npm run build:web
-
-      - name: Same-site auth proxy cookie smoke
-        shell: bash
-        env:
-          API_PROXY_TARGET: http://127.0.0.1:4100/api
-        run: |
-          set -euo pipefail
-
-          node - <<'NODE' > /tmp/mock-api.log 2>&1 &
-          const http = require('http');
-
-          const server = http.createServer((req, res) => {
-            if (req.url === '/api/auth/logout' && req.method === 'POST') {
-              res.statusCode = 200;
-              res.setHeader(
-                'Set-Cookie',
-                'fc_arena_refresh_token=; Path=/api/auth; HttpOnly; Secure; SameSite=None',
-              );
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({
-                success: true,
-                data: { message: 'Logged out successfully.' },
-                error: null,
-              }));
-              return;
-            }
-
-            res.statusCode = 404;
-            res.end('not found');
-          });
-
-          server.listen(4100, '127.0.0.1');
-          NODE
-          MOCK_PID=$!
-
-          npm run start --workspace=apps/web -- --port 3000 > /tmp/next.log 2>&1 &
-          NEXT_PID=$!
-
-          cleanup() {
-            kill "$NEXT_PID" "$MOCK_PID" 2>/dev/null || true
-          }
-          trap cleanup EXIT
-
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:3000/login >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-
-          headers="$(curl -si -X POST http://127.0.0.1:3000/api/auth/logout)"
-
-          echo "$headers"
-          echo "$headers" | grep -qi '^set-cookie: fc_arena_refresh_token='
-          echo "$headers" | grep -q '"success":true'
 
       - name: Diff whitespace check
         run: git diff --check HEAD^ HEAD

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
@@ -23,7 +22,6 @@ function initialRegistrationNotice(): string {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(initialRegistrationNotice);
   const [loading, setLoading] = useState(false);
@@ -91,7 +89,7 @@ export default function LoginPage() {
           .themePreference,
       );
 
-      router.replace(
+      window.location.replace(
         '/dashboard',
       );
       sessionStorage.removeItem(

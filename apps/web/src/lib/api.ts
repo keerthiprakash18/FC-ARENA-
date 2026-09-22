@@ -1,6 +1,28 @@
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
+
+function resolveApiUrl(
+  path: string,
+): string {
+  const normalizedPath =
+    path.startsWith('/')
+      ? path
+      : `/${path}`;
+
+  if (
+    typeof window !==
+      'undefined' &&
+    normalizedPath.startsWith(
+      '/auth/',
+    )
+  ) {
+    return `/api${normalizedPath}`;
+  }
+
+  return `${API_URL}${normalizedPath}`;
+}
+
 export interface ApiFailure {
   success: false;
   data: null;
@@ -36,7 +58,7 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(resolveApiUrl(path), {
     ...options,
     credentials: 'include',
     headers: {

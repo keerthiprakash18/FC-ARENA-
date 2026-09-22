@@ -6,6 +6,9 @@ import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
 import {
+  establishLoginSession,
+} from '@/lib/auth-client';
+import {
   applyThemePreference,
   type ThemePreference,
 } from '@/lib/theme';
@@ -46,6 +49,9 @@ export default function LoginPage() {
         await apiRequest<{
           success: true;
           data: {
+            accessToken: string;
+            expiresIn: number;
+
             user: {
               themePreference:
                 ThemePreference;
@@ -69,6 +75,11 @@ export default function LoginPage() {
               }),
           },
         );
+
+      establishLoginSession(
+        response.data.accessToken,
+        response.data.expiresIn,
+      );
 
       applyThemePreference(
         response.data.user

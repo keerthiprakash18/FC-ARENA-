@@ -15,6 +15,10 @@ import {
 } from '@/components/app/app-shell';
 
 import {
+  InlineResultPanel,
+} from '@/components/fixtures/inline-result-panel';
+
+import {
   FcCrest,
   FcEmptyState,
   FcLoadingScreen,
@@ -386,6 +390,22 @@ export default function FixturesPage() {
     );
 
   const [
+    selectedTeam,
+    setSelectedTeam,
+  ] =
+    useState(
+      'ALL',
+    );
+
+  const [
+    expandedResultMatchId,
+    setExpandedResultMatchId,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  const [
     loading,
     setLoading,
   ] =
@@ -528,6 +548,14 @@ export default function FixturesPage() {
 
         setSelectedStage(
           'ALL',
+        );
+
+        setSelectedTeam(
+          'ALL',
+        );
+
+        setExpandedResultMatchId(
+          null,
         );
 
         const groups =
@@ -706,6 +734,44 @@ export default function FixturesPage() {
             );
         }
 
+        if (
+          selectedTeam !==
+          'ALL'
+        ) {
+          const normalizedTeam =
+            selectedTeam
+              .trim()
+              .toLocaleLowerCase();
+
+          values =
+            values.filter(
+              (
+                fixture,
+              ) => {
+                const home =
+                  entryName(
+                    fixture.home,
+                  )
+                    .trim()
+                    .toLocaleLowerCase();
+
+                const away =
+                  entryName(
+                    fixture.away,
+                  )
+                    .trim()
+                    .toLocaleLowerCase();
+
+                return (
+                  home ===
+                    normalizedTeam ||
+                  away ===
+                    normalizedTeam
+                );
+              },
+            );
+        }
+
         return [
           ...values,
         ].sort(
@@ -750,6 +816,7 @@ export default function FixturesPage() {
         selectedGroupId,
         selectedMatchday,
         selectedStage,
+        selectedTeam,
       ],
     );
 
@@ -839,6 +906,130 @@ export default function FixturesPage() {
         selectedTournamentId,
       ],
     );
+
+
+  const availableTeams =
+    useMemo(
+      () => {
+        const map =
+          new Map<
+            string,
+            string
+          >();
+
+        for (
+          const fixture
+          of fixtures
+        ) {
+          if (
+            selectedTournamentId !==
+              'ALL' &&
+            fixture.tournamentId !==
+              selectedTournamentId
+          ) {
+            continue;
+          }
+
+          for (
+            const entry
+            of [
+              fixture.home,
+              fixture.away,
+            ]
+          ) {
+            if (
+              !entry
+            ) {
+              continue;
+            }
+
+            const name =
+              entryName(
+                entry,
+              ).trim();
+
+            if (
+              !name ||
+              name ===
+                'TBD'
+            ) {
+              continue;
+            }
+
+            map.set(
+              name.toLocaleLowerCase(),
+              name,
+            );
+          }
+        }
+
+        return Array.from(
+          map.values(),
+        ).sort(
+          (
+            first,
+            second,
+          ) =>
+            first.localeCompare(
+              second,
+            ),
+        );
+      },
+      [
+        fixtures,
+        selectedTournamentId,
+      ],
+    );
+
+
+  async function refreshTournamentFixtures(
+    tournamentId: string,
+    tournamentName: string,
+  ) {
+    const response =
+      await authenticatedRequest<{
+        data: {
+          fixtures:
+            Fixture[];
+        };
+      }>(
+        `/tournaments/${tournamentId}/fixtures`,
+      );
+
+    setFixtures(
+      (
+        current,
+      ) => [
+        ...current.filter(
+          (
+            fixture,
+          ) =>
+            fixture.tournamentId !==
+            tournamentId,
+        ),
+
+        ...response.data.fixtures.map(
+          (
+            fixture,
+          ) => ({
+            ...fixture,
+
+            tournamentId,
+            tournamentName,
+
+            leagueId:
+              selectedLeagueId,
+
+            leagueName:
+              selectedMembership
+                ?.league
+                .name ||
+              'League',
+          }),
+        ),
+      ],
+    );
+  }
 
 
   const grouped =
@@ -1096,6 +1287,14 @@ export default function FixturesPage() {
                         setSelectedStage(
                           'ALL',
                         );
+
+                        setSelectedTeam(
+                          'ALL',
+                        );
+
+                        setExpandedResultMatchId(
+                          null,
+                        );
                       }
                     }
                     className="rounded-xl border border-white/10 bg-[#07101a] px-4 py-3 text-sm font-black outline-none"
@@ -1129,7 +1328,7 @@ export default function FixturesPage() {
 
 
             <FcPanel className="p-4">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <label className="grid gap-2">
                   <span className="text-xs font-medium text-[#A7B0BE]">
                     Group
@@ -1255,6 +1454,56 @@ export default function FixturesPage() {
                     <option value="KNOCKOUT">
                       Knockout
                     </option>
+                  </select>
+                </label>
+
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-medium text-[#A7B0BE]">
+                    Team
+                  </span>
+
+                  <select
+                    value={
+                      selectedTeam
+                    }
+                    onChange={
+                      (
+                        event,
+                      ) => {
+                        setSelectedTeam(
+                          event.target.value,
+                        );
+
+                        setExpandedResultMatchId(
+                          null,
+                        );
+                      }
+                    }
+                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                  >
+                    <option value="ALL">
+                      All Teams
+                    </option>
+
+                    {availableTeams.map(
+                      (
+                        team,
+                      ) => (
+                        <option
+                          key={
+                            team
+                          }
+                          value={
+                            team
+                          }
+                        >
+                          {
+                            team
+                          }
+                        </option>
+                      ),
+                    )}
                   </select>
                 </label>
               </div>
@@ -1435,12 +1684,6 @@ export default function FixturesPage() {
                                   ? `/matches/${fixture.match.id}`
                                   : `/tournaments/${fixture.tournamentId}/fixtures`;
 
-                              const resultHref =
-                                fixture.match
-                                  ?.id
-                                  ? `/matches/${fixture.match.id}#result-update`
-                                  : href;
-
                               const completed =
                                 fixtureFilter(
                                   fixture,
@@ -1560,9 +1803,22 @@ export default function FixturesPage() {
 
                                       {fixture.match
                                         ?.id ? (
-                                        <Link
-                                          href={
-                                            resultHref
+                                        <button
+                                          type="button"
+                                          onClick={
+                                            () =>
+                                              setExpandedResultMatchId(
+                                                (
+                                                  current,
+                                                ) =>
+                                                  current ===
+                                                  fixture.match
+                                                    ?.id
+                                                    ? null
+                                                    : fixture.match
+                                                        ?.id ??
+                                                      null,
+                                              )
                                           }
                                           className={`inline-flex min-h-10 items-center justify-center rounded-[10px] px-3.5 text-xs font-semibold transition ${
                                             completed
@@ -1570,10 +1826,14 @@ export default function FixturesPage() {
                                               : 'bg-[#38BDF8] text-[#071018] hover:bg-[#0EA5E9]'
                                           }`}
                                         >
-                                          {completed
-                                            ? 'View Result'
-                                            : 'Update Result / OCR'}
-                                        </Link>
+                                          {expandedResultMatchId ===
+                                          fixture.match
+                                            .id
+                                            ? 'Close Result'
+                                            : completed
+                                              ? 'View Result'
+                                              : 'Update Result'}
+                                        </button>
                                       ) : (
                                         <span className="inline-flex min-h-10 items-center rounded-[10px] border border-white/[0.06] px-3.5 text-xs font-medium text-[#536273]">
                                           Match not ready
@@ -1581,6 +1841,38 @@ export default function FixturesPage() {
                                       )}
                                     </div>
                                   </div>
+
+                                  {fixture.match
+                                    ?.id &&
+                                  expandedResultMatchId ===
+                                    fixture.match
+                                      .id ? (
+                                    <InlineResultPanel
+                                      matchId={
+                                        fixture.match
+                                          .id
+                                      }
+                                      homeName={
+                                        home
+                                      }
+                                      awayName={
+                                        away
+                                      }
+                                      completed={
+                                        completed
+                                      }
+                                      matchHref={
+                                        href
+                                      }
+                                      onSaved={
+                                        () =>
+                                          refreshTournamentFixtures(
+                                            fixture.tournamentId,
+                                            fixture.tournamentName,
+                                          )
+                                      }
+                                    />
+                                  ) : null}
                                 </article>
                               );
                             },

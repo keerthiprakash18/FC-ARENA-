@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
 import {
   establishLoginSession,
-  refreshAccessToken,
 } from '@/lib/auth-client';
 import {
   applyThemePreference,
@@ -22,6 +22,7 @@ function initialRegistrationNotice(): string {
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(initialRegistrationNotice);
   const [loading, setLoading] = useState(false);
@@ -86,16 +87,12 @@ export default function LoginPage() {
         response.data.expiresIn,
       );
 
-      await refreshAccessToken(
-        true,
-      );
-
       applyThemePreference(
         response.data.user
           .themePreference,
       );
 
-      window.location.replace(
+      router.replace(
         '/dashboard',
       );
       sessionStorage.removeItem(

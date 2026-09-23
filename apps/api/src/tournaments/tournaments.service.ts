@@ -313,6 +313,12 @@ export class TournamentsService {
         tournamentId,
       );
 
+    const canManageFixtures =
+      await this.authorizationService.canManageFixtures(
+        userId,
+        tournamentId,
+      );
+
     return {
       success: true,
       data: {
@@ -323,6 +329,7 @@ export class TournamentsService {
           isLeagueAdmin:
             canManageTournament,
           canManageTournament,
+          canManageFixtures,
           _count: undefined,
         },
       },

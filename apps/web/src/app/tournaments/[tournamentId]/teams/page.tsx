@@ -34,12 +34,49 @@ import {
 } from '@/lib/auth-client';
 
 
+interface EntryMember {
+  user: {
+    id: string;
+    fullName: string;
+
+    player: {
+      playerCode: string;
+
+      identity: {
+        inGameName: string;
+      } | null;
+    } | null;
+  };
+}
+
+
 interface Entry {
   id: string;
   entryName: string | null;
   entryLogoUrl: string | null;
   fixtureCount: number;
   status: string;
+  members: EntryMember[];
+}
+
+
+interface RoleAssignment {
+  id: string;
+  userId: string;
+  role: string;
+
+  user: {
+    id: string;
+    fullName: string;
+
+    player: {
+      playerCode: string;
+
+      identity: {
+        inGameName: string;
+      } | null;
+    } | null;
+  };
 }
 
 
@@ -107,6 +144,14 @@ export default function TournamentTeamsPage() {
     );
 
   const [
+    roleAssignments,
+    setRoleAssignments,
+  ] =
+    useState<RoleAssignment[]>(
+      [],
+    );
+
+  const [
     editingId,
     setEditingId,
   ] =
@@ -157,6 +202,27 @@ export default function TournamentTeamsPage() {
   }
 
 
+  async function loadMatchAdmins() {
+    const response =
+      await authenticatedRequest<{
+        success: true;
+
+        data: {
+          assignments:
+            RoleAssignment[];
+        };
+
+        error: null;
+      }>(
+        `/security/roles/TOURNAMENT/${tournamentId}`,
+      );
+
+    setRoleAssignments(
+      response.data.assignments,
+    );
+  }
+
+
   useEffect(() => {
     void (async () => {
       try {
@@ -192,6 +258,15 @@ export default function TournamentTeamsPage() {
             .data
             .entries,
         );
+
+        if (
+          competition
+            .data
+            .tournament
+            .isLeagueAdmin
+        ) {
+          await loadMatchAdmins();
+        }
       } catch {
         router.replace(
           `/tournaments/${tournamentId}`,
@@ -220,6 +295,164 @@ export default function TournamentTeamsPage() {
         entries,
       ],
     );
+
+
+  const matchAdminAssignments =
+    useMemo(
+      () =>
+        roleAssignments.filter(
+          (
+            assignment,
+          ) =>
+            assignment.role ===
+            'MATCH_OFFICIAL',
+        ),
+      [
+        roleAssignments,
+      ],
+    );
+
+
+  const currentMatchAdmin =
+    matchAdminAssignments[0] ??
+    null;
+
+
+  function matchAdminAssignmentFor(
+    userId: string,
+  ) {
+    return (
+      matchAdminAssignments.find(
+        (
+          assignment,
+        ) =>
+          assignment.userId ===
+          userId,
+      ) ??
+      null
+    );
+  }
+
+
+  async function assignMatchAdmin(
+    targetUserId: string,
+  ) {
+    if (
+      !tournament
+        ?.isLeagueAdmin
+    ) {
+      return;
+    }
+
+    if (
+      currentMatchAdmin &&
+      currentMatchAdmin.userId !==
+        targetUserId
+    ) {
+      setError(
+        'Only one Tournament Match Admin is enabled at a time. Remove the current Match Admin first.',
+      );
+
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError('');
+    setMessage('');
+
+    try {
+      await authenticatedRequest(
+        '/security/roles',
+        {
+          method:
+            'POST',
+
+          body:
+            JSON.stringify({
+              userId:
+                targetUserId,
+
+              role:
+                'MATCH_OFFICIAL',
+
+              scopeType:
+                'TOURNAMENT',
+
+              scopeId:
+                tournamentId,
+            }),
+        },
+      );
+
+      setMessage(
+        'Tournament Match Admin assigned. This player can now update fixtures and confirm match results for this Tournament.',
+      );
+
+      await loadMatchAdmins();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to assign Match Admin.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
+  async function removeMatchAdmin(
+    assignmentId: string,
+  ) {
+    if (
+      !tournament
+        ?.isLeagueAdmin
+    ) {
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+
+    setError('');
+    setMessage('');
+
+    try {
+      await authenticatedRequest(
+        `/security/roles/${assignmentId}`,
+        {
+          method:
+            'DELETE',
+        },
+      );
+
+      setMessage(
+        'Tournament Match Admin access removed.',
+      );
+
+      await loadMatchAdmins();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to remove Match Admin.',
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
 
 
   const preActive =
@@ -471,6 +704,59 @@ export default function TournamentTeamsPage() {
 
         {tournament.isLeagueAdmin ? (
           <FcPanel className="p-4 sm:p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-400">
+                  Tournament Match Admin
+                </p>
+
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                  Assign one linked Tournament player to update existing fixtures, use OCR and submit, confirm, correct or reverse Match results. This does not grant League Admin or Tournament settings access.
+                </p>
+              </div>
+
+              {currentMatchAdmin ? (
+                <div className="flex flex-col gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
+                      Active Match Admin
+                    </p>
+
+                    <p className="mt-1 text-sm font-black">
+                      {currentMatchAdmin.user.player
+                        ?.identity
+                        ?.inGameName ||
+                        currentMatchAdmin.user.fullName}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={
+                      busy
+                    }
+                    onClick={() =>
+                      void removeMatchAdmin(
+                        currentMatchAdmin.id,
+                      )
+                    }
+                    className="inline-flex min-h-9 items-center justify-center rounded-[9px] border border-red-400/25 px-3 text-xs font-semibold text-red-300 disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <span className="rounded-xl border border-white/10 px-4 py-3 text-xs font-semibold text-slate-500">
+                  Not assigned
+                </span>
+              )}
+            </div>
+          </FcPanel>
+        ) : null}
+
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="p-4 sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
@@ -685,6 +971,107 @@ export default function TournamentTeamsPage() {
                           </p>
                         </div>
                       </div>
+
+                      {tournament.isLeagueAdmin ? (
+                        <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
+                          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
+                            Match Admin Access
+                          </p>
+
+                          {entry.members.length >
+                          0 ? (
+                            entry.members.map(
+                              (
+                                member,
+                              ) => {
+                                const assignment =
+                                  matchAdminAssignmentFor(
+                                    member.user.id,
+                                  );
+
+                                const displayName =
+                                  member.user.player
+                                    ?.identity
+                                    ?.inGameName ||
+                                  member.user.fullName;
+
+                                return (
+                                  <div
+                                    key={
+                                      member.user.id
+                                    }
+                                    className="flex flex-col gap-2 rounded-xl border border-white/[0.07] bg-black/10 p-3 sm:flex-row sm:items-center sm:justify-between"
+                                  >
+                                    <div className="min-w-0">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <p className="truncate text-sm font-black">
+                                          {
+                                            displayName
+                                          }
+                                        </p>
+
+                                        {assignment ? (
+                                          <span className="rounded-full border border-emerald-400/25 bg-emerald-400/[0.07] px-2 py-1 text-[9px] font-black text-emerald-300">
+                                            MATCH ADMIN
+                                          </span>
+                                        ) : null}
+                                      </div>
+
+                                      <p className="mt-1 text-[10px] text-slate-600">
+                                        {member.user.player
+                                          ?.playerCode ||
+                                          member.user.fullName}
+                                      </p>
+                                    </div>
+
+                                    {assignment ? (
+                                      <button
+                                        type="button"
+                                        disabled={
+                                          busy
+                                        }
+                                        onClick={() =>
+                                          void removeMatchAdmin(
+                                            assignment.id,
+                                          )
+                                        }
+                                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-red-400/25 bg-red-400/[0.04] px-3.5 text-xs font-semibold text-red-300 disabled:opacity-40"
+                                      >
+                                        Remove Match Admin
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        disabled={
+                                          busy ||
+                                          Boolean(
+                                            currentMatchAdmin,
+                                          )
+                                        }
+                                        onClick={() =>
+                                          void assignMatchAdmin(
+                                            member.user.id,
+                                          )
+                                        }
+                                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] bg-sky-400 px-3.5 text-xs font-black text-[#031019] disabled:cursor-not-allowed disabled:opacity-40"
+                                      >
+                                        {currentMatchAdmin
+                                          ? 'Remove Current Admin First'
+                                          : 'Make Match Admin'}
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              },
+                            )
+                          ) : (
+                            <p className="rounded-xl border border-amber-400/15 bg-amber-400/[0.04] p-3 text-xs leading-5 text-amber-300">
+                              This team does not have a linked FC ARENA player account yet, so Match Admin access cannot be assigned from this entry.
+                            </p>
+                          )}
+                        </div>
+                      ) : null}
+
 
                       {tournament.isLeagueAdmin &&
                       canManageEntries ? (

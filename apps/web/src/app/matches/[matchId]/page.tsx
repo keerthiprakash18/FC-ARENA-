@@ -368,6 +368,9 @@ export default function MatchCenterPage() {
           isLeagueAdmin:
             boolean;
 
+          canVerifyResult:
+            boolean;
+
           confirmedResultSubmissionId:
             string | null;
 
@@ -390,6 +393,8 @@ export default function MatchCenterPage() {
     );
 
     setIsLeagueAdmin(
+      response.data
+        .canVerifyResult ||
       response.data
         .isLeagueAdmin,
     );

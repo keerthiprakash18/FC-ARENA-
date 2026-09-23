@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 
@@ -26,6 +27,8 @@ interface SideDelta extends Record<string, string | number> {
 export class ResultsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization:
+      AuthorizationService,
   ) {}
 
   async submitResult(
@@ -83,16 +86,11 @@ export class ResultsService {
       });
     }
 
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId:
-              match.tournament.leagueId,
-            userId,
-          },
-        },
-      });
+    const canVerifyResult =
+      await this.authorization.canVerifyResult(
+        userId,
+        matchId,
+      );
 
     const participantUserIds = [
       ...(match.fixture.homeRegistration
@@ -107,7 +105,7 @@ export class ResultsService {
     ];
 
     if (
-      !admin &&
+      !canVerifyResult &&
       !participantUserIds.includes(
         userId,
       )
@@ -120,7 +118,7 @@ export class ResultsService {
             'RESULT_SUBMISSION_FORBIDDEN',
 
           message:
-            'Only match participants or a League Admin may submit this result.',
+            'Only match participants or an authorized Tournament Match Admin may submit this result.',
         },
       });
     }
@@ -197,7 +195,7 @@ export class ResultsService {
       match.tournament.leagueId,
     );
 
-    const admin =
+    const leagueAdmin =
       await this.prisma.leagueAdmin.findUnique({
         where: {
           leagueId_userId: {
@@ -208,12 +206,18 @@ export class ResultsService {
         },
       });
 
+    const canVerifyResult =
+      await this.authorization.canVerifyResult(
+        userId,
+        matchId,
+      );
+
     const submissions =
       await this.prisma.resultSubmission.findMany({
         where: {
           matchId,
 
-          ...(admin
+          ...(canVerifyResult
             ? {}
             : {
                 OR: [
@@ -266,7 +270,9 @@ export class ResultsService {
       success: true,
       data: {
         isLeagueAdmin:
-          Boolean(admin),
+          Boolean(leagueAdmin),
+
+        canVerifyResult,
 
         confirmedResultSubmissionId:
           match.confirmedResultSubmissionId,
@@ -299,9 +305,9 @@ export class ResultsService {
       throw this.resultNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorization.assertCanVerifyResult(
       adminUserId,
-      initial.match.tournament.leagueId,
+      initial.match.id,
     );
 
     return this.prisma.$transaction(
@@ -735,9 +741,9 @@ export class ResultsService {
       throw this.resultNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorization.assertCanVerifyResult(
       adminUserId,
-      submission.match.tournament.leagueId,
+      submission.match.id,
     );
 
     if (
@@ -1310,35 +1316,6 @@ export class ResultsService {
 
           message:
             'You must be a member of this League.',
-        },
-      });
-    }
-  }
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required.',
         },
       });
     }

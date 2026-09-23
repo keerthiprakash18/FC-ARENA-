@@ -27,6 +27,7 @@ interface MatchResultsResponse {
 
   data: {
     isLeagueAdmin: boolean;
+    canVerifyResult: boolean;
 
     confirmedResultSubmissionId:
       string | null;
@@ -174,6 +175,8 @@ export function InlineResultPanel({
         null;
 
       setIsLeagueAdmin(
+        response.data
+          .canVerifyResult ||
         response.data
           .isLeagueAdmin,
       );

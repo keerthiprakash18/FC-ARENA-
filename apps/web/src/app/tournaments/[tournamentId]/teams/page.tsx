@@ -716,17 +716,34 @@ export default function TournamentTeamsPage() {
               </div>
 
               {currentMatchAdmin ? (
-                <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] px-4 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
-                    Active Match Admin
-                  </p>
+                <div className="flex flex-col gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
+                      Active Match Admin
+                    </p>
 
-                  <p className="mt-1 text-sm font-black">
-                    {currentMatchAdmin.user.player
-                      ?.identity
-                      ?.inGameName ||
-                      currentMatchAdmin.user.fullName}
-                  </p>
+                    <p className="mt-1 text-sm font-black">
+                      {currentMatchAdmin.user.player
+                        ?.identity
+                        ?.inGameName ||
+                        currentMatchAdmin.user.fullName}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={
+                      busy
+                    }
+                    onClick={() =>
+                      void removeMatchAdmin(
+                        currentMatchAdmin.id,
+                      )
+                    }
+                    className="inline-flex min-h-9 items-center justify-center rounded-[9px] border border-red-400/25 px-3 text-xs font-semibold text-red-300 disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
                 </div>
               ) : (
                 <span className="rounded-xl border border-white/10 px-4 py-3 text-xs font-semibold text-slate-500">

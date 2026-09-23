@@ -80,6 +80,17 @@ interface CareerData {
     winRate: number;
   };
 
+  tournamentHistory: Array<{
+    tournament: {
+      id: string;
+    };
+
+    registration: {
+      id: string;
+      entryName: string | null;
+    };
+  }>;
+
   matchHistory: Array<{
     id: string;
     outcome: 'W' | 'D' | 'L';
@@ -143,9 +154,11 @@ interface Tournament {
 
 
 interface FixtureEntry {
+  id: string;
   entryName: string | null;
 
   members: Array<{
+    id: string;
     fullName: string;
     inGameName: string | null;
   }>;
@@ -154,6 +167,8 @@ interface FixtureEntry {
 
 interface Fixture {
   id: string;
+  sequence: number;
+  matchday: number | null;
   roundName: string;
   status: string;
   scheduledAt: string | null;
@@ -226,32 +241,110 @@ function sortUpcoming(
   first: DashboardFixture,
   second: DashboardFixture,
 ) {
-  if (
-    !first.scheduledAt &&
-    !second.scheduledAt
-  ) {
-    return 0;
-  }
+  const now =
+    Date.now();
+
+  const firstTime =
+    first.scheduledAt
+      ? new Date(
+          first.scheduledAt,
+        ).getTime()
+      : null;
+
+  const secondTime =
+    second.scheduledAt
+      ? new Date(
+          second.scheduledAt,
+        ).getTime()
+      : null;
+
+  const firstFuture =
+    firstTime !== null &&
+    firstTime >= now;
+
+  const secondFuture =
+    secondTime !== null &&
+    secondTime >= now;
 
   if (
-    !first.scheduledAt
+    firstFuture &&
+    secondFuture
   ) {
+    return (
+      firstTime! -
+      secondTime!
+    );
+  }
+
+  if (firstFuture) {
+    return -1;
+  }
+
+  if (secondFuture) {
     return 1;
   }
 
   if (
-    !second.scheduledAt
+    firstTime === null &&
+    secondTime === null
+  ) {
+    return (
+      first.sequence -
+      second.sequence
+    );
+  }
+
+  if (
+    firstTime === null
   ) {
     return -1;
   }
 
+  if (
+    secondTime === null
+  ) {
+    return 1;
+  }
+
   return (
-    new Date(
-      first.scheduledAt,
-    ).getTime() -
-    new Date(
-      second.scheduledAt,
-    ).getTime()
+    first.sequence -
+    second.sequence
+  );
+}
+
+
+function fixtureBelongsToUser(
+  fixture: DashboardFixture,
+  userId: string,
+  registrationId:
+    string | null,
+) {
+  if (
+    registrationId &&
+    (
+      fixture.home?.id ===
+        registrationId ||
+      fixture.away?.id ===
+        registrationId
+    )
+  ) {
+    return true;
+  }
+
+  return [
+    ...(fixture.home
+      ?.members ??
+      []),
+
+    ...(fixture.away
+      ?.members ??
+      []),
+  ].some(
+    (
+      member,
+    ) =>
+      member.id ===
+      userId,
   );
 }
 
@@ -552,21 +645,71 @@ export default function DashboardPage() {
     );
 
 
-  const nextFixture =
+  const registrationIdsByTournament =
     useMemo(
       () =>
-        fixtures
+        new Map(
+          (
+            career
+              ?.tournamentHistory ??
+            []
+          ).map(
+            (
+              entry,
+            ) => [
+              entry.tournament
+                .id,
+
+              entry.registration
+                .id,
+            ],
+          ),
+        ),
+      [
+        career,
+      ],
+    );
+
+
+  const personalOpenFixtures =
+    useMemo(
+      () => {
+        if (!user) {
+          return [];
+        }
+
+        return fixtures
           .filter(
-            fixtureIsOpen,
+            (
+              fixture,
+            ) =>
+              fixtureIsOpen(
+                fixture,
+              ) &&
+              fixtureBelongsToUser(
+                fixture,
+                user.id,
+                registrationIdsByTournament.get(
+                  fixture.tournamentId,
+                ) ??
+                  null,
+              ),
           )
           .sort(
             sortUpcoming,
-          )[0] ??
-        null,
+          );
+      },
       [
         fixtures,
+        registrationIdsByTournament,
+        user,
       ],
     );
+
+
+  const nextFixture =
+    personalOpenFixtures[0] ??
+    null;
 
 
   const activeTournamentNextFixture =
@@ -579,26 +722,19 @@ export default function DashboardPage() {
         }
 
         return (
-          fixtures
-            .filter(
-              (
-                fixture,
-              ) =>
-                fixture.tournamentId ===
-                  activeTournament.id &&
-                fixtureIsOpen(
-                  fixture,
-                ),
-            )
-            .sort(
-              sortUpcoming,
-            )[0] ??
+          personalOpenFixtures.find(
+            (
+              fixture,
+            ) =>
+              fixture.tournamentId ===
+              activeTournament.id,
+          ) ??
           null
         );
       },
       [
         activeTournament,
-        fixtures,
+        personalOpenFixtures,
       ],
     );
 

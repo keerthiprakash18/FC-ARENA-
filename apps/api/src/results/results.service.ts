@@ -7,6 +7,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
+import {
+  deduplicateFixtureRecords,
+} from '../tournaments/fixture-deduplication.js';
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 
@@ -21,6 +24,18 @@ interface SideDelta extends Record<string, string | number> {
   goalDifference: number;
   points: number;
   outcome: Outcome;
+}
+
+interface CanonicalAggregate {
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  form: string;
 }
 
 @Injectable()
@@ -815,6 +830,14 @@ export class ResultsService {
           id:
             tournamentId,
         },
+
+        include: {
+          _count: {
+            select: {
+              groups: true,
+            },
+          },
+        },
       });
 
     if (!tournament) {
@@ -845,8 +868,6 @@ export class ResultsService {
         },
 
         include: {
-          standing: true,
-
           members: {
             include: {
               user: {
@@ -872,82 +893,144 @@ export class ResultsService {
         },
       });
 
+    const aggregates =
+      new Map<
+        string,
+        CanonicalAggregate
+      >();
+
+    for (
+      const registration
+      of registrations
+    ) {
+      aggregates.set(
+        registration.id,
+        this.emptyAggregate(),
+      );
+    }
+
+    const fixtures =
+      await this.getCanonicalConfirmedFixtures(
+        tournamentId,
+        tournament.competitionFormat,
+      );
+
+    for (
+      const fixture
+      of fixtures
+    ) {
+      if (
+        this.isKnockoutFixture(
+          tournament.format,
+          fixture.groupId,
+          tournament._count.groups,
+        )
+      ) {
+        continue;
+      }
+
+      const result =
+        fixture.match
+          ?.confirmedResult;
+
+      const homeId =
+        fixture.homeRegistrationId;
+
+      const awayId =
+        fixture.awayRegistrationId;
+
+      if (
+        !result ||
+        !homeId ||
+        !awayId
+      ) {
+        continue;
+      }
+
+      const homeAggregate =
+        aggregates.get(
+          homeId,
+        );
+
+      const awayAggregate =
+        aggregates.get(
+          awayId,
+        );
+
+      if (
+        !homeAggregate ||
+        !awayAggregate
+      ) {
+        continue;
+      }
+
+      this.applyAggregate(
+        homeAggregate,
+        this.calculateDelta(
+          result.homeScore,
+          result.awayScore,
+        ),
+      );
+
+      this.applyAggregate(
+        awayAggregate,
+        this.calculateDelta(
+          result.awayScore,
+          result.homeScore,
+        ),
+      );
+    }
+
     const rows =
       registrations.map(
-        (registration) => ({
-          registrationId:
-            registration.id,
+        (registration) => {
+          const aggregate =
+            aggregates.get(
+              registration.id,
+            ) ??
+            this.emptyAggregate();
 
-          entryName:
-            registration.entryName ||
-            registration.members
-              .map(
-                (member) =>
-                  member.user.player
-                    ?.identity
-                    ?.inGameName ||
-                  member.user.fullName,
-              )
-              .join(' + '),
+          return {
+            registrationId:
+              registration.id,
 
-          members:
-            registration.members.map(
-              (member) => ({
-                id:
-                  member.user.id,
+            entryName:
+              registration.entryName ||
+              registration.members
+                .map(
+                  (member) =>
+                    member.user.player
+                      ?.identity
+                      ?.inGameName ||
+                    member.user.fullName,
+                )
+                .join(' + '),
 
-                fullName:
-                  member.user.fullName,
+            members:
+              registration.members.map(
+                (member) => ({
+                  id:
+                    member.user.id,
 
-                playerCode:
-                  member.user.player
-                    ?.playerCode ??
-                  null,
+                  fullName:
+                    member.user.fullName,
 
-                inGameName:
-                  member.user.player
-                    ?.identity
-                    ?.inGameName ??
-                  null,
-              }),
-            ),
+                  playerCode:
+                    member.user.player
+                      ?.playerCode ??
+                    null,
 
-          played:
-            registration.standing
-              ?.played ?? 0,
+                  inGameName:
+                    member.user.player
+                      ?.identity
+                      ?.inGameName ??
+                    null,
+                }),
+              ),
 
-          wins:
-            registration.standing
-              ?.wins ?? 0,
-
-          draws:
-            registration.standing
-              ?.draws ?? 0,
-
-          losses:
-            registration.standing
-              ?.losses ?? 0,
-
-          goalsFor:
-            registration.standing
-              ?.goalsFor ?? 0,
-
-          goalsAgainst:
-            registration.standing
-              ?.goalsAgainst ?? 0,
-
-          goalDifference:
-            registration.standing
-              ?.goalDifference ?? 0,
-
-          points:
-            registration.standing
-              ?.points ?? 0,
-
-          form:
-            registration.standing
-              ?.form ?? '',
-        }),
+            ...aggregate,
+          };
+        },
       );
 
     rows.sort(
@@ -1023,24 +1106,215 @@ export class ResultsService {
       tournament.leagueId,
     );
 
-    const statistic =
-      await this.prisma.playerTournamentStatistic.findUnique({
+    const membership =
+      await this.prisma.tournamentRegistrationMember.findUnique({
         where: {
           tournamentId_userId: {
             tournamentId,
             userId,
           },
         },
+
+        select: {
+          registrationId: true,
+        },
       });
+
+    if (!membership) {
+      return {
+        success: true,
+        data: {
+          statistic: null,
+        },
+        error: null,
+      };
+    }
+
+    const aggregate =
+      this.emptyAggregate();
+
+    const fixtures =
+      await this.getCanonicalConfirmedFixtures(
+        tournamentId,
+        tournament.competitionFormat,
+      );
+
+    for (
+      const fixture
+      of fixtures
+    ) {
+      const result =
+        fixture.match
+          ?.confirmedResult;
+
+      if (!result) {
+        continue;
+      }
+
+      if (
+        fixture.homeRegistrationId ===
+        membership.registrationId
+      ) {
+        this.applyAggregate(
+          aggregate,
+          this.calculateDelta(
+            result.homeScore,
+            result.awayScore,
+          ),
+        );
+
+        continue;
+      }
+
+      if (
+        fixture.awayRegistrationId ===
+        membership.registrationId
+      ) {
+        this.applyAggregate(
+          aggregate,
+          this.calculateDelta(
+            result.awayScore,
+            result.homeScore,
+          ),
+        );
+      }
+    }
 
     return {
       success: true,
       data: {
-        statistic,
+        statistic: {
+          tournamentId,
+          userId,
+
+          matches:
+            aggregate.played,
+
+          wins:
+            aggregate.wins,
+
+          draws:
+            aggregate.draws,
+
+          losses:
+            aggregate.losses,
+
+          goalsFor:
+            aggregate.goalsFor,
+
+          goalsAgainst:
+            aggregate.goalsAgainst,
+
+          goalDifference:
+            aggregate.goalDifference,
+
+          form:
+            aggregate.form,
+        },
       },
       error: null,
     };
   }
+
+  private async getCanonicalConfirmedFixtures(
+    tournamentId: string,
+    competitionFormat: string,
+  ) {
+    const fixtures =
+      await this.prisma.fixture.findMany({
+        where: {
+          tournamentId,
+        },
+
+        orderBy: {
+          sequence:
+            'asc',
+        },
+
+        select: {
+          id: true,
+          groupId: true,
+          sequence: true,
+          homeRegistrationId: true,
+          awayRegistrationId: true,
+          status: true,
+
+          match: {
+            select: {
+              status: true,
+              confirmedResultSubmissionId:
+                true,
+
+              confirmedResult: {
+                select: {
+                  homeScore: true,
+                  awayScore: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    return deduplicateFixtureRecords(
+      fixtures,
+      competitionFormat,
+    ).filter(
+      (
+        fixture,
+      ) =>
+        Boolean(
+          fixture.match
+            ?.confirmedResultSubmissionId &&
+          fixture.match
+            ?.confirmedResult,
+        ),
+    );
+  }
+
+  private emptyAggregate():
+    CanonicalAggregate {
+    return {
+      played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      goalDifference: 0,
+      points: 0,
+      form: '',
+    };
+  }
+
+  private applyAggregate(
+    aggregate:
+      CanonicalAggregate,
+    delta:
+      SideDelta,
+  ) {
+    aggregate.played += 1;
+    aggregate.wins +=
+      delta.wins;
+    aggregate.draws +=
+      delta.draws;
+    aggregate.losses +=
+      delta.losses;
+    aggregate.goalsFor +=
+      delta.goalsFor;
+    aggregate.goalsAgainst +=
+      delta.goalsAgainst;
+    aggregate.goalDifference +=
+      delta.goalDifference;
+    aggregate.points +=
+      delta.points;
+    aggregate.form =
+      this.nextForm(
+        aggregate.form,
+        delta.outcome,
+      );
+  }
+
 
   private isKnockoutFixture(
     tournamentFormat: string,

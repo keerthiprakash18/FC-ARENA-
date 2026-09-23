@@ -86,6 +86,11 @@ export class ResultsService {
       });
     }
 
+    await this.assertPairNotAlreadyCompleted(
+      this.prisma,
+      match,
+    );
+
     const canVerifyResult =
       await this.authorization.canVerifyResult(
         userId,
@@ -401,6 +406,11 @@ export class ResultsService {
             },
           });
         }
+
+        await this.assertPairNotAlreadyCompleted(
+          tx,
+          submission.match,
+        );
 
         if (
           this.isKnockoutFixture(
@@ -1320,6 +1330,118 @@ export class ResultsService {
       });
     }
   }
+
+  private async assertPairNotAlreadyCompleted(
+    client: any,
+    match: any,
+  ) {
+    const fixture =
+      match.fixture;
+
+    const homeRegistrationId =
+      fixture?.homeRegistrationId;
+
+    const awayRegistrationId =
+      fixture?.awayRegistrationId;
+
+    if (
+      !fixture ||
+      !homeRegistrationId ||
+      !awayRegistrationId
+    ) {
+      return;
+    }
+
+    const competitionFormat =
+      match.tournament
+        ?.competitionFormat;
+
+    if (
+      competitionFormat ===
+      'CUSTOM_MANUAL'
+    ) {
+      return;
+    }
+
+    const directional =
+      competitionFormat ===
+      'DOUBLE_ROUND_ROBIN';
+
+    const duplicate =
+      await client.fixture.findFirst({
+        where: {
+          tournamentId:
+            match.tournamentId,
+
+          id: {
+            not:
+              fixture.id,
+          },
+
+          groupId:
+            fixture.groupId,
+
+          ...(directional
+            ? {
+                homeRegistrationId,
+                awayRegistrationId,
+              }
+            : {
+                OR: [
+                  {
+                    homeRegistrationId,
+                    awayRegistrationId,
+                  },
+                  {
+                    homeRegistrationId:
+                      awayRegistrationId,
+
+                    awayRegistrationId:
+                      homeRegistrationId,
+                  },
+                ],
+              }),
+
+          match: {
+            is: {
+              confirmedResultSubmissionId: {
+                not: null,
+              },
+            },
+          },
+        },
+
+        select: {
+          id: true,
+          fixtureCode: true,
+
+          match: {
+            select: {
+              id: true,
+              matchCode: true,
+            },
+          },
+        },
+      });
+
+    if (
+      duplicate
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'DUPLICATE_FIXTURE_ALREADY_COMPLETED',
+
+          message:
+            'This pairing already has a confirmed result. Duplicate fixture result submission is blocked.',
+        },
+      });
+    }
+  }
+
 
   private matchNotFound() {
     return new NotFoundException({

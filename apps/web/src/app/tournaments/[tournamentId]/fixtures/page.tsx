@@ -54,6 +54,7 @@ interface Tournament {
   matchDurationMinutes: number;
 
   isLeagueAdmin: boolean;
+  canManageFixtures: boolean;
 
   league: {
     id: string;
@@ -1046,7 +1047,7 @@ export default function TournamentFixturesPage() {
                                       fixture
                                     }
                                     isAdmin={
-                                      tournament.isLeagueAdmin
+                                      tournament.canManageFixtures
                                     }
                                     onChanged={
                                       loadFixtures

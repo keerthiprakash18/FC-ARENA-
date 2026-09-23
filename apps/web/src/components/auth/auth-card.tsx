@@ -6,6 +6,8 @@ import {
   FcIcon,
 } from '@/components/fc/fc-icons';
 
+import styles from './auth-experience.module.css';
+
 interface AuthCardProps {
   eyebrow: string;
   title: string;
@@ -20,99 +22,106 @@ export function AuthCard({
   children,
 }: AuthCardProps) {
   return (
-    <main className="auth-page auth-premium">
-      <section className="auth-brand-panel">
-        <div className="auth-brand-top">
+    <main className={styles.experience}>
+      <section
+        className={styles.visualPanel}
+        aria-label="FC ARENA football experience"
+      >
+        <div
+          className={styles.stadiumGlow}
+          aria-hidden="true"
+        />
+
+        <div
+          className={styles.stadiumGlowSecondary}
+          aria-hidden="true"
+        />
+
+        <div
+          className={styles.floodlightLeft}
+          aria-hidden="true"
+        />
+
+        <div
+          className={styles.floodlightRight}
+          aria-hidden="true"
+        />
+
+        <div
+          className={styles.fog}
+          aria-hidden="true"
+        />
+
+        <div className={styles.brandTop}>
           <div
-            className="brand-mark"
+            className={styles.logoBadge}
             aria-hidden="true"
           >
             <FcIcon
               name="football"
-              size={25}
+              size={27}
             />
           </div>
 
           <div>
-            <p className="auth-brand-name">
+            <p className={styles.brandName}>
               FC <span>ARENA</span>
             </p>
 
-            <p className="auth-brand-tagline">
+            <p className={styles.brandMini}>
               PLAY · COMPETE · BELONG
             </p>
           </div>
         </div>
 
-        <div className="auth-brand-content">
-          <p className="brand-kicker">
+        <div className={styles.hero}>
+          <p className={styles.kicker}>
             FOOTBALL COMPETITION PLATFORM
           </p>
 
-          <h1>
-            Build your
-            <span> football legacy.</span>
+          <h1 className={styles.headline}>
+            MORE THAN A GAME
           </h1>
 
-          <p className="brand-copy">
-            Compete, verify results, follow fixtures and build a permanent competitive history.
+          <p className={styles.subline}>
+            PLAY · COMPETE · BELONG
           </p>
 
-          <div
-            className="auth-feature-row"
-            aria-label="FC ARENA features"
-          >
-            <span>
-              Live competitions
-            </span>
-
-            <span>
-              Career tracking
-            </span>
-
-            <span>
-              Verified results
-            </span>
-          </div>
-        </div>
-
-        <div className="auth-brand-footer">
-          <span>
-            FC ARENA
-          </span>
-
-          <span className="auth-live-dot" />
-
-          <span>
-            More than a game
-          </span>
+          <p className={styles.supportCopy}>
+            Your competition. Your identity. Your arena.
+          </p>
         </div>
 
         <div
-          className="auth-pitch-lines"
+          className={styles.ball}
           aria-hidden="true"
-        />
+        >
+          <FcIcon
+            name="football"
+            size={38}
+          />
+        </div>
       </section>
 
-      <section className="auth-form-panel">
-        <div className="auth-card">
-          <p className="auth-eyebrow">
+      <section className={styles.formPanel}>
+        <div className={styles.card}>
+          <p className={styles.eyebrow}>
             {eyebrow}
           </p>
 
-          <h2>
+          <h2 className={styles.title}>
             {title}
           </h2>
 
-          <p className="auth-description">
+          <p className={styles.description}>
             {description}
           </p>
 
           {children}
 
-          <div className="auth-security-note">
+          <div className={styles.securityNote}>
             <span
-              className="auth-security-icon"
+              className={styles.securityIcon}
               aria-hidden="true"
             >
               <FcIcon

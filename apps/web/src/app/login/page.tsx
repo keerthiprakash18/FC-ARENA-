@@ -115,7 +115,7 @@ export default function LoginPage() {
   return (
     <AuthCard
       eyebrow="PLAYER ACCESS"
-      title="Welcome back"
+      title="WELCOME BACK"
       description="Sign in with your email or In-Game Name to continue your FC ARENA career."
     >
       <form className="auth-form" onSubmit={submit}>
@@ -174,8 +174,21 @@ export default function LoginPage() {
           className="primary-button"
           type="submit"
           disabled={loading}
+          aria-busy={loading}
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          <span className="login-button-content">
+            {loading ? (
+              <>
+                <span
+                  className="login-spinner"
+                  aria-hidden="true"
+                />
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
+            )}
+          </span>
         </button>
       </form>
 

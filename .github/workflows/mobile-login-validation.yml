@@ -1,0 +1,83 @@
+name: Mobile Login Validation
+
+on:
+  push:
+    branches:
+      - fix/mobile-login-session-stability
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fcarena?schema=public
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: mobile-login-ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: mobile-login-ci-refresh-secret-at-least-32-characters
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Prisma validate
+        working-directory: apps/api
+        run: npx prisma validate --schema=prisma/schema.prisma
+
+      - name: Migrate test database
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: API build
+        run: npm run build:api
+
+      - name: API unit tests
+        run: npm run test --workspace=apps/api
+
+      - name: API E2E tests
+        run: npm run test:e2e --workspace=apps/api
+
+      - name: Auth page lint
+        working-directory: apps/web
+        run: npx eslint src/app/login/page.tsx src/lib/api.ts src/lib/auth-client.ts
+
+      - name: Web build
+        run: npm run build:web
+
+      - name: Diff check
+        run: git diff --check HEAD^ HEAD

@@ -86,11 +86,6 @@ export class ResultsService {
       });
     }
 
-    await this.assertPairNotAlreadyCompleted(
-      this.prisma,
-      match,
-    );
-
     const canVerifyResult =
       await this.authorization.canVerifyResult(
         userId,
@@ -127,6 +122,11 @@ export class ResultsService {
         },
       });
     }
+
+    await this.assertPairNotAlreadyCompleted(
+      this.prisma,
+      match,
+    );
 
     const existingPending =
       await this.prisma.resultSubmission.findFirst({

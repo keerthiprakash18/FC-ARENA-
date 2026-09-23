@@ -1,11 +1,11 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 
@@ -26,6 +26,8 @@ interface SideDelta {
 export class ResultCorrectionService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization:
+      AuthorizationService,
   ) {}
 
   async correctResult(
@@ -55,9 +57,9 @@ export class ResultCorrectionService {
       throw this.matchNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorization.assertCanVerifyResult(
       adminUserId,
-      initialMatch.tournament.leagueId,
+      matchId,
     );
 
     return this.prisma.$transaction(
@@ -493,9 +495,9 @@ export class ResultCorrectionService {
       throw this.matchNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorization.assertCanVerifyResult(
       adminUserId,
-      initialMatch.tournament.leagueId,
+      matchId,
     );
 
     return this.prisma.$transaction(
@@ -1323,35 +1325,6 @@ export class ResultCorrectionService {
   ) {
     return `${current}${outcome}`
       .slice(-5);
-  }
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required.',
-        },
-      });
-    }
   }
 
   private matchNotFound() {

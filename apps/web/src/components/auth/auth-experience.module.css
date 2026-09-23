@@ -525,3 +525,24 @@
     transform: none !important;
   }
 }
+
+
+.card :global(.login-button-content) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.card :global(.login-spinner) {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(3, 16, 25, .28);
+  border-top-color: #031019;
+  border-radius: 50%;
+  animation: loginSpin .7s linear infinite;
+}
+
+@keyframes loginSpin {
+  to { transform: rotate(360deg); }
+}

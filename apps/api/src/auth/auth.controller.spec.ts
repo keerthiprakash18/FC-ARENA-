@@ -33,7 +33,7 @@ describe(
     );
 
     it(
-      'sets the production refresh cookie for cross-browser secure sessions',
+      'sets the production refresh cookie for same-origin mobile-safe sessions',
       async () => {
         const authService = {
           login:
@@ -99,7 +99,7 @@ describe(
               true,
 
             sameSite:
-              'none',
+              'lax',
 
             path:
               '/api/auth',

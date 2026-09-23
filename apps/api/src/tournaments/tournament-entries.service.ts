@@ -26,6 +26,10 @@ import type {
   UpdateTournamentEntryDto,
 } from './dto/update-tournament-entry.dto.js';
 
+import {
+  deduplicateFixtureRecords,
+} from './fixture-deduplication.js';
+
 
 @Injectable()
 export class TournamentEntriesService {
@@ -50,6 +54,7 @@ export class TournamentEntriesService {
           leagueId: true,
           maxEntries: true,
           status: true,
+          competitionFormat: true,
         },
       });
 
@@ -117,14 +122,71 @@ export class TournamentEntriesService {
             },
           },
 
-          _count: {
+        },
+      });
+
+    const rawFixtures =
+      await this.prisma.fixture.findMany({
+        where: {
+          tournamentId,
+        },
+
+        select: {
+          id: true,
+          groupId: true,
+          sequence: true,
+          homeRegistrationId: true,
+          awayRegistrationId: true,
+          status: true,
+
+          match: {
             select: {
-              homeFixtures: true,
-              awayFixtures: true,
+              status: true,
+              confirmedResultSubmissionId:
+                true,
             },
           },
         },
       });
+
+    const canonicalFixtures =
+      deduplicateFixtureRecords(
+        rawFixtures,
+        tournament.competitionFormat,
+      );
+
+    const fixtureCounts =
+      new Map<string, number>();
+
+    for (
+      const fixture
+      of canonicalFixtures
+    ) {
+      for (
+        const registrationId
+        of [
+          fixture.homeRegistrationId,
+          fixture.awayRegistrationId,
+        ]
+      ) {
+        if (
+          !registrationId
+        ) {
+          continue;
+        }
+
+        fixtureCounts.set(
+          registrationId,
+          (
+            fixtureCounts.get(
+              registrationId,
+            ) ??
+            0
+          ) +
+            1,
+        );
+      }
+    }
 
     return {
       success: true,
@@ -139,11 +201,10 @@ export class TournamentEntriesService {
               ...entry,
 
               fixtureCount:
-                entry._count.homeFixtures +
-                entry._count.awayFixtures,
-
-              _count:
-                undefined,
+                fixtureCounts.get(
+                  entry.id,
+                ) ??
+                0,
             }),
           ),
       },

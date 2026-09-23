@@ -15,6 +15,9 @@ import {
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
 import type { FixtureBlueprint } from './fixture-engine.js';
+import {
+  deduplicateFixtureRecords,
+} from './fixture-deduplication.js';
 
 @Injectable()
 export class FixturesService {
@@ -244,6 +247,7 @@ export class FixturesService {
           id: true,
           leagueId: true,
           format: true,
+          competitionFormat: true,
         },
       });
 
@@ -343,13 +347,19 @@ export class FixturesService {
         },
       });
 
+    const canonicalFixtures =
+      deduplicateFixtureRecords(
+        fixtures,
+        tournament.competitionFormat,
+      );
+
     return {
       success: true,
       data: {
         format: tournament.format,
 
         fixtures:
-          fixtures.map(
+          canonicalFixtures.map(
             (fixture) =>
               this.mapFixture(
                 fixture,

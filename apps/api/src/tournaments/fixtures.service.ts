@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import {
@@ -19,6 +20,8 @@ import type { FixtureBlueprint } from './fixture-engine.js';
 export class FixturesService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization:
+      AuthorizationService,
   ) {}
 
   async generateFixtures(
@@ -454,9 +457,9 @@ export class FixturesService {
       throw this.fixtureNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorization.assertCanManageFixtures(
       userId,
-      fixture.tournament.leagueId,
+      fixture.tournamentId,
     );
 
     if (
@@ -761,7 +764,7 @@ export class FixturesService {
     fixtureId: string,
   ) {
     const fixture =
-      await this.getFixtureForAdmin(
+      await this.getFixtureForManager(
         userId,
         fixtureId,
       );
@@ -825,7 +828,7 @@ export class FixturesService {
     fixtureId: string,
   ) {
     const fixture =
-      await this.getFixtureForAdmin(
+      await this.getFixtureForManager(
         userId,
         fixtureId,
       );
@@ -883,7 +886,7 @@ export class FixturesService {
     };
   }
 
-  private async getFixtureForAdmin(
+  private async getFixtureForManager(
     userId: string,
     fixtureId: string,
   ) {
@@ -901,9 +904,9 @@ export class FixturesService {
       throw this.fixtureNotFound();
     }
 
-    await this.assertLeagueAdmin(
+    await this.authorization.assertCanManageFixtures(
       userId,
-      fixture.tournament.leagueId,
+      fixture.tournamentId,
     );
 
     return fixture;

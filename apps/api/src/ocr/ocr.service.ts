@@ -25,6 +25,7 @@ import {
 } from 'node:crypto';
 import sharp, { type Metadata } from 'sharp';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 import type { SubmitResultDto } from '../results/dto/submit-result.dto.js';
 import {
   OCR_JOB_PROCESS_MATCH_RESULT,
@@ -42,6 +43,9 @@ export class OcrService {
   constructor(
     private readonly prisma:
       PrismaService,
+
+    private readonly authorization:
+      AuthorizationService,
 
     @InjectQueue(OCR_QUEUE)
     private readonly ocrQueue:
@@ -841,19 +845,15 @@ export class OcrService {
     userId: string,
     match: any,
   ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId:
-              match.tournament.leagueId,
+    const canVerifyResult =
+      await this.authorization.canVerifyResult(
+        userId,
+        match.id,
+      );
 
-            userId,
-          },
-        },
-      });
-
-    if (admin) {
+    if (
+      canVerifyResult
+    ) {
       return;
     }
 
@@ -887,7 +887,7 @@ export class OcrService {
             'OCR_UPLOAD_FORBIDDEN',
 
           message:
-            'Only Match participants or a League Admin may use OCR for this Match.',
+            'Only Match participants or an authorized Tournament Match Admin may use OCR for this Match.',
         },
       });
     }

@@ -61,40 +61,128 @@ export class ApiError extends Error {
 }
 
 
+export interface ApiRequestOptions
+  extends RequestInit {
+  timeoutMs?: number;
+}
+
+
 export async function apiRequest<T>(
   path: string,
-  options: RequestInit = {},
+  options:
+    ApiRequestOptions = {},
 ): Promise<T> {
-  const response = await fetch(resolveApiUrl(path), {
-    ...options,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers ?? {}),
-    },
-  });
+  const {
+    timeoutMs = 15_000,
+    signal:
+      externalSignal,
+    ...requestOptions
+  } =
+    options;
 
-  const payload =
-    await response
-      .json()
-      .catch(
-        () => null,
+  const controller =
+    new AbortController();
+
+  if (
+    externalSignal
+      ?.aborted
+  ) {
+    controller.abort();
+  } else {
+    externalSignal
+      ?.addEventListener(
+        'abort',
+        () =>
+          controller.abort(),
+        {
+          once: true,
+        },
       );
-
-  if (!response.ok) {
-    throw new ApiError({
-      code:
-        payload?.error?.code ??
-        'REQUEST_FAILED',
-      message:
-        payload?.error?.message ??
-        'Something went wrong. Please try again.',
-      status:
-        response.status,
-      details:
-        payload?.error?.details,
-    });
   }
 
-  return payload as T;
+  const timeout =
+    globalThis.setTimeout(
+      () =>
+        controller.abort(),
+      timeoutMs,
+    );
+
+  try {
+    const response =
+      await fetch(
+        resolveApiUrl(
+          path,
+        ),
+        {
+          ...requestOptions,
+          signal:
+            controller.signal,
+          credentials:
+            'include',
+          headers: {
+            'Content-Type':
+              'application/json',
+            ...(
+              requestOptions
+                .headers ??
+              {}
+            ),
+          },
+        },
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () => null,
+        );
+
+    if (
+      !response.ok
+    ) {
+      throw new ApiError({
+        code:
+          payload?.error
+            ?.code ??
+          'REQUEST_FAILED',
+        message:
+          payload?.error
+            ?.message ??
+          'Something went wrong. Please try again.',
+        status:
+          response.status,
+        details:
+          payload?.error
+            ?.details,
+      });
+    }
+
+    return payload as T;
+  } catch (
+    error
+  ) {
+    if (
+      (
+        error as {
+          name?: string;
+        }
+      )?.name ===
+      'AbortError'
+    ) {
+      throw new ApiError({
+        code:
+          'REQUEST_TIMEOUT',
+        message:
+          'The server is taking too long to respond. Please try again.',
+        status: 408,
+      });
+    }
+
+    throw error;
+  } finally {
+    globalThis.clearTimeout(
+      timeout,
+    );
+  }
 }

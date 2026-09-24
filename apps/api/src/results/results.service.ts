@@ -138,60 +138,145 @@ export class ResultsService {
       });
     }
 
-    await this.assertPairNotAlreadyCompleted(
-      this.prisma,
-      match,
-    );
+    try {
+      const submission =
+        await this.prisma.$transaction(
+          async (
+            tx,
+          ) => {
+            const currentMatch =
+              await tx.match.findUnique({
+                where: {
+                  id:
+                    matchId,
+                },
 
-    const existingPending =
-      await this.prisma.resultSubmission.findFirst({
-        where: {
-          matchId,
-          status:
-            'PENDING_VERIFICATION',
-        },
-        orderBy: {
-          createdAt:
-            'desc',
-        },
-      });
+                include: {
+                  tournament:
+                    true,
 
-    if (existingPending) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'RESULT_ALREADY_PENDING',
+                  fixture:
+                    true,
+                },
+              });
 
-          message:
-            'A result is already waiting for verification for this match. Review the shared pending result instead of creating a duplicate.',
-        },
-      });
-    }
+            if (
+              !currentMatch
+            ) {
+              throw this.matchNotFound();
+            }
 
-    const submission =
-      await this.prisma.resultSubmission.create({
+            if (
+              currentMatch
+                .confirmedResultSubmissionId
+            ) {
+              throw this.resultAlreadyRecorded();
+            }
+
+            if (
+              currentMatch.status !==
+                'UNSCHEDULED' &&
+              currentMatch.status !==
+                'SCHEDULED' &&
+              currentMatch.status !==
+                'LIVE'
+            ) {
+              throw new ConflictException({
+                success:
+                  false,
+                data:
+                  null,
+                error: {
+                  code:
+                    'MATCH_NOT_OPEN_FOR_RESULT',
+                  message:
+                    'Only unscheduled, scheduled or live matches can accept a result submission.',
+                },
+              });
+            }
+
+            await this.assertPairNotAlreadyCompleted(
+              tx,
+              currentMatch,
+            );
+
+            const existingPending =
+              await tx.resultSubmission.findFirst({
+                where: {
+                  matchId,
+                  status:
+                    'PENDING_VERIFICATION',
+                },
+                orderBy: {
+                  createdAt:
+                    'desc',
+                },
+              });
+
+            if (
+              existingPending
+            ) {
+              throw this.resultAlreadyPending();
+            }
+
+            return tx.resultSubmission.create({
+              data: {
+                matchId,
+                submittedByUserId:
+                  userId,
+                homeScore:
+                  dto.homeScore,
+                awayScore:
+                  dto.awayScore,
+              },
+            });
+          },
+          {
+            isolationLevel:
+              'Serializable',
+          },
+        );
+
+      return {
+        success: true,
         data: {
-          matchId,
-          submittedByUserId:
-            userId,
-          homeScore:
-            dto.homeScore,
-          awayScore:
-            dto.awayScore,
+          message:
+            'Result submitted and is waiting for verification.',
+          submission,
         },
-      });
+        error: null,
+      };
+    } catch (
+      error
+    ) {
+      if (
+        typeof error ===
+          'object' &&
+        error !==
+          null &&
+        'code' in
+          error &&
+        error.code ===
+          'P2034'
+      ) {
+        const existingPending =
+          await this.prisma.resultSubmission.findFirst({
+            where: {
+              matchId,
+              status:
+                'PENDING_VERIFICATION',
+            },
+          });
 
-    return {
-      success: true,
-      data: {
-        message:
-          'Result submitted and is waiting for verification.',
-        submission,
-      },
-      error: null,
-    };
+        if (
+          existingPending
+        ) {
+          throw this.resultAlreadyPending();
+        }
+      }
+
+      throw error;
+    }
   }
 
   async getMatchResults(
@@ -1807,6 +1892,21 @@ export class ResultsService {
       },
     });
   }
+
+  private resultAlreadyPending() {
+    return new ConflictException({
+      success: false,
+      data: null,
+      error: {
+        code:
+          'RESULT_ALREADY_PENDING',
+
+        message:
+          'A result is already waiting for verification for this match. Review the shared pending result instead of creating a duplicate.',
+      },
+    });
+  }
+
 
   private resultAlreadyRecorded() {
     return new ConflictException({

@@ -57,6 +57,7 @@ function fixturePriority(
 export function fixturePairKey(
   fixture: CanonicalFixtureLike,
   competitionFormat?: string | null,
+  legType?: string | null,
 ) {
   const home =
     fixture.homeRegistrationId;
@@ -98,7 +99,9 @@ export function fixturePairKey(
    */
   if (
     competitionFormat ===
-    'DOUBLE_ROUND_ROBIN'
+      'DOUBLE_ROUND_ROBIN' ||
+    legType ===
+      'HOME_AWAY'
   ) {
     return [
       group,
@@ -124,6 +127,7 @@ export function deduplicateFixtureRecords<
 >(
   fixtures: T[],
   competitionFormat?: string | null,
+  legType?: string | null,
 ) {
   const canonical =
     new Map<
@@ -139,6 +143,7 @@ export function deduplicateFixtureRecords<
       fixturePairKey(
         fixture,
         competitionFormat,
+        legType,
       );
 
     const current =

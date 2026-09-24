@@ -1,6 +1,7 @@
-const CACHE_NAME = 'fc-arena-v2';
+const CACHE_NAME = 'fc-arena-v1';
 
 const PRECACHE = [
+  '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png'
@@ -43,7 +44,8 @@ self.addEventListener('fetch', (event) => {
 
   const cacheable =
     url.pathname.startsWith('/_next/static/') ||
-    url.pathname.startsWith('/icons/');
+    url.pathname.startsWith('/icons/') ||
+    url.pathname === '/manifest.webmanifest';
 
   if (!cacheable) {
     return;

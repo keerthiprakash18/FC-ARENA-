@@ -2,7 +2,7 @@
   "name": "FC ARENA",
   "short_name": "FC ARENA",
   "description": "Football and esports tournament management platform",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#05080d",

@@ -1,5 +1,12 @@
+const PRODUCTION_API_URL =
+  'https://api.fcarena.in/api';
+
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+  process.env.NODE_ENV ===
+  'production'
+    ? PRODUCTION_API_URL
+    : process.env.NEXT_PUBLIC_API_URL ??
+      'http://localhost:4000/api';
 
 
 function resolveApiUrl(

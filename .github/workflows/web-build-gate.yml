@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+      NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
 
     steps:
       - name: Checkout

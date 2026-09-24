@@ -2,10 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  FormEvent,
-  useState,
-} from 'react';
+import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
 import {
@@ -82,8 +79,6 @@ export default function LoginPage() {
                     ) ?? '',
                   ),
               }),
-            timeoutMs:
-              10_000,
           },
         );
 
@@ -178,12 +173,8 @@ export default function LoginPage() {
         <button
           className="primary-button"
           type="submit"
-          disabled={
-            loading
-          }
-          aria-busy={
-            loading
-          }
+          disabled={loading}
+          aria-busy={loading}
         >
           <span className="login-button-content">
             {loading ? (

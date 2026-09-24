@@ -110,28 +110,12 @@ export class AuthController {
 
     const isProduction = process.env.NODE_ENV === 'production';
 
-    /*
-     * Clear both the legacy host-only cookie
-     * and the production parent-domain cookie.
-     * This keeps logout correct on fcarena.in,
-     * www.fcarena.in and the installed PWA.
-     */
     response.clearCookie(REFRESH_COOKIE_NAME, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
       path: '/api/auth',
     });
-
-    if (isProduction) {
-      response.clearCookie(REFRESH_COOKIE_NAME, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/api/auth',
-        domain: '.fcarena.in',
-      });
-    }
 
     return result;
   }
@@ -165,32 +149,12 @@ export class AuthController {
   private setRefreshCookie(response: Response, token: string): void {
     const isProduction = process.env.NODE_ENV === 'production';
 
-    /*
-     * Earlier production sessions were host-only.
-     * Remove that cookie first so www.fcarena.in and
-     * fcarena.in cannot end up sending two refresh
-     * tokens with the same name.
-     */
-    if (isProduction) {
-      response.clearCookie(REFRESH_COOKIE_NAME, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/api/auth',
-      });
-    }
-
     response.cookie(REFRESH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
       path: '/api/auth',
       maxAge: REFRESH_COOKIE_MAX_AGE,
-      ...(isProduction
-        ? {
-            domain: '.fcarena.in',
-          }
-        : {}),
     });
   }
 }

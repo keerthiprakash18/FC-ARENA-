@@ -37,10 +37,6 @@ import {
   getCurrentUser,
 } from '@/lib/auth-client';
 
-import {
-  ApiError,
-} from '@/lib/api';
-
 
 interface CareerData {
   profile: {
@@ -586,16 +582,9 @@ export default function DashboardPage() {
       } catch (
         err
       ) {
-        if (
-          err instanceof
-            ApiError &&
-          (
-            err.status ===
-              401 ||
-            err.status ===
-              403
-          )
-        ) {
+        try {
+          await getCurrentUser();
+        } catch {
           router.replace(
             '/login',
           );
@@ -749,38 +738,6 @@ export default function DashboardPage() {
       ],
     );
 
-
-  if (
-    (
-      !user ||
-      !career
-    ) &&
-    error
-  ) {
-    return (
-      <main className="grid min-h-screen place-items-center px-5">
-        <div className="w-full max-w-md rounded-2xl border border-red-400/20 bg-white p-6 text-center shadow-sm">
-          <h1 className="text-lg font-bold text-[#0B2545]">
-            Unable to load FC ARENA
-          </h1>
-
-          <p className="mt-2 text-sm leading-6 text-[#66768A]">
-            {error}
-          </p>
-
-          <button
-            type="button"
-            onClick={() =>
-              window.location.reload()
-            }
-            className="theme-primary-button mt-5 inline-flex min-h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold"
-          >
-            Retry
-          </button>
-        </div>
-      </main>
-    );
-  }
 
   if (
     !user ||

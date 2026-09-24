@@ -32,7 +32,7 @@ export function isCanonicalCompletedFixture(
 
   const isShownAsCompleted =
     match?.status ===
-      'COMPLETED' ||
+      'COMPLETED' &&
     fixture.status ===
       'COMPLETED';
 

@@ -2,11 +2,16 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import {
+  FormEvent,
+  useEffect,
+  useState,
+} from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { apiRequest } from '@/lib/api';
 import {
   establishLoginSession,
+  getCurrentUser,
 } from '@/lib/auth-client';
 import {
   applyThemePreference,
@@ -26,7 +31,51 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState(initialRegistrationNotice);
   const [loading, setLoading] = useState(false);
+  const [
+    checkingSession,
+    setCheckingSession,
+  ] =
+    useState(true);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(
+    () => {
+      let active =
+        true;
+
+      void getCurrentUser()
+        .then(
+          () => {
+            if (
+              active
+            ) {
+              router.replace(
+                '/dashboard',
+              );
+            }
+          },
+        )
+        .catch(
+          () => {
+            if (
+              active
+            ) {
+              setCheckingSession(
+                false,
+              );
+            }
+          },
+        );
+
+      return () => {
+        active =
+          false;
+      };
+    },
+    [
+      router,
+    ],
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -173,11 +222,25 @@ export default function LoginPage() {
         <button
           className="primary-button"
           type="submit"
-          disabled={loading}
-          aria-busy={loading}
+          disabled={
+            loading ||
+            checkingSession
+          }
+          aria-busy={
+            loading ||
+            checkingSession
+          }
         >
           <span className="login-button-content">
-            {loading ? (
+            {checkingSession ? (
+              <>
+                <span
+                  className="login-spinner"
+                  aria-hidden="true"
+                />
+                Restoring session...
+              </>
+            ) : loading ? (
               <>
                 <span
                   className="login-spinner"

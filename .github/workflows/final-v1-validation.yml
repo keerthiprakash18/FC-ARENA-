@@ -3,7 +3,7 @@ name: FC ARENA Final V1 Validation
 on:
   push:
     branches:
-      - fix/profile-avatar-fixture-result-consistency
+      - feature/final-v1-completion
 
 jobs:
   verify:
@@ -78,7 +78,7 @@ jobs:
 
       - name: New feature web lint
         working-directory: apps/web
-        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx' src/app/profile/page.tsx src/components/app/app-header.tsx src/components/app/app-shell.tsx src/components/fixtures/inline-result-panel.tsx
+        run: npx eslint src/app/ai/page.tsx src/app/more/page.tsx 'src/app/tournaments/[tournamentId]/poster/page.tsx' 'src/app/leagues/[leagueId]/roles/page.tsx'
 
       - name: Web production build
         run: npm run build:web

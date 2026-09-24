@@ -373,7 +373,11 @@ export default function ProfilePage() {
           await Promise.all([
             getCurrentUser(),
 
-            authenticatedRequest<any>(
+            authenticatedRequest<{
+              success: true;
+              data: CareerData;
+              error: null;
+            }>(
               '/players/me/career',
             ),
           ]);

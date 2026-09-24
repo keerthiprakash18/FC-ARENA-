@@ -11,6 +11,7 @@ import { AuthorizationService } from '../security/authorization.service.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import {
+  generateDoubleRoundRobinFixtures,
   generateKnockoutFixtures,
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
@@ -18,6 +19,9 @@ import type { FixtureBlueprint } from './fixture-engine.js';
 import {
   deduplicateFixtureRecords,
 } from './fixture-deduplication.js';
+import {
+  planLegacyHomeAwayMatchdayRepair,
+} from './legacy-home-away-matchday-repair.js';
 
 @Injectable()
 export class FixturesService {
@@ -99,12 +103,22 @@ export class FixturesService {
           registration.id,
       );
 
+    const isHomeAway =
+      tournament.competitionFormat ===
+        'DOUBLE_ROUND_ROBIN' ||
+      tournament.legType ===
+        'HOME_AWAY';
+
     const blueprints =
       tournament.format ===
       'ROUND_ROBIN'
-        ? generateRoundRobinFixtures(
-            registrationIds,
-          )
+        ? isHomeAway
+          ? generateDoubleRoundRobinFixtures(
+              registrationIds,
+            )
+          : generateRoundRobinFixtures(
+              registrationIds,
+            )
         : generateKnockoutFixtures(
             registrationIds,
           );
@@ -248,6 +262,7 @@ export class FixturesService {
           leagueId: true,
           format: true,
           competitionFormat: true,
+          legType: true,
         },
       });
 
@@ -258,6 +273,12 @@ export class FixturesService {
     await this.assertLeagueMember(
       userId,
       tournament.leagueId,
+    );
+
+    await this.repairLegacyHomeAwayMatchdays(
+      tournamentId,
+      tournament.competitionFormat,
+      tournament.legType,
     );
 
     await this.ensureMatchesExist(
@@ -351,6 +372,7 @@ export class FixturesService {
       deduplicateFixtureRecords(
         fixtures,
         tournament.competitionFormat,
+        tournament.legType,
       );
 
     return {
@@ -920,6 +942,67 @@ export class FixturesService {
     );
 
     return fixture;
+  }
+
+  private async repairLegacyHomeAwayMatchdays(
+    tournamentId: string,
+    competitionFormat: string,
+    legType: string,
+  ) {
+    const fixtures =
+      await this.prisma.fixture.findMany({
+        where: {
+          tournamentId,
+        },
+        orderBy: {
+          sequence:
+            'asc',
+        },
+        select: {
+          id: true,
+          groupId: true,
+          sequence: true,
+          matchday: true,
+          roundNumber: true,
+          roundName: true,
+          homeRegistrationId: true,
+          awayRegistrationId: true,
+        },
+      });
+
+    const updates =
+      planLegacyHomeAwayMatchdayRepair(
+        fixtures,
+        competitionFormat,
+        legType,
+      );
+
+    if (
+      updates.length ===
+      0
+    ) {
+      return;
+    }
+
+    await this.prisma.$transaction(
+      updates.map(
+        (update) =>
+          this.prisma.fixture.update({
+            where: {
+              id:
+                update.id,
+            },
+            data: {
+              matchday:
+                update.matchday,
+              roundNumber:
+                update.roundNumber,
+              roundName:
+                update.roundName,
+            },
+          }),
+      ),
+    );
   }
 
   private async ensureMatchesExist(

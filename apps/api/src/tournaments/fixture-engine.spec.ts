@@ -374,6 +374,130 @@ describe(
 
 
     it(
+      'generates 11-team Home and Away as 110 fixtures across 22 Matchdays',
+      () => {
+        const participants =
+          ids(
+            11,
+          );
+
+        const fixtures =
+          generateDoubleRoundRobinFixtures(
+            participants,
+          );
+
+        expect(
+          fixtures,
+        ).toHaveLength(
+          110,
+        );
+
+        const matchdays =
+          new Set(
+            fixtures.map(
+              (fixture) =>
+                fixture.matchday,
+            ),
+          );
+
+        expect(
+          matchdays.size,
+        ).toBe(
+          22,
+        );
+
+        expect(
+          [...matchdays].sort(
+            (
+              first,
+              second,
+            ) =>
+              Number(first) -
+              Number(second),
+          ),
+        ).toEqual(
+          Array.from(
+            {
+              length:
+                22,
+            },
+            (
+              _,
+              index,
+            ) =>
+              index + 1,
+          ),
+        );
+
+        const appearances =
+          new Map<string, number>();
+
+        for (
+          const fixture
+          of fixtures
+        ) {
+          for (
+            const registrationId
+            of [
+              fixture.homeRegistrationId,
+              fixture.awayRegistrationId,
+            ]
+          ) {
+            if (!registrationId) {
+              continue;
+            }
+
+            appearances.set(
+              registrationId,
+              (
+                appearances.get(
+                  registrationId,
+                ) ??
+                0
+              ) +
+                1,
+            );
+          }
+        }
+
+        for (
+          const participant
+          of participants
+        ) {
+          expect(
+            appearances.get(
+              participant,
+            ),
+          ).toBe(
+            20,
+          );
+        }
+
+        for (
+          const matches
+          of fixturesByRound(
+            fixtures,
+          ).values()
+        ) {
+          expect(
+            matches,
+          ).toHaveLength(
+            5,
+          );
+        }
+
+        assertNoSelfMatches(
+          fixtures,
+        );
+
+        assertOneAppearancePerRound(
+          fixtures,
+        );
+      },
+    );
+
+
+    it(
       'generates 5-team Single Round with one rotating BYE per Matchday',
       () => {
         const participants =

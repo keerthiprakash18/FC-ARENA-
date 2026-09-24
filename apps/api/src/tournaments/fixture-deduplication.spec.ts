@@ -133,6 +133,54 @@ describe(
           2,
         );
       },
+
+
+    it(
+      'preserves reversed legs when Home & Away is configured through legType',
+      () => {
+        const fixtures =
+          deduplicateFixtureRecords(
+            [
+              {
+                id:
+                  'leg-one',
+                sequence:
+                  1,
+                groupId:
+                  null,
+                homeRegistrationId:
+                  'LEO',
+                awayRegistrationId:
+                  'BILLA',
+                status:
+                  'SCHEDULED',
+              },
+              {
+                id:
+                  'leg-two',
+                sequence:
+                  2,
+                groupId:
+                  null,
+                homeRegistrationId:
+                  'BILLA',
+                awayRegistrationId:
+                  'LEO',
+                status:
+                  'SCHEDULED',
+              },
+            ],
+            'LEAGUE_ROUND_ROBIN',
+            'HOME_AWAY',
+          );
+
+        expect(
+          fixtures,
+        ).toHaveLength(
+          2,
+        );
+      },
+    );
     );
   },
 );

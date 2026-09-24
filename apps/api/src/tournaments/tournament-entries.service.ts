@@ -55,6 +55,7 @@ export class TournamentEntriesService {
           maxEntries: true,
           status: true,
           competitionFormat: true,
+          legType: true,
         },
       });
 
@@ -153,6 +154,7 @@ export class TournamentEntriesService {
       deduplicateFixtureRecords(
         rawFixtures,
         tournament.competitionFormat,
+        tournament.legType,
       );
 
     const fixtureCounts =

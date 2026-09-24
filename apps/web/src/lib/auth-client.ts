@@ -84,6 +84,8 @@ export async function refreshAccessToken(
           error: null;
         }>('/auth/refresh', {
           method: 'POST',
+          timeoutMs:
+            4_500,
         });
 
       const newAccessToken =

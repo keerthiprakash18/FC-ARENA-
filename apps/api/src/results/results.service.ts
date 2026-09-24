@@ -147,10 +147,12 @@ export class ResultsService {
       await this.prisma.resultSubmission.findFirst({
         where: {
           matchId,
-          submittedByUserId:
-            userId,
           status:
             'PENDING_VERIFICATION',
+        },
+        orderBy: {
+          createdAt:
+            'desc',
         },
       });
 
@@ -163,7 +165,7 @@ export class ResultsService {
             'RESULT_ALREADY_PENDING',
 
           message:
-            'You already have a result waiting for verification for this match.',
+            'A result is already waiting for verification for this match. Review the shared pending result instead of creating a duplicate.',
         },
       });
     }
@@ -203,6 +205,32 @@ export class ResultsService {
         },
         include: {
           tournament: true,
+
+          fixture: {
+            include: {
+              homeRegistration: {
+                include: {
+                  members: {
+                    select: {
+                      userId:
+                        true,
+                    },
+                  },
+                },
+              },
+
+              awayRegistration: {
+                include: {
+                  members: {
+                    select: {
+                      userId:
+                        true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
@@ -214,6 +242,34 @@ export class ResultsService {
       userId,
       match.tournament.leagueId,
     );
+
+    const participantUserIds =
+      new Set([
+        ...(
+          match.fixture
+            .homeRegistration
+            ?.members.map(
+              (member) =>
+                member.userId,
+            ) ??
+          []
+        ),
+
+        ...(
+          match.fixture
+            .awayRegistration
+            ?.members.map(
+              (member) =>
+                member.userId,
+            ) ??
+          []
+        ),
+      ]);
+
+    const isParticipant =
+      participantUserIds.has(
+        userId,
+      );
 
     const leagueAdmin =
       await this.prisma.leagueAdmin.findUnique({
@@ -239,18 +295,19 @@ export class ResultsService {
 
           ...(canVerifyResult
             ? {}
-            : {
-                OR: [
-                  {
-                    status:
+            : isParticipant
+              ? {
+                  status: {
+                    in: [
                       'CONFIRMED',
+                      'PENDING_VERIFICATION',
+                    ],
                   },
-                  {
-                    submittedByUserId:
-                      userId,
-                  },
-                ],
-              }),
+                }
+              : {
+                  status:
+                    'CONFIRMED',
+                }),
         },
 
         orderBy: {
@@ -293,6 +350,12 @@ export class ResultsService {
           Boolean(leagueAdmin),
 
         canVerifyResult,
+
+        canSubmitResult:
+          canVerifyResult ||
+          isParticipant,
+
+        isParticipant,
 
         confirmedResultSubmissionId:
           match.confirmedResultSubmissionId,

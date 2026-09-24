@@ -9,10 +9,12 @@ import type {
   ReactNode,
 } from 'react';
 import {
+  useEffect,
   useState,
 } from 'react';
 
 import {
+  getCurrentUser,
   logoutCurrentUser,
 } from '@/lib/auth-client';
 
@@ -491,6 +493,76 @@ export function AppShell({
   ] =
     useState(false);
 
+  const [
+    playerImageUrl,
+    setPlayerImageUrl,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  useEffect(() => {
+    let active =
+      true;
+
+    void getCurrentUser()
+      .then(
+        (
+          current,
+        ) => {
+          if (
+            active
+          ) {
+            setPlayerImageUrl(
+              current.player
+                ?.profileImageUrl ??
+              null,
+            );
+          }
+        },
+      )
+      .catch(
+        () =>
+          undefined,
+      );
+
+    const onProfileImageChanged =
+      (
+        event:
+          Event,
+      ) => {
+        const detail =
+          (
+            event as
+              CustomEvent<{
+                profileImageUrl:
+                  string | null;
+              }>
+          ).detail;
+
+        setPlayerImageUrl(
+          detail
+            ?.profileImageUrl ??
+          null,
+        );
+      };
+
+    window.addEventListener(
+      'fc-arena-profile-image-changed',
+      onProfileImageChanged,
+    );
+
+    return () => {
+      active =
+        false;
+
+      window.removeEventListener(
+        'fc-arena-profile-image-changed',
+        onProfileImageChanged,
+      );
+    };
+  }, []);
+
   const active =
     getActivePrimarySection(
       pathname,
@@ -663,10 +735,22 @@ export function AppShell({
             href="/profile"
             className="theme-user-card group flex items-center gap-3 rounded-[13px] border p-3 transition duration-200"
           >
-            <span className="theme-avatar relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-xs font-semibold">
-              {
+            <span className="theme-avatar relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl border text-xs font-semibold">
+              {playerImageUrl ? (
+                <img
+                  src={
+                    playerImageUrl
+                  }
+                  alt={
+                    (playerName ||
+                      'Player') +
+                    ' profile'
+                  }
+                  className="h-full w-full object-cover"
+                />
+              ) : (
                 initials
-              }
+              )}
 
               <span className="theme-online-indicator absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2" />
             </span>
@@ -736,6 +820,9 @@ export function AppShell({
           }
           playerRole={
             playerRole
+          }
+          playerImageUrl={
+            playerImageUrl
           }
         />
 

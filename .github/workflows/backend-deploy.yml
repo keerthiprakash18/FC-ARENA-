@@ -1,0 +1,71 @@
+name: Backend Deploy - InterServer VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/backend-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcarena-production-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${VPS_SSH_KEY}" ]; then
+            echo "Missing GitHub Actions secret: VPS_SSH_KEY"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "${VPS_SSH_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -T 10 -t ed25519 162.35.111.245 > /tmp/fcarena_host_key
+
+          ACTUAL_FINGERPRINT="$(ssh-keygen -lf /tmp/fcarena_host_key -E sha256 | awk '{print $2}')"
+          EXPECTED_FINGERPRINT="SHA256:4WyL0P7CfMAEcG3OQY6Jp4Q0q5lOtGPmad0bzHiJMvY"
+
+          echo "VPS host fingerprint: ${ACTUAL_FINGERPRINT}"
+
+          if [ "${ACTUAL_FINGERPRINT}" != "${EXPECTED_FINGERPRINT}" ]; then
+            echo "VPS host fingerprint mismatch. Deployment stopped."
+            exit 1
+          fi
+
+          cat /tmp/fcarena_host_key >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy backend to production VPS
+        run: |
+          set -euo pipefail
+          ssh             -i ~/.ssh/id_ed25519             -o BatchMode=yes             -o ConnectTimeout=15             fcarena-deploy@162.35.111.245             'sudo /usr/local/sbin/fcarena-deploy'
+
+      - name: Verify public API
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error             --retry 5             --retry-delay 3             https://api.fcarena.in/api/health
+          echo
+          echo "Production API health check passed."

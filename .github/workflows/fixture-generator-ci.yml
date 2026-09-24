@@ -33,7 +33,7 @@ jobs:
         run: npm ci
 
       - name: Fixture integrity tests
-        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts src/tournaments/fixture-deduplication.spec.ts
+        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts src/tournaments/fixture-deduplication.spec.ts src/results/results.integrity.spec.ts
 
       - name: API build
         run: npm run build:api

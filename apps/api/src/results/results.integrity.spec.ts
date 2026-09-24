@@ -217,6 +217,30 @@ describe(
     );
 
     it(
+      'keeps Home & Away return legs independent for results and standings',
+      () => {
+        expect(
+          resultsServiceSource,
+        ).toMatch(
+          /legType[\s\S]*HOME_AWAY/,
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toMatch(
+          /deduplicateFixtureRecords\([\s\S]*competitionFormat,[\s\S]*legType/,
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toMatch(
+          /competitionFormat ===[\s\S]*DOUBLE_ROUND_ROBIN[\s\S]*legType ===[\s\S]*HOME_AWAY/,
+        );
+      },
+    );
+
+
+    it(
       'confirmation uses a database transaction',
       () => {
         const confirmResult =

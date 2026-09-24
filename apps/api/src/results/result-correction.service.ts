@@ -10,6 +10,9 @@ import {
   deduplicateFixtureRecords,
   isCanonicalCompletedFixture,
 } from '../tournaments/fixture-deduplication.js';
+import {
+  canonicalizeRoundRobinStandingsFixtures,
+} from './standings-integrity.js';
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 
@@ -795,6 +798,20 @@ export class ResultCorrectionService {
       });
     }
 
+    const registrations =
+      await tx.tournamentRegistration.findMany({
+        where: {
+          tournamentId,
+          status:
+            'APPROVED',
+        },
+
+        select: {
+          id: true,
+          groupId: true,
+        },
+      });
+
     const activeMatches =
       await tx.match.findMany({
         where: {
@@ -872,6 +889,31 @@ export class ResultCorrectionService {
           fixture.sourceMatch,
       );
 
+    const standingFixtureIds =
+      new Set(
+        canonicalizeRoundRobinStandingsFixtures(
+          canonicalMatches.map(
+            (match: any) =>
+              match.fixture,
+          ),
+          registrations,
+          {
+            competitionFormat:
+              tournament.competitionFormat,
+            legType:
+              tournament.legType,
+            tournamentFormat:
+              tournament.format,
+            hasGroups:
+              tournament._count.groups >
+              0,
+          },
+        ).map(
+          (fixture) =>
+            fixture.id,
+        ),
+      );
+
     await tx.tournamentStanding.deleteMany({
       where: {
         tournamentId,
@@ -918,14 +960,14 @@ export class ResultCorrectionService {
           result.homeScore,
         );
 
-      const isKnockoutFixture =
-        this.isKnockoutFixture(
-          tournament.format,
-          match.fixture.groupId,
-          tournament._count.groups,
+      const countsForStandings =
+        standingFixtureIds.has(
+          match.fixture.id,
         );
 
-      if (!isKnockoutFixture) {
+      if (
+        countsForStandings
+      ) {
         await this.applyStanding(
           tx,
           tournamentId,

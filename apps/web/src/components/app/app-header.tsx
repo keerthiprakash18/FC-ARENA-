@@ -213,10 +213,14 @@ export function AppHeader({
           href="/dashboard"
           className="flex items-center gap-2 lg:hidden"
         >
-          <span className="theme-brand-mark grid h-9 w-9 place-items-center rounded-xl border" aria-hidden="true">
-            <FcIcon
-              name="football"
-              size={20}
+          <span
+            className="theme-brand-mark grid h-9 w-9 place-items-center overflow-hidden rounded-xl border"
+            aria-hidden="true"
+          >
+            <img
+              src="/brand/brand-small.svg"
+              alt=""
+              className="h-full w-full object-cover"
             />
           </span>
 

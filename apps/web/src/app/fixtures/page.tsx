@@ -142,8 +142,8 @@ function fixtureFilter(
     fixture.status;
 
   if (
-    status ===
-      'COMPLETED' ||
+    fixture.match?.status ===
+      'COMPLETED' &&
     fixture.status ===
       'COMPLETED'
   ) {

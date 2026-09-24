@@ -9,6 +9,7 @@ import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import {
   deduplicateFixtureRecords,
+  isCanonicalCompletedFixture,
 } from '../tournaments/fixture-deduplication.js';
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
@@ -1398,6 +1399,8 @@ export class ResultsService {
 
               confirmedResult: {
                 select: {
+                  id: true,
+                  status: true,
                   homeScore: true,
                   awayScore: true,
                 },
@@ -1407,20 +1410,22 @@ export class ResultsService {
         },
       });
 
+    /*
+     * Filter integrity first, then
+     * deduplicate. This prevents a stale
+     * legacy result pointer from winning
+     * deduplication and becoming a
+     * phantom Played match in standings.
+     */
+    const completedFixtures =
+      fixtures.filter(
+        isCanonicalCompletedFixture,
+      );
+
     return deduplicateFixtureRecords(
-      fixtures,
+      completedFixtures,
       competitionFormat,
       legType,
-    ).filter(
-      (
-        fixture,
-      ) =>
-        Boolean(
-          fixture.match
-            ?.confirmedResultSubmissionId &&
-          fixture.match
-            ?.confirmedResult,
-        ),
     );
   }
 

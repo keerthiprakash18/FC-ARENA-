@@ -6,6 +6,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
+import {
+  deduplicateFixtureRecords,
+  isCanonicalCompletedFixture,
+} from '../tournaments/fixture-deduplication.js';
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 
@@ -763,6 +767,10 @@ export class ResultCorrectionService {
 
         select: {
           format: true,
+          competitionFormat:
+            true,
+          legType:
+            true,
 
           _count: {
             select: {
@@ -824,6 +832,46 @@ export class ResultCorrectionService {
         },
       });
 
+    const canonicalMatches =
+      deduplicateFixtureRecords(
+        activeMatches
+          .map(
+            (match: any) => ({
+              ...match.fixture,
+
+              match: {
+                status:
+                  match.status,
+
+                confirmedResultSubmissionId:
+                  match.confirmedResultSubmissionId,
+
+                confirmedResult:
+                  match.confirmedResult
+                    ? {
+                        id:
+                          match.confirmedResult.id,
+
+                        status:
+                          match.confirmedResult.status,
+                      }
+                    : null,
+              },
+
+              sourceMatch:
+                match,
+            }),
+          )
+          .filter(
+            isCanonicalCompletedFixture,
+          ),
+        tournament.competitionFormat,
+        tournament.legType,
+      ).map(
+        (fixture: any) =>
+          fixture.sourceMatch,
+      );
+
     await tx.tournamentStanding.deleteMany({
       where: {
         tournamentId,
@@ -837,7 +885,7 @@ export class ResultCorrectionService {
     });
 
     for (
-      const match of activeMatches
+      const match of canonicalMatches
     ) {
       const result =
         match.confirmedResult;
@@ -918,7 +966,7 @@ export class ResultCorrectionService {
       }
     }
 
-    return activeMatches.length;
+    return canonicalMatches.length;
   }
 
   private async updateKnockoutProgression(

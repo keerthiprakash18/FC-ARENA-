@@ -9,24 +9,73 @@ export interface CanonicalFixtureLike {
   match?: {
     status?: string | null;
     confirmedResultSubmissionId?: string | null;
+
+    confirmedResult?: {
+      id?: string | null;
+      status?: string | null;
+    } | null;
   } | null;
+}
+
+
+export function isCanonicalCompletedFixture(
+  fixture: CanonicalFixtureLike,
+) {
+  const match =
+    fixture.match;
+
+  const confirmedResult =
+    match?.confirmedResult;
+
+  const confirmedResultSubmissionId =
+    match?.confirmedResultSubmissionId;
+
+  const isShownAsCompleted =
+    match?.status ===
+      'COMPLETED' ||
+    fixture.status ===
+      'COMPLETED';
+
+  return Boolean(
+    isShownAsCompleted &&
+    confirmedResultSubmissionId &&
+    confirmedResult &&
+    confirmedResult.status ===
+      'CONFIRMED' &&
+    confirmedResult.id ===
+      confirmedResultSubmissionId,
+  );
 }
 
 
 function fixturePriority(
   fixture: CanonicalFixtureLike,
 ) {
-  if (
-    fixture.match
-      ?.confirmedResultSubmissionId
-  ) {
-    return 1000;
-  }
-
   const status =
     fixture.match?.status ||
     fixture.status ||
     'UNSCHEDULED';
+
+  /*
+   * A legacy/stale result pointer must
+   * never make an UNSCHEDULED fixture
+   * outrank the real completed fixture.
+   * Result links receive top priority
+   * only when the fixture is also shown
+   * as completed by the fixtures API.
+   */
+  if (
+    fixture.match
+      ?.confirmedResultSubmissionId &&
+    (
+      fixture.match?.status ===
+        'COMPLETED' ||
+      fixture.status ===
+        'COMPLETED'
+    )
+  ) {
+    return 1000;
+  }
 
   switch (status) {
     case 'COMPLETED':

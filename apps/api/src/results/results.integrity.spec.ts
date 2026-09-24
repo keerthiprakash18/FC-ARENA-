@@ -217,6 +217,36 @@ describe(
     );
 
     it(
+      'builds standings and rebuilt statistics from the same canonical completed-result rule',
+      () => {
+        expect(
+          resultsServiceSource,
+        ).toContain(
+          'isCanonicalCompletedFixture',
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toMatch(
+          /completedFixtures[\s\S]*fixtures\.filter\([\s\S]*isCanonicalCompletedFixture[\s\S]*deduplicateFixtureRecords\([\s\S]*completedFixtures/,
+        );
+
+        expect(
+          correctionServiceSource,
+        ).toContain(
+          'isCanonicalCompletedFixture',
+        );
+
+        expect(
+          correctionServiceSource,
+        ).toMatch(
+          /canonicalMatches[\s\S]*deduplicateFixtureRecords\([\s\S]*\.filter\([\s\S]*isCanonicalCompletedFixture/,
+        );
+      },
+    );
+
+
+    it(
       'keeps Home & Away return legs independent for results and standings',
       () => {
         expect(

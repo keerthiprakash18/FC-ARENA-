@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/api/src/tournaments/**"
+      - "apps/api/src/results/**"
       - "apps/web/src/app/fixtures/**"
       - "apps/web/src/components/fixtures/**"
       - "apps/web/src/lib/fixture-generator-draft.ts"
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      NEXT_PUBLIC_API_URL: https://fc-arena-production.up.railway.app/api
+      NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
 
     steps:
       - name: Checkout
@@ -33,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Fixture integrity tests
-        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts src/tournaments/fixture-deduplication.spec.ts src/results/results.integrity.spec.ts
+        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts src/tournaments/fixture-deduplication.spec.ts src/results/standings-integrity.spec.ts src/results/results.integrity.spec.ts
 
       - name: API build
         run: npm run build:api

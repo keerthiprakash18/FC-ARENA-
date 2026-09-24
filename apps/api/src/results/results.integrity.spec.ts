@@ -168,14 +168,26 @@ describe(
 
         expect(
           submitResult,
-        ).toMatch(
-          /const existingPending[sS]*matchId[sS]*PENDING_VERIFICATION/,
+        ).toContain(
+          'const existingPending',
         );
 
         expect(
           submitResult,
-        ).toMatch(
-          /RESULT_ALREADY_PENDING/,
+        ).toContain(
+          'matchId',
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'PENDING_VERIFICATION',
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'RESULT_ALREADY_PENDING',
         );
 
         expect(

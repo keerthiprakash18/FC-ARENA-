@@ -14,6 +14,10 @@ import {
   PlayerCareerService,
 } from './player-career.service.js';
 
+import {
+  PlayerProfileImageService,
+} from './player-profile-image.service.js';
+
 @Module({
   imports: [
     AuthModule,
@@ -25,6 +29,7 @@ import {
 
   providers: [
     PlayerCareerService,
+    PlayerProfileImageService,
   ],
 
   exports: [

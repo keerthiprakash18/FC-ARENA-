@@ -1,9 +1,9 @@
-const CACHE_NAME = 'fc-arena-v2';
+const CACHE_NAME = 'fc-arena-v3';
 
 const PRECACHE = [
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/apple-touch-icon.png'
+  '/brand/app-icon.svg',
+  '/brand/brand-small.svg',
+  '/brand/brand-full.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -43,7 +43,8 @@ self.addEventListener('fetch', (event) => {
 
   const cacheable =
     url.pathname.startsWith('/_next/static/') ||
-    url.pathname.startsWith('/icons/');
+    url.pathname.startsWith('/icons/') ||
+    url.pathname.startsWith('/brand/');
 
   if (!cacheable) {
     return;

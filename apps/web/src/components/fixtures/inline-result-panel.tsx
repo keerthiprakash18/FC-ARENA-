@@ -149,8 +149,15 @@ export function InlineResultPanel({
     );
 
 
-  async function loadResults() {
-    setLoading(true);
+  async function loadResults(
+    silent = false,
+  ) {
+    if (
+      !silent
+    ) {
+      setLoading(true);
+    }
+
     setError('');
 
     try {
@@ -217,6 +224,39 @@ export function InlineResultPanel({
 
   useEffect(() => {
     void loadResults();
+
+    const refresh =
+      window.setInterval(
+        () => {
+          void loadResults(
+            true,
+          );
+        },
+        15_000,
+      );
+
+    const onFocus =
+      () => {
+        void loadResults(
+          true,
+        );
+      };
+
+    window.addEventListener(
+      'focus',
+      onFocus,
+    );
+
+    return () => {
+      window.clearInterval(
+        refresh,
+      );
+
+      window.removeEventListener(
+        'focus',
+        onFocus,
+      );
+    };
   }, [
     matchId,
   ]);

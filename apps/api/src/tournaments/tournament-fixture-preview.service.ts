@@ -715,6 +715,7 @@ export class TournamentFixturePreviewService {
         id: string;
         groupId: string | null;
         roundNumber: number;
+        matchday: number | null;
         homeRegistrationId: string | null;
         awayRegistrationId: string | null;
       }>,
@@ -743,10 +744,19 @@ export class TournamentFixturePreviewService {
     const roundTeams =
       new Set<string>();
 
+    const matchdayTeams =
+      new Set<string>();
+
     const participantIds =
       new Set<string>();
 
     const roundNumbersByGroup =
+      new Map<
+        string,
+        Set<number>
+      >();
+
+    const matchdaysByGroup =
       new Map<
         string,
         Set<number>
@@ -861,6 +871,104 @@ export class TournamentFixturePreviewService {
         ) ??
           0) + 1,
       );
+
+      if (
+        competitionFormat !==
+          'SINGLE_ELIMINATION' &&
+        competitionFormat !==
+          'CUSTOM_MANUAL'
+      ) {
+        if (
+          !Number.isInteger(
+            fixture.matchday,
+          ) ||
+          !fixture.matchday ||
+          fixture.matchday <
+            1
+        ) {
+          throw new ConflictException({
+            success: false,
+            data: null,
+
+            error: {
+              code:
+                'INVALID_MATCHDAY',
+
+              message:
+                'Every Round Robin fixture requires a positive Matchday number.',
+            },
+          });
+        }
+
+        if (
+          fixture.matchday !==
+          fixture.roundNumber
+        ) {
+          throw new ConflictException({
+            success: false,
+            data: null,
+
+            error: {
+              code:
+                'MATCHDAY_ROUND_MISMATCH',
+
+              message:
+                'Round Robin Matchday and round number must stay aligned.',
+            },
+          });
+        }
+
+        const homeMatchday =
+          `${groupKey}:${fixture.matchday}:${home}`;
+
+        const awayMatchday =
+          `${groupKey}:${fixture.matchday}:${away}`;
+
+        if (
+          matchdayTeams.has(
+            homeMatchday,
+          ) ||
+          matchdayTeams.has(
+            awayMatchday,
+          )
+        ) {
+          throw new ConflictException({
+            success: false,
+            data: null,
+
+            error: {
+              code:
+                'TEAM_DUPLICATED_IN_MATCHDAY',
+
+              message:
+                'A participant cannot appear twice in the same Matchday.',
+            },
+          });
+        }
+
+        matchdayTeams.add(
+          homeMatchday,
+        );
+
+        matchdayTeams.add(
+          awayMatchday,
+        );
+
+        const matchdays =
+          matchdaysByGroup.get(
+            groupKey,
+          ) ??
+          new Set<number>();
+
+        matchdays.add(
+          fixture.matchday,
+        );
+
+        matchdaysByGroup.set(
+          groupKey,
+          matchdays,
+        );
+      }
 
       const homeRound =
         `${groupKey}:${fixture.roundNumber}:${home}`;
@@ -1091,15 +1199,87 @@ export class TournamentFixturePreviewService {
         ) *
         expectedPerPair;
 
-      const actualRounds =
+      const roundNumbers =
         roundNumbersByGroup.get(
           groupKey,
-        )?.size ??
-        0;
+        ) ??
+        new Set<number>();
+
+      const matchdays =
+        matchdaysByGroup.get(
+          groupKey,
+        ) ??
+        new Set<number>();
+
+      const expectedNumbers =
+        Array.from(
+          {
+            length:
+              expectedRounds,
+          },
+          (
+            _,
+            index,
+          ) =>
+            index +
+            1,
+        );
+
+      const actualRoundNumbers =
+        Array.from(
+          roundNumbers,
+        ).sort(
+          (
+            first,
+            second,
+          ) =>
+            first -
+            second,
+        );
+
+      const actualMatchdays =
+        Array.from(
+          matchdays,
+        ).sort(
+          (
+            first,
+            second,
+          ) =>
+            first -
+            second,
+        );
+
+      const validRoundNumbers =
+        actualRoundNumbers.length ===
+          expectedNumbers.length &&
+        actualRoundNumbers.every(
+          (
+            value,
+            index,
+          ) =>
+            value ===
+            expectedNumbers[
+              index
+            ],
+        );
+
+      const validMatchdays =
+        actualMatchdays.length ===
+          expectedNumbers.length &&
+        actualMatchdays.every(
+          (
+            value,
+            index,
+          ) =>
+            value ===
+            expectedNumbers[
+              index
+            ],
+        );
 
       if (
-        actualRounds !==
-        expectedRounds
+        !validRoundNumbers ||
+        !validMatchdays
       ) {
         throw new ConflictException({
           success: false,
@@ -1110,7 +1290,7 @@ export class TournamentFixturePreviewService {
               'INVALID_MATCHDAY_COUNT',
 
             message:
-              `Fixture set requires ${expectedRounds} Matchday(s), received ${actualRounds}.`,
+              `Fixture set requires consecutive Matchdays 1-${expectedRounds}. Received ${actualMatchdays.length} unique Matchday(s) and ${actualRoundNumbers.length} unique round(s).`,
           },
         });
       }

@@ -831,6 +831,9 @@ export default function DashboardPage() {
           <span className="fc-dashboard-backdrop-grid" />
           <span className="fc-dashboard-light fc-dashboard-light-one" />
           <span className="fc-dashboard-light fc-dashboard-light-two" />
+          <span className="fc-dashboard-beam fc-dashboard-beam-one" />
+          <span className="fc-dashboard-beam fc-dashboard-beam-two" />
+          <span className="fc-dashboard-particles" />
           <span className="fc-dashboard-ring fc-dashboard-ring-one" />
           <span className="fc-dashboard-ring fc-dashboard-ring-two" />
         </div>
@@ -847,6 +850,8 @@ export default function DashboardPage() {
         <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
           <div className="fc-hero-art" />
           <div className="fc-hero-right hidden lg:block" />
+          <div className="fc-dashboard-hero-scan" aria-hidden="true" />
+          <div className="fc-dashboard-hero-orbit" aria-hidden="true" />
 
           <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
             <div className="hidden lg:block">
@@ -865,7 +870,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="min-w-0 lg:pr-5">
-              <p className="theme-hero-kicker text-[12px] font-bold tracking-[0.16em]">
+              <p className="theme-hero-kicker fc-dashboard-kicker text-[12px] font-bold tracking-[0.16em]">
+                <span className="fc-dashboard-live-dot" aria-hidden="true" />
                 WELCOME BACK
               </p>
 
@@ -986,8 +992,9 @@ export default function DashboardPage() {
 
 
         <section className="fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
-          <FcPanel className="relative overflow-hidden p-5 sm:p-6">
+          <FcPanel className="fc-next-match-panel relative overflow-hidden p-5 sm:p-6">
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
+            <div className="fc-match-spotlight" aria-hidden="true" />
 
             <div className="relative">
               <SectionTitle
@@ -1108,7 +1115,7 @@ export default function DashboardPage() {
           </FcPanel>
 
 
-          <FcPanel className="p-5 sm:p-6">
+          <FcPanel className="fc-league-panel p-5 sm:p-6">
             <SectionTitle
               icon="league"
               title="My League"
@@ -1233,7 +1240,7 @@ export default function DashboardPage() {
 
 
         <section className="fc-dashboard-section grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-          <FcPanel className="p-5 sm:p-6">
+          <FcPanel className="fc-tournament-panel p-5 sm:p-6">
             <SectionTitle
               icon="tournament"
               title="Active Tournament"
@@ -1367,7 +1374,7 @@ export default function DashboardPage() {
           </FcPanel>
 
 
-          <div>
+          <div className="fc-quick-actions-panel">
             <SectionTitle
               icon="activity"
               title="Quick Actions"
@@ -1420,7 +1427,7 @@ export default function DashboardPage() {
         </section>
 
 
-        <FcPanel className="p-5 sm:p-6">
+        <FcPanel className="fc-activity-panel p-5 sm:p-6">
           <SectionTitle
             icon="history"
             title="Latest Activity"

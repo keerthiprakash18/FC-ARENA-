@@ -3802,3 +3802,815 @@ textarea:focus-visible {
       none !important;
   }
 }
+
+
+/* =========================================================
+   FC ARENA — DASHBOARD PREMIUM MOTION V2
+   Additional dashboard-only sports presentation layer.
+   CSS-only: no extra images, requests, auth or data logic.
+   ========================================================= */
+
+.fc-dashboard-page::before {
+  content: "";
+  position: absolute;
+  inset: -24px -18px 52%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.62;
+  background:
+    radial-gradient(
+      ellipse at 20% 8%,
+      color-mix(in srgb, var(--theme-primary) 9%, transparent),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 76% 14%,
+      color-mix(in srgb, var(--theme-accent) 7%, transparent),
+      transparent 44%
+    );
+  animation:
+    fcDashboardAurora 9s ease-in-out infinite alternate;
+}
+
+.fc-dashboard-beam {
+  position: absolute;
+  top: -22%;
+  width: 180px;
+  height: 72%;
+  pointer-events: none;
+  opacity: 0.18;
+  filter: blur(4px);
+  transform-origin: top center;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--theme-primary) 17%, transparent),
+      transparent 78%
+    );
+  clip-path:
+    polygon(
+      44% 0,
+      56% 0,
+      100% 100%,
+      0 100%
+    );
+  will-change: transform, opacity;
+}
+
+.fc-dashboard-beam-one {
+  left: 22%;
+  transform:
+    rotate(-13deg);
+  animation:
+    fcDashboardBeamOne 8.5s ease-in-out infinite alternate;
+}
+
+.fc-dashboard-beam-two {
+  right: 16%;
+  transform:
+    rotate(14deg);
+  animation:
+    fcDashboardBeamTwo 10.5s ease-in-out infinite alternate;
+}
+
+.fc-dashboard-particles {
+  position: absolute;
+  inset: 0;
+  opacity: 0.30;
+  pointer-events: none;
+  background-image:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--theme-primary) 26%, transparent) 0 1px,
+      transparent 1.6px
+    ),
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--theme-accent) 20%, transparent) 0 1px,
+      transparent 1.7px
+    );
+  background-size:
+    78px 78px,
+    112px 112px;
+  background-position:
+    0 0,
+    31px 19px;
+  -webkit-mask-image:
+    linear-gradient(
+      180deg,
+      #000 0%,
+      rgba(0,0,0,0.9) 62%,
+      transparent 100%
+    );
+  mask-image:
+    linear-gradient(
+      180deg,
+      #000 0%,
+      rgba(0,0,0,0.9) 62%,
+      transparent 100%
+    );
+  animation:
+    fcDashboardParticles 18s linear infinite;
+}
+
+.fc-dashboard-hero {
+  isolation: isolate;
+}
+
+.fc-dashboard-hero-scan {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto 0 -18%;
+  width: 22%;
+  pointer-events: none;
+  opacity: 0;
+  transform:
+    skewX(-15deg);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, white 36%, var(--theme-primary) 64%),
+      transparent
+    );
+  filter: blur(8px);
+  animation:
+    fcDashboardHeroScan 8.5s ease-in-out infinite;
+}
+
+.fc-dashboard-hero-orbit {
+  position: absolute;
+  z-index: 1;
+  right: clamp(44px, 8vw, 118px);
+  top: 50%;
+  width: 188px;
+  height: 188px;
+  pointer-events: none;
+  border:
+    1px dashed
+    color-mix(
+      in srgb,
+      var(--theme-primary) 25%,
+      transparent
+    );
+  border-radius: 50%;
+  opacity: 0.48;
+  transform:
+    translateY(-50%);
+  animation:
+    fcDashboardOrbit 18s linear infinite;
+}
+
+.fc-dashboard-hero-orbit::before,
+.fc-dashboard-hero-orbit::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.fc-dashboard-hero-orbit::before {
+  inset: 17px;
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--theme-primary) 11%,
+      transparent
+    );
+}
+
+.fc-dashboard-hero-orbit::after {
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  transform:
+    translateX(-50%);
+  background:
+    var(--theme-primary);
+  box-shadow:
+    0 0 0 5px
+      color-mix(
+        in srgb,
+        var(--theme-primary) 11%,
+        transparent
+      ),
+    0 0 18px
+      color-mix(
+        in srgb,
+        var(--theme-primary) 46%,
+        transparent
+      );
+}
+
+.fc-dashboard-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-dashboard-live-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background:
+    var(--theme-success);
+  box-shadow:
+    0 0 0 4px
+      color-mix(
+        in srgb,
+        var(--theme-success) 10%,
+        transparent
+      );
+  animation:
+    fcDashboardLiveDot 1.9s ease-in-out infinite;
+}
+
+.fc-dashboard-live-dot::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--theme-success) 25%,
+      transparent
+    );
+  border-radius: 50%;
+  animation:
+    fcDashboardLiveRing 1.9s ease-out infinite;
+}
+
+.fc-dashboard-page .theme-hero-avatar-ring {
+  position: relative;
+}
+
+.fc-dashboard-page .theme-hero-avatar-ring::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border:
+    1px dashed
+    color-mix(
+      in srgb,
+      var(--theme-primary) 22%,
+      transparent
+    );
+  border-radius: 50%;
+  animation:
+    fcDashboardAvatarOrbit 13s linear infinite;
+}
+
+.fc-next-match-panel {
+  isolation: isolate;
+}
+
+.fc-next-match-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.34;
+  background:
+    radial-gradient(
+      circle at 50% 108%,
+      color-mix(in srgb, var(--theme-primary) 15%, transparent),
+      transparent 44%
+    );
+  animation:
+    fcDashboardMatchGlow 5.5s ease-in-out infinite alternate;
+}
+
+.fc-next-match-panel::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -116px;
+  z-index: 0;
+  width: 420px;
+  height: 260px;
+  pointer-events: none;
+  transform:
+    translateX(-50%)
+    perspective(420px)
+    rotateX(62deg);
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--theme-primary) 12%,
+      transparent
+    );
+  border-radius: 46%;
+  opacity: 0.50;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.7%,
+      color-mix(in srgb, var(--theme-primary) 10%, transparent) 50%,
+      transparent 50.3%
+    ),
+    linear-gradient(
+      0deg,
+      transparent 49.7%,
+      color-mix(in srgb, var(--theme-primary) 8%, transparent) 50%,
+      transparent 50.3%
+    );
+}
+
+.fc-match-spotlight {
+  position: absolute;
+  z-index: 0;
+  top: -50%;
+  left: 50%;
+  width: 160px;
+  height: 180%;
+  pointer-events: none;
+  opacity: 0.14;
+  transform:
+    translateX(-50%)
+    rotate(13deg);
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--theme-primary) 38%, transparent) 48%,
+      transparent
+    );
+  filter:
+    blur(10px);
+  animation:
+    fcDashboardMatchSpotlight 7.2s ease-in-out infinite alternate;
+}
+
+.fc-next-match-panel .theme-neutral-block {
+  position: relative;
+  overflow: visible;
+  animation:
+    fcDashboardVsPulse 3s ease-in-out infinite;
+}
+
+.fc-next-match-panel .theme-neutral-block::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border:
+    1px solid
+    color-mix(
+      in srgb,
+      var(--theme-primary) 15%,
+      transparent
+    );
+  border-radius: 14px;
+  opacity: 0;
+  animation:
+    fcDashboardVsRing 3s ease-out infinite;
+}
+
+.fc-next-match-panel .theme-crest {
+  transition:
+    transform 260ms ease;
+}
+
+.fc-next-match-panel:hover .theme-crest {
+  transform:
+    translateY(-3px)
+    scale(1.035);
+}
+
+.fc-league-panel,
+.fc-tournament-panel,
+.fc-activity-panel {
+  isolation: isolate;
+}
+
+.fc-league-panel::before,
+.fc-tournament-panel::before,
+.fc-activity-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0.62;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--theme-primary) 62%, transparent),
+      transparent
+    );
+  transform:
+    translateX(-100%);
+  animation:
+    fcDashboardPanelLine 8s ease-in-out infinite;
+}
+
+.fc-tournament-panel::before {
+  animation-delay:
+    1.2s;
+}
+
+.fc-activity-panel::before {
+  animation-delay:
+    2.1s;
+}
+
+.fc-quick-actions-panel {
+  position: relative;
+  isolation: isolate;
+}
+
+.fc-quick-actions-panel::before {
+  content: "";
+  position: absolute;
+  inset: 44px -8px -8px;
+  z-index: -1;
+  border-radius: 18px;
+  opacity: 0.55;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--theme-primary) 7%, transparent),
+      transparent 62%
+    );
+}
+
+.fc-quick-actions-panel .theme-action-row {
+  transition:
+    transform 210ms ease,
+    border-color 210ms ease,
+    box-shadow 210ms ease !important;
+}
+
+.fc-quick-actions-panel .theme-action-row:hover {
+  transform:
+    translateY(-3px) !important;
+  border-color:
+    color-mix(
+      in srgb,
+      var(--theme-primary) 32%,
+      var(--theme-border)
+    ) !important;
+  box-shadow:
+    0 12px 24px rgba(11,31,68,0.075) !important;
+}
+
+.fc-activity-panel a {
+  position: relative;
+}
+
+.fc-activity-panel a::before {
+  content: "";
+  position: absolute;
+  inset: 3px 0;
+  z-index: -1;
+  border-radius: 10px;
+  opacity: 0;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--theme-primary) 5%, transparent),
+      transparent 76%
+    );
+  transform:
+    translateX(-8px);
+  transition:
+    opacity 190ms ease,
+    transform 190ms ease;
+}
+
+.fc-activity-panel a:hover::before {
+  opacity: 1;
+  transform:
+    translateX(0);
+}
+
+.fc-dashboard-page .theme-primary-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.fc-dashboard-page .theme-primary-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform:
+    translateX(-130%)
+    skewX(-20deg);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.34),
+      transparent
+    );
+}
+
+.fc-dashboard-page .theme-primary-button:hover::after {
+  animation:
+    fcDashboardButtonSweep 720ms ease;
+}
+
+@keyframes fcDashboardAurora {
+  from {
+    opacity: 0.44;
+    transform:
+      translate3d(-10px, -4px, 0)
+      scale(0.99);
+  }
+
+  to {
+    opacity: 0.72;
+    transform:
+      translate3d(18px, 9px, 0)
+      scale(1.025);
+  }
+}
+
+@keyframes fcDashboardBeamOne {
+  from {
+    opacity: 0.10;
+    transform:
+      translate3d(-20px, 0, 0)
+      rotate(-17deg);
+  }
+
+  to {
+    opacity: 0.24;
+    transform:
+      translate3d(42px, 10px, 0)
+      rotate(-8deg);
+  }
+}
+
+@keyframes fcDashboardBeamTwo {
+  from {
+    opacity: 0.10;
+    transform:
+      translate3d(25px, 0, 0)
+      rotate(18deg);
+  }
+
+  to {
+    opacity: 0.22;
+    transform:
+      translate3d(-38px, 8px, 0)
+      rotate(9deg);
+  }
+}
+
+@keyframes fcDashboardParticles {
+  from {
+    background-position:
+      0 0,
+      31px 19px;
+  }
+
+  to {
+    background-position:
+      78px 78px,
+      -81px 131px;
+  }
+}
+
+@keyframes fcDashboardHeroScan {
+  0%,
+  58% {
+    left: -24%;
+    opacity: 0;
+  }
+
+  65% {
+    opacity: 0.12;
+  }
+
+  86% {
+    opacity: 0.06;
+  }
+
+  100% {
+    left: 116%;
+    opacity: 0;
+  }
+}
+
+@keyframes fcDashboardOrbit {
+  from {
+    transform:
+      translateY(-50%)
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      translateY(-50%)
+      rotate(360deg);
+  }
+}
+
+@keyframes fcDashboardLiveDot {
+  0%,
+  100% {
+    transform:
+      scale(0.92);
+    opacity: 0.72;
+  }
+
+  50% {
+    transform:
+      scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes fcDashboardLiveRing {
+  from {
+    transform:
+      scale(0.66);
+    opacity: 0.50;
+  }
+
+  to {
+    transform:
+      scale(1.55);
+    opacity: 0;
+  }
+}
+
+@keyframes fcDashboardAvatarOrbit {
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+@keyframes fcDashboardMatchGlow {
+  from {
+    opacity: 0.20;
+    transform:
+      scale(0.98);
+  }
+
+  to {
+    opacity: 0.46;
+    transform:
+      scale(1.03);
+  }
+}
+
+@keyframes fcDashboardMatchSpotlight {
+  from {
+    left: 37%;
+    opacity: 0.08;
+    transform:
+      translateX(-50%)
+      rotate(9deg);
+  }
+
+  to {
+    left: 63%;
+    opacity: 0.18;
+    transform:
+      translateX(-50%)
+      rotate(17deg);
+  }
+}
+
+@keyframes fcDashboardVsPulse {
+  0%,
+  100% {
+    transform:
+      scale(1);
+  }
+
+  50% {
+    transform:
+      scale(1.055);
+  }
+}
+
+@keyframes fcDashboardVsRing {
+  0% {
+    opacity: 0.42;
+    transform:
+      scale(0.78);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform:
+      scale(1.22);
+  }
+}
+
+@keyframes fcDashboardPanelLine {
+  0%,
+  52% {
+    transform:
+      translateX(-100%);
+    opacity: 0;
+  }
+
+  64% {
+    opacity: 0.65;
+  }
+
+  86%,
+  100% {
+    transform:
+      translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fcDashboardButtonSweep {
+  from {
+    transform:
+      translateX(-130%)
+      skewX(-20deg);
+  }
+
+  to {
+    transform:
+      translateX(130%)
+      skewX(-20deg);
+  }
+}
+
+@media (max-width: 1023px) {
+  .fc-dashboard-hero-orbit {
+    right: -36px;
+    width: 150px;
+    height: 150px;
+    opacity: 0.28;
+  }
+
+  .fc-dashboard-beam {
+    opacity: 0.10;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc-dashboard-beam,
+  .fc-dashboard-particles {
+    opacity: 0.12;
+  }
+
+  .fc-dashboard-hero-orbit {
+    right: -56px;
+    width: 126px;
+    height: 126px;
+    opacity: 0.20;
+  }
+
+  .fc-dashboard-hero-scan {
+    display: none;
+  }
+
+  .fc-match-spotlight {
+    opacity: 0.08;
+  }
+
+  .fc-next-match-panel::after {
+    width: 300px;
+  }
+
+  .fc-quick-actions-panel .theme-action-row:hover {
+    transform:
+      none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-dashboard-page::before,
+  .fc-dashboard-beam,
+  .fc-dashboard-particles,
+  .fc-dashboard-hero-scan,
+  .fc-dashboard-hero-orbit,
+  .fc-dashboard-live-dot,
+  .fc-dashboard-live-dot::after,
+  .fc-dashboard-page .theme-hero-avatar-ring::before,
+  .fc-next-match-panel::before,
+  .fc-match-spotlight,
+  .fc-next-match-panel .theme-neutral-block,
+  .fc-next-match-panel .theme-neutral-block::after,
+  .fc-league-panel::before,
+  .fc-tournament-panel::before,
+  .fc-activity-panel::before {
+    animation:
+      none !important;
+  }
+}

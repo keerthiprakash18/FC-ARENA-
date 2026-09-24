@@ -823,7 +823,18 @@ export default function DashboardPage() {
         'Player'
       }
     >
-      <div className="space-y-5 sm:space-y-6">
+      <div className="fc-dashboard-page relative space-y-5 sm:space-y-6">
+        <div
+          className="fc-dashboard-backdrop"
+          aria-hidden="true"
+        >
+          <span className="fc-dashboard-backdrop-grid" />
+          <span className="fc-dashboard-light fc-dashboard-light-one" />
+          <span className="fc-dashboard-light fc-dashboard-light-two" />
+          <span className="fc-dashboard-ring fc-dashboard-ring-one" />
+          <span className="fc-dashboard-ring fc-dashboard-ring-two" />
+        </div>
+
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {
@@ -833,7 +844,7 @@ export default function DashboardPage() {
         ) : null}
 
 
-        <section className="fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
+        <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
           <div className="fc-hero-art" />
           <div className="fc-hero-right hidden lg:block" />
 
@@ -921,7 +932,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <section className="fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Link href="/career">
             <FcStatCard
               label="Matches"
@@ -974,7 +985,7 @@ export default function DashboardPage() {
         </section>
 
 
-        <section className="grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
+        <section className="fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
           <FcPanel className="relative overflow-hidden p-5 sm:p-6">
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
@@ -1221,7 +1232,7 @@ export default function DashboardPage() {
         </section>
 
 
-        <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+        <section className="fc-dashboard-section grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
           <FcPanel className="p-5 sm:p-6">
             <SectionTitle
               icon="tournament"

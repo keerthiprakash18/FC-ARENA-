@@ -1061,6 +1061,7 @@ export class ResultsService {
       await this.getCanonicalConfirmedFixtures(
         tournamentId,
         tournament.competitionFormat,
+        tournament.legType,
       );
 
     for (
@@ -1285,6 +1286,7 @@ export class ResultsService {
       await this.getCanonicalConfirmedFixtures(
         tournamentId,
         tournament.competitionFormat,
+        tournament.legType,
       );
 
     for (
@@ -1367,6 +1369,7 @@ export class ResultsService {
   private async getCanonicalConfirmedFixtures(
     tournamentId: string,
     competitionFormat: string,
+    legType: string,
   ) {
     const fixtures =
       await this.prisma.fixture.findMany({
@@ -1407,6 +1410,7 @@ export class ResultsService {
     return deduplicateFixtureRecords(
       fixtures,
       competitionFormat,
+      legType,
     ).filter(
       (
         fixture,
@@ -1787,7 +1791,10 @@ export class ResultsService {
 
     const directional =
       competitionFormat ===
-      'DOUBLE_ROUND_ROBIN';
+        'DOUBLE_ROUND_ROBIN' ||
+      match.tournament
+        ?.legType ===
+        'HOME_AWAY';
 
     const duplicate =
       await client.fixture.findFirst({

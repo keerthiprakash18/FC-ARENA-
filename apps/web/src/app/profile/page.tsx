@@ -8,6 +8,7 @@ import {
 
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -16,7 +17,6 @@ import {
 } from '@/components/app/app-shell';
 
 import {
-  FcCrest,
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
@@ -25,6 +25,7 @@ import {
 
 import {
   authenticatedRequest,
+  authenticatedUpload,
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
@@ -132,6 +133,236 @@ export default function ProfilePage() {
       null,
     );
 
+  const imageInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    );
+
+  const [
+    imageBusy,
+    setImageBusy,
+  ] =
+    useState(false);
+
+  const [
+    imageProgress,
+    setImageProgress,
+  ] =
+    useState(0);
+
+  const [
+    imageMessage,
+    setImageMessage,
+  ] =
+    useState('');
+
+  const [
+    imageError,
+    setImageError,
+  ] =
+    useState('');
+
+
+  function applyProfileImage(
+    profileImageUrl:
+      string | null,
+  ) {
+    setCareer(
+      (
+        current,
+      ) =>
+        current
+          ? {
+              ...current,
+              profile: {
+                ...current.profile,
+                profileImageUrl,
+              },
+            }
+          : current,
+    );
+
+    setUser(
+      (
+        current,
+      ) =>
+        current
+          ? {
+              ...current,
+              player:
+                current.player
+                  ? {
+                      ...current.player,
+                      profileImageUrl,
+                    }
+                  : current.player,
+            }
+          : current,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent(
+        'fc-arena-profile-image-changed',
+        {
+          detail: {
+            profileImageUrl,
+          },
+        },
+      ),
+    );
+  }
+
+
+  async function uploadProfileImage(
+    file: File,
+  ) {
+    setImageBusy(
+      true,
+    );
+
+    setImageProgress(
+      0,
+    );
+
+    setImageError(
+      '',
+    );
+
+    setImageMessage(
+      '',
+    );
+
+    const body =
+      new FormData();
+
+    body.append(
+      'image',
+      file,
+    );
+
+    try {
+      const response =
+        await authenticatedUpload<{
+          success: true;
+          data: {
+            message: string;
+            profileImageUrl:
+              string;
+          };
+          error: null;
+        }>(
+          '/players/me/profile-image',
+          body,
+          (
+            progress,
+          ) =>
+            setImageProgress(
+              progress,
+            ),
+        );
+
+      applyProfileImage(
+        response.data
+          .profileImageUrl,
+      );
+
+      setImageMessage(
+        response.data.message,
+      );
+
+      setImageProgress(
+        100,
+      );
+    } catch (
+      err
+    ) {
+      setImageError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to upload profile photo.',
+      );
+    } finally {
+      setImageBusy(
+        false,
+      );
+    }
+  }
+
+
+  async function removeProfileImage() {
+    if (
+      imageBusy ||
+      !career?.profile
+        .profileImageUrl
+    ) {
+      return;
+    }
+
+    if (
+      !window.confirm(
+        'Remove your profile photo?',
+      )
+    ) {
+      return;
+    }
+
+    setImageBusy(
+      true,
+    );
+
+    setImageError(
+      '',
+    );
+
+    setImageMessage(
+      '',
+    );
+
+    try {
+      const response =
+        await authenticatedRequest<{
+          success: true;
+          data: {
+            message: string;
+            profileImageUrl:
+              null;
+          };
+          error: null;
+        }>(
+          '/players/me/profile-image',
+          {
+            method:
+              'DELETE',
+          },
+        );
+
+      applyProfileImage(
+        null,
+      );
+
+      setImageMessage(
+        response.data.message,
+      );
+
+      setImageProgress(
+        0,
+      );
+    } catch (
+      err
+    ) {
+      setImageError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to remove profile photo.',
+      );
+    } finally {
+      setImageBusy(
+        false,
+      );
+    }
+  }
+
+
   useEffect(() => {
     void (async () => {
       try {
@@ -142,7 +373,11 @@ export default function ProfilePage() {
           await Promise.all([
             getCurrentUser(),
 
-            authenticatedRequest<any>(
+            authenticatedRequest<{
+              success: true;
+              data: CareerData;
+              error: null;
+            }>(
               '/players/me/career',
             ),
           ]);
@@ -195,61 +430,211 @@ export default function ProfilePage() {
     >
       <div className="mx-auto max-w-6xl space-y-6">
         <FcPanel className="overflow-hidden">
-          <div className="fc-profile-banner h-28 md:h-36" />
+          <div className="fc-profile-banner h-20 sm:h-24" />
 
-          <div className="px-5 pb-6 sm:px-7">
-            <div className="-mt-10 flex flex-col gap-5 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                <FcCrest
-                  name={
-                    playerName
-                  }
-                  imageUrl={
-                    career.profile
-                      .profileImageUrl
-                  }
-                  size="lg"
-                />
+          <div className="p-5 sm:p-7">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
+                <div className="shrink-0">
+                  <input
+                    ref={
+                      imageInputRef
+                    }
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                    className="hidden"
+                    onChange={
+                      (
+                        event,
+                      ) => {
+                        const file =
+                          event.target
+                            .files?.[0];
 
-                <div className="pb-1">
+                        event.target.value =
+                          '';
+
+                        if (
+                          file
+                        ) {
+                          void uploadProfileImage(
+                            file,
+                          );
+                        }
+                      }
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    disabled={
+                      imageBusy
+                    }
+                    onClick={() =>
+                      imageInputRef
+                        .current
+                        ?.click()
+                    }
+                    className="group relative block h-24 w-24 overflow-hidden rounded-2xl border border-black/10 bg-black/[0.03] shadow-sm disabled:opacity-60"
+                    aria-label="Choose profile photo"
+                  >
+                    {career.profile
+                      .profileImageUrl ? (
+                      <img
+                        src={
+                          career.profile
+                            .profileImageUrl
+                        }
+                        alt={
+                          playerName +
+                          ' profile'
+                        }
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="theme-text grid h-full w-full place-items-center text-2xl font-bold">
+                        {
+                          playerName
+                            .split(
+                              /\s+/,
+                            )
+                            .map(
+                              (
+                                part,
+                              ) =>
+                                part[0],
+                            )
+                            .join('')
+                            .slice(
+                              0,
+                              2,
+                            )
+                            .toUpperCase()
+                        }
+                      </span>
+                    )}
+
+                    <span className="absolute inset-x-0 bottom-0 bg-black/65 px-2 py-1.5 text-center text-[10px] font-semibold text-white">
+                      {imageBusy
+                        ? imageProgress +
+                          '%'
+                        : 'Change photo'}
+                    </span>
+                  </button>
+                </div>
+
+                <div className="min-w-0">
                   <p className="theme-text-link text-xs font-semibold uppercase tracking-[0.16em]">
                     FC ARENA Player
                   </p>
 
-                  <h1 className="theme-text mt-1 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+                  <h1 className="theme-text mt-1 break-words text-2xl font-bold leading-tight tracking-[-0.03em] sm:text-3xl lg:text-4xl">
                     {
                       career.profile
                         .fullName
                     }
                   </h1>
 
-                  <p className="theme-secondary-text mt-1 text-sm">
-                    {
-                      playerName
-                    }
-                    {career.profile
-                      .playerCode
-                      ? ' · ' +
-                        career.profile
-                          .playerCode
-                      : ''}
+                  <p className="theme-secondary-text mt-2 break-words text-sm">
+                    In-Game Name:{' '}
+                    <span className="theme-text font-semibold">
+                      {
+                        playerName
+                      }
+                    </span>
                   </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {career.profile
+                      .playerCode ? (
+                      <span className="theme-soft-accent rounded-lg border px-3 py-1.5 font-mono text-xs font-semibold">
+                        {
+                          career.profile
+                            .playerCode
+                        }
+                      </span>
+                    ) : null}
+
+                    <FcStatusBadge
+                      label={
+                        identity?.isVerified
+                          ? 'Verified Player'
+                          : 'Active Player'
+                      }
+                      tone={
+                        identity?.isVerified
+                          ? 'emerald'
+                          : 'cyan'
+                      }
+                    />
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={
+                        imageBusy
+                      }
+                      onClick={() =>
+                        imageInputRef
+                          .current
+                          ?.click()
+                      }
+                      className="theme-secondary-button min-h-10 rounded-[10px] border px-3.5 text-xs font-semibold disabled:opacity-50"
+                    >
+                      {
+                        career.profile
+                          .profileImageUrl
+                          ? 'Change Photo'
+                          : 'Upload Photo'
+                      }
+                    </button>
+
+                    {career.profile
+                      .profileImageUrl ? (
+                      <button
+                        type="button"
+                        disabled={
+                          imageBusy
+                        }
+                        onClick={() =>
+                          void removeProfileImage()
+                        }
+                        className="theme-danger-button min-h-10 rounded-[10px] border px-3.5 text-xs font-semibold disabled:opacity-50"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
-              <FcStatusBadge
-                label={
-                  identity?.isVerified
-                    ? 'Verified Player'
-                    : 'Active Player'
-                }
-                tone={
-                  identity?.isVerified
-                    ? 'emerald'
-                    : 'cyan'
-                }
-              />
+              <div className="shrink-0 lg:text-right">
+                <p className="theme-muted text-xs">
+                  Profile photo
+                </p>
+
+                <p className="theme-secondary-text mt-1 max-w-xs text-xs leading-5">
+                  Choose a PNG, JPG or WEBP image from your device. It will be optimized automatically.
+                </p>
+              </div>
             </div>
+
+            {imageMessage ? (
+              <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] p-3 text-sm text-emerald-700">
+                {
+                  imageMessage
+                }
+              </div>
+            ) : null}
+
+            {imageError ? (
+              <div className="mt-5 rounded-xl border border-red-400/20 bg-red-400/[0.05] p-3 text-sm text-red-600">
+                {
+                  imageError
+                }
+              </div>
+            ) : null}
           </div>
         </FcPanel>
 

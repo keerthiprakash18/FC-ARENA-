@@ -149,6 +149,73 @@ describe(
       },
     );
 
+
+    it(
+      'allows only one pending result submission per match',
+      () => {
+        const submitResult =
+          extractMethod(
+            resultsServiceSource,
+            'submitResult',
+            [
+              'getMatchResults',
+              'confirmResult',
+              'rejectResult',
+              'getStandings',
+              'getMyStatistics',
+            ],
+          );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'const existingPending',
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'matchId',
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'PENDING_VERIFICATION',
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'resultAlreadyPending',
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toContain(
+          'RESULT_ALREADY_PENDING',
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toMatch(
+          /shared pending result|duplicate/i,
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          "isolationLevel:",
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          "'Serializable'",
+        );
+      },
+    );
+
     it(
       'confirmation uses a database transaction',
       () => {

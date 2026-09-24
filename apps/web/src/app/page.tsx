@@ -4,6 +4,10 @@ import type {
 
 import Link from 'next/link';
 
+import {
+  SessionRedirect,
+} from '@/components/auth/session-redirect';
+
 
 export const metadata: Metadata = {
   title:
@@ -50,6 +54,8 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#071019] text-[#F8FAFC]">
+      <SessionRedirect />
+
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-16 sm:px-8 lg:px-10">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#19B7FF]">
           FC ARENA

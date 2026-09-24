@@ -67,9 +67,11 @@ const quickSearchItems = [
 export function AppHeader({
   playerName,
   playerRole,
+  playerImageUrl,
 }: {
   playerName?: string | null;
   playerRole?: string | null;
+  playerImageUrl?: string | null;
 }) {
   const router =
     useRouter();
@@ -332,8 +334,22 @@ export function AppHeader({
             href="/profile"
             className="theme-profile-chip flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
           >
-            <span className="theme-avatar grid h-9 w-9 place-items-center rounded-full border text-xs font-semibold">
-              {initials}
+            <span className="theme-avatar grid h-9 w-9 place-items-center overflow-hidden rounded-full border text-xs font-semibold">
+              {playerImageUrl ? (
+                <img
+                  src={
+                    playerImageUrl
+                  }
+                  alt={
+                    (playerName ||
+                      'Player') +
+                    ' profile'
+                  }
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                initials
+              )}
             </span>
 
             <span className="hidden min-w-0 sm:block">

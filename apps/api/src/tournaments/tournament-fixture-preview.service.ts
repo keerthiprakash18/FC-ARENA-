@@ -879,10 +879,11 @@ export class TournamentFixturePreviewService {
           'CUSTOM_MANUAL'
       ) {
         if (
+          fixture.matchday ===
+            null ||
           !Number.isInteger(
             fixture.matchday,
           ) ||
-          !fixture.matchday ||
           fixture.matchday <
             1
         ) {

@@ -57,9 +57,10 @@ export function AuthCard({
             className={styles.logoBadge}
             aria-hidden="true"
           >
-            <FcIcon
-              name="football"
-              size={27}
+            <img
+              src="/brand/brand-small.svg"
+              alt=""
+              className={styles.logoImage}
             />
           </div>
 
@@ -75,6 +76,12 @@ export function AuthCard({
         </div>
 
         <div className={styles.hero}>
+          <img
+            src="/brand/brand-full.svg"
+            alt="FC ARENA"
+            className={styles.heroBrandLogo}
+          />
+
           <p className={styles.kicker}>
             FOOTBALL COMPETITION PLATFORM
           </p>

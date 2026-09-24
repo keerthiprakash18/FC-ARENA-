@@ -621,32 +621,15 @@ export function AppShell({
             href="/dashboard"
             className="flex min-h-[58px] items-center gap-3.5"
           >
-            <span className="theme-brand-mark grid h-12 w-12 shrink-0 place-items-center rounded-[13px] border shadow-[0_8px_22px_rgba(0,0,0,0.10)]">
-              <svg
-                viewBox="0 0 48 48"
-                fill="none"
-                className="h-8 w-8"
-                aria-hidden="true"
-              >
-                <path
-                  d="M8 17.5 13 31h22l5-13.5-9 6-7-12-7 12-9-6Z"
-                  stroke="currentColor"
-                  strokeWidth="2.6"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M13 35h22"
-                  stroke="currentColor"
-                  strokeWidth="2.6"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M10 10.5h.01M38 10.5h.01M24 6h.01"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                />
-              </svg>
+            <span
+              className="theme-brand-mark grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-[13px] border shadow-[0_8px_22px_rgba(0,0,0,0.10)]"
+              aria-hidden="true"
+            >
+              <img
+                src="/brand/brand-small.svg"
+                alt=""
+                className="h-full w-full object-cover"
+              />
             </span>
 
             <span className="min-w-0">

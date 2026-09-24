@@ -187,13 +187,31 @@ describe(
         expect(
           submitResult,
         ).toContain(
+          'resultAlreadyPending',
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toContain(
           'RESULT_ALREADY_PENDING',
         );
 
         expect(
-          submitResult,
+          resultsServiceSource,
         ).toMatch(
           /shared pending result|duplicate/i,
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          "isolationLevel:",
+        );
+
+        expect(
+          submitResult,
+        ).toContain(
+          "'Serializable'",
         );
       },
     );

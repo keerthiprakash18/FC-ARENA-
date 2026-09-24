@@ -13,6 +13,7 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 
 import {
+  generateDoubleRoundRobinFixtures,
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
 
@@ -37,6 +38,8 @@ export class GroupFixturesService {
           leagueId: true,
           status: true,
           fixturesGeneratedAt: true,
+          competitionFormat: true,
+          legType: true,
         },
       });
 
@@ -211,10 +214,20 @@ export class GroupFixturesService {
               ),
             );
 
+          const isDoubleRoundRobin =
+            tournament.competitionFormat ===
+              'DOUBLE_ROUND_ROBIN' ||
+            tournament.legType ===
+              'HOME_AWAY';
+
           const blueprints =
-            generateRoundRobinFixtures(
-              registrationIds,
-            );
+            isDoubleRoundRobin
+              ? generateDoubleRoundRobinFixtures(
+                  registrationIds,
+                )
+              : generateRoundRobinFixtures(
+                  registrationIds,
+                );
 
           return {
             group,
@@ -313,8 +326,18 @@ export class GroupFixturesService {
                 plan.blueprints.length,
 
               matchesPerEntry:
-                plan.registrationIds.length -
-                1,
+                (
+                  plan.registrationIds.length -
+                  1
+                ) *
+                (
+                  tournament.competitionFormat ===
+                    'DOUBLE_ROUND_ROBIN' ||
+                  tournament.legType ===
+                    'HOME_AWAY'
+                    ? 2
+                    : 1
+                ),
             });
           }
 

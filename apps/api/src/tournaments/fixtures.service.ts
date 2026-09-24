@@ -11,6 +11,7 @@ import { AuthorizationService } from '../security/authorization.service.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import {
+  generateDoubleRoundRobinFixtures,
   generateKnockoutFixtures,
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
@@ -99,12 +100,22 @@ export class FixturesService {
           registration.id,
       );
 
+    const isDoubleRoundRobin =
+      tournament.competitionFormat ===
+        'DOUBLE_ROUND_ROBIN' ||
+      tournament.legType ===
+        'HOME_AWAY';
+
     const blueprints =
       tournament.format ===
       'ROUND_ROBIN'
-        ? generateRoundRobinFixtures(
-            registrationIds,
-          )
+        ? isDoubleRoundRobin
+          ? generateDoubleRoundRobinFixtures(
+              registrationIds,
+            )
+          : generateRoundRobinFixtures(
+              registrationIds,
+            )
         : generateKnockoutFixtures(
             registrationIds,
           );
@@ -248,6 +259,7 @@ export class FixturesService {
           leagueId: true,
           format: true,
           competitionFormat: true,
+          legType: true,
         },
       });
 
@@ -351,6 +363,7 @@ export class FixturesService {
       deduplicateFixtureRecords(
         fixtures,
         tournament.competitionFormat,
+        tournament.legType,
       );
 
     return {

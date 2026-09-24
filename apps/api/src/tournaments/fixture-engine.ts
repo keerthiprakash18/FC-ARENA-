@@ -100,9 +100,10 @@ export function generateRoundRobinFixtures(
     rotating[0] = fixed;
   }
 
-  validateRoundRobin(
+  validateRoundRobinFixtureIntegrity(
     registrationIds,
     fixtures,
+    1,
   );
 
   return fixtures;
@@ -118,9 +119,9 @@ export function generateDoubleRoundRobinFixtures(
     );
 
   const rounds =
-    registrationIds.length % 2 === 0
-      ? registrationIds.length - 1
-      : registrationIds.length;
+    roundRobinRoundsPerLeg(
+      registrationIds.length,
+    );
 
   const secondLeg =
     firstLeg.map(
@@ -185,6 +186,12 @@ export function generateDoubleRoundRobinFixtures(
       `Invalid Double Round Robin fixture count. Expected ${expected}, received ${fixtures.length}.`,
     );
   }
+
+  validateRoundRobinFixtureIntegrity(
+    registrationIds,
+    fixtures,
+    2,
+  );
 
   return fixtures;
 }
@@ -361,50 +368,438 @@ export function generateKnockoutFixtures(
   return fixtures;
 }
 
-function validateRoundRobin(
+function roundRobinRoundsPerLeg(
+  teamCount: number,
+): number {
+  return teamCount % 2 === 0
+    ? teamCount - 1
+    : teamCount;
+}
+
+
+function validateRoundRobinFixtureIntegrity(
   registrationIds: string[],
   fixtures: FixtureBlueprint[],
+  legs: 1 | 2,
 ): void {
-  const expected =
-    (registrationIds.length *
-      (registrationIds.length - 1)) /
+  const teamCount =
+    registrationIds.length;
+
+  const roundsPerLeg =
+    roundRobinRoundsPerLeg(
+      teamCount,
+    );
+
+  const expectedMatchdays =
+    roundsPerLeg *
+    legs;
+
+  const expectedFixtures =
+    (
+      teamCount *
+      (teamCount - 1) *
+      legs
+    ) /
     2;
 
-  if (fixtures.length !== expected) {
+  const expectedMatchesPerTeam =
+    (teamCount - 1) *
+    legs;
+
+  const expectedFixturesPerMatchday =
+    Math.floor(
+      teamCount / 2,
+    );
+
+  if (
+    fixtures.length !==
+    expectedFixtures
+  ) {
     throw new Error(
-      `Invalid Round Robin fixture count. Expected ${expected}, received ${fixtures.length}.`,
+      `Invalid Round Robin fixture count. Expected ${expectedFixtures}, received ${fixtures.length}.`,
     );
   }
 
-  const pairs = new Set<string>();
+  const registrations =
+    new Set(
+      registrationIds,
+    );
 
-  for (const fixture of fixtures) {
-    const home = fixture.homeRegistrationId;
-    const away = fixture.awayRegistrationId;
+  if (
+    registrations.size !==
+    registrationIds.length
+  ) {
+    throw new Error(
+      'Round Robin participants must be unique.',
+    );
+  }
 
-    if (!home || !away) {
+  const matchesPerTeam =
+    new Map<
+      string,
+      number
+    >(
+      registrationIds.map(
+        (
+          registrationId,
+        ) => [
+          registrationId,
+          0,
+        ],
+      ),
+    );
+
+  const participantsByMatchday =
+    new Map<
+      number,
+      Set<string>
+    >();
+
+  const fixturesPerMatchday =
+    new Map<
+      number,
+      number
+    >();
+
+  const pairingsByLeg =
+    new Set<string>();
+
+  const meetingsByPair =
+    new Map<
+      string,
+      FixtureBlueprint[]
+    >();
+
+  for (
+    const fixture
+    of fixtures
+  ) {
+    const home =
+      fixture.homeRegistrationId;
+
+    const away =
+      fixture.awayRegistrationId;
+
+    if (
+      !home ||
+      !away
+    ) {
       throw new Error(
         'Round Robin fixture cannot contain a BYE.',
       );
     }
 
-    if (home === away) {
+    if (
+      !registrations.has(
+        home,
+      ) ||
+      !registrations.has(
+        away,
+      )
+    ) {
+      throw new Error(
+        'Round Robin fixture contains an unknown participant.',
+      );
+    }
+
+    if (
+      home ===
+      away
+    ) {
       throw new Error(
         'A participant cannot play itself.',
       );
     }
 
-    const key = [home, away]
-      .sort()
-      .join(':');
+    const matchday =
+      fixture.matchday;
 
-    if (pairs.has(key)) {
+    if (
+      matchday ===
+        null ||
+      !Number.isInteger(
+        matchday,
+      ) ||
+      matchday <
+        1 ||
+      matchday >
+        expectedMatchdays
+    ) {
       throw new Error(
-        `Duplicate Round Robin pair detected: ${key}`,
+        `Invalid Round Robin Matchday: ${String(matchday)}.`,
       );
     }
 
-    pairs.add(key);
+    if (
+      fixture.roundNumber !==
+      matchday
+    ) {
+      throw new Error(
+        `Round number ${fixture.roundNumber} does not match Matchday ${matchday}.`,
+      );
+    }
+
+    const leg =
+      Math.floor(
+        (
+          matchday -
+          1
+        ) /
+        roundsPerLeg,
+      ) +
+      1;
+
+    const pairKey =
+      [
+        home,
+        away,
+      ]
+        .sort()
+        .join(':');
+
+    const pairLegKey =
+      `${leg}:${pairKey}`;
+
+    if (
+      pairingsByLeg.has(
+        pairLegKey,
+      )
+    ) {
+      throw new Error(
+        `Duplicate Round Robin pair detected inside leg ${leg}: ${pairKey}`,
+      );
+    }
+
+    pairingsByLeg.add(
+      pairLegKey,
+    );
+
+    const matchdayParticipants =
+      participantsByMatchday.get(
+        matchday,
+      ) ??
+      new Set<string>();
+
+    if (
+      matchdayParticipants.has(
+        home,
+      ) ||
+      matchdayParticipants.has(
+        away,
+      )
+    ) {
+      throw new Error(
+        `A participant cannot play more than once on Matchday ${matchday}.`,
+      );
+    }
+
+    matchdayParticipants.add(
+      home,
+    );
+
+    matchdayParticipants.add(
+      away,
+    );
+
+    participantsByMatchday.set(
+      matchday,
+      matchdayParticipants,
+    );
+
+    fixturesPerMatchday.set(
+      matchday,
+      (
+        fixturesPerMatchday.get(
+          matchday,
+        ) ??
+        0
+      ) +
+        1,
+    );
+
+    matchesPerTeam.set(
+      home,
+      (
+        matchesPerTeam.get(
+          home,
+        ) ??
+        0
+      ) +
+        1,
+    );
+
+    matchesPerTeam.set(
+      away,
+      (
+        matchesPerTeam.get(
+          away,
+        ) ??
+        0
+      ) +
+        1,
+    );
+
+    const meetings =
+      meetingsByPair.get(
+        pairKey,
+      ) ??
+      [];
+
+    meetings.push(
+      fixture,
+    );
+
+    meetingsByPair.set(
+      pairKey,
+      meetings,
+    );
+  }
+
+  if (
+    participantsByMatchday.size !==
+    expectedMatchdays
+  ) {
+    throw new Error(
+      `Invalid Round Robin Matchday count. Expected ${expectedMatchdays}, received ${participantsByMatchday.size}.`,
+    );
+  }
+
+  for (
+    let matchday =
+      1;
+    matchday <=
+    expectedMatchdays;
+    matchday++
+  ) {
+    if (
+      (
+        fixturesPerMatchday.get(
+          matchday,
+        ) ??
+        0
+      ) !==
+      expectedFixturesPerMatchday
+    ) {
+      throw new Error(
+        `Invalid fixture count on Matchday ${matchday}. Expected ${expectedFixturesPerMatchday}.`,
+      );
+    }
+  }
+
+  for (
+    const registrationId
+    of registrationIds
+  ) {
+    const actual =
+      matchesPerTeam.get(
+        registrationId,
+      ) ??
+      0;
+
+    if (
+      actual !==
+      expectedMatchesPerTeam
+    ) {
+      throw new Error(
+        `Invalid match count for participant ${registrationId}. Expected ${expectedMatchesPerTeam}, received ${actual}.`,
+      );
+    }
+  }
+
+  const expectedPairCount =
+    (
+      teamCount *
+      (teamCount - 1)
+    ) /
+    2;
+
+  if (
+    meetingsByPair.size !==
+    expectedPairCount
+  ) {
+    throw new Error(
+      `Invalid unique pairing count. Expected ${expectedPairCount}, received ${meetingsByPair.size}.`,
+    );
+  }
+
+  for (
+    const [
+      pairKey,
+      meetings,
+    ]
+    of meetingsByPair
+  ) {
+    if (
+      meetings.length !==
+      legs
+    ) {
+      throw new Error(
+        `Invalid meeting count for pair ${pairKey}. Expected ${legs}, received ${meetings.length}.`,
+      );
+    }
+
+    if (
+      legs ===
+      2
+    ) {
+      const ordered =
+        [
+          ...meetings,
+        ].sort(
+          (
+            first,
+            second,
+          ) =>
+            (
+              first.matchday ??
+              0
+            ) -
+            (
+              second.matchday ??
+              0
+            ),
+        );
+
+      const first =
+        ordered[0];
+
+      const second =
+        ordered[1];
+
+      if (
+        !first ||
+        !second ||
+        first.matchday ===
+          null ||
+        second.matchday ===
+          null
+      ) {
+        throw new Error(
+          `Invalid Home & Away pairing for ${pairKey}.`,
+        );
+      }
+
+      if (
+        second.matchday !==
+        first.matchday +
+          roundsPerLeg
+      ) {
+        throw new Error(
+          `Return fixture for ${pairKey} is assigned to the wrong Matchday.`,
+        );
+      }
+
+      if (
+        first.homeRegistrationId !==
+          second.awayRegistrationId ||
+        first.awayRegistrationId !==
+          second.homeRegistrationId
+      ) {
+        throw new Error(
+          `Return fixture for ${pairKey} must reverse Home and Away teams.`,
+        );
+      }
+    }
   }
 }
 

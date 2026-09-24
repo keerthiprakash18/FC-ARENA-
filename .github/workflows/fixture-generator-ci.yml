@@ -32,8 +32,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fixture engine tests
-        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts
+      - name: Fixture integrity tests
+        run: npm run test --workspace=apps/api -- src/tournaments/fixture-engine.spec.ts src/tournaments/fixture-deduplication.spec.ts
 
       - name: API build
         run: npm run build:api

@@ -592,6 +592,197 @@ describe(
 
 
     it.each([
+      [10, 18, 18, 90],
+      [11, 22, 20, 110],
+      [12, 22, 22, 132],
+      [20, 38, 38, 380],
+      [22, 42, 42, 462],
+    ])(
+      'generates %i-team Home and Away with %i Matchdays, %i matches per team and %i fixtures',
+      (
+        participantCount,
+        expectedMatchdays,
+        expectedMatchesPerTeam,
+        expectedFixtures,
+      ) => {
+        const participants =
+          ids(
+            participantCount,
+          );
+
+        const fixtures =
+          generateDoubleRoundRobinFixtures(
+            participants,
+          );
+
+        expect(
+          fixtures,
+        ).toHaveLength(
+          expectedFixtures,
+        );
+
+        const matchdays =
+          Array.from(
+            new Set(
+              fixtures.map(
+                (
+                  fixture,
+                ) =>
+                  fixture.matchday,
+              ),
+            ),
+          ).sort(
+            (
+              first,
+              second,
+            ) =>
+              Number(
+                first,
+              ) -
+              Number(
+                second,
+              ),
+          );
+
+        expect(
+          matchdays,
+        ).toEqual(
+          Array.from(
+            {
+              length:
+                expectedMatchdays,
+            },
+            (
+              _,
+              index,
+            ) =>
+              index +
+              1,
+          ),
+        );
+
+        const counts =
+          new Map<
+            string,
+            number
+          >(
+            participants.map(
+              (
+                participant,
+              ) => [
+                participant,
+                0,
+              ],
+            ),
+          );
+
+        for (
+          const fixture
+          of fixtures
+        ) {
+          const home =
+            fixture.homeRegistrationId;
+
+          const away =
+            fixture.awayRegistrationId;
+
+          if (
+            !home ||
+            !away
+          ) {
+            continue;
+          }
+
+          counts.set(
+            home,
+            (
+              counts.get(
+                home,
+              ) ??
+              0
+            ) +
+              1,
+          );
+
+          counts.set(
+            away,
+            (
+              counts.get(
+                away,
+              ) ??
+              0
+            ) +
+              1,
+          );
+        }
+
+        for (
+          const participant
+          of participants
+        ) {
+          expect(
+            counts.get(
+              participant,
+            ),
+          ).toBe(
+            expectedMatchesPerTeam,
+          );
+        }
+
+        const roundsPerLeg =
+          participantCount %
+            2 ===
+          0
+            ? participantCount -
+              1
+            : participantCount;
+
+        const firstLeg =
+          fixtures.filter(
+            (
+              fixture,
+            ) =>
+              (
+                fixture.matchday ??
+                0
+              ) <=
+              roundsPerLeg,
+          );
+
+        for (
+          const fixture
+          of firstLeg
+        ) {
+          const returnFixture =
+            fixtures.find(
+              (
+                candidate,
+              ) =>
+                candidate.matchday ===
+                  (
+                    fixture.matchday ??
+                    0
+                  ) +
+                    roundsPerLeg &&
+                candidate.homeRegistrationId ===
+                  fixture.awayRegistrationId &&
+                candidate.awayRegistrationId ===
+                  fixture.homeRegistrationId,
+            );
+
+          expect(
+            returnFixture,
+          ).toBeDefined();
+        }
+
+        assertOneAppearancePerRound(
+          fixtures,
+        );
+      },
+    );
+
+
+    it.each([
       [
         8,
         28,

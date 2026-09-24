@@ -134,5 +134,65 @@ describe(
         );
       },
     );
+
+
+    it(
+      'preserves Home & Away legs when the competition format is League Round Robin',
+      () => {
+        const fixtures =
+          deduplicateFixtureRecords(
+            [
+              {
+                id:
+                  'league-leg-one',
+                sequence:
+                  1,
+                groupId:
+                  null,
+                homeRegistrationId:
+                  'LEO',
+                awayRegistrationId:
+                  'BILLA',
+                status:
+                  'UNSCHEDULED',
+                match: {
+                  status:
+                    'UNSCHEDULED',
+                  confirmedResultSubmissionId:
+                    null,
+                },
+              },
+              {
+                id:
+                  'league-leg-two',
+                sequence:
+                  56,
+                groupId:
+                  null,
+                homeRegistrationId:
+                  'BILLA',
+                awayRegistrationId:
+                  'LEO',
+                status:
+                  'UNSCHEDULED',
+                match: {
+                  status:
+                    'UNSCHEDULED',
+                  confirmedResultSubmissionId:
+                    null,
+                },
+              },
+            ],
+            'LEAGUE_ROUND_ROBIN',
+            'HOME_AWAY',
+          );
+
+        expect(
+          fixtures,
+        ).toHaveLength(
+          2,
+        );
+      },
+    );
   },
 );

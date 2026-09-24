@@ -74,6 +74,7 @@ interface Fixture {
   id: string;
   fixtureCode: string;
   matchday: number | null;
+  roundNumber: number;
   roundName: string;
   status: string;
   scheduledAt: string | null;
@@ -712,7 +713,7 @@ export default function FixturesPage() {
               ) =>
                 String(
                   fixture.matchday ??
-                  '',
+                  fixture.roundNumber,
                 ) ===
                 selectedMatchday,
             );
@@ -883,7 +884,8 @@ export default function FixturesPage() {
                 (
                   fixture,
                 ) =>
-                  fixture.matchday,
+                  fixture.matchday ??
+                  fixture.roundNumber,
               )
               .filter(
                 (

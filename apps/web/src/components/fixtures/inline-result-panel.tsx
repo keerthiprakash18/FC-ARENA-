@@ -28,6 +28,8 @@ interface MatchResultsResponse {
   data: {
     isLeagueAdmin: boolean;
     canVerifyResult: boolean;
+    canSubmitResult: boolean;
+    isParticipant: boolean;
 
     confirmedResultSubmissionId:
       string | null;
@@ -125,6 +127,12 @@ export function InlineResultPanel({
     useState(false);
 
   const [
+    canSubmitResult,
+    setCanSubmitResult,
+  ] =
+    useState(false);
+
+  const [
     confirmedResult,
     setConfirmedResult,
   ] =
@@ -179,6 +187,11 @@ export function InlineResultPanel({
           .canVerifyResult ||
         response.data
           .isLeagueAdmin,
+      );
+
+      setCanSubmitResult(
+        response.data
+          .canSubmitResult,
       );
 
       setConfirmedResult(
@@ -417,17 +430,31 @@ export function InlineResultPanel({
             </Link>
           </div>
 
-          {pendingResult &&
-          !isLeagueAdmin ? (
-            <div className="mt-4 rounded-[10px] border border-amber-400/20 bg-amber-400/[0.06] px-3 py-2.5 text-xs text-amber-200">
-              Your result {
-                pendingResult.homeScore
-              } - {
-                pendingResult.awayScore
-              } is waiting for admin verification.
+          {pendingResult ? (
+            <div className="mt-4 rounded-[10px] border border-amber-400/20 bg-amber-400/[0.06] px-3 py-2.5 text-xs leading-5 text-amber-200">
+              Shared pending result:{' '}
+              <span className="font-black">
+                {
+                  pendingResult.homeScore
+                } - {
+                  pendingResult.awayScore
+                }
+              </span>
+              . This is the same match for both players, so a duplicate result cannot be submitted.
+              {isLeagueAdmin
+                ? ' Open Match Center to verify or reject it.'
+                : ' Waiting for admin verification.'}
             </div>
           ) : null}
 
+          {!canSubmitResult ? (
+            <div className="mt-4 rounded-[10px] border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs leading-5 text-[#A7B0BE]">
+              Only players in this fixture or an authorized match admin can submit a result.
+            </div>
+          ) : null}
+
+          {canSubmitResult &&
+          !pendingResult ? (
           <form
             className="mt-4"
             onSubmit={
@@ -459,13 +486,7 @@ export function InlineResultPanel({
                       )
                   }
                   disabled={
-                    busy ||
-                    (
-                      Boolean(
-                        pendingResult,
-                      ) &&
-                      !isLeagueAdmin
-                    )
+                    busy
                   }
                   required
                   aria-label={
@@ -503,13 +524,7 @@ export function InlineResultPanel({
                       )
                   }
                   disabled={
-                    busy ||
-                    (
-                      Boolean(
-                        pendingResult,
-                      ) &&
-                      !isLeagueAdmin
-                    )
+                    busy
                   }
                   required
                   aria-label={
@@ -523,13 +538,7 @@ export function InlineResultPanel({
             <button
               type="submit"
               disabled={
-                busy ||
-                (
-                  Boolean(
-                    pendingResult,
-                  ) &&
-                  !isLeagueAdmin
-                )
+                busy
               }
               className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-black text-[#071018] transition hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -540,6 +549,7 @@ export function InlineResultPanel({
                   : 'Submit Result'}
             </button>
           </form>
+          ) : null}
         </>
       )}
 

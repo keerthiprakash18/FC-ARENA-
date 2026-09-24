@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {
+  useCallback,
   useEffect,
   useState,
 } from 'react';
@@ -149,81 +150,93 @@ export function InlineResultPanel({
     );
 
 
-  async function loadResults(
-    silent = false,
-  ) {
-    if (
-      !silent
-    ) {
-      setLoading(true);
-    }
+  const loadResults =
+    useCallback(
+      async (
+        silent = false,
+      ) => {
+        if (
+          !silent
+        ) {
+          setLoading(true);
+        }
 
-    setError('');
+        setError('');
 
-    try {
-      const response =
-        await authenticatedRequest<MatchResultsResponse>(
-          `/matches/${matchId}/results`,
-        );
+        try {
+          const response =
+            await authenticatedRequest<MatchResultsResponse>(
+              `/matches/${matchId}/results`,
+            );
 
-      const confirmed =
-        response.data.submissions.find(
-          (
-            submission,
-          ) =>
-            submission.id ===
-              response.data
-                .confirmedResultSubmissionId ||
-            submission.status ===
-              'CONFIRMED',
-        ) ??
-        null;
+          const confirmed =
+            response.data.submissions.find(
+              (
+                submission,
+              ) =>
+                submission.id ===
+                  response.data
+                    .confirmedResultSubmissionId ||
+                submission.status ===
+                  'CONFIRMED',
+            ) ??
+            null;
 
-      const pending =
-        response.data.submissions.find(
-          (
-            submission,
-          ) =>
-            submission.status ===
-            'PENDING_VERIFICATION',
-        ) ??
-        null;
+          const pending =
+            response.data.submissions.find(
+              (
+                submission,
+              ) =>
+                submission.status ===
+                'PENDING_VERIFICATION',
+            ) ??
+            null;
 
-      setIsLeagueAdmin(
-        response.data
-          .canVerifyResult ||
-        response.data
-          .isLeagueAdmin,
-      );
+          setIsLeagueAdmin(
+            response.data
+              .canVerifyResult ||
+            response.data
+              .isLeagueAdmin,
+          );
 
-      setCanSubmitResult(
-        response.data
-          .canSubmitResult,
-      );
+          setCanSubmitResult(
+            response.data
+              .canSubmitResult,
+          );
 
-      setConfirmedResult(
-        confirmed,
-      );
+          setConfirmedResult(
+            confirmed,
+          );
 
-      setPendingResult(
-        pending,
-      );
-    } catch (
-      err
-    ) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to load match result.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+          setPendingResult(
+            pending,
+          );
+        } catch (
+          err
+        ) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Unable to load match result.',
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      [
+        matchId,
+      ],
+    );
 
 
   useEffect(() => {
-    void loadResults();
+    const initialLoad =
+      window.setTimeout(
+        () => {
+          void loadResults();
+        },
+        0,
+      );
 
     const refresh =
       window.setInterval(
@@ -248,6 +261,10 @@ export function InlineResultPanel({
     );
 
     return () => {
+      window.clearTimeout(
+        initialLoad,
+      );
+
       window.clearInterval(
         refresh,
       );
@@ -258,7 +275,7 @@ export function InlineResultPanel({
       );
     };
   }, [
-    matchId,
+    loadResults,
   ]);
 
 

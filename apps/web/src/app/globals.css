@@ -4614,3 +4614,551 @@ textarea:focus-visible {
       none !important;
   }
 }
+
+
+/* =========================================================
+   FC ARENA — APP SHELL POLISH V1
+   Shared visual polish only. No route, auth, API or data logic.
+   ========================================================= */
+
+.theme-brand-mark {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.theme-brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: -35% auto -35% -55%;
+  width: 42%;
+  pointer-events: none;
+  opacity: 0;
+  transform:
+    skewX(-18deg);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.56),
+      transparent
+    );
+  animation:
+    fcBrandSweep 7.5s ease-in-out infinite;
+}
+
+a:hover > .theme-brand-mark,
+.theme-brand-mark:hover {
+  transform:
+    translateY(-1px)
+    scale(1.035);
+  border-color:
+    color-mix(
+      in srgb,
+      var(--theme-primary) 36%,
+      var(--theme-border)
+    );
+  box-shadow:
+    0 10px 26px
+    color-mix(
+      in srgb,
+      var(--theme-primary) 10%,
+      transparent
+    ) !important;
+}
+
+.theme-nav-item {
+  overflow: hidden;
+}
+
+.theme-nav-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform:
+    translateX(-30%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(
+        in srgb,
+        var(--theme-primary) 5%,
+        transparent
+      ),
+      transparent
+    );
+  transition:
+    opacity 200ms ease,
+    transform 380ms ease;
+}
+
+.theme-nav-item:hover::after {
+  opacity: 1;
+  transform:
+    translateX(34%);
+}
+
+.theme-nav-item .theme-nav-icon {
+  transition:
+    transform 210ms ease,
+    color 210ms ease;
+}
+
+.theme-nav-item:hover .theme-nav-icon {
+  transform:
+    translateX(2px)
+    scale(1.07);
+}
+
+.theme-nav-item[data-active="true"] .theme-nav-icon {
+  animation:
+    fcNavIconPop 420ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.theme-nav-item[data-active="true"] .theme-nav-accent {
+  box-shadow:
+    0 0 12px
+    color-mix(
+      in srgb,
+      var(--theme-primary) 26%,
+      transparent
+    );
+  animation:
+    fcNavAccentPulse 3.2s ease-in-out infinite;
+}
+
+.theme-quick-action {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-quick-action .theme-quick-action-icon,
+.theme-quick-action .theme-quick-action-chevron {
+  transition:
+    transform 210ms ease,
+    color 210ms ease;
+}
+
+.theme-quick-action:hover .theme-quick-action-icon {
+  transform:
+    translateY(-1px)
+    scale(1.08);
+}
+
+.theme-quick-action:hover .theme-quick-action-chevron {
+  transform:
+    translateX(3px);
+}
+
+.theme-top-header {
+  position: sticky;
+}
+
+.theme-top-header::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0.54;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(
+        in srgb,
+        var(--theme-primary) 18%,
+        transparent
+      ),
+      transparent
+    );
+}
+
+.theme-search {
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease,
+    background-color 200ms ease !important;
+}
+
+.theme-search:focus-within {
+  transform:
+    translateY(-1px);
+}
+
+.theme-search-menu {
+  transform-origin:
+    top center;
+  animation:
+    fcSearchMenuIn 180ms cubic-bezier(.2,.72,.2,1) both;
+}
+
+.theme-search-result {
+  transition:
+    transform 170ms ease,
+    background-color 170ms ease,
+    color 170ms ease;
+}
+
+.theme-search-result:hover {
+  transform:
+    translateX(2px);
+}
+
+.theme-header-icon {
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    background-color 200ms ease,
+    color 200ms ease !important;
+}
+
+.theme-header-icon:hover {
+  transform:
+    translateY(-1px)
+    scale(1.035);
+}
+
+.theme-header-icon:hover > svg {
+  animation:
+    fcBellWiggle 420ms ease;
+  transform-origin:
+    50% 18%;
+}
+
+.theme-header-icon > span.absolute {
+  animation:
+    fcNotificationPulse 2.4s ease-in-out infinite;
+}
+
+.theme-profile-chip {
+  transition:
+    transform 210ms ease,
+    background-color 210ms ease,
+    box-shadow 210ms ease !important;
+}
+
+.theme-profile-chip:hover {
+  transform:
+    translateY(-1px);
+  box-shadow:
+    0 8px 20px
+    rgba(11, 31, 68, 0.07);
+}
+
+.theme-avatar {
+  position: relative;
+}
+
+.theme-avatar img {
+  backface-visibility:
+    hidden;
+  transform:
+    scale(1);
+  transition:
+    transform 260ms ease,
+    filter 260ms ease;
+}
+
+.theme-profile-chip:hover .theme-avatar img,
+.theme-user-card:hover .theme-avatar img {
+  transform:
+    scale(1.07);
+  filter:
+    saturate(1.04)
+    contrast(1.02);
+}
+
+.theme-online-indicator {
+  animation:
+    fcOnlinePulse 2.6s ease-in-out infinite;
+}
+
+.theme-user-card {
+  transition:
+    transform 210ms ease,
+    border-color 210ms ease,
+    background-color 210ms ease,
+    box-shadow 210ms ease !important;
+}
+
+.theme-user-card:hover {
+  transform:
+    translateY(-2px);
+  border-color:
+    color-mix(
+      in srgb,
+      var(--theme-primary) 25%,
+      var(--theme-border)
+    );
+  box-shadow:
+    0 9px 20px
+    rgba(11, 31, 68, 0.06);
+}
+
+.theme-user-card:hover .theme-user-chevron {
+  transform:
+    translateX(2px);
+}
+
+.theme-bottom-item {
+  transition:
+    color 180ms ease,
+    transform 180ms ease,
+    background-color 180ms ease !important;
+}
+
+.theme-bottom-item .theme-bottom-icon {
+  transition:
+    transform 210ms ease,
+    background-color 210ms ease,
+    color 210ms ease;
+}
+
+.theme-bottom-item:active .theme-bottom-icon {
+  transform:
+    scale(0.92);
+}
+
+.theme-bottom-item[data-active="true"] .theme-bottom-icon {
+  animation:
+    fcBottomNavPop 360ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.theme-bottom-item[data-active="true"] .theme-bottom-accent {
+  box-shadow:
+    0 0 12px
+    color-mix(
+      in srgb,
+      var(--theme-primary) 28%,
+      transparent
+    );
+}
+
+.fc-main > * {
+  animation:
+    fcShellPageEnter 320ms cubic-bezier(.2,.72,.2,1) both;
+}
+
+.theme-crest img {
+  backface-visibility:
+    hidden;
+  transform:
+    scale(1);
+  transition:
+    transform 260ms ease,
+    filter 260ms ease;
+}
+
+.theme-crest:hover img,
+.theme-panel:hover .theme-crest img {
+  transform:
+    scale(1.055);
+  filter:
+    saturate(1.04)
+    contrast(1.02);
+}
+
+.theme-status-badge,
+.theme-tone-primary,
+.theme-tone-premium,
+.theme-tone-success,
+.theme-tone-danger,
+.theme-tone-neutral {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+@keyframes fcBrandSweep {
+  0%,
+  68% {
+    left: -55%;
+    opacity: 0;
+  }
+
+  74% {
+    opacity: 0.28;
+  }
+
+  90% {
+    left: 118%;
+    opacity: 0.08;
+  }
+
+  100% {
+    left: 118%;
+    opacity: 0;
+  }
+}
+
+@keyframes fcNavIconPop {
+  from {
+    transform:
+      scale(0.88);
+  }
+
+  to {
+    transform:
+      scale(1);
+  }
+}
+
+@keyframes fcNavAccentPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fcSearchMenuIn {
+  from {
+    opacity: 0;
+    transform:
+      translateY(-5px)
+      scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes fcBellWiggle {
+  0%,
+  100% {
+    transform:
+      rotate(0deg);
+  }
+
+  30% {
+    transform:
+      rotate(-8deg);
+  }
+
+  60% {
+    transform:
+      rotate(7deg);
+  }
+}
+
+@keyframes fcNotificationPulse {
+  0%,
+  100% {
+    transform:
+      scale(1);
+  }
+
+  50% {
+    transform:
+      scale(1.08);
+  }
+}
+
+@keyframes fcOnlinePulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0
+      color-mix(
+        in srgb,
+        var(--theme-success) 0%,
+        transparent
+      );
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 4px
+      color-mix(
+        in srgb,
+        var(--theme-success) 12%,
+        transparent
+      );
+  }
+}
+
+@keyframes fcBottomNavPop {
+  from {
+    transform:
+      translateY(2px)
+      scale(0.9);
+  }
+
+  to {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes fcShellPageEnter {
+  from {
+    opacity: 0;
+    transform:
+      translate3d(0, 6px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 640px) {
+  .theme-profile-chip:hover,
+  .theme-user-card:hover,
+  .theme-header-icon:hover {
+    transform:
+      none;
+  }
+
+  .fc-main > * {
+    animation-duration:
+      240ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-brand-mark::after,
+  .theme-nav-item[data-active="true"] .theme-nav-icon,
+  .theme-nav-item[data-active="true"] .theme-nav-accent,
+  .theme-search-menu,
+  .theme-header-icon:hover > svg,
+  .theme-header-icon > span.absolute,
+  .theme-online-indicator,
+  .theme-bottom-item[data-active="true"] .theme-bottom-icon,
+  .fc-main > * {
+    animation:
+      none !important;
+  }
+
+  .theme-nav-item:hover .theme-nav-icon,
+  .theme-quick-action:hover .theme-quick-action-icon,
+  .theme-quick-action:hover .theme-quick-action-chevron,
+  .theme-profile-chip:hover,
+  .theme-user-card:hover,
+  .theme-profile-chip:hover .theme-avatar img,
+  .theme-user-card:hover .theme-avatar img,
+  .theme-crest:hover img,
+  .theme-panel:hover .theme-crest img {
+    transform:
+      none !important;
+  }
+}

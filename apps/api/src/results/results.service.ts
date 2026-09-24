@@ -11,6 +11,10 @@ import {
   deduplicateFixtureRecords,
   isCanonicalCompletedFixture,
 } from '../tournaments/fixture-deduplication.js';
+import {
+  canonicalizeRoundRobinStandingsFixtures,
+  roundRobinRoundsPerLeg,
+} from './standings-integrity.js';
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 
@@ -1065,9 +1069,33 @@ export class ResultsService {
         tournament.legType,
       );
 
+    const standingsFixtures =
+      canonicalizeRoundRobinStandingsFixtures(
+        fixtures,
+        registrations.map(
+          (registration) => ({
+            id:
+              registration.id,
+            groupId:
+              registration.groupId,
+          }),
+        ),
+        {
+          competitionFormat:
+            tournament.competitionFormat,
+          legType:
+            tournament.legType,
+          tournamentFormat:
+            tournament.format,
+          hasGroups:
+            tournament._count.groups >
+            0,
+        },
+      );
+
     for (
       const fixture
-      of fixtures
+      of standingsFixtures
     ) {
       if (
         this.isKnockoutFixture(
@@ -1387,6 +1415,8 @@ export class ResultsService {
           id: true,
           groupId: true,
           sequence: true,
+          matchday: true,
+          roundNumber: true,
           homeRegistrationId: true,
           awayRegistrationId: true,
           status: true,
@@ -1798,11 +1828,145 @@ export class ResultsService {
       return;
     }
 
-    const directional =
+    const matchday =
+      typeof fixture.matchday ===
+        'number'
+        ? fixture.matchday
+        : fixture.roundNumber;
+
+    if (
+      typeof matchday ===
+      'number'
+    ) {
+      const participantConflict =
+        await client.fixture.findFirst({
+          where: {
+            tournamentId:
+              match.tournamentId,
+
+            id: {
+              not:
+                fixture.id,
+            },
+
+            groupId:
+              fixture.groupId,
+
+            matchday,
+
+            OR: [
+              {
+                homeRegistrationId: {
+                  in: [
+                    homeRegistrationId,
+                    awayRegistrationId,
+                  ],
+                },
+              },
+              {
+                awayRegistrationId: {
+                  in: [
+                    homeRegistrationId,
+                    awayRegistrationId,
+                  ],
+                },
+              },
+            ],
+
+            match: {
+              is: {
+                confirmedResultSubmissionId: {
+                  not: null,
+                },
+              },
+            },
+          },
+
+          select: {
+            id: true,
+          },
+        });
+
+      if (
+        participantConflict
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+
+          error: {
+            code:
+              'PARTICIPANT_MATCHDAY_ALREADY_COMPLETED',
+
+            message:
+              'A participant already has a confirmed result in this Matchday. Duplicate Matchday results are blocked.',
+          },
+        });
+      }
+    }
+
+    const homeAway =
       competitionFormat ===
         'DOUBLE_ROUND_ROBIN' ||
       legType ===
         'HOME_AWAY';
+
+    let matchdayFilter:
+      Record<string, unknown> =
+      {};
+
+    if (
+      homeAway &&
+      typeof matchday ===
+        'number'
+    ) {
+      const participantCount =
+        await client.tournamentRegistration.count({
+          where: {
+            tournamentId:
+              match.tournamentId,
+
+            status:
+              'APPROVED',
+
+            ...(fixture.groupId
+              ? {
+                  groupId:
+                    fixture.groupId,
+                }
+              : {}),
+          },
+        });
+
+      const roundsPerLeg =
+        roundRobinRoundsPerLeg(
+          participantCount,
+        );
+
+      if (
+        roundsPerLeg > 0
+      ) {
+        matchdayFilter =
+          matchday <=
+          roundsPerLeg
+            ? {
+                matchday: {
+                  gte: 1,
+                  lte:
+                    roundsPerLeg,
+                },
+              }
+            : {
+                matchday: {
+                  gt:
+                    roundsPerLeg,
+                  lte:
+                    roundsPerLeg *
+                    2,
+                },
+              };
+      }
+    }
 
     const duplicate =
       await client.fixture.findFirst({
@@ -1818,7 +1982,12 @@ export class ResultsService {
           groupId:
             fixture.groupId,
 
-          ...(directional
+          ...matchdayFilter,
+
+          ...(homeAway &&
+          Object.keys(
+            matchdayFilter,
+          ).length === 0
             ? {
                 homeRegistrationId,
                 awayRegistrationId,
@@ -1873,12 +2042,13 @@ export class ResultsService {
             'DUPLICATE_FIXTURE_ALREADY_COMPLETED',
 
           message:
-            'This pairing already has a confirmed result. Duplicate fixture result submission is blocked.',
+            homeAway
+              ? 'This pairing already has a confirmed result in the same Home/Away leg. Duplicate leg results are blocked.'
+              : 'This pairing already has a confirmed result. Duplicate fixture result submission is blocked.',
         },
       });
     }
   }
-
 
   private matchNotFound() {
     return new NotFoundException({

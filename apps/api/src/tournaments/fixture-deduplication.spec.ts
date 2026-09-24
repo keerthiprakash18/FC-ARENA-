@@ -211,7 +211,7 @@ describe(
               id:
                 'completed',
               status:
-                'UNSCHEDULED',
+                'COMPLETED',
               match: {
                 status:
                   'COMPLETED',

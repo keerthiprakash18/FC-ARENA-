@@ -17,7 +17,6 @@ import {
 } from '@/components/app/app-shell';
 
 import {
-  FcCrest,
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
@@ -199,6 +198,17 @@ export default function ProfilePage() {
                   : current.player,
             }
           : current,
+    );
+
+    window.dispatchEvent(
+      new CustomEvent(
+        'fc-arena-profile-image-changed',
+        {
+          detail: {
+            profileImageUrl,
+          },
+        },
+      ),
     );
   }
 

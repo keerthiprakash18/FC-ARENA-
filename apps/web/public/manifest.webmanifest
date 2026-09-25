@@ -16,9 +16,9 @@
       "purpose": "any"
     },
     {
-      "src": "/brand/app-icon.webp",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/webp",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

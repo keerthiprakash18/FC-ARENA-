@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     'FC ARENA',
 
   manifest:
-    '/manifest.webmanifest?v=6',
+    '/manifest.webmanifest?v=7',
 
   appleWebApp: {
     capable: true,
@@ -37,19 +37,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/icons/icon-192-v2.png',
+        url: '/icons/icon-192-v3.png',
         sizes: '192x192',
         type: 'image/png',
       },
       {
-        url: '/icons/icon-512-v2.png',
+        url: '/icons/icon-512-v3.png',
         sizes: '512x512',
         type: 'image/png',
       },
     ],
 
     apple:
-      '/icons/apple-touch-icon-v2.png',
+      '/icons/apple-touch-icon-v3.png',
   },
 };
 

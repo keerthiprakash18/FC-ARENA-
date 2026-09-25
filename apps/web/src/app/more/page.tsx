@@ -325,7 +325,7 @@ export default function MorePage() {
               href="/leaderboards"
               icon="≣"
               title="Leaderboards"
-              description="Tournament ranking access"
+              description="League-wide performance across verified Tournaments"
             />
 
             <FcMenuRow

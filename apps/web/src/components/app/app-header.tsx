@@ -16,6 +16,10 @@ import {
 } from '@/components/fc/fc-icons';
 
 import {
+  FC_ARENA_LOGO_DATA_URI,
+} from '@/lib/brand-assets';
+
+import {
   NotificationBell,
 } from './notification-bell';
 
@@ -218,7 +222,7 @@ export function AppHeader({
             aria-hidden="true"
           >
             <img
-              src="/brand/brand-small.jpg"
+              src={FC_ARENA_LOGO_DATA_URI}
               alt=""
               className="h-full w-full object-cover"
             />

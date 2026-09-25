@@ -1,10 +1,8 @@
-const CACHE_NAME = 'fc-arena-v4';
+const CACHE_NAME = 'fc-arena-v5';
 
 const PRECACHE = [
-  '/brand/app-icon.webp',
-  '/brand/brand-small.jpg',
-  '/brand/brand-full.webp',
   '/icons/icon-192.png',
+  '/icons/icon-512.png',
   '/icons/apple-touch-icon.png'
 ];
 

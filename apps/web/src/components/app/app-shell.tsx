@@ -19,6 +19,10 @@ import {
 } from '@/lib/auth-client';
 
 import {
+  FC_ARENA_LOGO_DATA_URI,
+} from '@/lib/brand-assets';
+
+import {
   AppHeader,
 } from './app-header';
 
@@ -626,7 +630,7 @@ export function AppShell({
               aria-hidden="true"
             >
               <img
-                src="/brand/brand-small.jpg"
+                src={FC_ARENA_LOGO_DATA_URI}
                 alt=""
                 className="h-full w-full object-cover"
               />

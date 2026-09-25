@@ -37,14 +37,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/brand/brand-small.jpg',
-        sizes: '128x128',
-        type: 'image/jpeg',
+        url: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
       },
       {
-        url: '/brand/app-icon.webp',
+        url: '/icons/icon-512.png',
         sizes: '512x512',
-        type: 'image/webp',
+        type: 'image/png',
       },
     ],
 

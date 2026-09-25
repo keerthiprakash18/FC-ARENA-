@@ -6,6 +6,10 @@ import {
   FcIcon,
 } from '@/components/fc/fc-icons';
 
+import {
+  FC_ARENA_LOGO_DATA_URI,
+} from '@/lib/brand-assets';
+
 import styles from './auth-experience.module.css';
 
 interface AuthCardProps {
@@ -58,7 +62,7 @@ export function AuthCard({
             aria-hidden="true"
           >
             <img
-              src="/brand/brand-small.jpg"
+              src={FC_ARENA_LOGO_DATA_URI}
               alt=""
               className={styles.logoImage}
             />
@@ -77,7 +81,7 @@ export function AuthCard({
 
         <div className={styles.hero}>
           <img
-            src="/brand/brand-full.webp"
+            src={FC_ARENA_LOGO_DATA_URI}
             alt="FC ARENA"
             className={styles.heroBrandLogo}
           />

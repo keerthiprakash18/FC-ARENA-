@@ -1416,6 +1416,18 @@ export default function DashboardPage() {
               />
 
               <FcQuickActionTile
+                href={
+                  primaryMembership
+                    ? `/leaderboards?league=${primaryMembership.league.id}`
+                    : '/leaderboards'
+                }
+                icon="activity"
+                title="Leaderboard"
+                description="View League performance rankings"
+                tone="cyan"
+              />
+
+              <FcQuickActionTile
                 href="/profile"
                 icon="◎"
                 title="Update Profile"

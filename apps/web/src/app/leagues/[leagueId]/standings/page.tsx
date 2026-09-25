@@ -257,8 +257,17 @@ export default function LeagueStandingsPage() {
 
         <FcPanel className="p-5">
           <p className="text-sm leading-6 text-slate-500">
-            There is currently no separate League-wide standings table in the backend. This screen keeps the League context clean and routes you to each Tournament’s real standings data.
+            Standings stay Tournament-specific. For combined player performance across this League’s verified Tournament results, open the League Leaderboard.
           </p>
+
+          <Link
+            href={
+              `/leaderboards?league=${leagueId}`
+            }
+            className="theme-text-link mt-3 inline-flex text-sm font-semibold"
+          >
+            Open League Leaderboard →
+          </Link>
         </FcPanel>
       </div>
     </AppShell>

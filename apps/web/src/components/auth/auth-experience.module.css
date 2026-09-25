@@ -104,23 +104,24 @@
 .brandTop {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  max-width: 360px;
   opacity: 0;
   transform: translateY(-10px);
   animation: brandIn .72s 1.05s cubic-bezier(.2,.7,.2,1) forwards;
 }
 
 .logoBadge {
-  width: 58px;
-  height: 58px;
+  width: 50px;
+  height: 50px;
   display: grid;
   place-items: center;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(7, 24, 36, .66);
-  color: #56c8ff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 36px rgba(0,0,0,.24);
-  backdrop-filter: blur(12px);
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 0;
+  background: transparent;
+  box-shadow: 0 10px 26px rgba(0,0,0,.26);
 }
 
 .logoImage {
@@ -128,14 +129,16 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  border-radius: 15px;
+  object-position: center;
+  border-radius: inherit;
 }
 
 .brandName {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
-  letter-spacing: .08em;
+  line-height: 1;
+  letter-spacing: .065em;
 }
 
 .brandName span {
@@ -143,11 +146,12 @@
 }
 
 .brandMini {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: #9caab8;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: .18em;
+  line-height: 1.25;
+  letter-spacing: .15em;
 }
 
 .hero {
@@ -157,14 +161,15 @@
 }
 
 .heroBrandLogo {
-  width: clamp(104px, 10vw, 138px);
+  width: clamp(96px, 8.4vw, 116px);
   aspect-ratio: 1;
   display: block;
   object-fit: cover;
-  margin: 0 0 22px;
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 18px 44px rgba(0,0,0,.30);
+  object-position: center;
+  margin: 0 0 26px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 14px 34px rgba(0,0,0,.26);
   opacity: 0;
   transform: translateY(12px);
   animation: heroIn .7s 1.18s ease-out forwards;
@@ -454,9 +459,9 @@
   }
 
   .heroBrandLogo {
-    width: 88px;
-    margin-bottom: 14px;
-    border-radius: 19px;
+    width: 78px;
+    margin-bottom: 18px;
+    border-radius: 17px;
   }
 
   .headline {
@@ -497,17 +502,19 @@
   }
 
   .logoBadge {
-    width: 46px;
-    height: 46px;
-    border-radius: 13px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
   }
 
   .brandName {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .brandMini {
-    font-size: 9px;
+    margin-top: 5px;
+    font-size: 8px;
+    letter-spacing: .13em;
   }
 
   .hero {

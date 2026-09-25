@@ -58,7 +58,7 @@ export function AuthCard({
             aria-hidden="true"
           >
             <img
-              src="/brand/brand-small.svg"
+              src="/brand/brand-small.jpg"
               alt=""
               className={styles.logoImage}
             />
@@ -77,7 +77,7 @@ export function AuthCard({
 
         <div className={styles.hero}>
           <img
-            src="/brand/brand-full.svg"
+            src="/brand/brand-full.webp"
             alt="FC ARENA"
             className={styles.heroBrandLogo}
           />

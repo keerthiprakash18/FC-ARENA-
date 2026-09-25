@@ -218,7 +218,7 @@ export function AppHeader({
             aria-hidden="true"
           >
             <img
-              src="/brand/brand-small.svg"
+              src="/brand/brand-small.jpg"
               alt=""
               className="h-full w-full object-cover"
             />

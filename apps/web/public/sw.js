@@ -1,9 +1,11 @@
-const CACHE_NAME = 'fc-arena-v3';
+const CACHE_NAME = 'fc-arena-v4';
 
 const PRECACHE = [
-  '/brand/app-icon.svg',
-  '/brand/brand-small.svg',
-  '/brand/brand-full.svg'
+  '/brand/app-icon.webp',
+  '/brand/brand-small.jpg',
+  '/brand/brand-full.webp',
+  '/icons/icon-192.png',
+  '/icons/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {

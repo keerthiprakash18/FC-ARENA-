@@ -37,18 +37,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: '/brand/brand-small.svg',
-        type: 'image/svg+xml',
+        url: '/brand/brand-small.jpg',
+        sizes: '128x128',
+        type: 'image/jpeg',
       },
       {
-        url: '/brand/app-icon.svg',
+        url: '/brand/app-icon.webp',
         sizes: '512x512',
-        type: 'image/svg+xml',
+        type: 'image/webp',
       },
     ],
 
     apple:
-      '/brand/app-icon.svg',
+      '/icons/apple-touch-icon.png',
   },
 };
 

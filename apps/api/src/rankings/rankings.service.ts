@@ -22,6 +22,12 @@ interface PlayerRankingRow {
   form: string;
 }
 
+interface LeaguePlayerRankingRow
+  extends PlayerRankingRow {
+  profileImageUrl: string | null;
+  tournamentsPlayed: number;
+}
+
 @Injectable()
 export class RankingsService {
   constructor(
@@ -414,63 +420,179 @@ export class RankingsService {
       allowedModes.has(
         mode.toUpperCase(),
       )
-        ? mode.toUpperCase()
+        ? mode.toUpperCase() as
+            | 'SOLO'
+            | 'DUO'
+            | 'TEAM'
         : null;
 
-    const statistics =
-      await this.prisma.playerTournamentStatistic.findMany({
-        where: {
-          tournament: {
-            leagueId,
+    const tournamentFilter = {
+      leagueId,
 
-            ...(competitionMode
-              ? {
-                  mode:
-                    competitionMode as
-                      | 'SOLO'
-                      | 'DUO'
-                      | 'TEAM',
-                }
-              : {}),
+      status: {
+        not:
+          'CANCELLED' as const,
+      },
+
+      ...(competitionMode
+        ? {
+            mode:
+              competitionMode,
+          }
+        : {}),
+    };
+
+    const [
+      league,
+      statistics,
+      tournamentCount,
+      verifiedMatches,
+    ] =
+      await Promise.all([
+        this.prisma.league.findUnique({
+          where: {
+            id: leagueId,
           },
-        },
 
-        include: {
-          user: {
-            select: {
-              id: true,
-              fullName: true,
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            logoUrl: true,
+            region: true,
 
-              player: {
-                select: {
-                  playerCode: true,
+            members: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        }),
 
-                  identity: {
-                    select: {
-                      inGameName: true,
+        this.prisma.playerTournamentStatistic.findMany({
+          where: {
+            tournament: {
+              ...tournamentFilter,
+            },
+          },
+
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+
+                player: {
+                  select: {
+                    playerCode: true,
+                    profileImageUrl:
+                      true,
+
+                    identity: {
+                      select: {
+                        inGameName:
+                          true,
+                      },
                     },
                   },
                 },
               },
             },
           },
+
+          orderBy: [
+            {
+              updatedAt:
+                'asc',
+            },
+          ],
+        }),
+
+        this.prisma.tournament.count({
+          where: {
+            ...tournamentFilter,
+          },
+        }),
+
+        this.prisma.match.count({
+          where: {
+            tournament: {
+              ...tournamentFilter,
+            },
+
+            confirmedResultSubmissionId: {
+              not: null,
+            },
+          },
+        }),
+      ]);
+
+    if (!league) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'LEAGUE_NOT_FOUND',
+
+          message:
+            'League could not be found.',
         },
       });
+    }
+
+    const currentMemberIds =
+      new Set(
+        league.members.map(
+          (
+            member,
+          ) =>
+            member.userId,
+        ),
+      );
 
     const aggregate =
       new Map<
         string,
-        PlayerRankingRow
+        LeaguePlayerRankingRow
       >();
+
+    let lastUpdatedAt:
+      Date | null =
+      null;
 
     for (
       const statistic
       of statistics
     ) {
+      if (
+        !currentMemberIds.has(
+          statistic.userId,
+        )
+      ) {
+        continue;
+      }
+
+      if (
+        !lastUpdatedAt ||
+        statistic.updatedAt >
+          lastUpdatedAt
+      ) {
+        lastUpdatedAt =
+          statistic.updatedAt;
+      }
+
       const mapped =
         this.mapPlayer(
           statistic,
         );
+
+      const tournamentsPlayed =
+        statistic.matches >
+        0
+          ? 1
+          : 0;
 
       const existing =
         aggregate.get(
@@ -482,6 +604,14 @@ export class RankingsService {
           mapped.userId,
           {
             ...mapped,
+
+            profileImageUrl:
+              statistic.user
+                .player
+                ?.profileImageUrl ??
+              null,
+
+            tournamentsPlayed,
           },
         );
 
@@ -524,6 +654,15 @@ export class RankingsService {
               ).toFixed(1),
             )
           : 0;
+
+      existing.tournamentsPlayed +=
+        tournamentsPlayed;
+
+      existing.form =
+        `${existing.form}${mapped.form}`
+          .slice(
+            -5,
+          );
     }
 
     const rows =
@@ -533,6 +672,8 @@ export class RankingsService {
       (a, b) =>
         b.performancePoints -
           a.performancePoints ||
+        b.wins -
+          a.wins ||
         b.winRate -
           a.winRate ||
         b.goalDifference -
@@ -544,29 +685,79 @@ export class RankingsService {
         ),
     );
 
+    const rankedRows =
+      this.withPositions(
+        rows.slice(
+          0,
+          100,
+        ),
+      );
+
+    const myPosition =
+      rankedRows.find(
+        (
+          row,
+        ) =>
+          row.userId ===
+          userId,
+      )
+        ?.position ??
+      null;
+
     return {
       success: true,
 
       data: {
-        leagueId,
+        league: {
+          id:
+            league.id,
+
+          name:
+            league.name,
+
+          code:
+            league.code,
+
+          logoUrl:
+            league.logoUrl,
+
+          region:
+            league.region,
+        },
 
         filter: {
           mode:
             competitionMode,
         },
 
+        summary: {
+          members:
+            league.members.length,
+
+          rankedPlayers:
+            rows.length,
+
+          tournaments:
+            tournamentCount,
+
+          verifiedMatches,
+
+          lastUpdatedAt:
+            lastUpdatedAt
+              ?.toISOString() ??
+            null,
+        },
+
+        myPosition,
+
         rankings:
-          this.withPositions(
-            rows.slice(
-              0,
-              100,
-            ),
-          ),
+          rankedRows,
       },
 
       error: null,
     };
   }
+
 
   private mapPlayer(
     statistic: any,

@@ -8,6 +8,7 @@ import {
 
 const items = [
   ['Overview', ''],
+  ['Leaderboard', '/leaderboard'],
   ['Standings', '/standings'],
   ['Fixtures', '/fixtures'],
   ['Members', '/members'],
@@ -34,18 +35,27 @@ export function LeagueNavigation({
             label,
             suffix,
           ]) => {
+            const isLeaderboard =
+              suffix ===
+              '/leaderboard';
+
             const href =
-              `${base}${suffix}`;
+              isLeaderboard
+                ? `/leaderboards?league=${leagueId}`
+                : `${base}${suffix}`;
 
             const active =
-              suffix === ''
+              isLeaderboard
                 ? pathname ===
-                  base
-                : pathname ===
-                    href ||
-                  pathname.startsWith(
-                    `${href}/`,
-                  );
+                  '/leaderboards'
+                : suffix === ''
+                  ? pathname ===
+                    base
+                  : pathname ===
+                      href ||
+                    pathname.startsWith(
+                      `${href}/`,
+                    );
 
             return (
               <Link

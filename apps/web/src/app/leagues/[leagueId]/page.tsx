@@ -334,8 +334,14 @@ export default function LeagueOverviewPage() {
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[
             [
+              'Leaderboards',
+              'League-wide player performance across verified Tournaments',
+              `/leaderboards?league=${leagueId}`,
+              '★',
+            ],
+            [
               'Standings',
-              'Tournament tables and rankings',
+              'Tournament-by-Tournament standings tables',
               `/leagues/${leagueId}/standings`,
               '≣',
             ],

@@ -19,9 +19,13 @@ import {
 } from '@/lib/auth-client';
 
 import {
+  applyDisplayMode,
   applyThemePreference,
+  DEFAULT_DISPLAY_MODE,
   DEFAULT_THEME_PREFERENCE,
+  readCachedDisplayMode,
   readCachedThemePreference,
+  type DisplayMode,
   type ThemePreference,
 } from '@/lib/theme';
 
@@ -29,6 +33,9 @@ import {
 interface ThemeContextValue {
   themePreference:
     ThemePreference;
+
+  displayMode:
+    DisplayMode;
 
   initializing:
     boolean;
@@ -41,6 +48,13 @@ interface ThemeContextValue {
         boolean,
     ) =>
       Promise<void>;
+
+  setDisplayMode:
+    (
+      mode:
+        DisplayMode,
+    ) =>
+      void;
 }
 
 
@@ -102,6 +116,14 @@ export function ThemeProvider({
     );
 
   const [
+    displayMode,
+    setDisplayModeState,
+  ] =
+    useState<DisplayMode>(
+      DEFAULT_DISPLAY_MODE,
+    );
+
+  const [
     initializing,
     setInitializing,
   ] =
@@ -122,12 +144,24 @@ export function ThemeProvider({
     const cached =
       readCachedThemePreference();
 
+    const cachedMode =
+      readCachedDisplayMode();
+
     setThemeState(
       cached,
     );
 
+    setDisplayModeState(
+      cachedMode,
+    );
+
     applyThemePreference(
       cached,
+      false,
+    );
+
+    applyDisplayMode(
+      cachedMode,
       false,
     );
 
@@ -256,17 +290,39 @@ export function ThemeProvider({
     );
 
 
+  const setDisplayMode =
+    useCallback(
+      (
+        nextMode:
+          DisplayMode,
+      ) => {
+        setDisplayModeState(
+          nextMode,
+        );
+
+        applyDisplayMode(
+          nextMode,
+        );
+      },
+      [],
+    );
+
+
   const value =
     useMemo(
       () => ({
         themePreference,
+        displayMode,
         initializing,
         setThemePreference,
+        setDisplayMode,
       }),
       [
         themePreference,
+        displayMode,
         initializing,
         setThemePreference,
+        setDisplayMode,
       ],
     );
 

@@ -205,6 +205,11 @@ export class ResultsService {
               currentMatch,
             );
 
+            await this.assertPairNotAlreadyPending(
+              tx,
+              currentMatch,
+            );
+
             const existingPending =
               await tx.resultSubmission.findFirst({
                 where: {
@@ -2018,6 +2023,267 @@ export class ResultsService {
       });
     }
   }
+
+  private async assertPairNotAlreadyPending(
+    client: any,
+    match: any,
+  ) {
+    const fixture =
+      match.fixture;
+
+    const homeRegistrationId =
+      fixture?.homeRegistrationId;
+
+    const awayRegistrationId =
+      fixture?.awayRegistrationId;
+
+    if (
+      !fixture ||
+      !homeRegistrationId ||
+      !awayRegistrationId
+    ) {
+      return;
+    }
+
+    const competitionFormat =
+      match.tournament
+        ?.competitionFormat;
+
+    const legType =
+      match.tournament
+        ?.legType;
+
+    if (
+      competitionFormat ===
+      'CUSTOM_MANUAL'
+    ) {
+      return;
+    }
+
+    const matchday =
+      typeof fixture.matchday ===
+        'number'
+        ? fixture.matchday
+        : fixture.roundNumber;
+
+    if (
+      typeof matchday ===
+        'number'
+    ) {
+      const participantPending =
+        await client.fixture.findFirst({
+          where: {
+            tournamentId:
+              match.tournamentId,
+
+            id: {
+              not:
+                fixture.id,
+            },
+
+            groupId:
+              fixture.groupId,
+
+            matchday,
+
+            OR: [
+              {
+                homeRegistrationId: {
+                  in: [
+                    homeRegistrationId,
+                    awayRegistrationId,
+                  ],
+                },
+              },
+              {
+                awayRegistrationId: {
+                  in: [
+                    homeRegistrationId,
+                    awayRegistrationId,
+                  ],
+                },
+              },
+            ],
+
+            match: {
+              is: {
+                resultSubmissions: {
+                  some: {
+                    status:
+                      'PENDING_VERIFICATION',
+                  },
+                },
+              },
+            },
+          },
+
+          select: {
+            fixtureCode:
+              true,
+          },
+        });
+
+      if (
+        participantPending
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+
+          error: {
+            code:
+              'PARTICIPANT_MATCHDAY_RESULT_PENDING',
+
+            message:
+              'A participant already has a pending shared result in this Matchday. Resolve it before submitting another result.',
+          },
+        });
+      }
+    }
+
+    const homeAway =
+      competitionFormat ===
+        'DOUBLE_ROUND_ROBIN' ||
+      legType ===
+        'HOME_AWAY';
+
+    let matchdayFilter:
+      Record<string, unknown> =
+      {};
+
+    if (
+      homeAway &&
+      typeof matchday ===
+        'number'
+    ) {
+      const participantCount =
+        await client.tournamentRegistration.count({
+          where: {
+            tournamentId:
+              match.tournamentId,
+
+            status:
+              'APPROVED',
+
+            ...(fixture.groupId
+              ? {
+                  groupId:
+                    fixture.groupId,
+                }
+              : {}),
+          },
+        });
+
+      const roundsPerLeg =
+        roundRobinRoundsPerLeg(
+          participantCount,
+        );
+
+      if (
+        roundsPerLeg >
+        0
+      ) {
+        matchdayFilter =
+          matchday <=
+          roundsPerLeg
+            ? {
+                matchday: {
+                  gte: 1,
+                  lte:
+                    roundsPerLeg,
+                },
+              }
+            : {
+                matchday: {
+                  gt:
+                    roundsPerLeg,
+                  lte:
+                    roundsPerLeg *
+                    2,
+                },
+              };
+      }
+    }
+
+    const duplicatePending =
+      await client.fixture.findFirst({
+        where: {
+          tournamentId:
+            match.tournamentId,
+
+          id: {
+            not:
+              fixture.id,
+          },
+
+          groupId:
+            fixture.groupId,
+
+          ...matchdayFilter,
+
+          ...(homeAway &&
+          Object.keys(
+            matchdayFilter,
+          ).length ===
+            0
+            ? {
+                homeRegistrationId,
+                awayRegistrationId,
+              }
+            : {
+                OR: [
+                  {
+                    homeRegistrationId,
+                    awayRegistrationId,
+                  },
+                  {
+                    homeRegistrationId:
+                      awayRegistrationId,
+
+                    awayRegistrationId:
+                      homeRegistrationId,
+                  },
+                ],
+              }),
+
+          match: {
+            is: {
+              resultSubmissions: {
+                some: {
+                  status:
+                    'PENDING_VERIFICATION',
+                },
+              },
+            },
+          },
+        },
+
+        select: {
+          fixtureCode:
+            true,
+        },
+      });
+
+    if (
+      duplicatePending
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'DUPLICATE_PAIR_RESULT_PENDING',
+
+          message:
+            homeAway
+              ? 'This pairing already has a pending shared result in the same Home/Away leg.'
+              : 'This pairing already has a pending shared result. Duplicate result submissions are blocked.',
+        },
+      });
+    }
+  }
+
 
   private async assertPairNotAlreadyCompleted(
     client: any,

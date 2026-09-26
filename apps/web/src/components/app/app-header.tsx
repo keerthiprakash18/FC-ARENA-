@@ -20,6 +20,10 @@ import {
 } from '@/lib/brand-assets';
 
 import {
+  useTheme,
+} from '@/components/theme/theme-provider';
+
+import {
   NotificationBell,
 } from './notification-bell';
 
@@ -79,6 +83,12 @@ export function AppHeader({
 }) {
   const router =
     useRouter();
+
+  const {
+    displayMode,
+    setDisplayMode,
+  } =
+    useTheme();
 
   const searchRef =
     useRef<HTMLInputElement | null>(
@@ -332,6 +342,43 @@ export function AppHeader({
 
 
         <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            aria-label={
+              displayMode ===
+              'DARK'
+                ? 'Switch to Light Mode'
+                : 'Switch to Dark Mode'
+            }
+            title={
+              displayMode ===
+              'DARK'
+                ? 'Light Mode'
+                : 'Dark Mode'
+            }
+            onClick={() =>
+              setDisplayMode(
+                displayMode ===
+                  'DARK'
+                  ? 'LIGHT'
+                  : 'DARK',
+              )
+            }
+            className="theme-profile-chip theme-text grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent text-[18px] transition duration-200"
+          >
+            <span
+              aria-hidden="true"
+              className="leading-none"
+            >
+              {
+                displayMode ===
+                  'DARK'
+                  ? '☀'
+                  : '◐'
+              }
+            </span>
+          </button>
+
           <NotificationBell />
 
 

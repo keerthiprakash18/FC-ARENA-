@@ -274,6 +274,14 @@ export function deduplicateFixtureRecords<
 function fixtureMatchday(
   fixture: CanonicalFixtureLike,
 ) {
+  /*
+   * Home/Away leg identity must be
+   * derived from an explicit Matchday.
+   * Knockout fixtures often have only a
+   * roundNumber, so using roundNumber as
+   * a fallback could incorrectly merge
+   * separate bracket matches.
+   */
   if (
     typeof fixture.matchday ===
       'number' &&
@@ -282,16 +290,6 @@ function fixtureMatchday(
     )
   ) {
     return fixture.matchday;
-  }
-
-  if (
-    typeof fixture.roundNumber ===
-      'number' &&
-    Number.isInteger(
-      fixture.roundNumber,
-    )
-  ) {
-    return fixture.roundNumber;
   }
 
   return null;

@@ -6,6 +6,7 @@ import {
 
 import {
   deduplicateFixtureRecords,
+  deduplicateVisibleFixtureRecords,
   isCanonicalCompletedFixture,
 } from './fixture-deduplication.js';
 
@@ -279,6 +280,155 @@ describe(
         ).toBe(
           false,
         );
+      },
+    );
+
+
+    it(
+      'shows one canonical logical fixture per Home/Away leg while keeping the real return leg separate',
+      () => {
+        const fixtures =
+          deduplicateVisibleFixtureRecords(
+            [
+              {
+                id:
+                  'same-leg-old',
+                sequence:
+                  1,
+                matchday:
+                  1,
+                homeRegistrationId:
+                  'KALKI',
+                awayRegistrationId:
+                  'DHEENA',
+                status:
+                  'UNSCHEDULED',
+                match: {
+                  status:
+                    'UNSCHEDULED',
+                  confirmedResultSubmissionId:
+                    null,
+                },
+              },
+              {
+                id:
+                  'same-leg-completed',
+                sequence:
+                  2,
+                matchday:
+                  2,
+                homeRegistrationId:
+                  'DHEENA',
+                awayRegistrationId:
+                  'KALKI',
+                status:
+                  'COMPLETED',
+                match: {
+                  status:
+                    'COMPLETED',
+                  confirmedResultSubmissionId:
+                    'result-leg-1',
+                },
+              },
+              {
+                id:
+                  'dummy-md3',
+                sequence:
+                  3,
+                matchday:
+                  3,
+                homeRegistrationId:
+                  'C',
+                awayRegistrationId:
+                  'D',
+                status:
+                  'UNSCHEDULED',
+              },
+              {
+                id:
+                  'return-leg',
+                sequence:
+                  4,
+                matchday:
+                  4,
+                homeRegistrationId:
+                  'DHEENA',
+                awayRegistrationId:
+                  'KALKI',
+                status:
+                  'UNSCHEDULED',
+                match: {
+                  status:
+                    'UNSCHEDULED',
+                  confirmedResultSubmissionId:
+                    null,
+                },
+              },
+              {
+                id:
+                  'dummy-md5',
+                sequence:
+                  5,
+                matchday:
+                  5,
+                homeRegistrationId:
+                  'C',
+                awayRegistrationId:
+                  'A',
+                status:
+                  'UNSCHEDULED',
+              },
+              {
+                id:
+                  'dummy-md6',
+                sequence:
+                  6,
+                matchday:
+                  6,
+                homeRegistrationId:
+                  'D',
+                awayRegistrationId:
+                  'B',
+                status:
+                  'UNSCHEDULED',
+              },
+            ],
+            'LEAGUE_ROUND_ROBIN',
+            'HOME_AWAY',
+          );
+
+        const kalkiDheena =
+          fixtures.filter(
+            (
+              fixture,
+            ) =>
+              [
+                fixture.homeRegistrationId,
+                fixture.awayRegistrationId,
+              ]
+                .filter(Boolean)
+                .sort()
+                .join(':') ===
+              'DHEENA:KALKI',
+          );
+
+        expect(
+          kalkiDheena,
+        ).toHaveLength(
+          2,
+        );
+
+        expect(
+          kalkiDheena.map(
+            (
+              fixture,
+            ) =>
+              fixture.id,
+          ),
+        ).toEqual([
+          'same-leg-completed',
+          'return-leg',
+        ]);
       },
     );
 

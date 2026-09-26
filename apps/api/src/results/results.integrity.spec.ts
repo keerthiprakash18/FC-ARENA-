@@ -299,6 +299,78 @@ describe(
     );
 
     it(
+      'confirmation rebuilds standings and player statistics from canonical shared results',
+      () => {
+        const confirmResult =
+          extractMethod(
+            resultsServiceSource,
+            'confirmResult',
+            [
+              'rejectResult',
+              'getStandings',
+              'getMyStatistics',
+            ],
+          );
+
+        expect(
+          confirmResult,
+        ).toContain(
+          'rebuildTournamentStatistics',
+        );
+
+        expect(
+          confirmResult,
+        ).not.toMatch(
+          /await this\.applyStanding\(/,
+        );
+
+        expect(
+          confirmResult,
+        ).not.toMatch(
+          /await this\.applyPlayerStatistic\(/,
+        );
+      },
+    );
+
+
+    it(
+      'blocks pending duplicate logical fixtures before accepting another result',
+      () => {
+        const submitResult =
+          extractMethod(
+            resultsServiceSource,
+            'submitResult',
+            [
+              'getMatchResults',
+              'confirmResult',
+              'rejectResult',
+              'getStandings',
+              'getMyStatistics',
+            ],
+          );
+
+        expect(
+          submitResult,
+        ).toContain(
+          'assertPairNotAlreadyPending',
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toContain(
+          'DUPLICATE_PAIR_RESULT_PENDING',
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toContain(
+          'PARTICIPANT_MATCHDAY_RESULT_PENDING',
+        );
+      },
+    );
+
+
+    it(
       'confirmation creates an APPLY stat event',
       () => {
         expect(

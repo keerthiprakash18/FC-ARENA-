@@ -81,8 +81,16 @@ export default function RootLayout({
           ? 'luxury-gold'
           : 'classic-blue';
         document.documentElement.dataset.theme = theme;
+
+        var modeValue = localStorage.getItem('fc-arena-display-mode');
+        var mode = modeValue === 'DARK'
+          ? 'dark'
+          : 'light';
+
+        document.documentElement.dataset.mode = mode;
       } catch (_) {
         document.documentElement.dataset.theme = 'classic-blue';
+        document.documentElement.dataset.mode = 'light';
       }
     })();
   `;
@@ -91,6 +99,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="classic-blue"
+      data-mode="light"
       suppressHydrationWarning
     >
       <head>

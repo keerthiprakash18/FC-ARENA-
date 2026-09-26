@@ -207,6 +207,102 @@ export default function TournamentFixturesPage() {
   ]);
 
 
+  useEffect(() => {
+    let cancelled =
+      false;
+
+    async function syncOpponentFixtureUpdates() {
+      if (
+        document.visibilityState ===
+        'hidden'
+      ) {
+        return;
+      }
+
+      try {
+        const response =
+          await authenticatedRequest<{
+            success: true;
+
+            data: {
+              fixtures:
+                GroupFixture[];
+            };
+
+            error: null;
+          }>(
+            `/tournaments/${tournamentId}/fixtures`,
+          );
+
+        if (
+          !cancelled
+        ) {
+          setFixtures(
+            response.data.fixtures,
+          );
+        }
+      } catch {
+        // Keep the current fixture list.
+        // The next focus/poll can retry.
+      }
+    }
+
+    const interval =
+      window.setInterval(
+        () => {
+          void syncOpponentFixtureUpdates();
+        },
+        15_000,
+      );
+
+    const onFocus =
+      () => {
+        void syncOpponentFixtureUpdates();
+      };
+
+    const onVisibilityChange =
+      () => {
+        if (
+          document.visibilityState ===
+          'visible'
+        ) {
+          void syncOpponentFixtureUpdates();
+        }
+      };
+
+    window.addEventListener(
+      'focus',
+      onFocus,
+    );
+
+    document.addEventListener(
+      'visibilitychange',
+      onVisibilityChange,
+    );
+
+    return () => {
+      cancelled =
+        true;
+
+      window.clearInterval(
+        interval,
+      );
+
+      window.removeEventListener(
+        'focus',
+        onFocus,
+      );
+
+      document.removeEventListener(
+        'visibilitychange',
+        onVisibilityChange,
+      );
+    };
+  }, [
+    tournamentId,
+  ]);
+
+
   const groups =
     useMemo(
       () => {

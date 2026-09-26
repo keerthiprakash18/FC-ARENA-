@@ -1034,6 +1034,184 @@ export default function FixturesPage() {
   }
 
 
+  useEffect(() => {
+    if (
+      !selectedLeagueId ||
+      tournaments.length ===
+        0
+    ) {
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    async function syncOpponentFixtureUpdates() {
+      if (
+        document.visibilityState ===
+        'hidden'
+      ) {
+        return;
+      }
+
+      const currentMembership =
+        memberships.find(
+          (
+            item,
+          ) =>
+            item.league.id ===
+            selectedLeagueId,
+        );
+
+      const refreshed =
+        await Promise.all(
+          tournaments.map(
+            async (
+              tournament,
+            ) => {
+              try {
+                const response =
+                  await authenticatedRequest<{
+                    data: {
+                      fixtures:
+                        Fixture[];
+                    };
+                  }>(
+                    `/tournaments/${tournament.id}/fixtures`,
+                  );
+
+                return {
+                  tournamentId:
+                    tournament.id,
+
+                  fixtures:
+                    response.data.fixtures.map(
+                      (
+                        fixture,
+                      ) => ({
+                        ...fixture,
+
+                        tournamentId:
+                          tournament.id,
+
+                        tournamentName:
+                          tournament.name,
+
+                        leagueId:
+                          selectedLeagueId,
+
+                        leagueName:
+                          currentMembership
+                            ?.league
+                            .name ||
+                          'League',
+                      }),
+                    ),
+                };
+              } catch {
+                return null;
+              }
+            },
+          ),
+        );
+
+      if (
+        cancelled
+      ) {
+        return;
+      }
+
+      setFixtures(
+        (
+          current,
+        ) => {
+          let next = [
+            ...current,
+          ];
+
+          for (
+            const result
+            of refreshed
+          ) {
+            if (!result) {
+              continue;
+            }
+
+            next = [
+              ...next.filter(
+                (
+                  fixture,
+                ) =>
+                  fixture.tournamentId !==
+                  result.tournamentId,
+              ),
+              ...result.fixtures,
+            ];
+          }
+
+          return next;
+        },
+      );
+    }
+
+    const interval =
+      window.setInterval(
+        () => {
+          void syncOpponentFixtureUpdates();
+        },
+        15_000,
+      );
+
+    const onFocus =
+      () => {
+        void syncOpponentFixtureUpdates();
+      };
+
+    const onVisibilityChange =
+      () => {
+        if (
+          document.visibilityState ===
+          'visible'
+        ) {
+          void syncOpponentFixtureUpdates();
+        }
+      };
+
+    window.addEventListener(
+      'focus',
+      onFocus,
+    );
+
+    document.addEventListener(
+      'visibilitychange',
+      onVisibilityChange,
+    );
+
+    return () => {
+      cancelled =
+        true;
+
+      window.clearInterval(
+        interval,
+      );
+
+      window.removeEventListener(
+        'focus',
+        onFocus,
+      );
+
+      document.removeEventListener(
+        'visibilitychange',
+        onVisibilityChange,
+      );
+    };
+  }, [
+    memberships,
+    selectedLeagueId,
+    tournaments,
+  ]);
+
+
   const grouped =
     useMemo(
       () => {

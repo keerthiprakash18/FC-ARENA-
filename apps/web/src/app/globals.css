@@ -5162,3 +5162,211 @@ a:hover > .theme-brand-mark,
       none !important;
   }
 }
+
+
+/* =========================================================
+   FC ARENA — DARK MODE LAYER
+   Display mode is independent from the selected club theme.
+   ========================================================= */
+
+[data-mode="dark"] {
+  color-scheme: dark;
+
+  --theme-background: #071019;
+  --theme-secondary-background: #0B1622;
+  --theme-surface: #101C29;
+  --theme-elevated: #142332;
+
+  --theme-sidebar: #06111C;
+  --theme-sidebar-secondary: #091827;
+  --theme-sidebar-border: #213346;
+  --theme-sidebar-text: #F4F7FB;
+  --theme-sidebar-muted: #8D9CAF;
+  --theme-sidebar-icon: #94A7BC;
+
+  --theme-header: #0B1622;
+  --theme-header-alpha: rgba(11,22,34,0.96);
+
+  --theme-primary: #3BA8FF;
+  --theme-primary-hover: #2197F3;
+  --theme-primary-bright: #67BBFF;
+  --theme-primary-soft: #102A42;
+  --theme-primary-soft-strong: #153A5B;
+
+  --theme-text: #F4F7FB;
+  --theme-text-secondary: #B4C0CE;
+  --theme-text-muted: #8190A2;
+  --theme-border: #26384A;
+
+  --theme-success: #3BC98A;
+  --theme-warning: #F1B84B;
+  --theme-danger: #F06B6B;
+
+  --theme-hero-start: #10263A;
+  --theme-hero-end: #0B1927;
+  --theme-hero-accent: rgba(59,168,255,0.12);
+
+  --theme-card-shadow: 0 8px 24px rgba(0,0,0,0.24);
+  --theme-card-shadow-hover: 0 14px 34px rgba(0,0,0,0.34);
+  --theme-overlay: rgba(0,0,0,0.68);
+
+  --background: var(--theme-background);
+  --panel: var(--theme-surface);
+  --panel-2: var(--theme-secondary-background);
+  --border: var(--theme-border);
+  --text: var(--theme-text);
+  --muted: var(--theme-text-muted);
+  --secondary-text: var(--theme-text-secondary);
+  --accent: var(--theme-primary);
+  --accent-strong: var(--theme-primary-hover);
+  --success: var(--theme-success);
+  --warning: var(--theme-warning);
+  --danger: var(--theme-danger);
+
+  --fc-bg: var(--theme-background);
+  --fc-sidebar: var(--theme-sidebar);
+  --fc-panel: var(--theme-surface);
+  --fc-panel-2: var(--theme-secondary-background);
+  --fc-elevated: var(--theme-elevated);
+  --fc-border: var(--theme-border);
+  --fc-text: var(--theme-text);
+  --fc-secondary: var(--theme-text-secondary);
+  --fc-muted: var(--theme-text-muted);
+  --fc-cyan: var(--theme-primary);
+  --fc-emerald: var(--theme-success);
+}
+
+[data-mode="dark"][data-theme="luxury-gold"] {
+  --theme-primary: #D5AE5C;
+  --theme-primary-hover: #C9972D;
+  --theme-primary-bright: #E4C57D;
+  --theme-primary-soft: #302712;
+  --theme-primary-soft-strong: #433519;
+  --theme-warning: #D5AE5C;
+  --theme-hero-start: #1C2028;
+  --theme-hero-end: #101722;
+  --theme-hero-accent: rgba(213,174,92,0.14);
+}
+
+[data-mode="dark"] html,
+html[data-mode="dark"],
+[data-mode="dark"] body {
+  background: var(--theme-background);
+  color: var(--theme-text);
+}
+
+[data-mode="dark"] .fc-app-shell,
+[data-mode="dark"] .theme-app-background {
+  background:
+    radial-gradient(
+      circle at 88% 2%,
+      color-mix(in srgb, var(--theme-primary) 10%, transparent),
+      transparent 24rem
+    ),
+    var(--theme-background);
+}
+
+[data-mode="dark"] .theme-sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      var(--theme-sidebar) 0%,
+      var(--theme-sidebar-secondary) 100%
+    );
+}
+
+[data-mode="dark"] .theme-top-header,
+[data-mode="dark"] .theme-search-menu,
+[data-mode="dark"] .theme-profile-menu {
+  background: var(--theme-header-alpha);
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+[data-mode="dark"] .theme-brand-mark,
+[data-mode="dark"] .theme-avatar {
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary-bright);
+}
+
+[data-mode="dark"] .theme-nav-item[data-active="true"] {
+  color: #FFFFFF;
+}
+
+[data-mode="dark"] .theme-panel,
+[data-mode="dark"] .theme-card,
+[data-mode="dark"] .theme-elevated,
+[data-mode="dark"] .fc-card,
+[data-mode="dark"] .auth-card,
+[data-mode="dark"] .hero-card,
+[data-mode="dark"] .stat-card {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  box-shadow: var(--theme-card-shadow);
+}
+
+[data-mode="dark"] input,
+[data-mode="dark"] select,
+[data-mode="dark"] textarea,
+[data-mode="dark"] .theme-input,
+[data-mode="dark"] .theme-search {
+  border-color: var(--theme-border);
+  background-color: var(--theme-elevated);
+  color: var(--theme-text);
+}
+
+[data-mode="dark"] input::placeholder,
+[data-mode="dark"] textarea::placeholder,
+[data-mode="dark"] .theme-search-input::placeholder {
+  color: var(--theme-text-muted);
+}
+
+[data-mode="dark"] .fc-main [class~="bg-white"],
+[data-mode="dark"] .fc-main [class~="bg-[#FFFDF9]"],
+[data-mode="dark"] .fc-main [class~="bg-[#F7F3EB]"],
+[data-mode="dark"] .fc-main [class~="bg-[#FBF8F2]"],
+[data-mode="dark"] .fc-main [class~="bg-[#F5F8FD]"],
+[data-mode="dark"] .fc-main [class~="bg-[#F8FAFE]"] {
+  background-color: var(--theme-surface) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#0B2545]"],
+[data-mode="dark"] .fc-main [class~="text-[#0B1F44]"],
+[data-mode="dark"] .fc-main [class~="text-slate-900"],
+[data-mode="dark"] .fc-main [class~="text-slate-800"] {
+  color: var(--theme-text) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#54657A]"],
+[data-mode="dark"] .fc-main [class~="text-[#60708A]"],
+[data-mode="dark"] .fc-main [class~="text-slate-500"],
+[data-mode="dark"] .fc-main [class~="text-slate-600"] {
+  color: var(--theme-text-secondary) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="border-[#DED8CD]"],
+[data-mode="dark"] .fc-main [class~="border-[#DCE5F1]"],
+[data-mode="dark"] .fc-main [class~="border-slate-200"],
+[data-mode="dark"] .fc-main [class~="border-slate-300"] {
+  border-color: var(--theme-border) !important;
+}
+
+[data-mode="dark"] * {
+  scrollbar-color:
+    color-mix(in srgb, var(--theme-primary) 34%, transparent)
+    color-mix(in srgb, var(--theme-surface) 86%, transparent);
+}
+
+[data-mode="dark"] *::-webkit-scrollbar-track {
+  background: var(--theme-background);
+}
+
+[data-mode="dark"] *::-webkit-scrollbar-thumb {
+  background:
+    color-mix(
+      in srgb,
+      var(--theme-primary) 32%,
+      var(--theme-elevated)
+    );
+}

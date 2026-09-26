@@ -128,3 +128,79 @@ export function clearThemeCache() {
     false,
   );
 }
+
+
+export type DisplayMode =
+  | 'LIGHT'
+  | 'DARK';
+
+export const DEFAULT_DISPLAY_MODE:
+  DisplayMode =
+    'LIGHT';
+
+export const DISPLAY_MODE_STORAGE_KEY =
+  'fc-arena-display-mode';
+
+export function isDisplayMode(
+  value:
+    string | null | undefined,
+): value is DisplayMode {
+  return (
+    value ===
+      'LIGHT' ||
+    value ===
+      'DARK'
+  );
+}
+
+export function applyDisplayMode(
+  mode:
+    DisplayMode,
+  persistCache =
+    true,
+) {
+  if (
+    typeof document !==
+    'undefined'
+  ) {
+    document.documentElement
+      .dataset
+      .mode =
+      mode ===
+        'DARK'
+        ? 'dark'
+        : 'light';
+  }
+
+  if (
+    persistCache &&
+    typeof window !==
+      'undefined'
+  ) {
+    window.localStorage.setItem(
+      DISPLAY_MODE_STORAGE_KEY,
+      mode,
+    );
+  }
+}
+
+export function readCachedDisplayMode():
+  DisplayMode {
+  if (
+    typeof window ===
+    'undefined'
+  ) {
+    return DEFAULT_DISPLAY_MODE;
+  }
+
+  const cached =
+    window.localStorage.getItem(
+      DISPLAY_MODE_STORAGE_KEY,
+    );
+
+  return isDisplayMode(
+    cached,
+  )
+    ? cached
+    : DEFAULT_DISPLAY_MODE;
+}

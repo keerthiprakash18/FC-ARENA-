@@ -157,7 +157,9 @@ export default function AppearancePage() {
 
   const {
     themePreference,
+    displayMode,
     setThemePreference,
+    setDisplayMode,
   } =
     useTheme();
 
@@ -329,6 +331,83 @@ export default function AppearancePage() {
             }
           />
         ) : null}
+
+
+        <FcPanel className="p-5 sm:p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--theme-primary)]">
+                Display Mode
+              </p>
+
+              <h2 className="mt-1 text-lg font-bold">
+                Light or Dark
+              </h2>
+
+              <p className="mt-1 max-w-2xl text-sm text-[var(--theme-text-muted)]">
+                Dark Mode reduces screen brightness for a more comfortable FC ARENA experience, especially at night.
+              </p>
+            </div>
+
+            <div className="theme-elevated flex w-full gap-2 rounded-xl border p-1.5 sm:w-auto">
+              <button
+                type="button"
+                aria-pressed={
+                  displayMode ===
+                  'LIGHT'
+                }
+                onClick={() => {
+                  setDisplayMode(
+                    'LIGHT',
+                  );
+
+                  setMessage(
+                    'Light Mode applied.',
+                  );
+                }}
+                className={
+                  'min-h-11 flex-1 rounded-[9px] px-5 text-sm font-semibold transition sm:flex-none ' +
+                  (
+                    displayMode ===
+                    'LIGHT'
+                      ? 'theme-primary-button'
+                      : 'theme-secondary-button'
+                  )
+                }
+              >
+                ☀ Light
+              </button>
+
+              <button
+                type="button"
+                aria-pressed={
+                  displayMode ===
+                  'DARK'
+                }
+                onClick={() => {
+                  setDisplayMode(
+                    'DARK',
+                  );
+
+                  setMessage(
+                    'Dark Mode applied and saved on this device.',
+                  );
+                }}
+                className={
+                  'min-h-11 flex-1 rounded-[9px] px-5 text-sm font-semibold transition sm:flex-none ' +
+                  (
+                    displayMode ===
+                    'DARK'
+                      ? 'theme-primary-button'
+                      : 'theme-secondary-button'
+                  )
+                }
+              >
+                ◐ Dark
+              </button>
+            </div>
+          </div>
+        </FcPanel>
 
 
         <div className="grid gap-5 xl:grid-cols-2">

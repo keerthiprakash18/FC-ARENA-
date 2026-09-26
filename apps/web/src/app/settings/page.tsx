@@ -100,7 +100,7 @@ export default function SettingsPage() {
               href="/settings/appearance"
               icon="◐"
               title="Appearance"
-              description="Choose the FC ARENA visual theme used across the app"
+              description="Choose your FC ARENA theme and Light or Dark Mode"
               tone="cyan"
             />
 

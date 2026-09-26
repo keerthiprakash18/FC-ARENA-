@@ -614,52 +614,15 @@ export class ResultsService {
             submission.homeScore,
           );
 
-        if (
-          !this.isKnockoutFixture(
-            submission.match.tournament.format,
-            fixture.groupId,
-            submission.match.tournament._count.groups,
-          )
-        ) {
-          await this.applyStanding(
-            tx,
-            submission.match.tournamentId,
-            home.id,
-            homeDelta,
-          );
-
-          await this.applyStanding(
-            tx,
-            submission.match.tournamentId,
-            away.id,
-            awayDelta,
-          );
-        }
-
-        for (
-          const member of
-          home.members
-        ) {
-          await this.applyPlayerStatistic(
-            tx,
-            submission.match.tournamentId,
-            member.userId,
-            homeDelta,
-          );
-        }
-
-        for (
-          const member of
-          away.members
-        ) {
-          await this.applyPlayerStatistic(
-            tx,
-            submission.match.tournamentId,
-            member.userId,
-            awayDelta,
-          );
-        }
-
+        /*
+         * The confirmed match is the
+         * single source of truth. Do not
+         * increment stored tables here:
+         * they are rebuilt canonically
+         * after the shared match/result
+         * state has been committed inside
+         * this transaction.
+         */
         await tx.resultSubmission.update({
           where: {
             id:
@@ -756,6 +719,20 @@ export class ResultsService {
             },
           },
         });
+
+        /*
+         * Rebuild from canonical confirmed
+         * fixtures so both participants,
+         * the points table and player
+         * statistics always agree with the
+         * exact same result. Historical or
+         * accidental duplicate fixture
+         * rows cannot double-count here.
+         */
+        await this.rebuildTournamentStatistics(
+          tx,
+          submission.match.tournamentId,
+        );
 
         if (
           submission.match.tournament
@@ -1394,6 +1371,256 @@ export class ResultsService {
       error: null,
     };
   }
+
+  private async rebuildTournamentStatistics(
+    tx: any,
+    tournamentId: string,
+  ) {
+    const tournament =
+      await tx.tournament.findUnique({
+        where: {
+          id: tournamentId,
+        },
+
+        select: {
+          format: true,
+          competitionFormat:
+            true,
+          legType:
+            true,
+
+          _count: {
+            select: {
+              groups: true,
+            },
+          },
+        },
+      });
+
+    if (!tournament) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'TOURNAMENT_NOT_FOUND',
+
+          message:
+            'Tournament could not be found.',
+        },
+      });
+    }
+
+    const registrations =
+      await tx.tournamentRegistration.findMany({
+        where: {
+          tournamentId,
+          status:
+            'APPROVED',
+        },
+
+        select: {
+          id: true,
+          groupId: true,
+        },
+      });
+
+    const activeMatches =
+      await tx.match.findMany({
+        where: {
+          tournamentId,
+
+          confirmedResultSubmissionId: {
+            not: null,
+          },
+        },
+
+        orderBy: {
+          updatedAt:
+            'asc',
+        },
+
+        include: {
+          confirmedResult:
+            true,
+
+          fixture: {
+            include: {
+              homeRegistration: {
+                include: {
+                  members: true,
+                },
+              },
+
+              awayRegistration: {
+                include: {
+                  members: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    const canonicalMatches =
+      deduplicateFixtureRecords(
+        activeMatches
+          .map(
+            (match: any) => ({
+              ...match.fixture,
+
+              match: {
+                status:
+                  match.status,
+
+                confirmedResultSubmissionId:
+                  match.confirmedResultSubmissionId,
+
+                confirmedResult:
+                  match.confirmedResult
+                    ? {
+                        id:
+                          match.confirmedResult.id,
+
+                        status:
+                          match.confirmedResult.status,
+                      }
+                    : null,
+              },
+
+              sourceMatch:
+                match,
+            }),
+          )
+          .filter(
+            isCanonicalCompletedFixture,
+          ),
+        tournament.competitionFormat,
+        tournament.legType,
+      ).map(
+        (fixture: any) =>
+          fixture.sourceMatch,
+      );
+
+    const standingFixtureIds =
+      new Set(
+        canonicalizeRoundRobinStandingsFixtures(
+          canonicalMatches.map(
+            (match: any) =>
+              match.fixture,
+          ),
+          registrations,
+          {
+            competitionFormat:
+              tournament.competitionFormat,
+            legType:
+              tournament.legType,
+            tournamentFormat:
+              tournament.format,
+            hasGroups:
+              tournament._count.groups >
+              0,
+          },
+        ).map(
+          (fixture) =>
+            fixture.id,
+        ),
+      );
+
+    await tx.tournamentStanding.deleteMany({
+      where: {
+        tournamentId,
+      },
+    });
+
+    await tx.playerTournamentStatistic.deleteMany({
+      where: {
+        tournamentId,
+      },
+    });
+
+    for (
+      const match of
+      canonicalMatches
+    ) {
+      const result =
+        match.confirmedResult;
+
+      const home =
+        match.fixture
+          .homeRegistration;
+
+      const away =
+        match.fixture
+          .awayRegistration;
+
+      if (
+        !result ||
+        !home ||
+        !away
+      ) {
+        continue;
+      }
+
+      const homeDelta =
+        this.calculateDelta(
+          result.homeScore,
+          result.awayScore,
+        );
+
+      const awayDelta =
+        this.calculateDelta(
+          result.awayScore,
+          result.homeScore,
+        );
+
+      if (
+        standingFixtureIds.has(
+          match.fixture.id,
+        )
+      ) {
+        await this.applyStanding(
+          tx,
+          tournamentId,
+          home.id,
+          homeDelta,
+        );
+
+        await this.applyStanding(
+          tx,
+          tournamentId,
+          away.id,
+          awayDelta,
+        );
+      }
+
+      for (
+        const member of
+        home.members
+      ) {
+        await this.applyPlayerStatistic(
+          tx,
+          tournamentId,
+          member.userId,
+          homeDelta,
+        );
+      }
+
+      for (
+        const member of
+        away.members
+      ) {
+        await this.applyPlayerStatistic(
+          tx,
+          tournamentId,
+          member.userId,
+          awayDelta,
+        );
+      }
+    }
+  }
+
 
   private async getCanonicalConfirmedFixtures(
     tournamentId: string,

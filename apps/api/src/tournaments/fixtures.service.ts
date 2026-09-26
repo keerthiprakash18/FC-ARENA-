@@ -17,7 +17,7 @@ import {
 } from './fixture-engine.js';
 import type { FixtureBlueprint } from './fixture-engine.js';
 import {
-  deduplicateFixtureRecords,
+  deduplicateVisibleFixtureRecords,
 } from './fixture-deduplication.js';
 import {
   roundRobinRoundsPerLeg,
@@ -363,7 +363,7 @@ export class FixturesService {
       });
 
     const canonicalFixtures =
-      deduplicateFixtureRecords(
+      deduplicateVisibleFixtureRecords(
         fixtures,
         tournament.competitionFormat,
         tournament.legType,

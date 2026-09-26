@@ -2,6 +2,8 @@ export interface CanonicalFixtureLike {
   id: string;
   groupId?: string | null;
   sequence?: number | null;
+  matchday?: number | null;
+  roundNumber?: number | null;
   homeRegistrationId?: string | null;
   awayRegistrationId?: string | null;
   status?: string | null;
@@ -248,6 +250,341 @@ export function deduplicateFixtureRecords<
         fixture,
       );
     }
+  }
+
+  return Array.from(
+    canonical.values(),
+  ).sort(
+    (
+      first,
+      second,
+    ) =>
+      (
+        first.sequence ??
+        Number.MAX_SAFE_INTEGER
+      ) -
+      (
+        second.sequence ??
+        Number.MAX_SAFE_INTEGER
+      ),
+  );
+}
+
+
+function fixtureMatchday(
+  fixture: CanonicalFixtureLike,
+) {
+  /*
+   * Home/Away leg identity must be
+   * derived from an explicit Matchday.
+   * Knockout fixtures often have only a
+   * roundNumber, so using roundNumber as
+   * a fallback could incorrectly merge
+   * separate bracket matches.
+   */
+  if (
+    typeof fixture.matchday ===
+      'number' &&
+    Number.isInteger(
+      fixture.matchday,
+    )
+  ) {
+    return fixture.matchday;
+  }
+
+  return null;
+}
+
+
+function selectPreferredFixture<
+  T extends CanonicalFixtureLike,
+>(
+  current: T | undefined,
+  candidate: T,
+) {
+  if (!current) {
+    return candidate;
+  }
+
+  const candidateRank =
+    fixturePriority(
+      candidate,
+    );
+
+  const currentRank =
+    fixturePriority(
+      current,
+    );
+
+  if (
+    candidateRank >
+    currentRank
+  ) {
+    return candidate;
+  }
+
+  if (
+    candidateRank <
+    currentRank
+  ) {
+    return current;
+  }
+
+  return (
+    (
+      candidate.sequence ??
+      Number.MAX_SAFE_INTEGER
+    ) <
+    (
+      current.sequence ??
+      Number.MAX_SAFE_INTEGER
+    )
+  )
+    ? candidate
+    : current;
+}
+
+
+/*
+ * Fixture-list canonicalization is
+ * intentionally stricter than the
+ * low-level pair deduper above.
+ *
+ * In Home & Away competitions, an old
+ * or accidental reversed copy inside
+ * the SAME leg must not appear as a
+ * second logical match in the UI.
+ * The real return fixture in the second
+ * leg must remain independent.
+ *
+ * This helper is safe for a complete
+ * generated fixture list because it
+ * infers each scope's leg boundary only
+ * when Matchdays are contiguous from
+ * 1..N and N is even. If that condition
+ * is not met, it falls back to the
+ * existing direction-aware behavior.
+ */
+export function deduplicateVisibleFixtureRecords<
+  T extends CanonicalFixtureLike,
+>(
+  fixtures: T[],
+  competitionFormat?: string | null,
+  legType?: string | null,
+) {
+  const homeAway =
+    competitionFormat ===
+      'DOUBLE_ROUND_ROBIN' ||
+    legType ===
+      'HOME_AWAY';
+
+  if (!homeAway) {
+    return deduplicateFixtureRecords(
+      fixtures,
+      competitionFormat,
+      legType,
+    );
+  }
+
+  const matchdaysByScope =
+    new Map<
+      string,
+      Set<number>
+    >();
+
+  for (
+    const fixture
+    of fixtures
+  ) {
+    const matchday =
+      fixtureMatchday(
+        fixture,
+      );
+
+    if (
+      matchday === null
+    ) {
+      continue;
+    }
+
+    const scope =
+      fixture.groupId ||
+      'NO_GROUP';
+
+    const values =
+      matchdaysByScope.get(
+        scope,
+      ) ??
+      new Set<number>();
+
+    values.add(
+      matchday,
+    );
+
+    matchdaysByScope.set(
+      scope,
+      values,
+    );
+  }
+
+  const roundsPerLegByScope =
+    new Map<
+      string,
+      number
+    >();
+
+  for (
+    const [
+      scope,
+      matchdays,
+    ]
+    of matchdaysByScope
+  ) {
+    const ordered =
+      [...matchdays].sort(
+        (
+          first,
+          second,
+        ) =>
+          first -
+          second,
+      );
+
+    const maxMatchday =
+      ordered[
+        ordered.length - 1
+      ];
+
+    if (
+      !maxMatchday ||
+      maxMatchday %
+        2 !==
+        0 ||
+      ordered.length !==
+        maxMatchday
+    ) {
+      continue;
+    }
+
+    let contiguous =
+      true;
+
+    for (
+      let index = 0;
+      index <
+      ordered.length;
+      index++
+    ) {
+      if (
+        ordered[index] !==
+        index + 1
+      ) {
+        contiguous =
+          false;
+
+        break;
+      }
+    }
+
+    if (
+      contiguous
+    ) {
+      roundsPerLegByScope.set(
+        scope,
+        maxMatchday / 2,
+      );
+    }
+  }
+
+  const canonical =
+    new Map<
+      string,
+      T
+    >();
+
+  for (
+    const fixture
+    of fixtures
+  ) {
+    const home =
+      fixture.homeRegistrationId;
+
+    const away =
+      fixture.awayRegistrationId;
+
+    const matchday =
+      fixtureMatchday(
+        fixture,
+      );
+
+    const scope =
+      fixture.groupId ||
+      'NO_GROUP';
+
+    const roundsPerLeg =
+      roundsPerLegByScope.get(
+        scope,
+      );
+
+    let key: string;
+
+    if (
+      home &&
+      away &&
+      matchday !==
+        null &&
+      roundsPerLeg
+    ) {
+      const pair =
+        [
+          home,
+          away,
+        ].sort();
+
+      const leg =
+        matchday <=
+        roundsPerLeg
+          ? 1
+          : 2;
+
+      key = [
+        scope,
+        ...pair,
+        'LEG',
+        leg,
+      ].join(
+        ':',
+      );
+    } else if (
+      matchday ===
+        null
+    ) {
+      /*
+       * Knockout / non-Matchday fixtures
+       * remain distinct. Home/Away leg
+       * semantics do not apply here.
+       */
+      key =
+        'fixture:' +
+        fixture.id;
+    } else {
+      key =
+        fixturePairKey(
+          fixture,
+          competitionFormat,
+          legType,
+        );
+    }
+
+    canonical.set(
+      key,
+      selectPreferredFixture(
+        canonical.get(
+          key,
+        ),
+        fixture,
+      ),
+    );
   }
 
   return Array.from(

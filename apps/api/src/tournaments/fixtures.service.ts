@@ -19,6 +19,9 @@ import type { FixtureBlueprint } from './fixture-engine.js';
 import {
   deduplicateFixtureRecords,
 } from './fixture-deduplication.js';
+import {
+  roundRobinRoundsPerLeg,
+} from '../results/standings-integrity.js';
 
 @Injectable()
 export class FixturesService {
@@ -536,6 +539,55 @@ export class FixturesService {
       });
     }
 
+    const proposedMatchday =
+      dto.matchday ??
+      fixture.matchday;
+
+    const isCanonicalRoundRobin =
+      fixture.tournament.format ===
+        'ROUND_ROBIN' &&
+      fixture.tournament
+        .competitionFormat !==
+        'CUSTOM_MANUAL' &&
+      !(
+        fixture.tournament
+          .competitionFormat ===
+          'GROUP_STAGE_KNOCKOUT' &&
+        !fixture.groupId
+      );
+
+    if (
+      isCanonicalRoundRobin
+    ) {
+      if (
+        proposedMatchday ===
+          null ||
+        !Number.isInteger(
+          proposedMatchday,
+        ) ||
+        proposedMatchday <
+          1
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+
+          error: {
+            code:
+              'INVALID_MATCHDAY',
+
+            message:
+              'Round Robin fixtures require a valid Matchday.',
+          },
+        });
+      }
+
+      await this.assertRoundRobinSchedulingIntegrity(
+        fixture,
+        proposedMatchday,
+      );
+    }
+
     const dayStart =
       new Date(scheduledAt);
 
@@ -740,16 +792,23 @@ export class FixturesService {
               null,
 
             matchday:
-              dto.matchday ??
-              fixture.matchday,
+              proposedMatchday,
 
             roundNumber:
-              dto.roundNumber ??
-              fixture.roundNumber,
+              isCanonicalRoundRobin &&
+              proposedMatchday !==
+                null
+                ? proposedMatchday
+                : dto.roundNumber ??
+                  fixture.roundNumber,
 
             roundName:
-              dto.roundName?.trim() ||
-              fixture.roundName,
+              isCanonicalRoundRobin &&
+              proposedMatchday !==
+                null
+                ? `MATCHDAY ${proposedMatchday}`
+                : dto.roundName?.trim() ||
+                  fixture.roundName,
 
             status:
               'SCHEDULED',
@@ -908,6 +967,271 @@ export class FixturesService {
       error: null,
     };
   }
+
+  private async assertRoundRobinSchedulingIntegrity(
+    fixture: any,
+    proposedMatchday: number,
+  ) {
+    const homeRegistrationId =
+      fixture.homeRegistrationId;
+
+    const awayRegistrationId =
+      fixture.awayRegistrationId;
+
+    if (
+      !homeRegistrationId ||
+      !awayRegistrationId
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'FIXTURE_PARTICIPANTS_REQUIRED',
+
+          message:
+            'Both participants must be assigned before scheduling this Round Robin fixture.',
+        },
+      });
+    }
+
+    if (
+      homeRegistrationId ===
+      awayRegistrationId
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'SELF_FIXTURE_NOT_ALLOWED',
+
+          message:
+            'A participant cannot play against itself.',
+        },
+      });
+    }
+
+    const registrationCount =
+      await this.prisma.tournamentRegistration.count({
+        where: {
+          tournamentId:
+            fixture.tournamentId,
+
+          status:
+            'APPROVED',
+
+          ...(fixture.groupId
+            ? {
+                groupId:
+                  fixture.groupId,
+              }
+            : {}),
+        },
+      });
+
+    const roundsPerLeg =
+      roundRobinRoundsPerLeg(
+        registrationCount,
+      );
+
+    const homeAway =
+      fixture.tournament
+        .competitionFormat ===
+        'DOUBLE_ROUND_ROBIN' ||
+      fixture.tournament
+        .legType ===
+        'HOME_AWAY';
+
+    const maxMatchday =
+      roundsPerLeg *
+      (
+        homeAway
+          ? 2
+          : 1
+      );
+
+    if (
+      roundsPerLeg < 1 ||
+      proposedMatchday >
+        maxMatchday
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'MATCHDAY_OUT_OF_RANGE',
+
+          message:
+            `Matchday must be between 1 and ${maxMatchday} for this Round Robin format.`,
+        },
+      });
+    }
+
+    const participants = [
+      homeRegistrationId,
+      awayRegistrationId,
+    ];
+
+    const participantConflict =
+      await this.prisma.fixture.findFirst({
+        where: {
+          tournamentId:
+            fixture.tournamentId,
+
+          id: {
+            not:
+              fixture.id,
+          },
+
+          groupId:
+            fixture.groupId,
+
+          matchday:
+            proposedMatchday,
+
+          status: {
+            not:
+              'CANCELLED',
+          },
+
+          OR: [
+            {
+              homeRegistrationId: {
+                in:
+                  participants,
+              },
+            },
+            {
+              awayRegistrationId: {
+                in:
+                  participants,
+              },
+            },
+          ],
+        },
+
+        select: {
+          fixtureCode:
+            true,
+        },
+      });
+
+    if (
+      participantConflict
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'PARTICIPANT_MATCHDAY_CONFLICT',
+
+          message:
+            `A participant already has another fixture in Matchday ${proposedMatchday} (${participantConflict.fixtureCode}).`,
+        },
+      });
+    }
+
+    let legFilter:
+      Record<string, unknown> =
+      {};
+
+    if (
+      homeAway &&
+      roundsPerLeg >
+        0
+    ) {
+      legFilter =
+        proposedMatchday <=
+        roundsPerLeg
+          ? {
+              matchday: {
+                gte: 1,
+                lte:
+                  roundsPerLeg,
+              },
+            }
+          : {
+              matchday: {
+                gt:
+                  roundsPerLeg,
+                lte:
+                  roundsPerLeg *
+                  2,
+              },
+            };
+    }
+
+    const duplicatePair =
+      await this.prisma.fixture.findFirst({
+        where: {
+          tournamentId:
+            fixture.tournamentId,
+
+          id: {
+            not:
+              fixture.id,
+          },
+
+          groupId:
+            fixture.groupId,
+
+          status: {
+            not:
+              'CANCELLED',
+          },
+
+          ...legFilter,
+
+          OR: [
+            {
+              homeRegistrationId,
+              awayRegistrationId,
+            },
+            {
+              homeRegistrationId:
+                awayRegistrationId,
+
+              awayRegistrationId:
+                homeRegistrationId,
+            },
+          ],
+        },
+
+        select: {
+          fixtureCode:
+            true,
+          matchday:
+            true,
+        },
+      });
+
+    if (
+      duplicatePair
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+
+        error: {
+          code:
+            'DUPLICATE_PAIRING',
+
+          message:
+            homeAway
+              ? `This pairing already exists in the same Home/Away leg (${duplicatePair.fixtureCode}).`
+              : `This pairing already exists in this Round Robin tournament (${duplicatePair.fixtureCode}).`,
+        },
+      });
+    }
+  }
+
 
   private async getFixtureForManager(
     userId: string,

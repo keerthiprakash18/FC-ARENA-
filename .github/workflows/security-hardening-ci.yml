@@ -1,12 +1,14 @@
 name: Security Hardening CI
 
 on:
-  push:
-    branches:
-      - "security-hardening-*"
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: security-hardening-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
     paths:
       - "apps/api/**"
       - "apps/web/**"

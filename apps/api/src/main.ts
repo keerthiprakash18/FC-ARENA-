@@ -5,6 +5,11 @@ import {
 } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
+import type {
+  NextFunction,
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from 'express';
 import { AppModule } from './app.module.js';
 
 async function bootstrap(): Promise<void> {
@@ -14,21 +19,77 @@ async function bootstrap(): Promise<void> {
 
   app.use(cookieParser());
 
+  const expressApp =
+    app
+      .getHttpAdapter()
+      .getInstance();
+
+  expressApp.disable(
+    'x-powered-by',
+  );
+
+  const isProduction =
+    process.env.NODE_ENV ===
+    'production';
+
+  app.use(
+    (
+      _request:
+        ExpressRequest,
+      response:
+        ExpressResponse,
+      next:
+        NextFunction,
+    ) => {
+      response.setHeader(
+        'X-Content-Type-Options',
+        'nosniff',
+      );
+      response.setHeader(
+        'Referrer-Policy',
+        'strict-origin-when-cross-origin',
+      );
+      response.setHeader(
+        'X-Frame-Options',
+        'DENY',
+      );
+      response.setHeader(
+        'Permissions-Policy',
+        'camera=(), microphone=(), geolocation=()',
+      );
+
+      if (isProduction) {
+        response.setHeader(
+          'Strict-Transport-Security',
+          'max-age=31536000; includeSubDomains',
+        );
+      }
+
+      next();
+    },
+  );
+
   const configuredOrigins =
     (process.env.WEB_ORIGIN ?? '')
       .split(',')
       .map((origin) => origin.trim())
       .filter(Boolean);
 
-  const allowedOrigins = Array.from(
-    new Set([
-      'http://localhost:3000',
-      'https://fcarena.in',
-      'https://www.fcarena.in',
-      'https://fc-arena-sand.vercel.app',
-      ...configuredOrigins,
-    ]),
-  );
+  const allowedOrigins =
+    Array.from(
+      new Set([
+        ...(
+          isProduction
+            ? []
+            : [
+                'http://localhost:3000',
+              ]
+        ),
+        'https://fcarena.in',
+        'https://www.fcarena.in',
+        ...configuredOrigins,
+      ]),
+    );
 
   app.enableCors({
     origin: (

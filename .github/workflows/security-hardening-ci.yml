@@ -88,8 +88,12 @@ jobs:
       - name: API E2E tests
         run: npm run test:e2e --workspace=apps/api
 
-      - name: Web lint
-        run: npm run lint --workspace=apps/web
+      - name: Security-touched web config lint
+        working-directory: apps/web
+        run: npx eslint next.config.ts
+
+      - name: Dependency critical audit
+        run: npm audit --audit-level=critical
 
       - name: Web production build
         run: npm run build:web

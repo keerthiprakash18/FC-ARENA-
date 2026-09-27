@@ -30,20 +30,7 @@ const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 
 function clientIp(request: Request): string {
-  const forwarded =
-    request.headers[
-      'x-forwarded-for'
-    ];
-
-  const firstForwarded =
-    Array.isArray(forwarded)
-      ? forwarded[0]
-      : forwarded
-          ?.split(',')[0];
-
   return (
-    firstForwarded
-      ?.trim() ||
     request.ip ||
     request.socket
       .remoteAddress ||

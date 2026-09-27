@@ -128,10 +128,33 @@ export class PlayerProfileImageService {
       Buffer;
 
     try {
-      optimized =
-        await sharp(
+      const image =
+        sharp(
           file.buffer,
-        )
+          {
+            limitInputPixels:
+              64_000_000,
+          },
+        );
+
+      const metadata =
+        await image.metadata();
+
+      if (
+        !metadata.width ||
+        !metadata.height ||
+        metadata.width >
+          8000 ||
+        metadata.height >
+          8000
+      ) {
+        throw new Error(
+          'Profile image dimensions are not allowed.',
+        );
+      }
+
+      optimized =
+        await image
           .rotate()
           .resize(
             512,

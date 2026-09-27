@@ -121,6 +121,22 @@ export class LeagueManagementService {
   ) {
     await this.assertMember(userId, leagueId);
 
+    const requesterAdmin =
+      await this.prisma.leagueAdmin.findUnique({
+        where: {
+          leagueId_userId: {
+            leagueId,
+            userId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    const canViewPrivateIdentity =
+      Boolean(requesterAdmin);
+
     const normalizedSearch = search?.trim();
 
     const members = await this.prisma.leagueMember.findMany({
@@ -206,15 +222,25 @@ export class LeagueManagementService {
           user: {
             id: membership.user.id,
             fullName: membership.user.fullName,
-            email: membership.user.email,
+            ...(canViewPrivateIdentity
+              ? {
+                  email:
+                    membership.user.email,
+                }
+              : {}),
             playerCode:
               membership.user.player?.playerCode ?? null,
             profileImageUrl:
               membership.user.player?.profileImageUrl ?? null,
             inGameName:
               membership.user.player?.identity?.inGameName ?? null,
-            gameUid:
-              membership.user.player?.identity?.gameUid ?? null,
+            ...(canViewPrivateIdentity
+              ? {
+                  gameUid:
+                    membership.user.player?.identity?.gameUid ??
+                    null,
+                }
+              : {}),
             identityVerified:
               membership.user.player?.identity?.isVerified ?? false,
             adminRole:

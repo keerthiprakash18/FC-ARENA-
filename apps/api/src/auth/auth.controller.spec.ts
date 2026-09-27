@@ -11,7 +11,6 @@ import {
   AuthController,
 } from './auth.controller.js';
 
-
 describe(
   'AuthController refresh cookie',
   () => {
@@ -33,7 +32,7 @@ describe(
     );
 
     it(
-      'sets the production refresh cookie for same-origin mobile-safe sessions',
+      'sets a strict production refresh cookie without exposing the refresh token',
       async () => {
         const authService = {
           login:
@@ -63,16 +62,47 @@ describe(
               }),
         };
 
+        const rateLimit = {
+          assertAllowed:
+            vi.fn()
+              .mockResolvedValue(
+                undefined,
+              ),
+
+          clear:
+            vi.fn()
+              .mockResolvedValue(
+                undefined,
+              ),
+
+          recordAttempt:
+            vi.fn()
+              .mockResolvedValue(
+                undefined,
+              ),
+        };
+
         const cookie =
           vi.fn();
 
         const controller =
           new AuthController(
             authService as never,
+            rateLimit as never,
           );
 
         const result =
           await controller.login(
+            {
+              headers: {},
+              ip:
+                '127.0.0.1',
+              socket: {
+                remoteAddress:
+                  '127.0.0.1',
+              },
+            } as never,
+
             {
               email:
                 'player@example.com',
@@ -87,6 +117,11 @@ describe(
           );
 
         expect(
+          rateLimit
+            .assertAllowed,
+        ).toHaveBeenCalled();
+
+        expect(
           cookie,
         ).toHaveBeenCalledWith(
           'fc_arena_refresh_token',
@@ -99,7 +134,7 @@ describe(
               true,
 
             sameSite:
-              'lax',
+              'strict',
 
             path:
               '/api/auth',

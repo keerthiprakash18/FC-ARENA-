@@ -814,3 +814,16 @@ model MatchResultStatEvent {
   @@index([tournamentId, createdAt])
   @@map("match_result_stat_events")
 }
+
+
+model AuthRateLimit {
+  action          String   @db.VarChar(50)
+  keyHash         String   @db.VarChar(64)
+  windowStartedAt DateTime @default(now())
+  attemptCount    Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@id([action, keyHash])
+  @@index([updatedAt])
+  @@map("auth_rate_limits")
+}

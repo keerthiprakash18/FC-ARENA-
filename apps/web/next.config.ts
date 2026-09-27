@@ -14,7 +14,51 @@ const apiProxyTarget =
     '',
   );
 
+const securityHeaders = [
+  {
+    key:
+      'X-Content-Type-Options',
+    value:
+      'nosniff',
+  },
+  {
+    key:
+      'Referrer-Policy',
+    value:
+      'strict-origin-when-cross-origin',
+  },
+  {
+    key:
+      'X-Frame-Options',
+    value:
+      'DENY',
+  },
+  {
+    key:
+      'Permissions-Policy',
+    value:
+      'camera=(), microphone=(), geolocation=()',
+  },
+  {
+    key:
+      'Content-Security-Policy',
+    value:
+      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: blob: https://res.cloudinary.com; connect-src 'self' https://api.fcarena.in; upgrade-insecure-requests",
+  },
+];
+
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source:
+          '/(.*)',
+        headers:
+          securityHeaders,
+      },
+    ];
+  },
+
   async rewrites() {
     return [
       {

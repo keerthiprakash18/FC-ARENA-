@@ -303,7 +303,10 @@ export class AuthController {
     response.clearCookie(REFRESH_COOKIE_NAME, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax',
+      sameSite:
+        isProduction
+          ? 'strict'
+          : 'lax',
       path: '/api/auth',
     });
 
@@ -342,7 +345,10 @@ export class AuthController {
     response.cookie(REFRESH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'lax',
+      sameSite:
+        isProduction
+          ? 'strict'
+          : 'lax',
       path: '/api/auth',
       maxAge: REFRESH_COOKIE_MAX_AGE,
     });

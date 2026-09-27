@@ -4,11 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
-
-concurrency:
-  group: security-hardening-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
     paths:
       - "apps/api/**"
       - "apps/web/**"
@@ -16,6 +11,14 @@ concurrency:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/security-hardening-ci.yml"
+      - ".github/workflows/codeql-security.yml"
+      - ".github/workflows/backend-deploy.yml"
+      - ".github/workflows/frontend-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: security-hardening-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

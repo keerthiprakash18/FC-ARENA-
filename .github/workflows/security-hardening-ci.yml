@@ -38,12 +38,24 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fcarena?schema=public
       JWT_ACCESS_SECRET: security-ci-access-secret-at-least-32-characters
       JWT_REFRESH_SECRET: security-ci-refresh-secret-at-least-32-characters
       NODE_ENV: test
       NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
       AI_ASSISTANT_ENABLED: "false"
 
     steps:

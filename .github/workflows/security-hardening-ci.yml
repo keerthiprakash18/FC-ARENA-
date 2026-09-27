@@ -92,8 +92,8 @@ jobs:
         working-directory: apps/web
         run: npx eslint next.config.ts
 
-      - name: Dependency critical audit
-        run: npm audit --audit-level=critical
+      - name: Production dependency security audit
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Web production build
         run: npm run build:web

@@ -82,14 +82,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-        error: {
-          code: 'EMAIL_ALREADY_REGISTERED',
-          message: 'An account already exists with this email address.',
-        },
-      });
+      throw this.registrationConflict();
     }
 
     if (phoneNumber) {
@@ -98,14 +91,7 @@ export class AuthService {
       });
 
       if (existingPhone) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-          error: {
-            code: 'PHONE_ALREADY_REGISTERED',
-            message: 'An account already exists with this phone number.',
-          },
-        });
+        throw this.registrationConflict();
       }
     }
 
@@ -130,14 +116,7 @@ export class AuthService {
       });
 
       if (existingUid) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-          error: {
-            code: 'GAME_UID_TAKEN',
-            message: 'This game UID is already registered.',
-          },
-        });
+        throw this.registrationConflict();
       }
     }
 
@@ -444,14 +423,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-        error: {
-          code: 'INVALID_PASSWORD_RESET',
-          message: 'Unable to reset this password.',
-        },
-      });
+      throw this.invalidPasswordReset();
     }
 
     const otpRecord = await this.getLatestOtp(
@@ -459,7 +431,14 @@ export class AuthService {
       'PASSWORD_RESET',
     );
 
-    await this.validateOtpRecord(otpRecord, dto.otp);
+    try {
+      await this.validateOtpRecord(
+        otpRecord,
+        dto.otp,
+      );
+    } catch {
+      throw this.invalidPasswordReset();
+    }
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 12);
     const now = new Date();
@@ -678,22 +657,59 @@ export class AuthService {
       Date.now() + REFRESH_TOKEN_SECONDS * 1000,
     );
 
-    await this.prisma.$transaction([
-      this.prisma.refreshSession.update({
-        where: { id: session.id },
-        data: {
-          revokedAt: new Date(),
+    const rotated =
+      await this.prisma.$transaction(
+        async (tx) => {
+          const claimed =
+            await tx.refreshSession.updateMany({
+              where: {
+                id:
+                  session.id,
+                userId:
+                  payload.sub,
+                tokenHash:
+                  suppliedHash,
+                revokedAt:
+                  null,
+                expiresAt: {
+                  gt:
+                    new Date(),
+                },
+              },
+              data: {
+                revokedAt:
+                  new Date(),
+              },
+            });
+
+          if (
+            claimed.count !==
+            1
+          ) {
+            return false;
+          }
+
+          await tx.refreshSession.create({
+            data: {
+              id:
+                newSessionId,
+              userId:
+                session.user.id,
+              tokenHash:
+                this.hashToken(
+                  newTokens.refreshToken,
+                ),
+              expiresAt,
+            },
+          });
+
+          return true;
         },
-      }),
-      this.prisma.refreshSession.create({
-        data: {
-          id: newSessionId,
-          userId: session.user.id,
-          tokenHash: this.hashToken(newTokens.refreshToken),
-          expiresAt,
-        },
-      }),
-    ]);
+      );
+
+    if (!rotated) {
+      throw this.invalidRefreshToken();
+    }
 
     const themePreference =
       await this.getThemePreference(
@@ -1247,6 +1263,32 @@ export class AuthService {
       },
       error: null,
     };
+  }
+
+  private registrationConflict() {
+    return new ConflictException({
+      success: false,
+      data: null,
+      error: {
+        code:
+          'REGISTRATION_CONFLICT',
+        message:
+          'Unable to create an account with the supplied details.',
+      },
+    });
+  }
+
+  private invalidPasswordReset() {
+    return new BadRequestException({
+      success: false,
+      data: null,
+      error: {
+        code:
+          'INVALID_PASSWORD_RESET',
+        message:
+          'Unable to reset this password using the supplied details.',
+      },
+    });
   }
 
   private invalidCredentials() {

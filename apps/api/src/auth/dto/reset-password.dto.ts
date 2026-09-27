@@ -1,4 +1,9 @@
-import { IsEmail, IsString, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export class ResetPasswordDto {
   @IsEmail()
@@ -10,6 +15,7 @@ export class ResetPasswordDto {
   otp!: string;
 
   @IsString()
+  @MaxLength(256)
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).{8,}$/, {
     message:
       'Password must be at least 8 characters and contain at least one letter and one number.',
@@ -17,5 +23,6 @@ export class ResetPasswordDto {
   newPassword!: string;
 
   @IsString()
+  @MaxLength(256)
   confirmPassword!: string;
 }

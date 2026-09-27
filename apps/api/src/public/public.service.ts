@@ -312,7 +312,9 @@ export class PublicService {
                 ?.identity
                 ?.inGameName ||
               member.user
-                .fullName,
+                .player
+                ?.playerCode ||
+              'FC ARENA Player',
           )
           .join(' + ') ||
         'TBD';
@@ -406,7 +408,9 @@ export class PublicService {
                               ?.identity
                               ?.inGameName ||
                             member.user
-                              .fullName,
+                              .player
+                              ?.playerCode ||
+                            'FC ARENA Player',
 
                           playerCode:
                             member.user
@@ -543,7 +547,9 @@ export class PublicService {
                   ?.identity
                   ?.inGameName ||
                 statistic.user
-                  .fullName,
+                  .player
+                  ?.playerCode ||
+                'FC ARENA Player',
 
               playerCode:
                 statistic.user

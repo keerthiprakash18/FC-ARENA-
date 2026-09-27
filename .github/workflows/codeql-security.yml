@@ -20,6 +20,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
   analyze:
     name: Analyze TypeScript/JavaScript
     runs-on: ubuntu-latest

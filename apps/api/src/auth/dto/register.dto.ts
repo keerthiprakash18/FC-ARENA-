@@ -23,6 +23,7 @@ export class RegisterDto {
   phoneNumber?: string;
 
   @IsString()
+  @MaxLength(256)
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).{8,}$/, {
     message:
       'Password must be at least 8 characters and contain at least one letter and one number.',
@@ -30,6 +31,7 @@ export class RegisterDto {
   password!: string;
 
   @IsString()
+  @MaxLength(256)
   confirmPassword!: string;
 
   @IsString()

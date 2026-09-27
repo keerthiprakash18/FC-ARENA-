@@ -1,0 +1,86 @@
+name: Security Hardening CI
+
+on:
+  push:
+    branches:
+      - "security-hardening-*"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/security-hardening-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fcarena?schema=public
+      JWT_ACCESS_SECRET: security-ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: security-ci-refresh-secret-at-least-32-characters
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
+      AI_ASSISTANT_ENABLED: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        working-directory: apps/api
+        run: npx prisma validate --schema=prisma/schema.prisma
+
+      - name: Apply database migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: API build
+        run: npm run build:api
+
+      - name: API unit tests
+        run: npm run test --workspace=apps/api
+
+      - name: API E2E tests
+        run: npm run test:e2e --workspace=apps/api
+
+      - name: Web lint
+        run: npm run lint --workspace=apps/web
+
+      - name: Web production build
+        run: npm run build:web
+
+      - name: Diff whitespace check
+        run: git diff --check

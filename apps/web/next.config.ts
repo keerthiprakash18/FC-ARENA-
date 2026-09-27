@@ -43,7 +43,7 @@ const securityHeaders = [
     key:
       'Content-Security-Policy',
     value:
-      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://res.cloudinary.com; connect-src 'self' https://api.fcarena.in; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests",
+      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://api.fcarena.in; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests",
   },
 ];
 

@@ -32,6 +32,30 @@ async function bootstrap(): Promise<void> {
     process.env.NODE_ENV ===
     'production';
 
+  if (isProduction) {
+    const configuredTrustProxyHops =
+      Number(
+        process.env.TRUST_PROXY_HOPS ??
+          '1',
+      );
+
+    const trustProxyHops =
+      Number.isInteger(
+        configuredTrustProxyHops,
+      ) &&
+      configuredTrustProxyHops >=
+        0
+        ? configuredTrustProxyHops
+        : 1;
+
+    expressApp.set(
+      'trust proxy',
+      trustProxyHops,
+    );
+  }
+
+
+
   app.use(
     (
       _request:

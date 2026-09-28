@@ -113,6 +113,14 @@ export default function SettingsPage() {
             />
 
             <FcMenuRow
+              href="/safety"
+              icon="!"
+              title="Safety & Reporting"
+              description="Report inappropriate content and manage blocked players"
+              tone="red"
+            />
+
+            <FcMenuRow
               href="/privacy"
               icon="◉"
               title="Privacy"

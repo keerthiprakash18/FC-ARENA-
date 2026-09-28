@@ -1,0 +1,62 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keyStoreFile = System.getenv("FC_ARENA_KEYSTORE_FILE")
+def keyStorePassword = System.getenv("FC_ARENA_STORE_PASSWORD")
+def keyAliasValue = System.getenv("FC_ARENA_KEY_ALIAS")
+def keyPasswordValue = System.getenv("FC_ARENA_KEY_PASSWORD")
+def hasReleaseSigning = keyStoreFile && keyStorePassword && keyAliasValue && keyPasswordValue
+
+android {
+    namespace 'in.fcarena.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'in.fcarena.app'
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(keyStoreFile)
+                storePassword keyStorePassword
+                keyAlias keyAliasValue
+                keyPassword keyPasswordValue
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled false
+            shrinkResources false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.3'
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.fcarena.app",
+      "sha256_cert_fingerprints": [
+        "8E:D9:C7:3B:EF:2F:66:21:5F:7F:8C:91:7B:A8:32:B2:02:CC:4F:C4:34:6C:A9:87:40:63:0B:87:1A:DE:60:6D"
+      ]
+    }
+  }
+]

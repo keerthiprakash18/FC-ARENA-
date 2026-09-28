@@ -471,6 +471,14 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/account-deletion"
+              icon="!"
+              title="Delete Account & Data"
+              description="Request permanent deletion of your FC ARENA account and associated personal data"
+              tone="red"
+            />
+
+            <FcMenuRow
               href="/terms"
               icon="document"
               title="Terms of Service"

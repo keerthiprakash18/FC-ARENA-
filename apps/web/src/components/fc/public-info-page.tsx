@@ -32,6 +32,12 @@ const publicLinks = [
     label:
       'Terms',
   },
+  {
+    href:
+      '/account-deletion',
+    label:
+      'Delete Account',
+  },
 ] as const;
 
 export function PublicInfoPage({

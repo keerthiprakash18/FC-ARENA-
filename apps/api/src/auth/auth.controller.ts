@@ -14,6 +14,7 @@ import {
 import type { Request, Response } from 'express';
 import { AuthRateLimitService } from './auth-rate-limit.service.js';
 import { AuthService } from './auth.service.js';
+import { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import type { AccessTokenPayload } from './auth.types.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -231,6 +232,26 @@ export class AuthController {
 
     return this.authService
       .resetPassword(dto);
+  }
+
+  @Post('account-deletion-request')
+  @HttpCode(HttpStatus.OK)
+  async requestAccountDeletion(
+    @Req() request: Request,
+    @Body() dto:
+      AccountDeletionRequestDto,
+  ) {
+    await this.rateLimit.consume(
+      'ACCOUNT_DELETION_REQUEST_IP',
+      clientIp(request),
+      3,
+      HOUR_MS,
+    );
+
+    return this.authService
+      .requestAccountDeletion(
+        dto,
+      );
   }
 
   @Post('refresh')

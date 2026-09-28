@@ -6,8 +6,8 @@ This project packages the production PWA at https://fcarena.in as a Trusted Web 
 
 - Package / application ID: `in.fcarena.app`
 - Version name: `1.0.0`
-- Version code: `1`
-- Minimum SDK: 23
+- Version code: `2`
+- Minimum SDK: 24
 - Compile SDK: 36
 - Target SDK: 36
 - Production URL: `https://fcarena.in/dashboard`

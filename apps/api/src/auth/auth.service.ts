@@ -21,6 +21,7 @@ import type {
   RefreshTokenPayload,
 } from './auth.types.js';
 import { OtpMailService } from './mail.service.js';
+import type { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';
@@ -476,6 +477,90 @@ export class AuthService {
       data: {
         message:
           'Password reset successfully. Sign in using the new password.',
+      },
+      error: null,
+    };
+  }
+
+  async requestAccountDeletion(
+    dto:
+      AccountDeletionRequestDto,
+  ) {
+    const email =
+      dto.email
+        .normalize('NFKC')
+        .trim()
+        .toLowerCase();
+
+    const inGameName =
+      dto.inGameName
+        ?.normalize('NFKC')
+        .trim()
+        .slice(
+          0,
+          80,
+        ) ||
+      null;
+
+    const details =
+      dto.details
+        ?.normalize('NFKC')
+        .trim()
+        .slice(
+          0,
+          1000,
+        ) ||
+      null;
+
+    const existingUser =
+      await this.prisma.user.findUnique({
+        where: {
+          email,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    const requestId =
+      randomUUID();
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId:
+          existingUser?.id ??
+          null,
+        action:
+          'ACCOUNT_DELETION_REQUESTED',
+        targetType:
+          'ACCOUNT_DELETION_REQUEST',
+        targetId:
+          requestId,
+        scopeType:
+          'GLOBAL',
+        scopeId:
+          'PRIVACY',
+        metadata: {
+          email,
+          inGameName,
+          details,
+          requestedAt:
+            new Date()
+              .toISOString(),
+          source:
+            'PUBLIC_WEB_OR_IN_APP',
+          status:
+            'PENDING_VERIFICATION',
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        requestId,
+        message:
+          'Your account and data deletion request has been recorded. We may contact you to verify account ownership before deletion is completed.',
       },
       error: null,
     };

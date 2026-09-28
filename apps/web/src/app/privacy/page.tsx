@@ -42,6 +42,10 @@ export default function PrivacyPage() {
         </p>
 
         <p>
+          Community safety data can include reports you submit, the reported player or content category, optional report details, block and unblock actions, and moderation outcomes. We use this information to prevent abuse, enforce community rules and protect users.
+        </p>
+
+        <p>
           If you voluntarily upload a profile photo or match/result evidence, we process those files to provide profile, OCR, verification and dispute features.
         </p>
       </PublicInfoCard>
@@ -96,6 +100,26 @@ export default function PrivacyPage() {
         <p>
           Tournaments configured as public may expose public competition information such as Tournament names, fixtures, standings and participant display identities. Ordinary member email addresses and private game UID values are not intended to be exposed through public Tournament views.
         </p>
+      </PublicInfoCard>
+
+      <PublicInfoCard
+        title="Community safety & moderation"
+        icon="shield"
+      >
+        <p>
+          Signed-in users can report inappropriate player profiles or community content and can block other players from new League-owner membership interactions. FC ARENA Super Admin moderation can review submitted reports and record resolution outcomes.
+        </p>
+
+        <p>
+          Blocking does not erase official fixtures, results, standings or other competition records that are needed to preserve competitive integrity.
+        </p>
+
+        <Link
+          href="/safety"
+          className="theme-text-link font-semibold underline underline-offset-4"
+        >
+          Open Safety &amp; Reporting
+        </Link>
       </PublicInfoCard>
 
       <PublicInfoCard

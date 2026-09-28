@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { SafetyService } from '../security/safety.service.js';
 import type { CreateLeagueDto } from './dto/create-league.dto.js';
 import type { DeleteLeagueDto } from './dto/delete-league.dto.js';
 
@@ -16,7 +17,10 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 @Injectable()
 export class LeaguesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly safetyService: SafetyService,
+  ) {}
 
   async createLeague(userId: string, dto: CreateLeagueDto) {
     const existingMemberships = await this.prisma.leagueMember.count({
@@ -254,6 +258,24 @@ export class LeaguesService {
         error: {
           code: 'LEAGUE_NOT_FOUND',
           message: 'No League exists with this League Code.',
+        },
+      });
+    }
+
+    if (
+      await this.safetyService.isInteractionBlocked(
+        userId,
+        league.creatorUserId,
+      )
+    ) {
+      throw new ForbiddenException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'USER_INTERACTION_BLOCKED',
+          message:
+            'This League join interaction is unavailable because one of the accounts has blocked the other.',
         },
       });
     }

@@ -464,6 +464,14 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/safety"
+              icon="!"
+              title="Safety & Reporting"
+              description="Report inappropriate content, block players and manage community safety"
+              tone="red"
+            />
+
+            <FcMenuRow
               href="/privacy"
               icon="◉"
               title="Privacy"

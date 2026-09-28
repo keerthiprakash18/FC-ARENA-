@@ -20,6 +20,14 @@ import {
 } from './role-management.service.js';
 
 import {
+  SafetyController,
+} from './safety.controller.js';
+
+import {
+  SafetyService,
+} from './safety.service.js';
+
+import {
   SecurityController,
 } from './security.controller.js';
 
@@ -31,18 +39,21 @@ import {
 
   controllers: [
     SecurityController,
+    SafetyController,
   ],
 
   providers: [
     AuthorizationService,
     AuditService,
     RoleManagementService,
+    SafetyService,
   ],
 
   exports: [
     AuthorizationService,
     AuditService,
     RoleManagementService,
+    SafetyService,
   ],
 })
 export class SecurityModule {}

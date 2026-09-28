@@ -119,6 +119,14 @@ export default function SettingsPage() {
               description="Privacy and account data information"
               tone="slate"
             />
+
+            <FcMenuRow
+              href="/account-deletion"
+              icon="!"
+              title="Delete Account & Data"
+              description="Request permanent deletion of your FC ARENA account and associated personal data"
+              tone="red"
+            />
           </div>
         </FcPanel>
       </div>

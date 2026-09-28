@@ -15,7 +15,8 @@ type RateLimitAction =
   | 'RESET_PASSWORD_IDENTIFIER'
   | 'RESEND_VERIFICATION_IP'
   | 'VERIFY_EMAIL_IP'
-  | 'REFRESH_IP';
+  | 'REFRESH_IP'
+  | 'ACCOUNT_DELETION_REQUEST_IP';
 
 @Injectable()
 export class AuthRateLimitService {

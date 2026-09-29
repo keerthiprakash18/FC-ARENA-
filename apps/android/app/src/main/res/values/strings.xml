@@ -3,5 +3,6 @@
     <string name="app_name">FC ARENA</string>
     <string name="launch_url" translatable="false">https://fcarena.in/dashboard</string>
     <string name="web_manifest_url" translatable="false">https://fcarena.in/manifest.webmanifest</string>
+    <string name="manage_space_url" translatable="false">https://fcarena.in/</string>
     <string name="asset_statements" translatable="false">[{\"relation\":[\"delegate_permission/common.handle_all_urls\"],\"target\":{\"namespace\":\"web\",\"site\":\"https://fcarena.in\"}}]</string>
 </resources>

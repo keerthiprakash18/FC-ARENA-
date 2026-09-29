@@ -176,7 +176,9 @@ public class MainActivity extends Activity {
                     int threatType,
                     SafeBrowsingResponse callback
             ) {
-                callback.backToSafety(true);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    callback.backToSafety(true);
+                }
             }
         });
 

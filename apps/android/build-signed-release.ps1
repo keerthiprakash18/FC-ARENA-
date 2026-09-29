@@ -72,7 +72,7 @@ function Get-GradleExecutable {
     $gradleExe = Join-Path $installDir "bin\gradle.bat"
 
     if (Test-Path $gradleExe) {
-        Write-Host "Using cached Gradle $Version: $gradleExe"
+        Write-Host "Using cached Gradle ${Version}: $gradleExe"
         return $gradleExe
     }
 

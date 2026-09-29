@@ -379,6 +379,7 @@ public final class MainActivity extends Activity {
     }
 
     @Override
+    @SuppressLint("GestureBackNavigation")
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {

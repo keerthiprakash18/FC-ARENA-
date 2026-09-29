@@ -1,5 +1,6 @@
 package in.fcarena.app;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -21,6 +22,8 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 public class MainActivity extends Activity {
     private static final String START_URL = "https://fcarena.in/dashboard";
@@ -31,6 +34,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
+    private OnBackInvokedCallback backCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +60,14 @@ public class MainActivity extends Activity {
             if (isAllowedUrl(data)) {
                 initialUrl = data.toString();
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            backCallback = this::handleBack;
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                    backCallback
+            );
         }
 
         if (savedInstanceState == null) {
@@ -276,13 +288,18 @@ public class MainActivity extends Activity {
         super.onSaveInstanceState(outState);
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBack() {
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {
-            super.onBackPressed();
+            finish();
         }
+    }
+
+    @SuppressLint("GestureBackNavigation")
+    @Override
+    public void onBackPressed() {
+        handleBack();
     }
 
     @Override
@@ -298,6 +315,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && backCallback != null) {
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);
+            backCallback = null;
+        }
+
         if (webView != null) {
             webView.stopLoading();
             webView.setWebChromeClient(null);

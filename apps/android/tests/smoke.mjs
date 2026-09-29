@@ -14,7 +14,7 @@ const errors = [];
 const results = [];
 let browser;
 async function connect() {
-  if (!android) return chromium.launch({ headless: true });
+  if (!android) return chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined, args: ["--no-sandbox"] });
   for (let attempt = 0; attempt < 60; attempt++) {
     try {
       const pid = adb('shell', 'pidof', 'in.fcarena.app.debug');
@@ -36,7 +36,7 @@ async function prepare(page) {
       let data;
       switch (url.pathname) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
-        case '/api/auth/me': data = user; break;
+        case '/api/auth/me': data = { user }; break;
         case '/api/players/me/career': data = career; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;

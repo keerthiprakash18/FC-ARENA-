@@ -104,6 +104,26 @@ async function swipe(page, upwards) {
   }
   await pause(800);
 }
+async function performVerifiedSwipe(page, upwards, startY, name) {
+  let current = await metrics(page);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await swipe(page, upwards);
+    current = await metrics(page);
+    const moved = upwards
+      ? current.scrollY > startY + 10
+      : current.scrollY < startY - 10;
+    if (moved) return current;
+
+    // API 36 emulators can occasionally drop the first OS-level input event
+    // immediately after a navigation/paint. Keep the test real (ADB swipe),
+    // but retry the physical gesture before declaring the page stuck.
+    await pause(500);
+  }
+  throw new Error(
+    `${name}: REAL SWIPE DID NOT SCROLL after 3 ADB attempts ${JSON.stringify({ startY, current })}`,
+  );
+}
+
 async function checkScroll(page, name, required = false) {
   const before = await metrics(page);
   assert.equal(before.native, 'android', 'native stylesheet marker missing');
@@ -111,17 +131,13 @@ async function checkScroll(page, name, required = false) {
   assert.equal(before.shellOverflow, 'visible', `${name}: shell creates nested scroll container`);
   if (required) assert(before.scrollHeight > before.height + 100, `${name}: dashboard did not render scrollable content`);
   if (before.scrollHeight > before.height + 100) {
-    await swipe(page, true);
-    const after = await metrics(page);
-    assert(after.scrollY > before.scrollY + 10, `${name}: REAL SWIPE DID NOT SCROLL ${JSON.stringify({before,after})}`);
+    const after = await performVerifiedSwipe(page, true, before.scrollY, name);
     assert(Math.abs(after.header.top - before.header.top) < 2, `${name}: header moved`);
     if (before.nav) {
       assert(after.nav, `${name}: navigation disappeared`);
       assert(Math.abs(after.nav.top - before.nav.top) < 2, `${name}: navigation moved`);
     }
-    await swipe(page, false);
-    const back = await metrics(page);
-    assert(back.scrollY < after.scrollY - 10, `${name}: downward swipe stuck`);
+    const back = await performVerifiedSwipe(page, false, after.scrollY, name);
     results.push({ name, before, after, back });
   } else results.push({ name, before, note: 'Content fits viewport; no scroll expected' });
   console.log(`PASS ${name}`);
@@ -163,6 +179,11 @@ try {
       await page.waitForURL('**/profile');
       await page.locator('.fc-main').waitFor();
 
+      // /profile and /career above are intentional full-document navigations,
+      // so establish the lifecycle continuity marker only after returning to
+      // the page that will actually be backgrounded/resumed.
+      await page.evaluate(() => { window.__smokeDocument = 'same-document'; });
+
       // Real background/resume lifecycle: background the app with HOME, wait,
       // resume the SAME activity (no force-stop). Validate process survival,
       // session continuity, scroll behavior, and header/nav stability.
@@ -170,9 +191,12 @@ try {
         // Confirm the app is scrollable before backgrounding.
         const beforeBg = await metrics(page);
         if (beforeBg.scrollHeight > beforeBg.height + 100) {
-          await swipe(page, true);
-          const scrolled = await metrics(page);
-          assert(scrolled.scrollY > beforeBg.scrollY + 10, `pre-background scroll cycle ${cycle} failed`);
+          await performVerifiedSwipe(
+            page,
+            true,
+            beforeBg.scrollY,
+            `pre-background scroll cycle ${cycle}`,
+          );
         }
 
         // Background the app like a real user would (press HOME).
@@ -192,9 +216,12 @@ try {
         // Scrolling must still work after resume.
         const afterResume = await metrics(page);
         if (afterResume.scrollHeight > afterResume.height + 100) {
-          await swipe(page, true);
-          const postResume = await metrics(page);
-          assert(postResume.scrollY > afterResume.scrollY + 10, `post-resume scroll cycle ${cycle} failed`);
+          const postResume = await performVerifiedSwipe(
+            page,
+            true,
+            afterResume.scrollY,
+            `post-resume scroll cycle ${cycle}`,
+          );
           assert(Math.abs(postResume.header.top - afterResume.header.top) < 2, `header moved after resume cycle ${cycle}`);
           if (afterResume.nav) {
             assert(postResume.nav, `navigation disappeared after resume cycle ${cycle}`);

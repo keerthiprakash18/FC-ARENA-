@@ -126,14 +126,9 @@ jobs:
             adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity
             ANDROID_SMOKE=1 node apps/android/tests/smoke.mjs
             # The smoke harness itself performs five real HOME -> resume cycles.
-            # Add lightweight cold-launch crash checks without re-running the
-            # entire navigation suite five extra times.
-            for cycle in 1 2 3 4 5; do
-              adb shell am force-stop in.fcarena.app.debug
-              adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity
-              sleep 3
-              adb shell pidof in.fcarena.app.debug > /dev/null
-            done
+            # Keep the cold-launch loop on one shell line because
+            # android-emulator-runner executes script lines independently.
+            for cycle in 1 2 3 4 5; do adb shell am force-stop in.fcarena.app.debug; adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity; sleep 3; adb shell pidof in.fcarena.app.debug > /dev/null; done
             adb logcat -d > /tmp/fcarena-smoke/logcat.txt
             if grep -E 'FATAL EXCEPTION|ANR in in.fcarena|Render process.*crash' /tmp/fcarena-smoke/logcat.txt; then exit 1; fi
 

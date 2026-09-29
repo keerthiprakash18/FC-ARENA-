@@ -96,24 +96,12 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            set -eu
             adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am force-stop in.fcarena.app.debug
             adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity
             sleep 10
-
-            PID="$(adb shell pidof in.fcarena.app.debug | tr -d '\r')"
-            if [ -z "$PID" ]; then
-              echo "FC Arena process exited after launch."
-              adb logcat -d -t 500
-              exit 1
-            fi
-
-            echo "FC Arena is alive after launch with PID $PID"
-            adb logcat --pid="$PID" -d -t 300 | tee /tmp/fcarena-logcat.txt
-
-            if grep -q "FATAL EXCEPTION" /tmp/fcarena-logcat.txt; then
-              echo "Fatal Android exception detected."
-              exit 1
-            fi
+            test -n "$(adb shell pidof in.fcarena.app.debug | tr -d '\r')" || { echo "FC Arena process exited after launch."; adb logcat -d -t 500; exit 1; }
+            echo "FC Arena is alive after launch with PID $(adb shell pidof in.fcarena.app.debug | tr -d '\r')"
+            adb logcat --pid="$(adb shell pidof in.fcarena.app.debug | tr -d '\r')" -d -t 300 | tee /tmp/fcarena-logcat.txt
+            if grep -q "FATAL EXCEPTION" /tmp/fcarena-logcat.txt; then echo "Fatal Android exception detected."; exit 1; fi

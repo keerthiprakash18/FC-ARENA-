@@ -5476,3 +5476,229 @@ html[data-native-app="android"] .theme-action-row {
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
 }
+
+
+/* =========================================================
+   FC ARENA — ANDROID MOBILE FIT + STABLE NAV V2
+   Native Android wrapper only. Keeps the web/PWA layout intact.
+   ========================================================= */
+
+html[data-native-app="android"] .theme-bottom-nav {
+  position: fixed !important;
+  inset: auto 0 0 0 !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  transform: translate3d(0, 0, 0) !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+html[data-native-app="android"] .theme-bottom-nav > div {
+  min-height: 60px;
+}
+
+html[data-native-app="android"] .theme-bottom-item,
+html[data-native-app="android"] .theme-bottom-item *,
+html[data-native-app="android"] .theme-bottom-icon,
+html[data-native-app="android"] .theme-bottom-accent {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+html[data-native-app="android"] .theme-bottom-item {
+  min-height: 60px !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+  touch-action: manipulation;
+}
+
+html[data-native-app="android"] .theme-bottom-icon {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+html[data-native-app="android"] .theme-bottom-accent {
+  left: 22% !important;
+  right: 22% !important;
+}
+
+html[data-native-app="android"] .fc-dashboard-backdrop,
+html[data-native-app="android"] .fc-dashboard-ring,
+html[data-native-app="android"] .fc-dashboard-page .fc-hero-art,
+html[data-native-app="android"] .fc-dashboard-page .fc-hero-right,
+html[data-native-app="android"] .fc-dashboard-page .theme-stat-card::after,
+html[data-native-app="android"] .fc-next-match-panel::before,
+html[data-native-app="android"] .fc-next-match-panel::after,
+html[data-native-app="android"] .fc-league-panel::before,
+html[data-native-app="android"] .fc-tournament-panel::before,
+html[data-native-app="android"] .fc-activity-panel::before {
+  display: none !important;
+}
+
+html[data-native-app="android"] .fc-dashboard-page .theme-stat-card,
+html[data-native-app="android"] .fc-next-match-panel,
+html[data-native-app="android"] .fc-league-panel,
+html[data-native-app="android"] .fc-tournament-panel,
+html[data-native-app="android"] .fc-activity-panel {
+  transform: none !important;
+  will-change: auto !important;
+}
+
+@media (max-width: 640px) {
+  html[data-native-app="android"] .theme-top-header > div {
+    height: 60px !important;
+    gap: 8px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header .theme-brand-mark {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header .fc-display {
+    font-size: 17px !important;
+    white-space: nowrap;
+  }
+
+  html[data-native-app="android"] .theme-top-header .theme-profile-chip {
+    min-width: 38px;
+    height: 38px !important;
+  }
+
+  html[data-native-app="android"] .fc-main {
+    min-height: calc(100dvh - 60px) !important;
+    padding-top: 12px !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero {
+    min-height: 0 !important;
+    border-radius: 18px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero > .relative.z-10 {
+    min-height: 0 !important;
+    gap: 12px !important;
+    padding: 18px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-kicker {
+    font-size: 11px !important;
+    letter-spacing: 0.13em !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero h1 {
+    margin-top: 8px !important;
+    max-width: 100%;
+    font-size: clamp(28px, 8.6vw, 34px) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero .theme-secondary-text {
+    margin-top: 10px !important;
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero .mt-4 {
+    margin-top: 12px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats {
+    gap: 10px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card {
+    min-height: 116px !important;
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card .fc-display {
+    font-size: 12px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card .fc-display-strong {
+    font-size: 25px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card > div > span {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 11px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card > p {
+    margin-top: 8px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page .theme-panel {
+    border-radius: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-next-match-panel,
+  html[data-native-app="android"] .fc-league-panel,
+  html[data-native-app="android"] .fc-tournament-panel,
+  html[data-native-app="android"] .fc-activity-panel {
+    padding: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-next-match-panel .theme-crest {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page a,
+  html[data-native-app="android"] .fc-dashboard-page button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item {
+    font-size: 10.5px !important;
+    line-height: 1.15 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html[data-native-app="android"] .fc-main {
+    padding-left: max(10px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(10px, env(safe-area-inset-right, 0px)) !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero > .relative.z-10 {
+    padding: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero h1 {
+    font-size: 28px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card {
+    min-height: 110px !important;
+    padding: 12px !important;
+  }
+}

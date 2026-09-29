@@ -6,14 +6,16 @@ on:
       - main
     paths:
       - "apps/android/**"
-      - "apps/web/public/.well-known/assetlinks.json"
+      - "apps/web/**"
+      - "package-lock.json"
       - ".github/workflows/android-ci.yml"
   push:
     branches:
       - main
     paths:
       - "apps/android/**"
-      - "apps/web/public/.well-known/assetlinks.json"
+      - "apps/web/**"
+      - "package-lock.json"
       - ".github/workflows/android-ci.yml"
   workflow_dispatch:
 
@@ -58,7 +60,11 @@ jobs:
 
 
   launch-smoke:
-    name: Android emulator launch smoke
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [33, 34, 35, 36]
+    name: Android ${{ matrix.api }} launch and scroll smoke
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -77,6 +83,25 @@ jobs:
         with:
           gradle-version: "8.13"
 
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Build current web checkout and install smoke harness
+        run: |
+          npm ci
+          npm run build:web
+          npm ci --prefix apps/android/tests
+          npm run start --workspace=apps/web > /tmp/fcarena-next.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3000/login > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/fcarena-next.log
+          exit 1
+
       - name: Enable KVM acceleration
         run: |
           if [ -e /dev/kvm ]; then
@@ -87,21 +112,33 @@ jobs:
         working-directory: apps/android
         run: gradle :app:assembleDebug --stacktrace
 
-      - name: Launch app on Android 15 emulator
+      - name: Real WebView swipe and navigation tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: ${{ matrix.api }}
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          disable-animations: true
+          disable-animations: false
           script: |
             adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
-            adb shell am force-stop in.fcarena.app.debug
             adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity
-            sleep 10
-            test -n "$(adb shell pidof in.fcarena.app.debug | tr -d '\r')" || { echo "FC Arena process exited after launch."; adb logcat -d -t 500; exit 1; }
-            echo "FC Arena is alive after launch with PID $(adb shell pidof in.fcarena.app.debug | tr -d '\r')"
-            adb logcat --pid="$(adb shell pidof in.fcarena.app.debug | tr -d '\r')" -d -t 300 | tee /tmp/fcarena-logcat.txt
-            if grep -q "FATAL EXCEPTION" /tmp/fcarena-logcat.txt; then echo "Fatal Android exception detected."; exit 1; fi
+            ANDROID_SMOKE=1 node apps/android/tests/smoke.mjs
+            for cycle in 1 2 3 4 5; do
+              adb shell am force-stop in.fcarena.app.debug
+              adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity
+              ANDROID_SMOKE=1 SMOKE_OUTPUT=/tmp/fcarena-smoke/cycle-$cycle node apps/android/tests/smoke.mjs
+            done
+            adb logcat -d > /tmp/fcarena-smoke/logcat.txt
+            if grep -E 'FATAL EXCEPTION|ANR in in.fcarena|Render process.*crash' /tmp/fcarena-smoke/logcat.txt; then exit 1; fi
+
+      - name: Preserve diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.api }}-scroll-evidence
+          path: |
+            /tmp/fcarena-smoke
+            /tmp/fcarena-next.log
+          retention-days: 7

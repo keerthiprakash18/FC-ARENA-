@@ -1,0 +1,564 @@
+/* =========================================================
+   FC ARENA — ANDROID WEBVIEW PERFORMANCE + SAFE AREA
+   Applied only inside the native Android wrapper. The normal
+   website/PWA keeps the full visual motion treatment.
+   ========================================================= */
+
+html[data-native-app="android"],
+html[data-native-app="android"] body {
+  min-height: 100%;
+  min-height: 100dvh;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html[data-native-app="android"] body {
+  min-width: 0;
+  overflow-x: clip;
+  background: var(--theme-background);
+}
+
+html[data-native-app="android"] .fc-app-shell {
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+html[data-native-app="android"] .theme-top-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+html[data-native-app="android"] .theme-bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px);
+}
+
+html[data-native-app="android"] .fc-main {
+  min-height: calc(100dvh - 4.25rem);
+}
+
+/* WebView performs better when continuous decorative compositor work is
+   avoided. Keep content/interaction intact and remove only visual motion. */
+html[data-native-app="android"] .fc-dashboard-backdrop-grid,
+html[data-native-app="android"] .fc-dashboard-light,
+html[data-native-app="android"] .fc-dashboard-beam,
+html[data-native-app="android"] .fc-dashboard-particles,
+html[data-native-app="android"] .fc-dashboard-hero-scan,
+html[data-native-app="android"] .fc-dashboard-hero-orbit,
+html[data-native-app="android"] .fc-dashboard-live-dot,
+html[data-native-app="android"] .fc-dashboard-live-dot::after,
+html[data-native-app="android"] .fc-dashboard-page .theme-hero-avatar-ring::before,
+html[data-native-app="android"] .fc-next-match-panel::before,
+html[data-native-app="android"] .fc-match-spotlight,
+html[data-native-app="android"] .fc-next-match-panel .theme-neutral-block,
+html[data-native-app="android"] .fc-next-match-panel .theme-neutral-block::after,
+html[data-native-app="android"] .fc-league-panel::before,
+html[data-native-app="android"] .fc-tournament-panel::before,
+html[data-native-app="android"] .fc-activity-panel::before,
+html[data-native-app="android"] .theme-brand-mark::after,
+html[data-native-app="android"] .theme-nav-item[data-active="true"] .theme-nav-icon,
+html[data-native-app="android"] .theme-nav-item[data-active="true"] .theme-nav-accent,
+html[data-native-app="android"] .theme-header-icon > span.absolute,
+html[data-native-app="android"] .theme-online-indicator,
+html[data-native-app="android"] .theme-bottom-item[data-active="true"] .theme-bottom-icon,
+html[data-native-app="android"] .fc-main > * {
+  animation: none !important;
+}
+
+html[data-native-app="android"] .fc-dashboard-light {
+  filter: none !important;
+  will-change: auto !important;
+}
+
+html[data-native-app="android"] .auth-card,
+html[data-native-app="android"] .theme-top-header,
+html[data-native-app="android"] .theme-bottom-nav,
+html[data-native-app="android"] .theme-sidebar-footer {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-native-app="android"] .theme-nav-item,
+html[data-native-app="android"] .theme-quick-action,
+html[data-native-app="android"] .theme-profile-chip,
+html[data-native-app="android"] .theme-header-icon,
+html[data-native-app="android"] .theme-user-card,
+html[data-native-app="android"] .theme-bottom-item,
+html[data-native-app="android"] .theme-action-row {
+  transition-duration: 120ms !important;
+}
+
+@media (max-width: 640px) {
+  html[data-native-app="android"] .fc-dashboard-light,
+  html[data-native-app="android"] .fc-dashboard-beam,
+  html[data-native-app="android"] .fc-dashboard-particles,
+  html[data-native-app="android"] .fc-dashboard-hero-scan,
+  html[data-native-app="android"] .fc-dashboard-hero-orbit,
+  html[data-native-app="android"] .fc-match-spotlight {
+    display: none !important;
+  }
+
+  html[data-native-app="android"] .fc-main {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+}
+
+
+/* =========================================================
+   FC ARENA — ANDROID MOBILE FIT + STABLE NAV V2
+   Native Android wrapper only. Keeps the web/PWA layout intact.
+   ========================================================= */
+
+html[data-native-app="android"] .theme-bottom-nav {
+  position: fixed !important;
+  inset: auto 0 0 0 !important;
+  width: 100% !important;
+  z-index: 50 !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  isolation: isolate;
+  overflow: hidden;
+}
+
+html[data-native-app="android"] .theme-bottom-nav > div {
+  min-height: 60px;
+}
+
+html[data-native-app="android"] .theme-bottom-item,
+html[data-native-app="android"] .theme-bottom-item *,
+html[data-native-app="android"] .theme-bottom-icon,
+html[data-native-app="android"] .theme-bottom-accent {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
+html[data-native-app="android"] .theme-bottom-item {
+  min-height: 60px !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+  touch-action: manipulation;
+}
+
+html[data-native-app="android"] .theme-bottom-icon {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+html[data-native-app="android"] .theme-bottom-accent {
+  left: 22% !important;
+  right: 22% !important;
+}
+
+html[data-native-app="android"] .fc-dashboard-backdrop,
+html[data-native-app="android"] .fc-dashboard-ring,
+html[data-native-app="android"] .fc-dashboard-page .fc-hero-art,
+html[data-native-app="android"] .fc-dashboard-page .fc-hero-right,
+html[data-native-app="android"] .fc-dashboard-page .theme-stat-card::after,
+html[data-native-app="android"] .fc-next-match-panel::before,
+html[data-native-app="android"] .fc-next-match-panel::after,
+html[data-native-app="android"] .fc-league-panel::before,
+html[data-native-app="android"] .fc-tournament-panel::before,
+html[data-native-app="android"] .fc-activity-panel::before {
+  display: none !important;
+}
+
+html[data-native-app="android"] .fc-dashboard-page .theme-stat-card,
+html[data-native-app="android"] .fc-next-match-panel,
+html[data-native-app="android"] .fc-league-panel,
+html[data-native-app="android"] .fc-tournament-panel,
+html[data-native-app="android"] .fc-activity-panel {
+  transform: none !important;
+  will-change: auto !important;
+}
+
+@media (max-width: 640px) {
+  html[data-native-app="android"] .theme-top-header > div {
+    height: 60px !important;
+    gap: 8px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header .theme-brand-mark {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header .fc-display {
+    font-size: 17px !important;
+    white-space: nowrap;
+  }
+
+  html[data-native-app="android"] .theme-top-header .theme-profile-chip {
+    min-width: 38px;
+    height: 38px !important;
+  }
+
+  html[data-native-app="android"] .fc-main {
+    min-height: calc(100dvh - 60px) !important;
+    padding-top: 12px !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero {
+    min-height: 0 !important;
+    border-radius: 18px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero > .relative.z-10 {
+    min-height: 0 !important;
+    gap: 12px !important;
+    padding: 18px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-kicker {
+    font-size: 11px !important;
+    letter-spacing: 0.13em !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero h1 {
+    margin-top: 8px !important;
+    max-width: 100%;
+    font-size: clamp(28px, 8.6vw, 34px) !important;
+    line-height: 1.04 !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero .theme-secondary-text {
+    margin-top: 10px !important;
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero .mt-4 {
+    margin-top: 12px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats {
+    gap: 10px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card {
+    min-height: 116px !important;
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card .fc-display {
+    font-size: 12px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card .fc-display-strong {
+    font-size: 25px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card > div > span {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 11px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card > p {
+    margin-top: 8px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page .theme-panel {
+    border-radius: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-next-match-panel,
+  html[data-native-app="android"] .fc-league-panel,
+  html[data-native-app="android"] .fc-tournament-panel,
+  html[data-native-app="android"] .fc-activity-panel {
+    padding: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-next-match-panel .theme-crest {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page a,
+  html[data-native-app="android"] .fc-dashboard-page button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item {
+    font-size: 10.5px !important;
+    line-height: 1.15 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html[data-native-app="android"] .fc-main {
+    padding-left: max(10px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(10px, env(safe-area-inset-right, 0px)) !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero > .relative.z-10 {
+    padding: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero h1 {
+    font-size: 28px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card {
+    min-height: 110px !important;
+    padding: 12px !important;
+  }
+}
+
+
+/* =========================================================
+   FC ARENA — ANDROID MOBILE FIT + NAV STABILITY V2
+   Screenshot-driven native WebView polish. Visual/layout only.
+   ========================================================= */
+
+@media (max-width: 640px) {
+  html[data-native-app="android"],
+  html[data-native-app="android"] body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip !important;
+
+  }
+
+  html[data-native-app="android"] .fc-app-shell {
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: clip !important;
+  }
+
+  /* Stable compact mobile header. */
+  html[data-native-app="android"] .theme-top-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 30 !important;
+    width: 100%;
+    transform: none !important;
+    will-change: auto !important;
+    box-shadow: 0 1px 0 var(--theme-border) !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header > div {
+    height: 60px !important;
+    min-height: 60px !important;
+    padding-left: 14px !important;
+    padding-right: 12px !important;
+    gap: 8px !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header .theme-brand-mark {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Main canvas fits common 360–430px Android widths cleanly. */
+  html[data-native-app="android"] .fc-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-top: 14px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-x: clip !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page {
+    width: 100%;
+    max-width: 100%;
+    gap: 0 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page > * {
+    max-width: 100%;
+  }
+
+  /* Remove purely decorative layers in the native app for a cleaner,
+     faster and visually stable dashboard. */
+  html[data-native-app="android"] .fc-dashboard-backdrop,
+  html[data-native-app="android"] .fc-hero-art,
+  html[data-native-app="android"] .theme-match-art,
+  html[data-native-app="android"] .fc-dashboard-backdrop-grid,
+  html[data-native-app="android"] .fc-dashboard-light,
+  html[data-native-app="android"] .fc-dashboard-beam,
+  html[data-native-app="android"] .fc-dashboard-particles,
+  html[data-native-app="android"] .fc-dashboard-hero-scan,
+  html[data-native-app="android"] .fc-dashboard-hero-orbit,
+  html[data-native-app="android"] .fc-match-spotlight {
+    display: none !important;
+  }
+
+  /* Dashboard hero: tighter fit, no clipping, no oversized vertical block. */
+  html[data-native-app="android"] .fc-dashboard-hero {
+    min-height: 0 !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero > .relative {
+    min-height: 0 !important;
+    padding: 20px 18px !important;
+    gap: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero h1 {
+    margin-top: 8px !important;
+    max-width: 100% !important;
+    font-size: clamp(30px, 9vw, 38px) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.035em !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero p {
+    max-width: 100%;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-kicker {
+    font-size: 11px !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  /* Consistent section rhythm. */
+  html[data-native-app="android"] .fc-dashboard-page {
+    row-gap: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats {
+    gap: 10px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card,
+  html[data-native-app="android"] .fc-dashboard-stats > a > * {
+    min-height: 0 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-section {
+    gap: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-next-match-panel {
+    padding: 18px !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+  }
+
+  html[data-native-app="android"] .theme-panel,
+  html[data-native-app="android"] .theme-stat-card,
+  html[data-native-app="android"] .theme-action-row {
+    transform: none !important;
+  }
+
+  /* Bottom navigation must behave like a native fixed tab bar. */
+  html[data-native-app="android"] .theme-bottom-nav {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    z-index: 50 !important;
+    width: 100% !important;
+    min-height: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
+    margin: 0 !important;
+    transform: none !important;
+    will-change: auto !important;
+
+    animation: none !important;
+    transition: none !important;
+    box-shadow: 0 -1px 0 var(--theme-border), 0 -6px 18px rgba(0,0,0,0.04) !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-nav > div {
+    height: 72px !important;
+    min-height: 72px !important;
+    align-items: stretch !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item {
+    height: 72px !important;
+    min-height: 72px !important;
+    padding: 7px 1px 6px !important;
+    gap: 3px !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+    touch-action: manipulation;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item *,
+  html[data-native-app="android"] .theme-bottom-icon,
+  html[data-native-app="android"] .theme-bottom-accent {
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-accent {
+    left: 20% !important;
+    right: 20% !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item > span:last-child {
+    max-width: 100%;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Kill hover/press transforms that can look like elements shifting in
+     touch WebView during scroll. */
+  html[data-native-app="android"] a:hover,
+  html[data-native-app="android"] button:hover,
+  html[data-native-app="android"] a:active,
+  html[data-native-app="android"] button:active {
+    transform: none !important;
+  }
+}
+
+/* Clip only horizontally: hidden would compute overflow-y:auto and create
+   an unbounded nested scroll container, breaking document scroll/sticky. */
+html[data-native-app="android"],
+html[data-native-app="android"] body,
+html[data-native-app="android"] .fc-app-shell {
+  overflow-y: visible;
+  touch-action: auto;
+}
+
+html[data-native-app="android"] .fc-main {
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  html[data-native-app="android"] .fc-main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

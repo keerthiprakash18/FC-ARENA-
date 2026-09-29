@@ -5370,3 +5370,109 @@ html[data-mode="dark"],
       var(--theme-elevated)
     );
 }
+
+
+/* =========================================================
+   FC ARENA — ANDROID WEBVIEW PERFORMANCE + SAFE AREA
+   Applied only inside the native Android wrapper. The normal
+   website/PWA keeps the full visual motion treatment.
+   ========================================================= */
+
+html[data-native-app="android"],
+html[data-native-app="android"] body {
+  min-height: 100%;
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html[data-native-app="android"] body {
+  min-width: 0;
+  overflow-x: hidden;
+  background: var(--theme-background);
+}
+
+html[data-native-app="android"] .fc-app-shell {
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+html[data-native-app="android"] .theme-top-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+html[data-native-app="android"] .theme-bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px);
+}
+
+html[data-native-app="android"] .fc-main {
+  min-height: calc(100dvh - 4.25rem);
+}
+
+/* WebView performs better when continuous decorative compositor work is
+   avoided. Keep content/interaction intact and remove only visual motion. */
+html[data-native-app="android"] .fc-dashboard-backdrop-grid,
+html[data-native-app="android"] .fc-dashboard-light,
+html[data-native-app="android"] .fc-dashboard-beam,
+html[data-native-app="android"] .fc-dashboard-particles,
+html[data-native-app="android"] .fc-dashboard-hero-scan,
+html[data-native-app="android"] .fc-dashboard-hero-orbit,
+html[data-native-app="android"] .fc-dashboard-live-dot,
+html[data-native-app="android"] .fc-dashboard-live-dot::after,
+html[data-native-app="android"] .fc-dashboard-page .theme-hero-avatar-ring::before,
+html[data-native-app="android"] .fc-next-match-panel::before,
+html[data-native-app="android"] .fc-match-spotlight,
+html[data-native-app="android"] .fc-next-match-panel .theme-neutral-block,
+html[data-native-app="android"] .fc-next-match-panel .theme-neutral-block::after,
+html[data-native-app="android"] .fc-league-panel::before,
+html[data-native-app="android"] .fc-tournament-panel::before,
+html[data-native-app="android"] .fc-activity-panel::before,
+html[data-native-app="android"] .theme-brand-mark::after,
+html[data-native-app="android"] .theme-nav-item[data-active="true"] .theme-nav-icon,
+html[data-native-app="android"] .theme-nav-item[data-active="true"] .theme-nav-accent,
+html[data-native-app="android"] .theme-header-icon > span.absolute,
+html[data-native-app="android"] .theme-online-indicator,
+html[data-native-app="android"] .theme-bottom-item[data-active="true"] .theme-bottom-icon,
+html[data-native-app="android"] .fc-main > * {
+  animation: none !important;
+}
+
+html[data-native-app="android"] .fc-dashboard-light {
+  filter: none !important;
+  will-change: auto !important;
+}
+
+html[data-native-app="android"] .auth-card,
+html[data-native-app="android"] .theme-top-header,
+html[data-native-app="android"] .theme-bottom-nav,
+html[data-native-app="android"] .theme-sidebar-footer {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-native-app="android"] .theme-nav-item,
+html[data-native-app="android"] .theme-quick-action,
+html[data-native-app="android"] .theme-profile-chip,
+html[data-native-app="android"] .theme-header-icon,
+html[data-native-app="android"] .theme-user-card,
+html[data-native-app="android"] .theme-bottom-item,
+html[data-native-app="android"] .theme-action-row {
+  transition-duration: 120ms !important;
+}
+
+@media (max-width: 640px) {
+  html[data-native-app="android"] .fc-dashboard-light,
+  html[data-native-app="android"] .fc-dashboard-beam,
+  html[data-native-app="android"] .fc-dashboard-particles,
+  html[data-native-app="android"] .fc-dashboard-hero-scan,
+  html[data-native-app="android"] .fc-dashboard-hero-orbit,
+  html[data-native-app="android"] .fc-match-spotlight {
+    display: none !important;
+  }
+
+  html[data-native-app="android"] .fc-main {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+}

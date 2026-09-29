@@ -145,6 +145,10 @@ try {
       }
     } else await context.close();
   }
+  if (android) {
+    writeFileSync(`${output}/gfxinfo.txt`, adb('shell', 'dumpsys', 'gfxinfo', 'in.fcarena.app.debug'));
+    writeFileSync(`${output}/meminfo.txt`, adb('shell', 'dumpsys', 'meminfo', 'in.fcarena.app.debug'));
+  }
   assert.deepEqual(errors, [], 'Runtime/network errors');
   writeFileSync(`${output}/results.json`, JSON.stringify({ mode: android ? 'real adb swipe' : 'Chromium touch', results, errors }, null, 2));
   console.log(`PASS: ${results.length} page/viewport checks; ${android ? 'real adb swipe, back and 5 resumes' : '6 viewport profiles'}`);

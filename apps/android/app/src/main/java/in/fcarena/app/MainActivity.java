@@ -47,6 +47,10 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // One inset owner on every supported modern Android version.
+            getWindow().setDecorFitsSystemWindows(false);
+        }
 
         root = new FrameLayout(this);
         root.setBackgroundColor(0xFF05080D);

@@ -88,6 +88,10 @@ export default function RootLayout({
           : 'light';
 
         document.documentElement.dataset.mode = mode;
+
+        if (/FC-Arena-Android\//i.test(navigator.userAgent)) {
+          document.documentElement.dataset.nativeApp = 'android';
+        }
       } catch (_) {
         document.documentElement.dataset.theme = 'classic-blue';
         document.documentElement.dataset.mode = 'light';

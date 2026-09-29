@@ -112,6 +112,26 @@ $ReleaseDir = Join-Path $AndroidDir "release"
 $RawAab = Join-Path $AndroidDir "app\build\outputs\bundle\release\app-release.aab"
 $FinalAab = Join-Path $ReleaseDir $FinalName
 $MetadataFile = "$FinalAab.sha256.txt"
+$LocalProperties = Join-Path $AndroidDir "local.properties"
+
+# Gradle's Android plugin needs an SDK path. Reuse an existing local.properties,
+# otherwise discover the normal Windows SDK locations and create the git-ignored
+# local.properties automatically.
+if (-not (Test-Path $LocalProperties -PathType Leaf)) {
+    $sdkCandidates = @(
+        $env:ANDROID_SDK_ROOT,
+        $env:ANDROID_HOME,
+        $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Android\Sdk" })
+    ) | Where-Object { $_ -and (Test-Path $_ -PathType Container) }
+
+    if ($sdkCandidates.Count -eq 0) {
+        throw "Android SDK not found. Install Android SDK 36 or set ANDROID_SDK_ROOT/ANDROID_HOME."
+    }
+
+    $sdkPath = (Resolve-Path $sdkCandidates[0]).Path.Replace("\\", "/")
+    Set-Content -Path $LocalProperties -Value "sdk.dir=$sdkPath" -Encoding ASCII
+    Write-Host "Created git-ignored local.properties for Android SDK: $sdkPath"
+}
 
 Write-Host ""
 Write-Host "FC ARENA Build 9 signed release"
@@ -193,6 +213,7 @@ try {
     }
 
     $keytool = Resolve-Tool -Name "keytool.exe" -JavaToolName "keytool.exe"
+    $jarsigner = Resolve-Tool -Name "jarsigner.exe" -JavaToolName "jarsigner.exe"
 
     Write-Host "Verifying upload keystore certificate..."
     $keyInfo = (& $keytool -list -v -keystore $KeystorePath -alias $KeyAlias -storepass $storePassword 2>&1 | Out-String)
@@ -233,6 +254,12 @@ try {
 
     if (-not (Test-Path $RawAab -PathType Leaf)) {
         throw "Expected AAB was not produced: $RawAab"
+    }
+
+    Write-Host "Verifying signed AAB integrity..."
+    & $jarsigner -verify -strict $RawAab
+    if ($LASTEXITCODE -ne 0) {
+        throw "jarsigner verification failed. The AAB is not a valid signed release artifact."
     }
 
     Write-Host "Verifying certificate embedded in the signed AAB..."

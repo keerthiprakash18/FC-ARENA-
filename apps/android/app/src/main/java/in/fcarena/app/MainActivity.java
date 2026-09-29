@@ -8,10 +8,9 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.webkit.RenderProcessGoneDetail;
-import android.webkit.SafeBrowsingResponse;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -19,13 +18,14 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
-import android.window.OnBackInvokedCallback;
-import android.window.OnBackInvokedDispatcher;
 
-public class MainActivity extends Activity {
+public final class MainActivity extends Activity {
     private static final String START_URL = "https://fcarena.in/dashboard";
     private static final String ALLOWED_HOST = "fcarena.in";
     private static final int FILE_CHOOSER_REQUEST = 1001;
@@ -34,56 +34,64 @@ public class MainActivity extends Activity {
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
-    private OnBackInvokedCallback backCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         root = new FrameLayout(this);
+        root.setBackgroundColor(0xFF05080D);
         setContentView(root);
 
-        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar = new ProgressBar(
+                this,
+                null,
+                android.R.attr.progressBarStyleHorizontal
+        );
+        progressBar.setMax(100);
+
         FrameLayout.LayoutParams progressParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                8
+                dp(3)
         );
-        progressParams.gravity = android.view.Gravity.TOP;
+        progressParams.gravity = Gravity.TOP;
         root.addView(progressBar, progressParams);
 
-        createWebView();
+        String initialUrl = resolveInitialUrl(getIntent());
 
-        String initialUrl = START_URL;
-        Intent intent = getIntent();
-        if (intent != null && intent.getData() != null) {
-            Uri data = intent.getData();
-            if (isAllowedUrl(data)) {
-                initialUrl = data.toString();
+        try {
+            createWebView();
+            if (savedInstanceState == null) {
+                webView.loadUrl(initialUrl);
+            } else {
+                if (webView.restoreState(savedInstanceState) == null) {
+                    webView.loadUrl(initialUrl);
+                }
             }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            backCallback = this::handleBack;
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                    backCallback
-            );
-        }
-
-        if (savedInstanceState == null) {
-            webView.loadUrl(initialUrl);
-        } else {
-            webView.restoreState(savedInstanceState);
+        } catch (Throwable error) {
+            showNativeFallback();
         }
     }
 
+    private String resolveInitialUrl(Intent intent) {
+        if (intent != null && intent.getData() != null && isAllowedUrl(intent.getData())) {
+            return intent.getData().toString();
+        }
+        return START_URL;
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
     private void createWebView() {
         if (webView != null) {
             root.removeView(webView);
+            webView.stopLoading();
             webView.destroy();
         }
 
-        webView = new WebView(getApplicationContext());
+        webView = new WebView(this);
+        WebView.setWebContentsDebuggingEnabled(false);
+        webView.setBackgroundColor(0xFF05080D);
+
         FrameLayout.LayoutParams webParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
@@ -100,7 +108,9 @@ public class MainActivity extends Activity {
         settings.setSupportMultipleWindows(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setUserAgentString(settings.getUserAgentString() + " FC-Arena-Android/1.0.2");
+        settings.setUserAgentString(
+                settings.getUserAgentString() + " FC-Arena-Android/1.0.2"
+        );
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
@@ -108,13 +118,17 @@ public class MainActivity extends Activity {
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            cookieManager.setAcceptThirdPartyCookies(webView, false);
-        }
+
+        // FC Arena auth refresh runs through the same fcarena.in origin.
+        // Keep third-party cookies disabled for privacy/security.
+        cookieManager.setAcceptThirdPartyCookies(webView, false);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            public boolean shouldOverrideUrlLoading(
+                    WebView view,
+                    WebResourceRequest request
+            ) {
                 Uri uri = request.getUrl();
                 if (isAllowedUrl(uri)) {
                     return false;
@@ -124,6 +138,7 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            @SuppressWarnings("deprecation")
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri uri = Uri.parse(url);
                 if (isAllowedUrl(uri)) {
@@ -135,13 +150,17 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                progressBar.setVisibility(View.VISIBLE);
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.VISIBLE);
+                }
                 super.onPageStarted(view, url, favicon);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                progressBar.setVisibility(View.GONE);
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
                 CookieManager.getInstance().flush();
                 super.onPageFinished(view, url);
             }
@@ -152,32 +171,21 @@ public class MainActivity extends Activity {
                     WebResourceRequest request,
                     WebResourceError error
             ) {
-                if (request.isForMainFrame()) {
+                if (request != null && request.isForMainFrame()) {
                     showOfflinePage();
                 }
             }
 
             @Override
-            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
-                Toast.makeText(
-                        MainActivity.this,
-                        "Reloading FC Arena…",
-                        Toast.LENGTH_SHORT
-                ).show();
-                createWebView();
-                webView.loadUrl(START_URL);
-                return true;
-            }
-
-            @Override
-            public void onSafeBrowsingHit(
+            @SuppressWarnings("deprecation")
+            public void onReceivedError(
                     WebView view,
-                    WebResourceRequest request,
-                    int threatType,
-                    SafeBrowsingResponse callback
+                    int errorCode,
+                    String description,
+                    String failingUrl
             ) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-                    callback.backToSafety(true);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    showOfflinePage();
                 }
             }
         });
@@ -185,13 +193,18 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
+                if (progressBar == null) {
+                    return;
+                }
                 progressBar.setProgress(newProgress);
-                progressBar.setVisibility(newProgress >= 100 ? View.GONE : View.VISIBLE);
+                progressBar.setVisibility(
+                        newProgress >= 100 ? View.GONE : View.VISIBLE
+                );
             }
 
             @Override
             public boolean onShowFileChooser(
-                    WebView webView,
+                    WebView currentWebView,
                     ValueCallback<Uri[]> filePathCallback,
                     FileChooserParams fileChooserParams
             ) {
@@ -204,131 +217,211 @@ public class MainActivity extends Activity {
                 Intent chooserIntent;
                 try {
                     chooserIntent = fileChooserParams.createIntent();
-                } catch (Exception e) {
+                    chooserIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                } catch (Exception error) {
                     fileChooserCallback = null;
-                    Toast.makeText(
-                            MainActivity.this,
-                            "Unable to open file picker.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    toast("Unable to open file picker.");
                     return false;
                 }
 
                 try {
                     startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST);
                     return true;
-                } catch (ActivityNotFoundException e) {
+                } catch (ActivityNotFoundException error) {
                     fileChooserCallback = null;
-                    Toast.makeText(
-                            MainActivity.this,
-                            "No file picker is available on this device.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    toast("No file picker is available on this device.");
                     return false;
                 }
             }
         });
 
-        webView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-            } catch (Exception e) {
-                Toast.makeText(
-                        MainActivity.this,
-                        "Unable to open download.",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+        webView.setDownloadListener(
+                (url, userAgent, contentDisposition, mimetype, contentLength) ->
+                        openExternal(Uri.parse(url))
+        );
     }
 
     private boolean isAllowedUrl(Uri uri) {
         if (uri == null) {
             return false;
         }
+
         String scheme = uri.getScheme();
         String host = uri.getHost();
+
         return "https".equalsIgnoreCase(scheme)
                 && host != null
-                && (ALLOWED_HOST.equalsIgnoreCase(host)
-                || host.endsWith("." + ALLOWED_HOST));
+                && (
+                    ALLOWED_HOST.equalsIgnoreCase(host)
+                    || host.toLowerCase().endsWith("." + ALLOWED_HOST)
+                );
     }
 
     private void openExternal(Uri uri) {
         if (uri == null) {
             return;
         }
+
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "No app can open this link.", Toast.LENGTH_SHORT).show();
+        } catch (ActivityNotFoundException error) {
+            toast("No app can open this link.");
         }
     }
 
     private void showOfflinePage() {
-        String html = "<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-                + "<style>body{background:#071525;color:#fff;font-family:sans-serif;padding:28px;text-align:center}"
-                + "button{background:#2ea7ff;border:0;border-radius:14px;padding:14px 22px;font-weight:700;font-size:16px}"
-                + "</style></head><body><h2>FC ARENA</h2><p>We could not connect right now.</p>"
-                + "<button onclick=\"location.href='" + START_URL + "'\">Try again</button></body></html>";
-        webView.loadDataWithBaseURL(START_URL, html, "text/html", "UTF-8", null);
+        if (webView == null) {
+            showNativeFallback();
+            return;
+        }
+
+        String html =
+                "<!doctype html><html><head>"
+                + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+                + "<style>"
+                + "body{margin:0;background:#071525;color:#fff;font-family:sans-serif;"
+                + "min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}"
+                + ".card{padding:32px;max-width:420px}"
+                + "h2{color:#3ba7ff;letter-spacing:.08em}"
+                + "p{color:#b7c4d3;line-height:1.6}"
+                + "button{background:#2ea7ff;color:white;border:0;border-radius:14px;"
+                + "padding:14px 22px;font-weight:700;font-size:16px}"
+                + "</style></head><body><div class=\"card\">"
+                + "<h2>FC ARENA</h2><p>We could not connect right now. Check your internet connection and try again.</p>"
+                + "<button onclick=\"location.href='" + START_URL + "'\">Try again</button>"
+                + "</div></body></html>";
+
+        webView.loadDataWithBaseURL(
+                START_URL,
+                html,
+                "text/html",
+                "UTF-8",
+                null
+        );
+    }
+
+    private void showNativeFallback() {
+        root.removeAllViews();
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER);
+        panel.setPadding(dp(28), dp(28), dp(28), dp(28));
+        panel.setBackgroundColor(0xFF071525);
+
+        TextView title = new TextView(this);
+        title.setText("FC ARENA");
+        title.setTextColor(0xFF3BA7FF);
+        title.setTextSize(28);
+        title.setGravity(Gravity.CENTER);
+
+        TextView message = new TextView(this);
+        message.setText(
+                "FC Arena could not start its in-app browser on this device. "
+                + "You can still open the secure FC Arena website."
+        );
+        message.setTextColor(0xFFB7C4D3);
+        message.setTextSize(16);
+        message.setGravity(Gravity.CENTER);
+        message.setPadding(0, dp(18), 0, dp(24));
+
+        Button openButton = new Button(this);
+        openButton.setText("Open FC Arena");
+        openButton.setOnClickListener(
+                view -> openExternal(Uri.parse(START_URL))
+        );
+
+        panel.addView(title);
+        panel.addView(message);
+        panel.addView(openButton);
+
+        root.addView(
+                panel,
+                new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                )
+        );
+    }
+
+    private int dp(int value) {
+        return Math.round(
+                value * getResources().getDisplayMetrics().density
+        );
+    }
+
+    private void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        if (intent != null && intent.getData() != null && isAllowedUrl(intent.getData())) {
+
+        if (
+            webView != null
+            && intent != null
+            && intent.getData() != null
+            && isAllowedUrl(intent.getData())
+        ) {
             webView.loadUrl(intent.getData().toString());
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        webView.saveState(outState);
+        if (webView != null) {
+            webView.saveState(outState);
+        }
         super.onSaveInstanceState(outState);
     }
 
-    private void handleBack() {
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
-        } else {
-            finish();
+            return;
         }
-    }
-
-    @SuppressLint("GestureBackNavigation")
-    @Override
-    public void onBackPressed() {
-        handleBack();
+        super.onBackPressed();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == FILE_CHOOSER_REQUEST && fileChooserCallback != null) {
-            Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+        if (
+            requestCode == FILE_CHOOSER_REQUEST
+            && fileChooserCallback != null
+        ) {
+            Uri[] result = WebChromeClient.FileChooserParams.parseResult(
+                    resultCode,
+                    data
+            );
             fileChooserCallback.onReceiveValue(result);
             fileChooserCallback = null;
             return;
         }
+
         super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
     protected void onDestroy() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && backCallback != null) {
-            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backCallback);
-            backCallback = null;
+        if (fileChooserCallback != null) {
+            fileChooserCallback.onReceiveValue(null);
+            fileChooserCallback = null;
         }
 
         if (webView != null) {
             webView.stopLoading();
             webView.setWebChromeClient(null);
             webView.setWebViewClient(null);
+            webView.loadUrl("about:blank");
             webView.destroy();
             webView = null;
         }
+
         super.onDestroy();
     }
 }

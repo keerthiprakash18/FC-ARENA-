@@ -1,34 +1,49 @@
 # FC ARENA Android (Google Play)
 
-This project packages the production PWA at https://fcarena.in as a Trusted Web Activity (TWA).
+FC Arena is packaged as a small native Android WebView shell that loads the production app at https://fcarena.in.
 
 ## Release identity
 
 - Package / application ID: `in.fcarena.app`
-- Version name: `1.0.0`
-- Version code: `2`
+- Version name: `1.0.4`
+- Version code: `6`
 - Minimum SDK: 24
 - Compile SDK: 36
 - Target SDK: 36
 - Production URL: `https://fcarena.in/dashboard`
-- Web manifest: `https://fcarena.in/manifest.webmanifest`
+- Delivery format: Android App Bundle (`.aab`)
 
-## Build validation
+## Runtime architecture
 
-Android CI builds `:app:bundleRelease` without a signing key to verify that the project remains buildable.
+The Play build no longer depends on Trusted Web Activity / Android Browser Helper startup.
+
+The native shell:
+- loads only HTTPS FC Arena pages in-app;
+- sends external domains to the system browser;
+- enables JavaScript and DOM storage required by the production Next.js app;
+- preserves FC Arena cookies and sessions;
+- supports Android file selection for profile photos;
+- blocks mixed HTTP content and file-system access;
+- provides an offline page;
+- provides a native fallback screen if WebView initialization fails.
+
+## Validation
+
+Android CI performs both:
+1. release lint + AAB compilation; and
+2. an Android 15 emulator install/launch smoke test that fails if the FC Arena process exits or logs a fatal exception immediately after launch.
 
 ## Signed release build
 
-The upload key is intentionally NOT stored in this public repository.
+The private upload key is intentionally NOT stored in this public repository.
 
-Set these environment variables before a signed release build:
-
+Set:
 - `FC_ARENA_KEYSTORE_FILE`
 - `FC_ARENA_STORE_PASSWORD`
 - `FC_ARENA_KEY_ALIAS`
 - `FC_ARENA_KEY_PASSWORD`
 
-Then run:
+Then run from `apps/android`:
 
 ```bash
 gradle :app:clean :app:bundleRelease
@@ -40,12 +55,8 @@ Output:
 
 ## Digital Asset Links
 
-The web association is stored at:
+The production association remains at:
 
 `apps/web/public/.well-known/assetlinks.json`
 
-Its SHA-256 certificate fingerprint must always match the Play upload signing certificate.
-
-## Runtime launch regression
-
-Build 4 adds the Android Browser Helper runtime components required by the TWA launcher and was verified by an Android API 35 emulator launch test before release.
+It contains the Google Play app-signing certificate fingerprints and the FC Arena upload-key fingerprint.

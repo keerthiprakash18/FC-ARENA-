@@ -23,8 +23,8 @@ android {
         applicationId 'in.fcarena.app'
         minSdk 24
         targetSdk 36
-        versionCode 4
-        versionName '1.0.2'
+        versionCode 5
+        versionName '1.0.3'
     }
 
     signingConfigs {
@@ -75,5 +75,4 @@ tasks.named("preBuild").configure {
 }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.3'
 }

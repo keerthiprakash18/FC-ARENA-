@@ -15,15 +15,57 @@ const results = [];
 let browser;
 async function connect() {
   if (!android) return chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined, args: ["--no-sandbox"] });
-  for (let attempt = 0; attempt < 60; attempt++) {
+
+  const tried = new Set();
+  for (let attempt = 0; attempt < 90; attempt++) {
     try {
       const pid = adb('shell', 'pidof', 'in.fcarena.app.debug');
       assert(pid);
-      adb('forward', 'tcp:9222', `localabstract:webview_devtools_remote_${pid}`);
-      return await chromium.connectOverCDP('http://127.0.0.1:9222', { timeout: 2000 });
-    } catch { await pause(1000); }
+
+      // Android System WebView does not guarantee that the DevTools socket
+      // suffix equals the package PID on every API/WebView build. Discover
+      // the real abstract socket instead of guessing its name.
+      const unixSockets = adb('shell', 'cat', '/proc/net/unix');
+      const sockets = [...unixSockets.matchAll(/@?(webview_devtools_remote(?:_\\d+)?)/g)]
+        .map((match) => match[1]);
+
+      for (const socket of [...new Set(sockets)].reverse()) {
+        try {
+          adb('forward', '--remove', 'tcp:9222');
+        } catch {
+          // No previous forward is fine.
+        }
+
+        try {
+          adb('forward', 'tcp:9222', `localabstract:${socket}`);
+          const browser = await chromium.connectOverCDP('http://127.0.0.1:9222', { timeout: 2500 });
+          const contexts = browser.contexts();
+          if (contexts.length && contexts.some((context) => context.pages().length)) {
+            return browser;
+          }
+          await browser.close();
+        } catch {
+          tried.add(socket);
+        }
+      }
+    } catch {
+      // WebView may still be starting; retry below.
+    }
+    await pause(1000);
   }
-  throw new Error('WebView debugging endpoint never became available');
+
+  let diagnostics = '';
+  try {
+    diagnostics = adb('shell', 'cat', '/proc/net/unix')
+      .split('\n')
+      .filter((line) => line.includes('webview_devtools_remote'))
+      .join('\n');
+  } catch {
+    diagnostics = 'unable to read /proc/net/unix';
+  }
+  throw new Error(
+    `WebView debugging endpoint never became available. sockets tried=${[...tried].join(',') || 'none'}; visible sockets=\n${diagnostics}`
+  );
 }
 async function prepare(page) {
   page.on('pageerror', (error) => errors.push(error.message));

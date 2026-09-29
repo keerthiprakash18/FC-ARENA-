@@ -55,10 +55,15 @@ jobs:
             adb logcat -d -v threadtime > /tmp/fcarena-logcat.txt
             echo "=== FC ARENA launch excerpts ==="
             grep -n -E "FATAL EXCEPTION|AndroidRuntime|FCArenaLauncher|TWALauncher|TrustedWeb|SafeLauncherActivity|in\.fcarena\.app" /tmp/fcarena-logcat.txt | tail -n 260 || true
-            if grep -A 35 "FATAL EXCEPTION" /tmp/fcarena-logcat.txt | grep -q "in.fcarena.app.debug"; then
+            if grep -B 2 -A 2 "Process: in.fcarena.app.debug" /tmp/fcarena-logcat.txt | grep -q "FATAL EXCEPTION"; then
               echo "FC Arena crashed during launch"
               exit 1
             fi
+            if ! grep -q "in.fcarena.app.debug/in.fcarena.app.SafeLauncherActivity" /tmp/fcarena-logcat.txt; then
+              echo "FC Arena launcher was not observed in logcat"
+              exit 1
+            fi
+            echo "FC Arena launcher completed without a process-level fatal exception"
 
       - name: Upload logcat
         if: always()

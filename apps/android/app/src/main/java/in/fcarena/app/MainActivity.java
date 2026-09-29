@@ -42,7 +42,8 @@ public final class MainActivity extends Activity {
 
     private int rendererCrashCount = 0;
     private boolean softwareRendering = false;
-    private String lastAllowedUrl = START_URL;\n    private boolean initialFreshLoad = true;
+    private String lastAllowedUrl = START_URL;
+    private boolean initialFreshLoad = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

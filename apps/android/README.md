@@ -45,3 +45,7 @@ The web association is stored at:
 `apps/web/public/.well-known/assetlinks.json`
 
 Its SHA-256 certificate fingerprint must always match the Play upload signing certificate.
+
+## Runtime launch regression
+
+Build 4 adds the Android Browser Helper runtime components required by the TWA launcher and was verified by an Android API 35 emulator launch test before release.

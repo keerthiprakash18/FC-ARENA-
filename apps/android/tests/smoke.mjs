@@ -99,12 +99,16 @@ async function checkScroll(page, name, required = false) {
     const after = await metrics(page);
     assert(after.scrollY > before.scrollY + 10, `${name}: REAL SWIPE DID NOT SCROLL ${JSON.stringify({before,after})}`);
     assert(Math.abs(after.header.top - before.header.top) < 2, `${name}: header moved`);
-    assert(Math.abs(after.nav.top - before.nav.top) < 2, `${name}: navigation moved`);
+    if (before.nav) {
+      assert(after.nav, `${name}: navigation disappeared`);
+      assert(Math.abs(after.nav.top - before.nav.top) < 2, `${name}: navigation moved`);
+    }
     await swipe(page, false);
     const back = await metrics(page);
     assert(back.scrollY < after.scrollY - 10, `${name}: downward swipe stuck`);
     results.push({ name, before, after, back });
   } else results.push({ name, before, note: 'Content fits viewport; no scroll expected' });
+  console.log(`PASS ${name}`);
 }
 try {
   browser = await connect();

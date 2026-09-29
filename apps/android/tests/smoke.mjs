@@ -26,7 +26,7 @@ async function connect() {
       // suffix equals the package PID on every API/WebView build. Discover
       // the real abstract socket instead of guessing its name.
       const unixSockets = adb('shell', 'cat', '/proc/net/unix');
-      const sockets = [...unixSockets.matchAll(/@?(webview_devtools_remote(?:_\\d+)?)/g)]
+      const sockets = [...unixSockets.matchAll(/@?(webview_devtools_remote(?:_\d+)?)/g)]
         .map((match) => match[1]);
 
       for (const socket of [...new Set(sockets)].reverse()) {

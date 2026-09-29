@@ -5702,3 +5702,218 @@ html[data-native-app="android"] .fc-activity-panel {
     padding: 12px !important;
   }
 }
+
+
+/* =========================================================
+   FC ARENA — ANDROID MOBILE FIT + NAV STABILITY V2
+   Screenshot-driven native WebView polish. Visual/layout only.
+   ========================================================= */
+
+@media (max-width: 640px) {
+  html[data-native-app="android"],
+  html[data-native-app="android"] body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
+    overscroll-behavior: none !important;
+  }
+
+  html[data-native-app="android"] .fc-app-shell {
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden !important;
+  }
+
+  /* Stable compact mobile header. */
+  html[data-native-app="android"] .theme-top-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 60 !important;
+    width: 100%;
+    transform: translateZ(0) !important;
+    will-change: auto !important;
+    box-shadow: 0 1px 0 var(--theme-border) !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header > div {
+    height: 60px !important;
+    min-height: 60px !important;
+    padding-left: 14px !important;
+    padding-right: 12px !important;
+    gap: 8px !important;
+  }
+
+  html[data-native-app="android"] .theme-top-header .theme-brand-mark {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Main canvas fits common 360–430px Android widths cleanly. */
+  html[data-native-app="android"] .fc-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-top: 14px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-x: clip !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page {
+    width: 100%;
+    max-width: 100%;
+    gap: 0 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page > * {
+    max-width: 100%;
+  }
+
+  /* Remove purely decorative layers in the native app for a cleaner,
+     faster and visually stable dashboard. */
+  html[data-native-app="android"] .fc-dashboard-backdrop,
+  html[data-native-app="android"] .fc-hero-art,
+  html[data-native-app="android"] .theme-match-art,
+  html[data-native-app="android"] .fc-dashboard-backdrop-grid,
+  html[data-native-app="android"] .fc-dashboard-light,
+  html[data-native-app="android"] .fc-dashboard-beam,
+  html[data-native-app="android"] .fc-dashboard-particles,
+  html[data-native-app="android"] .fc-dashboard-hero-scan,
+  html[data-native-app="android"] .fc-dashboard-hero-orbit,
+  html[data-native-app="android"] .fc-match-spotlight {
+    display: none !important;
+  }
+
+  /* Dashboard hero: tighter fit, no clipping, no oversized vertical block. */
+  html[data-native-app="android"] .fc-dashboard-hero {
+    min-height: 0 !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero > .relative {
+    min-height: 0 !important;
+    padding: 20px 18px !important;
+    gap: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero h1 {
+    margin-top: 8px !important;
+    max-width: 100% !important;
+    font-size: clamp(30px, 9vw, 38px) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.035em !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-hero p {
+    max-width: 100%;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-kicker {
+    font-size: 11px !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  /* Consistent section rhythm. */
+  html[data-native-app="android"] .fc-dashboard-page {
+    row-gap: 16px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats {
+    gap: 10px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-stats .theme-stat-card,
+  html[data-native-app="android"] .fc-dashboard-stats > a > * {
+    min-height: 0 !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-section {
+    gap: 14px !important;
+  }
+
+  html[data-native-app="android"] .fc-next-match-panel {
+    padding: 18px !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+  }
+
+  html[data-native-app="android"] .theme-panel,
+  html[data-native-app="android"] .theme-stat-card,
+  html[data-native-app="android"] .theme-action-row {
+    transform: none !important;
+  }
+
+  /* Bottom navigation must behave like a native fixed tab bar. */
+  html[data-native-app="android"] .theme-bottom-nav {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    z-index: 100 !important;
+    width: 100% !important;
+    min-height: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
+    margin: 0 !important;
+    transform: translate3d(0, 0, 0) !important;
+    will-change: auto !important;
+    contain: layout paint !important;
+    animation: none !important;
+    transition: none !important;
+    box-shadow: 0 -1px 0 var(--theme-border), 0 -6px 18px rgba(0,0,0,0.04) !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-nav > div {
+    height: 72px !important;
+    min-height: 72px !important;
+    align-items: stretch !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item {
+    height: 72px !important;
+    min-height: 72px !important;
+    padding: 7px 1px 6px !important;
+    gap: 3px !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+    touch-action: manipulation;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item *,
+  html[data-native-app="android"] .theme-bottom-icon,
+  html[data-native-app="android"] .theme-bottom-accent {
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-accent {
+    left: 20% !important;
+    right: 20% !important;
+  }
+
+  html[data-native-app="android"] .theme-bottom-item > span:last-child {
+    max-width: 100%;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Kill hover/press transforms that can look like elements shifting in
+     touch WebView during scroll. */
+  html[data-native-app="android"] a:hover,
+  html[data-native-app="android"] button:hover,
+  html[data-native-app="android"] a:active,
+  html[data-native-app="android"] button:active {
+    transform: none !important;
+  }
+}

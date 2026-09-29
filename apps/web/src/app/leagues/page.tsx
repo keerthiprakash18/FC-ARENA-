@@ -785,6 +785,7 @@ export default function LeaguesPage() {
               >
                 <input
                   name="code"
+                  aria-label="League invite code"
                   required
                   placeholder="LEAGUE CODE"
                   className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 font-mono uppercase outline-none focus:border-sky-400/50"
@@ -881,7 +882,7 @@ export default function LeaguesPage() {
             {!showCreate ? (
               <div className="mt-5">
                 <p className="text-sm leading-6 text-slate-500">
-                  League creation stays on this primary screen because it is the entry point into the League section.
+                  Bring your players together. Create a league, share its invite code and start your first tournament.
                 </p>
 
                 <button
@@ -906,32 +907,40 @@ export default function LeaguesPage() {
                 }
                 className="mt-5 grid gap-4"
               >
-                <input
+                <label className="fc-field-label">League name
+<input
                   name="name"
                   required
                   placeholder="League name"
                   className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                 />
+</label>
 
-                <input
+                <label className="fc-field-label">Region (optional)
+<input
                   name="region"
                   placeholder="Region"
                   className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                 />
+</label>
 
-                <textarea
+                <label className="fc-field-label">Description (optional)
+<textarea
                   name="description"
                   rows={3}
                   placeholder="Description"
                   className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                 />
+</label>
 
-                <textarea
+                <label className="fc-field-label">League rules (optional)
+<textarea
                   name="rules"
                   rows={3}
                   placeholder="Rules"
                   className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                 />
+</label>
 
                 <div className="flex justify-end gap-2">
                   <button

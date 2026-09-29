@@ -8,7 +8,7 @@ export type ThemeDataAttribute =
 
 export const DEFAULT_THEME_PREFERENCE:
   ThemePreference =
-    'CLASSIC_BLUE';
+    'LUXURY_GOLD';
 
 export const THEME_STORAGE_KEY =
   'fc-arena-theme-preference';

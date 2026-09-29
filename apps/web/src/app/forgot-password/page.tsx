@@ -56,8 +56,8 @@ export default function ForgotPasswordPage() {
     >
       <form className="auth-form" onSubmit={submit}>
         <div className="field">
-          <label>Email</label>
-          <input name="email" type="email" required />
+          <label htmlFor="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" required />
         </div>
 
         {error ? <div className="error-box">{error}</div> : null}

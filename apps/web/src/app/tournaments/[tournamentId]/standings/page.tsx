@@ -219,8 +219,24 @@ function StandingTable({
         </span>
       </div>
 
-      <div className="overflow-x-auto">
+      <ol className="fc-mobile-standings sm:hidden" aria-label={`${title} standings`}>
+        {rows.map((row) => (
+          <li key={row.registrationId} className="fc-standing-row">
+            <div className="fc-standing-top">
+              <span className="fc-standing-rank">{row.position}</span>
+              <strong className="min-w-0 flex-1 break-words">{row.entryName}</strong>
+              <span className="fc-standing-points">{row.points}<small>PTS</small></span>
+            </div>
+            <dl className="fc-standing-stats">
+              {[['Played', row.played], ['Won', row.wins], ['Drawn', row.draws], ['Lost', row.losses], ['GF', row.goalsFor], ['GA', row.goalsAgainst], ['GD', row.goalDifference]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+            </dl>
+            <p className="theme-secondary-text mt-2 text-xs">Recent form <strong className="ml-2 tracking-widest">{row.form || '—'}</strong></p>
+          </li>
+        ))}
+      </ol>
+      <div className="hidden overflow-x-auto sm:block" tabIndex={0} role="region" aria-label={`${title} detailed standings`}>
         <table className="w-full min-w-[850px] text-sm">
+          <caption className="sr-only">{title} standings — played, wins, draws, losses, goals and points</caption>
           <thead className="border-b border-white/10 bg-white/[0.025] text-xs uppercase text-slate-500">
             <tr>
               <th className="p-4 text-left">

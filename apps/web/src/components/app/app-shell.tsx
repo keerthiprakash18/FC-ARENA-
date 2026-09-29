@@ -619,6 +619,7 @@ export function AppShell({
 
   return (
     <div className="fc-app-shell min-h-screen">
+      <a href="#main-content" className="fc-skip-link">Skip to content</a>
       <aside className="theme-sidebar fc-sidebar-art fixed inset-y-0 left-0 z-40 hidden w-[270px] overflow-hidden border-r lg:flex lg:flex-col">
         <div className="theme-sidebar-divider shrink-0 border-b px-[22px] py-5">
           <Link
@@ -813,7 +814,7 @@ export function AppShell({
           }
         />
 
-        <main
+        <main id="main-content" tabIndex={-1}
           className={`fc-main mx-auto min-h-[calc(100vh-4.25rem)] w-full max-w-[1440px] px-4 pt-5 sm:px-6 md:pt-6 lg:px-7 lg:pb-10 lg:pt-6 ${
             showBottomNavigation
               ? 'pb-28'

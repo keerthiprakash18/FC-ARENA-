@@ -73,37 +73,38 @@ export default function RegisterPage() {
     >
       <form className="auth-form" onSubmit={submit}>
         <div className="field">
-          <label>Full Name</label>
-          <input name="fullName" required />
+          <label htmlFor="auth-fullName">Full Name</label>
+          <input id="auth-fullName" name="fullName" required />
         </div>
 
         <div className="field">
-          <label>Email</label>
-          <input name="email" type="email" required />
+          <label htmlFor="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" required />
         </div>
 
         <div className="form-grid">
           <div className="field">
-            <label>In-Game Name</label>
-            <input name="inGameName" required />
+            <label htmlFor="auth-inGameName">In-Game Name</label>
+            <input id="auth-inGameName" name="inGameName" required />
           </div>
 
           <div className="field">
-            <label>Game UID</label>
-            <input name="gameUid" />
+            <label htmlFor="auth-gameUid">Game UID</label>
+            <input id="auth-gameUid" name="gameUid" />
           </div>
         </div>
 
         <div className="field">
-          <label>Phone Number — optional</label>
-          <input name="phoneNumber" />
+          <label htmlFor="auth-phoneNumber">Phone Number — optional</label>
+          <input id="auth-phoneNumber" name="phoneNumber" />
         </div>
 
         <div className="form-grid">
           <div className="field">
-            <label>Password</label>
+            <label htmlFor="auth-password">Password</label>
             <div className="relative">
               <input
+                id="auth-password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
@@ -123,9 +124,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="field">
-            <label>Confirm Password</label>
+            <label htmlFor="auth-confirmPassword">Confirm Password</label>
             <div className="relative">
               <input
+                id="auth-confirmPassword"
                 name="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"

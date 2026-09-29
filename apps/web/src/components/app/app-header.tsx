@@ -244,7 +244,7 @@ export function AppHeader({
         </Link>
 
 
-        <div className="relative hidden w-full max-w-[440px] lg:block">
+        <div className="relative hidden w-full max-w-[440px] lg:block" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchOpen(false); }}>
           <label className="theme-search flex h-10 items-center gap-3 rounded-xl border px-3.5 shadow-[0_4px_14px_rgba(11,37,69,0.04)] transition">
             <span className="theme-muted" aria-hidden="true">
               <FcIcon
@@ -273,6 +273,7 @@ export function AppHeader({
                     event.target.value,
                   )
               }
+              aria-label="Search app sections"
               placeholder="Search leagues, tournaments, fixtures..."
               className="theme-search-input min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
@@ -285,17 +286,6 @@ export function AppHeader({
 
           {searchOpen ? (
             <>
-              <button
-                type="button"
-                aria-label="Close search"
-                onClick={() =>
-                  setSearchOpen(
-                    false,
-                  )
-                }
-                className="fixed inset-0 z-[-1] cursor-default"
-              />
-
               <div className="theme-search-menu absolute left-0 right-0 top-12 overflow-hidden rounded-xl border p-1.5 shadow-[0_18px_42px_rgba(11,37,69,0.12)]">
                 {results.length >
                 0 ? (

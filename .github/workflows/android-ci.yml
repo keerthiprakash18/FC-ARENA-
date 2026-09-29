@@ -44,9 +44,9 @@ jobs:
         with:
           gradle-version: "8.13"
 
-      - name: Android lint and release bundle
+      - name: Android lint, bundle and APKs
         working-directory: apps/android
-        run: gradle :app:lintRelease :app:bundleRelease --stacktrace
+        run: gradle :app:lintRelease :app:bundleRelease :app:assembleRelease :app:assembleDebug --stacktrace
 
       - name: Upload unsigned validation AAB
         uses: actions/upload-artifact@v4
@@ -55,3 +55,47 @@ jobs:
           path: apps/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
+
+      - name: Upload runtime smoke APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: fc-arena-android-smoke-apk
+          path: apps/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  runtime-smoke:
+    name: Android emulator launch smoke
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Download runtime smoke APK
+        uses: actions/download-artifact@v4
+        with:
+          name: fc-arena-android-smoke-apk
+          path: smoke-apk
+
+      - name: Boot Android and verify FC Arena does not crash
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            adb install -r smoke-apk/app-debug.apk
+            adb logcat -c
+            adb shell am force-stop in.fcarena.app.debug || true
+            adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.LauncherActivity
+            sleep 10
+            adb logcat -d -v brief > /tmp/fcarena-logcat.txt
+            cat /tmp/fcarena-logcat.txt
+            if grep -A 40 -B 5 "FATAL EXCEPTION" /tmp/fcarena-logcat.txt | grep -q "in.fcarena.app.debug"; then
+              echo "FC Arena crashed during Android runtime smoke test."
+              exit 1
+            fi
+            echo "FC Arena Android launcher completed without a fatal app-process crash."

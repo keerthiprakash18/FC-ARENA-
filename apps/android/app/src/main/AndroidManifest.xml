@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="in.fcarena.app">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.REORDER_TASKS" />
+
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="false"
@@ -10,7 +21,7 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/fc_arena_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FCArena.Launcher"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar"
         android:usesCleartextTraffic="false">
 
         <meta-data
@@ -23,14 +34,13 @@
 
         <meta-data
             android:name="twa_generator"
-            android:value="fc-arena-manual-twa" />
+            android:value="FC Arena Bubblewrap-compatible runtime" />
 
         <activity
-            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:name=".LauncherActivity"
             android:alwaysRetainTaskState="true"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.FCArena.Launcher">
+            android:label="@string/app_name">
 
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
@@ -54,11 +64,7 @@
 
             <meta-data
                 android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="customtabs" />
-
-            <meta-data
-                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
-                android:value="portrait" />
+                android:value="webview" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -71,14 +77,18 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="fcarena.in"
-                    android:pathPrefix="/" />
+                    android:host="fcarena.in" />
             </intent-filter>
         </activity>
 
         <activity
             android:name="com.google.androidbrowserhelper.trusted.FocusActivity"
-            android:exported="true" />
+            android:exported="false" />
+
+        <activity
+            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { _android, chromium } from 'playwright';
 
 const android = process.env.ANDROID_SMOKE === '1';
 const output = process.env.SMOKE_OUTPUT || '/tmp/fcarena-smoke';
@@ -13,59 +13,33 @@ const career = { profile: { ...user.player, primaryLeague: null, secondaryLeague
 const errors = [];
 const results = [];
 let browser;
+let androidDevice;
+let androidPage;
 async function connect() {
-  if (!android) return chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined, args: ["--no-sandbox"] });
-
-  const tried = new Set();
-  for (let attempt = 0; attempt < 90; attempt++) {
-    try {
-      const pid = adb('shell', 'pidof', 'in.fcarena.app.debug');
-      assert(pid);
-
-      // Android System WebView does not guarantee that the DevTools socket
-      // suffix equals the package PID on every API/WebView build. Discover
-      // the real abstract socket instead of guessing its name.
-      const unixSockets = adb('shell', 'cat', '/proc/net/unix');
-      const sockets = [...unixSockets.matchAll(/@?(webview_devtools_remote(?:_\d+)?)/g)]
-        .map((match) => match[1]);
-
-      for (const socket of [...new Set(sockets)].reverse()) {
-        try {
-          adb('forward', '--remove', 'tcp:9222');
-        } catch {
-          // No previous forward is fine.
-        }
-
-        try {
-          adb('forward', 'tcp:9222', `localabstract:${socket}`);
-          const browser = await chromium.connectOverCDP('http://127.0.0.1:9222', { timeout: 2500 });
-          const contexts = browser.contexts();
-          if (contexts.length && contexts.some((context) => context.pages().length)) {
-            return browser;
-          }
-          await browser.close();
-        } catch {
-          tried.add(socket);
-        }
-      }
-    } catch {
-      // WebView may still be starting; retry below.
-    }
-    await pause(1000);
+  if (!android) {
+    return chromium.launch({
+      headless: true,
+      executablePath: process.env.CHROMIUM_PATH || undefined,
+      args: ['--no-sandbox'],
+    });
   }
 
-  let diagnostics = '';
-  try {
-    diagnostics = adb('shell', 'cat', '/proc/net/unix')
-      .split('\n')
-      .filter((line) => line.includes('webview_devtools_remote'))
-      .join('\n');
-  } catch {
-    diagnostics = 'unable to read /proc/net/unix';
-  }
-  throw new Error(
-    `WebView debugging endpoint never became available. sockets tried=${[...tried].join(',') || 'none'}; visible sockets=\n${diagnostics}`
+  // Use Playwright's Android/WebView transport instead of manually forwarding
+  // webview_devtools_remote sockets. The socket endpoint exposed by Android
+  // WebView is a page target rather than a normal browser CDP endpoint on some
+  // WebView/API combinations, which makes chromium.connectOverCDP() unreliable.
+  const devices = await _android.devices();
+  assert(devices.length > 0, 'No Android device detected by Playwright');
+
+  androidDevice = devices[0];
+  const webView = await androidDevice.webView(
+    { pkg: 'in.fcarena.app.debug' },
+    { timeout: 90_000 },
   );
+
+  androidPage = await webView.page();
+  assert(androidPage, 'FC Arena Android WebView page was not available');
+  return null;
 }
 async function prepare(page) {
   page.on('pageerror', (error) => errors.push(error.message));
@@ -156,8 +130,15 @@ try {
   browser = await connect();
   const widths = android ? [null] : [360,375,390,412,430,768];
   for (const width of widths) {
-    const context = android ? browser.contexts()[0] : await browser.newContext({ viewport: { width, height: 800 }, isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36 FC-Arena-Android/1.0.6-debug' });
-    const page = android ? context.pages()[0] : await context.newPage();
+    const context = android
+      ? androidPage.context()
+      : await browser.newContext({
+          viewport: { width, height: 800 },
+          isMobile: true,
+          hasTouch: true,
+          userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36 FC-Arena-Android/1.0.6-debug',
+        });
+    const page = android ? androidPage : await context.newPage();
     await prepare(page);
     await page.goto('https://fcarena.in/dashboard');
     await page.locator('.fc-dashboard-hero').waitFor();
@@ -235,4 +216,7 @@ try {
 } catch (error) {
   writeFileSync(`${output}/failure.json`, JSON.stringify({ error: String(error), results, errors }, null, 2));
   throw error;
-} finally { await browser?.close(); }
+} finally {
+  await browser?.close();
+  await androidDevice?.close();
+}

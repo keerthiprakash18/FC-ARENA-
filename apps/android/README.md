@@ -5,8 +5,8 @@ FC Arena is packaged as a small native Android WebView shell that loads the prod
 ## Release identity
 
 - Package / application ID: `in.fcarena.app`
-- Version name: `1.0.4`
-- Version code: `6`
+- Version name: `1.0.6`
+- Version code: `8`
 - Minimum SDK: 24
 - Compile SDK: 36
 - Target SDK: 36
@@ -29,9 +29,27 @@ The native shell:
 
 ## Validation
 
-Android CI performs both:
-1. release lint + AAB compilation; and
-2. an Android 15 emulator install/launch smoke test that fails if the FC Arena process exits or logs a fatal exception immediately after launch.
+Android CI validates release lint and AAB compilation, then builds the debug
+wrapper and the current Next.js production frontend on Android API 33, 34, 35
+and 36. The test harness routes frontend requests to that checkout and API
+requests to isolated fixtures. It never writes production data.
+
+`tests/smoke.mjs` records viewport/document metrics and hit targets, then uses
+real `adb shell input swipe` in both directions. A dashboard that does not
+scroll fails CI. It checks sticky header/fixed navigation geometry, horizontal
+overflow, SPA tab navigation, profile/career, Android back, five resumes and
+five fresh process launches. JSON evidence and screenshots are CI artifacts.
+Fixture tests do not prove real account persistence or the Android file picker;
+those require the Play-installed physical-device acceptance test.
+
+Local browser touch checks cover 360, 375, 390, 412, 430 and 768 CSS pixels:
+start the production web server on port 3000, install `tests` dependencies and
+Playwright Chromium, then run `node apps/android/tests/smoke.mjs` from repo root.
+`CHROMIUM_PATH` optionally selects an installed Chromium binary.
+
+Release WebView debugging is disabled; debug builds enable it for CDP tests.
+Native system insets reserve space for system bars/keyboard; CSS safe-area
+padding applies only to any remaining WebView inset, preventing overlap.
 
 ## Signed release build
 

@@ -12,6 +12,7 @@ import {
 } from '@/components/theme/theme-provider';
 
 import './globals.css';
+import './native-android.css';
 
 export const metadata: Metadata = {
   metadataBase:
@@ -75,6 +76,9 @@ export default function RootLayout({
 }>) {
   const themeBootstrap = `
     (function () {
+      if (/FC-Arena-Android\\//i.test(navigator.userAgent)) {
+        document.documentElement.dataset.nativeApp = 'android';
+      }
       try {
         var value = localStorage.getItem('fc-arena-theme-preference');
         var theme = value === 'LUXURY_GOLD'
@@ -89,9 +93,6 @@ export default function RootLayout({
 
         document.documentElement.dataset.mode = mode;
 
-        if (/FC-Arena-Android\//i.test(navigator.userAgent)) {
-          document.documentElement.dataset.nativeApp = 'android';
-        }
       } catch (_) {
         document.documentElement.dataset.theme = 'classic-blue';
         document.documentElement.dataset.mode = 'light';

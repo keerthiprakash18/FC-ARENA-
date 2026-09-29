@@ -28,7 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public final class MainActivity extends Activity {
-    private static final String START_URL = "https://fcarena.in/dashboard?native_shell=8";
+    private static final String START_URL = "https://fcarena.in/dashboard";
     private static final String ALLOWED_HOST = "fcarena.in";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final String PREFS_NAME = "fc_arena_android";
@@ -43,15 +43,33 @@ public final class MainActivity extends Activity {
     private int rendererCrashCount = 0;
     private boolean softwareRendering = false;
     private String lastAllowedUrl = START_URL;
-    private boolean initialFreshLoad = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // One inset owner on every supported modern Android version.
+            getWindow().setDecorFitsSystemWindows(false);
+        }
 
         root = new FrameLayout(this);
         root.setBackgroundColor(0xFF05080D);
         setContentView(root);
+
+        // Keep WebView content outside system bars and the keyboard on SDK 35+.
+        // The CSS safe-area remains zero because native insets are consumed here.
+        root.setOnApplyWindowInsetsListener((view, insets) -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                android.graphics.Insets bars = insets.getInsets(
+                        android.view.WindowInsets.Type.systemBars()
+                        | android.view.WindowInsets.Type.displayCutout()
+                        | android.view.WindowInsets.Type.ime());
+                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                return android.view.WindowInsets.CONSUMED;
+            }
+            return insets;
+        });
+        root.requestApplyInsets();
 
         preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
@@ -120,12 +138,17 @@ public final class MainActivity extends Activity {
         destroyCurrentWebView();
 
         webView = new WebView(this);
-        WebView.setWebContentsDebuggingEnabled(false);
+        // Cache policy: LOAD_DEFAULT enables HTTP cache for performance.
+        // Legacy clearCache(true) removed to avoid startup stalls and unnecessary network requests.
+        // HTTP cache is managed by the browser (WebView) and persists across sessions for optimal
+        // offline support and load performance. Auth/session cache invalidation handled
+        // separately (e.g., on logout, token refresh) where actually required. No blanket cache
+        // clearing on startup or navigation to maintain performance.
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         webView.setBackgroundColor(0xFF05080D);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(false);
-        webView.clearCache(true);
 
         // After a renderer crash, use software composition for the recovery
         // WebView. This avoids repeating device-specific GPU/WebView failures.
@@ -149,9 +172,9 @@ public final class MainActivity extends Activity {
         settings.setSupportMultipleWindows(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setUserAgentString(
-                settings.getUserAgentString() + " FC-Arena-Android/1.0.6"
+                settings.getUserAgentString() + " FC-Arena-Android/" + BuildConfig.VERSION_NAME
         );
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -168,6 +191,9 @@ public final class MainActivity extends Activity {
                     WebView view,
                     WebResourceRequest request
             ) {
+                if (!request.isForMainFrame()) {
+                    return !isAllowedUrl(request.getUrl());
+                }
                 Uri uri = request.getUrl();
                 if (isAllowedUrl(uri)) {
                     lastAllowedUrl = uri.toString();
@@ -202,12 +228,6 @@ public final class MainActivity extends Activity {
             }
 
             @Override
-            public void onPageCommitVisible(WebView view, String url) {
-                injectNativeUi(view);
-                super.onPageCommitVisible(view, url);
-            }
-
-            @Override
             public void onPageFinished(WebView view, String url) {
                 Uri uri = Uri.parse(url);
                 if (isAllowedUrl(uri)) {
@@ -215,11 +235,6 @@ public final class MainActivity extends Activity {
                 }
                 if (progressBar != null) {
                     progressBar.setVisibility(View.GONE);
-                }
-                injectNativeUi(view);
-                if (initialFreshLoad) {
-                    view.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
-                    initialFreshLoad = false;
                 }
                 CookieManager.getInstance().flush();
                 clearStartupGuard();
@@ -257,6 +272,10 @@ public final class MainActivity extends Activity {
                     WebView view,
                     RenderProcessGoneDetail detail
             ) {
+                if (isFinishing() || isDestroyed()) {
+                    destroyCurrentWebView();
+                    return true;
+                }
                 rendererCrashCount++;
 
                 if (view != null) {
@@ -280,6 +299,9 @@ public final class MainActivity extends Activity {
                     toast("Recovering FC Arena in safe mode…");
 
                     root.postDelayed(() -> {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
                         try {
                             createWebView();
                             webView.loadUrl(
@@ -358,49 +380,6 @@ public final class MainActivity extends Activity {
         );
     }
 
-    private void injectNativeUi(WebView view) {
-        if (view == null) {
-            return;
-        }
-
-        String script =
-                "(function(){"
-                + "try{"
-                + "document.documentElement.setAttribute('data-native-app','android');"
-                + "var id='fc-native-shell-v8';"
-                + "var style=document.getElementById(id);"
-                + "if(!style){"
-                + "style=document.createElement('style');"
-                + "style.id=id;"
-                + "style.textContent=\""
-                + "html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important;overscroll-behavior:none!important;}"
-                + ".fc-app-shell{width:100%!important;min-height:100dvh!important;overflow-x:hidden!important;transform:none!important;}"
-                + ".fc-main{width:100%!important;max-width:100%!important;overflow-x:clip!important;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;}"
-                + ".theme-bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:2147483000!important;width:100%!important;margin:0!important;transform:none!important;animation:none!important;transition:none!important;}"
-                + ".theme-bottom-item,.theme-bottom-item *{transform:none!important;animation:none!important;transition:none!important;}"
-                + ".fc-dashboard-backdrop,.fc-dashboard-light,.fc-dashboard-beam,.fc-dashboard-particles,.fc-dashboard-hero-scan,.fc-dashboard-hero-orbit,.fc-match-spotlight{display:none!important;}"
-                + "@media(max-width:640px){"
-                + ".theme-top-header>div{height:60px!important;min-height:60px!important;padding-left:14px!important;padding-right:12px!important;}"
-                + ".fc-main{padding-left:14px!important;padding-right:14px!important;padding-top:14px!important;}"
-                + ".fc-dashboard-hero{min-height:0!important;border-radius:18px!important;}"
-                + ".fc-dashboard-hero>.relative{min-height:0!important;padding:20px 18px!important;gap:14px!important;}"
-                + ".fc-dashboard-hero h1{font-size:clamp(30px,9vw,38px)!important;line-height:1.02!important;white-space:normal!important;overflow-wrap:anywhere!important;}"
-                + ".fc-dashboard-stats{gap:10px!important;}"
-                + ".fc-dashboard-section{gap:14px!important;}"
-                + ".fc-next-match-panel{padding:18px!important;border-radius:18px!important;}"
-                + ".theme-bottom-nav{min-height:calc(72px + env(safe-area-inset-bottom,0px))!important;padding:0 4px env(safe-area-inset-bottom,0px)!important;}"
-                + ".theme-bottom-nav>div,.theme-bottom-item{height:72px!important;min-height:72px!important;}"
-                + ".theme-bottom-item{padding:7px 1px 6px!important;gap:3px!important;}"
-                + "}"
-                + "\";"
-                + "(document.head||document.documentElement).appendChild(style);"
-                + "}"
-                + "}catch(e){}"
-                + "})();";
-
-        view.evaluateJavascript(script, null);
-    }
-
     private void destroyCurrentWebView() {
         if (webView == null) {
             return;
@@ -439,7 +418,9 @@ public final class MainActivity extends Activity {
     }
 
     private void openExternal(Uri uri) {
-        if (uri == null) {
+        if (uri == null || !("https".equalsIgnoreCase(uri.getScheme())
+                || "mailto".equalsIgnoreCase(uri.getScheme())
+                || "tel".equalsIgnoreCase(uri.getScheme()))) {
             return;
         }
 

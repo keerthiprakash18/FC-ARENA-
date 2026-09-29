@@ -19,12 +19,16 @@ android {
     namespace 'in.fcarena.app'
     compileSdk 36
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId 'in.fcarena.app'
         minSdk 24
         targetSdk 36
-        versionCode 8
-        versionName '1.0.6'
+        versionCode 9
+        versionName '1.0.7'
     }
 
     signingConfigs {

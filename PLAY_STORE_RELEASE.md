@@ -1,7 +1,7 @@
 # FC ARENA Android stabilization release gate
 
-Current branch version remains **8 / 1.0.6**. Candidate **9 / 1.0.7** must
-only be set after the stabilization checks pass. Package stays `in.fcarena.app`.
+Stabilization checks passed on the pre-bump candidate. Current release candidate is **9 / 1.0.7**.
+It must be merged and uploaded only after the post-bump validation remains green. Package stays `in.fcarena.app`.
 
 1. Pass Android release lint, debug APK, release bundle and real-swipe tests
    on Android 13/14/15/16, plus repeated launch/resume checks.

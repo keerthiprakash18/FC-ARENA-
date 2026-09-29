@@ -188,7 +188,13 @@ try {
       // resume the SAME activity (no force-stop). Validate process survival,
       // session continuity, scroll behavior, and header/nav stability.
       for (let cycle = 1; cycle <= 5; cycle++) {
-        // Confirm the app is scrollable before backgrounding.
+        // Start every lifecycle cycle away from a scroll boundary. Previous
+        // cycles intentionally move the document, so without this reset a
+        // later upward swipe can begin at maxScrollY and falsely look stuck.
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await pause(150);
+
+        // Confirm a REAL upward ADB gesture can scroll before backgrounding.
         const beforeBg = await metrics(page);
         if (beforeBg.scrollHeight > beforeBg.height + 100) {
           await performVerifiedSwipe(
@@ -213,12 +219,14 @@ try {
         // The same WebView/session must remain usable.
         assert.equal(await page.evaluate(() => window.__smokeDocument), 'same-document', `session lost on resume cycle ${cycle}`);
 
-        // Scrolling must still work after resume.
+        // Scrolling must still work after resume. The pre-background swipe
+        // moved the page down, so verify a REAL downward ADB gesture can move
+        // it back up. This avoids false failures at the document's bottom edge.
         const afterResume = await metrics(page);
         if (afterResume.scrollHeight > afterResume.height + 100) {
           const postResume = await performVerifiedSwipe(
             page,
-            true,
+            false,
             afterResume.scrollY,
             `post-resume scroll cycle ${cycle}`,
           );

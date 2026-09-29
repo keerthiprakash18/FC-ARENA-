@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -29,11 +31,18 @@ public final class MainActivity extends Activity {
     private static final String START_URL = "https://fcarena.in/dashboard";
     private static final String ALLOWED_HOST = "fcarena.in";
     private static final int FILE_CHOOSER_REQUEST = 1001;
+    private static final String PREFS_NAME = "fc_arena_android";
+    private static final String STARTUP_GUARD_KEY = "startup_guard";
 
     private FrameLayout root;
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
+    private SharedPreferences preferences;
+
+    private int rendererCrashCount = 0;
+    private boolean softwareRendering = false;
+    private String lastAllowedUrl = START_URL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +52,46 @@ public final class MainActivity extends Activity {
         root.setBackgroundColor(0xFF05080D);
         setContentView(root);
 
+        preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        // If the previous process died during WebView startup, do not enter
+        // the same crash loop again. Show a native safe screen instead.
+        if (preferences.getBoolean(STARTUP_GUARD_KEY, false)) {
+            preferences.edit().putBoolean(STARTUP_GUARD_KEY, false).commit();
+            showNativeFallback(
+                    "FC Arena detected that the in-app browser failed during the previous startup. "
+                    + "Open the secure website below, or retry the in-app browser in safe mode."
+            );
+            return;
+        }
+
+        preferences.edit().putBoolean(STARTUP_GUARD_KEY, true).commit();
+
+        addProgressBar();
+
+        String initialUrl = resolveInitialUrl(getIntent());
+
+        try {
+            createWebView();
+            if (savedInstanceState == null) {
+                webView.loadUrl(initialUrl);
+            } else if (webView.restoreState(savedInstanceState) == null) {
+                webView.loadUrl(initialUrl);
+            }
+
+            // Startup survived. Remove the crash-loop marker after a short
+            // grace period so a native/WebView startup crash leaves it set.
+            root.postDelayed(this::clearStartupGuard, 5000L);
+        } catch (Throwable error) {
+            clearStartupGuard();
+            showNativeFallback(
+                    "FC Arena could not start the in-app browser on this device. "
+                    + "You can still use the secure FC Arena website."
+            );
+        }
+    }
+
+    private void addProgressBar() {
         progressBar = new ProgressBar(
                 this,
                 null,
@@ -56,21 +105,6 @@ public final class MainActivity extends Activity {
         );
         progressParams.gravity = Gravity.TOP;
         root.addView(progressBar, progressParams);
-
-        String initialUrl = resolveInitialUrl(getIntent());
-
-        try {
-            createWebView();
-            if (savedInstanceState == null) {
-                webView.loadUrl(initialUrl);
-            } else {
-                if (webView.restoreState(savedInstanceState) == null) {
-                    webView.loadUrl(initialUrl);
-                }
-            }
-        } catch (Throwable error) {
-            showNativeFallback();
-        }
     }
 
     private String resolveInitialUrl(Intent intent) {
@@ -82,15 +116,17 @@ public final class MainActivity extends Activity {
 
     @SuppressLint("SetJavaScriptEnabled")
     private void createWebView() {
-        if (webView != null) {
-            root.removeView(webView);
-            webView.stopLoading();
-            webView.destroy();
-        }
+        destroyCurrentWebView();
 
         webView = new WebView(this);
         WebView.setWebContentsDebuggingEnabled(false);
         webView.setBackgroundColor(0xFF05080D);
+
+        // After a renderer crash, use software composition for the recovery
+        // WebView. This avoids repeating device-specific GPU/WebView failures.
+        if (softwareRendering) {
+            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
 
         FrameLayout.LayoutParams webParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -109,7 +145,7 @@ public final class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setUserAgentString(
-                settings.getUserAgentString() + " FC-Arena-Android/1.0.4"
+                settings.getUserAgentString() + " FC-Arena-Android/1.0.5"
         );
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -118,9 +154,6 @@ public final class MainActivity extends Activity {
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
-
-        // FC Arena auth refresh runs through the same fcarena.in origin.
-        // Keep third-party cookies disabled for privacy/security.
         cookieManager.setAcceptThirdPartyCookies(webView, false);
 
         webView.setWebViewClient(new WebViewClient() {
@@ -131,6 +164,7 @@ public final class MainActivity extends Activity {
             ) {
                 Uri uri = request.getUrl();
                 if (isAllowedUrl(uri)) {
+                    lastAllowedUrl = uri.toString();
                     return false;
                 }
                 openExternal(uri);
@@ -142,6 +176,7 @@ public final class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri uri = Uri.parse(url);
                 if (isAllowedUrl(uri)) {
+                    lastAllowedUrl = uri.toString();
                     return false;
                 }
                 openExternal(uri);
@@ -150,6 +185,10 @@ public final class MainActivity extends Activity {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                Uri uri = Uri.parse(url);
+                if (isAllowedUrl(uri)) {
+                    lastAllowedUrl = url;
+                }
                 if (progressBar != null) {
                     progressBar.setVisibility(View.VISIBLE);
                 }
@@ -158,10 +197,15 @@ public final class MainActivity extends Activity {
 
             @Override
             public void onPageFinished(WebView view, String url) {
+                Uri uri = Uri.parse(url);
+                if (isAllowedUrl(uri)) {
+                    lastAllowedUrl = url;
+                }
                 if (progressBar != null) {
                     progressBar.setVisibility(View.GONE);
                 }
                 CookieManager.getInstance().flush();
+                clearStartupGuard();
                 super.onPageFinished(view, url);
             }
 
@@ -172,6 +216,7 @@ public final class MainActivity extends Activity {
                     WebResourceError error
             ) {
                 if (request != null && request.isForMainFrame()) {
+                    clearStartupGuard();
                     showOfflinePage();
                 }
             }
@@ -185,8 +230,63 @@ public final class MainActivity extends Activity {
                     String failingUrl
             ) {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    clearStartupGuard();
                     showOfflinePage();
                 }
+            }
+
+            @Override
+            public boolean onRenderProcessGone(
+                    WebView view,
+                    RenderProcessGoneDetail detail
+            ) {
+                rendererCrashCount++;
+
+                if (view != null) {
+                    try {
+                        root.removeView(view);
+                    } catch (Throwable ignored) {
+                    }
+
+                    if (view == webView) {
+                        webView = null;
+                    }
+
+                    try {
+                        view.destroy();
+                    } catch (Throwable ignored) {
+                    }
+                }
+
+                if (rendererCrashCount == 1) {
+                    softwareRendering = true;
+                    toast("Recovering FC Arena in safe mode…");
+
+                    root.postDelayed(() -> {
+                        try {
+                            createWebView();
+                            webView.loadUrl(
+                                    isAllowedUrl(Uri.parse(lastAllowedUrl))
+                                            ? lastAllowedUrl
+                                            : START_URL
+                            );
+                        } catch (Throwable error) {
+                            clearStartupGuard();
+                            showNativeFallback(
+                                    "The Android WebView renderer is unstable on this device. "
+                                    + "Use the secure website button below."
+                            );
+                        }
+                    }, 250L);
+                } else {
+                    clearStartupGuard();
+                    showNativeFallback(
+                            "The Android WebView renderer stopped more than once. "
+                            + "FC Arena switched to a safe native fallback so the app will not keep crashing."
+                    );
+                }
+
+                return true;
             }
         });
 
@@ -241,6 +341,27 @@ public final class MainActivity extends Activity {
         );
     }
 
+    private void destroyCurrentWebView() {
+        if (webView == null) {
+            return;
+        }
+
+        try {
+            root.removeView(webView);
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            webView.stopLoading();
+            webView.setWebChromeClient(null);
+            webView.setWebViewClient(null);
+            webView.destroy();
+        } catch (Throwable ignored) {
+        }
+
+        webView = null;
+    }
+
     private boolean isAllowedUrl(Uri uri) {
         if (uri == null) {
             return false;
@@ -272,7 +393,10 @@ public final class MainActivity extends Activity {
 
     private void showOfflinePage() {
         if (webView == null) {
-            showNativeFallback();
+            showNativeFallback(
+                    "FC Arena could not connect right now. "
+                    + "You can open the secure website and try again."
+            );
             return;
         }
 
@@ -301,8 +425,12 @@ public final class MainActivity extends Activity {
         );
     }
 
-    private void showNativeFallback() {
+    private void showNativeFallback(String messageText) {
+        destroyCurrentWebView();
+        clearStartupGuard();
+
         root.removeAllViews();
+        progressBar = null;
 
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
@@ -317,24 +445,42 @@ public final class MainActivity extends Activity {
         title.setGravity(Gravity.CENTER);
 
         TextView message = new TextView(this);
-        message.setText(
-                "FC Arena could not start its in-app browser on this device. "
-                + "You can still open the secure FC Arena website."
-        );
+        message.setText(messageText);
         message.setTextColor(0xFFB7C4D3);
         message.setTextSize(16);
         message.setGravity(Gravity.CENTER);
         message.setPadding(0, dp(18), 0, dp(24));
 
         Button openButton = new Button(this);
-        openButton.setText("Open FC Arena");
+        openButton.setText("Open FC Arena Website");
         openButton.setOnClickListener(
                 view -> openExternal(Uri.parse(START_URL))
         );
 
+        Button retryButton = new Button(this);
+        retryButton.setText("Retry In-App Safe Mode");
+        retryButton.setOnClickListener(view -> {
+            rendererCrashCount = 0;
+            softwareRendering = true;
+            root.removeAllViews();
+            addProgressBar();
+
+            try {
+                createWebView();
+                webView.loadUrl(START_URL);
+                root.postDelayed(this::clearStartupGuard, 5000L);
+            } catch (Throwable error) {
+                showNativeFallback(
+                        "The in-app browser still cannot start on this device. "
+                        + "Please use the secure website button."
+                );
+            }
+        });
+
         panel.addView(title);
         panel.addView(message);
         panel.addView(openButton);
+        panel.addView(retryButton);
 
         root.addView(
                 panel,
@@ -343,6 +489,12 @@ public final class MainActivity extends Activity {
                         FrameLayout.LayoutParams.MATCH_PARENT
                 )
         );
+    }
+
+    private void clearStartupGuard() {
+        if (preferences != null) {
+            preferences.edit().putBoolean(STARTUP_GUARD_KEY, false).apply();
+        }
     }
 
     private int dp(int value) {
@@ -366,7 +518,8 @@ public final class MainActivity extends Activity {
             && intent.getData() != null
             && isAllowedUrl(intent.getData())
         ) {
-            webView.loadUrl(intent.getData().toString());
+            lastAllowedUrl = intent.getData().toString();
+            webView.loadUrl(lastAllowedUrl);
         }
     }
 
@@ -409,19 +562,14 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        clearStartupGuard();
+
         if (fileChooserCallback != null) {
             fileChooserCallback.onReceiveValue(null);
             fileChooserCallback = null;
         }
 
-        if (webView != null) {
-            webView.stopLoading();
-            webView.setWebChromeClient(null);
-            webView.setWebViewClient(null);
-            webView.loadUrl("about:blank");
-            webView.destroy();
-            webView = null;
-        }
+        destroyCurrentWebView();
 
         super.onDestroy();
     }

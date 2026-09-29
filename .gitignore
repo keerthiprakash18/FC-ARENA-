@@ -38,3 +38,6 @@ docker/data/
 
 *.db
 *.db-journal
+
+# Claude Arena generated tournament state
+.arena/

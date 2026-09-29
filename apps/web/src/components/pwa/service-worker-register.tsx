@@ -7,9 +7,17 @@ export function ServiceWorkerRegister() {
     if (!('serviceWorker' in navigator)) return;
 
     if (/FC-Arena-Android\//i.test(navigator.userAgent)) {
-      // Retire legacy PWA workers once; HTTP caching remains enabled. Do not
-      // clear caches or reload on every mount/startup. A legacy controller can
-      // finish this document and is gone at the next normal navigation.
+      // Retire legacy PWA workers at most once per browser session. HTTP
+      // caching remains enabled for performance; only stale fc-arena-* caches
+      // from a previous PWA installation are removed. Do NOT clear HTTP cache
+      // or reload on every mount/startup. A legacy controller can finish this
+      // document and is gone at the next normal navigation.
+      if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('fc-arena-sw-retired')) {
+        return;
+      }
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('fc-arena-sw-retired', '1');
+      }
       const retireLegacyWorker = async () => {
         try {
           const registrations = await navigator.serviceWorker.getRegistrations();

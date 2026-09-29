@@ -177,13 +177,51 @@ try {
       await checkScroll(page, `${path}-${width || 'emulator'}`);
     }
     if (android) {
+      // Android back button to profile, then real background/resume lifecycle.
       adb('shell', 'input', 'keyevent', '4');
       await page.waitForURL('**/profile');
+      await page.locator('.fc-main').waitFor();
+
+      // Real background/resume lifecycle: background the app with HOME, wait,
+      // resume the SAME activity (no force-stop). Validate process survival,
+      // session continuity, scroll behavior, and header/nav stability.
       for (let cycle = 1; cycle <= 5; cycle++) {
+        // Confirm the app is scrollable before backgrounding.
+        const beforeBg = await metrics(page);
+        if (beforeBg.scrollHeight > beforeBg.height + 100) {
+          await swipe(page, true);
+          const scrolled = await metrics(page);
+          assert(scrolled.scrollY > beforeBg.scrollY + 10, `pre-background scroll cycle ${cycle} failed`);
+        }
+
+        // Background the app like a real user would (press HOME).
         adb('shell', 'input', 'keyevent', '3');
+        await pause(3000);
+
+        // Resume the SAME activity without force-stop.
         adb('shell', 'am', 'start', '-W', '-n', 'in.fcarena.app.debug/in.fcarena.app.MainActivity');
         await page.locator('.fc-main').waitFor();
-        assert(adb('shell','pidof','in.fcarena.app.debug'), `resume cycle ${cycle} crashed`);
+
+        // Process must survive the background/resume cycle.
+        assert(adb('shell', 'pidof', 'in.fcarena.app.debug'), `resume cycle ${cycle} crashed`);
+
+        // The same WebView/session must remain usable.
+        assert.equal(await page.evaluate(() => window.__smokeDocument), 'same-document', `session lost on resume cycle ${cycle}`);
+
+        // Scrolling must still work after resume.
+        const afterResume = await metrics(page);
+        if (afterResume.scrollHeight > afterResume.height + 100) {
+          await swipe(page, true);
+          const postResume = await metrics(page);
+          assert(postResume.scrollY > afterResume.scrollY + 10, `post-resume scroll cycle ${cycle} failed`);
+          assert(Math.abs(postResume.header.top - afterResume.header.top) < 2, `header moved after resume cycle ${cycle}`);
+          if (afterResume.nav) {
+            assert(postResume.nav, `navigation disappeared after resume cycle ${cycle}`);
+            assert(Math.abs(postResume.nav.top - afterResume.nav.top) < 2, `navigation moved after resume cycle ${cycle}`);
+          }
+        }
+        results.push({ name: `resume-cycle-${cycle}`, before: beforeBg, after: afterResume, note: 'real background/resume lifecycle' });
+        console.log(`PASS resume-cycle-${cycle}`);
       }
     } else await context.close();
   }

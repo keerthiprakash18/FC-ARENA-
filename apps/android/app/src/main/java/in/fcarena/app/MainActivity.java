@@ -138,6 +138,12 @@ public final class MainActivity extends Activity {
         destroyCurrentWebView();
 
         webView = new WebView(this);
+        // Cache policy: LOAD_DEFAULT enables HTTP cache for performance.
+        // Legacy clearCache(true) removed to avoid startup stalls and unnecessary network requests.
+        // HTTP cache is managed by the browser (WebView) and persists across sessions for optimal
+        // offline support and load performance. Auth/session cache invalidation handled
+        // separately (e.g., on logout, token refresh) where actually required. No blanket cache
+        // clearing on startup or navigation to maintain performance.
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         webView.setBackgroundColor(0xFF05080D);
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);

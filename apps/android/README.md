@@ -5,8 +5,8 @@ FC Arena is packaged as a small native Android WebView shell that loads the prod
 ## Release identity
 
 - Package / application ID: `in.fcarena.app`
-- Version name: `1.0.6`
-- Version code: `8`
+- Version name: `1.0.7`
+- Version code: `9`
 - Minimum SDK: 24
 - Compile SDK: 36
 - Target SDK: 36
@@ -53,23 +53,37 @@ padding applies only to any remaining WebView inset, preventing overlap.
 
 ## Signed release build
 
-The private upload key is intentionally NOT stored in this public repository.
+The private FC Arena upload key is intentionally NOT stored in this public repository.
 
-Set:
+On Windows, use the release helper from the repository root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\apps\android\build-signed-release.ps1
+```
+
+The script:
+- requires `main` to match the latest `origin/main`;
+- verifies Build 9 / version `1.0.7`;
+- prompts locally for the existing upload keystore path, alias, and passwords;
+- never writes passwords to the repository;
+- verifies the upload certificate SHA-256 before and after signing;
+- downloads and SHA-256-verifies official Gradle 8.13 only if Gradle is not installed;
+- builds the signed release AAB;
+- writes the final artifact to `apps/android/release/FC_ARENA_v1.0.7_build9_signed.aab`;
+- writes a companion SHA-256/source-commit metadata file.
+
+The `apps/android/release/` directory and private keystores are git-ignored.
+
+The upload certificate expected by the helper is the original FC Arena upload key retained in Digital Asset Links:
+`8E:D9:C7:3B:EF:2F:66:21:5F:7F:8C:91:7B:A8:32:B2:02:CC:4F:C4:34:6C:A9:87:40:63:0B:87:1A:DE:60:6D`.
+
+For non-Windows environments, the Gradle build still supports:
 - `FC_ARENA_KEYSTORE_FILE`
 - `FC_ARENA_STORE_PASSWORD`
 - `FC_ARENA_KEY_ALIAS`
 - `FC_ARENA_KEY_PASSWORD`
 
-Then run from `apps/android`:
-
-```bash
-gradle :app:clean :app:bundleRelease
-```
-
-Output:
-
-`app/build/outputs/bundle/release/app-release.aab`
+Then run `gradle :app:clean :app:bundleRelease` from `apps/android`.
 
 ## Digital Asset Links
 

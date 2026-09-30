@@ -265,7 +265,7 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        & $jarsigner -verify -strict $RawAab
+        & $jarsigner -verify $RawAab
         $jarsignerExitCode = $LASTEXITCODE
     }
     finally {

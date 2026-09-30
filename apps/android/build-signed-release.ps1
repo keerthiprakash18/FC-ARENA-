@@ -6,10 +6,10 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ExpectedVersionCode = "9"
-$ExpectedVersionName = "1.0.7"
+$ExpectedVersionCode = "10"
+$ExpectedVersionName = "1.0.8"
 $ExpectedUploadFingerprint = "8E:D9:C7:3B:EF:2F:66:21:5F:7F:8C:91:7B:A8:32:B2:02:CC:4F:C4:34:6C:A9:87:40:63:0B:87:1A:DE:60:6D"
-$FinalName = "FC_ARENA_v1.0.7_build9_signed.aab"
+$FinalName = "FC_ARENA_v1.0.8_build10_signed.aab"
 $GradleVersion = "8.13"
 
 function Normalize-Fingerprint {
@@ -134,7 +134,7 @@ if (-not (Test-Path $LocalProperties -PathType Leaf)) {
 }
 
 Write-Host ""
-Write-Host "FC ARENA Build 9 signed release"
+Write-Host "FC ARENA Build 10 signed release"
 Write-Host "Repository: $RepoRoot"
 Write-Host ""
 
@@ -295,7 +295,7 @@ try {
     Set-Content -Path $MetadataFile -Value $metadata -Encoding UTF8
 
     Write-Host ""
-    Write-Host "SUCCESS - signed Build 9 is ready."
+    Write-Host "SUCCESS - signed Build 10 is ready."
     Write-Host "AAB: $FinalAab"
     Write-Host "Metadata: $MetadataFile"
     Write-Host "File SHA-256: $fileHash"

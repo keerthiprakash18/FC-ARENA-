@@ -42,5 +42,4 @@ docker/data/
 # Claude Arena generated tournament state
 .arena/
 
-# Firebase client config is supplied by release CI; service-account keys stay outside git.
-apps/android/app/google-services.json
+# Android Firebase client config is tracked; service-account keys must stay outside git.

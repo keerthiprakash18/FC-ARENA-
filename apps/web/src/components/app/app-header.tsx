@@ -85,7 +85,7 @@ export function AppHeader({
     useRouter();
 
   const {
-    displayMode,
+    resolvedDark,
     setDisplayMode,
   } =
     useTheme();
@@ -335,21 +335,18 @@ export function AppHeader({
           <button
             type="button"
             aria-label={
-              displayMode ===
-              'DARK'
+              resolvedDark
                 ? 'Switch to Light Mode'
                 : 'Switch to Dark Mode'
             }
             title={
-              displayMode ===
-              'DARK'
+              resolvedDark
                 ? 'Light Mode'
                 : 'Dark Mode'
             }
             onClick={() =>
               setDisplayMode(
-                displayMode ===
-                  'DARK'
+                resolvedDark
                   ? 'LIGHT'
                   : 'DARK',
               )
@@ -361,8 +358,7 @@ export function AppHeader({
               className="leading-none"
             >
               {
-                displayMode ===
-                  'DARK'
+                resolvedDark
                   ? '☀'
                   : '◐'
               }

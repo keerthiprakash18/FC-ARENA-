@@ -11,6 +11,7 @@ import {
   ThemeProvider,
 } from '@/components/theme/theme-provider';
 
+import { ConfirmationProvider } from '@/components/fc/confirmation-provider';
 import './globals.css';
 import './modernization.css';
 import './native-android.css';
@@ -88,7 +89,7 @@ export default function RootLayout({
         document.documentElement.dataset.theme = theme;
 
         var modeValue = localStorage.getItem('fc-arena-display-mode');
-        var mode = modeValue === 'DARK'
+        var mode = (modeValue === 'DARK' || (modeValue === 'SYSTEM' && window.matchMedia('(prefers-color-scheme: dark)').matches))
           ? 'dark'
           : 'light';
 
@@ -117,8 +118,9 @@ export default function RootLayout({
         />
       </head>
 
-      <body data-ui-build="modernization-v1">
+      <body data-ui-build="player-experience-v2">
         <ThemeProvider>
+          <ConfirmationProvider />
           <ServiceWorkerRegister />
           {children}
         </ThemeProvider>

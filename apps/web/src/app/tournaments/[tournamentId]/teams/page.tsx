@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 import {
   useParams,
@@ -588,9 +589,9 @@ export default function TournamentTeamsPage() {
     }
 
     const confirmed =
-      window.confirm(
+      (await confirmAction(
         `Delete "${entry.entryName ?? 'this team'}" from this Tournament? This cannot be undone.`,
-      );
+      ));
 
     if (
       !confirmed

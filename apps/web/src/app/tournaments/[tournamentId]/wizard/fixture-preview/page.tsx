@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -228,9 +229,9 @@ export default function FixturePreviewPage() {
 
   async function regenerate() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Regenerate fixture preview? Current draft changes will be replaced.',
-      )
+      ))
     ) {
       return;
     }
@@ -269,9 +270,9 @@ export default function FixturePreviewPage() {
 
   async function reset() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Reset all draft fixtures?',
-      )
+      ))
     ) {
       return;
     }
@@ -309,9 +310,9 @@ export default function FixturePreviewPage() {
       string,
   ) {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Delete this fixture?',
-      )
+      ))
     ) {
       return;
     }

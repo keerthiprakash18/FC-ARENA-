@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 import type {
   FormEvent,
@@ -470,9 +471,9 @@ export default function LeaguesPage() {
     }
 
     if (
-      !window.confirm(
+      !(await confirmAction(
         `Leave "${item.league.name}"?`,
-      )
+      ))
     ) {
       return;
     }

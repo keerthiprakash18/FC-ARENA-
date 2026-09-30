@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 import { FcStatusBadge } from '@/components/fc/fc-ui';
 import {
@@ -288,11 +289,11 @@ export function FixtureCard({
       | 'cancel',
   ) {
     const confirmed =
-      window.confirm(
+      (await confirmAction(
         type === 'cancel'
           ? 'Cancel this fixture?'
           : 'Postpone this fixture?',
-      );
+      ));
 
     if (!confirmed) {
       return;
@@ -407,7 +408,7 @@ export function FixtureCard({
         'COMPLETED' &&
       fixture.status !==
         'CANCELLED' ? (
-        <form
+        <details className="mt-4"><summary className="min-h-11 cursor-pointer font-semibold">Manage fixture</summary><form
           onSubmit={
             saveSchedule
           }
@@ -534,7 +535,7 @@ export function FixtureCard({
               Cancel
             </button>
           </div>
-        </form>
+        </form></details>
       ) : null}
     </article>
   );

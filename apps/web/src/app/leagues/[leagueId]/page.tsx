@@ -1,22 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import {
-  useParams,
-  useRouter,
-} from 'next/navigation';
-import {
-  useEffect,
-  useState,
-} from 'react';
+import { LeagueInvite } from "@/components/fc/league-invite";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import {
-  AppShell,
-} from '@/components/app/app-shell';
+import { AppShell } from "@/components/app/app-shell";
 
-import {
-  BackHeader,
-} from '@/components/app/back-header';
+import { BackHeader } from "@/components/app/back-header";
 
 import {
   FcCrest,
@@ -24,18 +15,15 @@ import {
   FcPanel,
   FcStatCard,
   FcStatusBadge,
-} from '@/components/fc/fc-ui';
+} from "@/components/fc/fc-ui";
 
-import {
-  LeagueNavigation,
-} from '@/components/leagues/league-navigation';
+import { LeagueNavigation } from "@/components/leagues/league-navigation";
 
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
-} from '@/lib/auth-client';
-
+} from "@/lib/auth-client";
 
 interface LeagueHome {
   id: string;
@@ -47,13 +35,8 @@ interface LeagueHome {
   members: number;
   maxMembers: number;
   pendingApplications: number;
-  membershipType:
-    | 'PRIMARY'
-    | 'SECONDARY';
-  adminRole:
-    | 'OWNER'
-    | 'ADMIN'
-    | null;
+  membershipType: "PRIMARY" | "SECONDARY";
+  adminRole: "OWNER" | "ADMIN" | null;
 
   creator: {
     id: string;
@@ -63,216 +46,113 @@ interface LeagueHome {
   };
 }
 
-
 interface TournamentSummary {
   id: string;
   status: string;
 }
 
-
 export default function LeagueOverviewPage() {
-  const {
-    leagueId,
-  } =
-    useParams<{
-      leagueId:
-        string;
-    }>();
+  const { leagueId } = useParams<{
+    leagueId: string;
+  }>();
 
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [
-    user,
-    setUser,
-  ] =
-    useState<CurrentUser | null>(
-      null,
-    );
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  const [
-    league,
-    setLeague,
-  ] =
-    useState<LeagueHome | null>(
-      null,
-    );
+  const [league, setLeague] = useState<LeagueHome | null>(null);
 
-  const [
-    tournaments,
-    setTournaments,
-  ] =
-    useState<TournamentSummary[]>(
-      [],
-    );
-
+  const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
 
   useEffect(() => {
     async function load() {
       try {
-        const [
-          current,
-          leagueResponse,
-          tournamentResponse,
-        ] =
-          await Promise.all([
+        const [current, leagueResponse, tournamentResponse] = await Promise.all(
+          [
             getCurrentUser(),
 
             authenticatedRequest<{
               success: true;
               data: {
-                league:
-                  LeagueHome;
+                league: LeagueHome;
               };
               error: null;
-            }>(
-              `/leagues/${leagueId}`,
-            ),
+            }>(`/leagues/${leagueId}`),
 
             authenticatedRequest<{
               success: true;
               data: {
-                tournaments:
-                  TournamentSummary[];
+                tournaments: TournamentSummary[];
               };
               error: null;
-            }>(
-              `/leagues/${leagueId}/tournaments`,
-            ),
-          ]);
-
-        setUser(
-          current,
+            }>(`/leagues/${leagueId}/tournaments`),
+          ],
         );
 
-        setLeague(
-          leagueResponse
-            .data
-            .league,
-        );
+        setUser(current);
 
-        setTournaments(
-          tournamentResponse
-            .data
-            .tournaments,
-        );
+        setLeague(leagueResponse.data.league);
+
+        setTournaments(tournamentResponse.data.tournaments);
       } catch {
-        router.replace(
-          '/leagues',
-        );
+        router.replace("/leagues");
       }
     }
 
     void load();
-  }, [
-    leagueId,
-    router,
-  ]);
+  }, [leagueId, router]);
 
-
-  if (
-    !user ||
-    !league
-  ) {
-    return (
-      <FcLoadingScreen
-        label="Loading League Overview..."
-      />
-    );
+  if (!user || !league) {
+    return <FcLoadingScreen label="Loading League Overview..." />;
   }
 
-
-  const activeTournaments =
-    tournaments.filter(
-      (
-        tournament,
-      ) =>
-        ![
-          'COMPLETED',
-          'CANCELLED',
-        ].includes(
-          tournament.status,
-        ),
-    ).length;
-
+  const activeTournaments = tournaments.filter(
+    (tournament) => !["COMPLETED", "CANCELLED"].includes(tournament.status),
+  ).length;
 
   return (
-    <AppShell
-      playerName={
-        user.player
-          ?.identity
-          ?.inGameName
-      }
-    >
+    <AppShell playerName={user.player?.identity?.inGameName}>
       <div className="space-y-6">
+        <LeagueInvite code={league.code} name={league.name} />
         <BackHeader
           backHref="/leagues"
           backLabel="My Leagues"
           eyebrow="League Overview"
-          title={
-            league.name
-          }
-          subtitle={
-            league.region ||
-            'FC ARENA League'
-          }
+          title={league.name}
+          subtitle={league.region || "FC ARENA League"}
           action={
             <div className="flex flex-wrap gap-2">
-              <FcStatusBadge
-                label={
-                  league.membershipType
-                }
-                tone="cyan"
-              />
+              <FcStatusBadge label={league.membershipType} tone="cyan" />
 
               {league.adminRole ? (
-                <FcStatusBadge
-                  label={
-                    league.adminRole
-                  }
-                  tone="amber"
-                />
+                <FcStatusBadge label={league.adminRole} tone="amber" />
               ) : null}
             </div>
           }
         />
 
-        <LeagueNavigation
-          leagueId={
-            leagueId
-          }
-        />
-
+        <LeagueNavigation leagueId={leagueId} />
 
         <FcPanel className="overflow-hidden">
           <div className="bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_65%)] p-5 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
-                <FcCrest
-                  name={
-                    league.name
-                  }
-                  size="lg"
-                />
+                <FcCrest name={league.name} size="lg" />
 
                 <div>
                   <p className="font-mono text-xs font-black text-sky-400">
-                    {
-                      league.code
-                    }
+                    {league.code}
                   </p>
 
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
                     {league.description ||
-                      'No League description has been added yet.'}
+                      "No League description has been added yet."}
                   </p>
                 </div>
               </div>
 
               <Link
-                href={
-                  `/leagues/${leagueId}/tournaments`
-                }
+                href={`/leagues/${leagueId}/tournaments`}
                 className="rounded-xl bg-sky-400 px-5 py-3 text-center text-sm font-black text-[#031019]"
               >
                 Open Tournaments
@@ -281,163 +161,113 @@ export default function LeagueOverviewPage() {
           </div>
         </FcPanel>
 
-
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
             label="Members"
-            value={
-              league.members
-            }
-            detail={
-              `Max ${league.maxMembers}`
-            }
+            value={league.members}
+            detail={`Max ${league.maxMembers}`}
           />
 
           <FcStatCard
             label="Active Tournaments"
-            value={
-              activeTournaments
-            }
-            detail={
-              `${tournaments.length} total`
-            }
+            value={activeTournaments}
+            detail={`${tournaments.length} total`}
             tone="emerald"
           />
 
           <FcStatCard
             label="Pending Requests"
-            value={
-              league.pendingApplications
-            }
-            detail={
-              league.adminRole
-                ? 'Admin review'
-                : 'League applications'
-            }
+            value={league.pendingApplications}
+            detail={league.adminRole ? "Admin review" : "League applications"}
             tone="amber"
           />
 
           <FcStatCard
             label="Your Role"
-            value={
-              league.adminRole ||
-              'PLAYER'
-            }
-            detail={
-              league.membershipType
-            }
+            value={league.adminRole || "PLAYER"}
+            detail={league.membershipType}
             tone="slate"
           />
         </section>
 
-
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[
             [
-              'Leaderboards',
-              'League-wide player performance across verified Tournaments',
+              "Leaderboards",
+              "League-wide player performance across verified Tournaments",
               `/leaderboards?league=${leagueId}`,
-              '★',
+              "★",
             ],
             [
-              'Standings',
-              'Tournament-by-Tournament standings tables',
+              "Standings",
+              "Tournament-by-Tournament standings tables",
               `/leagues/${leagueId}/standings`,
-              '≣',
+              "≣",
             ],
             [
-              'Fixtures',
-              'All matches from this League',
+              "Fixtures",
+              "All matches from this League",
               `/leagues/${leagueId}/fixtures`,
-              '⚽',
+              "⚽",
             ],
             [
-              'Members',
-              'Players and member management',
+              "Members",
+              "Players and member management",
               `/leagues/${leagueId}/members`,
-              '◎',
+              "◎",
             ],
             [
-              'Teams',
-              'Tournament teams in this League',
+              "Teams",
+              "Tournament teams in this League",
               `/leagues/${leagueId}/teams`,
-              '◈',
+              "◈",
             ],
             [
-              'Settings',
+              "Settings",
               league.adminRole
-                ? 'Applications and League controls'
-                : 'Membership and League information',
+                ? "Applications and League controls"
+                : "Membership and League information",
               `/leagues/${leagueId}/settings`,
-              '⚙',
+              "⚙",
             ],
             [
-              'Tournaments',
-              'Create and manage competitions',
+              "Tournaments",
+              "Create and manage competitions",
               `/leagues/${leagueId}/tournaments`,
-              '◇',
+              "◇",
             ],
-          ].map(
-            ([
-              title,
-              description,
-              href,
-              icon,
-            ]) => (
-              <Link
-                key={
-                  title
-                }
-                href={
-                  href
-                }
-                className="theme-action-row group rounded-[22px] border p-5 transition hover:-translate-y-0.5"
-              >
-                <span className="theme-soft-accent grid h-11 w-11 place-items-center rounded-xl border text-lg">
-                  {
-                    icon
-                  }
-                </span>
+          ].map(([title, description, href, icon]) => (
+            <Link
+              key={title}
+              href={href}
+              className="theme-action-row group rounded-[22px] border p-5 transition hover:-translate-y-0.5"
+            >
+              <span className="theme-soft-accent grid h-11 w-11 place-items-center rounded-xl border text-lg">
+                {icon}
+              </span>
 
-                <h2 className="theme-text mt-4 text-lg font-semibold">
-                  {
-                    title
-                  }
-                </h2>
+              <h2 className="theme-text mt-4 text-lg font-semibold">{title}</h2>
 
-                <p className="theme-secondary-text mt-2 text-sm leading-6">
-                  {
-                    description
-                  }
-                </p>
+              <p className="theme-secondary-text mt-2 text-sm leading-6">
+                {description}
+              </p>
 
-                <span className="theme-text-link mt-4 inline-flex text-sm font-semibold">
-                  Open →
-                </span>
-              </Link>
-            ),
-          )}
+              <span className="theme-text-link mt-4 inline-flex text-sm font-semibold">
+                Open →
+              </span>
+            </Link>
+          ))}
         </section>
-
 
         <FcPanel className="p-5">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
             League Owner
           </p>
 
-          <p className="mt-2 font-black">
-            {
-              league.creator
-                .fullName
-            }
-          </p>
+          <p className="mt-2 font-black">{league.creator.fullName}</p>
 
           <p className="mt-1 text-sm text-sky-300">
-            {
-              league.creator
-                .inGameName ||
-              'No in-game name'
-            }
+            {league.creator.inGameName || "No in-game name"}
           </p>
         </FcPanel>
       </div>

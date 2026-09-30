@@ -28,6 +28,7 @@ export function NotificationBell() {
   const loadUnreadCount =
     useCallback(
       async () => {
+        if (document.visibilityState === "hidden") return;
         try {
           const response =
             await authenticatedRequest<NotificationSummaryResponse>(

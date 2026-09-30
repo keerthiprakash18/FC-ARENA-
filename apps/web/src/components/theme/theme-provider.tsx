@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   createContext,
@@ -8,15 +8,10 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react';
-import {
-  usePathname,
-} from 'next/navigation';
+} from "react";
+import { usePathname } from "next/navigation";
 
-import {
-  authenticatedRequest,
-  getCurrentUser,
-} from '@/lib/auth-client';
+import { authenticatedRequest, getCurrentUser } from "@/lib/auth-client";
 
 import {
   applyDisplayMode,
@@ -27,194 +22,105 @@ import {
   readCachedThemePreference,
   type DisplayMode,
   type ThemePreference,
-} from '@/lib/theme';
-
+} from "@/lib/theme";
 
 interface ThemeContextValue {
-  themePreference:
-    ThemePreference;
+  themePreference: ThemePreference;
 
-  displayMode:
-    DisplayMode;
+  displayMode: DisplayMode;
+  resolvedDark: boolean;
 
-  initializing:
-    boolean;
+  initializing: boolean;
 
-  setThemePreference:
-    (
-      theme:
-        ThemePreference,
-      persist?:
-        boolean,
-    ) =>
-      Promise<void>;
+  setThemePreference: (
+    theme: ThemePreference,
+    persist?: boolean,
+  ) => Promise<void>;
 
-  setDisplayMode:
-    (
-      mode:
-        DisplayMode,
-    ) =>
-      void;
+  setDisplayMode: (mode: DisplayMode) => void;
 }
 
-
-const ThemeContext =
-  createContext<
-    ThemeContextValue | null
-  >(
-    null,
-  );
-
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const publicPaths = [
-  '/',
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/verify-email',
-  '/about',
-  '/help',
-  '/privacy',
-  '/terms',
-  '/public',
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/about",
+  "/help",
+  "/privacy",
+  "/terms",
+  "/public",
 ] as const;
 
-
-function isPublicPath(
-  pathname:
-    string,
-) {
+function isPublicPath(pathname: string) {
   return publicPaths.some(
-    (
-      path,
-    ) =>
-      pathname ===
-        path ||
-      pathname.startsWith(
-        `${path}/`,
-      ),
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 }
 
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const [systemDark, setSystemDark] = useState(false);
+  useEffect(() => { const query = window.matchMedia("(prefers-color-scheme: dark)"); const sync = () => setSystemDark(query.matches); sync(); query.addEventListener("change", sync); return () => query.removeEventListener("change", sync); }, []);
 
-export function ThemeProvider({
-  children,
-}: {
-  children:
-    ReactNode;
-}) {
-  const pathname =
-    usePathname();
 
-  const [
-    themePreference,
-    setThemeState,
-  ] =
-    useState<ThemePreference>(
-      DEFAULT_THEME_PREFERENCE,
-    );
+  const [themePreference, setThemeState] = useState<ThemePreference>(
+    DEFAULT_THEME_PREFERENCE,
+  );
 
-  const [
-    displayMode,
-    setDisplayModeState,
-  ] =
-    useState<DisplayMode>(
-      DEFAULT_DISPLAY_MODE,
-    );
+  const [displayMode, setDisplayModeState] =
+    useState<DisplayMode>(DEFAULT_DISPLAY_MODE);
 
-  const [
-    initializing,
-    setInitializing,
-  ] =
-    useState(
-      true,
-    );
+  const [initializing, setInitializing] = useState(true);
 
-  const [
-    syncedAuthenticatedUser,
-    setSyncedAuthenticatedUser,
-  ] =
-    useState(
-      false,
-    );
-
+  const [syncedAuthenticatedUser, setSyncedAuthenticatedUser] = useState(false);
 
   useEffect(() => {
-    const cached =
-      readCachedThemePreference();
+    const cached = readCachedThemePreference();
 
-    const cachedMode =
-      readCachedDisplayMode();
+    const cachedMode = readCachedDisplayMode();
 
-    setThemeState(
-      cached,
-    );
+    setThemeState(cached);
 
-    setDisplayModeState(
-      cachedMode,
-    );
+    setDisplayModeState(cachedMode);
 
-    applyThemePreference(
-      cached,
-      false,
-    );
+    applyThemePreference(cached, false);
 
-    applyDisplayMode(
-      cachedMode,
-      false,
-    );
+    applyDisplayMode(cachedMode, false);
 
-    setInitializing(
-      false,
-    );
+    setInitializing(false);
   }, []);
 
-
   useEffect(() => {
-    if (
-      isPublicPath(
-        pathname,
-      )
-    ) {
-      setSyncedAuthenticatedUser(
-        false,
-      );
+    if (isPublicPath(pathname)) {
+      setSyncedAuthenticatedUser(false);
 
       return;
     }
 
-    if (
-      syncedAuthenticatedUser
-    ) {
+    if (syncedAuthenticatedUser) {
       return;
     }
 
-    let cancelled =
-      false;
+    let cancelled = false;
 
     void (async () => {
       try {
-        const user =
-          await getCurrentUser();
+        const user = await getCurrentUser();
 
-        if (
-          cancelled
-        ) {
+        if (cancelled) {
           return;
         }
 
-        setThemeState(
-          user.themePreference,
-        );
+        setThemeState(user.themePreference);
 
-        applyThemePreference(
-          user.themePreference,
-        );
+        applyThemePreference(user.themePreference);
 
-        setSyncedAuthenticatedUser(
-          true,
-        );
+        setSyncedAuthenticatedUser(true);
       } catch {
         // Authenticated pages already own redirect handling.
         // Keep the cached/default theme while they resolve auth.
@@ -222,135 +128,86 @@ export function ThemeProvider({
     })();
 
     return () => {
-      cancelled =
-        true;
+      cancelled = true;
     };
-  }, [
-    pathname,
-    syncedAuthenticatedUser,
-  ]);
+  }, [pathname, syncedAuthenticatedUser]);
 
+  useEffect(() => {
+    if (displayMode !== "SYSTEM") return;
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const sync = () => applyDisplayMode("SYSTEM", false);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, [displayMode]);
 
-  const setThemePreference =
-    useCallback(
-      async (
-        nextTheme:
-          ThemePreference,
-        persist =
-          true,
-      ) => {
-        const previous =
-          themePreference;
+  const setThemePreference = useCallback(
+    async (nextTheme: ThemePreference, persist = true) => {
+      const previous = themePreference;
 
-        setThemeState(
-          nextTheme,
-        );
+      setThemeState(nextTheme);
 
-        applyThemePreference(
-          nextTheme,
-        );
+      applyThemePreference(nextTheme);
 
-        if (
-          !persist
-        ) {
-          return;
-        }
+      if (!persist) {
+        return;
+      }
 
-        try {
-          await authenticatedRequest(
-            '/auth/preferences/theme',
-            {
-              method:
-                'PATCH',
+      try {
+        await authenticatedRequest("/auth/preferences/theme", {
+          method: "PATCH",
 
-              body:
-                JSON.stringify({
-                  themePreference:
-                    nextTheme,
-                }),
-            },
-          );
-        } catch (
-          error
-        ) {
-          setThemeState(
-            previous,
-          );
+          body: JSON.stringify({
+            themePreference: nextTheme,
+          }),
+        });
+      } catch (error) {
+        setThemeState(previous);
 
-          applyThemePreference(
-            previous,
-          );
+        applyThemePreference(previous);
 
-          throw error;
-        }
-      },
-      [
-        themePreference,
-      ],
-    );
+        throw error;
+      }
+    },
+    [themePreference],
+  );
 
+  const setDisplayMode = useCallback((nextMode: DisplayMode) => {
+    setDisplayModeState(nextMode);
 
-  const setDisplayMode =
-    useCallback(
-      (
-        nextMode:
-          DisplayMode,
-      ) => {
-        setDisplayModeState(
-          nextMode,
-        );
+    applyDisplayMode(nextMode);
+  }, []);
 
-        applyDisplayMode(
-          nextMode,
-        );
-      },
-      [],
-    );
-
-
-  const value =
-    useMemo(
-      () => ({
-        themePreference,
-        displayMode,
-        initializing,
-        setThemePreference,
-        setDisplayMode,
-      }),
-      [
-        themePreference,
-        displayMode,
-        initializing,
-        setThemePreference,
-        setDisplayMode,
-      ],
-    );
-
+  const resolvedDark = displayMode === "DARK" || (displayMode === "SYSTEM" && systemDark);
+  const value = useMemo(
+    () => ({
+      themePreference,
+      resolvedDark,
+      displayMode,
+      initializing,
+      setThemePreference,
+      setDisplayMode,
+    }),
+    [
+      themePreference,
+      resolvedDark,
+      displayMode,
+      initializing,
+      setThemePreference,
+      setDisplayMode,
+    ],
+  );
 
   return (
-    <ThemeContext.Provider
-      value={
-        value
-      }
-    >
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 
-
 export function useTheme() {
-  const value =
-    useContext(
-      ThemeContext,
-    );
+  const value = useContext(ThemeContext);
 
-  if (
-    !value
-  ) {
-    throw new Error(
-      'useTheme must be used inside ThemeProvider.',
-    );
+  if (!value) {
+    throw new Error("useTheme must be used inside ThemeProvider.");
   }
 
   return value;

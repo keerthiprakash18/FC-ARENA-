@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import { AppShell } from '@/components/app/app-shell';
-import { BackHeader } from '@/components/app/back-header';
-import { CareerNavigation } from '@/components/career/career-navigation';
+import { AppShell } from "@/components/app/app-shell";
+import { BackHeader } from "@/components/app/back-header";
+import { CareerNavigation } from "@/components/career/career-navigation";
 import {
   FcEmptyState,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
-} from '@/components/fc/fc-ui';
+} from "@/components/fc/fc-ui";
 
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
-} from '@/lib/auth-client';
+} from "@/lib/auth-client";
 
 interface MatchHistory {
   id: string;
   matchCode: string | null;
-  outcome: 'W' | 'D' | 'L';
+  outcome: "W" | "D" | "L";
   confirmedAt: string;
 
   tournament: {
@@ -62,42 +62,39 @@ interface CareerData {
 }
 
 export default function CareerMatchesPage() {
-  const [user, setUser] =
-    useState<CurrentUser | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  const [career, setCareer] =
-    useState<CareerData | null>(null);
+  const [career, setCareer] = useState<CareerData | null>(null);
 
+  const [season, setSeason] = useState("ALL");
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
   useEffect(() => {
     void (async () => {
-      const [current, response] =
-        await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{
-            success: true;
-            data: CareerData;
-            error: null;
-          }>('/players/me/career'),
-        ]);
+      const [current, response] = await Promise.all([
+        getCurrentUser(),
+        authenticatedRequest<{
+          success: true;
+          data: CareerData;
+          error: null;
+        }>("/players/me/career"),
+      ]);
 
       setUser(current);
       setCareer(response.data);
-    })();
+    })().catch(() => setError("Unable to load match history. Please retry."));
   }, []);
 
+  if (error) return <AppShell><FcPanel className="p-6"><p role="alert">{error}</p><button onClick={() => window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></FcPanel></AppShell>;
   if (!user || !career) {
-    return (
-      <FcLoadingScreen
-        label="Loading Match History..."
-      />
-    );
+    return <FcLoadingScreen label="Loading Match History..." />;
   }
 
   const playerName =
-    career.profile.identity
-      ?.inGameName ||
-    career.profile.fullName;
+    career.profile.identity?.inGameName || career.profile.fullName;
 
+  const years = [...new Set(career.matchHistory.map(match => new Date(match.confirmedAt).getFullYear()))].sort((a,b) => b-a);
+  const filtered = career.matchHistory.filter(match => (season === "ALL" || String(new Date(match.confirmedAt).getFullYear()) === season) && `${match.home.name} ${match.away.name} ${match.tournament.name}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   return (
     <AppShell playerName={playerName}>
       <div className="space-y-6">
@@ -110,8 +107,9 @@ export default function CareerMatchesPage() {
         />
 
         <CareerNavigation />
+        <FcPanel className="grid gap-4 p-4 sm:grid-cols-2"><label className="fc-field-label">Year archive<select className="theme-secondary-button p-3" value={season} onChange={event=>setSeason(event.target.value)}><option value="ALL">All years</option>{years.map(year=><option key={year} value={year}>{year}</option>)}</select></label><label className="fc-field-label">Find a team or tournament<input className="theme-secondary-button p-3" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search verified history" /></label><p className="text-sm sm:col-span-2">{filtered.length} verified matches · {filtered.filter(m=>m.outcome==="W").length} W · {filtered.filter(m=>m.outcome==="D").length} D · {filtered.filter(m=>m.outcome==="L").length} L</p></FcPanel>
 
-        {career.matchHistory.length === 0 ? (
+        {filtered.length === 0 ? (
           <FcEmptyState
             title="No verified matches yet"
             description="Completed and verified Match results will appear here."
@@ -120,62 +118,54 @@ export default function CareerMatchesPage() {
           />
         ) : (
           <section className="grid gap-3">
-            {career.matchHistory.map(
-              (match) => (
-                <Link
-                  key={match.id}
-                  href={`/matches/${match.id}`}
-                  className="group"
-                >
-                  <FcPanel className="p-5 transition group-hover:border-sky-400/25">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-3">
-                        <FcStatusBadge
-                          label={match.outcome}
-                          tone={
-                            match.outcome === 'W'
-                              ? 'emerald'
-                              : match.outcome === 'D'
-                                ? 'amber'
-                                : 'red'
-                          }
-                        />
+            {filtered.map((match) => (
+              <Link
+                key={match.id}
+                href={`/matches/${match.id}`}
+                className="group"
+              >
+                <FcPanel className="p-5 transition group-hover:border-sky-400/25">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <FcStatusBadge
+                        label={match.outcome}
+                        tone={
+                          match.outcome === "W"
+                            ? "emerald"
+                            : match.outcome === "D"
+                              ? "amber"
+                              : "red"
+                        }
+                      />
 
-                        <div>
-                          <p className="font-black">
-                            {match.tournament.name}
-                          </p>
-
-                          <p className="mt-1 text-xs text-slate-600">
-                            {match.fixture.roundName}
-                            {' · '}
-                            {match.tournament.league.name}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-left sm:text-right">
-                        <p className="text-lg font-black">
-                          {match.home.name}{' '}
-                          <span className="text-sky-300">
-                            {match.home.score}
-                            -
-                            {match.away.score}
-                          </span>{' '}
-                          {match.away.name}
-                        </p>
+                      <div>
+                        <p className="font-black">{match.tournament.name}</p>
 
                         <p className="mt-1 text-xs text-slate-600">
-                          {new Date(
-                            match.confirmedAt,
-                          ).toLocaleString()}
+                          {match.fixture.roundName}
+                          {" · "}
+                          {match.tournament.league.name}
                         </p>
                       </div>
                     </div>
-                  </FcPanel>
-                </Link>
-              ),
-            )}
+
+                    <div className="text-left sm:text-right">
+                      <p className="text-lg font-black">
+                        {match.home.name}{" "}
+                        <span className="text-sky-300">
+                          {match.home.score}-{match.away.score}
+                        </span>{" "}
+                        {match.away.name}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-600">
+                        {new Date(match.confirmedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </FcPanel>
+              </Link>
+            ))}
           </section>
         )}
       </div>

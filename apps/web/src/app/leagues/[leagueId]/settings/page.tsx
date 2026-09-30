@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -244,9 +245,9 @@ export default function LeagueSettingsPage() {
   async function leaveLeague() {
     if (
       !league ||
-      !window.confirm(
+      !(await confirmAction(
         `Leave ${league.name}?`,
-      )
+      ))
     ) {
       return;
     }

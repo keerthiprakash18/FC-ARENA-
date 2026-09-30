@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useEffect,
   useState,
@@ -544,7 +545,7 @@ export default function LeagueRolesPage() {
   ) {
     if (
       busy ||
-      !window.confirm(
+      !(await confirmAction(
         'Remove ' +
           roleLabel(
             assignment.role,
@@ -554,7 +555,7 @@ export default function LeagueRolesPage() {
             assignment,
           ) +
           '?',
-      )
+      ))
     ) {
       return;
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useRouter,
 } from 'next/navigation';
@@ -731,11 +732,11 @@ export default function FixtureParticipantsPage() {
   }
 
 
-  function clearParticipants() {
+  async function clearParticipants() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Clear the current participant selection?',
-      )
+      ))
     ) {
       return;
     }

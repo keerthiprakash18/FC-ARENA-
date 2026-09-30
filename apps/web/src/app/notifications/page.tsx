@@ -1,5 +1,6 @@
 "use client";
 
+import { PhonePushSettings } from "@/components/notifications/phone-push";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -282,6 +283,7 @@ export default function NotificationsPage() {
   return (
     <AppShell playerName={playerName}>
       <div className="space-y-6">
+        <PhonePushSettings />
         <FcPageHeader
           eyebrow="FC ARENA Activity"
           title="Notifications"

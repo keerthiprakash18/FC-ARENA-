@@ -1,5 +1,6 @@
 'use client';
 
+import { PushSync } from '@/components/notifications/phone-push';
 import Link from 'next/link';
 import {
   usePathname,
@@ -619,6 +620,7 @@ export function AppShell({
 
   return (
     <div className="fc-app-shell min-h-screen">
+      <PushSync />
       <a href="#main-content" className="fc-skip-link">Skip to content</a>
       <aside className="theme-sidebar fc-sidebar-art fixed inset-y-0 left-0 z-40 hidden w-[270px] overflow-hidden border-r lg:flex lg:flex-col">
         <div className="theme-sidebar-divider shrink-0 border-b px-[22px] py-5">

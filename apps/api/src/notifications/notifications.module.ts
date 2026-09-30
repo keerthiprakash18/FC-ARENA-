@@ -1,3 +1,5 @@
+import { PushController } from './push.controller.js';
+import { PushService } from './push.service.js';
 import {
   Module,
 } from '@nestjs/common';
@@ -21,10 +23,12 @@ import {
 
   controllers: [
     NotificationsController,
+    PushController,
   ],
 
   providers: [
     NotificationsService,
+    PushService,
   ],
 
   exports: [

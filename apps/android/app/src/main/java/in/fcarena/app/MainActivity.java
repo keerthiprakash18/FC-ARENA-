@@ -126,7 +126,17 @@ public final class MainActivity extends Activity {
         root.addView(progressBar, progressParams);
     }
 
+    private void applyPushLink(Intent intent) {
+        if (intent == null || intent.getData() != null) return;
+        String href = intent.getStringExtra("href");
+        if (href != null && href.startsWith("/") && !href.startsWith("//") && !href.contains("\\")) {
+            Uri uri = Uri.parse("https://fcarena.in"+href);
+            if (isAllowedUrl(uri)) intent.setData(uri);
+        }
+    }
+
     private String resolveInitialUrl(Intent intent) {
+        applyPushLink(intent);
         if (intent != null && intent.getData() != null && isAllowedUrl(intent.getData())) {
             return intent.getData().toString();
         }
@@ -195,6 +205,7 @@ public final class MainActivity extends Activity {
                     return !isAllowedUrl(request.getUrl());
                 }
                 Uri uri = request.getUrl();
+                if (handlePushAction(uri)) return true;
                 if (isAllowedUrl(uri)) {
                     lastAllowedUrl = uri.toString();
                     return false;
@@ -207,6 +218,7 @@ public final class MainActivity extends Activity {
             @SuppressWarnings("deprecation")
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Uri uri = Uri.parse(url);
+                if (handlePushAction(uri)) return true;
                 if (isAllowedUrl(uri)) {
                     lastAllowedUrl = uri.toString();
                     return false;
@@ -239,6 +251,7 @@ public final class MainActivity extends Activity {
                 CookieManager.getInstance().flush();
                 clearStartupGuard();
                 super.onPageFinished(view, url);
+                if (isAllowedUrl(uri)) PushSupport.publish(MainActivity.this,view);
             }
 
             @Override
@@ -401,6 +414,21 @@ public final class MainActivity extends Activity {
         webView = null;
     }
 
+    private boolean handlePushAction(Uri uri) {
+        if (!isAllowedUrl(uri) || webView.getUrl() == null || !isAllowedUrl(Uri.parse(webView.getUrl()))) return false;
+        if ("/native/push-enable".equals(uri.getPath())) { PushSupport.enable(this,webView); return true; }
+        if ("/native/push-disable".equals(uri.getPath())) { PushSupport.disable(this,webView); return true; }
+        return false;
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        if (requestCode == PushSupport.REQUEST && webView != null) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) PushSupport.enable(this,webView);
+            else PushSupport.emit(webView,false,"","Notifications were not allowed. You can enable them in Android Settings.");
+        }
+    }
+
     private boolean isAllowedUrl(Uri uri) {
         if (uri == null) {
             return false;
@@ -551,6 +579,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        applyPushLink(intent);
         setIntent(intent);
 
         if (

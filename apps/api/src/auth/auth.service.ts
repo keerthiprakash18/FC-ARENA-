@@ -788,6 +788,7 @@ export class AuthService {
             },
           });
 
+          await tx.pushDevice.updateMany({where:{sessionId:session.id,userId:session.user.id},data:{sessionId:newSessionId}});
           return true;
         },
       );
@@ -1202,6 +1203,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       type: 'access',
+      sid: sessionId,
     };
 
     const refreshPayload: RefreshTokenPayload = {

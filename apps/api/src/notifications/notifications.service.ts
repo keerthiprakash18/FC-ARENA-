@@ -158,7 +158,7 @@ export class NotificationsService {
     };
   }
 
-  private async syncForUser(
+  async syncForUser(
     userId: string,
   ) {
     const adminRoles =
@@ -1021,7 +1021,7 @@ export class NotificationsService {
     await this.prisma.notification.upsert({
       where: {
         dedupeKey:
-          input.dedupeKey,
+          `${userId}:${input.dedupeKey}`,
       },
 
       create: {
@@ -1049,7 +1049,7 @@ export class NotificationsService {
           null,
 
         dedupeKey:
-          input.dedupeKey,
+          `${userId}:${input.dedupeKey}`,
 
         eventAt:
           input.eventAt,

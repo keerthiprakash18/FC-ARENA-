@@ -545,6 +545,7 @@ export default function LeaderboardsPage() {
                         <tbody>
                           {rankings.map((row) => (
                             <tr
+                              data-player-id={row.userId}
                               key={row.userId}
                               className={
                                 "border-t theme-divider " +

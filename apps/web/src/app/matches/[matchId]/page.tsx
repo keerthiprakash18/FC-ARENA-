@@ -1,30 +1,22 @@
-'use client';
+"use client";
 
 import { ApiError } from "@/lib/api";
-import { confirmAction } from '@/components/fc/confirmation-provider';
-import Link from 'next/link';
-import {
-  useParams,
-  useRouter,
-} from 'next/navigation';
-import {
-  useEffect,
-  useState,
-} from 'react';
-import type {
-  FormEvent,
-} from 'react';
+import { confirmAction } from "@/components/fc/confirmation-provider";
+import { ShareCard } from "@/components/fc/share-card";
+import { MatchReminder } from "@/components/fc/match-reminder";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 
-import {
-  AppShell,
-} from '@/components/app/app-shell';
+import { AppShell } from "@/components/app/app-shell";
 
 import {
   authenticatedRequest,
   authenticatedUpload,
   type CurrentUser,
   getCurrentUser,
-} from '@/lib/auth-client';
+} from "@/lib/auth-client";
 
 interface MatchEntry {
   id: string;
@@ -118,11 +110,7 @@ interface MatchedOcrUser {
 
 interface OcrExtraction {
   id: string;
-  status:
-    | 'QUEUED'
-    | 'PROCESSING'
-    | 'COMPLETED'
-    | 'FAILED';
+  status: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
 
   mimeType: string;
   fileSize: number;
@@ -132,40 +120,29 @@ interface OcrExtraction {
   rawText: string | null;
   ocrConfidence: number | null;
 
-  detectedHomeName:
-    string | null;
+  detectedHomeName: string | null;
 
-  detectedAwayName:
-    string | null;
+  detectedAwayName: string | null;
 
-  detectedHomeScore:
-    number | null;
+  detectedHomeScore: number | null;
 
-  detectedAwayScore:
-    number | null;
+  detectedAwayScore: number | null;
 
-  homeNameConfidence:
-    number | null;
+  homeNameConfidence: number | null;
 
-  awayNameConfidence:
-    number | null;
+  awayNameConfidence: number | null;
 
-  scoreConfidence:
-    number | null;
+  scoreConfidence: number | null;
 
-  failureReason:
-    string | null;
+  failureReason: string | null;
 
-  processedAt:
-    string | null;
+  processedAt: string | null;
 
   createdAt: string;
 
-  homeMatchedUser:
-    MatchedOcrUser | null;
+  homeMatchedUser: MatchedOcrUser | null;
 
-  awayMatchedUser:
-    MatchedOcrUser | null;
+  awayMatchedUser: MatchedOcrUser | null;
 
   resultSubmission: {
     id: string;
@@ -173,384 +150,234 @@ interface OcrExtraction {
   } | null;
 }
 
-function entryName(
-  entry: MatchEntry | null,
-  source: string | null,
-) {
-  if (
-    entry?.entryName
-  ) {
+function entryName(entry: MatchEntry | null, source: string | null) {
+  if (entry?.entryName) {
     return entry.entryName;
   }
 
   if (entry) {
     return entry.members
-      .map(
-        (member) =>
-          member.inGameName ||
-          member.fullName,
-      )
-      .join(' + ');
+      .map((member) => member.inGameName || member.fullName)
+      .join(" + ");
   }
 
   if (source) {
     return `Winner of ${source}`;
   }
 
-  return 'TBD';
+  return "TBD";
 }
 
-function percentage(
-  confidence:
-    number | null,
-) {
-  if (
-    confidence === null
-  ) {
-    return '—';
+function percentage(confidence: number | null) {
+  if (confidence === null) {
+    return "—";
   }
 
-  return `${Math.round(
-    confidence * 100,
-  )}%`;
+  return `${Math.round(confidence * 100)}%`;
 }
 
-function confidenceLabel(
-  confidence:
-    number | null,
-) {
-  if (
-    confidence === null
-  ) {
-    return 'Unknown';
+function confidenceLabel(confidence: number | null) {
+  if (confidence === null) {
+    return "Unknown";
   }
 
-  if (
-    confidence >= 0.85
-  ) {
-    return 'High Confidence';
+  if (confidence >= 0.85) {
+    return "High Confidence";
   }
 
-  if (
-    confidence >= 0.5
-  ) {
-    return 'Needs Review';
+  if (confidence >= 0.5) {
+    return "Needs Review";
   }
 
-  return 'Manual Check Required';
+  return "Manual Check Required";
 }
 
-function confidenceClass(
-  confidence:
-    number | null,
-) {
-  if (
-    confidence === null
-  ) {
-    return 'border-white/10 bg-white/5 text-slate-400';
+function confidenceClass(confidence: number | null) {
+  if (confidence === null) {
+    return "border-white/10 bg-white/5 text-slate-400";
   }
 
-  if (
-    confidence >= 0.85
-  ) {
-    return 'border-emerald-400/20 bg-emerald-400/5 text-emerald-300';
+  if (confidence >= 0.85) {
+    return "border-emerald-400/20 bg-emerald-400/5 text-emerald-300";
   }
 
-  if (
-    confidence >= 0.5
-  ) {
-    return 'border-amber-400/20 bg-amber-400/5 text-amber-300';
+  if (confidence >= 0.5) {
+    return "border-amber-400/20 bg-amber-400/5 text-amber-300";
   }
 
-  return 'border-red-400/20 bg-red-400/5 text-red-300';
+  return "border-red-400/20 bg-red-400/5 text-red-300";
 }
 
 export default function MatchCenterPage() {
-  const params =
-    useParams<{
-      matchId: string;
-    }>();
+  const params = useParams<{
+    matchId: string;
+  }>();
 
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [user, setUser] =
-    useState<CurrentUser | null>(
-      null,
-    );
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  const [match, setMatch] =
-    useState<MatchCenter | null>(
-      null,
-    );
+  const [match, setMatch] = useState<MatchCenter | null>(null);
 
-  const [
-    submissions,
-    setSubmissions,
-  ] =
-    useState<ResultSubmission[]>(
-      [],
-    );
+  const [submissions, setSubmissions] = useState<ResultSubmission[]>([]);
 
-  const [
-    confirmedId,
-    setConfirmedId,
-  ] =
-    useState<string | null>(
-      null,
-    );
+  const [confirmedId, setConfirmedId] = useState<string | null>(null);
 
-  const [
-    isLeagueAdmin,
-    setIsLeagueAdmin,
-  ] =
-    useState(false);
+  const [isLeagueAdmin, setIsLeagueAdmin] = useState(false);
 
-  const [
-    latestOcr,
-    setLatestOcr,
-  ] =
-    useState<OcrExtraction | null>(
-      null,
-    );
+  const [latestOcr, setLatestOcr] = useState<OcrExtraction | null>(null);
 
-  const [
-    uploadProgress,
-    setUploadProgress,
-  ] =
-    useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const [
-    ocrHomeScore,
-    setOcrHomeScore,
-  ] =
-    useState('');
+  const [ocrHomeScore, setOcrHomeScore] = useState("");
 
-  const [
-    ocrAwayScore,
-    setOcrAwayScore,
-  ] =
-    useState('');
+  const [ocrAwayScore, setOcrAwayScore] = useState("");
 
-  const [busy, setBusy] =
-    useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const [message, setMessage] =
-    useState('');
+  const [message, setMessage] = useState("");
 
-  const [error, setError] =
-    useState('');
+  const [error, setError] = useState("");
 
   async function loadMatch() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
+    const response = await authenticatedRequest<{
+      success: true;
 
-        data: {
-          match:
-            MatchCenter;
-        };
+      data: {
+        match: MatchCenter;
+      };
 
-        error: null;
-      }>(
-        `/matches/${params.matchId}`,
-      );
+      error: null;
+    }>(`/matches/${params.matchId}`);
 
-    setMatch(
-      response.data.match,
-    );
+    setMatch(response.data.match);
   }
 
   async function loadResults() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
+    const response = await authenticatedRequest<{
+      success: true;
 
-        data: {
-          isLeagueAdmin:
-            boolean;
+      data: {
+        isLeagueAdmin: boolean;
 
-          canVerifyResult:
-            boolean;
+        canVerifyResult: boolean;
 
-          confirmedResultSubmissionId:
-            string | null;
+        confirmedResultSubmissionId: string | null;
 
-          submissions:
-            ResultSubmission[];
-        };
+        submissions: ResultSubmission[];
+      };
 
-        error: null;
-      }>(
-        `/matches/${params.matchId}/results`,
-      );
+      error: null;
+    }>(`/matches/${params.matchId}/results`);
 
-    setSubmissions(
-      response.data.submissions,
-    );
+    setSubmissions(response.data.submissions);
 
-    setConfirmedId(
-      response.data
-        .confirmedResultSubmissionId,
-    );
+    setConfirmedId(response.data.confirmedResultSubmissionId);
 
     setIsLeagueAdmin(
-      response.data
-        .canVerifyResult ||
-      response.data
-        .isLeagueAdmin,
+      response.data.canVerifyResult || response.data.isLeagueAdmin,
     );
   }
 
   async function loadLatestOcr() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
+    const response = await authenticatedRequest<{
+      success: true;
 
-        data: {
-          extraction:
-            OcrExtraction | null;
-        };
+      data: {
+        extraction: OcrExtraction | null;
+      };
 
-        error: null;
-      }>(
-        `/matches/${params.matchId}/ocr/latest`,
-      );
+      error: null;
+    }>(`/matches/${params.matchId}/ocr/latest`);
 
-    setLatestOcr(
-      response.data.extraction,
-    );
+    setLatestOcr(response.data.extraction);
   }
 
   async function refreshMatchCenter() {
-    await Promise.all([
-      loadMatch(),
-      loadResults(),
-      loadLatestOcr(),
-    ]);
+    await Promise.all([loadMatch(), loadResults(), loadLatestOcr()]);
   }
 
   useEffect(() => {
     async function load() {
       try {
-        const current =
-          await getCurrentUser();
+        const current = await getCurrentUser();
 
         setUser(current);
 
         await refreshMatchCenter();
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401) router.replace("/login");
+        if (err instanceof ApiError && err.status === 401)
+          router.replace("/login");
         else setError("Unable to load this match. Please retry.");
       }
     }
 
     void load();
-  }, [
-    params.matchId,
-    router,
-  ]);
+  }, [params.matchId, router]);
 
   useEffect(() => {
-    const status =
-      latestOcr?.status;
+    const status = latestOcr?.status;
 
-    if (
-      status !== 'QUEUED' &&
-      status !== 'PROCESSING'
-    ) {
+    if (status !== "QUEUED" && status !== "PROCESSING") {
       return;
     }
 
-    const timer =
-      window.setInterval(
-        () => {
-          void (async () => {
-            try {
-              const response =
-                await authenticatedRequest<{
-                  success: true;
+    const timer = window.setInterval(() => {
+      void (async () => {
+        try {
+          const response = await authenticatedRequest<{
+            success: true;
 
-                  data: {
-                    extraction:
-                      OcrExtraction | null;
-                  };
+            data: {
+              extraction: OcrExtraction | null;
+            };
 
-                  error: null;
-                }>(
-                  `/matches/${params.matchId}/ocr/latest`,
-                );
+            error: null;
+          }>(`/matches/${params.matchId}/ocr/latest`);
 
-              setLatestOcr(
-                response.data
-                  .extraction,
-              );
-            } catch {
-              // Polling may retry
-              // automatically on
-              // the next interval.
-            }
-          })();
-        },
-        2000,
-      );
+          setLatestOcr(response.data.extraction);
+        } catch {
+          // Polling may retry
+          // automatically on
+          // the next interval.
+        }
+      })();
+    }, 2000);
 
     return () => {
-      window.clearInterval(
-        timer,
-      );
+      window.clearInterval(timer);
     };
-  }, [
-    latestOcr?.status,
-    params.matchId,
-  ]);
+  }, [latestOcr?.status, params.matchId]);
 
   useEffect(() => {
-    if (
-      latestOcr?.status !==
-      'COMPLETED'
-    ) {
+    if (latestOcr?.status !== "COMPLETED") {
       return;
     }
 
-    const scoreConfidence =
-      latestOcr.scoreConfidence ??
-      0;
+    const scoreConfidence = latestOcr.scoreConfidence ?? 0;
 
     /*
      * Master rule:
      * < 0.50 must not be
      * trusted automatically.
      */
-    if (
-      scoreConfidence < 0.5
-    ) {
-      setOcrHomeScore('');
-      setOcrAwayScore('');
+    if (scoreConfidence < 0.5) {
+      setOcrHomeScore("");
+      setOcrAwayScore("");
 
       return;
     }
 
     setOcrHomeScore(
-      latestOcr
-        .detectedHomeScore !==
-        null
-        ? String(
-            latestOcr
-              .detectedHomeScore,
-          )
-        : '',
+      latestOcr.detectedHomeScore !== null
+        ? String(latestOcr.detectedHomeScore)
+        : "",
     );
 
     setOcrAwayScore(
-      latestOcr
-        .detectedAwayScore !==
-        null
-        ? String(
-            latestOcr
-              .detectedAwayScore,
-          )
-        : '',
+      latestOcr.detectedAwayScore !== null
+        ? String(latestOcr.detectedAwayScore)
+        : "",
     );
   }, [
     latestOcr?.id,
@@ -560,82 +387,52 @@ export default function MatchCenterPage() {
     latestOcr?.detectedAwayScore,
   ]);
 
-  async function submitManualResult(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
+  async function submitManualResult(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const formElement =
-      event.currentTarget;
+    const formElement = event.currentTarget;
 
-    const data =
-      new FormData(
-        formElement,
-      );
+    const data = new FormData(formElement);
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<{
+      const response = await authenticatedRequest<{
+        success: true;
+
+        data: {
+          message: string;
+
+          submission: {
+            id: string;
+          };
+        };
+
+        error: null;
+      }>(`/matches/${params.matchId}/results`, {
+        method: "POST",
+
+        body: JSON.stringify({
+          homeScore: Number(data.get("homeScore")),
+
+          awayScore: Number(data.get("awayScore")),
+        }),
+      });
+
+      if (isLeagueAdmin) {
+        const confirmedResponse = await authenticatedRequest<{
           success: true;
 
           data: {
             message: string;
-
-            submission: {
-              id: string;
-            };
           };
 
           error: null;
-        }>(
-          `/matches/${params.matchId}/results`,
-          {
-            method: 'POST',
-
-            body:
-              JSON.stringify({
-                homeScore:
-                  Number(
-                    data.get(
-                      'homeScore',
-                    ),
-                  ),
-
-                awayScore:
-                  Number(
-                    data.get(
-                      'awayScore',
-                    ),
-                  ),
-              }),
-          },
-        );
-
-      if (
-        isLeagueAdmin
-      ) {
-        const confirmedResponse =
-          await authenticatedRequest<{
-            success: true;
-
-            data: {
-              message:
-                string;
-            };
-
-            error: null;
-          }>(
-            `/results/${response.data.submission.id}/confirm`,
-            {
-              method:
-                'POST',
-            },
-          );
+        }>(`/results/${response.data.submission.id}/confirm`, {
+          method: "POST",
+        });
 
         setMessage(
           `${confirmedResponse.data.message} Player career stats and standings are now updated.`,
@@ -645,223 +442,143 @@ export default function MatchCenterPage() {
 
         await refreshMatchCenter();
       } else {
-        setMessage(
-          response.data.message,
-        );
+        setMessage(response.data.message);
 
         formElement.reset();
 
         await loadResults();
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to submit result.',
-      );
+      setError(err instanceof Error ? err.message : "Unable to submit result.");
     } finally {
       setBusy(false);
     }
   }
 
-  async function uploadScreenshot(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
+  async function uploadScreenshot(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const formElement =
-      event.currentTarget;
+    const formElement = event.currentTarget;
 
-    const form =
-      new FormData(
-        formElement,
-      );
+    const form = new FormData(formElement);
 
-    const screenshot =
-      form.get(
-        'screenshot',
-      );
+    const screenshot = form.get("screenshot");
 
-    if (
-      !(screenshot instanceof File) ||
-      screenshot.size === 0
-    ) {
-      setError(
-        'Select a result screenshot.',
-      );
+    if (!(screenshot instanceof File) || screenshot.size === 0) {
+      setError("Select a result screenshot.");
 
       return;
     }
 
-    const allowed =
-      new Set([
-        'image/jpeg',
-        'image/png',
-        'image/webp',
-      ]);
+    const allowed = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-    if (
-      !allowed.has(
-        screenshot.type,
-      )
-    ) {
-      setError(
-        'Only JPG, PNG and WEBP screenshots are allowed.',
-      );
+    if (!allowed.has(screenshot.type)) {
+      setError("Only JPG, PNG and WEBP screenshots are allowed.");
 
       return;
     }
 
-    if (
-      screenshot.size >
-      10 * 1024 * 1024
-    ) {
-      setError(
-        'Screenshot must be 10 MB or smaller.',
-      );
+    if (screenshot.size > 10 * 1024 * 1024) {
+      setError("Screenshot must be 10 MB or smaller.");
 
       return;
     }
 
-    const uploadBody =
-      new FormData();
+    const uploadBody = new FormData();
 
-    uploadBody.append(
-      'screenshot',
-      screenshot,
-    );
+    uploadBody.append("screenshot", screenshot);
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
     setUploadProgress(0);
 
     try {
-      const response =
-        await authenticatedUpload<{
-          success: true;
+      const response = await authenticatedUpload<{
+        success: true;
 
-          data: {
-            message: string;
+        data: {
+          message: string;
 
-            extraction: {
-              id: string;
-              status: string;
-            };
+          extraction: {
+            id: string;
+            status: string;
           };
+        };
 
-          error: null;
-        }>(
-          `/matches/${params.matchId}/ocr`,
-          uploadBody,
-          (progress) =>
-            setUploadProgress(
-              progress,
-            ),
-        );
-
-      setUploadProgress(
-        100,
+        error: null;
+      }>(`/matches/${params.matchId}/ocr`, uploadBody, (progress) =>
+        setUploadProgress(progress),
       );
 
-      setMessage(
-        response.data.message,
-      );
+      setUploadProgress(100);
+
+      setMessage(response.data.message);
 
       formElement.reset();
 
       await loadLatestOcr();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Screenshot upload failed.',
+        err instanceof Error ? err.message : "Screenshot upload failed.",
       );
     } finally {
       setBusy(false);
     }
   }
 
-  async function submitOcrResult(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
+  async function submitOcrResult(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!latestOcr) {
       return;
     }
 
-    if (
-      ocrHomeScore === '' ||
-      ocrAwayScore === ''
-    ) {
-      setError(
-        'Enter both scores before submitting.',
-      );
+    if (ocrHomeScore === "" || ocrAwayScore === "") {
+      setError("Enter both scores before submitting.");
 
       return;
     }
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<{
+      const response = await authenticatedRequest<{
+        success: true;
+
+        data: {
+          message: string;
+
+          submission: {
+            id: string;
+          };
+        };
+
+        error: null;
+      }>(`/ocr/${latestOcr.id}/submit-result`, {
+        method: "POST",
+
+        body: JSON.stringify({
+          homeScore: Number(ocrHomeScore),
+
+          awayScore: Number(ocrAwayScore),
+        }),
+      });
+
+      if (isLeagueAdmin) {
+        const confirmedResponse = await authenticatedRequest<{
           success: true;
 
           data: {
             message: string;
-
-            submission: {
-              id: string;
-            };
           };
 
           error: null;
-        }>(
-          `/ocr/${latestOcr.id}/submit-result`,
-          {
-            method: 'POST',
-
-            body:
-              JSON.stringify({
-                homeScore:
-                  Number(
-                    ocrHomeScore,
-                  ),
-
-                awayScore:
-                  Number(
-                    ocrAwayScore,
-                  ),
-              }),
-          },
-        );
-
-      if (
-        isLeagueAdmin
-      ) {
-        const confirmedResponse =
-          await authenticatedRequest<{
-            success: true;
-
-            data: {
-              message:
-                string;
-            };
-
-            error: null;
-          }>(
-            `/results/${response.data.submission.id}/confirm`,
-            {
-              method:
-                'POST',
-            },
-          );
+        }>(`/results/${response.data.submission.id}/confirm`, {
+          method: "POST",
+        });
 
         setMessage(
           `${confirmedResponse.data.message} OCR matched the Match participants and the confirmed data is now reflected in standings and player career statistics.`,
@@ -869,220 +586,147 @@ export default function MatchCenterPage() {
 
         await refreshMatchCenter();
       } else {
-        setMessage(
-          response.data.message,
-        );
+        setMessage(response.data.message);
 
-        await Promise.all([
-          loadLatestOcr(),
-          loadResults(),
-        ]);
+        await Promise.all([loadLatestOcr(), loadResults()]);
       }
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to submit OCR result.',
+        err instanceof Error ? err.message : "Unable to submit OCR result.",
       );
     } finally {
       setBusy(false);
     }
   }
 
-  async function confirmResult(
-    submissionId: string,
-  ) {
+  async function confirmResult(submissionId: string) {
     if (
       !(await confirmAction(
-        'Confirm this result? Statistics and standings will be updated.',
+        "Confirm this result? Statistics and standings will be updated.",
       ))
     ) {
       return;
     }
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
+      const response = await authenticatedRequest<{
+        success: true;
 
-          data: {
-            message: string;
-          };
+        data: {
+          message: string;
+        };
 
-          error: null;
-        }>(
-          `/results/${submissionId}/confirm`,
-          {
-            method: 'POST',
-          },
-        );
+        error: null;
+      }>(`/results/${submissionId}/confirm`, {
+        method: "POST",
+      });
 
-      setMessage(
-        response.data.message,
-      );
+      setMessage(response.data.message);
 
       await refreshMatchCenter();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to confirm result.',
+        err instanceof Error ? err.message : "Unable to confirm result.",
       );
     } finally {
       setBusy(false);
     }
   }
 
-  async function rejectResult(
-    submissionId: string,
-  ) {
-    const reason =
-      window.prompt(
-        'Reason for rejection (optional):',
-      );
+  async function rejectResult(submissionId: string) {
+    const reason = window.prompt("Reason for rejection (optional):");
 
-    if (
-      reason === null
-    ) {
+    if (reason === null) {
       return;
     }
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
+      const response = await authenticatedRequest<{
+        success: true;
 
-          data: {
-            message: string;
-          };
+        data: {
+          message: string;
+        };
 
-          error: null;
-        }>(
-          `/results/${submissionId}/reject`,
-          {
-            method: 'POST',
+        error: null;
+      }>(`/results/${submissionId}/reject`, {
+        method: "POST",
 
-            body:
-              JSON.stringify({
-                reason:
-                  reason ||
-                  undefined,
-              }),
-          },
-        );
+        body: JSON.stringify({
+          reason: reason || undefined,
+        }),
+      });
 
-      setMessage(
-        response.data.message,
-      );
+      setMessage(response.data.message);
 
       await loadResults();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to reject result.',
-      );
+      setError(err instanceof Error ? err.message : "Unable to reject result.");
     } finally {
       setBusy(false);
     }
   }
 
-  async function correctResult(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
+  async function correctResult(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const data =
-      new FormData(
-        event.currentTarget,
-      );
+    const data = new FormData(event.currentTarget);
 
-    const homeScore =
-      Number(
-        data.get(
-          'correctedHomeScore',
-        ),
-      );
+    const homeScore = Number(data.get("correctedHomeScore"));
 
-    const awayScore =
-      Number(
-        data.get(
-          'correctedAwayScore',
-        ),
-      );
+    const awayScore = Number(data.get("correctedAwayScore"));
 
-    const reason =
-      String(
-        data.get(
-          'correctionReason',
-        ) ?? '',
-      ).trim();
+    const reason = String(data.get("correctionReason") ?? "").trim();
 
-    if (
-      reason.length < 3
-    ) {
-      setError(
-        'Correction reason must contain at least 3 characters.',
-      );
+    if (reason.length < 3) {
+      setError("Correction reason must contain at least 3 characters.");
 
       return;
     }
 
     if (
-      !(await confirmAction(
-        `Correct result to ${homeScore}-${awayScore}?`,
-      ))
+      !(await confirmAction(`Correct result to ${homeScore}-${awayScore}?`))
     ) {
       return;
     }
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
+      const response = await authenticatedRequest<{
+        success: true;
 
-          data: {
-            message: string;
-          };
+        data: {
+          message: string;
+        };
 
-          error: null;
-        }>(
-          `/matches/${params.matchId}/results/correct`,
-          {
-            method: 'POST',
+        error: null;
+      }>(`/matches/${params.matchId}/results/correct`, {
+        method: "POST",
 
-            body:
-              JSON.stringify({
-                homeScore,
-                awayScore,
-                reason,
-              }),
-          },
-        );
+        body: JSON.stringify({
+          homeScore,
+          awayScore,
+          reason,
+        }),
+      });
 
-      setMessage(
-        response.data.message,
-      );
+      setMessage(response.data.message);
 
       await refreshMatchCenter();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to correct result.',
+        err instanceof Error ? err.message : "Unable to correct result.",
       );
     } finally {
       setBusy(false);
@@ -1090,85 +734,77 @@ export default function MatchCenterPage() {
   }
 
   async function reverseConfirmedResult() {
-    const reason =
-      window.prompt(
-        'Why are you reversing this confirmed result?',
-      );
+    const reason = window.prompt(
+      "Why are you reversing this confirmed result?",
+    );
 
-    if (
-      reason === null
-    ) {
+    if (reason === null) {
       return;
     }
 
-    if (
-      reason.trim().length <
-      3
-    ) {
-      setError(
-        'Reversal reason must contain at least 3 characters.',
-      );
+    if (reason.trim().length < 3) {
+      setError("Reversal reason must contain at least 3 characters.");
 
       return;
     }
 
     if (
       !(await confirmAction(
-        'Reverse this confirmed result and remove its statistics?',
+        "Reverse this confirmed result and remove its statistics?",
       ))
     ) {
       return;
     }
 
     setBusy(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
+      const response = await authenticatedRequest<{
+        success: true;
 
-          data: {
-            message: string;
-          };
+        data: {
+          message: string;
+        };
 
-          error: null;
-        }>(
-          `/matches/${params.matchId}/results/reverse`,
-          {
-            method: 'POST',
+        error: null;
+      }>(`/matches/${params.matchId}/results/reverse`, {
+        method: "POST",
 
-            body:
-              JSON.stringify({
-                reason:
-                  reason.trim(),
-              }),
-          },
-        );
+        body: JSON.stringify({
+          reason: reason.trim(),
+        }),
+      });
 
-      setMessage(
-        response.data.message,
-      );
+      setMessage(response.data.message);
 
       await refreshMatchCenter();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to reverse result.',
+        err instanceof Error ? err.message : "Unable to reverse result.",
       );
     } finally {
       setBusy(false);
     }
   }
 
-  if ((!user || !match) && error) return <AppShell><div role="alert" className="theme-panel rounded-xl p-6"><p>{error}</p><button className="theme-primary-button mt-4 rounded-lg px-4" onClick={() => window.location.reload()}>Retry</button></div></AppShell>;
+  if ((!user || !match) && error)
+    return (
+      <AppShell>
+        <div role="alert" className="theme-panel rounded-xl p-6">
+          <p>{error}</p>
+          <button
+            className="theme-primary-button mt-4 rounded-lg px-4"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </button>
+        </div>
+      </AppShell>
+    );
 
-  if (
-    !user ||
-    !match
-  ) {
+  if (!user || !match) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
         Loading Match Center...
@@ -1176,57 +812,33 @@ export default function MatchCenterPage() {
     );
   }
 
-  const home =
-    entryName(
-      match.fixture.home,
-      match.fixture.homeSource,
-    );
+  const home = entryName(match.fixture.home, match.fixture.homeSource);
 
-  const away =
-    entryName(
-      match.fixture.away,
-      match.fixture.awaySource,
-    );
+  const away = entryName(match.fixture.away, match.fixture.awaySource);
 
-  const confirmed =
-    submissions.find(
-      (submission) =>
-        submission.id ===
-        confirmedId,
-    );
+  const confirmed = submissions.find(
+    (submission) => submission.id === confirmedId,
+  );
 
   const canSubmit =
     !confirmedId &&
-    (
-      match.status ===
-        'UNSCHEDULED' ||
-      match.status ===
-        'SCHEDULED' ||
-      match.status ===
-        'LIVE'
-    );
+    (match.status === "UNSCHEDULED" ||
+      match.status === "SCHEDULED" ||
+      match.status === "LIVE");
 
   const ocrProcessing =
-    latestOcr?.status ===
-      'QUEUED' ||
-    latestOcr?.status ===
-      'PROCESSING';
+    latestOcr?.status === "QUEUED" || latestOcr?.status === "PROCESSING";
 
   const canSubmitOcr =
-    latestOcr?.status ===
-      'COMPLETED' &&
-    !latestOcr
-      .resultSubmission &&
+    latestOcr?.status === "COMPLETED" &&
+    !latestOcr.resultSubmission &&
     !confirmedId;
 
+  const awaitingReview = !confirmed && submissions.some(item => item.status === "PENDING_VERIFICATION");
   return (
-    <AppShell
-      playerName={
-        user.player?.identity
-          ?.inGameName
-      }
-    >
+    <AppShell playerName={user.player?.identity?.inGameName}>
       <div className="space-y-6">
+        <section className="theme-panel rounded-2xl p-5"><p className="text-sm font-semibold">{confirmed ? "Result verified" : awaitingReview ? "Submitted · awaiting confirmation" : canSubmit ? "Ready to submit your result" : "Match details"}</p><div className="mt-3 flex flex-wrap gap-3">{!confirmed && (awaitingReview || canSubmit) && <a className="theme-primary-button rounded-xl px-4 py-3 text-sm" href={awaitingReview ? "#result-verification" : "#result-entry"}>{awaitingReview ? "Review submissions" : "Enter score"}</a>}{confirmed && <ShareCard label="Share result card" filename="fc-arena-result" title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`} lines={[match.tournament.name, "Verified result", match.matchCode || "FC ARENA Match"]} />}<MatchReminder title={`${home} vs ${away}`} scheduledAt={match.fixture.scheduledAt} matchId={String(params.matchId)} /></div></section>
         <div className="flex flex-wrap gap-4">
           <Link
             href={`/tournaments/${match.tournament.id}`}
@@ -1250,28 +862,23 @@ export default function MatchCenterPage() {
                 Match Center
               </p>
 
-              <h1 className="mt-3 text-3xl font-black md:text-5xl">
-                {match.matchCode}
+              <h1 className="mt-3 break-words text-xl font-semibold md:text-3xl">
+                {match.tournament.name}
               </h1>
 
               <p className="mt-2 text-sm text-slate-500">
-                {match.tournament.name}
+                {match.matchCode}
               </p>
             </div>
 
             <span className="h-fit rounded-full border border-white/10 px-4 py-2 text-xs font-black text-slate-300">
-              {match.status.replaceAll(
-                '_',
-                ' ',
-              )}
+              {match.status.replaceAll("_", " ")}
             </span>
           </div>
 
           <div className="mt-10 grid grid-cols-[1fr_auto_1fr] items-center gap-5">
             <div className="text-center">
-              <p className="text-xl font-black md:text-3xl">
-                {home}
-              </p>
+              <p className="text-xl font-black md:text-3xl">{home}</p>
 
               {confirmed ? (
                 <p className="mt-5 text-6xl font-black text-sky-400">
@@ -1281,15 +888,11 @@ export default function MatchCenterPage() {
             </div>
 
             <div className="rounded-full border border-white/10 bg-white/5 px-4 py-3 font-black text-slate-500">
-              {confirmed
-                ? 'FT'
-                : 'VS'}
+              {confirmed ? "FT" : "VS"}
             </div>
 
             <div className="text-center">
-              <p className="text-xl font-black md:text-3xl">
-                {away}
-              </p>
+              <p className="text-xl font-black md:text-3xl">{away}</p>
 
               {confirmed ? (
                 <p className="mt-5 text-6xl font-black text-sky-400">
@@ -1312,56 +915,42 @@ export default function MatchCenterPage() {
           </div>
         ) : null}
 
-        <section className="grid gap-4 md:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">
-              Round
-            </p>
+            <p className="text-xs text-slate-600">Round</p>
 
-            <p className="mt-2 font-black">
-              {match.fixture.roundName}
-            </p>
+            <p className="mt-2 font-black">{match.fixture.roundName}</p>
           </article>
 
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">
-              Matchday
-            </p>
+            <p className="text-xs text-slate-600">Matchday</p>
 
-            <p className="mt-2 font-black">
-              {match.fixture.matchday ??
-                '—'}
-            </p>
+            <p className="mt-2 font-black">{match.fixture.matchday ?? "—"}</p>
           </article>
 
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">
-              Date & Time
-            </p>
+            <p className="text-xs text-slate-600">Date & Time</p>
 
             <p className="mt-2 font-black">
               {match.fixture.scheduledAt
-                ? new Date(
-                    match.fixture.scheduledAt,
-                  ).toLocaleString()
-                : 'Not scheduled'}
+                ? new Date(match.fixture.scheduledAt).toLocaleString()
+                : "Not scheduled"}
             </p>
           </article>
 
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">
-              Venue
-            </p>
+            <p className="text-xs text-slate-600">Venue</p>
 
-            <p className="mt-2 font-black">
-              {match.fixture.venue ||
-                '—'}
-            </p>
+            <p className="mt-2 font-black">{match.fixture.venue || "—"}</p>
           </article>
         </section>
 
         {canSubmit ? (
-          <section id="result-update" className="scroll-mt-24 rounded-[26px] border border-sky-400/20 bg-[#0a1018] p-6">
+          <details
+            id="result-update"
+            className="scroll-mt-24 rounded-[26px] border border-sky-400/20 bg-[#0a1018] p-6"
+          >
+            <summary className="cursor-pointer text-lg font-semibold">Upload a screenshot instead</summary>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
               AI Result Scanner
             </p>
@@ -1371,15 +960,14 @@ export default function MatchCenterPage() {
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-              Upload the FC Mobile result screenshot. FC ARENA scans the score and in-game names, matches them only against the players registered in this Match, and prepares the result for verification. Once confirmed, standings and each matched player's career statistics update automatically.
+              Upload the FC Mobile result screenshot. FC ARENA scans the score
+              and in-game names, matches them only against the players
+              registered in this Match, and prepares the result for
+              verification. Once confirmed, standings and each matched player's
+              career statistics update automatically.
             </p>
 
-            <form
-              onSubmit={
-                uploadScreenshot
-              }
-              className="mt-6 grid gap-4"
-            >
+            <form onSubmit={uploadScreenshot} className="mt-6 grid gap-4">
               <input
                 name="screenshot"
                 type="file"
@@ -1388,25 +976,19 @@ export default function MatchCenterPage() {
                 className="rounded-xl border border-dashed border-white/15 bg-black/10 p-4 text-sm"
               />
 
-              {uploadProgress >
-              0 ? (
+              {uploadProgress > 0 ? (
                 <div>
                   <div className="mb-2 flex justify-between text-xs text-slate-500">
-                    <span>
-                      Upload
-                    </span>
+                    <span>Upload</span>
 
-                    <span>
-                      {uploadProgress}%
-                    </span>
+                    <span>{uploadProgress}%</span>
                   </div>
 
                   <div className="h-2 overflow-hidden rounded-full bg-white/5">
                     <div
                       className="h-full bg-sky-400 transition-all"
                       style={{
-                        width:
-                          `${uploadProgress}%`,
+                        width: `${uploadProgress}%`,
                       }}
                     />
                   </div>
@@ -1414,18 +996,15 @@ export default function MatchCenterPage() {
               ) : null}
 
               <button
-                disabled={
-                  busy ||
-                  ocrProcessing
-                }
+                disabled={busy || ocrProcessing}
                 className="rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] disabled:opacity-50"
               >
                 {ocrProcessing
-                  ? 'Processing Match Result...'
-                  : 'Upload & Scan Screenshot'}
+                  ? "Processing Match Result..."
+                  : "Upload & Scan Screenshot"}
               </button>
             </form>
-          </section>
+          </details>
         ) : null}
 
         {latestOcr ? (
@@ -1442,10 +1021,7 @@ export default function MatchCenterPage() {
               </div>
 
               <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-black">
-                {latestOcr.status.replaceAll(
-                  '_',
-                  ' ',
-                )}
+                {latestOcr.status.replaceAll("_", " ")}
               </span>
             </div>
 
@@ -1461,22 +1037,17 @@ export default function MatchCenterPage() {
               </div>
             ) : null}
 
-            {latestOcr.status ===
-            'FAILED' ? (
+            {latestOcr.status === "FAILED" ? (
               <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-5 text-red-300">
-                <p className="font-black">
-                  OCR processing failed
-                </p>
+                <p className="font-black">OCR processing failed</p>
 
                 <p className="mt-2 text-sm">
-                  {latestOcr.failureReason ||
-                    'Unknown OCR error.'}
+                  {latestOcr.failureReason || "Unknown OCR error."}
                 </p>
               </div>
             ) : null}
 
-            {latestOcr.status ===
-            'COMPLETED' ? (
+            {latestOcr.status === "COMPLETED" ? (
               <div className="mt-6 space-y-5">
                 <div className="grid gap-4 lg:grid-cols-3">
                   <article
@@ -1484,33 +1055,22 @@ export default function MatchCenterPage() {
                       latestOcr.homeNameConfidence,
                     )}`}
                   >
-                    <p className="text-xs font-black uppercase">
-                      Home Name
-                    </p>
+                    <p className="text-xs font-black uppercase">Home Name</p>
 
                     <p className="mt-3 font-mono text-sm">
-                      {latestOcr.detectedHomeName ||
-                        'Not detected'}
+                      {latestOcr.detectedHomeName || "Not detected"}
                     </p>
 
                     <p className="mt-3 text-lg font-black">
-                      {latestOcr.homeMatchedUser
-                        ?.player
-                        ?.identity
+                      {latestOcr.homeMatchedUser?.player?.identity
                         ?.inGameName ||
-                        latestOcr.homeMatchedUser
-                          ?.fullName ||
-                        'Manual verification'}
+                        latestOcr.homeMatchedUser?.fullName ||
+                        "Manual verification"}
                     </p>
 
                     <p className="mt-2 text-xs">
-                      {confidenceLabel(
-                        latestOcr.homeNameConfidence,
-                      )}{' '}
-                      •{' '}
-                      {percentage(
-                        latestOcr.homeNameConfidence,
-                      )}
+                      {confidenceLabel(latestOcr.homeNameConfidence)} •{" "}
+                      {percentage(latestOcr.homeNameConfidence)}
                     </p>
                   </article>
 
@@ -1524,21 +1084,14 @@ export default function MatchCenterPage() {
                     </p>
 
                     <p className="mt-5 text-center text-4xl font-black">
-                      {latestOcr.detectedHomeScore ??
-                        '?'}
-                      {' - '}
-                      {latestOcr.detectedAwayScore ??
-                        '?'}
+                      {latestOcr.detectedHomeScore ?? "?"}
+                      {" - "}
+                      {latestOcr.detectedAwayScore ?? "?"}
                     </p>
 
                     <p className="mt-4 text-center text-xs">
-                      {confidenceLabel(
-                        latestOcr.scoreConfidence,
-                      )}{' '}
-                      •{' '}
-                      {percentage(
-                        latestOcr.scoreConfidence,
-                      )}
+                      {confidenceLabel(latestOcr.scoreConfidence)} •{" "}
+                      {percentage(latestOcr.scoreConfidence)}
                     </p>
                   </article>
 
@@ -1547,60 +1100,47 @@ export default function MatchCenterPage() {
                       latestOcr.awayNameConfidence,
                     )}`}
                   >
-                    <p className="text-xs font-black uppercase">
-                      Away Name
-                    </p>
+                    <p className="text-xs font-black uppercase">Away Name</p>
 
                     <p className="mt-3 font-mono text-sm">
-                      {latestOcr.detectedAwayName ||
-                        'Not detected'}
+                      {latestOcr.detectedAwayName || "Not detected"}
                     </p>
 
                     <p className="mt-3 text-lg font-black">
-                      {latestOcr.awayMatchedUser
-                        ?.player
-                        ?.identity
+                      {latestOcr.awayMatchedUser?.player?.identity
                         ?.inGameName ||
-                        latestOcr.awayMatchedUser
-                          ?.fullName ||
-                        'Manual verification'}
+                        latestOcr.awayMatchedUser?.fullName ||
+                        "Manual verification"}
                     </p>
 
                     <p className="mt-2 text-xs">
-                      {confidenceLabel(
-                        latestOcr.awayNameConfidence,
-                      )}{' '}
-                      •{' '}
-                      {percentage(
-                        latestOcr.awayNameConfidence,
-                      )}
+                      {confidenceLabel(latestOcr.awayNameConfidence)} •{" "}
+                      {percentage(latestOcr.awayNameConfidence)}
                     </p>
                   </article>
                 </div>
 
-                {(latestOcr.scoreConfidence ??
-                  0) <
-                0.5 ? (
+                {(latestOcr.scoreConfidence ?? 0) < 0.5 ? (
                   <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-                    Score confidence is below 50%. FC ARENA did not trust the detected score automatically. Enter the score manually before submission.
+                    Score confidence is below 50%. FC ARENA did not trust the
+                    detected score automatically. Enter the score manually
+                    before submission.
                   </div>
-                ) : (latestOcr.scoreConfidence ??
-                    0) <
-                  0.85 ? (
+                ) : (latestOcr.scoreConfidence ?? 0) < 0.85 ? (
                   <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm text-amber-300">
-                    OCR confidence is moderate. Verify the score carefully before submitting.
+                    OCR confidence is moderate. Verify the score carefully
+                    before submitting.
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-                    OCR confidence is high. Human confirmation is still required.
+                    OCR confidence is high. Human confirmation is still
+                    required.
                   </div>
                 )}
 
                 {canSubmitOcr ? (
                   <form
-                    onSubmit={
-                      submitOcrResult
-                    }
+                    onSubmit={submitOcrResult}
                     className="rounded-2xl border border-white/10 bg-black/10 p-5"
                   >
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
@@ -1612,16 +1152,9 @@ export default function MatchCenterPage() {
                         {home}
 
                         <input
-                          value={
-                            ocrHomeScore
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            setOcrHomeScore(
-                              event.target
-                                .value,
-                            )
+                          value={ocrHomeScore}
+                          onChange={(event) =>
+                            setOcrHomeScore(event.target.value)
                           }
                           type="number"
                           min="0"
@@ -1631,24 +1164,15 @@ export default function MatchCenterPage() {
                         />
                       </label>
 
-                      <span className="pb-4 font-black text-slate-600">
-                        -
-                      </span>
+                      <span className="pb-4 font-black text-slate-600">-</span>
 
                       <label className="grid gap-2 text-sm font-bold">
                         {away}
 
                         <input
-                          value={
-                            ocrAwayScore
-                          }
-                          onChange={(
-                            event,
-                          ) =>
-                            setOcrAwayScore(
-                              event.target
-                                .value,
-                            )
+                          value={ocrAwayScore}
+                          onChange={(event) =>
+                            setOcrAwayScore(event.target.value)
                           }
                           type="number"
                           min="0"
@@ -1664,21 +1188,17 @@ export default function MatchCenterPage() {
                       className="mt-5 w-full rounded-xl bg-emerald-400 px-5 py-3 font-black text-black disabled:opacity-50"
                     >
                       {isLeagueAdmin
-                        ? 'Confirm OCR Result & Update Stats'
-                        : 'Submit OCR Result for Admin Verification'}
+                        ? "Confirm OCR Result & Update Stats"
+                        : "Submit OCR Result for Admin Verification"}
                     </button>
                   </form>
                 ) : null}
 
-                {latestOcr
-                  .resultSubmission ? (
+                {latestOcr.resultSubmission ? (
                   <div className="rounded-2xl border border-sky-400/20 bg-sky-400/5 p-4 text-sm text-sky-300">
-                    OCR result has been submitted. Status:{' '}
+                    OCR result has been submitted. Status:{" "}
                     <strong>
-                      {latestOcr.resultSubmission.status.replaceAll(
-                        '_',
-                        ' ',
-                      )}
+                      {latestOcr.resultSubmission.status.replaceAll("_", " ")}
                     </strong>
                   </div>
                 ) : null}
@@ -1689,8 +1209,7 @@ export default function MatchCenterPage() {
                   </summary>
 
                   <pre className="mt-4 whitespace-pre-wrap text-xs leading-6 text-slate-500">
-                    {latestOcr.rawText ||
-                      'No OCR text extracted.'}
+                    {latestOcr.rawText || "No OCR text extracted."}
                   </pre>
                 </details>
               </div>
@@ -1699,19 +1218,15 @@ export default function MatchCenterPage() {
         ) : null}
 
         {canSubmit ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
+          <section id="result-entry" className="scroll-mt-24 rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-              Manual Fallback
+              Quick score entry
             </p>
 
-            <h2 className="mt-2 text-2xl font-black">
-              Enter Result Manually
-            </h2>
+            <h2 className="mt-2 text-2xl font-black">Enter Result Manually</h2>
 
             <form
-              onSubmit={
-                submitManualResult
-              }
+              onSubmit={submitManualResult}
               className="mt-6 grid grid-cols-[1fr_auto_1fr] items-end gap-4"
             >
               <label className="grid gap-2 text-sm font-bold">
@@ -1719,6 +1234,7 @@ export default function MatchCenterPage() {
 
                 <input
                   name="homeScore"
+                  inputMode="numeric"
                   type="number"
                   min="0"
                   max="99"
@@ -1727,15 +1243,14 @@ export default function MatchCenterPage() {
                 />
               </label>
 
-              <span className="pb-4 font-black text-slate-600">
-                -
-              </span>
+              <span className="pb-4 font-black text-slate-600">-</span>
 
               <label className="grid gap-2 text-sm font-bold">
                 {away}
 
                 <input
                   name="awayScore"
+                  inputMode="numeric"
                   type="number"
                   min="0"
                   max="99"
@@ -1749,16 +1264,16 @@ export default function MatchCenterPage() {
                 className="col-span-3 rounded-xl border border-white/10 bg-white px-5 py-3 font-black text-black disabled:opacity-50"
               >
                 {isLeagueAdmin
-                  ? 'Save Result & Update Stats'
-                  : 'Submit Manual Result'}
+                  ? "Save Result & Update Stats"
+                  : "Submit Manual Result"}
               </button>
             </form>
           </section>
         ) : null}
 
-        {confirmed &&
-        isLeagueAdmin ? (
-          <section className="rounded-[24px] border border-amber-400/20 bg-amber-400/[0.03] p-6">
+        {confirmed && isLeagueAdmin ? (
+          <details className="rounded-[24px] border border-amber-400/20 bg-amber-400/[0.03] p-6">
+            <summary className="cursor-pointer font-semibold">Manage verified result</summary>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">
               Admin Result Integrity
             </p>
@@ -1767,12 +1282,7 @@ export default function MatchCenterPage() {
               Correct Confirmed Result
             </h2>
 
-            <form
-              onSubmit={
-                correctResult
-              }
-              className="mt-6 grid gap-4"
-            >
+            <form onSubmit={correctResult} className="mt-6 grid gap-4">
               <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
                 <label className="grid gap-2 text-sm font-bold">
                   {home}
@@ -1782,17 +1292,13 @@ export default function MatchCenterPage() {
                     type="number"
                     min="0"
                     max="99"
-                    defaultValue={
-                      confirmed.homeScore
-                    }
+                    defaultValue={confirmed.homeScore}
                     required
                     className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
                   />
                 </label>
 
-                <span className="pb-4 font-black text-slate-600">
-                  -
-                </span>
+                <span className="pb-4 font-black text-slate-600">-</span>
 
                 <label className="grid gap-2 text-sm font-bold">
                   {away}
@@ -1802,9 +1308,7 @@ export default function MatchCenterPage() {
                     type="number"
                     min="0"
                     max="99"
-                    defaultValue={
-                      confirmed.awayScore
-                    }
+                    defaultValue={confirmed.awayScore}
                     required
                     className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
                   />
@@ -1831,26 +1335,22 @@ export default function MatchCenterPage() {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
-                    void reverseConfirmedResult()
-                  }
+                  onClick={() => void reverseConfirmedResult()}
                   className="rounded-xl border border-red-400/30 px-5 py-3 font-black text-red-300"
                 >
                   Reverse Result Completely
                 </button>
               </div>
             </form>
-          </section>
+          </details>
         ) : null}
 
-        <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
+        <section id="result-verification" className="scroll-mt-24 rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-2xl font-black">
-              Result Verification
-            </h2>
+            <h2 className="text-2xl font-black">Result Verification</h2>
 
             <Link
-              href={'/matches/' + params.matchId + '/dispute'}
+              href={"/matches/" + params.matchId + "/dispute"}
               className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] px-4 py-2 text-sm font-black text-amber-300 transition hover:bg-amber-400/[0.08]"
             >
               Dispute Center
@@ -1858,105 +1358,83 @@ export default function MatchCenterPage() {
           </div>
 
           <div className="mt-5 space-y-3">
-            {submissions.map(
-              (submission) => {
-                const active =
-                  submission.id ===
-                  confirmedId;
+            {submissions.map((submission) => {
+              const active = submission.id === confirmedId;
 
-                return (
-                  <article
-                    key={
-                      submission.id
-                    }
-                    className={`rounded-2xl border p-5 ${
-                      active
-                        ? 'border-emerald-400/30 bg-emerald-400/[0.03]'
-                        : 'border-white/10 bg-black/10'
-                    }`}
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-2xl font-black">
-                            {submission.homeScore}
-                            {' - '}
-                            {submission.awayScore}
-                          </p>
-
-                          <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] font-black text-slate-400">
-                            {submission.status.replaceAll(
-                              '_',
-                              ' ',
-                            )}
-                          </span>
-
-                          {submission.source ? (
-                            <span className="rounded-full border border-sky-400/20 px-3 py-1 text-[10px] font-black text-sky-300">
-                              {submission.source}
-                            </span>
-                          ) : null}
-
-                          {active ? (
-                            <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-black text-emerald-300">
-                              ACTIVE RESULT
-                            </span>
-                          ) : null}
-                        </div>
-
-                        <p className="mt-2 text-sm text-slate-500">
-                          Submitted by{' '}
-                          {submission.submittedBy
-                            .player?.identity
-                            ?.inGameName ||
-                            submission.submittedBy
-                              .fullName}
+              return (
+                <article
+                  key={submission.id}
+                  className={`rounded-2xl border p-5 ${
+                    active
+                      ? "border-emerald-400/30 bg-emerald-400/[0.03]"
+                      : "border-white/10 bg-black/10"
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-2xl font-black">
+                          {submission.homeScore}
+                          {" - "}
+                          {submission.awayScore}
                         </p>
 
-                        {submission.rejectionReason ? (
-                          <p className="mt-2 text-sm text-red-300">
-                            {submission.rejectionReason}
-                          </p>
+                        <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] font-black text-slate-400">
+                          {submission.status.replaceAll("_", " ")}
+                        </span>
+
+                        {submission.source ? (
+                          <span className="rounded-full border border-sky-400/20 px-3 py-1 text-[10px] font-black text-sky-300">
+                            {submission.source}
+                          </span>
+                        ) : null}
+
+                        {active ? (
+                          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-black text-emerald-300">
+                            ACTIVE RESULT
+                          </span>
                         ) : null}
                       </div>
 
-                      {isLeagueAdmin &&
-                      submission.status ===
-                        'PENDING_VERIFICATION' ? (
-                        <div className="flex gap-2">
-                          <button
-                            disabled={busy}
-                            onClick={() =>
-                              void confirmResult(
-                                submission.id,
-                              )
-                            }
-                            className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-black text-black"
-                          >
-                            Confirm
-                          </button>
+                      <p className="mt-2 text-sm text-slate-500">
+                        Submitted by{" "}
+                        {submission.submittedBy.player?.identity?.inGameName ||
+                          submission.submittedBy.fullName}
+                      </p>
 
-                          <button
-                            disabled={busy}
-                            onClick={() =>
-                              void rejectResult(
-                                submission.id,
-                              )
-                            }
-                            className="rounded-xl border border-red-400/20 px-4 py-2 text-sm font-black text-red-300"
-                          >
-                            Reject
-                          </button>
-                        </div>
+                      {submission.rejectionReason ? (
+                        <p className="mt-2 text-sm text-red-300">
+                          {submission.rejectionReason}
+                        </p>
                       ) : null}
                     </div>
-                  </article>
-                );
-              },
-            )}
 
-            {submissions.length ===
-            0 ? (
+                    {isLeagueAdmin &&
+                    submission.status === "PENDING_VERIFICATION" ? (
+                      <div className="flex gap-2">
+                        <button
+                          disabled={busy}
+                          onClick={() => void confirmResult(submission.id)}
+                          className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-black text-black"
+                        >
+                          Confirm
+                        </button>
+
+                        <button
+                          disabled={busy}
+                          onClick={() => void rejectResult(submission.id)}
+                          className="rounded-xl border border-red-400/20 px-4 py-2 text-sm font-black text-red-300"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
+
+            {submissions.length === 0 ? (
               <p className="py-8 text-center text-sm text-slate-600">
                 No result submissions yet.
               </p>

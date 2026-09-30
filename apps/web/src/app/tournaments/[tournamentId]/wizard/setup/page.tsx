@@ -350,6 +350,7 @@ export default function TournamentSetupPage() {
       FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+    const saveAndExit = ((event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null)?.value === "save-exit";
 
     const form =
       new FormData(
@@ -461,7 +462,7 @@ export default function TournamentSetupPage() {
 
 
       router.push(
-        `/tournaments/${tournamentId}/wizard/teams`,
+        saveAndExit ? `/tournaments/${tournamentId}` : `/tournaments/${tournamentId}/wizard/teams`,
       );
     } catch (
       err
@@ -1010,8 +1011,9 @@ export default function TournamentSetupPage() {
           </div>
 
 
-          <div className="sticky bottom-20 flex justify-end border-t border-white/10 bg-[#0a1018]/95 pt-5 backdrop-blur lg:bottom-0">
+          <div className="sticky bottom-20 flex flex-wrap gap-3 justify-end border-t border-white/10 bg-[#0a1018]/95 pt-5 backdrop-blur lg:bottom-0">
 
+            <button type="submit" name="intent" value="save-exit" disabled={busy} className="theme-secondary-button rounded-xl px-5 py-3 font-semibold">Save draft & exit</button>
             <button
               type="submit"
               disabled={

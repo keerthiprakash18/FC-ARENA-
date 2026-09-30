@@ -118,7 +118,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body data-ui-build="player-experience-v2">
+      <body data-ui-build="competition-experience-v3">
         <ThemeProvider>
           <ConfirmationProvider />
           <ServiceWorkerRegister />

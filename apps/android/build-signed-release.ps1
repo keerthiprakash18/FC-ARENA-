@@ -114,24 +114,21 @@ $FinalAab = Join-Path $ReleaseDir $FinalName
 $MetadataFile = "$FinalAab.sha256.txt"
 $LocalProperties = Join-Path $AndroidDir "local.properties"
 
-# Gradle's Android plugin needs an SDK path. Reuse an existing local.properties,
-# otherwise discover the normal Windows SDK locations and create the git-ignored
-# local.properties automatically.
-if (-not (Test-Path $LocalProperties -PathType Leaf)) {
-    $sdkCandidates = @(
-        $env:ANDROID_SDK_ROOT,
-        $env:ANDROID_HOME,
-        $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Android\Sdk" })
-    ) | Where-Object { $_ -and (Test-Path $_ -PathType Container) }
+# Gradle's Android plugin needs an SDK path. Java .properties treats backslashes
+# as escape characters, so always persist the Windows SDK path with forward slashes.
+$sdkCandidates = @(
+    $env:ANDROID_SDK_ROOT,
+    $env:ANDROID_HOME,
+    $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Android\Sdk" })
+) | Where-Object { $_ -and (Test-Path $_ -PathType Container) }
 
-    if ($sdkCandidates.Count -eq 0) {
-        throw "Android SDK not found. Install Android SDK 36 or set ANDROID_SDK_ROOT/ANDROID_HOME."
-    }
-
-    $sdkPath = (Resolve-Path $sdkCandidates[0]).Path.Replace("\\", "/")
-    Set-Content -Path $LocalProperties -Value "sdk.dir=$sdkPath" -Encoding ASCII
-    Write-Host "Created git-ignored local.properties for Android SDK: $sdkPath"
+if ($sdkCandidates.Count -eq 0) {
+    throw "Android SDK not found. Install Android SDK 36 or set ANDROID_SDK_ROOT/ANDROID_HOME."
 }
+
+$sdkPath = (Resolve-Path $sdkCandidates[0]).Path.Replace("\", "/")
+Set-Content -Path $LocalProperties -Value "sdk.dir=$sdkPath" -Encoding ASCII
+Write-Host "Android SDK local.properties configured: $sdkPath"
 
 Write-Host ""
 Write-Host "FC ARENA Build 10 signed release"

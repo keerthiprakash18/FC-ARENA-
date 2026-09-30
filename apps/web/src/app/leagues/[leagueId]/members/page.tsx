@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -234,9 +235,9 @@ export default function LeagueMembersPage() {
       LeagueMember,
   ) {
     if (
-      !window.confirm(
+      !(await confirmAction(
         `Remove ${member.user.inGameName || member.user.fullName} from this League?`,
-      )
+      ))
     ) {
       return;
     }

@@ -33,7 +33,7 @@ export default function AboutPage() {
         icon="info"
       >
         <p>
-          FC ARENA v1.0.0 · More Than A Game.
+          FC ARENA · Player Experience v2 · 30 September 2026.
         </p>
       </PublicInfoCard>
     </PublicInfoPage>

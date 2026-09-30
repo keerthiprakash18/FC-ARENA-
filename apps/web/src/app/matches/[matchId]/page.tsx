@@ -1,5 +1,7 @@
 'use client';
 
+import { ApiError } from "@/lib/api";
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 import {
   useParams,
@@ -437,10 +439,9 @@ export default function MatchCenterPage() {
         setUser(current);
 
         await refreshMatchCenter();
-      } catch {
-        router.replace(
-          '/dashboard',
-        );
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) router.replace("/login");
+        else setError("Unable to load this match. Please retry.");
       }
     }
 
@@ -892,9 +893,9 @@ export default function MatchCenterPage() {
     submissionId: string,
   ) {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Confirm this result? Statistics and standings will be updated.',
-      )
+      ))
     ) {
       return;
     }
@@ -1037,9 +1038,9 @@ export default function MatchCenterPage() {
     }
 
     if (
-      !window.confirm(
+      !(await confirmAction(
         `Correct result to ${homeScore}-${awayScore}?`,
-      )
+      ))
     ) {
       return;
     }
@@ -1112,9 +1113,9 @@ export default function MatchCenterPage() {
     }
 
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Reverse this confirmed result and remove its statistics?',
-      )
+      ))
     ) {
       return;
     }
@@ -1161,6 +1162,8 @@ export default function MatchCenterPage() {
       setBusy(false);
     }
   }
+
+  if ((!user || !match) && error) return <AppShell><div role="alert" className="theme-panel rounded-xl p-6"><p>{error}</p><button className="theme-primary-button mt-4 rounded-lg px-4" onClick={() => window.location.reload()}>Retry</button></div></AppShell>;
 
   if (
     !user ||

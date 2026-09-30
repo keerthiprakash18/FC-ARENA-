@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -525,12 +526,12 @@ export default function TeamsWizardPage() {
     entry: Entry,
   ) {
     const confirmed =
-      window.confirm(
+      (await confirmAction(
         entry.fixtureCount >
         0
           ? `Delete ${entry.entryName ?? 'this team'}? It already has ${entry.fixtureCount} fixture(s).`
           : `Delete ${entry.entryName ?? 'this team'}?`,
-      );
+      ));
 
     if (!confirmed) {
       return;

@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -125,9 +126,9 @@ export default function ReviewPage() {
 
   async function publish() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Publish this Tournament? It will become active.',
-      )
+      ))
     ) {
       return;
     }

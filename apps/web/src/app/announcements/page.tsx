@@ -11,8 +11,8 @@ export default function AnnouncementsPage() {
       subtitle="A dedicated space for community notices."
     >
       <FcEmptyState
-        title="Announcements backend not available yet"
-        description="The current system exposes Notifications but does not provide a separate Announcements API. No placeholder posts are shown."
+        title="You’re all caught up"
+        description="Check your notifications for match reminders, invitations and updates from your leagues."
         actionLabel="Open Notifications"
         actionHref="/notifications"
       />

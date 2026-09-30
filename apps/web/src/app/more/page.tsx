@@ -1,40 +1,27 @@
-'use client';
+"use client";
 
-import {
-  useRouter,
-} from 'next/navigation';
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  AppShell,
-} from '@/components/app/app-shell';
+import { AppShell } from "@/components/app/app-shell";
 
 import {
   FcLoadingScreen,
   FcMenuRow,
   FcPageHeader,
   FcPanel,
-  FcSectionHeading,
   FcStatusBadge,
-} from '@/components/fc/fc-ui';
+} from "@/components/fc/fc-ui";
 
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
   logoutCurrentUser,
-} from '@/lib/auth-client';
-
+} from "@/lib/auth-client";
 
 interface Membership {
-  adminRole:
-    | 'OWNER'
-    | 'ADMIN'
-    | null;
+  adminRole: "OWNER" | "ADMIN" | null;
 
   league: {
     id: string;
@@ -42,236 +29,119 @@ interface Membership {
   };
 }
 
-
 interface NotificationData {
   unreadCount: number;
 }
 
-
 export default function MorePage() {
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [
-    user,
-    setUser,
-  ] =
-    useState<CurrentUser | null>(
-      null,
-    );
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  const [
-    memberships,
-    setMemberships,
-  ] =
-    useState<Membership[]>(
-      [],
-    );
+  const [memberships, setMemberships] = useState<Membership[]>([]);
 
-  const [
-    unread,
-    setUnread,
-  ] =
-    useState(
-      0,
-    );
+  const [unread, setUnread] = useState(0);
 
-  const [
-    loggingOut,
-    setLoggingOut,
-  ] =
-    useState(false);
-
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     void (async () => {
       try {
-        const [
-          current,
-          leagues,
-          notifications,
-        ] =
-          await Promise.all([
-            getCurrentUser(),
+        const [current, leagues, notifications] = await Promise.all([
+          getCurrentUser(),
 
-            authenticatedRequest<{
-              data: {
-                leagues:
-                  Membership[];
-              };
-            }>(
-              '/leagues/my',
-            ),
+          authenticatedRequest<{
+            data: {
+              leagues: Membership[];
+            };
+          }>("/leagues/my"),
 
-            authenticatedRequest<{
-              success: true;
-              data:
-                NotificationData;
-              error: null;
-            }>(
-              '/notifications',
-            ).catch(
-              () => ({
-                success:
-                  true as const,
+          authenticatedRequest<{
+            success: true;
+            data: NotificationData;
+            error: null;
+          }>("/notifications").catch(() => ({
+            success: true as const,
 
-                data: {
-                  unreadCount:
-                    0,
-                },
+            data: {
+              unreadCount: 0,
+            },
 
-                error:
-                  null,
-              }),
-            ),
-          ]);
+            error: null,
+          })),
+        ]);
 
-        setUser(
-          current,
-        );
+        setUser(current);
 
-        setMemberships(
-          leagues
-            .data
-            .leagues,
-        );
+        setMemberships(leagues.data.leagues);
 
-        setUnread(
-          notifications
-            .data
-            .unreadCount,
-        );
+        setUnread(notifications.data.unreadCount);
       } catch {
-        router.replace(
-          '/login',
-        );
+        router.replace("/login");
       }
     })();
-  }, [
-    router,
-  ]);
+  }, [router]);
 
-
-  const isAdmin =
-    useMemo(
-      () =>
-        memberships.some(
-          (
-            membership,
-          ) =>
-            Boolean(
-              membership.adminRole,
-            ),
-        ),
-      [
-        memberships,
-      ],
-    );
-
+  const isAdmin = useMemo(
+    () => memberships.some((membership) => Boolean(membership.adminRole)),
+    [memberships],
+  );
 
   async function logout() {
-    if (
-      loggingOut
-    ) {
+    if (loggingOut) {
       return;
     }
 
-    setLoggingOut(
-      true,
-    );
+    setLoggingOut(true);
 
     try {
       await logoutCurrentUser();
 
-      router.replace(
-        '/login',
-      );
+      router.replace("/login");
 
       router.refresh();
     } finally {
-      setLoggingOut(
-        false,
-      );
+      setLoggingOut(false);
     }
   }
 
-
   if (!user) {
-    return (
-      <FcLoadingScreen
-        label="Loading More..."
-      />
-    );
+    return <FcLoadingScreen label="Loading More..." />;
   }
 
-
-  const inGameName =
-    user.player
-      ?.identity
-      ?.inGameName ||
-    user.fullName;
-
+  const inGameName = user.player?.identity?.inGameName || user.fullName;
 
   return (
-    <AppShell
-      playerName={
-        inGameName
-      }
-    >
+    <AppShell playerName={inGameName}>
       <div className="space-y-6">
         <FcPageHeader
           title="More"
           subtitle="Profile, career, community and account tools."
           action={
             <FcStatusBadge
-              label={
-                isAdmin
-                  ? 'Admin Access'
-                  : 'Player Access'
-              }
-              tone={
-                isAdmin
-                  ? 'amber'
-                  : 'cyan'
-              }
+              label={isAdmin ? "Admin Access" : "Player Access"}
+              tone={isAdmin ? "amber" : "cyan"}
             />
           }
         />
 
-
         <FcPanel className="p-5">
           <div className="flex items-center gap-4">
             <div className="grid h-11 w-11 place-items-center rounded-xl border border-[#2B3948] bg-[#18212C] text-sm font-semibold text-[#38BDF8]">
-              {inGameName
-                .slice(
-                  0,
-                  2,
-                )
-                .toUpperCase()}
+              {inGameName.slice(0, 2).toUpperCase()}
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate font-black">
-                {
-                  inGameName
-                }
-              </p>
+              <p className="truncate font-black">{inGameName}</p>
 
               <p className="mt-1 font-mono text-[10px] text-sky-400">
-                {user.player
-                  ?.playerCode ||
-                  'FC ARENA Player'}
+                {user.player?.playerCode || "FC ARENA Player"}
               </p>
             </div>
           </div>
         </FcPanel>
 
-
-        <section>
-          <FcSectionHeading
-            eyebrow="Player"
-            title="Career & Identity"
-          />
+        <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">Career & Identity</summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <FcMenuRow
@@ -304,14 +174,9 @@ export default function MorePage() {
               tone="amber"
             />
           </div>
-        </section>
+        </details>
 
-
-        <section>
-          <FcSectionHeading
-            eyebrow="Competition"
-            title="Results & Records"
-          />
+        <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">Results & Records</summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <FcMenuRow
@@ -343,14 +208,9 @@ export default function MorePage() {
               description="Fixture and match workflow guide"
             />
           </div>
-        </section>
+        </details>
 
-
-        <section>
-          <FcSectionHeading
-            eyebrow="Community"
-            title="People & Activity"
-          />
+        <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">People & Activity</summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <FcMenuRow
@@ -372,11 +232,7 @@ export default function MorePage() {
               icon="●"
               title="Notifications"
               description="Competition and system activity"
-              badge={
-                unread > 0
-                  ? unread
-                  : undefined
-              }
+              badge={unread > 0 ? unread : undefined}
             />
 
             <FcMenuRow
@@ -387,15 +243,10 @@ export default function MorePage() {
               tone="slate"
             />
           </div>
-        </section>
-
+        </details>
 
         {isAdmin ? (
-          <section>
-            <FcSectionHeading
-              eyebrow="Authorized"
-              title="Admin"
-            />
+          <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">Admin</summary>
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <FcMenuRow
@@ -438,15 +289,10 @@ export default function MorePage() {
                 tone="red"
               />
             </div>
-          </section>
+          </details>
         ) : null}
 
-
-        <section>
-          <FcSectionHeading
-            eyebrow="Account"
-            title="App & Support"
-          />
+        <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">App & Support</summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <FcMenuRow
@@ -510,22 +356,15 @@ export default function MorePage() {
             />
           </div>
 
-
           <button
             type="button"
-            disabled={
-              loggingOut
-            }
-            onClick={() =>
-              void logout()
-            }
+            disabled={loggingOut}
+            onClick={() => void logout()}
             className="theme-danger-button mt-4 min-h-11 w-full rounded-[10px] border px-4 text-sm font-semibold transition disabled:opacity-50"
           >
-            {loggingOut
-              ? 'Signing Out...'
-              : 'Logout'}
+            {loggingOut ? "Signing Out..." : "Logout"}
           </button>
-        </section>
+        </details>
       </div>
     </AppShell>
   );

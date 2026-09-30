@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useEffect,
   useRef,
@@ -301,9 +302,9 @@ export function TournamentLogoUpload({
     }
 
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Remove the Tournament logo?',
-      )
+      ))
     ) {
       return;
     }

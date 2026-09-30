@@ -1,26 +1,16 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import {
-  useRouter,
-} from 'next/navigation';
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { PlayerOnboarding } from "@/components/fc/player-onboarding";
+import { ApiError } from "@/lib/api";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  AppShell,
-} from '@/components/app/app-shell';
+import { AppShell } from "@/components/app/app-shell";
 
-import type {
-  FcIconName,
-} from '@/components/fc/fc-icons';
+import type { FcIconName } from "@/components/fc/fc-icons";
 
-import {
-  FcIcon,
-} from '@/components/fc/fc-icons';
+import { FcIcon } from "@/components/fc/fc-icons";
 
 import {
   FcCrest,
@@ -29,14 +19,13 @@ import {
   FcQuickActionTile,
   FcStatCard,
   FcStatusBadge,
-} from '@/components/fc/fc-ui';
+} from "@/components/fc/fc-ui";
 
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
-} from '@/lib/auth-client';
-
+} from "@/lib/auth-client";
 
 interface CareerData {
   profile: {
@@ -93,7 +82,7 @@ interface CareerData {
 
   matchHistory: Array<{
     id: string;
-    outcome: 'W' | 'D' | 'L';
+    outcome: "W" | "D" | "L";
     confirmedAt: string;
 
     tournament: {
@@ -116,16 +105,10 @@ interface CareerData {
   }>;
 }
 
-
 interface Membership {
-  membershipType:
-    | 'PRIMARY'
-    | 'SECONDARY';
+  membershipType: "PRIMARY" | "SECONDARY";
 
-  adminRole:
-    | 'OWNER'
-    | 'ADMIN'
-    | null;
+  adminRole: "OWNER" | "ADMIN" | null;
 
   league: {
     id: string;
@@ -137,7 +120,6 @@ interface Membership {
     maxMembers: number;
   };
 }
-
 
 interface Tournament {
   id: string;
@@ -152,7 +134,6 @@ interface Tournament {
   startAt: string | null;
 }
 
-
 interface FixtureEntry {
   id: string;
   entryName: string | null;
@@ -163,7 +144,6 @@ interface FixtureEntry {
     inGameName: string | null;
   }>;
 }
-
 
 interface Fixture {
   id: string;
@@ -181,99 +161,54 @@ interface Fixture {
   } | null;
 }
 
-
-interface DashboardTournament
-  extends Tournament {
+interface DashboardTournament extends Tournament {
   leagueId: string;
   leagueName: string;
 }
 
-
-interface DashboardFixture
-  extends Fixture {
+interface DashboardFixture extends Fixture {
   tournamentId: string;
   tournamentName: string;
   leagueName: string;
 }
 
-
-function entryName(
-  entry: FixtureEntry | null,
-) {
+function entryName(entry: FixtureEntry | null) {
   if (!entry) {
-    return 'TBD';
+    return "TBD";
   }
 
   return (
     entry.entryName ||
-    entry.members[0]
-      ?.inGameName ||
-    entry.members[0]
-      ?.fullName ||
-    'Entry'
+    entry.members[0]?.inGameName ||
+    entry.members[0]?.fullName ||
+    "Entry"
   );
 }
 
-
-function fixtureIsOpen(
-  fixture: DashboardFixture,
-) {
+function fixtureIsOpen(fixture: DashboardFixture) {
   return (
-    ![
-      'COMPLETED',
-      'CANCELLED',
-    ].includes(
-      fixture.status,
-    ) &&
-    ![
-      'COMPLETED',
-      'CANCELLED',
-    ].includes(
-      fixture.match
-        ?.status ??
-        '',
-    )
+    !["COMPLETED", "CANCELLED"].includes(fixture.status) &&
+    !["COMPLETED", "CANCELLED"].includes(fixture.match?.status ?? "")
   );
 }
 
+function sortUpcoming(first: DashboardFixture, second: DashboardFixture) {
+  const now = Date.now();
 
-function sortUpcoming(
-  first: DashboardFixture,
-  second: DashboardFixture,
-) {
-  const now =
-    Date.now();
+  const firstTime = first.scheduledAt
+    ? new Date(first.scheduledAt).getTime()
+    : null;
 
-  const firstTime =
-    first.scheduledAt
-      ? new Date(
-          first.scheduledAt,
-        ).getTime()
-      : null;
+  const secondTime = second.scheduledAt
+    ? new Date(second.scheduledAt).getTime()
+    : null;
 
-  const secondTime =
-    second.scheduledAt
-      ? new Date(
-          second.scheduledAt,
-        ).getTime()
-      : null;
+  const firstFuture = firstTime !== null && firstTime >= now;
 
-  const firstFuture =
-    firstTime !== null &&
-    firstTime >= now;
+  const secondFuture = secondTime !== null && secondTime >= now;
 
-  const secondFuture =
-    secondTime !== null &&
-    secondTime >= now;
-
-  if (
-    firstFuture &&
-    secondFuture
-  ) {
-    return (
-      firstTime! -
-      secondTime!
-    );
+  if (firstFuture && secondFuture) {
+    return firstTime! - secondTime!;
   }
 
   if (firstFuture) {
@@ -284,76 +219,45 @@ function sortUpcoming(
     return 1;
   }
 
-  if (
-    firstTime === null &&
-    secondTime === null
-  ) {
-    return (
-      first.sequence -
-      second.sequence
-    );
+  if (firstTime === null && secondTime === null) {
+    return first.sequence - second.sequence;
   }
 
-  if (
-    firstTime === null
-  ) {
+  if (firstTime === null) {
     return -1;
   }
 
-  if (
-    secondTime === null
-  ) {
+  if (secondTime === null) {
     return 1;
   }
 
-  return (
-    first.sequence -
-    second.sequence
-  );
+  return first.sequence - second.sequence;
 }
-
 
 function fixtureBelongsToUser(
   fixture: DashboardFixture,
   userId: string,
-  registrationId:
-    string | null,
+  registrationId: string | null,
 ) {
   if (
     registrationId &&
-    (
-      fixture.home?.id ===
-        registrationId ||
-      fixture.away?.id ===
-        registrationId
-    )
+    (fixture.home?.id === registrationId || fixture.away?.id === registrationId)
   ) {
     return true;
   }
 
   return [
-    ...(fixture.home
-      ?.members ??
-      []),
+    ...(fixture.home?.members ?? []),
 
-    ...(fixture.away
-      ?.members ??
-      []),
-  ].some(
-    (
-      member,
-    ) =>
-      member.id ===
-      userId,
-  );
+    ...(fixture.away?.members ?? []),
+  ].some((member) => member.id === userId);
 }
-
 
 function SectionTitle({
   icon,
   title,
   href,
-  linkLabel = 'View All →',
+  linkLabel = "View All →",
 }: {
   icon: FcIconName;
   title: string;
@@ -363,11 +267,11 @@ function SectionTitle({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <span className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border" aria-hidden="true">
-          <FcIcon
-            name={icon}
-            size={19}
-          />
+        <span
+          className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border"
+          aria-hidden="true"
+        >
+          <FcIcon name={icon} size={19} />
         </span>
 
         <h2 className="theme-text fc-display text-[19px] font-semibold">
@@ -387,66 +291,25 @@ function SectionTitle({
   );
 }
 
-
 export default function DashboardPage() {
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [
-    user,
-    setUser,
-  ] =
-    useState<CurrentUser | null>(
-      null,
-    );
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  const [
-    career,
-    setCareer,
-  ] =
-    useState<CareerData | null>(
-      null,
-    );
+  const [career, setCareer] = useState<CareerData | null>(null);
 
-  const [
-    memberships,
-    setMemberships,
-  ] =
-    useState<Membership[]>(
-      [],
-    );
+  const [memberships, setMemberships] = useState<Membership[]>([]);
 
-  const [
-    tournaments,
-    setTournaments,
-  ] =
-    useState<DashboardTournament[]>(
-      [],
-    );
+  const [tournaments, setTournaments] = useState<DashboardTournament[]>([]);
 
-  const [
-    fixtures,
-    setFixtures,
-  ] =
-    useState<DashboardFixture[]>(
-      [],
-    );
+  const [fixtures, setFixtures] = useState<DashboardFixture[]>([]);
 
-  const [
-    error,
-    setError,
-  ] =
-    useState('');
-
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function load() {
       try {
-        const [
-          currentUser,
-          careerResponse,
-          leaguesResponse,
-        ] =
+        const [currentUser, careerResponse, leaguesResponse] =
           await Promise.all([
             getCurrentUser(),
 
@@ -454,402 +317,209 @@ export default function DashboardPage() {
               success: true;
               data: CareerData;
               error: null;
-            }>(
-              '/players/me/career',
-            ),
+            }>("/players/me/career"),
 
             authenticatedRequest<{
               data: {
-                leagues:
-                  Membership[];
+                leagues: Membership[];
               };
-            }>(
-              '/leagues/my',
-            ),
+            }>("/leagues/my"),
           ]);
 
-        setUser(
-          currentUser,
-        );
+        setUser(currentUser);
 
-        setCareer(
-          careerResponse.data,
-        );
+        setCareer(careerResponse.data);
 
-        const leagues =
-          leaguesResponse
-            .data
-            .leagues;
+        const leagues = leaguesResponse.data.leagues;
 
-        setMemberships(
-          leagues,
-        );
+        setMemberships(leagues);
 
         const primary =
           leagues.find(
-            (
-              membership,
-            ) =>
-              membership.membershipType ===
-              'PRIMARY',
-          ) ??
-          leagues[0];
+            (membership) => membership.membershipType === "PRIMARY",
+          ) ?? leagues[0];
 
         if (!primary) {
           return;
         }
 
-        const tournamentResponse =
-          await authenticatedRequest<{
-            data: {
-              tournaments:
-                Tournament[];
-            };
-          }>(
-            `/leagues/${primary.league.id}/tournaments`,
-          );
+        const tournamentResponse = await authenticatedRequest<{
+          data: {
+            tournaments: Tournament[];
+          };
+        }>(`/leagues/${primary.league.id}/tournaments`);
 
-        const dashboardTournaments =
-          tournamentResponse
-            .data
-            .tournaments
-            .map(
-              (
-                tournament,
-              ) => ({
-                ...tournament,
+        const dashboardTournaments = tournamentResponse.data.tournaments.map(
+          (tournament) => ({
+            ...tournament,
 
-                leagueId:
-                  primary.league.id,
+            leagueId: primary.league.id,
 
-                leagueName:
-                  primary.league.name,
-              }),
-            );
-
-        setTournaments(
-          dashboardTournaments,
+            leagueName: primary.league.name,
+          }),
         );
 
-        const fixtureGroups =
-          await Promise.all(
-            dashboardTournaments.map(
-              async (
-                tournament,
-              ) => {
-                try {
-                  const response =
-                    await authenticatedRequest<{
-                      data: {
-                        fixtures:
-                          Fixture[];
-                      };
-                    }>(
-                      `/tournaments/${tournament.id}/fixtures`,
-                    );
+        setTournaments(dashboardTournaments);
 
-                  return response
-                    .data
-                    .fixtures
-                    .map(
-                      (
-                        fixture,
-                      ) => ({
-                        ...fixture,
+        const fixtureGroups = await Promise.all(
+          dashboardTournaments.map(async (tournament) => {
+            try {
+              const response = await authenticatedRequest<{
+                data: {
+                  fixtures: Fixture[];
+                };
+              }>(`/tournaments/${tournament.id}/fixtures`);
 
-                        tournamentId:
-                          tournament.id,
+              return response.data.fixtures.map((fixture) => ({
+                ...fixture,
 
-                        tournamentName:
-                          tournament.name,
+                tournamentId: tournament.id,
 
-                        leagueName:
-                          primary
-                            .league
-                            .name,
-                      }),
-                    );
-                } catch {
-                  return [];
-                }
-              },
-            ),
-          );
+                tournamentName: tournament.name,
 
-        setFixtures(
-          fixtureGroups.flat(),
+                leagueName: primary.league.name,
+              }));
+            } catch {
+              return [];
+            }
+          }),
         );
-      } catch (
-        err
-      ) {
-        try {
-          await getCurrentUser();
-        } catch {
-          router.replace(
-            '/login',
-          );
 
-          return;
-        }
-
+        setFixtures(fixtureGroups.flat());
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) { router.replace("/login"); return; }
         setError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load dashboard.',
+          err instanceof Error ? err.message : "Unable to load dashboard.",
         );
       }
     }
 
     void load();
-  }, [
-    router,
-  ]);
+  }, [router]);
 
+  const primaryMembership = useMemo(
+    () =>
+      memberships.find(
+        (membership) => membership.membershipType === "PRIMARY",
+      ) ??
+      memberships[0] ??
+      null,
+    [memberships],
+  );
 
-  const primaryMembership =
-    useMemo(
-      () =>
-        memberships.find(
-          (
-            membership,
-          ) =>
-            membership.membershipType ===
-            'PRIMARY',
-        ) ??
-        memberships[0] ??
-        null,
-      [
-        memberships,
-      ],
-    );
+  const activeTournament = useMemo(
+    () =>
+      tournaments.find(
+        (tournament) => !["COMPLETED", "CANCELLED"].includes(tournament.status),
+      ) ?? null,
+    [tournaments],
+  );
 
+  const registrationIdsByTournament = useMemo(
+    () =>
+      new Map(
+        (career?.tournamentHistory ?? []).map((entry) => [
+          entry.tournament.id,
 
-  const activeTournament =
-    useMemo(
-      () =>
-        tournaments.find(
-          (
-            tournament,
-          ) =>
-            ![
-              'COMPLETED',
-              'CANCELLED',
-            ].includes(
-              tournament.status,
-            ),
-        ) ??
-        null,
-      [
-        tournaments,
-      ],
-    );
+          entry.registration.id,
+        ]),
+      ),
+    [career],
+  );
 
+  const personalOpenFixtures = useMemo(() => {
+    if (!user) {
+      return [];
+    }
 
-  const registrationIdsByTournament =
-    useMemo(
-      () =>
-        new Map(
-          (
-            career
-              ?.tournamentHistory ??
-            []
-          ).map(
-            (
-              entry,
-            ) => [
-              entry.tournament
-                .id,
-
-              entry.registration
-                .id,
-            ],
+    return fixtures
+      .filter(
+        (fixture) =>
+          fixtureIsOpen(fixture) &&
+          fixtureBelongsToUser(
+            fixture,
+            user.id,
+            registrationIdsByTournament.get(fixture.tournamentId) ?? null,
           ),
-        ),
-      [
-        career,
-      ],
-    );
+      )
+      .sort(sortUpcoming);
+  }, [fixtures, registrationIdsByTournament, user]);
 
+  const nextFixture = personalOpenFixtures[0] ?? null;
 
-  const personalOpenFixtures =
-    useMemo(
-      () => {
-        if (!user) {
-          return [];
-        }
+  const activeTournamentNextFixture = useMemo(() => {
+    if (!activeTournament) {
+      return null;
+    }
 
-        return fixtures
-          .filter(
-            (
-              fixture,
-            ) =>
-              fixtureIsOpen(
-                fixture,
-              ) &&
-              fixtureBelongsToUser(
-                fixture,
-                user.id,
-                registrationIdsByTournament.get(
-                  fixture.tournamentId,
-                ) ??
-                  null,
-              ),
-          )
-          .sort(
-            sortUpcoming,
-          );
-      },
-      [
-        fixtures,
-        registrationIdsByTournament,
-        user,
-      ],
-    );
-
-
-  const nextFixture =
-    personalOpenFixtures[0] ??
-    null;
-
-
-  const activeTournamentNextFixture =
-    useMemo(
-      () => {
-        if (
-          !activeTournament
-        ) {
-          return null;
-        }
-
-        return (
-          personalOpenFixtures.find(
-            (
-              fixture,
-            ) =>
-              fixture.tournamentId ===
-              activeTournament.id,
-          ) ??
-          null
-        );
-      },
-      [
-        activeTournament,
-        personalOpenFixtures,
-      ],
-    );
-
-
-  if (
-    !user ||
-    !career
-  ) {
     return (
-      <FcLoadingScreen
-        label="Loading Home..."
-      />
+      personalOpenFixtures.find(
+        (fixture) => fixture.tournamentId === activeTournament.id,
+      ) ?? null
     );
+  }, [activeTournament, personalOpenFixtures]);
+
+  if ((!user || !career) && error) return <AppShell><FcPanel className="p-6"><p role="alert">{error}</p><button className="theme-primary-button mt-4 rounded-lg px-5" onClick={() => window.location.reload()}>Retry</button></FcPanel></AppShell>;
+
+  if (!user || !career) {
+    return <FcLoadingScreen label="Loading Home..." />;
   }
 
-
   const inGameName =
-    career.profile
-      .identity
-      ?.inGameName ||
-    user.player
-      ?.identity
-      ?.inGameName ||
+    career.profile.identity?.inGameName ||
+    user.player?.identity?.inGameName ||
     user.fullName;
 
   const playerCode =
-    career.profile
-      .playerCode ||
-    user.player
-      ?.playerCode ||
-    'Pending';
+    career.profile.playerCode || user.player?.playerCode || "Pending";
 
-  const stats =
-    career.lifetimeStatistics;
+  const stats = career.lifetimeStatistics;
 
-  const isLeagueAdmin =
-    Boolean(
-      primaryMembership
-        ?.adminRole,
-    );
+  const isLeagueAdmin = Boolean(primaryMembership?.adminRole);
 
   const leagueLogo =
-    primaryMembership
-      ?.league
-      .logoUrl ||
-    career.profile
-      .primaryLeague
-      ?.league
-      .logoUrl ||
+    primaryMembership?.league.logoUrl ||
+    career.profile.primaryLeague?.league.logoUrl ||
     null;
 
-  const createTournamentHref =
-    primaryMembership
-      ? `/leagues/${primaryMembership.league.id}/tournaments`
-      : '/leagues';
+  const createTournamentHref = primaryMembership
+    ? `/leagues/${primaryMembership.league.id}/tournaments`
+    : "/leagues";
 
   const progress =
-    activeTournament &&
-    activeTournament.maxEntries >
-      0
+    activeTournament && activeTournament.maxEntries > 0
       ? Math.min(
           100,
-          (
-            activeTournament.approvedEntries /
-            activeTournament.maxEntries
-          ) *
+          (activeTournament.approvedEntries / activeTournament.maxEntries) *
             100,
         )
       : 0;
 
-  const recentActivity =
-    career.matchHistory.slice(
-      0,
-      3,
-    );
-
+  const recentActivity = career.matchHistory.slice(0, 3);
 
   return (
     <AppShell
-      playerName={
-        inGameName
-      }
-      playerRole={
-        primaryMembership
-          ?.adminRole ||
-        'Player'
-      }
+      playerName={inGameName}
+      playerRole={primaryMembership?.adminRole || "Player"}
     >
       <div className="fc-dashboard-page relative space-y-5 sm:space-y-6">
+        <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
+        <Link href="/notifications" className="theme-action-row flex items-center justify-between rounded-xl border p-4 font-semibold"><span>Your action inbox</span><span className="text-sm">Reminders & approvals →</span></Link>
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {
-              error
-            }
+            {error}
           </div>
         ) : null}
 
-
         <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
-
           <div className="fc-hero-right hidden lg:block" />
-
-
 
           <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
             <div className="hidden lg:block">
               <div className="theme-hero-avatar-ring grid h-[86px] w-[86px] place-items-center rounded-full border-[3px]">
                 <FcCrest
-                  name={
-                    inGameName
-                  }
-                  imageUrl={
-                    career.profile
-                      .profileImageUrl
-                  }
+                  name={inGameName}
+                  imageUrl={career.profile.profileImageUrl}
                   size="lg"
                 />
               </div>
@@ -862,9 +532,7 @@ export default function DashboardPage() {
               </p>
 
               <h1 className="theme-text mt-2 truncate text-[38px] font-bold leading-[0.98] tracking-[-0.035em] sm:text-[44px] lg:text-[48px]">
-                {
-                  inGameName
-                }
+                {inGameName}
               </h1>
 
               <p className="theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
@@ -873,25 +541,13 @@ export default function DashboardPage() {
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <span className="theme-soft-accent rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold">
-                  {
-                    playerCode
-                  }
+                  {playerCode}
                 </span>
 
-                <FcStatusBadge
-                  label={
-                    user.status
-                  }
-                  tone="emerald"
-                />
+                <FcStatusBadge label={user.status} tone="emerald" />
 
-                {career.profile
-                  .identity
-                  ?.isVerified ? (
-                  <FcStatusBadge
-                    label="Verified"
-                    tone="amber"
-                  />
+                {career.profile.identity?.isVerified ? (
+                  <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
               </div>
             </div>
@@ -900,8 +556,7 @@ export default function DashboardPage() {
               <div className="absolute right-2 top-2 text-right">
                 <p className="theme-hero-slogan rotate-[-5deg] text-[21px] font-semibold italic leading-[0.95] tracking-[-0.025em]">
                   More Than
-                  <br />
-                  A Game
+                  <br />A Game
                 </p>
               </div>
 
@@ -915,9 +570,7 @@ export default function DashboardPage() {
                 </p>
 
                 <p className="theme-hero-side-code mt-3 font-mono text-[10px] tracking-[0.08em]">
-                  {
-                    playerCode
-                  }
+                  {playerCode}
                 </p>
               </div>
             </div>
@@ -928,125 +581,93 @@ export default function DashboardPage() {
           <FcPanel className="fc-next-match-panel relative overflow-hidden p-5 sm:p-6">
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
-
             <div className="relative">
               <SectionTitle
                 icon="fixtures"
                 title="Next Match"
-              href="/fixtures"
-            />
+                href="/fixtures"
+              />
 
-            {nextFixture ? (
-              <>
-                <p className="mt-4 text-xs font-medium text-[#8792A1]">
-                  {
-                    nextFixture.tournamentName
-                  }
-                  {' • '}
-                  {
-                    nextFixture.roundName
-                  }
-                </p>
+              {nextFixture ? (
+                <>
+                  <p className="mt-4 text-xs font-medium text-[#8792A1]">
+                    {nextFixture.tournamentName}
+                    {" • "}
+                    {nextFixture.roundName}
+                  </p>
 
-                <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
-                  <div className="flex min-w-0 flex-col items-center text-center">
-                    <FcCrest
-                      name={
-                        entryName(
-                          nextFixture.home,
-                        )
-                      }
-                      size="lg"
-                    />
+                  <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
+                    <div className="flex min-w-0 flex-col items-center text-center">
+                      <FcCrest name={entryName(nextFixture.home)} size="lg" />
 
-                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
-                      {
-                        entryName(
-                          nextFixture.home,
-                        )
-                      }
-                    </p>
+                      <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
+                        {entryName(nextFixture.home)}
+                      </p>
+                    </div>
+
+                    <div className="theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold">
+                      VS
+                    </div>
+
+                    <div className="flex min-w-0 flex-col items-center text-center">
+                      <FcCrest name={entryName(nextFixture.away)} size="lg" />
+
+                      <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
+                        {entryName(nextFixture.away)}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold">
-                    VS
+                  <div className="mt-6 flex flex-col gap-3 border-t border-[#DED8CD] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs text-[#8792A1]">
+                        {nextFixture.leagueName}
+                      </p>
+
+                      <p className="mt-1 text-sm font-medium text-[#54657A]">
+                        {nextFixture.scheduledAt
+                          ? new Date(nextFixture.scheduledAt).toLocaleString()
+                          : "Schedule pending"}
+                      </p>
+                    </div>
+
+                    <Link
+                      href={
+                        nextFixture.match?.id
+                          ? `/matches/${nextFixture.match.id}`
+                          : `/tournaments/${nextFixture.tournamentId}/fixtures`
+                      }
+                      className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
+                    >
+                      View Match →
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
+                  <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
+                    ◷
                   </div>
 
-                  <div className="flex min-w-0 flex-col items-center text-center">
-                    <FcCrest
-                      name={
-                        entryName(
-                          nextFixture.away,
-                        )
-                      }
-                      size="lg"
-                    />
+                  <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
+                    No upcoming match
+                  </h3>
 
-                    <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
-                      {
-                        entryName(
-                          nextFixture.away,
-                        )
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-col gap-3 border-t border-[#DED8CD] pt-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-xs text-[#8792A1]">
-                      {
-                        nextFixture.leagueName
-                      }
-                    </p>
-
-                    <p className="mt-1 text-sm font-medium text-[#54657A]">
-                      {nextFixture.scheduledAt
-                        ? new Date(
-                            nextFixture.scheduledAt,
-                          ).toLocaleString()
-                        : 'Schedule pending'}
-                    </p>
-                  </div>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">
+                    Your next scheduled fixture will appear here when a
+                    competition schedule is ready.
+                  </p>
 
                   <Link
-                    href={
-                      nextFixture.match
-                        ?.id
-                        ? `/matches/${nextFixture.match.id}`
-                        : `/tournaments/${nextFixture.tournamentId}/fixtures`
-                    }
-                    className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
+                    href="/fixtures"
+                    className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                   >
-                    View Match →
+                    View Fixtures →
                   </Link>
                 </div>
-              </>
-            ) : (
-              <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
-                <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
-                  ◷
-                </div>
-
-                <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
-                  No upcoming match
-                </h3>
-
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">
-                  Your next scheduled fixture will appear here when a competition schedule is ready.
-                </p>
-
-                <Link
-                  href="/fixtures"
-                  className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
-                >
-                  View Fixtures →
-                </Link>
-              </div>
-            )}
+              )}
             </div>
           </FcPanel>
-
 
           <FcPanel className="fc-league-panel p-5 sm:p-6">
             <SectionTitle
@@ -1060,91 +681,57 @@ export default function DashboardPage() {
               <>
                 <div className="mt-6 flex items-center gap-4">
                   <FcCrest
-                    name={
-                      primaryMembership
-                        .league
-                        .name
-                    }
-                    imageUrl={
-                      leagueLogo
-                    }
+                    name={primaryMembership.league.name}
+                    imageUrl={leagueLogo}
                     size="lg"
                   />
 
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-lg font-semibold text-[#0B2545]">
-                      {
-                        primaryMembership
-                          .league
-                          .name
-                      }
+                      {primaryMembership.league.name}
                     </h3>
 
                     <p className="mt-1 font-mono text-xs font-semibold text-[#A06B13]">
-                      {
-                        primaryMembership
-                          .league
-                          .code
-                      }
+                      {primaryMembership.league.code}
                     </p>
 
                     <div className="mt-2">
                       <FcStatusBadge
-                        label={
-                          primaryMembership.membershipType
-                        }
+                        label={primaryMembership.membershipType}
                         tone="cyan"
                       />
                     </div>
                   </div>
                 </div>
 
-
                 <div className="mt-5 grid grid-cols-3 gap-2">
                   <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="text-xs text-[#8792A1]">
-                      Region
-                    </p>
+                    <p className="text-xs text-[#8792A1]">Region</p>
 
                     <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
-                      {primaryMembership
-                        .league
-                        .region ||
-                        'Global'}
+                      {primaryMembership.league.region || "Global"}
                     </p>
                   </div>
 
                   <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="text-xs text-[#8792A1]">
-                      Members
-                    </p>
+                    <p className="text-xs text-[#8792A1]">Members</p>
 
                     <p className="mt-1 text-sm font-medium text-[#0B2545]">
-                      {
-                        primaryMembership
-                          .league
-                          .members
-                      }
+                      {primaryMembership.league.members}
                     </p>
                   </div>
 
                   <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="text-xs text-[#8792A1]">
-                      Role
-                    </p>
+                    <p className="text-xs text-[#8792A1]">Role</p>
 
                     <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
-                      {primaryMembership.adminRole ||
-                        'Player'}
+                      {primaryMembership.adminRole || "Player"}
                     </p>
                   </div>
                 </div>
 
-
                 <Link
-                  href={
-                    `/leagues/${primaryMembership.league.id}`
-                  }
+                  href={`/leagues/${primaryMembership.league.id}`}
                   className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
                 >
                   Open League →
@@ -1171,7 +758,6 @@ export default function DashboardPage() {
           </FcPanel>
         </section>
 
-
         <section className="fc-dashboard-section grid gap-5">
           <FcPanel className="fc-tournament-panel p-5 sm:p-6">
             <SectionTitle
@@ -1184,61 +770,39 @@ export default function DashboardPage() {
               <>
                 <div className="mt-6 flex items-center gap-4">
                   <FcCrest
-                    name={
-                      activeTournament.name
-                    }
-                    imageUrl={
-                      activeTournament.logoUrl
-                    }
+                    name={activeTournament.name}
+                    imageUrl={activeTournament.logoUrl}
                     size="lg"
                   />
 
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-lg font-semibold text-[#0B2545]">
-                      {
-                        activeTournament.name
-                      }
+                      {activeTournament.name}
                     </h3>
 
                     <p className="mt-1 text-xs text-[#8792A1]">
-                      {
-                        (
-                          activeTournament.competitionFormat ||
-                          activeTournament.format
-                        ).replaceAll(
-                          '_',
-                          ' ',
-                        )
-                      }
+                      {(
+                        activeTournament.competitionFormat ||
+                        activeTournament.format
+                      ).replaceAll("_", " ")}
                     </p>
 
                     <div className="mt-2">
                       <FcStatusBadge
-                        label={
-                          activeTournament.status
-                        }
+                        label={activeTournament.status}
                         tone="emerald"
                       />
                     </div>
                   </div>
                 </div>
 
-
                 <div className="mt-5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8792A1]">
-                      Competition progress
-                    </span>
+                    <span className="text-[#8792A1]">Competition progress</span>
 
                     <span className="font-medium text-[#54657A]">
-                      {
-                        activeTournament.approvedEntries
-                      }
-                      /
-                      {
-                        activeTournament.maxEntries
-                      }{' '}
-                      entries
+                      {activeTournament.approvedEntries}/
+                      {activeTournament.maxEntries} entries
                     </span>
                   </div>
 
@@ -1246,37 +810,26 @@ export default function DashboardPage() {
                     <div
                       className="theme-progress-bar h-full rounded-full"
                       style={{
-                        width:
-                          `${progress}%`,
+                        width: `${progress}%`,
                       }}
                     />
                   </div>
                 </div>
 
-
                 {activeTournamentNextFixture ? (
                   <div className="mt-5 rounded-xl border border-[#E3DCCF] bg-[#FAF7F0] p-4">
-                    <p className="text-xs text-[#8792A1]">
-                      Next fixture
-                    </p>
+                    <p className="text-xs text-[#8792A1]">Next fixture</p>
 
                     <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
-                      {entryName(
-                        activeTournamentNextFixture.home,
-                      )}
-                      {'  vs  '}
-                      {entryName(
-                        activeTournamentNextFixture.away,
-                      )}
+                      {entryName(activeTournamentNextFixture.home)}
+                      {"  vs  "}
+                      {entryName(activeTournamentNextFixture.away)}
                     </p>
                   </div>
                 ) : null}
 
-
                 <Link
-                  href={
-                    `/tournaments/${activeTournament.id}`
-                  }
+                  href={`/tournaments/${activeTournament.id}`}
                   className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
                 >
                   View Tournament →
@@ -1293,7 +846,8 @@ export default function DashboardPage() {
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">
-                  Browse your League competitions or start a new Tournament when you have admin access.
+                  Browse your League competitions or start a new Tournament when
+                  you have admin access.
                 </p>
 
                 <Link
@@ -1305,18 +859,13 @@ export default function DashboardPage() {
               </div>
             )}
           </FcPanel>
-
-
         </section>
-
 
         <section className="fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <Link href="/career">
             <FcStatCard
               label="Matches"
-              value={
-                stats.matches
-              }
+              value={stats.matches}
               detail="View career stats"
               icon="▤"
             />
@@ -1325,12 +874,8 @@ export default function DashboardPage() {
           <Link href="/career">
             <FcStatCard
               label="Wins"
-              value={
-                stats.wins
-              }
-              detail={
-                `${stats.draws} draws • ${stats.losses} losses`
-              }
+              value={stats.wins}
+              detail={`${stats.draws} draws • ${stats.losses} losses`}
               tone="emerald"
               icon="✓"
             />
@@ -1339,12 +884,8 @@ export default function DashboardPage() {
           <Link href="/career">
             <FcStatCard
               label="Goals"
-              value={
-                stats.goalsFor
-              }
-              detail={
-                `Goal difference: ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
-              }
+              value={stats.goalsFor}
+              detail={`Goal difference: ${stats.goalDifference > 0 ? "+" : ""}${stats.goalDifference}`}
               tone="amber"
               icon="fixtures"
             />
@@ -1353,78 +894,66 @@ export default function DashboardPage() {
           <Link href="/career">
             <FcStatCard
               label="Win Rate"
-              value={
-                `${stats.winRate}%`
-              }
+              value={`${stats.winRate}%`}
               detail="View detailed stats"
               icon="↗"
             />
           </Link>
         </section>
 
+        <div className="fc-quick-actions-panel">
+          <SectionTitle icon="activity" title="Quick Actions" />
 
-          <div className="fc-quick-actions-panel">
-            <SectionTitle
-              icon="activity"
-              title="Quick Actions"
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <FcQuickActionTile
+              href="/leagues"
+              icon="+"
+              title="Join League"
+              description="Use invite code"
+              tone="cyan"
             />
 
-            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
-              <FcQuickActionTile
-                href="/leagues"
-                icon="+"
-                title="Join League"
-                description="Use invite code"
-                tone="cyan"
-              />
+            <FcQuickActionTile
+              href={createTournamentHref}
+              icon="◇"
+              title={isLeagueAdmin ? "Create Tournament" : "Tournaments"}
+              description={
+                isLeagueAdmin
+                  ? "Start a new competition"
+                  : "Browse competitions"
+              }
+              tone="emerald"
+            />
 
-              <FcQuickActionTile
-                href={
-                  createTournamentHref
-                }
-                icon="◇"
-                title={
-                  isLeagueAdmin
-                    ? 'Create Tournament'
-                    : 'Tournaments'
-                }
-                description={
-                  isLeagueAdmin
-                    ? 'Start a new competition'
-                    : 'Browse competitions'
-                }
-                tone="emerald"
-              />
+            <FcQuickActionTile
+              href="/fixtures"
+              icon="fixtures"
+              title="View Fixtures"
+              description="Check upcoming matches"
+              tone="slate"
+            />
 
-              <FcQuickActionTile
-                href="/fixtures"
-                icon="fixtures"
-                title="View Fixtures"
-                description="Check upcoming matches"
-                tone="slate"
-              />
+            <FcQuickActionTile
+              href={
+                primaryMembership
+                  ? `/leaderboards?league=${primaryMembership.league.id}`
+                  : "/leaderboards"
+              }
+              icon="activity"
+              title="Leaderboard"
+              description="View League performance rankings"
+              tone="cyan"
+            />
 
-              <FcQuickActionTile
-                href={
-                  primaryMembership
-                    ? `/leaderboards?league=${primaryMembership.league.id}`
-                    : '/leaderboards'
-                }
-                icon="activity"
-                title="Leaderboard"
-                description="View League performance rankings"
-                tone="cyan"
-              />
-
-              <FcQuickActionTile
-                href="/profile"
-                icon="◎"
-                title="Update Profile"
-                description="Edit your information"
-                tone="amber"
-              />
-            </div>
+            <FcQuickActionTile
+              href="/profile"
+              icon="◎"
+              title="Update Profile"
+              description="Edit your information"
+              tone="amber"
+            />
           </div>
+        </div>
         <FcPanel className="fc-activity-panel p-5 sm:p-6">
           <SectionTitle
             icon="history"
@@ -1433,82 +962,53 @@ export default function DashboardPage() {
             linkLabel="View all →"
           />
 
-          {recentActivity.length >
-          0 ? (
+          {recentActivity.length > 0 ? (
             <div className="mt-5 divide-y divide-[#203141]">
-              {recentActivity.map(
-                (
-                  activity,
-                ) => (
-                  <Link
-                    key={
-                      activity.id
-                    }
-                    href={
-                      `/matches/${activity.id}`
-                    }
-                    className="flex flex-col gap-3 py-4 transition first:pt-0 last:pb-0 hover:bg-white/[0.012] sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span
-                        className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border text-xs font-semibold ${
-                          activity.outcome ===
-                          'W'
-                            ? 'border-[#1FD18A]/20 bg-[#1FD18A]/[0.07] text-[#1FD18A]'
-                            : activity.outcome ===
-                                'D'
-                              ? 'border-[#F3B326]/20 bg-[#F3B326]/[0.07] text-[#F3B326]'
-                              : 'border-[#EF5350]/20 bg-[#EF5350]/[0.07] text-[#EF5350]'
-                        }`}
-                      >
-                        {
-                          activity.outcome
-                        }
-                      </span>
+              {recentActivity.map((activity) => (
+                <Link
+                  key={activity.id}
+                  href={`/matches/${activity.id}`}
+                  className="flex flex-col gap-3 py-4 transition first:pt-0 last:pb-0 hover:bg-white/[0.012] sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span
+                      className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border text-xs font-semibold ${
+                        activity.outcome === "W"
+                          ? "border-[#1FD18A]/20 bg-[#1FD18A]/[0.07] text-[#1FD18A]"
+                          : activity.outcome === "D"
+                            ? "border-[#F3B326]/20 bg-[#F3B326]/[0.07] text-[#F3B326]"
+                            : "border-[#EF5350]/20 bg-[#EF5350]/[0.07] text-[#EF5350]"
+                      }`}
+                    >
+                      {activity.outcome}
+                    </span>
 
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-[#0B2545]">
-                          {
-                            activity.tournament.name
-                          }
-                        </p>
-
-                        <p className="mt-1 truncate text-xs text-[#8792A1]">
-                          {
-                            activity.tournament.league.name
-                          }
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="sm:text-right">
-                      <p className="text-sm font-semibold text-[#54657A]">
-                        {
-                          activity.home.name
-                        }{' '}
-                        <span className="text-[#0B2545]">
-                          {
-                            activity.home.score
-                          }
-                          -
-                          {
-                            activity.away.score
-                          }
-                        </span>{' '}
-                        {
-                          activity.away.name
-                        }
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-[#0B2545]">
+                        {activity.tournament.name}
                       </p>
 
-                      <p className="mt-1 text-xs text-[#536273]">
-                        {new Date(
-                          activity.confirmedAt,
-                        ).toLocaleDateString()}
+                      <p className="mt-1 truncate text-xs text-[#8792A1]">
+                        {activity.tournament.league.name}
                       </p>
                     </div>
-                  </Link>
-                ),
-              )}
+                  </div>
+
+                  <div className="sm:text-right">
+                    <p className="text-sm font-semibold text-[#54657A]">
+                      {activity.home.name}{" "}
+                      <span className="text-[#0B2545]">
+                        {activity.home.score}-{activity.away.score}
+                      </span>{" "}
+                      {activity.away.name}
+                    </p>
+
+                    <p className="mt-1 text-xs text-[#536273]">
+                      {new Date(activity.confirmedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           ) : (
             <div className="mt-5 flex flex-col gap-4 rounded-xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-5 sm:flex-row sm:items-center sm:justify-between">

@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -373,9 +374,9 @@ export default function GroupsWizardPage() {
       Group,
   ) {
     const confirmed =
-      window.confirm(
+      (await confirmAction(
         `Delete ${group.name}? ${group.entries.length} team(s) inside it will become unassigned.`,
-      );
+      ));
 
     if (!confirmed) {
       return;
@@ -478,9 +479,9 @@ export default function GroupsWizardPage() {
         : 'redistribute all teams evenly';
 
     if (
-      !window.confirm(
+      !(await confirmAction(
         `This will ${label}. Continue?`,
-      )
+      ))
     ) {
       return;
     }

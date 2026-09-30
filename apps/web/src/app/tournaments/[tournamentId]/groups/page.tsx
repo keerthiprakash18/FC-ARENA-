@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 
 import {
@@ -370,9 +371,9 @@ export default function TournamentGroupsPage() {
       groups.length > 0
     ) {
       const confirmed =
-        window.confirm(
+        (await confirmAction(
           'Saving group structure again will return every team to Unassigned. Continue?',
-        );
+        ));
 
       if (!confirmed) {
         return;
@@ -534,9 +535,9 @@ export default function TournamentGroupsPage() {
 
   async function generateGroupFixtures() {
     const confirmed =
-      window.confirm(
+      (await confirmAction(
         'Generate group-stage fixtures now? Group assignments will be locked after generation.',
-      );
+      ));
 
     if (!confirmed) {
       return;

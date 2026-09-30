@@ -1,34 +1,28 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import { confirmAction } from "@/components/fc/confirmation-provider";
+import { ShareCard } from "@/components/fc/share-card";
+import Link from "next/link";
 
-import {
-  useRouter,
-} from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useRef, useState } from "react";
 
-import {
-  AppShell,
-} from '@/components/app/app-shell';
+import { AppShell } from "@/components/app/app-shell";
 
 import {
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
   FcStatusBadge,
-} from '@/components/fc/fc-ui';
+} from "@/components/fc/fc-ui";
 
 import {
   authenticatedRequest,
   authenticatedUpload,
   type CurrentUser,
   getCurrentUser,
-} from '@/lib/auth-client';
+} from "@/lib/auth-client";
 
 interface CareerData {
   profile: {
@@ -90,345 +84,190 @@ function Detail({
   value,
 }: {
   label: string;
-  value:
-    | string
-    | null
-    | undefined;
+  value: string | null | undefined;
 }) {
   return (
     <div className="border-b border-black/5 py-3 last:border-0">
       <p className="theme-muted text-[10px] font-semibold uppercase tracking-[0.15em]">
-        {
-          label
-        }
+        {label}
       </p>
 
       <p className="theme-text mt-1 break-all text-sm font-medium">
-        {
-          value ||
-          'Not provided'
-        }
+        {value || "Not provided"}
       </p>
     </div>
   );
 }
 
 export default function ProfilePage() {
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [
-    user,
-    setUser,
-  ] =
-    useState<CurrentUser | null>(
-      null,
+  const [user, setUser] = useState<CurrentUser | null>(null);
+
+  const [career, setCareer] = useState<CareerData | null>(null);
+
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [imageBusy, setImageBusy] = useState(false);
+
+  const [imageProgress, setImageProgress] = useState(0);
+
+  const [imageMessage, setImageMessage] = useState("");
+
+  const [imageError, setImageError] = useState("");
+
+  function applyProfileImage(profileImageUrl: string | null) {
+    setCareer((current) =>
+      current
+        ? {
+            ...current,
+            profile: {
+              ...current.profile,
+              profileImageUrl,
+            },
+          }
+        : current,
     );
 
-  const [
-    career,
-    setCareer,
-  ] =
-    useState<CareerData | null>(
-      null,
-    );
-
-  const imageInputRef =
-    useRef<HTMLInputElement | null>(
-      null,
-    );
-
-  const [
-    imageBusy,
-    setImageBusy,
-  ] =
-    useState(false);
-
-  const [
-    imageProgress,
-    setImageProgress,
-  ] =
-    useState(0);
-
-  const [
-    imageMessage,
-    setImageMessage,
-  ] =
-    useState('');
-
-  const [
-    imageError,
-    setImageError,
-  ] =
-    useState('');
-
-
-  function applyProfileImage(
-    profileImageUrl:
-      string | null,
-  ) {
-    setCareer(
-      (
-        current,
-      ) =>
-        current
-          ? {
-              ...current,
-              profile: {
-                ...current.profile,
-                profileImageUrl,
-              },
-            }
-          : current,
-    );
-
-    setUser(
-      (
-        current,
-      ) =>
-        current
-          ? {
-              ...current,
-              player:
-                current.player
-                  ? {
-                      ...current.player,
-                      profileImageUrl,
-                    }
-                  : current.player,
-            }
-          : current,
+    setUser((current) =>
+      current
+        ? {
+            ...current,
+            player: current.player
+              ? {
+                  ...current.player,
+                  profileImageUrl,
+                }
+              : current.player,
+          }
+        : current,
     );
 
     window.dispatchEvent(
-      new CustomEvent(
-        'fc-arena-profile-image-changed',
-        {
-          detail: {
-            profileImageUrl,
-          },
+      new CustomEvent("fc-arena-profile-image-changed", {
+        detail: {
+          profileImageUrl,
         },
-      ),
+      }),
     );
   }
 
+  async function uploadProfileImage(file: File) {
+    setImageBusy(true);
 
-  async function uploadProfileImage(
-    file: File,
-  ) {
-    setImageBusy(
-      true,
-    );
+    setImageProgress(0);
 
-    setImageProgress(
-      0,
-    );
+    setImageError("");
 
-    setImageError(
-      '',
-    );
+    setImageMessage("");
 
-    setImageMessage(
-      '',
-    );
+    const body = new FormData();
 
-    const body =
-      new FormData();
-
-    body.append(
-      'image',
-      file,
-    );
+    body.append("image", file);
 
     try {
-      const response =
-        await authenticatedUpload<{
-          success: true;
-          data: {
-            message: string;
-            profileImageUrl:
-              string;
-          };
-          error: null;
-        }>(
-          '/players/me/profile-image',
-          body,
-          (
-            progress,
-          ) =>
-            setImageProgress(
-              progress,
-            ),
-        );
-
-      applyProfileImage(
-        response.data
-          .profileImageUrl,
+      const response = await authenticatedUpload<{
+        success: true;
+        data: {
+          message: string;
+          profileImageUrl: string;
+        };
+        error: null;
+      }>("/players/me/profile-image", body, (progress) =>
+        setImageProgress(progress),
       );
 
-      setImageMessage(
-        response.data.message,
-      );
+      applyProfileImage(response.data.profileImageUrl);
 
-      setImageProgress(
-        100,
-      );
-    } catch (
-      err
-    ) {
+      setImageMessage(response.data.message);
+
+      setImageProgress(100);
+    } catch (err) {
       setImageError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to upload profile photo.',
+        err instanceof Error ? err.message : "Unable to upload profile photo.",
       );
     } finally {
-      setImageBusy(
-        false,
-      );
+      setImageBusy(false);
     }
   }
-
 
   async function removeProfileImage() {
-    if (
-      imageBusy ||
-      !career?.profile
-        .profileImageUrl
-    ) {
+    if (imageBusy || !career?.profile.profileImageUrl) {
       return;
     }
 
-    if (
-      !window.confirm(
-        'Remove your profile photo?',
-      )
-    ) {
+    if (!(await confirmAction("Remove your profile photo?"))) {
       return;
     }
 
-    setImageBusy(
-      true,
-    );
+    setImageBusy(true);
 
-    setImageError(
-      '',
-    );
+    setImageError("");
 
-    setImageMessage(
-      '',
-    );
+    setImageMessage("");
 
     try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
-          data: {
-            message: string;
-            profileImageUrl:
-              null;
-          };
-          error: null;
-        }>(
-          '/players/me/profile-image',
-          {
-            method:
-              'DELETE',
-          },
-        );
+      const response = await authenticatedRequest<{
+        success: true;
+        data: {
+          message: string;
+          profileImageUrl: null;
+        };
+        error: null;
+      }>("/players/me/profile-image", {
+        method: "DELETE",
+      });
 
-      applyProfileImage(
-        null,
-      );
+      applyProfileImage(null);
 
-      setImageMessage(
-        response.data.message,
-      );
+      setImageMessage(response.data.message);
 
-      setImageProgress(
-        0,
-      );
-    } catch (
-      err
-    ) {
+      setImageProgress(0);
+    } catch (err) {
       setImageError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to remove profile photo.',
+        err instanceof Error ? err.message : "Unable to remove profile photo.",
       );
     } finally {
-      setImageBusy(
-        false,
-      );
+      setImageBusy(false);
     }
   }
-
 
   useEffect(() => {
     void (async () => {
       try {
-        const [
-          current,
-          response,
-        ] =
-          await Promise.all([
-            getCurrentUser(),
+        const [current, response] = await Promise.all([
+          getCurrentUser(),
 
-            authenticatedRequest<{
-              success: true;
-              data: CareerData;
-              error: null;
-            }>(
-              '/players/me/career',
-            ),
-          ]);
+          authenticatedRequest<{
+            success: true;
+            data: CareerData;
+            error: null;
+          }>("/players/me/career"),
+        ]);
 
-        setUser(
-          current,
-        );
+        setUser(current);
 
-        setCareer(
-          response.data,
-        );
+        setCareer(response.data);
       } catch {
-        router.replace(
-          '/login',
-        );
+        router.replace("/login");
       }
     })();
-  }, [
-    router,
-  ]);
+  }, [router]);
 
-  if (
-    !user ||
-    !career
-  ) {
-    return (
-      <FcLoadingScreen
-        label="Loading Player Profile..."
-      />
-    );
+  if (!user || !career) {
+    return <FcLoadingScreen label="Loading Player Profile..." />;
   }
 
-  const identity =
-    career.profile
-      .identity;
+  const identity = career.profile.identity;
 
-  const playerName =
-    identity?.inGameName ||
-    career.profile
-      .fullName;
+  const playerName = identity?.inGameName || career.profile.fullName;
 
-  const stats =
-    career.lifetimeStatistics;
+  const stats = career.lifetimeStatistics;
 
   return (
-    <AppShell
-      playerName={
-        playerName
-      }
-    >
-      <div className="mx-auto max-w-6xl space-y-6">
+    <AppShell playerName={playerName}>
+      <div className="space-y-6">
+        <ShareCard title={user.player?.identity?.inGameName || user.fullName} lines={[`Player ID: ${career.profile.playerCode || "Pending"}`, `${career.lifetimeStatistics.matches} matches · ${career.lifetimeStatistics.wins} wins`, `${career.lifetimeStatistics.goalsFor} goals · ${career.lifetimeStatistics.winRate}% win rate`]} />
         <FcPanel className="overflow-hidden">
           <div className="fc-profile-banner h-20 sm:h-24" />
 
@@ -437,88 +276,47 @@ export default function ProfilePage() {
               <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
                 <div className="shrink-0">
                   <input
-                    ref={
-                      imageInputRef
-                    }
+                    ref={imageInputRef}
                     type="file"
                     accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
                     className="hidden"
-                    onChange={
-                      (
-                        event,
-                      ) => {
-                        const file =
-                          event.target
-                            .files?.[0];
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
 
-                        event.target.value =
-                          '';
+                      event.target.value = "";
 
-                        if (
-                          file
-                        ) {
-                          void uploadProfileImage(
-                            file,
-                          );
-                        }
+                      if (file) {
+                        void uploadProfileImage(file);
                       }
-                    }
+                    }}
                   />
 
                   <button
                     type="button"
-                    disabled={
-                      imageBusy
-                    }
-                    onClick={() =>
-                      imageInputRef
-                        .current
-                        ?.click()
-                    }
+                    disabled={imageBusy}
+                    onClick={() => imageInputRef.current?.click()}
                     className="group relative block h-24 w-24 overflow-hidden rounded-2xl border border-black/10 bg-black/[0.03] shadow-sm disabled:opacity-60"
                     aria-label="Choose profile photo"
                   >
-                    {career.profile
-                      .profileImageUrl ? (
+                    {career.profile.profileImageUrl ? (
                       <img
-                        src={
-                          career.profile
-                            .profileImageUrl
-                        }
-                        alt={
-                          playerName +
-                          ' profile'
-                        }
+                        src={career.profile.profileImageUrl}
+                        alt={playerName + " profile"}
                         className="h-full w-full object-cover"
                       />
                     ) : (
                       <span className="theme-text grid h-full w-full place-items-center text-2xl font-bold">
-                        {
-                          playerName
-                            .split(
-                              /\s+/,
-                            )
-                            .map(
-                              (
-                                part,
-                              ) =>
-                                part[0],
-                            )
-                            .join('')
-                            .slice(
-                              0,
-                              2,
-                            )
-                            .toUpperCase()
-                        }
+                        {playerName
+                          .split(/\s+/)
+                          .map((part) => part[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
                       </span>
                     )}
 
                     <span className="absolute inset-x-0 bottom-0 bg-black/65 px-2 py-1.5 text-center text-[10px] font-semibold text-white">
-                      {imageBusy
-                        ? imageProgress +
-                          '%'
-                        : 'Change photo'}
+                      {imageBusy ? imageProgress + "%" : "Change photo"}
                     </span>
                   </button>
                 </div>
@@ -529,77 +327,50 @@ export default function ProfilePage() {
                   </p>
 
                   <h1 className="theme-text mt-1 break-words text-2xl font-bold leading-tight tracking-[-0.03em] sm:text-3xl lg:text-4xl">
-                    {
-                      career.profile
-                        .fullName
-                    }
+                    {career.profile.fullName}
                   </h1>
 
                   <p className="theme-secondary-text mt-2 break-words text-sm">
-                    In-Game Name:{' '}
+                    In-Game Name:{" "}
                     <span className="theme-text font-semibold">
-                      {
-                        playerName
-                      }
+                      {playerName}
                     </span>
                   </p>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {career.profile
-                      .playerCode ? (
+                    {career.profile.playerCode ? (
                       <span className="theme-soft-accent rounded-lg border px-3 py-1.5 font-mono text-xs font-semibold">
-                        {
-                          career.profile
-                            .playerCode
-                        }
+                        {career.profile.playerCode}
                       </span>
                     ) : null}
 
                     <FcStatusBadge
                       label={
                         identity?.isVerified
-                          ? 'Verified Player'
-                          : 'Active Player'
+                          ? "Verified Player"
+                          : "Active Player"
                       }
-                      tone={
-                        identity?.isVerified
-                          ? 'emerald'
-                          : 'cyan'
-                      }
+                      tone={identity?.isVerified ? "emerald" : "cyan"}
                     />
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      disabled={
-                        imageBusy
-                      }
-                      onClick={() =>
-                        imageInputRef
-                          .current
-                          ?.click()
-                      }
+                      disabled={imageBusy}
+                      onClick={() => imageInputRef.current?.click()}
                       className="theme-secondary-button min-h-10 rounded-[10px] border px-3.5 text-xs font-semibold disabled:opacity-50"
                     >
-                      {
-                        career.profile
-                          .profileImageUrl
-                          ? 'Change Photo'
-                          : 'Upload Photo'
-                      }
+                      {career.profile.profileImageUrl
+                        ? "Change Photo"
+                        : "Upload Photo"}
                     </button>
 
-                    {career.profile
-                      .profileImageUrl ? (
+                    {career.profile.profileImageUrl ? (
                       <button
                         type="button"
-                        disabled={
-                          imageBusy
-                        }
-                        onClick={() =>
-                          void removeProfileImage()
-                        }
+                        disabled={imageBusy}
+                        onClick={() => void removeProfileImage()}
                         className="theme-danger-button min-h-10 rounded-[10px] border px-3.5 text-xs font-semibold disabled:opacity-50"
                       >
                         Remove
@@ -610,29 +381,24 @@ export default function ProfilePage() {
               </div>
 
               <div className="shrink-0 lg:text-right">
-                <p className="theme-muted text-xs">
-                  Profile photo
-                </p>
+                <p className="theme-muted text-xs">Profile photo</p>
 
                 <p className="theme-secondary-text mt-1 max-w-xs text-xs leading-5">
-                  Choose a PNG, JPG or WEBP image from your device. It will be optimized automatically.
+                  Choose a PNG, JPG or WEBP image from your device. It will be
+                  optimized automatically.
                 </p>
               </div>
             </div>
 
             {imageMessage ? (
               <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] p-3 text-sm text-emerald-700">
-                {
-                  imageMessage
-                }
+                {imageMessage}
               </div>
             ) : null}
 
             {imageError ? (
               <div className="mt-5 rounded-xl border border-red-400/20 bg-red-400/[0.05] p-3 text-sm text-red-600">
-                {
-                  imageError
-                }
+                {imageError}
               </div>
             ) : null}
           </div>
@@ -641,45 +407,25 @@ export default function ProfilePage() {
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
             label="Matches"
-            value={
-              stats.matches
-            }
-            detail={
-              stats.wins +
-              ' wins · ' +
-              stats.draws +
-              ' draws'
-            }
+            value={stats.matches}
+            detail={stats.wins + " wins · " + stats.draws + " draws"}
           />
 
           <FcStatCard
             label="Win Rate"
-            value={
-              stats.winRate +
-              '%'
-            }
-            detail={
-              stats.losses +
-              ' losses'
-            }
+            value={stats.winRate + "%"}
+            detail={stats.losses + " losses"}
             tone="emerald"
           />
 
           <FcStatCard
             label="Goals"
-            value={
-              stats.goalsFor
-            }
+            value={stats.goalsFor}
             detail={
-              'GA ' +
+              "GA " +
               stats.goalsAgainst +
-              ' · GD ' +
-              (
-                stats.goalDifference >
-                0
-                  ? '+'
-                  : ''
-              ) +
+              " · GD " +
+              (stats.goalDifference > 0 ? "+" : "") +
               stats.goalDifference
             }
             tone="amber"
@@ -687,13 +433,8 @@ export default function ProfilePage() {
 
           <FcStatCard
             label="Achievements"
-            value={
-              stats.achievements
-            }
-            detail={
-              stats.tournaments +
-              ' tournaments'
-            }
+            value={stats.achievements}
+            detail={stats.tournaments + " tournaments"}
             tone="slate"
           />
         </section>
@@ -705,131 +446,78 @@ export default function ProfilePage() {
             </h2>
 
             <div className="mt-3">
-              <Detail
-                label="FC ARENA ID"
-                value={
-                  career.profile
-                    .playerCode
-                }
-              />
+              <Detail label="FC ARENA ID" value={career.profile.playerCode} />
 
-              <Detail
-                label="In-Game Name"
-                value={
-                  identity?.inGameName
-                }
-              />
+              <Detail label="In-Game Name" value={identity?.inGameName} />
 
-              <Detail
-                label="Game UID"
-                value={
-                  identity?.gameUid
-                }
-              />
+              <Detail label="Game UID" value={identity?.gameUid} />
 
               <Detail
                 label="Verification"
                 value={
                   identity?.isVerified
-                    ? 'Verified & locked'
-                    : 'Not yet verified'
+                    ? "Verified & locked"
+                    : "Not yet verified"
                 }
               />
             </div>
           </FcPanel>
 
           <FcPanel className="p-5 sm:p-6">
-            <h2 className="theme-text text-lg font-semibold">
-              Career Context
-            </h2>
+            <h2 className="theme-text text-lg font-semibold">Career Context</h2>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <Link
                 href={
-                  career.profile
-                    .primaryLeague
-                    ? '/leagues/' +
-                      career.profile
-                        .primaryLeague
-                        .league.id
-                    : '/leagues'
+                  career.profile.primaryLeague
+                    ? "/leagues/" + career.profile.primaryLeague.league.id
+                    : "/leagues"
                 }
                 className="theme-action-row rounded-2xl border p-4"
               >
-                <p className="theme-muted text-xs">
-                  Primary League
-                </p>
+                <p className="theme-muted text-xs">Primary League</p>
 
                 <p className="theme-text mt-1 font-semibold">
-                  {career.profile
-                    .primaryLeague
-                    ?.league.name ||
-                    'Not joined'}
+                  {career.profile.primaryLeague?.league.name || "Not joined"}
                 </p>
               </Link>
 
               <Link
                 href={
-                  career.profile
-                    .secondaryLeague
-                    ? '/leagues/' +
-                      career.profile
-                        .secondaryLeague
-                        .league.id
-                    : '/leagues'
+                  career.profile.secondaryLeague
+                    ? "/leagues/" + career.profile.secondaryLeague.league.id
+                    : "/leagues"
                 }
                 className="theme-action-row rounded-2xl border p-4"
               >
-                <p className="theme-muted text-xs">
-                  Secondary League
-                </p>
+                <p className="theme-muted text-xs">Secondary League</p>
 
                 <p className="theme-text mt-1 font-semibold">
-                  {career.profile
-                    .secondaryLeague
-                    ?.league.name ||
-                    'Not joined'}
+                  {career.profile.secondaryLeague?.league.name || "Not joined"}
                 </p>
               </Link>
             </div>
 
             <div className="mt-5">
-              <p className="theme-muted text-xs font-medium">
-                Recent Form
-              </p>
+              <p className="theme-muted text-xs font-medium">Recent Form</p>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                {stats.form.length >
-                0 ? (
-                  stats.form.map(
-                    (
-                      result,
-                      index,
-                    ) => (
-                      <span
-                        key={
-                          result +
-                          index
-                        }
-                        className={
-                          'grid h-9 w-9 place-items-center rounded-xl border text-sm font-bold ' +
-                          (
-                            result ===
-                            'W'
-                              ? 'theme-tone-success'
-                              : result ===
-                                  'D'
-                                ? 'theme-tone-premium'
-                                : 'theme-tone-danger'
-                          )
-                        }
-                      >
-                        {
-                          result
-                        }
-                      </span>
-                    ),
-                  )
+                {stats.form.length > 0 ? (
+                  stats.form.map((result, index) => (
+                    <span
+                      key={result + index}
+                      className={
+                        "grid h-9 w-9 place-items-center rounded-xl border text-sm font-bold " +
+                        (result === "W"
+                          ? "theme-tone-success"
+                          : result === "D"
+                            ? "theme-tone-premium"
+                            : "theme-tone-danger")
+                      }
+                    >
+                      {result}
+                    </span>
+                  ))
                 ) : (
                   <span className="theme-secondary-text text-sm">
                     No completed matches yet.
@@ -843,9 +531,7 @@ export default function ProfilePage() {
         <FcPanel className="p-5 sm:p-6">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="theme-muted text-xs">
-                Account
-              </p>
+              <p className="theme-muted text-xs">Account</p>
 
               <h2 className="theme-text mt-1 text-lg font-semibold">
                 Contact & membership
@@ -862,40 +548,17 @@ export default function ProfilePage() {
 
           <div className="mt-4 grid gap-x-8 sm:grid-cols-2">
             <div>
-              <Detail
-                label="Full Name"
-                value={
-                  career.profile
-                    .fullName
-                }
-              />
+              <Detail label="Full Name" value={career.profile.fullName} />
 
-              <Detail
-                label="Email"
-                value={
-                  career.profile
-                    .email
-                }
-              />
+              <Detail label="Email" value={career.profile.email} />
             </div>
 
             <div>
-              <Detail
-                label="Phone"
-                value={
-                  career.profile
-                    .phoneNumber
-                }
-              />
+              <Detail label="Phone" value={career.profile.phoneNumber} />
 
               <Detail
                 label="Member Since"
-                value={
-                  new Date(
-                    career.profile
-                      .joinedAt,
-                  ).toLocaleDateString()
-                }
+                value={new Date(career.profile.joinedAt).toLocaleDateString()}
               />
             </div>
           </div>
@@ -903,50 +566,21 @@ export default function ProfilePage() {
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            [
-              'Career Stats',
-              '/career',
-            ],
-            [
-              'Match History',
-              '/career/matches',
-            ],
-            [
-              'Achievements',
-              '/career/achievements',
-            ],
-            [
-              'Leaderboards',
-              '/leaderboards',
-            ],
-          ].map(
-            (
-              [
-                title,
-                href,
-              ],
-            ) => (
-              <Link
-                key={
-                  href
-                }
-                href={
-                  href
-                }
-                className="theme-action-row rounded-2xl border p-4"
-              >
-                <p className="theme-text font-semibold">
-                  {
-                    title
-                  }
-                </p>
+            ["Career Stats", "/career"],
+            ["Match History", "/career/matches"],
+            ["Achievements", "/career/achievements"],
+            ["Leaderboards", "/leaderboards"],
+          ].map(([title, href]) => (
+            <Link
+              key={href}
+              href={href}
+              className="theme-action-row rounded-2xl border p-4"
+            >
+              <p className="theme-text font-semibold">{title}</p>
 
-                <p className="theme-muted mt-2 text-xs">
-                  Open →
-                </p>
-              </Link>
-            ),
-          )}
+              <p className="theme-muted mt-2 text-xs">Open →</p>
+            </Link>
+          ))}
         </section>
       </div>
     </AppShell>

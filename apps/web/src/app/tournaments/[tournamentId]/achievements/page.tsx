@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 import {
   useParams,
@@ -158,9 +159,9 @@ export default function AchievementsPage() {
 
   async function completeTournament() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Complete this Tournament? Champion and verified achievements will be generated permanently.',
-      )
+      ))
     ) {
       return;
     }

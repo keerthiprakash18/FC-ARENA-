@@ -1,5 +1,6 @@
 'use client';
 
+import { confirmAction } from '@/components/fc/confirmation-provider';
 import {
   useRouter,
 } from 'next/navigation';
@@ -703,9 +704,9 @@ export default function FixturePreviewPage() {
       string,
   ) {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Remove this match from the draft fixture list?',
-      )
+      ))
     ) {
       return;
     }
@@ -742,9 +743,9 @@ export default function FixturePreviewPage() {
 
   async function regenerate() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Regenerate this preview? Manual fixture edits in this scope will be replaced.',
-      )
+      ))
     ) {
       return;
     }
@@ -829,9 +830,9 @@ export default function FixturePreviewPage() {
 
   async function reset() {
     if (
-      !window.confirm(
+      !(await confirmAction(
         'Reset draft fixtures in this generator scope?',
-      )
+      ))
     ) {
       return;
     }

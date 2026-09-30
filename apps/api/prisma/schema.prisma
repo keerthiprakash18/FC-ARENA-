@@ -250,6 +250,7 @@ model User {
   ocrAwayMatches  OcrExtraction[]  @relation("OcrAwayMatchedUser")
   achievements    Achievement[]
   notifications   Notification[]
+  pushDevices PushDevice[]
   roleAssignments RoleAssignment[] @relation("AssignedRoleUser")
   rolesAssigned   RoleAssignment[] @relation("RoleAssigner")
   auditLogs       AuditLog[]       @relation("AuditActor")
@@ -310,6 +311,7 @@ model AuthOtp {
 }
 
 model RefreshSession {
+  pushDevices PushDevice[]
   id        String    @id @db.Uuid
   userId    String    @db.Uuid
   tokenHash String    @unique @db.VarChar(64)
@@ -324,6 +326,7 @@ model RefreshSession {
 }
 
 model League {
+  rankingSnapshots RankingSnapshot[]
   id            String   @id @default(uuid()) @db.Uuid
   name          String   @db.VarChar(120)
   code          String   @unique @db.VarChar(20)
@@ -686,6 +689,7 @@ model AuditLog {
 }
 
 model Notification {
+  pushDeliveries PushDelivery[]
   id         String           @id @default(uuid()) @db.Uuid
   userId     String           @db.Uuid
   type       NotificationType
@@ -826,4 +830,45 @@ model AuthRateLimit {
   @@id([action, keyHash])
   @@index([updatedAt])
   @@map("auth_rate_limits")
+}
+
+model RankingSnapshot {
+  id String @id @default(uuid()) @db.Uuid
+  leagueId String @db.Uuid
+  scope String @db.VarChar(8)
+  day DateTime @db.Date
+  capturedAt DateTime @default(now())
+  positions Json
+  league League @relation(fields:[leagueId], references:[id], onDelete:Cascade)
+  @@unique([leagueId, scope, day])
+  @@map("ranking_snapshots")
+}
+
+model PushDevice {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  sessionId String @db.Uuid
+  token String @unique @db.VarChar(2048)
+  enabledAt DateTime @default(now())
+  lastSyncedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  session RefreshSession @relation(fields:[sessionId], references:[id], onDelete:Cascade)
+  deliveries PushDelivery[]
+  @@index([lastSyncedAt])
+  @@index([userId])
+  @@map("push_devices")
+}
+
+model PushDelivery {
+  id String @id @default(uuid()) @db.Uuid
+  deviceId String @db.Uuid
+  notificationId String @db.Uuid
+  attempts Int @default(0)
+  leaseUntil DateTime @default(now())
+  deliveredAt DateTime?
+  device PushDevice @relation(fields:[deviceId], references:[id], onDelete:Cascade)
+  notification Notification @relation(fields:[notificationId], references:[id], onDelete:Cascade)
+  @@unique([deviceId, notificationId])
+  @@map("push_deliveries")
 }

@@ -118,7 +118,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body data-ui-build="competition-experience-v3">
+      <body data-ui-build="push-rank-history-v4">
         <ThemeProvider>
           <ConfirmationProvider />
           <ServiceWorkerRegister />

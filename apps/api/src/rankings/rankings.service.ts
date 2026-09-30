@@ -693,6 +693,19 @@ export class RankingsService {
         ),
       );
 
+    const day = new Date();
+    day.setUTCHours(0, 0, 0, 0);
+    const scope = competitionMode ?? 'ALL';
+    // First observed table each UTC day is immutable; never invent earlier history.
+    await this.prisma.rankingSnapshot.upsert({
+      where: { leagueId_scope_day: { leagueId, scope, day } },
+      create: { leagueId, scope, day, positions: Object.fromEntries(rankedRows.map(row => [row.userId, row.position])) },
+      update: {},
+    });
+    const previous = await this.prisma.rankingSnapshot.findFirst({where:{leagueId,scope,day:{lt:day}},orderBy:{day:'desc'}});
+    const previousPositions = (previous?.positions ?? {}) as Record<string,number>;
+    const rankingsWithMovement = rankedRows.map(row => ({...row, previousPosition: previousPositions[row.userId] ?? null, rankChange: typeof previousPositions[row.userId] === 'number' ? previousPositions[row.userId] - row.position : null}));
+
     const myPosition =
       rankedRows.find(
         (
@@ -741,6 +754,7 @@ export class RankingsService {
             tournamentCount,
 
           verifiedMatches,
+          comparisonCapturedAt: previous?.capturedAt.toISOString() ?? null,
 
           lastUpdatedAt:
             lastUpdatedAt
@@ -751,7 +765,7 @@ export class RankingsService {
         myPosition,
 
         rankings:
-          rankedRows,
+          rankingsWithMovement,
       },
 
       error: null,

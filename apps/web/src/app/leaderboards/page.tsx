@@ -26,6 +26,7 @@ interface Membership {
 
 interface RankingRow {
   position: number;
+  rankChange?: number | null;
   userId: string;
   fullName: string;
   playerCode: string | null;
@@ -63,6 +64,7 @@ interface LeaderboardData {
     tournaments: number;
     verifiedMatches: number;
     lastUpdatedAt: string | null;
+    comparisonCapturedAt?: string | null;
   };
 
   myPosition: number | null;
@@ -340,6 +342,7 @@ export default function LeaderboardsPage() {
                 />
               </section>
 
+              <p className="theme-muted text-sm">{data.summary.comparisonCapturedAt ? `Rank movement since saved snapshot: ${new Date(data.summary.comparisonCapturedAt).toLocaleString()}` : "Rank history starts with today’s saved table. Movement appears after a later day’s visit."}</p>
               {rankings.length === 0 ? (
                 <FcEmptyState
                   title="No ranking data yet"
@@ -371,6 +374,7 @@ export default function LeaderboardsPage() {
                             }
                           >
                             #{row.position}
+                            <span className="ml-1 text-xs" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
                           </span>
                         </div>
 
@@ -429,6 +433,7 @@ export default function LeaderboardsPage() {
                         <div data-player-id={row.userId} className="flex items-center gap-3">
                           <span className="theme-tone-premium grid h-10 min-w-10 place-items-center rounded-xl border px-2 font-bold">
                             #{row.position}
+                            <span className="ml-1 text-xs" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
                           </span>
 
                           <FcCrest
@@ -556,6 +561,7 @@ export default function LeaderboardsPage() {
                             >
                               <td className="theme-text px-4 py-3 font-bold">
                                 #{row.position}
+                            <span className="ml-1 text-xs" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
                               </td>
 
                               <td className="px-4 py-3">

@@ -308,6 +308,7 @@ export async function logoutCurrentUser(): Promise<void> {
     );
   } finally {
     clearNotificationCache();
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("fc-arena:signed-out"));
     accessToken = null;
     accessTokenExpiresAt = 0;
     refreshPromise = null;

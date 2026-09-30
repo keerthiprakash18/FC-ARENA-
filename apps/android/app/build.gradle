@@ -15,6 +15,12 @@ tasks.register("prepareFCArenaIcon", Copy) {
     rename { "fc_arena_launcher.png" }
 }
 
+// Client Firebase configuration is public; never put service-account credentials here.
+def firebaseConfigFile = file("google-services.json")
+def firebaseConfig = firebaseConfigFile.exists() ? new groovy.json.JsonSlurper().parse(firebaseConfigFile) : null
+def firebaseClient = firebaseConfig?.client?.find { it.client_info.android_client_info.package_name == 'in.fcarena.app' }
+def firebaseString = { value -> groovy.json.JsonOutput.toJson(value ?: '') }
+
 android {
     namespace 'in.fcarena.app'
     compileSdk 36
@@ -27,8 +33,12 @@ android {
         applicationId 'in.fcarena.app'
         minSdk 24
         targetSdk 36
-        versionCode 9
-        versionName '1.0.7'
+        versionCode 10
+        versionName '1.0.8'
+        buildConfigField 'String', 'FIREBASE_APP_ID', firebaseString(firebaseClient?.client_info?.mobilesdk_app_id)
+        buildConfigField 'String', 'FIREBASE_API_KEY', firebaseString(firebaseClient?.api_key?.getAt(0)?.current_key)
+        buildConfigField 'String', 'FIREBASE_PROJECT_ID', firebaseString(firebaseConfig?.project_info?.project_id)
+        buildConfigField 'String', 'FIREBASE_SENDER_ID', firebaseString(firebaseConfig?.project_info?.project_number)
     }
 
     signingConfigs {
@@ -79,4 +89,5 @@ tasks.named("preBuild").configure {
 }
 
 dependencies {
+    implementation 'com.google.firebase:firebase-messaging:25.1.3'
 }

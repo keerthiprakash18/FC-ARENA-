@@ -31,31 +31,6 @@ export function AuthCard({
         className={styles.visualPanel}
         aria-label="FC ARENA football experience"
       >
-        <div
-          className={styles.stadiumGlow}
-          aria-hidden="true"
-        />
-
-        <div
-          className={styles.stadiumGlowSecondary}
-          aria-hidden="true"
-        />
-
-        <div
-          className={styles.floodlightLeft}
-          aria-hidden="true"
-        />
-
-        <div
-          className={styles.floodlightRight}
-          aria-hidden="true"
-        />
-
-        <div
-          className={styles.fog}
-          aria-hidden="true"
-        />
-
         <div className={styles.brandTop}>
           <div
             className={styles.logoBadge}
@@ -103,15 +78,6 @@ export function AuthCard({
           </p>
         </div>
 
-        <div
-          className={styles.ball}
-          aria-hidden="true"
-        >
-          <FcIcon
-            name="football"
-            size={38}
-          />
-        </div>
       </section>
 
       <section className={styles.formPanel}>

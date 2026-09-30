@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useId, useRef } from 'react';
 import type {
   ReactNode,
 } from 'react';
@@ -74,7 +75,7 @@ export function FcPanel({
   return (
     <section
       className={
-        'theme-panel rounded-2xl border ' +
+        'theme-panel min-w-0 rounded-2xl border ' +
         className
       }
     >
@@ -95,7 +96,7 @@ export function FcPageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <header className="fc-page-heading flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
         {eyebrow ? (
           <p className="theme-muted text-xs font-medium">
@@ -103,7 +104,7 @@ export function FcPageHeader({
           </p>
         ) : null}
 
-        <h1 className="theme-text fc-display-strong mt-1 text-[28px] leading-tight sm:text-[34px]">
+        <h1 className="theme-text fc-display-strong tabular-nums mt-1 text-[28px] leading-tight sm:text-[34px]">
           {title}
         </h1>
 
@@ -133,7 +134,7 @@ export function FcSectionHeading({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between gap-4">
+    <div className="fc-section-heading flex flex-wrap items-end justify-between gap-3">
       <div>
         {eyebrow ? (
           <p className="theme-muted text-xs font-medium">
@@ -161,7 +162,7 @@ export function FcStatusBadge({
   return (
     <span
       className={
-        'inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-medium ' +
+        'theme-status-badge inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ' +
         toneClasses[tone]
       }
     >
@@ -206,14 +207,14 @@ export function FcStatCard({
             : 'activity';
 
   return (
-    <article className="theme-stat-card h-full min-h-[138px] rounded-2xl border p-5 transition duration-200">
+    <article className="theme-stat-card h-full min-h-[120px] rounded-2xl border p-5 transition duration-200">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="theme-secondary-text fc-display text-[13px] font-medium">
             {label}
           </p>
 
-          <p className="theme-text fc-display-strong mt-1 text-[28px] leading-none sm:text-[30px]">
+          <p className="theme-text fc-display-strong tabular-nums mt-1 text-[28px] leading-none sm:text-[30px]">
             {value}
           </p>
         </div>
@@ -292,6 +293,8 @@ export function FcCrest({
           src={
             imageUrl
           }
+          loading="lazy"
+          decoding="async"
           alt={
             name +
             ' crest'
@@ -323,7 +326,7 @@ export function FcEmptyState({
     >[0]['name'];
 }) {
   return (
-    <FcPanel className="border-dashed p-7 text-center sm:p-8">
+    <FcPanel className="fc-empty-state p-6 text-center sm:p-8">
       <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border">
         <FcIcon
           name={
@@ -392,7 +395,7 @@ export function FcLoadingScreen({
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-3">
             <FcSkeleton className="h-3 w-28" />
-            <FcSkeleton className="h-9 w-64 max-w-[72vw]" />
+            <FcSkeleton className="h-9 w-64 max-w-[48vw]" />
           </div>
 
           <FcSkeleton className="h-11 w-28" />
@@ -601,26 +604,52 @@ export function FcConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  if (!open) {
-    return null;
-  }
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
+  const cancelRef = useRef(onCancel);
+  useEffect(() => { cancelRef.current = onCancel; }, [onCancel]);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), [tabindex="0"]') ?? []);
+    (focusable()[0] ?? dialog)?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) { event.preventDefault(); cancelRef.current(); }
+      if (event.key === 'Tab') {
+        const items = focusable();
+        const first = items[0], last = items[items.length - 1];
+        if (!first) { event.preventDefault(); dialog?.focus(); }
+        else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog)) { event.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => { document.removeEventListener('keydown', handleKey); previous?.focus(); };
+  }, [open, busy]);
+  if (!open) return null;
 
   return (
     <div className="theme-dialog-overlay fixed inset-0 z-[80] grid place-items-center p-4">
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="fc-dialog-title"
+        ref={dialogRef}
+        tabIndex={-1}
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        aria-busy={busy}
         className="theme-dialog w-full max-w-md rounded-2xl border p-5"
       >
         <h2
-          id="fc-dialog-title"
+          id={titleId}
           className="theme-text text-lg font-semibold"
         >
           {title}
         </h2>
 
-        <p className="theme-secondary-text mt-2 text-sm leading-6">
+        <p id={descriptionId} className="theme-secondary-text mt-2 text-sm leading-6">
           {description}
         </p>
 
@@ -685,7 +714,7 @@ export function FcQuickActionTile({
       href={
         href
       }
-      className="theme-action-row group flex min-h-24 items-center gap-4 rounded-2xl border p-4 transition duration-200 sm:p-5"
+      className="theme-action-row fc-quick-action-tile group flex min-h-24 items-center gap-4 rounded-2xl border p-4 transition duration-200 sm:p-5"
     >
       <span
         className={

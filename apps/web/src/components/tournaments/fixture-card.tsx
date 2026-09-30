@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { FcStatusBadge } from '@/components/fc/fc-ui';
 import {
   useEffect,
   useState,
@@ -333,7 +334,7 @@ export function FixtureCard({
     );
 
   return (
-    <article className="rounded-2xl border border-white/10 bg-black/10 p-5">
+    <article className="theme-panel fc-fixture-card rounded-2xl border p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="font-mono text-[10px] text-slate-600">
@@ -359,17 +360,12 @@ export function FixtureCard({
             </span>
           ) : null}
 
-          <span className="rounded-full bg-white/5 px-3 py-1 text-[10px] font-black text-slate-400">
-            {fixture.status.replaceAll(
-              '_',
-              ' ',
-            )}
-          </span>
+          <FcStatusBadge label={fixture.status} tone={fixture.status === 'COMPLETED' ? 'emerald' : fixture.status === 'CANCELLED' ? 'red' : 'cyan'} />
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <p className="text-center font-black">
+      <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+        <p className="break-words text-center text-base font-semibold">
           {home}
         </p>
 
@@ -377,7 +373,7 @@ export function FixtureCard({
           VS
         </span>
 
-        <p className="text-center font-black">
+        <p className="break-words text-center text-base font-semibold">
           {away}
         </p>
       </div>
@@ -400,7 +396,7 @@ export function FixtureCard({
       {fixture.match?.id ? (
         <Link
           href={`/matches/${fixture.match.id}`}
-          className="mt-4 inline-flex rounded-xl border border-sky-400/20 px-4 py-2 text-sm font-black text-sky-400"
+          className="theme-secondary-button mt-4 flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold"
         >
           Open Match Center
         </Link>
@@ -421,7 +417,8 @@ export function FixtureCard({
             Admin Scheduling
           </p>
 
-          <input
+          <label className="fc-field-label">Date and time
+<input
             type="datetime-local"
             value={scheduledAt}
             onChange={(event) =>
@@ -432,8 +429,10 @@ export function FixtureCard({
             required
             className="rounded-xl border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
           />
+</label>
 
-          <input
+          <label className="fc-field-label">Venue / Lobby / Server
+<input
             value={venue}
             onChange={(event) =>
               setVenue(
@@ -443,9 +442,11 @@ export function FixtureCard({
             placeholder="Venue / Lobby / Server"
             className="rounded-xl border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
           />
+</label>
 
-          <div className="grid grid-cols-3 gap-2">
-            <input
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label className="fc-field-label">Matchday
+<input
               value={matchday}
               onChange={(event) =>
                 setMatchday(
@@ -457,8 +458,10 @@ export function FixtureCard({
               placeholder="Matchday"
               className="min-w-0 rounded-xl border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
             />
+</label>
 
-            <input
+            <label className="fc-field-label">Round number
+<input
               value={roundNumber}
               onChange={(event) =>
                 setRoundNumber(
@@ -470,8 +473,10 @@ export function FixtureCard({
               placeholder="Round"
               className="min-w-0 rounded-xl border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
             />
+</label>
 
-            <input
+            <label className="fc-field-label">Round name
+<input
               value={roundName}
               onChange={(event) =>
                 setRoundName(
@@ -481,10 +486,11 @@ export function FixtureCard({
               placeholder="Round Name"
               className="min-w-0 rounded-xl border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
             />
+</label>
           </div>
 
           {error ? (
-            <p className="text-sm text-red-300">
+            <p role="alert" className="text-sm text-red-300">
               {error}
             </p>
           ) : null}
@@ -493,9 +499,9 @@ export function FixtureCard({
             <button
               type="submit"
               disabled={busy}
-              className="rounded-xl bg-sky-400 px-4 py-2 text-sm font-black text-[#041019] disabled:opacity-50"
+              className="theme-primary-button min-h-11 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50"
             >
-              {fixture.scheduledAt
+              {busy ? 'Saving...' : fixture.scheduledAt
                 ? 'Reschedule'
                 : 'Schedule'}
             </button>

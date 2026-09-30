@@ -361,7 +361,7 @@ function SectionTitle({
   linkLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-3">
         <span className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border" aria-hidden="true">
           <FcIcon
@@ -378,7 +378,7 @@ function SectionTitle({
       {href ? (
         <Link
           href={href}
-          className="theme-text-link text-sm font-medium transition"
+          className="theme-text-link inline-flex min-h-11 shrink-0 items-center whitespace-nowrap text-xs font-medium transition"
         >
           {linkLabel}
         </Link>
@@ -824,20 +824,6 @@ export default function DashboardPage() {
       }
     >
       <div className="fc-dashboard-page relative space-y-5 sm:space-y-6">
-        <div
-          className="fc-dashboard-backdrop"
-          aria-hidden="true"
-        >
-          <span className="fc-dashboard-backdrop-grid" />
-          <span className="fc-dashboard-light fc-dashboard-light-one" />
-          <span className="fc-dashboard-light fc-dashboard-light-two" />
-          <span className="fc-dashboard-beam fc-dashboard-beam-one" />
-          <span className="fc-dashboard-beam fc-dashboard-beam-two" />
-          <span className="fc-dashboard-particles" />
-          <span className="fc-dashboard-ring fc-dashboard-ring-one" />
-          <span className="fc-dashboard-ring fc-dashboard-ring-two" />
-        </div>
-
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {
@@ -848,10 +834,10 @@ export default function DashboardPage() {
 
 
         <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
-          <div className="fc-hero-art" />
+
           <div className="fc-hero-right hidden lg:block" />
-          <div className="fc-dashboard-hero-scan" aria-hidden="true" />
-          <div className="fc-dashboard-hero-orbit" aria-hidden="true" />
+
+
 
           <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
             <div className="hidden lg:block">
@@ -882,7 +868,7 @@ export default function DashboardPage() {
               </h1>
 
               <p className="theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
-                Your player identity, form and next competition action in one place.
+                Your next match. Your club. Your season.
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -938,63 +924,10 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-          <Link href="/career">
-            <FcStatCard
-              label="Matches"
-              value={
-                stats.matches
-              }
-              detail="View career stats"
-              icon="▤"
-            />
-          </Link>
-
-          <Link href="/career">
-            <FcStatCard
-              label="Wins"
-              value={
-                stats.wins
-              }
-              detail={
-                `${stats.draws} draws • ${stats.losses} losses`
-              }
-              tone="emerald"
-              icon="✓"
-            />
-          </Link>
-
-          <Link href="/career">
-            <FcStatCard
-              label="Goals"
-              value={
-                stats.goalsFor
-              }
-              detail={
-                `Goal difference: ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
-              }
-              tone="amber"
-              icon="fixtures"
-            />
-          </Link>
-
-          <Link href="/career">
-            <FcStatCard
-              label="Win Rate"
-              value={
-                `${stats.winRate}%`
-              }
-              detail="View detailed stats"
-              icon="↗"
-            />
-          </Link>
-        </section>
-
-
         <section className="fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
           <FcPanel className="fc-next-match-panel relative overflow-hidden p-5 sm:p-6">
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
-            <div className="fc-match-spotlight" aria-hidden="true" />
+
 
             <div className="relative">
               <SectionTitle
@@ -1239,7 +1172,7 @@ export default function DashboardPage() {
         </section>
 
 
-        <section className="fc-dashboard-section grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+        <section className="fc-dashboard-section grid gap-5">
           <FcPanel className="fc-tournament-panel p-5 sm:p-6">
             <SectionTitle
               icon="tournament"
@@ -1352,7 +1285,7 @@ export default function DashboardPage() {
             ) : (
               <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
                 <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
-                  🏆
+                  <FcIcon name="trophy" size={22} />
                 </div>
 
                 <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
@@ -1374,13 +1307,69 @@ export default function DashboardPage() {
           </FcPanel>
 
 
+        </section>
+
+
+        <section className="fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+          <Link href="/career">
+            <FcStatCard
+              label="Matches"
+              value={
+                stats.matches
+              }
+              detail="View career stats"
+              icon="▤"
+            />
+          </Link>
+
+          <Link href="/career">
+            <FcStatCard
+              label="Wins"
+              value={
+                stats.wins
+              }
+              detail={
+                `${stats.draws} draws • ${stats.losses} losses`
+              }
+              tone="emerald"
+              icon="✓"
+            />
+          </Link>
+
+          <Link href="/career">
+            <FcStatCard
+              label="Goals"
+              value={
+                stats.goalsFor
+              }
+              detail={
+                `Goal difference: ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`
+              }
+              tone="amber"
+              icon="fixtures"
+            />
+          </Link>
+
+          <Link href="/career">
+            <FcStatCard
+              label="Win Rate"
+              value={
+                `${stats.winRate}%`
+              }
+              detail="View detailed stats"
+              icon="↗"
+            />
+          </Link>
+        </section>
+
+
           <div className="fc-quick-actions-panel">
             <SectionTitle
               icon="activity"
               title="Quick Actions"
             />
 
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
               <FcQuickActionTile
                 href="/leagues"
                 icon="+"
@@ -1436,15 +1425,12 @@ export default function DashboardPage() {
               />
             </div>
           </div>
-        </section>
-
-
         <FcPanel className="fc-activity-panel p-5 sm:p-6">
           <SectionTitle
             icon="history"
             title="Latest Activity"
             href="/career/matches"
-            linkLabel="View All Activity →"
+            linkLabel="View all →"
           />
 
           {recentActivity.length >

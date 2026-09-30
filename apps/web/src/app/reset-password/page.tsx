@@ -69,8 +69,9 @@ export default function ResetPasswordPage() {
     >
       <form className="auth-form" onSubmit={submit}>
         <div className="field">
-          <label>Email</label>
+          <label htmlFor="auth-email">Email</label>
           <input
+            id="auth-email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             type="email"
@@ -79,8 +80,11 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="field">
-          <label>6-digit OTP</label>
+          <label htmlFor="auth-otp">6-digit OTP</label>
           <input
+            id="auth-otp"
+            inputMode="numeric"
+            autoComplete="one-time-code"
             value={otp}
             onChange={(event) => setOtp(event.target.value)}
             maxLength={6}
@@ -95,9 +99,10 @@ export default function ResetPasswordPage() {
         ) : null}
 
         <div className="field">
-          <label>New Password</label>
+          <label htmlFor="auth-newPassword">New Password</label>
           <div className="relative">
             <input
+              id="auth-newPassword"
               name="newPassword"
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
@@ -117,9 +122,10 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="field">
-          <label>Confirm Password</label>
+          <label htmlFor="auth-confirmPassword">Confirm Password</label>
           <div className="relative">
             <input
+              id="auth-confirmPassword"
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               autoComplete="new-password"

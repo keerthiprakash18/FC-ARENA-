@@ -120,8 +120,9 @@ export default function LoginPage() {
     >
       <form className="auth-form" onSubmit={submit}>
         <div className="field">
-          <label>Email or Game Name</label>
+          <label htmlFor="auth-identifier">Email or Game Name</label>
           <input
+            id="auth-identifier"
             name="identifier"
             type="text"
             inputMode="text"
@@ -138,9 +139,10 @@ export default function LoginPage() {
         </div>
 
         <div className="field">
-          <label>Password</label>
+          <label htmlFor="auth-password">Password</label>
           <div className="relative">
             <input
+              id="auth-password"
               name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"

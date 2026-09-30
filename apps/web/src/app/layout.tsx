@@ -12,6 +12,7 @@ import {
 } from '@/components/theme/theme-provider';
 
 import './globals.css';
+import './modernization.css';
 import './native-android.css';
 
 export const metadata: Metadata = {
@@ -81,9 +82,9 @@ export default function RootLayout({
       }
       try {
         var value = localStorage.getItem('fc-arena-theme-preference');
-        var theme = value === 'LUXURY_GOLD'
-          ? 'luxury-gold'
-          : 'classic-blue';
+        var theme = value === 'CLASSIC_BLUE'
+          ? 'classic-blue'
+          : 'luxury-gold';
         document.documentElement.dataset.theme = theme;
 
         var modeValue = localStorage.getItem('fc-arena-display-mode');
@@ -94,7 +95,7 @@ export default function RootLayout({
         document.documentElement.dataset.mode = mode;
 
       } catch (_) {
-        document.documentElement.dataset.theme = 'classic-blue';
+        document.documentElement.dataset.theme = 'luxury-gold';
         document.documentElement.dataset.mode = 'light';
       }
     })();
@@ -103,7 +104,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="classic-blue"
+      data-theme="luxury-gold"
       data-mode="light"
       suppressHydrationWarning
     >
@@ -116,7 +117,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body data-ui-build="theme-system-v1">
+      <body data-ui-build="modernization-v1">
         <ThemeProvider>
           <ServiceWorkerRegister />
           {children}

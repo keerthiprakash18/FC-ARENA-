@@ -191,6 +191,7 @@ $KeystorePath = (Resolve-Path $KeystorePath).Path
 if (-not $KeyAlias) {
     $KeyAlias = Read-Host "Enter the existing FC Arena upload-key alias"
 }
+$KeyAlias = $KeyAlias.Trim()
 if ([string]::IsNullOrWhiteSpace($KeyAlias)) {
     throw "Key alias cannot be empty."
 }
@@ -223,7 +224,11 @@ try {
         $ErrorActionPreference = $previousErrorActionPreference
     }
     if ($keytoolExitCode -ne 0) {
-        throw "keytool could not open the keystore/alias. Check the path, alias, and keystore password."
+        $keytoolMessage = $keyInfo.Trim()
+        if ([string]::IsNullOrWhiteSpace($keytoolMessage)) {
+            $keytoolMessage = "keytool returned exit code $keytoolExitCode with no diagnostic output."
+        }
+        throw "keytool verification failed: $keytoolMessage"
     }
 
     $fingerprintMatch = [regex]::Match($keyInfo, "SHA256:\s*([0-9A-Fa-f:]+)")

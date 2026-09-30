@@ -265,14 +265,17 @@ try {
     $previousErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Continue"
-        & $jarsigner -verify -strict $RawAab
+        # Trust only the upload keystore whose fingerprint was checked above.
+        # Android upload certificates are self-signed; the JDK public CA store
+        # cannot validate them. Keep strict checks and require the selected alias.
+        & $jarsigner -verify -strict -keystore $KeystorePath -storepass:env FC_ARENA_STORE_PASSWORD $RawAab $KeyAlias
         $jarsignerExitCode = $LASTEXITCODE
     }
     finally {
         $ErrorActionPreference = $previousErrorActionPreference
     }
     if ($jarsignerExitCode -ne 0) {
-        throw "jarsigner verification failed. The AAB is not a valid signed release artifact."
+        throw "AAB verification failed (jarsigner exit code $jarsignerExitCode). Review the verifier output above; no release artifact was copied."
     }
 
     Write-Host "Verifying certificate embedded in the signed AAB..."

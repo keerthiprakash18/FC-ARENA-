@@ -216,7 +216,7 @@ try {
     $jarsigner = Resolve-Tool -Name "jarsigner.exe" -JavaToolName "jarsigner.exe"
 
     Write-Host "Verifying upload keystore certificate..."
-    $keyInfo = (& $keytool -list -v -keystore $KeystorePath -alias $KeyAlias -storepass $storePassword 2>&1 | Out-String)
+    $keyInfo = (& $keytool -list -v -keystore $KeystorePath -alias $KeyAlias -storepass $storePassword 2>$null | Out-String)
     if ($LASTEXITCODE -ne 0) {
         throw "keytool could not open the keystore/alias. Check the path, alias, and keystore password."
     }

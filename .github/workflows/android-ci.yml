@@ -56,6 +56,9 @@ jobs:
             exit 1
           }
 
+      - name: Verify self-signed upload certificate handling
+        run: python3 apps/android/tests/verify-upload-trust.py
+
       - name: Setup Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:

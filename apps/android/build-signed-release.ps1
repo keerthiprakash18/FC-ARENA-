@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 $ExpectedVersionCode = "10"
 $ExpectedVersionName = "1.0.8"
-$ExpectedUploadFingerprint = "8E:D9:C7:3B:EF:2F:66:21:5F:7F:8C:91:7B:A8:32:B2:02:CC:4F:C4:34:6C:A9:87:40:63:0B:87:1A:DE:60:6D"
+$ExpectedUploadFingerprint = "23:96:BA:D7:80:3E:DB:34:D8:31:EA:CB:4B:02:00:47:37:C7:AD:E8:A4:E6:8A:F8:CC:36:2D:AE:32:5B:B9:E2"
 $FinalName = "FC_ARENA_v1.0.8_build10_signed.aab"
 $GradleVersion = "8.13"
 
@@ -216,8 +216,16 @@ try {
     $jarsigner = Resolve-Tool -Name "jarsigner.exe" -JavaToolName "jarsigner.exe"
 
     Write-Host "Verifying upload keystore certificate..."
-    $keyInfo = (& $keytool -list -v -keystore $KeystorePath -alias $KeyAlias -storepass $storePassword 2>$null | Out-String)
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $keyInfo = (& $keytool -list -v -keystore $KeystorePath -alias $KeyAlias -storepass $storePassword 2>&1 | Out-String)
+        $keytoolExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($keytoolExitCode -ne 0) {
         throw "keytool could not open the keystore/alias. Check the path, alias, and keystore password."
     }
 
@@ -257,14 +265,30 @@ try {
     }
 
     Write-Host "Verifying signed AAB integrity..."
-    & $jarsigner -verify -strict $RawAab
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & $jarsigner -verify -strict $RawAab
+        $jarsignerExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($jarsignerExitCode -ne 0) {
         throw "jarsigner verification failed. The AAB is not a valid signed release artifact."
     }
 
     Write-Host "Verifying certificate embedded in the signed AAB..."
-    $aabCertInfo = (& $keytool -printcert -jarfile $RawAab 2>&1 | Out-String)
-    if ($LASTEXITCODE -ne 0) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $aabCertInfo = (& $keytool -printcert -jarfile $RawAab 2>&1 | Out-String)
+        $aabKeytoolExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($aabKeytoolExitCode -ne 0) {
         throw "The produced AAB does not expose a valid signer certificate."
     }
 

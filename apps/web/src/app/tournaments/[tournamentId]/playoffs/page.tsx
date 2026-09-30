@@ -1,6 +1,7 @@
 "use client";
 
 import { confirmAction } from "@/components/fc/confirmation-provider";
+import { ApiError } from "@/lib/api";
 import Link from "next/link";
 
 import { useParams, useRouter } from "next/navigation";
@@ -196,8 +197,9 @@ export default function PlayoffsPage() {
         }
 
         await loadFixtures();
-      } catch {
-        router.replace(`/tournaments/${tournamentId}`);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) router.replace("/login");
+        else setError("Unable to load playoff details. Please retry.");
       } finally {
         setLoading(false);
       }
@@ -409,6 +411,7 @@ export default function PlayoffsPage() {
     }
   }
 
+  if (!loading && (!user || !tournament) && error) return <AppShell><div className="theme-panel rounded-xl p-5"><p role="alert">{error}</p><button onClick={()=>window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></div></AppShell>;
   if (loading || !user || !tournament) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">

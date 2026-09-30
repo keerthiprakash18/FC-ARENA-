@@ -435,6 +435,10 @@ export class PlayerCareerService {
               match.status,
 
             outcome,
+            opponent: {
+              key: (isHome ? awayMembers : homeMembers).map(member => member.userId).sort().join(':'),
+              name: this.registrationName(isHome ? match.fixture.awayRegistration : match.fixture.homeRegistration),
+            },
 
             tournament: {
               id:

@@ -23,6 +23,7 @@ interface MatchHistory {
   id: string;
   matchCode: string | null;
   outcome: "W" | "D" | "L";
+  opponent?: {key: string; name: string};
   confirmedAt: string;
 
   tournament: {
@@ -66,6 +67,7 @@ export default function CareerMatchesPage() {
 
   const [career, setCareer] = useState<CareerData | null>(null);
 
+  const [opponent, setOpponent] = useState("ALL");
   const [season, setSeason] = useState("ALL");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
@@ -94,7 +96,8 @@ export default function CareerMatchesPage() {
     career.profile.identity?.inGameName || career.profile.fullName;
 
   const years = [...new Set(career.matchHistory.map(match => new Date(match.confirmedAt).getFullYear()))].sort((a,b) => b-a);
-  const filtered = career.matchHistory.filter(match => (season === "ALL" || String(new Date(match.confirmedAt).getFullYear()) === season) && `${match.home.name} ${match.away.name} ${match.tournament.name}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
+  const opponents = [...new Map(career.matchHistory.filter(match => match.opponent?.key).map(match => [match.opponent!.key, match.opponent!.name])).entries()];
+  const filtered = career.matchHistory.filter(match => (opponent === "ALL" || match.opponent?.key === opponent) && (season === "ALL" || String(new Date(match.confirmedAt).getFullYear()) === season) && `${match.home.name} ${match.away.name} ${match.tournament.name}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   return (
     <AppShell playerName={playerName}>
       <div className="space-y-6">
@@ -107,7 +110,7 @@ export default function CareerMatchesPage() {
         />
 
         <CareerNavigation />
-        <FcPanel className="grid gap-4 p-4 sm:grid-cols-2"><label className="fc-field-label">Year archive<select className="theme-secondary-button p-3" value={season} onChange={event=>setSeason(event.target.value)}><option value="ALL">All years</option>{years.map(year=><option key={year} value={year}>{year}</option>)}</select></label><label className="fc-field-label">Find a team or tournament<input className="theme-secondary-button p-3" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search verified history" /></label><p className="text-sm sm:col-span-2">{filtered.length} verified matches · {filtered.filter(m=>m.outcome==="W").length} W · {filtered.filter(m=>m.outcome==="D").length} D · {filtered.filter(m=>m.outcome==="L").length} L</p></FcPanel>
+        <FcPanel className="grid gap-4 p-4 sm:grid-cols-2"><label className="fc-field-label">Year archive<select className="theme-secondary-button p-3" value={season} onChange={event=>setSeason(event.target.value)}><option value="ALL">All years</option>{years.map(year=><option key={year} value={year}>{year}</option>)}</select></label><label className="fc-field-label">Find a team or tournament<input className="theme-secondary-button p-3" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search verified history" /></label><label className="fc-field-label sm:col-span-2">Head-to-head · verified opponents<select value={opponent} onChange={event=>setOpponent(event.target.value)} className="theme-secondary-button p-3"><option value="ALL">All opponents</option>{opponents.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p className="text-sm sm:col-span-2">{filtered.length} verified matches · {filtered.filter(m=>m.outcome==="W").length} W · {filtered.filter(m=>m.outcome==="D").length} D · {filtered.filter(m=>m.outcome==="L").length} L</p></FcPanel>
 
         {filtered.length === 0 ? (
           <FcEmptyState

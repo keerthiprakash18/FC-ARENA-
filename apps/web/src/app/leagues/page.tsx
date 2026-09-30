@@ -1,21 +1,12 @@
-'use client';
+"use client";
 
-import { confirmAction } from '@/components/fc/confirmation-provider';
-import Link from 'next/link';
-import type {
-  FormEvent,
-} from 'react';
-import {
-  useEffect,
-  useState,
-} from 'react';
-import {
-  useRouter,
-} from 'next/navigation';
+import { confirmAction } from "@/components/fc/confirmation-provider";
+import Link from "next/link";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import {
-  AppShell,
-} from '@/components/app/app-shell';
+import { AppShell } from "@/components/app/app-shell";
 
 import {
   FcCrest,
@@ -25,24 +16,18 @@ import {
   FcPanel,
   FcSectionHeading,
   FcStatusBadge,
-} from '@/components/fc/fc-ui';
+} from "@/components/fc/fc-ui";
 
 import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
-} from '@/lib/auth-client';
-
+} from "@/lib/auth-client";
 
 interface MyLeague {
-  membershipType:
-    | 'PRIMARY'
-    | 'SECONDARY';
+  membershipType: "PRIMARY" | "SECONDARY";
 
-  adminRole:
-    | 'OWNER'
-    | 'ADMIN'
-    | null;
+  adminRole: "OWNER" | "ADMIN" | null;
 
   league: {
     id: string;
@@ -57,7 +42,6 @@ interface MyLeague {
   };
 }
 
-
 interface LeaguePreview {
   id: string;
   name: string;
@@ -71,478 +55,236 @@ interface LeaguePreview {
   applicationStatus: string | null;
 }
 
-
 export default function LeaguesPage() {
-  const router =
-    useRouter();
+  const router = useRouter();
+  const [inviteCode, setInviteCode] = useState("");
+  useEffect(() => { try { const code = new URLSearchParams(window.location.search).get("code") || sessionStorage.getItem("fc-league-invite"); if (code && /^[a-zA-Z0-9-]{1,40}$/.test(code)) { setInviteCode(code); sessionStorage.setItem("fc-league-invite", code); } } catch {} }, []);
 
-  const [
-    user,
-    setUser,
-  ] =
-    useState<CurrentUser | null>(
-      null,
-    );
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
-  const [
-    leagues,
-    setLeagues,
-  ] =
-    useState<MyLeague[]>(
-      [],
-    );
+  const [leagues, setLeagues] = useState<MyLeague[]>([]);
 
-  const [
-    preview,
-    setPreview,
-  ] =
-    useState<LeaguePreview | null>(
-      null,
-    );
+  const [preview, setPreview] = useState<LeaguePreview | null>(null);
 
-  const [
-    showCreate,
-    setShowCreate,
-  ] =
-    useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
-  const [
-    message,
-    setMessage,
-  ] =
-    useState('');
+  const [message, setMessage] = useState("");
 
-  const [
-    error,
-    setError,
-  ] =
-    useState('');
+  const [error, setError] = useState("");
 
-  const [
-    busy,
-    setBusy,
-  ] =
-    useState(false);
-
+  const [busy, setBusy] = useState(false);
 
   async function loadLeagues() {
-    const response =
-      await authenticatedRequest<{
-        data: {
-          leagues:
-            MyLeague[];
-        };
-      }>(
-        '/leagues/my',
-      );
+    const response = await authenticatedRequest<{
+      data: {
+        leagues: MyLeague[];
+      };
+    }>("/leagues/my");
 
-    setLeagues(
-      response.data.leagues,
-    );
+    setLeagues(response.data.leagues);
   }
-
 
   useEffect(() => {
     void (async () => {
       try {
-        setUser(
-          await getCurrentUser(),
-        );
+        setUser(await getCurrentUser());
 
         await loadLeagues();
       } catch {
-        router.replace(
-          '/login',
-        );
+        router.replace("/login");
       }
     })();
-  }, [
-    router,
-  ]);
+  }, [router]);
 
-
-  async function createLeague(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
+  async function createLeague(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setBusy(
-      true,
-    );
+    setBusy(true);
 
-    setError(
-      '',
-    );
+    setError("");
 
-    setMessage(
-      '',
-    );
+    setMessage("");
 
-    const form =
-      event.currentTarget;
+    const form = event.currentTarget;
 
-    const data =
-      new FormData(
-        form,
-      );
+    const data = new FormData(form);
 
     try {
-      const response =
-        await authenticatedRequest<any>(
-          '/leagues',
-          {
-            method:
-              'POST',
+      const response = await authenticatedRequest<any>("/leagues", {
+        method: "POST",
 
-            body:
-              JSON.stringify({
-                name:
-                  String(
-                    data.get(
-                      'name',
-                    ) ??
-                    '',
-                  ),
+        body: JSON.stringify({
+          name: String(data.get("name") ?? ""),
 
-                region:
-                  String(
-                    data.get(
-                      'region',
-                    ) ??
-                    '',
-                  ) ||
-                  undefined,
+          region: String(data.get("region") ?? "") || undefined,
 
-                description:
-                  String(
-                    data.get(
-                      'description',
-                    ) ??
-                    '',
-                  ) ||
-                  undefined,
+          description: String(data.get("description") ?? "") || undefined,
 
-                rules:
-                  String(
-                    data.get(
-                      'rules',
-                    ) ??
-                    '',
-                  ) ||
-                  undefined,
-              }),
-          },
-        );
+          rules: String(data.get("rules") ?? "") || undefined,
+        }),
+      });
 
-      setMessage(
-        `${response.data.message} Code: ${response.data.league.code}`,
-      );
+      setMessage(`${response.data.message} Code: ${response.data.league.code}`);
 
       form.reset();
 
-      setShowCreate(
-        false,
-      );
+      setShowCreate(false);
 
       await loadLeagues();
-    } catch (
-      err
-    ) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to create League.',
-      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to create League.");
     } finally {
-      setBusy(
-        false,
-      );
+      setBusy(false);
     }
   }
 
-
-  async function findLeague(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
+  async function findLeague(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setError(
-      '',
-    );
+    setError("");
 
-    setMessage(
-      '',
-    );
+    setMessage("");
 
-    setPreview(
-      null,
-    );
+    setPreview(null);
 
-    const form =
-      new FormData(
-        event.currentTarget,
-      );
+    const form = new FormData(event.currentTarget);
 
-    const code =
-      String(
-        form.get(
-          'code',
-        ) ??
-        '',
-      )
-        .trim()
-        .toUpperCase();
+    const code = String(form.get("code") ?? "")
+      .trim()
+      .toUpperCase();
 
     try {
-      const response =
-        await authenticatedRequest<any>(
-          `/leagues/code/${encodeURIComponent(code)}`,
-        );
+      const response = await authenticatedRequest<any>(
+        `/leagues/code/${encodeURIComponent(code)}`,
+      );
 
-      setPreview(
-        response
-          .data
-          .league,
-      );
-    } catch (
-      err
-    ) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'League not found.',
-      );
+      setPreview(response.data.league);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "League not found.");
     }
   }
 
-
   async function requestJoin() {
-    if (
-      !preview ||
-      leagues.length >=
-        2
-    ) {
+    if (!preview || leagues.length >= 2) {
       return;
     }
 
-    setBusy(
-      true,
-    );
+    setBusy(true);
 
-    setError(
-      '',
-    );
+    setError("");
 
     try {
-      const response =
-        await authenticatedRequest<any>(
-          '/leagues/join',
-          {
-            method:
-              'POST',
+      const response = await authenticatedRequest<any>("/leagues/join", {
+        method: "POST",
 
-            body:
-              JSON.stringify({
-                code:
-                  preview.code,
-              }),
-          },
-        );
+        body: JSON.stringify({
+          code: preview.code,
+        }),
+      });
 
-      setMessage(
-        response.data.message,
-      );
+      setMessage(response.data.message);
 
       setPreview({
         ...preview,
-        applicationStatus:
-          'PENDING',
+        applicationStatus: "PENDING",
       });
-    } catch (
-      err
-    ) {
+    } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to request membership.',
+        err instanceof Error ? err.message : "Unable to request membership.",
       );
     } finally {
-      setBusy(
-        false,
-      );
+      setBusy(false);
     }
   }
 
-
-  async function deleteLeague(
-    item:
-      MyLeague,
-  ) {
-    if (
-      item.adminRole !==
-      'OWNER'
-    ) {
+  async function deleteLeague(item: MyLeague) {
+    if (item.adminRole !== "OWNER") {
       return;
     }
 
-    const confirmation =
-      window.prompt(
-        `Delete "${item.league.name}" permanently? This also removes its tournaments, fixtures, standings and League memberships. Type the League name exactly to continue.`,
-      );
+    const confirmation = window.prompt(
+      `Delete "${item.league.name}" permanently? This also removes its tournaments, fixtures, standings and League memberships. Type the League name exactly to continue.`,
+    );
 
-    if (
-      confirmation ===
-      null
-    ) {
+    if (confirmation === null) {
       return;
     }
 
-    if (
-      confirmation.trim() !==
-      item.league.name.trim()
-    ) {
-      setError(
-        'League name confirmation does not match.',
-      );
+    if (confirmation.trim() !== item.league.name.trim()) {
+      setError("League name confirmation does not match.");
 
       return;
     }
 
-    setBusy(
-      true,
-    );
+    setBusy(true);
 
-    setError(
-      '',
-    );
+    setError("");
 
-    setMessage(
-      '',
-    );
+    setMessage("");
 
     try {
-      const response =
-        await authenticatedRequest<any>(
-          `/leagues/${item.league.id}`,
-          {
-            method:
-              'DELETE',
+      const response = await authenticatedRequest<any>(
+        `/leagues/${item.league.id}`,
+        {
+          method: "DELETE",
 
-            body:
-              JSON.stringify({
-                confirmName:
-                  confirmation,
-              }),
-          },
-        );
-
-      setMessage(
-        response.data.message,
+          body: JSON.stringify({
+            confirmName: confirmation,
+          }),
+        },
       );
+
+      setMessage(response.data.message);
 
       await loadLeagues();
-    } catch (
-      err
-    ) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to delete League.',
-      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete League.");
     } finally {
-      setBusy(
-        false,
-      );
+      setBusy(false);
     }
   }
 
-
-  async function leaveLeague(
-    item:
-      MyLeague,
-  ) {
-    if (
-      item.adminRole ===
-      'OWNER'
-    ) {
+  async function leaveLeague(item: MyLeague) {
+    if (item.adminRole === "OWNER") {
       return;
     }
 
-    if (
-      !(await confirmAction(
-        `Leave "${item.league.name}"?`,
-      ))
-    ) {
+    if (!(await confirmAction(`Leave "${item.league.name}"?`))) {
       return;
     }
 
-    setBusy(
-      true,
-    );
+    setBusy(true);
 
-    setError(
-      '',
-    );
+    setError("");
 
-    setMessage(
-      '',
-    );
+    setMessage("");
 
     try {
-      const response =
-        await authenticatedRequest<any>(
-          `/leagues/${item.league.id}/leave`,
-          {
-            method:
-              'DELETE',
-          },
-        );
-
-      setMessage(
-        response.data.message,
+      const response = await authenticatedRequest<any>(
+        `/leagues/${item.league.id}/leave`,
+        {
+          method: "DELETE",
+        },
       );
+
+      setMessage(response.data.message);
 
       await loadLeagues();
-    } catch (
-      err
-    ) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to leave League.',
-      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to leave League.");
     } finally {
-      setBusy(
-        false,
-      );
+      setBusy(false);
     }
   }
-
 
   if (!user) {
-    return (
-      <FcLoadingScreen
-        label="Loading Leagues..."
-      />
-    );
+    return <FcLoadingScreen label="Loading Leagues..." />;
   }
 
-
-  const atLimit =
-    leagues.length >=
-    2;
-
+  const atLimit = leagues.length >= 2;
 
   return (
-    <AppShell
-      playerName={
-        user.player
-          ?.identity
-          ?.inGameName
-      }
-    >
+    <AppShell playerName={user.player?.identity?.inGameName}>
       <div className="space-y-6">
         <FcPageHeader
           title="Leagues"
@@ -550,17 +292,8 @@ export default function LeaguesPage() {
           action={
             <button
               type="button"
-              disabled={
-                atLimit
-              }
-              onClick={() =>
-                setShowCreate(
-                  (
-                    value,
-                  ) =>
-                    !value,
-                )
-              }
+              disabled={atLimit}
+              onClick={() => setShowCreate((value) => !value)}
               className="min-h-11 rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-40"
             >
               + Add League
@@ -568,23 +301,17 @@ export default function LeaguesPage() {
           }
         />
 
-
         {message ? (
           <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
-            {
-              message
-            }
+            {message}
           </div>
         ) : null}
 
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {
-              error
-            }
+            {error}
           </div>
         ) : null}
-
 
         <section>
           <FcSectionHeading
@@ -592,16 +319,13 @@ export default function LeaguesPage() {
             title="My Leagues"
             action={
               <span className="text-xs font-black text-slate-600">
-                {
-                  leagues.length
-                }
+                {leagues.length}
                 /2
               </span>
             }
           />
 
-          {leagues.length ===
-          0 ? (
+          {leagues.length === 0 ? (
             <div className="mt-4">
               <FcEmptyState
                 title="No League memberships"
@@ -610,162 +334,111 @@ export default function LeaguesPage() {
             </div>
           ) : (
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
-              {leagues.map(
-                (
-                  item,
-                ) => (
-                  <article
-                    key={
-                      item.league.id
-                    }
-                    className="rounded-2xl border border-[#203141] bg-[#101923] p-5 transition duration-200 hover:border-[#2D4356] hover:bg-[#121D28]"
+              {leagues.map((item) => (
+                <article
+                  key={item.league.id}
+                  className="rounded-2xl border border-[#203141] bg-[#101923] p-5 transition duration-200 hover:border-[#2D4356] hover:bg-[#121D28]"
+                >
+                  <Link
+                    href={`/leagues/${item.league.id}`}
+                    className="group block"
                   >
-                    <Link
-                      href={
-                        `/leagues/${item.league.id}`
-                      }
-                      className="group block"
-                    >
-                      <div className="flex items-start gap-4">
-                        <FcCrest
-                          name={
-                            item.league.name
-                          }
-                          imageUrl={
-                            item.league.logoUrl
-                          }
-                          size="lg"
-                        />
+                    <div className="flex items-start gap-4">
+                      <FcCrest
+                        name={item.league.name}
+                        imageUrl={item.league.logoUrl}
+                        size="lg"
+                      />
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap gap-2">
+                          <FcStatusBadge
+                            label={item.membershipType}
+                            tone={
+                              item.membershipType === "PRIMARY"
+                                ? "cyan"
+                                : "slate"
+                            }
+                          />
+
+                          {item.adminRole ? (
                             <FcStatusBadge
-                              label={
-                                item.membershipType
-                              }
-                              tone={
-                                item.membershipType ===
-                                'PRIMARY'
-                                  ? 'cyan'
-                                  : 'slate'
-                              }
+                              label={item.adminRole}
+                              tone="amber"
                             />
-
-                            {item.adminRole ? (
-                              <FcStatusBadge
-                                label={
-                                  item.adminRole
-                                }
-                                tone="amber"
-                              />
-                            ) : null}
-                          </div>
-
-                          <h2 className="mt-3 truncate text-lg font-semibold">
-                            {
-                              item.league.name
-                            }
-                          </h2>
-
-                          <p className="mt-1 text-xs text-[#6F7B8A]">
-                            {
-                              item.league.region ||
-                              'Region not specified'
-                            }
-                            {' · '}
-                            {
-                              item.league.members
-                            }
-                            /
-                            {
-                              item.league.maxMembers
-                            }{' '}
-                            members
-                          </p>
+                          ) : null}
                         </div>
 
-                        <span className="text-xl text-[#536273] transition group-hover:translate-x-1 group-hover:text-[#19B7FF]">
-                          ›
-                        </span>
-                      </div>
+                        <h2 className="mt-3 truncate text-lg font-semibold">
+                          {item.league.name}
+                        </h2>
 
-                      <div className="mt-5 border-t border-[#203141] pt-4">
-                        <p className="line-clamp-2 text-sm leading-6 text-[#A7B0BE]">
-                          {item.league.description ||
-                            'Open the League for overview, standings, fixtures, members, teams and settings.'}
+                        <p className="mt-1 text-xs text-[#6F7B8A]">
+                          {item.league.region || "Region not specified"}
+                          {" · "}
+                          {item.league.members}/{item.league.maxMembers} members
                         </p>
                       </div>
+
+                      <span className="text-xl text-[#536273] transition group-hover:translate-x-1 group-hover:text-[#19B7FF]">
+                        ›
+                      </span>
+                    </div>
+
+                    <div className="mt-5 border-t border-[#203141] pt-4">
+                      <p className="line-clamp-2 text-sm leading-6 text-[#A7B0BE]">
+                        {item.league.description ||
+                          "Open the League for overview, standings, fixtures, members, teams and settings."}
+                      </p>
+                    </div>
+                  </Link>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#203141] pt-4">
+                    <Link
+                      href={`/leagues/${item.league.id}`}
+                      className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#F8FAFC] transition hover:border-[#19B7FF]/35"
+                    >
+                      Open League
                     </Link>
 
+                    <Link
+                      href={`/leagues/${item.league.id}/settings`}
+                      className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-medium text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
+                    >
+                      Manage
+                    </Link>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#203141] pt-4">
-                      <Link
-                        href={
-                          `/leagues/${item.league.id}`
-                        }
-                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#F8FAFC] transition hover:border-[#19B7FF]/35"
-                      >
-                        Open League
-                      </Link>
-
-                      <Link
-                        href={
-                          `/leagues/${item.league.id}/settings`
-                        }
-                        className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-medium text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
-                      >
-                        Manage
-                      </Link>
-
-                      <div className="ml-auto">
-                        {item.adminRole ===
-                        'OWNER' ? (
-                          <button
-                            type="button"
-                            disabled={
-                              busy
-                            }
-                            onClick={() =>
-                              void deleteLeague(
-                                item,
-                              )
-                            }
-                            className="min-h-10 rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
-                          >
-                            Delete League
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={
-                              busy
-                            }
-                            onClick={() =>
-                              void leaveLeague(
-                                item,
-                              )
-                            }
-                            className="min-h-10 rounded-[10px] border border-red-400/20 px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.06] disabled:opacity-40"
-                          >
-                            Leave League
-                          </button>
-                        )}
-                      </div>
+                    <div className="ml-auto">
+                      {item.adminRole === "OWNER" ? (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void deleteLeague(item)}
+                          className="min-h-10 rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                        >
+                          Delete League
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void leaveLeague(item)}
+                          className="min-h-10 rounded-[10px] border border-red-400/20 px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.06] disabled:opacity-40"
+                        >
+                          Leave League
+                        </button>
+                      )}
                     </div>
-                  </article>
-                ),
-              )}
+                  </div>
+                </article>
+              ))}
             </div>
           )}
         </section>
 
-
         <section className="grid gap-5 xl:grid-cols-2">
           <FcPanel className="p-5 sm:p-6">
-            <FcSectionHeading
-              eyebrow="Join"
-              title="League Code"
-            />
+            <FcSectionHeading eyebrow="Join" title="League Code" />
 
             {atLimit ? (
               <div className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4">
@@ -778,14 +451,11 @@ export default function LeaguesPage() {
                 </p>
               </div>
             ) : (
-              <form
-                onSubmit={
-                  findLeague
-                }
-                className="mt-5 flex gap-2"
-              >
+              <form onSubmit={findLeague} className="mt-5 flex gap-2">
                 <input
                   name="code"
+                  value={inviteCode}
+                  onChange={event => setInviteCode(event.target.value)}
                   aria-label="League invite code"
                   required
                   placeholder="LEAGUE CODE"
@@ -798,72 +468,42 @@ export default function LeaguesPage() {
               </form>
             )}
 
-
             {preview ? (
               <div className="mt-5 rounded-2xl border border-white/10 bg-[#0a1520] p-5">
                 <div className="flex items-center gap-4">
-                  <FcCrest
-                    name={
-                      preview.name
-                    }
-                    imageUrl={
-                      preview.logoUrl
-                    }
-                  />
+                  <FcCrest name={preview.name} imageUrl={preview.logoUrl} />
 
                   <div className="min-w-0">
                     <p className="font-mono text-[10px] font-black text-sky-400">
-                      {
-                        preview.code
-                      }
+                      {preview.code}
                     </p>
 
                     <h3 className="mt-1 truncate text-lg font-black">
-                      {
-                        preview.name
-                      }
+                      {preview.name}
                     </h3>
 
                     <p className="mt-1 text-xs text-slate-600">
-                      {
-                        preview.members
-                      }
-                      /
-                      {
-                        preview.maxMembers
-                      }{' '}
-                      members
+                      {preview.members}/{preview.maxMembers} members
                     </p>
                   </div>
                 </div>
 
                 {preview.alreadyMember ? (
                   <Link
-                    href={
-                      `/leagues/${preview.id}`
-                    }
+                    href={`/leagues/${preview.id}`}
                     className="mt-4 inline-flex rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
                   >
                     Open League
                   </Link>
-                ) : preview.applicationStatus ===
-                  'PENDING' ? (
+                ) : preview.applicationStatus === "PENDING" ? (
                   <div className="mt-4">
-                    <FcStatusBadge
-                      label="Join Request Pending"
-                      tone="amber"
-                    />
+                    <FcStatusBadge label="Join Request Pending" tone="amber" />
                   </div>
                 ) : (
                   <button
                     type="button"
-                    disabled={
-                      busy ||
-                      atLimit
-                    }
-                    onClick={() =>
-                      void requestJoin()
-                    }
+                    disabled={busy || atLimit}
+                    onClick={() => void requestJoin()}
                     className="mt-4 rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019] disabled:opacity-40"
                   >
                     Request to Join
@@ -873,98 +513,80 @@ export default function LeaguesPage() {
             ) : null}
           </FcPanel>
 
-
           <FcPanel className="p-5 sm:p-6">
-            <FcSectionHeading
-              eyebrow="Create"
-              title="New League"
-            />
+            <FcSectionHeading eyebrow="Create" title="New League" />
 
             {!showCreate ? (
               <div className="mt-5">
                 <p className="text-sm leading-6 text-slate-500">
-                  Bring your players together. Create a league, share its invite code and start your first tournament.
+                  Bring your players together. Create a league, share its invite
+                  code and start your first tournament.
                 </p>
 
                 <button
                   type="button"
-                  disabled={
-                    atLimit
-                  }
-                  onClick={() =>
-                    setShowCreate(
-                      true,
-                    )
-                  }
+                  disabled={atLimit}
+                  onClick={() => setShowCreate(true)}
                   className="mt-5 rounded-xl border border-sky-400/20 px-5 py-3 text-sm font-black text-sky-300 disabled:opacity-40"
                 >
                   Create League
                 </button>
               </div>
             ) : (
-              <form
-                onSubmit={
-                  createLeague
-                }
-                className="mt-5 grid gap-4"
-              >
-                <label className="fc-field-label">League name
-<input
-                  name="name"
-                  required
-                  placeholder="League name"
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                />
-</label>
+              <form onSubmit={createLeague} className="mt-5 grid gap-4">
+                <label className="fc-field-label">
+                  League name
+                  <input
+                    name="name"
+                    required
+                    placeholder="League name"
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                  />
+                </label>
 
-                <label className="fc-field-label">Region (optional)
-<input
-                  name="region"
-                  placeholder="Region"
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                />
-</label>
+                <label className="fc-field-label">
+                  Region (optional)
+                  <input
+                    name="region"
+                    placeholder="Region"
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                  />
+                </label>
 
-                <label className="fc-field-label">Description (optional)
-<textarea
-                  name="description"
-                  rows={3}
-                  placeholder="Description"
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                />
-</label>
+                <label className="fc-field-label">
+                  Description (optional)
+                  <textarea
+                    name="description"
+                    rows={3}
+                    placeholder="Description"
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                  />
+                </label>
 
-                <label className="fc-field-label">League rules (optional)
-<textarea
-                  name="rules"
-                  rows={3}
-                  placeholder="Rules"
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                />
-</label>
+                <label className="fc-field-label">
+                  League rules (optional)
+                  <textarea
+                    name="rules"
+                    rows={3}
+                    placeholder="Rules"
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                  />
+                </label>
 
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowCreate(
-                        false,
-                      )
-                    }
+                    onClick={() => setShowCreate(false)}
                     className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400"
                   >
                     Cancel
                   </button>
 
                   <button
-                    disabled={
-                      busy
-                    }
+                    disabled={busy}
                     className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019] disabled:opacity-40"
                   >
-                    {busy
-                      ? 'Creating...'
-                      : 'Create'}
+                    {busy ? "Creating..." : "Create"}
                   </button>
                 </div>
               </form>

@@ -1,5 +1,6 @@
 'use client';
 
+import { ApiError } from "@/lib/api";
 import Link from 'next/link';
 
 import {
@@ -437,6 +438,7 @@ export default function StandingsPage() {
     useState(true);
 
 
+  const [loadError, setLoadError] = useState('');
   useEffect(() => {
     async function load() {
       try {
@@ -517,10 +519,9 @@ export default function StandingsPage() {
           stats.data
             .statistic,
         );
-      } catch {
-        router.replace(
-          `/tournaments/${params.tournamentId}`,
-        );
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) router.replace("/login");
+        else setLoadError("Unable to load standings. Please retry.");
       } finally {
         setLoading(
           false,
@@ -535,6 +536,7 @@ export default function StandingsPage() {
   ]);
 
 
+  if(loadError) return <AppShell><div className="theme-panel rounded-xl p-5"><p role="alert">{loadError}</p><button onClick={()=>window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></div></AppShell>;
   if (
     !user ||
     loading

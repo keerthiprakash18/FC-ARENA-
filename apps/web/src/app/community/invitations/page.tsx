@@ -69,7 +69,7 @@ export default function InvitationsPage() {
     <SecondaryFeaturePage
       eyebrow="Community"
       title="Invitations & Join Requests"
-      subtitle="League join requests are managed within each League because the current backend does not expose a global invitation inbox."
+      subtitle="Review pending membership requests and welcome players to your leagues."
     >
       {adminLeagues.length === 0 ? (
         <FcEmptyState

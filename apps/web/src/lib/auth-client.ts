@@ -26,6 +26,11 @@ export interface CurrentUser {
   } | null;
 }
 
+let notificationRequest: Promise<unknown> | null = null;
+let notificationCache: { value: unknown; expiresAt: number } | null = null;
+let notificationGeneration = 0;
+function clearNotificationCache() { notificationGeneration++; notificationRequest = null; notificationCache = null; }
+
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
 
@@ -37,6 +42,7 @@ export function establishLoginSession(
   token: string,
   expiresInSeconds: number,
 ): void {
+  clearNotificationCache();
   accessToken = token;
 
   accessTokenExpiresAt =
@@ -114,20 +120,17 @@ export async function authenticatedRequest<T>(
   const token =
     await refreshAccessToken();
 
-  return apiRequest<T>(
-    path,
-    {
-      ...options,
-
-      headers: {
-        ...(options.headers ??
-          {}),
-
-        Authorization:
-          `Bearer ${token}`,
-      },
-    },
-  );
+  const method = (options.method || 'GET').toUpperCase();
+  if (path.startsWith('/notifications') && method !== 'GET') clearNotificationCache();
+  const request = () => apiRequest<T>(path, { ...options, headers: { ...(options.headers ?? {}), Authorization: `Bearer ${token}` } });
+  if (path.startsWith('/notifications') && method !== 'GET') return request().finally(clearNotificationCache);
+  if (path !== '/notifications' || method !== 'GET') return request();
+  if (notificationCache && notificationCache.expiresAt > Date.now()) return notificationCache.value as T;
+  if (notificationRequest) return notificationRequest as Promise<T>;
+  const generation = notificationGeneration;
+  const pending = request().then(value => { if (generation === notificationGeneration) notificationCache = { value, expiresAt: Date.now() + 10_000 }; return value; }).finally(() => { if (notificationRequest === pending) notificationRequest = null; });
+  notificationRequest = pending;
+  return pending;
 }
 
 function sendUpload<T>(
@@ -304,6 +307,7 @@ export async function logoutCurrentUser(): Promise<void> {
       },
     );
   } finally {
+    clearNotificationCache();
     accessToken = null;
     accessTokenExpiresAt = 0;
     refreshPromise = null;

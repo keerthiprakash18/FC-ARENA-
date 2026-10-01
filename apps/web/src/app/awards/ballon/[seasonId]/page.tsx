@@ -177,41 +177,105 @@ export default function BallonRankingsPage() {
   ] =
     useState('');
 
+  const [
+    lastUpdated,
+    setLastUpdated,
+  ] =
+    useState<Date | null>(
+      null,
+    );
+
   useEffect(() => {
-    void authenticatedRequest<any>(
-      '/ballon/seasons/' +
-        seasonId +
-        '/rankings?limit=' +
-        limit,
-    )
-      .then(
-        (
-          response,
-        ) => {
-          setSeason(
-            response
-              .data
-              .season,
+    let active =
+      true;
+
+    async function loadRankings() {
+      try {
+        const response =
+          await authenticatedRequest<any>(
+            '/ballon/seasons/' +
+              seasonId +
+              '/rankings?limit=' +
+              limit,
           );
 
-          setRows(
-            response
-              .data
-              .rows ??
-              [],
-          );
+        if (!active) {
+          return;
+        }
+
+        setSeason(
+          response
+            .data
+            .season,
+        );
+
+        setRows(
+          response
+            .data
+            .rows ??
+            [],
+        );
+
+        setError('');
+        setLastUpdated(
+          new Date(),
+        );
+      } catch (
+        err
+      ) {
+        if (!active) {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Unable to load Ballon rankings.',
+        );
+      }
+    }
+
+    void loadRankings();
+
+    const interval =
+      window.setInterval(
+        () => {
+          if (
+            document.visibilityState ===
+            'visible'
+          ) {
+            void loadRankings();
+          }
         },
-      )
-      .catch(
-        (
-          err,
-        ) =>
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Unable to load Ballon rankings.',
-          ),
+        10_000,
       );
+
+    const refreshOnFocus =
+      () => {
+        if (
+          document.visibilityState ===
+          'visible'
+        ) {
+          void loadRankings();
+        }
+      };
+
+    document.addEventListener(
+      'visibilitychange',
+      refreshOnFocus,
+    );
+
+    return () => {
+      active =
+        false;
+      window.clearInterval(
+        interval,
+      );
+      document.removeEventListener(
+        'visibilitychange',
+        refreshOnFocus,
+      );
+    };
   }, [
     limit,
     seasonId,
@@ -253,6 +317,16 @@ export default function BallonRankingsPage() {
         >
           ← Hall of Honours
         </Link>
+
+        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
+          ● Live · refresh 10s
+          {lastUpdated
+            ? ` · ${lastUpdated.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}`
+            : ''}
+        </span>
 
         <div className="flex rounded-xl border border-white/[0.08] bg-white/[0.025] p-1">
           {(

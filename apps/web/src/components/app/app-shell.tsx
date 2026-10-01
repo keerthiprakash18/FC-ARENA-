@@ -50,6 +50,7 @@ type SidebarIconName =
   | 'league'
   | 'tournament'
   | 'fixtures'
+  | 'award'
   | 'more'
   | 'join'
   | 'create'
@@ -186,6 +187,32 @@ function SidebarIcon({
         <path d="M17 3v5" />
         <path d="M3 10h18" />
         <path d="m8 15 2 2 5-5" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'award'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="M8 4h8v3.3c0 3.3-1.8 5.7-4 6.7-2.2-1-4-3.4-4-6.7V4Z" />
+        <path d="M8 6H4.5v1.3c0 2.4 1.5 4.2 4.2 4.7" />
+        <path d="M16 6h3.5v1.3c0 2.4-1.5 4.2-4.2 4.7" />
+        <path d="M12 14v4" />
+        <path d="M8.5 21h7" />
+        <path d="M10 18h4" />
+        <path d="m12 6.1.7 1.45 1.6.23-1.15 1.12.27 1.58L12 9.74l-1.43.74.27-1.58-1.15-1.12 1.6-.23L12 6.1Z" />
       </svg>
     );
   }
@@ -391,6 +418,13 @@ function mainIconForHref(
     '/fixtures'
   ) {
     return 'fixtures';
+  }
+
+  if (
+    href ===
+    '/awards'
+  ) {
+    return 'award';
   }
 
   return 'more';

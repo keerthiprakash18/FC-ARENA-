@@ -12,92 +12,67 @@ export interface PrimaryNavigationItem {
 export const primaryNavigation:
   PrimaryNavigationItem[] = [
     {
-      label:
-        'HOME',
-      shortLabel:
-        'Home',
-      href:
-        '/dashboard',
-      icon:
-        'home',
+      label: 'HOME',
+      shortLabel: 'Home',
+      href: '/dashboard',
+      icon: 'home',
     },
     {
-      label:
-        'LEAGUE',
-      shortLabel:
-        'League',
-      href:
-        '/leagues',
-      icon:
-        'league',
+      label: 'LEAGUE',
+      shortLabel: 'League',
+      href: '/leagues',
+      icon: 'league',
     },
     {
-      label:
-        'TOURNAMENT',
-      shortLabel:
-        'Tournament',
-      href:
-        '/tournaments',
-      icon:
-        'tournament',
+      label: 'TOURNAMENT',
+      shortLabel: 'Tournament',
+      href: '/tournaments',
+      icon: 'tournament',
     },
     {
-      label:
-        'FIXTURES',
-      shortLabel:
-        'Fixtures',
-      href:
-        '/fixtures',
-      icon:
-        'fixtures',
+      label: 'FIXTURES',
+      shortLabel: 'Fixtures',
+      href: '/fixtures',
+      icon: 'fixtures',
     },
     {
-      label:
-        'MORE',
-      shortLabel:
-        'More',
-      href:
-        '/more',
-      icon:
-        'more',
+      label: 'AWARDS',
+      shortLabel: 'Awards',
+      href: '/awards',
+      icon: 'award',
+    },
+    {
+      label: 'MORE',
+      shortLabel: 'More',
+      href: '/more',
+      icon: 'more',
     },
   ];
 
 export function getActivePrimarySection(
   pathname: string,
 ) {
-  if (
-    pathname ===
-    '/dashboard'
-  ) {
+  if (pathname === '/dashboard') {
     return '/dashboard';
   }
 
-  if (
-    pathname.startsWith(
-      '/leagues',
-    )
-  ) {
+  if (pathname.startsWith('/leagues')) {
     return '/leagues';
   }
 
-  if (
-    pathname.startsWith(
-      '/tournaments',
-    )
-  ) {
+  if (pathname.startsWith('/tournaments')) {
     return '/tournaments';
   }
 
   if (
-    pathname.startsWith(
-      '/fixtures',
-    ) ||
-    pathname.startsWith(
-      '/matches',
-    )
+    pathname.startsWith('/fixtures') ||
+    pathname.startsWith('/matches')
   ) {
     return '/fixtures';
+  }
+
+  if (pathname.startsWith('/awards')) {
+    return '/awards';
   }
 
   return '/more';
@@ -106,13 +81,15 @@ export function getActivePrimarySection(
 export function shouldShowPrimaryBottomNavigation(
   pathname: string,
 ) {
-  return [
-    '/dashboard',
-    '/leagues',
-    '/tournaments',
-    '/fixtures',
-    '/more',
-  ].includes(
-    pathname,
+  return (
+    [
+      '/dashboard',
+      '/leagues',
+      '/tournaments',
+      '/fixtures',
+      '/more',
+    ].includes(pathname) ||
+    pathname === '/awards' ||
+    pathname.startsWith('/awards/')
   );
 }

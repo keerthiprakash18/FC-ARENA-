@@ -120,48 +120,56 @@ const awardCards = [
     icon: '👑',
     title: 'FC Arena Ballon',
     detail: 'Seasonal Player Honour',
+    href: '/awards/ballon',
   },
   {
     type: 'GOLDEN_BOOT',
     icon: '⚽',
     title: 'Golden Boot',
     detail: 'Top Scorer',
+    href: '/awards/golden-boot',
   },
   {
     type: 'GOLDEN_GLOVE',
     icon: '🧤',
     title: 'Golden Glove',
     detail: 'Best Defensive Record',
+    href: '/awards/golden-glove',
   },
   {
     type: 'PLAYER_OF_TOURNAMENT',
     icon: '⭐',
     title: 'Player of Tournament',
     detail: 'Best Overall Performance',
+    href: '/awards/player-of-tournament',
   },
   {
     type: 'RISING_STAR',
     icon: '🚀',
     title: 'Rising Star',
     detail: 'Best Eligible Newcomer',
+    href: '/awards/rising-star',
   },
   {
     type: 'TOURNAMENT_CHAMPION',
     icon: '🏆',
     title: 'Champion',
     detail: 'Tournament Winner',
+    href: '/awards/tournament-champion',
   },
   {
     type: 'TOURNAMENT_RUNNER_UP',
     icon: '🥈',
     title: 'Runner-Up',
     detail: 'Tournament Second Place',
+    href: '/awards/tournament-runner-up',
   },
   {
     type: 'WINNING_STREAK',
     icon: '🔥',
     title: 'Winning Streak',
     detail: 'Verified Win Run',
+    href: '/awards/winning-streak',
   },
 ] as const;
 
@@ -240,38 +248,100 @@ export default function AwardsPage() {
   ] =
     useState('');
 
+  const [
+    lastUpdated,
+    setLastUpdated,
+  ] =
+    useState<Date | null>(
+      null,
+    );
+
   useEffect(() => {
-    void authenticatedRequest<{
-      success: true;
-      data: AwardsOverview;
-      error: null;
-    }>('/awards/overview')
-      .then(
-        (
-          response,
-        ) => {
-          setData(
-            response.data,
-          );
-        },
-      )
-      .catch(
-        (
-          err,
-        ) => {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Unable to load Awards.',
-          );
-        },
-      )
-      .finally(
-        () =>
+    let active =
+      true;
+
+    async function loadOverview() {
+      try {
+        const response =
+          await authenticatedRequest<{
+            success: true;
+            data: AwardsOverview;
+            error: null;
+          }>('/awards/overview');
+
+        if (!active) {
+          return;
+        }
+
+        setData(
+          response.data,
+        );
+        setError('');
+        setLastUpdated(
+          new Date(),
+        );
+      } catch (
+        err
+      ) {
+        if (!active) {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Unable to load Awards.',
+        );
+      } finally {
+        if (active) {
           setLoading(
             false,
-          ),
+          );
+        }
+      }
+    }
+
+    void loadOverview();
+
+    const interval =
+      window.setInterval(
+        () => {
+          if (
+            document.visibilityState ===
+            'visible'
+          ) {
+            void loadOverview();
+          }
+        },
+        15_000,
       );
+
+    const refreshOnFocus =
+      () => {
+        if (
+          document.visibilityState ===
+          'visible'
+        ) {
+          void loadOverview();
+        }
+      };
+
+    document.addEventListener(
+      'visibilitychange',
+      refreshOnFocus,
+    );
+
+    return () => {
+      active =
+        false;
+      window.clearInterval(
+        interval,
+      );
+      document.removeEventListener(
+        'visibilitychange',
+        refreshOnFocus,
+      );
+    };
   }, []);
 
   const rankings =
@@ -313,6 +383,19 @@ export default function AwardsPage() {
       eyebrow="Hall of Honours"
       title="Awards"
       subtitle="Verified tournament honours, live award races and the FC Arena Ballon seasonal ranking."
+      backHref="/dashboard"
+      backLabel="Home"
+      action={
+        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-300">
+          ● Live · 15s
+          {lastUpdated
+            ? ` · ${lastUpdated.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}`
+            : ''}
+        </span>
+      }
     >
       <section className="relative overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0B0F14] p-5 sm:p-7 lg:p-9">
         <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
@@ -545,40 +628,57 @@ export default function AwardsPage() {
             (
               award,
             ) => (
-              <FcPanel
+              <Link
                 key={
                   award.type
                 }
-                className="p-4 sm:p-5"
+                href={
+                  award.href
+                }
+                className="group block"
               >
-                <span className="text-3xl">
-                  {
-                    award.icon
-                  }
-                </span>
+                <FcPanel className="h-full p-4 transition group-hover:-translate-y-0.5 group-hover:border-amber-400/30 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-3xl">
+                      {
+                        award.icon
+                      }
+                    </span>
 
-                <h3 className="mt-4 text-sm font-black sm:text-base">
-                  {
-                    award.title
-                  }
-                </h3>
+                    <span className="text-sm font-black text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-amber-300">
+                      →
+                    </span>
+                  </div>
 
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {
-                    award.detail
-                  }
-                </p>
+                  <h3 className="mt-4 text-sm font-black sm:text-base">
+                    {
+                      award.title
+                    }
+                  </h3>
 
-                <p className="mt-4 text-2xl font-black text-amber-300">
-                  {
-                    data
-                      ?.trophyCabinet[
-                      award.type
-                    ] ??
-                    0
-                  }
-                </p>
-              </FcPanel>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {
+                      award.detail
+                    }
+                  </p>
+
+                  <div className="mt-4 flex items-end justify-between gap-2">
+                    <p className="text-2xl font-black text-amber-300">
+                      {
+                        data
+                          ?.trophyCabinet[
+                          award.type
+                        ] ??
+                        0
+                      }
+                    </p>
+
+                    <span className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-600">
+                      Open
+                    </span>
+                  </div>
+                </FcPanel>
+              </Link>
             ),
           )}
         </div>

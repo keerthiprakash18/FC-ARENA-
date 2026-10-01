@@ -341,10 +341,17 @@ export default function AchievementsPage() {
   }
 
   useEffect(() => {
-    void (async () => {
+    let active =
+      true;
+
+    async function initialLoad() {
       try {
         const current =
           await getCurrentUser();
+
+        if (!active) {
+          return;
+        }
 
         setUser(
           current,
@@ -354,13 +361,43 @@ export default function AchievementsPage() {
       } catch (
         err
       ) {
+        if (!active) {
+          return;
+        }
+
         setError(
           err instanceof Error
             ? err.message
             : 'Unable to load tournament awards.',
         );
       }
-    })();
+    }
+
+    void initialLoad();
+
+    const interval =
+      window.setInterval(
+        () => {
+          if (
+            document.visibilityState ===
+            'visible'
+          ) {
+            void load().catch(
+              () =>
+                undefined,
+            );
+          }
+        },
+        15_000,
+      );
+
+    return () => {
+      active =
+        false;
+      window.clearInterval(
+        interval,
+      );
+    };
   }, [
     params.tournamentId,
   ]);

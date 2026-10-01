@@ -9,6 +9,9 @@ import {
   LeagueWarsController,
 } from './league-wars.controller.js';
 import {
+  LeagueWarProofService,
+} from './league-war-proof.service.js';
+import {
   LeagueWarsService,
 } from './league-wars.service.js';
 
@@ -21,6 +24,7 @@ import {
   ],
   providers: [
     LeagueWarsService,
+    LeagueWarProofService,
   ],
   exports: [
     LeagueWarsService,

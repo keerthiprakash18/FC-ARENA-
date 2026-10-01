@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AchievementsModule } from './achievements/achievements.module.js';
+import { AdminOpsModule } from './admin-ops/admin-ops.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BallonModule } from './ballon/ballon.module.js';
@@ -24,6 +25,7 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
   imports: [
     PrismaModule,
     SecurityModule,
+    AdminOpsModule,
     HealthModule,
     AuthModule,
     BallonModule,

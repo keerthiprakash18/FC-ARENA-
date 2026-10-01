@@ -1,3 +1,5 @@
+import { PlayerDashboardService } from './player-dashboard.service.js';
+
 import {
   Controller,
   Delete,
@@ -46,12 +48,18 @@ type AuthenticatedRequest =
 @UseGuards(JwtAuthGuard)
 export class PlayerCareerController {
   constructor(
+    private readonly dashboard: PlayerDashboardService,
     private readonly playerCareerService:
       PlayerCareerService,
 
     private readonly playerProfileImageService:
       PlayerProfileImageService,
   ) {}
+
+  @Get('me/dashboard')
+  myDashboard(@Req() request: AuthenticatedRequest) {
+    return this.dashboard.getSummary(request.user.sub);
+  }
 
   @Get('me/career')
   myCareer(

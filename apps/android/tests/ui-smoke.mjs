@@ -21,6 +21,7 @@ async function prepare(page) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
         case '/api/players/me/career': data = career; break;
+        case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
         case '/api/tournaments/ui-test/standings': data = {tournament: {name:'Arena Championship'}, standings: [{position:1,registrationId:'team1',entryName:'Manchester Champions With A Very Long Name',played:10,wins:7,draws:2,losses:1,goalsFor:23,goalsAgainst:11,goalDifference:12,points:23,form:'WWDLW'}]}; break;
         case '/api/tournaments/ui-test/groups': data = {groups:[{id:'g1',name:'Group A',position:1,entries:[{id:'team1',entryName:'Manchester Champions With A Very Long Name',members:[]}]}]}; break;

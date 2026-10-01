@@ -142,6 +142,8 @@ CREATE TABLE "user_subscriptions" (
   "leagueId" UUID,
   "provider" VARCHAR(40) NOT NULL DEFAULT 'MANUAL',
   "providerSubscriptionId" VARCHAR(160),
+  "priceMinorSnapshot" INTEGER NOT NULL,
+  "currencySnapshot" VARCHAR(3) NOT NULL,
   "status" "SubscriptionStatus" NOT NULL DEFAULT 'ACTIVE',
   "currentPeriodStart" TIMESTAMP(3) NOT NULL,
   "currentPeriodEnd" TIMESTAMP(3),

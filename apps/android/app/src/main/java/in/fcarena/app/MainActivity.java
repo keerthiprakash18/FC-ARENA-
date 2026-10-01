@@ -178,11 +178,10 @@ public final class MainActivity extends Activity {
                     return;
                 }
 
-                preferences.edit()
-                        .putLong(VERSION_CHECK_AT_KEY, System.currentTimeMillis())
-                        .apply();
-
                 if (!data.optBoolean("updateAvailable", false)) {
+                    preferences.edit()
+                            .putLong(VERSION_CHECK_AT_KEY, System.currentTimeMillis())
+                            .apply();
                     return;
                 }
 
@@ -193,6 +192,12 @@ public final class MainActivity extends Activity {
                 }
 
                 final boolean forceUpdate = data.optBoolean("forceUpdate", false);
+
+                if (!forceUpdate) {
+                    preferences.edit()
+                            .putLong(VERSION_CHECK_AT_KEY, System.currentTimeMillis())
+                            .apply();
+                }
                 final String versionName =
                         latest.optString("versionName", "new version");
                 final String releaseNotes =

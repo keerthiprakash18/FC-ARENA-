@@ -7,6 +7,10 @@ import {
 } from '../auth/auth.module.js';
 
 import {
+  MatchesModule,
+} from '../matches/matches.module.js';
+
+import {
   FixturesService,
 } from './fixtures.service.js';
 
@@ -70,6 +74,7 @@ import {
 @Module({
   imports: [
     AuthModule,
+    MatchesModule,
   ],
 
   controllers: [

@@ -6,8 +6,16 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import {
+  FileInterceptor,
+} from '@nestjs/platform-express';
+import {
+  memoryStorage,
+} from 'multer';
 import type {
   Request,
 } from 'express';
@@ -28,6 +36,9 @@ import {
   UpdateLeagueWarResultDto,
 } from './dto/league-war.dto.js';
 import {
+  LeagueWarProofService,
+} from './league-war-proof.service.js';
+import {
   LeagueWarsService,
 } from './league-wars.service.js';
 
@@ -43,6 +54,9 @@ export class LeagueWarsController {
   constructor(
     private readonly service:
       LeagueWarsService,
+
+    private readonly proofService:
+      LeagueWarProofService,
   ) {}
 
   @Get()
@@ -214,6 +228,45 @@ export class LeagueWarsController {
     return this.service.startWar(
       request.user.sub,
       warId,
+    );
+  }
+
+  @Post(
+    ':warId/matches/:matchId/proof',
+  )
+  @UseInterceptors(
+    FileInterceptor(
+      'screenshot',
+      {
+        storage:
+          memoryStorage(),
+        limits: {
+          fileSize:
+            8 * 1024 * 1024,
+        },
+      },
+    ),
+  )
+  uploadProof(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Param('matchId')
+    matchId: string,
+
+    @UploadedFile()
+    file:
+      Express.Multer.File,
+  ) {
+    return this.proofService.uploadProof(
+      request.user.sub,
+      warId,
+      matchId,
+      file,
     );
   }
 

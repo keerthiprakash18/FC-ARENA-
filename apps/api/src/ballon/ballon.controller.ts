@@ -53,6 +53,17 @@ export class BallonController {
     );
   }
 
+  @Get('ballon/seasons')
+  seasons(
+    @Req()
+    request:
+      AuthenticatedRequest,
+  ) {
+    return this.ballonService.getSeasons(
+      request.user.sub,
+    );
+  }
+
   @Get('ballon/seasons/current')
   current(
     @Req()

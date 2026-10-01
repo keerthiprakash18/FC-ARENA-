@@ -739,6 +739,90 @@ export class BallonService {
     };
   }
 
+  async getSeasons(
+    userId: string,
+  ) {
+    await this.assertActiveUser(
+      userId,
+    );
+
+    const seasons =
+      await this.prisma.ballonSeason.findMany({
+        orderBy: [
+          {
+            startAt:
+              'desc',
+          },
+          {
+            createdAt:
+              'desc',
+          },
+        ],
+
+        take: 50,
+      });
+
+    const winnerIds =
+      [
+        ...new Set(
+          seasons
+            .flatMap(
+              (season) => [
+                season.finalWinnerUserId,
+                season.risingStarUserId,
+              ],
+            )
+            .filter(
+              (
+                value,
+              ): value is string =>
+                typeof value ===
+                'string',
+            ),
+        ),
+      ];
+
+    const users =
+      await this.usersForIds(
+        winnerIds,
+      );
+
+    return {
+      success: true,
+      data: {
+        seasons:
+          seasons.map(
+            (season) => ({
+              ...season,
+              winner:
+                season.finalWinnerUserId
+                  ? {
+                      userId:
+                        season.finalWinnerUserId,
+                      ...this.identityFor(
+                        users,
+                        season.finalWinnerUserId,
+                      ),
+                    }
+                  : null,
+              risingStar:
+                season.risingStarUserId
+                  ? {
+                      userId:
+                        season.risingStarUserId,
+                      ...this.identityFor(
+                        users,
+                        season.risingStarUserId,
+                      ),
+                    }
+                  : null,
+            }),
+          ),
+      },
+      error: null,
+    };
+  }
+
   async getCurrentSeason(
     userId: string,
   ) {
@@ -1099,6 +1183,68 @@ export class BallonService {
           )
         : null;
 
+    const memberships =
+      await this.prisma.leagueMember.findMany({
+        where: {
+          userId,
+        },
+
+        select: {
+          leagueId: true,
+        },
+      });
+
+    const memberLeagueIds =
+      memberships.map(
+        (membership) =>
+          membership.leagueId,
+      );
+
+    const activeAwardTournaments =
+      memberLeagueIds.length >
+      0
+        ? await this.prisma.tournament.findMany({
+            where: {
+              leagueId: {
+                in:
+                  memberLeagueIds,
+              },
+
+              mode:
+                'SOLO',
+
+              status: {
+                in: [
+                  'REGISTRATION_CLOSED',
+                  'ACTIVE',
+                ],
+              },
+            },
+
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              status: true,
+              startAt: true,
+
+              league: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+
+            orderBy: {
+              updatedAt:
+                'desc',
+            },
+
+            take: 6,
+          })
+        : [];
+
     return {
       success: true,
 
@@ -1122,6 +1268,8 @@ export class BallonService {
 
         mySeasonalAwards:
           seasonalAwards,
+
+        activeAwardTournaments,
 
         recentSeasonalWinners:
           recentSeasonalAwards.map(

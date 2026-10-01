@@ -214,6 +214,54 @@ enum BackupRunStatus {
   FAILED
 }
 
+enum FairPlayEventKind {
+  COMMENDATION
+  WARNING
+  LATE_RESULT
+  NO_SHOW
+  RESULT_INTEGRITY
+  CONDUCT
+  OTHER
+}
+
+enum FairPlayAppealStatus {
+  PENDING
+  UPHELD
+  OVERTURNED
+}
+
+enum SponsorStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum SponsorPlacementKey {
+  DASHBOARD
+  AWARDS
+  LEAGUE_WAR
+  DISCOVER
+}
+
+enum SubscriptionAudience {
+  USER
+  LEAGUE
+}
+
+enum SubscriptionInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
 enum LeagueWarStatus {
   INVITED
   ACCEPTED
@@ -334,6 +382,16 @@ model User {
   seasonalAwards SeasonalAward[]
   createdLeagueWars LeagueWar[] @relation("LeagueWarCreator")
   androidReleases AndroidRelease[] @relation("AndroidReleaseCreator")
+  fairPlayEvents FairPlayEvent[] @relation("FairPlayTarget")
+  issuedFairPlayEvents FairPlayEvent[] @relation("FairPlayIssuer")
+  revokedFairPlayEvents FairPlayEvent[] @relation("FairPlayRevoker")
+  fairPlayAppeals FairPlayAppeal[] @relation("FairPlayAppealer")
+  resolvedFairPlayAppeals FairPlayAppeal[] @relation("FairPlayAppealResolver")
+  createdSponsors Sponsor[] @relation("SponsorCreator")
+  createdSponsorPlacements SponsorPlacement[] @relation("SponsorPlacementCreator")
+  createdSubscriptionPlans SubscriptionPlan[] @relation("SubscriptionPlanCreator")
+  subscriptions UserSubscription[] @relation("SubscriptionUser")
+  grantedSubscriptions UserSubscription[] @relation("SubscriptionGranter")
   leagueWarParticipants LeagueWarParticipant[]
   leagueWarHomeMatches LeagueWarMatch[] @relation("LeagueWarMatchHomePlayer")
   leagueWarAwayMatches LeagueWarMatch[] @relation("LeagueWarMatchAwayPlayer")
@@ -430,6 +488,8 @@ model League {
   awayLeagueWars LeagueWar[] @relation("LeagueWarAwayLeague")
   wonLeagueWars LeagueWar[] @relation("LeagueWarWinnerLeague")
   leagueWarParticipants LeagueWarParticipant[]
+  fairPlayEvents FairPlayEvent[]
+  subscriptions UserSubscription[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -1002,6 +1062,152 @@ model SystemBackupRun {
   @@index([status, completedAt])
   @@index([completedAt])
   @@map("system_backup_runs")
+}
+
+model FairPlayEvent {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String            @db.Uuid
+  leagueId        String            @db.Uuid
+  kind            FairPlayEventKind
+  pointsDelta     Int
+  title           String            @db.VarChar(160)
+  reason          String            @db.VarChar(1000)
+  evidenceUrl     String?           @db.Text
+  issuedByUserId  String            @db.Uuid
+  issuedAt        DateTime          @default(now())
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  revokedByUserId String?           @db.Uuid
+  revocationNote  String?           @db.VarChar(1000)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user      User  @relation("FairPlayTarget", fields: [userId], references: [id], onDelete: Cascade)
+  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  issuedBy  User  @relation("FairPlayIssuer", fields: [issuedByUserId], references: [id], onDelete: Restrict)
+  revokedBy User? @relation("FairPlayRevoker", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  appeals   FairPlayAppeal[]
+
+  @@index([userId, issuedAt])
+  @@index([userId, expiresAt, revokedAt])
+  @@index([leagueId, issuedAt])
+  @@map("fair_play_events")
+}
+
+model FairPlayAppeal {
+  id               String               @id @default(uuid()) @db.Uuid
+  eventId          String               @db.Uuid
+  appealedByUserId String               @db.Uuid
+  reason           String               @db.VarChar(1000)
+  status           FairPlayAppealStatus @default(PENDING)
+  resolutionNote   String?              @db.VarChar(1000)
+  resolvedByUserId String?              @db.Uuid
+  resolvedAt       DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  event      FairPlayEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  appealedBy User          @relation("FairPlayAppealer", fields: [appealedByUserId], references: [id], onDelete: Cascade)
+  resolvedBy User?         @relation("FairPlayAppealResolver", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, appealedByUserId])
+  @@index([status, createdAt])
+  @@map("fair_play_appeals")
+}
+
+model Sponsor {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String        @db.VarChar(160)
+  logoUrl         String?       @db.Text
+  websiteUrl      String?       @db.Text
+  description     String?       @db.Text
+  disclosureLabel String        @default("Sponsored") @db.VarChar(60)
+  status          SponsorStatus @default(DRAFT)
+  createdByUserId String        @db.Uuid
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  createdBy  User               @relation("SponsorCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  placements SponsorPlacement[]
+
+  @@index([status, updatedAt])
+  @@map("sponsors")
+}
+
+model SponsorPlacement {
+  id              String              @id @default(uuid()) @db.Uuid
+  sponsorId       String              @db.Uuid
+  key             SponsorPlacementKey
+  headline        String              @db.VarChar(180)
+  body            String?             @db.Text
+  ctaLabel        String?             @db.VarChar(60)
+  ctaUrl          String?             @db.Text
+  rewardText      String?             @db.VarChar(300)
+  termsUrl        String?             @db.Text
+  priority        Int                 @default(0)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  isActive        Boolean             @default(false)
+  createdByUserId String              @db.Uuid
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  sponsor  Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  createdBy User   @relation("SponsorPlacementCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([key, isActive, startsAt, endsAt, priority])
+  @@index([sponsorId])
+  @@map("sponsor_placements")
+}
+
+model SubscriptionPlan {
+  id              String               @id @default(uuid()) @db.Uuid
+  code            String               @unique @db.VarChar(50)
+  name            String               @db.VarChar(120)
+  description     String?              @db.Text
+  audience        SubscriptionAudience
+  interval        SubscriptionInterval
+  priceMinor      Int
+  currency        String               @db.VarChar(3)
+  features        Json
+  isActive        Boolean              @default(false)
+  createdByUserId String               @db.Uuid
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  createdBy     User               @relation("SubscriptionPlanCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  subscriptions UserSubscription[]
+
+  @@index([audience, isActive, priceMinor])
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id                   String             @id @default(uuid()) @db.Uuid
+  planId               String             @db.Uuid
+  audience             SubscriptionAudience
+  userId               String?            @db.Uuid
+  leagueId             String?            @db.Uuid
+  provider             String             @default("MANUAL") @db.VarChar(40)
+  providerSubscriptionId String?           @db.VarChar(160)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  grantedByUserId      String?            @db.Uuid
+  note                 String?            @db.VarChar(500)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  plan      SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  user      User?            @relation("SubscriptionUser", fields: [userId], references: [id], onDelete: Cascade)
+  league    League?          @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  grantedBy User?            @relation("SubscriptionGranter", fields: [grantedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status, currentPeriodEnd])
+  @@index([leagueId, status, currentPeriodEnd])
+  @@index([planId, status])
+  @@map("user_subscriptions")
 }
 
 model LeagueWar {

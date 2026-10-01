@@ -50,6 +50,8 @@ interface RankingRow {
   goalsAgainst?: number;
   goalDifference?: number;
   cleanSheets?: number;
+  risingStarPosition?: number;
+
   statistics?: {
     matches?: number;
     wins?: number;
@@ -164,6 +166,30 @@ export default function BallonRankingsPage() {
     );
 
   const [
+    myRanking,
+    setMyRanking,
+  ] =
+    useState<RankingRow | null>(
+      null,
+    );
+
+  const [
+    risingStarRows,
+    setRisingStarRows,
+  ] =
+    useState<RankingRow[]>(
+      [],
+    );
+
+  const [
+    view,
+    setView,
+  ] =
+    useState<
+      'top' | 'mine'
+    >('top');
+
+  const [
     limit,
     setLimit,
   ] =
@@ -178,27 +204,49 @@ export default function BallonRankingsPage() {
     useState('');
 
   useEffect(() => {
-    void authenticatedRequest<any>(
-      '/ballon/seasons/' +
-        seasonId +
-        '/rankings?limit=' +
-        limit,
-    )
+    void Promise.all([
+      authenticatedRequest<any>(
+        '/ballon/seasons/' +
+          seasonId +
+          '/rankings?limit=' +
+          limit,
+      ),
+      authenticatedRequest<any>(
+        '/ballon/seasons/' +
+          seasonId +
+          '/rankings/me',
+      ),
+    ])
       .then(
-        (
-          response,
-        ) => {
+        ([
+          rankingResponse,
+          myResponse,
+        ]) => {
           setSeason(
-            response
+            rankingResponse
               .data
               .season,
           );
 
           setRows(
-            response
+            rankingResponse
               .data
               .rows ??
               [],
+          );
+
+          setRisingStarRows(
+            rankingResponse
+              .data
+              .risingStarRows ??
+              [],
+          );
+
+          setMyRanking(
+            myResponse
+              .data
+              .ranking ??
+              null,
           );
         },
       )
@@ -229,6 +277,16 @@ export default function BallonRankingsPage() {
       ],
     );
 
+  const displayedRows =
+    view ===
+    'mine'
+      ? myRanking
+        ? [
+            myRanking,
+          ]
+        : []
+      : rows;
+
   return (
     <SecondaryFeaturePage
       eyebrow="FC Arena Ballon"
@@ -254,7 +312,7 @@ export default function BallonRankingsPage() {
           ← Hall of Honours
         </Link>
 
-        <div className="flex rounded-xl border border-white/[0.08] bg-white/[0.025] p-1">
+        <div className="flex flex-wrap rounded-xl border border-white/[0.08] bg-white/[0.025] p-1">
           {(
             [
               10,
@@ -270,14 +328,19 @@ export default function BallonRankingsPage() {
                   value
                 }
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  setView(
+                    'top',
+                  );
                   setLimit(
                     value,
-                  )
-                }
+                  );
+                }}
                 className={
+                  view ===
+                    'top' &&
                   limit ===
-                  value
+                    value
                     ? 'rounded-lg bg-amber-300 px-4 py-2 text-xs font-black text-[#151006]'
                     : 'rounded-lg px-4 py-2 text-xs font-black text-slate-500'
                 }
@@ -289,6 +352,23 @@ export default function BallonRankingsPage() {
               </button>
             ),
           )}
+
+          <button
+            type="button"
+            onClick={() =>
+              setView(
+                'mine',
+              )
+            }
+            className={
+              view ===
+              'mine'
+                ? 'rounded-lg bg-sky-300 px-4 py-2 text-xs font-black text-[#06111a]'
+                : 'rounded-lg px-4 py-2 text-xs font-black text-slate-500'
+            }
+          >
+            MY RANK
+          </button>
         </div>
       </div>
 
@@ -330,7 +410,7 @@ export default function BallonRankingsPage() {
         </div>
 
         <div className="divide-y divide-white/[0.06]">
-          {rows.map(
+          {displayedRows.map(
             (
               row,
             ) => {
@@ -456,14 +536,95 @@ export default function BallonRankingsPage() {
             },
           )}
 
-          {rows.length ===
+          {displayedRows.length ===
           0 ? (
             <div className="p-10 text-center text-sm text-slate-500">
-              No eligible verified matches are available for this season yet.
+              {view ===
+              'mine'
+                ? 'You are not currently inside this season ranking.'
+                : 'No eligible verified matches are available for this season yet.'}
             </div>
           ) : null}
         </div>
       </section>
+
+      {season?.status ===
+        'LIVE' &&
+      risingStarRows.length >
+        0 ? (
+        <section>
+          <div className="mb-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
+              Newcomer Award
+            </p>
+
+            <h2 className="mt-1 text-2xl font-black">
+              🚀 Rising Star Race
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Eligible newcomers from the 90-day entry window, using the same transparent Ballon performance rating.
+            </p>
+          </div>
+
+          <FcPanel className="overflow-hidden">
+            <div className="divide-y divide-white/[0.06]">
+              {risingStarRows.map(
+                (
+                  row,
+                ) => (
+                  <Link
+                    key={
+                      row.userId
+                    }
+                    href={
+                      `/awards/ballon/${seasonId}/players/${row.userId}`
+                    }
+                    className="grid grid-cols-[42px_1fr_auto] items-center gap-3 p-4 transition hover:bg-white/[0.025] sm:px-6"
+                  >
+                    <span className="text-center text-sm font-black text-sky-300">
+                      #
+                      {
+                        row.risingStarPosition ??
+                        row.position
+                      }
+                    </span>
+
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-black">
+                        {nameFor(
+                          row,
+                        )}
+                      </span>
+
+                      <span className="mt-1 block text-[10px] text-slate-600">
+                        Ballon #
+                        {
+                          row.position
+                        }{' '}
+                        ·{' '}
+                        {
+                          metric(
+                            row,
+                            'matches',
+                          )
+                        }{' '}
+                        matches
+                      </span>
+                    </span>
+
+                    <span className="text-lg font-black text-amber-300">
+                      {
+                        row.rating
+                      }
+                    </span>
+                  </Link>
+                ),
+              )}
+            </div>
+          </FcPanel>
+        </section>
+      ) : null}
 
       {error ? (
         <FcPanel className="p-5 text-sm text-red-300">

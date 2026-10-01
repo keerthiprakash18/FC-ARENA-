@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import {
   deduplicateFixtureRecords,
@@ -33,8 +34,12 @@ interface SideDelta {
 export class ResultCorrectionService {
   constructor(
     private readonly prisma: PrismaService,
+
     private readonly authorization:
       AuthorizationService,
+
+    private readonly realtime:
+      MatchRealtimeService,
   ) {}
 
   async correctResult(
@@ -69,7 +74,8 @@ export class ResultCorrectionService {
       matchId,
     );
 
-    return this.prisma.$transaction(
+    const response =
+      await this.prisma.$transaction(
       async (tx) => {
         const match =
           await tx.match.findUnique({
@@ -471,6 +477,19 @@ export class ResultCorrectionService {
           'Serializable',
       },
     );
+
+    this.realtime.publish(
+      matchId,
+      'result_corrected',
+      {
+        homeScore:
+          dto.homeScore,
+        awayScore:
+          dto.awayScore,
+      },
+    );
+
+    return response;
   }
 
   async reverseResult(
@@ -507,7 +526,8 @@ export class ResultCorrectionService {
       matchId,
     );
 
-    return this.prisma.$transaction(
+    const response =
+      await this.prisma.$transaction(
       async (tx) => {
         const match =
           await tx.match.findUnique({
@@ -756,6 +776,17 @@ export class ResultCorrectionService {
           'Serializable',
       },
     );
+
+    this.realtime.publish(
+      matchId,
+      'result_reversed',
+      {
+        reason:
+          dto.reason,
+      },
+    );
+
+    return response;
   }
 
   private async rebuildTournamentStatistics(

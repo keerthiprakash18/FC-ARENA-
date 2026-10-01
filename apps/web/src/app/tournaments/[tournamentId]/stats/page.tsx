@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   useParams,
   useRouter,
@@ -362,8 +363,17 @@ export default function TournamentStatsPage() {
 
         <FcPanel className="p-5">
           <p className="text-sm leading-6 text-slate-500">
-            Individual goal-scorer, assist, rating and Player of the Match leaderboards are not exposed by the current Tournament statistics API, so this page only displays metrics supported by existing data.
+            SOLO tournaments now expose verified Golden Boot, Golden Glove and Player of the Tournament races through the Awards view. Assists and Player of the Match events are not tracked yet, so they are not fabricated here.
           </p>
+
+          <Link
+            href={
+              `/tournaments/${tournamentId}/achievements`
+            }
+            className="mt-4 inline-flex text-sm font-black text-amber-300"
+          >
+            Open Tournament Awards →
+          </Link>
         </FcPanel>
       </div>
     </AppShell>

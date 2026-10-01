@@ -16,6 +16,9 @@ import {
 import {
   SecondaryFeaturePage,
 } from '@/components/fc/secondary-feature-page';
+import {
+  SponsoredPlacement,
+} from '@/components/commercial/sponsored-placement';
 
 import {
   authenticatedRequest,
@@ -463,6 +466,8 @@ export default function DiscoverPage() {
         </Link>
       }
     >
+      <SponsoredPlacement placementKey="DISCOVER" />
+
       <FcPanel className="p-4 sm:p-5">
         <label className="theme-search flex min-h-12 items-center gap-3 rounded-xl border px-4">
           <span

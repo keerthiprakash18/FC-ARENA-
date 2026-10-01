@@ -159,7 +159,7 @@ export class MatchesController {
         }
       };
 
-    request.on(
+    response.on(
       'close',
       cleanup,
     );

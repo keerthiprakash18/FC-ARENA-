@@ -1,0 +1,19 @@
+[Unit]
+Description=FC Arena encrypted PostgreSQL backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=fcarena-backup
+Group=fcarena-backup
+EnvironmentFile=/etc/fcarena/backup.env
+ExecStart=/usr/local/sbin/fcarena-backup
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/backups/fcarena

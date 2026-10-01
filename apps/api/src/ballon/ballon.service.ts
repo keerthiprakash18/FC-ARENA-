@@ -135,7 +135,8 @@ export class BallonService {
             20,
           eligibleLeagueIds,
           eligibleTournamentIds,
-          scoringConfig,
+          scoringConfig:
+            scoringConfig as any,
           createdByUserId:
             userId,
         },
@@ -235,7 +236,10 @@ export class BallonService {
         ? this.normalizeScoringConfig(
             dto.scoringConfig,
           )
-        : season.scoringConfig;
+        : this.normalizeScoringConfig(
+            season.scoringConfig as
+              Record<string, number>,
+          );
 
     const updated =
       await this.prisma.ballonSeason.update({
@@ -254,7 +258,8 @@ export class BallonService {
             dto.rankingLimit,
           eligibleLeagueIds,
           eligibleTournamentIds,
-          scoringConfig,
+          scoringConfig:
+            scoringConfig as any,
         },
       });
 
@@ -535,11 +540,11 @@ export class BallonService {
                 rating:
                   row.rating,
                 breakdown:
-                  row.ratingBreakdown,
+                  row.ratingBreakdown as any,
                 statistics:
                   this.statisticsSnapshot(
                     row,
-                  ),
+                  ) as any,
               }),
             ),
         });
@@ -573,7 +578,7 @@ export class BallonService {
                 winner.rating,
               breakdown:
                 winner.ratingBreakdown,
-            },
+            } as any,
           },
 
           update: {
@@ -587,7 +592,7 @@ export class BallonService {
                 winner.rating,
               breakdown:
                 winner.ratingBreakdown,
-            },
+            } as any,
           },
         });
 
@@ -622,7 +627,7 @@ export class BallonService {
                   risingStar.position,
                 rating:
                   risingStar.rating,
-              },
+              } as any,
             },
 
             update: {
@@ -635,7 +640,7 @@ export class BallonService {
                   risingStar.position,
                 rating:
                   risingStar.rating,
-              },
+              } as any,
             },
           });
         }

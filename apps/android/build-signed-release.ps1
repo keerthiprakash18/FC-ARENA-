@@ -199,15 +199,13 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $gradleText = Get-Content $BuildGradle -Raw
-$versionCodeMatch = [regex]::Match($gradleText, "versionCode\s+(\d+)")
-$versionNameMatch = [regex]::Match($gradleText, "versionName\s+'([^']+)'")
 
-if (-not $versionCodeMatch.Success -or $versionCodeMatch.Groups[1].Value -ne $ExpectedVersionCode) {
-    throw "Expected versionCode $ExpectedVersionCode, but build.gradle does not match."
+if ($gradleText -notmatch "versionCode\s+fcVersionCode") {
+    throw "build.gradle must use versionCode fcVersionCode from version.properties."
 }
 
-if (-not $versionNameMatch.Success -or $versionNameMatch.Groups[1].Value -ne $ExpectedVersionName) {
-    throw "Expected versionName $ExpectedVersionName, but build.gradle does not match."
+if ($gradleText -notmatch "versionName\s+fcVersionName") {
+    throw "build.gradle must use versionName fcVersionName from version.properties."
 }
 
 if (-not $KeystorePath) {

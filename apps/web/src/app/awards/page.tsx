@@ -16,6 +16,9 @@ import {
   SecondaryFeaturePage,
 } from '@/components/fc/secondary-feature-page';
 import {
+  SponsoredPlacement,
+} from '@/components/commercial/sponsored-placement';
+import {
   authenticatedRequest,
 } from '@/lib/auth-client';
 
@@ -755,6 +758,8 @@ export default function AwardsPage() {
         </span>
       }
     >
+      <SponsoredPlacement placementKey="AWARDS" />
+
       <section className="relative overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0B0F14] p-5 sm:p-7 lg:p-9">
         <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
 

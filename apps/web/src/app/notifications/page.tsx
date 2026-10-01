@@ -63,10 +63,18 @@ function notificationIcon(type: string) {
       return "↻";
     case "MATCH_REMINDER":
       return "⏱";
+    case "MATCH_READY":
+      return "⚡";
     case "RESULT_SUBMITTED":
       return "↑";
+    case "RESULT_REJECTED":
+      return "!";
     case "RESULT_CONFIRMED":
       return "✓";
+    case "DISPUTE_OPENED":
+      return "⚠";
+    case "DISPUTE_RESOLVED":
+      return "⚖";
     case "STATISTICS_UPDATED":
       return "▥";
     case "TOURNAMENT_COMPLETED":
@@ -196,7 +204,21 @@ export default function NotificationsPage() {
 
   const visibleNotifications = useMemo(
     () =>
-      filter === "actions" ? data.notifications.filter(notification => !notification.readAt && ["MATCH_REMINDER", "RESULT_SUBMITTED", "LEAGUE_JOIN_REQUESTED"].includes(notification.type)) : filter === "unread"
+      filter === "actions"
+        ? data.notifications.filter(
+            (notification) =>
+              !notification.readAt &&
+              [
+                "MATCH_REMINDER",
+                "MATCH_READY",
+                "RESULT_SUBMITTED",
+                "RESULT_REJECTED",
+                "DISPUTE_OPENED",
+                "DISPUTE_RESOLVED",
+                "LEAGUE_JOIN_REQUESTED",
+              ].includes(notification.type),
+          )
+        : filter === "unread"
         ? data.notifications.filter((notification) => !notification.readAt)
         : data.notifications,
     [data.notifications, filter],
@@ -287,7 +309,7 @@ export default function NotificationsPage() {
         <FcPageHeader
           eyebrow="FC ARENA Activity"
           title="Notifications"
-          subtitle="Match alerts, league requests, tournament activity, result updates and achievements in one place."
+          subtitle="Smart match reminders, Ready alerts, result actions, disputes, league activity and achievements in one place."
           action={
             data.unreadCount > 0 ? (
               <button

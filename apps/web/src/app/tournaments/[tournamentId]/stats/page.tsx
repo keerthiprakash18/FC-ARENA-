@@ -4,6 +4,7 @@ import {
   useParams,
   useRouter,
 } from 'next/navigation';
+
 import {
   useEffect,
   useMemo,
@@ -34,7 +35,6 @@ import {
   getCurrentUser,
 } from '@/lib/auth-client';
 
-
 interface Standing {
   position: number;
   registrationId: string;
@@ -49,41 +49,99 @@ interface Standing {
   points: number;
 }
 
+interface AwardPlayer {
+  userId: string;
+  displayName: string;
+  matches: number;
+  wins: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  goalsPerMatch: number;
+  goalsAgainstPerMatch: number;
+  cleanSheets: number;
+  cleanSheetRate: number;
+  rating: number;
+}
+
+interface AwardRace {
+  individualAwardsSupported: boolean;
+  reason?: string;
+  goldenBoot: AwardPlayer[];
+  goldenGlove: AwardPlayer[];
+  playerOfTheTournament: AwardPlayer[];
+}
+
+function AwardRaceCard({
+  icon,
+  title,
+  player,
+  detail,
+}: {
+  icon: string;
+  title: string;
+  player: AwardPlayer | undefined;
+  detail: string;
+}) {
+  return (
+    <FcPanel className="p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="theme-tone-premium grid h-11 w-11 place-items-center rounded-xl border text-xl">
+          {icon}
+        </div>
+        <span className="theme-muted text-[10px] font-black uppercase tracking-[0.14em]">
+          Live Race
+        </span>
+      </div>
+
+      <p className="theme-text-link mt-4 text-[10px] font-black uppercase tracking-[0.16em]">
+        {title}
+      </p>
+
+      {player ? (
+        <>
+          <h3 className="theme-text mt-2 truncate text-lg font-black">
+            {player.displayName}
+          </h3>
+          <p className="mt-2 text-sm font-black text-amber-400">
+            {detail}
+          </p>
+        </>
+      ) : (
+        <p className="theme-muted mt-3 text-sm">
+          Waiting for verified results.
+        </p>
+      )}
+    </FcPanel>
+  );
+}
 
 export default function TournamentStatsPage() {
-  const {
-    tournamentId,
-  } =
+  const { tournamentId } =
     useParams<{
-      tournamentId:
-        string;
+      tournamentId: string;
     }>();
 
   const router =
     useRouter();
 
-  const [
-    user,
-    setUser,
-  ] =
+  const [user, setUser] =
     useState<CurrentUser | null>(
       null,
     );
 
-  const [
-    name,
-    setName,
-  ] =
+  const [name, setName] =
     useState('');
 
-  const [
-    standings,
-    setStandings,
-  ] =
+  const [standings, setStandings] =
     useState<Standing[]>(
       [],
     );
 
+  const [awardRace, setAwardRace] =
+    useState<AwardRace | null>(
+      null,
+    );
 
   useEffect(() => {
     void (async () => {
@@ -91,12 +149,21 @@ export default function TournamentStatsPage() {
         const [
           current,
           response,
+          awards,
         ] =
           await Promise.all([
             getCurrentUser(),
 
             authenticatedRequest<any>(
-              `/tournaments/${tournamentId}/standings`,
+              '/tournaments/' +
+                tournamentId +
+                '/standings',
+            ),
+
+            authenticatedRequest<any>(
+              '/tournaments/' +
+                tournamentId +
+                '/award-races',
             ),
           ]);
 
@@ -116,9 +183,14 @@ export default function TournamentStatsPage() {
             .data
             .standings,
         );
+
+        setAwardRace(
+          awards.data,
+        );
       } catch {
         router.replace(
-          `/tournaments/${tournamentId}`,
+          '/tournaments/' +
+            tournamentId,
         );
       }
     })();
@@ -126,7 +198,6 @@ export default function TournamentStatsPage() {
     router,
     tournamentId,
   ]);
-
 
   const totals =
     useMemo(
@@ -155,8 +226,8 @@ export default function TournamentStatsPage() {
                 total,
                 row,
               ) =>
-                total +
-                row.goalsFor,
+                  total +
+                  row.goalsFor,
               0,
             ),
 
@@ -166,8 +237,8 @@ export default function TournamentStatsPage() {
                 total,
                 row,
               ) =>
-                total +
-                row.wins,
+                  total +
+                  row.wins,
               0,
             ),
 
@@ -178,8 +249,8 @@ export default function TournamentStatsPage() {
                   total,
                   row,
                 ) =>
-                  total +
-                  row.draws,
+                    total +
+                    row.draws,
                 0,
               ) /
                 2,
@@ -191,7 +262,6 @@ export default function TournamentStatsPage() {
       ],
     );
 
-
   if (
     !user ||
     !name
@@ -202,7 +272,6 @@ export default function TournamentStatsPage() {
       />
     );
   }
-
 
   const ranked =
     [
@@ -220,6 +289,17 @@ export default function TournamentStatsPage() {
           first.goalsFor,
     );
 
+  const boot =
+    awardRace
+      ?.goldenBoot[0];
+
+  const glove =
+    awardRace
+      ?.goldenGlove[0];
+
+  const best =
+    awardRace
+      ?.playerOfTheTournament[0];
 
   return (
     <AppShell
@@ -232,14 +312,15 @@ export default function TournamentStatsPage() {
       <div className="space-y-6">
         <BackHeader
           backHref={
-            `/tournaments/${tournamentId}`
+            '/tournaments/' +
+            tournamentId
           }
           backLabel="Tournament Overview"
           eyebrow={
             name
           }
           title="Statistics"
-          subtitle="Competition-level summary derived from the real standings data."
+          subtitle="Competition summary and live award races from verified FC Arena results."
         />
 
         <TournamentNavigation
@@ -247,7 +328,6 @@ export default function TournamentStatsPage() {
             tournamentId
           }
         />
-
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
@@ -282,6 +362,73 @@ export default function TournamentStatsPage() {
           />
         </section>
 
+        {awardRace?.individualAwardsSupported ? (
+          <section>
+            <div className="mb-4">
+              <p className="theme-text-link text-[10px] font-black uppercase tracking-[0.18em]">
+                Live Award Races
+              </p>
+
+              <h2 className="theme-text mt-1 text-2xl font-black">
+                Tournament Honours
+              </h2>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <AwardRaceCard
+                icon="⚽"
+                title="Golden Boot"
+                player={
+                  boot
+                }
+                detail={
+                  boot
+                    ? boot.goalsFor +
+                      ' goals · ' +
+                      boot.goalsPerMatch +
+                      ' per match'
+                    : ''
+                }
+              />
+
+              <AwardRaceCard
+                icon="🧤"
+                title="Golden Glove"
+                player={
+                  glove
+                }
+                detail={
+                  glove
+                    ? glove.cleanSheets +
+                      ' clean sheets · ' +
+                      glove.goalsAgainstPerMatch +
+                      ' GA/match'
+                    : ''
+                }
+              />
+
+              <AwardRaceCard
+                icon="⭐"
+                title="Player of the Tournament"
+                player={
+                  best
+                }
+                detail={
+                  best
+                    ? best.rating +
+                      ' / 100 rating'
+                    : ''
+                }
+              />
+            </div>
+          </section>
+        ) : awardRace?.reason ? (
+          <FcPanel className="p-5">
+            <p className="theme-secondary-text text-sm leading-6">
+              {awardRace.reason}
+            </p>
+          </FcPanel>
+        ) : null}
 
         <FcPanel className="overflow-hidden">
           <div className="border-b border-white/[0.07] p-5">
@@ -359,10 +506,9 @@ export default function TournamentStatsPage() {
           </div>
         </FcPanel>
 
-
         <FcPanel className="p-5">
-          <p className="text-sm leading-6 text-slate-500">
-            Individual goal-scorer, assist, rating and Player of the Match leaderboards are not exposed by the current Tournament statistics API, so this page only displays metrics supported by existing data.
+          <p className="theme-secondary-text text-sm leading-6">
+            Award races use confirmed canonical results only. Golden Boot uses goals and efficiency tie-breaks; Golden Glove uses clean sheets and defensive efficiency; Player of the Tournament uses the FC Arena 100-point performance model.
           </p>
         </FcPanel>
       </div>

@@ -202,6 +202,14 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/fair-play"
+              icon="◉"
+              title="Fair Play"
+              description="Your transparent conduct score, event history and appeal rights"
+              tone="emerald"
+            />
+
+            <FcMenuRow
               href="/match-system"
               icon="⚽"
               title="Match System"
@@ -332,6 +340,24 @@ export default function MorePage() {
                 description="Match-level dispute access"
                 tone="red"
               />
+
+              <FcMenuRow
+                href="/admin/fair-play"
+                icon="◉"
+                title="Fair Play Management"
+                description="Conduct events, fixed policy points and player appeals"
+                tone="amber"
+              />
+
+              {user.role === "SUPER_ADMIN" ? (
+                <FcMenuRow
+                  href="/admin/commercial"
+                  icon="★"
+                  title="Commercial Infrastructure"
+                  description="Sponsors, placements, membership plans and complimentary access"
+                  tone="amber"
+                />
+              ) : null}
             </div>
           </details>
         ) : null}
@@ -339,6 +365,22 @@ export default function MorePage() {
         <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">App & Support</summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <FcMenuRow
+              href="/membership"
+              icon="★"
+              title="Membership"
+              description="FC Arena plans and your current entitlements"
+              tone="cyan"
+            />
+
+            <FcMenuRow
+              href="/partners"
+              icon="🏆"
+              title="Sponsors & Rewards"
+              description="Clearly disclosed FC Arena partners and reward campaigns"
+              tone="amber"
+            />
+
             <FcMenuRow
               href="/ai"
               icon="✦"

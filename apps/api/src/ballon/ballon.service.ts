@@ -1253,25 +1253,6 @@ export class BallonService {
           take: 100,
         }),
 
-        this.prisma.tournamentRegistrationMember.findMany({
-          where: {
-            userId: {
-              in:
-                userIds,
-            },
-          },
-
-          select: {
-            userId: true,
-            createdAt: true,
-          },
-
-          orderBy: {
-            createdAt:
-              'asc',
-          },
-        }),
-
         this.prisma.seasonalAward.findMany({
           where: {
             userId,
@@ -2348,6 +2329,25 @@ export class BallonService {
           select: {
             userId: true,
             type: true,
+          },
+        }),
+
+        this.prisma.tournamentRegistrationMember.findMany({
+          where: {
+            userId: {
+              in:
+                userIds,
+            },
+          },
+
+          select: {
+            userId: true,
+            createdAt: true,
+          },
+
+          orderBy: {
+            createdAt:
+              'asc',
           },
         }),
 

@@ -12,6 +12,7 @@ export class PlayerCareerService {
 
   async getMyCareer(
     userId: string,
+    dashboard = false,
   ) {
     const user =
       await this.prisma.user.findUnique({
@@ -280,11 +281,11 @@ export class PlayerCareerService {
           updatedAt: 'desc',
         },
 
-        take: 100,
+        take: dashboard ? 3 : 100,
       });
 
     const achievements =
-      await this.prisma.achievement.findMany({
+      dashboard ? [] : await this.prisma.achievement.findMany({
         where: {
           userId,
         },

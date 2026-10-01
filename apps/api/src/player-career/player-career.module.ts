@@ -1,3 +1,6 @@
+import { LeaguesModule } from '../leagues/leagues.module.js';
+import { PlayerDashboardService } from './player-dashboard.service.js';
+
 import {
   Module,
 } from '@nestjs/common';
@@ -21,6 +24,7 @@ import {
 @Module({
   imports: [
     AuthModule,
+    LeaguesModule,
   ],
 
   controllers: [
@@ -29,6 +33,7 @@ import {
 
   providers: [
     PlayerCareerService,
+    PlayerDashboardService,
     PlayerProfileImageService,
   ],
 

@@ -306,96 +306,44 @@ export default function DashboardPage() {
 
   const [error, setError] = useState("");
 
+  const [retryCount, setRetryCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    let cancelled = false;
     async function load() {
+      setLoading(true);
+      setError("");
       try {
-        const [currentUser, careerResponse, leaguesResponse] =
-          await Promise.all([
-            getCurrentUser(),
-
-            authenticatedRequest<{
-              success: true;
-              data: CareerData;
-              error: null;
-            }>("/players/me/career"),
-
-            authenticatedRequest<{
-              data: {
-                leagues: Membership[];
-              };
-            }>("/leagues/my"),
-          ]);
-
+        const [currentUser, summary] = await Promise.all([
+          getCurrentUser(),
+          authenticatedRequest<{ data: {
+            career: CareerData;
+            memberships: Membership[];
+            tournaments: DashboardTournament[];
+            fixtures: DashboardFixture[];
+          } }>("/players/me/dashboard"),
+        ]);
+        if (cancelled) return;
         setUser(currentUser);
-
-        setCareer(careerResponse.data);
-
-        const leagues = leaguesResponse.data.leagues;
-
-        setMemberships(leagues);
-
-        const primary =
-          leagues.find(
-            (membership) => membership.membershipType === "PRIMARY",
-          ) ?? leagues[0];
-
-        if (!primary) {
+        setCareer(summary.data.career);
+        setMemberships(summary.data.memberships);
+        setTournaments(summary.data.tournaments);
+        setFixtures(summary.data.fixtures);
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 401) {
+          router.replace("/login");
           return;
         }
-
-        const tournamentResponse = await authenticatedRequest<{
-          data: {
-            tournaments: Tournament[];
-          };
-        }>(`/leagues/${primary.league.id}/tournaments`);
-
-        const dashboardTournaments = tournamentResponse.data.tournaments.map(
-          (tournament) => ({
-            ...tournament,
-
-            leagueId: primary.league.id,
-
-            leagueName: primary.league.name,
-          }),
-        );
-
-        setTournaments(dashboardTournaments);
-
-        const fixtureGroups = await Promise.all(
-          dashboardTournaments.map(async (tournament) => {
-            try {
-              const response = await authenticatedRequest<{
-                data: {
-                  fixtures: Fixture[];
-                };
-              }>(`/tournaments/${tournament.id}/fixtures`);
-
-              return response.data.fixtures.map((fixture) => ({
-                ...fixture,
-
-                tournamentId: tournament.id,
-
-                tournamentName: tournament.name,
-
-                leagueName: primary.league.name,
-              }));
-            } catch {
-              return [];
-            }
-          }),
-        );
-
-        setFixtures(fixtureGroups.flat());
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 401) { router.replace("/login"); return; }
-        setError(
-          err instanceof Error ? err.message : "Unable to load dashboard.",
-        );
+        setError("Unable to load your dashboard. Check your connection and try again.");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
-
     void load();
-  }, [router]);
+    return () => { cancelled = true; };
+  }, [router, retryCount]);
 
   const primaryMembership = useMemo(
     () =>
@@ -459,9 +407,15 @@ export default function DashboardPage() {
     );
   }, [activeTournament, personalOpenFixtures]);
 
-  if ((!user || !career) && error) return <AppShell><FcPanel className="p-6"><p role="alert">{error}</p><button className="theme-primary-button mt-4 rounded-lg px-5" onClick={() => window.location.reload()}>Retry</button></FcPanel></AppShell>;
+  if (error) return (
+    <AppShell><FcPanel className="p-6">
+      <h1 className="theme-text text-lg font-semibold">Dashboard unavailable</h1>
+      <p role="alert" className="theme-muted mt-2">{error}</p>
+      <button disabled={loading} className="theme-primary-button mt-4 min-h-11 rounded-lg px-5" onClick={() => setRetryCount(count => count + 1)}>Retry</button>
+    </FcPanel></AppShell>
+  );
 
-  if (!user || !career) {
+  if (loading || !user || !career) {
     return <FcLoadingScreen label="Loading Home..." />;
   }
 

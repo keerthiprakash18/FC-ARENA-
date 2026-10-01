@@ -379,6 +379,11 @@ export class DiscoverService {
                 tournament
                   ._count
                   .registrations,
+              leagueJoined:
+                memberLeagueIds.includes(
+                  tournament
+                    .league.id,
+                ),
               _count:
                 undefined,
             }),
@@ -715,7 +720,7 @@ export class DiscoverService {
           goldenGloves: number;
           playerOfTournament: number;
           winningStreakAwards: number;
-          honourScore: number;
+          majorHonours: number;
         }
       >();
 
@@ -746,7 +751,7 @@ export class DiscoverService {
             goldenGloves: 0,
             playerOfTournament: 0,
             winningStreakAwards: 0,
-            honourScore: 0,
+            majorHonours: 0,
           };
 
           legends.set(
@@ -849,25 +854,15 @@ export class DiscoverService {
       const row
       of legends.values()
     ) {
-      row.honourScore =
-        row.ballonWins *
-          50 +
-        row.ballonPodiums *
-          15 +
-        row.risingStars *
-          12 +
-        row.tournamentTitles *
-          10 +
-        row.tournamentRunnerUps *
-          5 +
-        row.playerOfTournament *
-          6 +
-        row.goldenBoots *
-          5 +
-        row.goldenGloves *
-          5 +
-        row.winningStreakAwards *
-          2;
+      row.majorHonours =
+        row.ballonWins +
+        row.risingStars +
+        row.tournamentTitles +
+        row.tournamentRunnerUps +
+        row.playerOfTournament +
+        row.goldenBoots +
+        row.goldenGloves +
+        row.winningStreakAwards;
     }
 
     const legendsList =
@@ -879,12 +874,22 @@ export class DiscoverService {
             a,
             b,
           ) =>
-            b.honourScore -
-              a.honourScore ||
             b.ballonWins -
               a.ballonWins ||
+            b.ballonPodiums -
+              a.ballonPodiums ||
             b.tournamentTitles -
               a.tournamentTitles ||
+            b.playerOfTournament -
+              a.playerOfTournament ||
+            b.goldenBoots -
+              a.goldenBoots ||
+            b.goldenGloves -
+              a.goldenGloves ||
+            b.risingStars -
+              a.risingStars ||
+            b.majorHonours -
+              a.majorHonours ||
             a.player.playerCode.localeCompare(
               b.player.playerCode,
             ),
@@ -998,7 +1003,7 @@ export class DiscoverService {
         },
 
         scoringNote:
-          'Hall of Fame Honour Score is a display-only historical summary. It does not change tournament standings, Ballon ratings, awards or player eligibility.',
+          'Hall of Fame uses recorded FC Arena honours only. It does not create a new rating and does not change tournament standings, Ballon ratings, awards or player eligibility.',
       },
 
       error: null,
@@ -1630,6 +1635,10 @@ export class DiscoverService {
           row
             ._count
             .registrations,
+        leagueJoined:
+          memberLeagueIds.includes(
+            row.league.id,
+          ),
         _count:
           undefined,
       }),

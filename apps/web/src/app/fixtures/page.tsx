@@ -479,6 +479,13 @@ export default function FixturesPage() {
         continue;
       }
 
+      if (
+        selectedGroupId !== "ALL" &&
+        fixture.group?.id !== selectedGroupId
+      ) {
+        continue;
+      }
+
       for (const entry of [fixture.home, fixture.away]) {
         if (!entry) {
           continue;
@@ -497,7 +504,7 @@ export default function FixturesPage() {
     return Array.from(map.values()).sort((first, second) =>
       first.localeCompare(second),
     );
-  }, [fixtures, selectedTournamentId]);
+  }, [fixtures, selectedTournamentId, selectedGroupId]);
 
   async function refreshTournamentFixtures(
     tournamentId: string,
@@ -787,7 +794,11 @@ export default function FixturesPage() {
 
                   <select
                     value={selectedGroupId}
-                    onChange={(event) => setSelectedGroupId(event.target.value)}
+                    onChange={(event) => {
+                      setSelectedGroupId(event.target.value);
+                      setSelectedTeam("ALL");
+                      setExpandedResultMatchId(null);
+                    }}
                     className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
                   >
                     <option value="ALL">All Groups</option>

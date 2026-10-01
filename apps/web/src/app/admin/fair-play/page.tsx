@@ -313,15 +313,16 @@ export default function AdminFairPlayPage() {
 
         error: null;
       }>(
-        '/leagues/' +
-          leagueId +
-          '/members' +
-          (
-            params.toString()
-              ? '?' +
-                params.toString()
-              : ''
-          ),
+        '/admin/fair-play/members?' +
+          new URLSearchParams({
+            leagueId,
+            ...(query.trim()
+              ? {
+                  search:
+                    query.trim(),
+                }
+              : {}),
+          }).toString(),
       );
 
     setMembers(

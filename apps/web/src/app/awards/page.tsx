@@ -369,14 +369,23 @@ export default function AwardsPage() {
                   </span>
                 </div>
 
-                <Link
-                  href={
-                    `/awards/ballon/${data.currentBallon.season.id}`
-                  }
-                  className="mt-7 rounded-xl bg-amber-300 px-5 py-3 text-sm font-black text-[#151006] transition hover:bg-amber-200"
-                >
-                  View Ballon Rankings →
-                </Link>
+                <div className="mt-7 flex flex-wrap gap-2">
+                  <Link
+                    href={
+                      `/awards/ballon/${data.currentBallon.season.id}`
+                    }
+                    className="rounded-xl bg-amber-300 px-5 py-3 text-sm font-black text-[#151006] transition hover:bg-amber-200"
+                  >
+                    View Ballon Rankings →
+                  </Link>
+
+                  <Link
+                    href="/awards/ballon"
+                    className="rounded-xl border border-white/10 bg-white/[0.025] px-5 py-3 text-sm font-black text-slate-300 transition hover:border-amber-400/20"
+                  >
+                    All Seasons
+                  </Link>
+                </div>
               </>
             ) : (
               <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500">

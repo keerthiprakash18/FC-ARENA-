@@ -144,6 +144,48 @@ export default function AdminBallonPage() {
   ] =
     useState(15);
 
+  function applyPeriodPreset(
+    months: 1 | 2 | 3,
+  ) {
+    const start =
+      new Date(
+        startAt +
+          'T00:00:00',
+      );
+
+    const end =
+      new Date(
+        start,
+      );
+
+    end.setMonth(
+      end.getMonth() +
+        months,
+    );
+
+    end.setDate(
+      end.getDate() -
+        1,
+    );
+
+    setEndAt(
+      end
+        .toISOString()
+        .slice(
+          0,
+          10,
+        ),
+    );
+
+    setMinimumMatches(
+      months === 1
+        ? 6
+        : months === 2
+          ? 10
+          : 15,
+    );
+  }
+
   const [
     rankingLimit,
     setRankingLimit,
@@ -434,6 +476,46 @@ export default function AdminBallonPage() {
         <h2 className="mt-1 text-xl font-black">
           Create Ballon Period
         </h2>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          {(
+            [
+              1,
+              2,
+              3,
+            ] as const
+          ).map(
+            (
+              months,
+            ) => (
+              <button
+                key={
+                  months
+                }
+                type="button"
+                onClick={() =>
+                  applyPeriodPreset(
+                    months,
+                  )
+                }
+                className="rounded-xl border border-amber-300/20 bg-amber-300/[0.06] px-4 py-2.5 text-xs font-black text-amber-200"
+              >
+                {
+                  months
+                } Month{
+                  months >
+                  1
+                    ? 's'
+                    : ''
+                }
+              </button>
+            ),
+          )}
+
+          <span className="rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-2.5 text-xs font-bold text-slate-500">
+            Or choose custom dates below
+          </span>
+        </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="text-sm font-bold text-slate-300">

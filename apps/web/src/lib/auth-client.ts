@@ -282,6 +282,353 @@ export async function authenticatedUpload<T>(
   }
 }
 
+export type RealtimeConnectionState =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'disconnected';
+
+export interface AuthenticatedRealtimeEvent {
+  event: string;
+  data: unknown;
+}
+
+export function subscribeAuthenticatedEvents(
+  path: string,
+  onEvent:
+    (
+      event:
+        AuthenticatedRealtimeEvent,
+    ) => void,
+  onState?:
+    (
+      state:
+        RealtimeConnectionState,
+    ) => void,
+) {
+  const controller =
+    new AbortController();
+
+  let stopped =
+    false;
+
+  let retryDelay =
+    1_000;
+
+  const sleep =
+    (
+      milliseconds:
+        number,
+    ) =>
+      new Promise<void>(
+        (
+          resolve,
+        ) => {
+          window.setTimeout(
+            resolve,
+            milliseconds,
+          );
+        },
+      );
+
+  const connect =
+    async () => {
+      while (
+        !stopped
+      ) {
+        try {
+          onState?.(
+            retryDelay ===
+              1_000
+              ? 'connecting'
+              : 'reconnecting',
+          );
+
+          let token =
+            await refreshAccessToken();
+
+          let response =
+            await fetch(
+              `${API_URL}${path}`,
+              {
+                method:
+                  'GET',
+
+                credentials:
+                  'include',
+
+                headers: {
+                  Accept:
+                    'text/event-stream',
+
+                  Authorization:
+                    `Bearer ${token}`,
+                },
+
+                cache:
+                  'no-store',
+
+                signal:
+                  controller.signal,
+              },
+            );
+
+          if (
+            response.status ===
+            401 &&
+            !stopped
+          ) {
+            token =
+              await refreshAccessToken(
+                true,
+              );
+
+            response =
+              await fetch(
+                `${API_URL}${path}`,
+                {
+                  method:
+                    'GET',
+
+                  credentials:
+                    'include',
+
+                  headers: {
+                    Accept:
+                      'text/event-stream',
+
+                    Authorization:
+                      `Bearer ${token}`,
+                  },
+
+                  cache:
+                    'no-store',
+
+                  signal:
+                    controller.signal,
+                },
+              );
+          }
+
+          if (
+            !response.ok ||
+            !response.body
+          ) {
+            throw new Error(
+              'Realtime stream unavailable.',
+            );
+          }
+
+          onState?.(
+            'connected',
+          );
+
+          retryDelay =
+            1_000;
+
+          const reader =
+            response.body
+              .getReader();
+
+          const decoder =
+            new TextDecoder();
+
+          let buffer =
+            '';
+
+          while (
+            !stopped
+          ) {
+            const {
+              value,
+              done,
+            } =
+              await reader.read();
+
+            if (
+              done
+            ) {
+              break;
+            }
+
+            buffer +=
+              decoder.decode(
+                value,
+                {
+                  stream:
+                    true,
+                },
+              );
+
+            buffer =
+              buffer.replaceAll(
+                '\r\n',
+                '\n',
+              );
+
+            let boundary =
+              buffer.indexOf(
+                '\n\n',
+              );
+
+            while (
+              boundary >=
+              0
+            ) {
+              const frame =
+                buffer
+                  .slice(
+                    0,
+                    boundary,
+                  )
+                  .trim();
+
+              buffer =
+                buffer.slice(
+                  boundary +
+                    2,
+                );
+
+              if (
+                frame &&
+                !frame.startsWith(
+                  ':',
+                )
+              ) {
+                let event =
+                  'message';
+
+                const dataLines:
+                  string[] =
+                  [];
+
+                for (
+                  const line
+                  of frame.split(
+                    '\n',
+                  )
+                ) {
+                  if (
+                    line.startsWith(
+                      'event:',
+                    )
+                  ) {
+                    event =
+                      line
+                        .slice(
+                          6,
+                        )
+                        .trim();
+                  }
+
+                  if (
+                    line.startsWith(
+                      'data:',
+                    )
+                  ) {
+                    dataLines.push(
+                      line
+                        .slice(
+                          5,
+                        )
+                        .trimStart(),
+                    );
+                  }
+                }
+
+                if (
+                  dataLines.length >
+                  0
+                ) {
+                  const raw =
+                    dataLines.join(
+                      '\n',
+                    );
+
+                  let data:
+                    unknown =
+                    raw;
+
+                  try {
+                    data =
+                      JSON.parse(
+                        raw,
+                      );
+                  } catch {
+                    // Plain text
+                    // SSE payloads are
+                    // still valid.
+                  }
+
+                  onEvent({
+                    event,
+                    data,
+                  });
+                }
+              }
+
+              boundary =
+                buffer.indexOf(
+                  '\n\n',
+                );
+            }
+          }
+
+          if (
+            !stopped
+          ) {
+            throw new Error(
+              'Realtime connection closed.',
+            );
+          }
+        } catch (
+          error
+        ) {
+          if (
+            stopped ||
+            controller.signal
+              .aborted
+          ) {
+            break;
+          }
+
+          onState?.(
+            'reconnecting',
+          );
+
+          await sleep(
+            retryDelay,
+          );
+
+          retryDelay =
+            Math.min(
+              retryDelay *
+                2,
+              10_000,
+            );
+        }
+      }
+
+      onState?.(
+        'disconnected',
+      );
+    };
+
+  void connect();
+
+  return () => {
+    stopped =
+      true;
+
+    controller.abort();
+
+    onState?.(
+      'disconnected',
+    );
+  };
+}
+
+
 export async function getCurrentUser(): Promise<CurrentUser> {
   const result =
     await authenticatedRequest<{

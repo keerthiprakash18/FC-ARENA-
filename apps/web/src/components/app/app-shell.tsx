@@ -50,6 +50,7 @@ type SidebarIconName =
   | 'league'
   | 'tournament'
   | 'fixtures'
+  | 'war'
   | 'award'
   | 'more'
   | 'join'
@@ -187,6 +188,31 @@ function SidebarIcon({
         <path d="M17 3v5" />
         <path d="M3 10h18" />
         <path d="m8 15 2 2 5-5" />
+      </svg>
+    );
+  }
+
+  if (
+    name ===
+    'war'
+  ) {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        aria-hidden="true"
+      >
+        <path d="m5 4 6.4 6.4" />
+        <path d="m19 4-6.4 6.4" />
+        <path d="M8.5 7.5 4 12l2 2 4.5-4.5" />
+        <path d="M15.5 7.5 20 12l-2 2-4.5-4.5" />
+        <path d="m9.5 14.5-5 5" />
+        <path d="m14.5 14.5 5 5" />
       </svg>
     );
   }
@@ -411,6 +437,13 @@ function mainIconForHref(
     '/tournaments'
   ) {
     return 'tournament';
+  }
+
+  if (
+    href ===
+    '/league-war'
+  ) {
+    return 'war';
   }
 
   if (

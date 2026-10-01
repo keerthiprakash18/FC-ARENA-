@@ -89,6 +89,23 @@ interface AwardTournament {
   };
 }
 
+interface AdminLeague {
+  adminRole:
+    | 'OWNER'
+    | 'ADMIN'
+    | null;
+  league: {
+    id: string;
+    name: string;
+  };
+}
+
+interface AdminBallonSeason
+  extends BallonSeason {
+  eligibleLeagueIds:
+    string[];
+}
+
 interface AwardsOverview {
   currentBallon: {
     season: BallonSeason;
@@ -256,6 +273,46 @@ export default function AwardsPage() {
       null,
     );
 
+  const [
+    adminLeagues,
+    setAdminLeagues,
+  ] =
+    useState<AdminLeague[]>(
+      [],
+    );
+
+  const [
+    adminSeasons,
+    setAdminSeasons,
+  ] =
+    useState<AdminBallonSeason[]>(
+      [],
+    );
+
+  const [
+    quickLeagueId,
+    setQuickLeagueId,
+  ] =
+    useState('');
+
+  const [
+    adminBusy,
+    setAdminBusy,
+  ] =
+    useState(false);
+
+  const [
+    adminMessage,
+    setAdminMessage,
+  ] =
+    useState('');
+
+  const [
+    adminError,
+    setAdminError,
+  ] =
+    useState('');
+
   useEffect(() => {
     let active =
       true;
@@ -344,6 +401,94 @@ export default function AwardsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active =
+      true;
+
+    async function loadAdminControls() {
+      try {
+        const leagueResponse =
+          await authenticatedRequest<any>(
+            '/leagues/my',
+          );
+
+        if (!active) {
+          return;
+        }
+
+        const leagues:
+          AdminLeague[] =
+          (
+            leagueResponse
+              .data
+              .leagues ??
+            []
+          ).filter(
+            (
+              item:
+                AdminLeague,
+            ) =>
+              Boolean(
+                item.adminRole,
+              ),
+          );
+
+        setAdminLeagues(
+          leagues,
+        );
+
+        if (
+          leagues.length ===
+          0
+        ) {
+          setAdminSeasons(
+            [],
+          );
+          return;
+        }
+
+        setQuickLeagueId(
+          (
+            current,
+          ) =>
+            current ||
+            leagues[0]
+              .league.id,
+        );
+
+        const seasonResponse =
+          await authenticatedRequest<any>(
+            '/admin/ballon/seasons',
+          );
+
+        if (!active) {
+          return;
+        }
+
+        setAdminSeasons(
+          seasonResponse
+            .data
+            .seasons ??
+            [],
+        );
+      } catch {
+        /*
+         * Admin discovery is deliberately silent
+         * for normal players. Server-side
+         * authorization still protects all admin
+         * mutations.
+         */
+      }
+    }
+
+    void loadAdminControls();
+
+    return () => {
+      active =
+        false;
+    };
+  }, []);
+
   const rankings =
     data?.currentBallon
       ?.rankings?.rows ??
@@ -377,6 +522,219 @@ export default function AwardsPage() {
         data,
       ],
     );
+
+  const selectedAdminLeague =
+    adminLeagues.find(
+      (
+        item,
+      ) =>
+        item.league.id ===
+        quickLeagueId,
+    ) ??
+    adminLeagues[0] ??
+    null;
+
+  const draftSeason =
+    adminSeasons.find(
+      (
+        season,
+      ) =>
+        season.status ===
+          'DRAFT' &&
+        (
+          !quickLeagueId ||
+          season.eligibleLeagueIds
+            ?.includes(
+              quickLeagueId,
+            )
+        ),
+    ) ??
+    null;
+
+  async function refreshAfterAdminAction() {
+    const [
+      overviewResponse,
+      seasonResponse,
+    ] =
+      await Promise.all([
+        authenticatedRequest<{
+          success: true;
+          data: AwardsOverview;
+          error: null;
+        }>(
+          '/awards/overview',
+        ),
+        authenticatedRequest<any>(
+          '/admin/ballon/seasons',
+        ),
+      ]);
+
+    setData(
+      overviewResponse.data,
+    );
+    setLastUpdated(
+      new Date(),
+    );
+    setAdminSeasons(
+      seasonResponse
+        .data
+        .seasons ??
+        [],
+    );
+  }
+
+  async function startDraftSeason(
+    seasonId: string,
+  ) {
+    setAdminBusy(
+      true,
+    );
+    setAdminMessage(
+      '',
+    );
+    setAdminError(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        `/admin/ballon/seasons/${seasonId}/start`,
+        {
+          method:
+            'POST',
+        },
+      );
+
+      setAdminMessage(
+        'FC Arena Ballon season is now LIVE.',
+      );
+
+      await refreshAfterAdminAction();
+    } catch (
+      err
+    ) {
+      setAdminError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to start the Ballon season.',
+      );
+    } finally {
+      setAdminBusy(
+        false,
+      );
+    }
+  }
+
+  async function quickCreateAndStart() {
+    if (
+      !selectedAdminLeague
+    ) {
+      return;
+    }
+
+    setAdminBusy(
+      true,
+    );
+    setAdminMessage(
+      '',
+    );
+    setAdminError(
+      '',
+    );
+
+    try {
+      const start =
+        new Date();
+
+      start.setHours(
+        0,
+        0,
+        0,
+        0,
+      );
+
+      const end =
+        new Date(
+          start,
+        );
+
+      end.setMonth(
+        end.getMonth() +
+          3,
+      );
+
+      end.setDate(
+        end.getDate() -
+          1,
+      );
+
+      end.setHours(
+        23,
+        59,
+        59,
+        999,
+      );
+
+      const created =
+        await authenticatedRequest<any>(
+          '/admin/ballon/seasons',
+          {
+            method:
+              'POST',
+            body:
+              JSON.stringify({
+                name:
+                  `FC Arena Ballon · ${selectedAdminLeague.league.name}`,
+                startAt:
+                  start.toISOString(),
+                endAt:
+                  end.toISOString(),
+                minimumMatches:
+                  15,
+                rankingLimit:
+                  20,
+                eligibleLeagueIds:
+                  [
+                    selectedAdminLeague
+                      .league.id,
+                  ],
+                eligibleTournamentIds:
+                  [],
+              }),
+          },
+        );
+
+      const seasonId =
+        created.data
+          .season.id;
+
+      await authenticatedRequest(
+        `/admin/ballon/seasons/${seasonId}/start`,
+        {
+          method:
+            'POST',
+        },
+      );
+
+      setAdminMessage(
+        'FC Arena Ballon created and started. Live rankings are now active.',
+      );
+
+      await refreshAfterAdminAction();
+    } catch (
+      err
+    ) {
+      setAdminError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to create and start the Ballon season.',
+      );
+    } finally {
+      setAdminBusy(
+        false,
+      );
+    }
+  }
 
   return (
     <SecondaryFeaturePage
@@ -602,6 +960,176 @@ export default function AwardsPage() {
           </FcPanel>
         </div>
       </section>
+
+      {adminLeagues.length >
+      0 ? (
+        <FcPanel className="overflow-hidden border-amber-400/20">
+          <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-amber-200">
+                  Admin Only
+                </span>
+
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-600">
+                  {
+                    selectedAdminLeague
+                      ?.adminRole
+                  }
+                </span>
+              </div>
+
+              <h2 className="mt-3 text-xl font-black sm:text-2xl">
+                Ballon Admin Controls
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                {data
+                  ?.currentBallon
+                  ? 'A Ballon season is already active. Live rankings will update automatically from verified SOLO results.'
+                  : draftSeason
+                    ? `Draft ready: ${draftSeason.name}. Start it here without leaving Awards.`
+                    : 'No live season yet. Quick Start creates a 3-month Ballon season for the selected League and immediately turns live rankings on.'}
+              </p>
+
+              {adminMessage ? (
+                <p className="mt-3 text-sm font-bold text-emerald-400">
+                  ✓ {
+                    adminMessage
+                  }
+                </p>
+              ) : null}
+
+              {adminError ? (
+                <p className="mt-3 text-sm font-bold text-red-400">
+                  {
+                    adminError
+                  }
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[360px]">
+              {adminLeagues.length >
+              1 &&
+              !data
+                ?.currentBallon ? (
+                <label className="grid gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+                    Ballon League
+                  </span>
+
+                  <select
+                    value={
+                      quickLeagueId
+                    }
+                    onChange={(
+                      event,
+                    ) => {
+                      setQuickLeagueId(
+                        event.target
+                          .value,
+                      );
+                      setAdminMessage(
+                        '',
+                      );
+                      setAdminError(
+                        '',
+                      );
+                    }}
+                    className="min-h-11 rounded-xl border border-white/10 bg-[#121821] px-4 text-sm font-black outline-none"
+                  >
+                    {adminLeagues.map(
+                      (
+                        item,
+                      ) => (
+                        <option
+                          key={
+                            item
+                              .league.id
+                          }
+                          value={
+                            item
+                              .league.id
+                          }
+                        >
+                          {
+                            item
+                              .league
+                              .name
+                          } · {
+                            item.adminRole
+                          }
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </label>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2">
+                {data
+                  ?.currentBallon ? (
+                  <Link
+                    href="/admin/ballon"
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-400 px-5 text-sm font-black text-[#04130d]"
+                  >
+                    ● Ballon is LIVE
+                  </Link>
+                ) : draftSeason ? (
+                  <button
+                    type="button"
+                    disabled={
+                      adminBusy
+                    }
+                    onClick={() =>
+                      void startDraftSeason(
+                        draftSeason.id,
+                      )
+                    }
+                    className="min-h-11 rounded-xl bg-amber-300 px-5 text-sm font-black text-[#151006] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {adminBusy
+                      ? 'Starting...'
+                      : '▶ Start Ballon Season'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={
+                      adminBusy ||
+                      !selectedAdminLeague
+                    }
+                    onClick={() =>
+                      void quickCreateAndStart()
+                    }
+                    className="min-h-11 rounded-xl bg-amber-300 px-5 text-sm font-black text-[#151006] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {adminBusy
+                      ? 'Starting...'
+                      : '▶ Create & Start 3-Month Season'}
+                  </button>
+                )}
+
+                <Link
+                  href="/admin/ballon"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.025] px-5 text-sm font-black text-slate-300 transition hover:border-amber-400/25"
+                >
+                  Advanced Settings
+                </Link>
+              </div>
+
+              {!data
+                ?.currentBallon &&
+              !draftSeason ? (
+                <p className="text-[11px] leading-5 text-slate-600">
+                  Quick Start: 3 months · minimum 15 matches · Top 20 overview · verified SOLO results only. You can customize everything first through Advanced Settings.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </FcPanel>
+      ) : null}
 
       <section>
         <div className="mb-4 flex items-end justify-between gap-4">

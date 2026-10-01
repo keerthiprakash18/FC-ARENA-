@@ -1598,6 +1598,35 @@ export class BallonService {
         season.id,
       );
 
+    const decorateLiveRow = (
+      row: any,
+    ) => {
+      const previous =
+        movement.get(
+          row.userId,
+        );
+
+      const {
+        previousBallonWinner:
+          _previousBallonWinner,
+        ...publicRow
+      } =
+        row;
+
+      return {
+        ...publicRow,
+        previousPosition:
+          previous ??
+          null,
+        rankChange:
+          typeof previous ===
+            'number'
+            ? previous -
+              row.position
+            : null,
+      };
+    };
+
     return {
       locked: false,
       rows:
@@ -1607,25 +1636,28 @@ export class BallonService {
             limit,
           )
           .map(
-            (row) => {
-              const previous =
-                movement.get(
-                  row.userId,
-                );
-
-              return {
-                ...row,
-                previousPosition:
-                  previous ??
-                  null,
-                rankChange:
-                  typeof previous ===
-                    'number'
-                    ? previous -
-                      row.position
-                    : null,
-              };
-            },
+            decorateLiveRow,
+          ),
+      risingStarRows:
+        this.risingStarCandidates(
+          season,
+          computed.rows,
+        )
+          .slice(
+            0,
+            10,
+          )
+          .map(
+            (
+              row,
+              index,
+            ) => ({
+              ...decorateLiveRow(
+                row,
+              ),
+              risingStarPosition:
+                index + 1,
+            }),
           ),
     };
   }
@@ -2579,6 +2611,19 @@ export class BallonService {
     season: any,
     rows: any[],
   ) {
+    return (
+      this.risingStarCandidates(
+        season,
+        rows,
+      )[0] ??
+      null
+    );
+  }
+
+  private risingStarCandidates(
+    season: any,
+    rows: any[],
+  ) {
     const windowStart =
       new Date(
         season.startAt.getTime() -
@@ -2589,35 +2634,28 @@ export class BallonService {
             1000,
       );
 
-    return (
-      rows.find(
-        (row) => {
-          if (
-            row.previousBallonWinner
-          ) {
-            return false;
-          }
+    return rows.filter(
+      (row) => {
+        if (
+          !row.eligible ||
+          row.previousBallonWinner ||
+          !row.firstCompetitiveAt
+        ) {
+          return false;
+        }
 
-          if (
-            !row.firstCompetitiveAt
-          ) {
-            return false;
-          }
-
-          const first =
-            new Date(
-              row.firstCompetitiveAt,
-            );
-
-          return (
-            first >=
-              windowStart &&
-            first <=
-              season.endAt
+        const first =
+          new Date(
+            row.firstCompetitiveAt,
           );
-        },
-      ) ??
-      null
+
+        return (
+          first >=
+            windowStart &&
+          first <=
+            season.endAt
+        );
+      },
     );
   }
 

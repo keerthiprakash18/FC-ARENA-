@@ -7,6 +7,7 @@ import { BallonModule } from './ballon/ballon.module.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { DisputesModule } from './disputes/disputes.module.js';
+import { DiscoverModule } from './discover/discover.module.js';
 import { LeaguesModule } from './leagues/leagues.module.js';
 import { LeagueWarsModule } from './league-wars/league-wars.module.js';
 import { MatchesModule } from './matches/matches.module.js';
@@ -38,6 +39,7 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
     NotificationsModule,
     PlayerCareerModule,
     DisputesModule,
+    DiscoverModule,
     PublicModule,
   ],
 })

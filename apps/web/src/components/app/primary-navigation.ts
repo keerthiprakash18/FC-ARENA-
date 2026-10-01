@@ -30,6 +30,12 @@ export const primaryNavigation:
       icon: 'tournament',
     },
     {
+      label: 'LEAGUE WAR',
+      shortLabel: 'War',
+      href: '/league-war',
+      icon: 'war',
+    },
+    {
       label: 'FIXTURES',
       shortLabel: 'Fixtures',
       href: '/fixtures',
@@ -64,6 +70,10 @@ export function getActivePrimarySection(
     return '/tournaments';
   }
 
+  if (pathname.startsWith('/league-war')) {
+    return '/league-war';
+  }
+
   if (
     pathname.startsWith('/fixtures') ||
     pathname.startsWith('/matches')
@@ -86,6 +96,7 @@ export function shouldShowPrimaryBottomNavigation(
       '/dashboard',
       '/leagues',
       '/tournaments',
+      '/league-war',
       '/fixtures',
       '/more',
     ].includes(pathname) ||

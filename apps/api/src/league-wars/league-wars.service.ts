@@ -23,7 +23,7 @@ type WarCore = {
   lossPoints: number;
 };
 
-interface SideScore {
+export interface SideScore {
   points: number;
   wins: number;
   draws: number;

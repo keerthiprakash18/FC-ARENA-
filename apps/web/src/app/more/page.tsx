@@ -266,6 +266,34 @@ export default function MorePage() {
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <FcMenuRow
+                href="/admin/analytics"
+                icon="↗"
+                title="Admin Analytics"
+                description="Operational metrics, competition load and audit activity"
+                tone="cyan"
+              />
+
+              {user.role === "SUPER_ADMIN" ? (
+                <>
+                  <FcMenuRow
+                    href="/admin/system"
+                    icon="◉"
+                    title="System Monitoring"
+                    description="API, database, push delivery and backup health"
+                    tone="emerald"
+                  />
+
+                  <FcMenuRow
+                    href="/admin/android"
+                    icon="⚙"
+                    title="Android Releases"
+                    description="Play versionCodes, release channels and update policy"
+                    tone="amber"
+                  />
+                </>
+              ) : null}
+
+              <FcMenuRow
                 href="/admin/leagues"
                 icon="⚙"
                 title="League Management"

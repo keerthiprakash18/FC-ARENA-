@@ -41,6 +41,10 @@ const adminItems = [
     '/admin/disputes',
   ],
   [
+    'Fair Play',
+    '/admin/fair-play',
+  ],
+  [
     'Ballon',
     '/admin/ballon',
   ],
@@ -54,6 +58,10 @@ const superAdminItems = [
   [
     'Android',
     '/admin/android',
+  ],
+  [
+    'Commercial',
+    '/admin/commercial',
   ],
 ] as const;
 

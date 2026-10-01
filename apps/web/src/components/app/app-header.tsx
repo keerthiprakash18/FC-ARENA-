@@ -65,6 +65,16 @@ const quickSearchItems = [
     href: '/notifications',
   },
   {
+    label: 'Discover',
+    keywords: 'discover search players leagues tournaments seasons hall fame',
+    href: '/discover',
+  },
+  {
+    label: 'Hall of Fame',
+    keywords: 'hall fame honours winners champions ballon history',
+    href: '/awards/hall-of-fame',
+  },
+  {
     label: 'More',
     keywords: 'more settings help awards achievements',
     href: '/more',
@@ -274,7 +284,7 @@ export function AppHeader({
                   )
               }
               aria-label="Search app sections"
-              placeholder="Search leagues, tournaments, fixtures..."
+              placeholder="Search FC Arena or jump to a section..."
               className="theme-search-input min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
 
@@ -287,6 +297,31 @@ export function AppHeader({
           {searchOpen ? (
             <>
               <div className="theme-search-menu absolute left-0 right-0 top-12 overflow-hidden rounded-xl border p-1.5 shadow-[0_18px_42px_rgba(11,37,69,0.12)]">
+                {query.trim().length >= 2 ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openResult(
+                        `/discover?q=${encodeURIComponent(
+                          query.trim(),
+                        )}`,
+                      )
+                    }
+                    className="theme-search-result mb-1 flex min-h-11 w-full items-center justify-between rounded-[9px] border border-sky-400/15 px-3 text-left text-xs font-black text-sky-400 transition"
+                  >
+                    <span>
+                      Search all FC Arena for “{query.trim()}”
+                    </span>
+
+                    <span aria-hidden="true">
+                      <FcIcon
+                        name="search"
+                        size={16}
+                      />
+                    </span>
+                  </button>
+                ) : null}
+
                 {results.length >
                 0 ? (
                   results.map(
@@ -332,6 +367,18 @@ export function AppHeader({
 
 
         <div className="flex items-center gap-2.5">
+          <Link
+            href="/discover"
+            aria-label="Discover FC Arena"
+            title="Discover"
+            className="theme-profile-chip theme-text grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent transition duration-200 lg:hidden"
+          >
+            <FcIcon
+              name="search"
+              size={19}
+            />
+          </Link>
+
           <button
             type="button"
             aria-label={

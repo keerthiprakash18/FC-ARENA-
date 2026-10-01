@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-labelledby="title desc">
+  <title id="title">FC Arena Ballon</title>
+  <desc id="desc">A custom FC Arena crown and faceted football mark.</desc>
+  <defs>
+    <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#FFF1A8"/>
+      <stop offset=".35" stop-color="#F6C453"/>
+      <stop offset=".7" stop-color="#C98518"/>
+      <stop offset="1" stop-color="#8E570C"/>
+    </linearGradient>
+    <radialGradient id="ball" cx=".35" cy=".25" r=".8">
+      <stop offset="0" stop-color="#FFF7C8"/>
+      <stop offset=".42" stop-color="#F6C453"/>
+      <stop offset="1" stop-color="#9A5F0D"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(36 28)">
+    <path d="M70 35 101 67 132 24 164 67 196 35 184 93H82Z" fill="url(#gold)"/>
+    <circle cx="133" cy="145" r="82" fill="url(#ball)" stroke="#FFE58A" stroke-width="5"/>
+    <path d="m133 103 30 22-11 36h-38l-11-36Z" fill="#1A1408" opacity=".9"/>
+    <path d="m133 103 0-40M103 125 66 112M163 125l37-13M114 161l-23 38M152 161l23 38" stroke="#6D4308" stroke-width="8" stroke-linecap="round"/>
+    <path d="M79 209h108l18 34H61Z" fill="url(#gold)"/>
+    <rect x="89" y="241" width="88" height="18" rx="9" fill="#6D4308"/>
+  </g>
+  <g transform="translate(300 66)">
+    <text x="0" y="42" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="800" letter-spacing="7" fill="#F6C453">FC ARENA</text>
+    <text x="0" y="112" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="900" letter-spacing="4" fill="url(#gold)">BALLON</text>
+    <path d="M2 137H520" stroke="#C98518" stroke-width="2"/>
+    <text x="0" y="174" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="5" fill="#E8D6A2">SEASONAL PLAYER HONOUR</text>
+  </g>
+</svg>

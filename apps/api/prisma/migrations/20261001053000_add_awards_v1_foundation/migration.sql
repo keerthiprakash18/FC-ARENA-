@@ -89,3 +89,45 @@ CREATE INDEX IF NOT EXISTS "seasonal_awards_userId_awardedAt_idx"
   ON "seasonal_awards"("userId", "awardedAt");
 CREATE INDEX IF NOT EXISTS "seasonal_awards_seasonId_type_idx"
   ON "seasonal_awards"("seasonId", "type");
+
+
+-- Relational integrity for FC Arena Ballon data.
+ALTER TABLE "ballon_seasons"
+  ADD CONSTRAINT "ballon_seasons_createdByUserId_fkey"
+  FOREIGN KEY ("createdByUserId") REFERENCES "users"("id")
+  ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE "ballon_seasons"
+  ADD CONSTRAINT "ballon_seasons_finalWinnerUserId_fkey"
+  FOREIGN KEY ("finalWinnerUserId") REFERENCES "users"("id")
+  ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "ballon_seasons"
+  ADD CONSTRAINT "ballon_seasons_risingStarUserId_fkey"
+  FOREIGN KEY ("risingStarUserId") REFERENCES "users"("id")
+  ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "ballon_ranking_snapshots"
+  ADD CONSTRAINT "ballon_ranking_snapshots_seasonId_fkey"
+  FOREIGN KEY ("seasonId") REFERENCES "ballon_seasons"("id")
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "ballon_final_rankings"
+  ADD CONSTRAINT "ballon_final_rankings_seasonId_fkey"
+  FOREIGN KEY ("seasonId") REFERENCES "ballon_seasons"("id")
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "ballon_final_rankings"
+  ADD CONSTRAINT "ballon_final_rankings_userId_fkey"
+  FOREIGN KEY ("userId") REFERENCES "users"("id")
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "seasonal_awards"
+  ADD CONSTRAINT "seasonal_awards_userId_fkey"
+  FOREIGN KEY ("userId") REFERENCES "users"("id")
+  ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "seasonal_awards"
+  ADD CONSTRAINT "seasonal_awards_seasonId_fkey"
+  FOREIGN KEY ("seasonId") REFERENCES "ballon_seasons"("id")
+  ON DELETE CASCADE ON UPDATE CASCADE;

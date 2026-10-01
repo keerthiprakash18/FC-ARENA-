@@ -1,0 +1,11 @@
+[Unit]
+Description=Run FC Arena encrypted PostgreSQL backup daily
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 UTC
+RandomizedDelaySec=900
+Persistent=true
+Unit=fcarena-backup.service
+
+[Install]
+WantedBy=timers.target

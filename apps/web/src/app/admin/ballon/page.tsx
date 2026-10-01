@@ -222,7 +222,7 @@ export default function AdminBallonPage() {
           '/leagues/my',
         ),
         authenticatedRequest<any>(
-          '/ballon/seasons',
+          '/admin/ballon/seasons',
         ),
       ]);
 

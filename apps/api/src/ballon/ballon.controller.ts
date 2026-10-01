@@ -149,6 +149,17 @@ export class BallonController {
     );
   }
 
+  @Get('admin/ballon/seasons')
+  adminSeasons(
+    @Req()
+    request:
+      AuthenticatedRequest,
+  ) {
+    return this.ballonService.getAdminSeasons(
+      request.user.sub,
+    );
+  }
+
   @Post('admin/ballon/seasons')
   create(
     @Req()

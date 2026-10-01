@@ -748,6 +748,16 @@ export class BallonService {
 
     const seasons =
       await this.prisma.ballonSeason.findMany({
+        where: {
+          status: {
+            in: [
+              'LIVE',
+              'LOCKED',
+              'ARCHIVED',
+            ],
+          },
+        },
+
         orderBy: [
           {
             startAt:
@@ -823,6 +833,183 @@ export class BallonService {
     };
   }
 
+  async getAdminSeasons(
+    userId: string,
+  ) {
+    await this.assertActiveUser(
+      userId,
+    );
+
+    const user =
+      await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+
+        select: {
+          role: true,
+        },
+      });
+
+    if (!user) {
+      throw new ForbiddenException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ADMIN_PERMISSION_REQUIRED',
+          message:
+            'FC Arena admin permission is required.',
+        },
+      });
+    }
+
+    const seasons =
+      await this.prisma.ballonSeason.findMany({
+        orderBy: [
+          {
+            startAt:
+              'desc',
+          },
+          {
+            createdAt:
+              'desc',
+          },
+        ],
+
+        take: 50,
+      });
+
+    if (
+      user.role ===
+      'SUPER_ADMIN'
+    ) {
+      return {
+        success: true,
+        data: {
+          seasons,
+        },
+        error: null,
+      };
+    }
+
+    const adminRoles =
+      await this.prisma.leagueAdmin.findMany({
+        where: {
+          userId,
+        },
+
+        select: {
+          leagueId: true,
+        },
+      });
+
+    const administered =
+      new Set(
+        adminRoles.map(
+          (role) =>
+            role.leagueId,
+        ),
+      );
+
+    const tournamentIds =
+      [
+        ...new Set(
+          seasons.flatMap(
+            (season) =>
+              this.jsonStringArray(
+                season.eligibleTournamentIds,
+              ),
+          ),
+        ),
+      ];
+
+    const tournamentScopes =
+      tournamentIds.length > 0
+        ? await this.prisma.tournament.findMany({
+            where: {
+              id: {
+                in:
+                  tournamentIds,
+              },
+            },
+
+            select: {
+              id: true,
+              leagueId: true,
+            },
+          })
+        : [];
+
+    const tournamentLeague =
+      new Map(
+        tournamentScopes.map(
+          (tournament) => [
+            tournament.id,
+            tournament.leagueId,
+          ],
+        ),
+      );
+
+    const manageable =
+      seasons.filter(
+        (season) => {
+          if (
+            season.createdByUserId ===
+            userId
+          ) {
+            return true;
+          }
+
+          const required =
+            new Set([
+              ...this.jsonStringArray(
+                season.eligibleLeagueIds,
+              ),
+              ...this.jsonStringArray(
+                season.eligibleTournamentIds,
+              )
+                .map(
+                  (tournamentId) =>
+                    tournamentLeague.get(
+                      tournamentId,
+                    ),
+                )
+                .filter(
+                  (
+                    leagueId,
+                  ): leagueId is string =>
+                    Boolean(
+                      leagueId,
+                    ),
+                ),
+            ]);
+
+          return (
+            required.size >
+              0 &&
+            [
+              ...required,
+            ].every(
+              (leagueId) =>
+                administered.has(
+                  leagueId,
+                ),
+            )
+          );
+        },
+      );
+
+    return {
+      success: true,
+      data: {
+        seasons:
+          manageable,
+      },
+      error: null,
+    };
+  }
+
   async getCurrentSeason(
     userId: string,
   ) {
@@ -872,6 +1059,11 @@ export class BallonService {
         seasonId,
       );
 
+    await this.assertSeasonVisible(
+      userId,
+      season,
+    );
+
     const rankings =
       await this.getRankingsData(
         season,
@@ -901,6 +1093,11 @@ export class BallonService {
       await this.requireSeason(
         seasonId,
       );
+
+    await this.assertSeasonVisible(
+      userId,
+      season,
+    );
 
     const requested =
       Number(
@@ -943,6 +1140,11 @@ export class BallonService {
         seasonId,
       );
 
+    await this.assertSeasonVisible(
+      userId,
+      season,
+    );
+
     const rankings =
       await this.getRankingsData(
         season,
@@ -978,6 +1180,11 @@ export class BallonService {
       await this.requireSeason(
         seasonId,
       );
+
+    await this.assertSeasonVisible(
+      requesterUserId,
+      season,
+    );
 
     const rankings =
       await this.getRankingsData(
@@ -1863,11 +2070,23 @@ export class BallonService {
       won: boolean,
       draw: boolean,
       roundName: string,
+      eventAt: Date,
     ) => {
       const aggregate =
         ensure(
           member,
         );
+
+      if (
+        !aggregate.firstCompetitiveAt ||
+        eventAt <
+          new Date(
+            aggregate.firstCompetitiveAt,
+          )
+      ) {
+        aggregate.firstCompetitiveAt =
+          eventAt.toISOString();
+      }
 
       aggregate.matches +=
         1;
@@ -2010,6 +2229,10 @@ export class BallonService {
         result.homeScore ===
         result.awayScore;
 
+      const eventAt =
+        result.reviewedAt ??
+        result.updatedAt;
+
       apply(
         homeMembers[0],
         match.tournamentId,
@@ -2020,6 +2243,7 @@ export class BallonService {
         match.fixture
           .roundName ??
           '',
+        eventAt,
       );
 
       apply(
@@ -2032,6 +2256,7 @@ export class BallonService {
         match.fixture
           .roundName ??
           '',
+        eventAt,
       );
     }
 
@@ -2069,7 +2294,6 @@ export class BallonService {
 
     const [
       placements,
-      registrations,
       previousBallonAwards,
     ] =
       await Promise.all([
@@ -2103,25 +2327,6 @@ export class BallonService {
           select: {
             userId: true,
             type: true,
-          },
-        }),
-
-        this.prisma.tournamentRegistrationMember.findMany({
-          where: {
-            userId: {
-              in:
-                userIds,
-            },
-          },
-
-          select: {
-            userId: true,
-            createdAt: true,
-          },
-
-          orderBy: {
-            createdAt:
-              'asc',
           },
         }),
 
@@ -2173,41 +2378,6 @@ export class BallonService {
         aggregate.bigMatchPoints +=
           1;
       }
-    }
-
-    const earliest =
-      new Map<
-        string,
-        Date
-      >();
-
-    for (
-      const registration
-      of registrations
-    ) {
-      if (
-        !earliest.has(
-          registration.userId,
-        )
-      ) {
-        earliest.set(
-          registration.userId,
-          registration.createdAt,
-        );
-      }
-    }
-
-    for (
-      const aggregate
-      of aggregates.values()
-    ) {
-      aggregate.firstCompetitiveAt =
-        earliest
-          .get(
-            aggregate.userId,
-          )
-          ?.toISOString() ??
-        null;
     }
 
     const weights =
@@ -2709,6 +2879,28 @@ export class BallonService {
         },
       });
     }
+  }
+
+  private async assertSeasonVisible(
+    userId: string,
+    season: any,
+  ) {
+    if (
+      [
+        'LIVE',
+        'LOCKED',
+        'ARCHIVED',
+      ].includes(
+        season.status,
+      )
+    ) {
+      return;
+    }
+
+    await this.assertCanManageSeason(
+      userId,
+      season,
+    );
   }
 
   private async assertCanManageSeason(

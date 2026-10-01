@@ -1606,12 +1606,12 @@ export class BallonService {
           row.userId,
         );
 
-      const {
-        previousBallonWinner:
-          _previousBallonWinner,
-        ...publicRow
-      } =
-        row;
+      const publicRow = {
+        ...row,
+      };
+
+      delete publicRow
+        .previousBallonWinner;
 
       return {
         ...publicRow,

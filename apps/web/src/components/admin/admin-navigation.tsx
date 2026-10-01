@@ -9,6 +9,7 @@ const items = [
   ['Teams', '/admin/teams'],
   ['Results', '/admin/results'],
   ['Disputes', '/admin/disputes'],
+  ['Ballon', '/admin/ballon'],
 ] as const;
 
 export function AdminNavigation() {

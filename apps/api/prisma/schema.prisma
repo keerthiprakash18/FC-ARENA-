@@ -1192,6 +1192,8 @@ model UserSubscription {
   leagueId             String?            @db.Uuid
   provider             String             @default("MANUAL") @db.VarChar(40)
   providerSubscriptionId String?           @db.VarChar(160)
+  priceMinorSnapshot   Int
+  currencySnapshot     String             @db.VarChar(3)
   status               SubscriptionStatus @default(ACTIVE)
   currentPeriodStart   DateTime
   currentPeriodEnd     DateTime?

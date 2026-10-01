@@ -176,16 +176,33 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
                 item.href?.startsWith('/') && !item.href.startsWith('//')
                   ? item.href
                   : '/notifications';
+              const urgent =
+                [
+                  'MATCH_REMINDER',
+                  'MATCH_READY',
+                  'RESULT_SUBMITTED',
+                  'RESULT_REJECTED',
+                  'DISPUTE_OPENED',
+                ].includes(
+                  item.type,
+                );
+
               await getMessaging(this.app).send({
                 token: device.token,
                 notification: {
                   title: item.title,
-                  body: 'Open FC ARENA to view your latest competition update.',
+                  body: item.message,
                 },
                 data: { href, notificationId: item.id },
                 android: {
-                  priority: 'normal',
-                  ttl: 300_000,
+                  priority:
+                    urgent
+                      ? 'high'
+                      : 'normal',
+                  ttl:
+                    urgent
+                      ? 900_000
+                      : 300_000,
                   notification: { channelId: 'competition', tag: item.id },
                 },
               });

@@ -31,11 +31,24 @@ The backup host needs the public GPG key for `BACKUP_ENCRYPTION_RECIPIENT`. Keep
 
 ## Recommended schedule
 
-Run once every day from the production host with a locked-down service account or systemd timer. Example cron cadence:
+V3.3 includes hardened systemd templates:
 
-```text
-30 2 * * * /usr/local/sbin/fcarena-backup
+- `ops/backup/fcarena-backup.service`
+- `ops/backup/fcarena-backup.timer`
+
+Production installation should use a dedicated `fcarena-backup` OS account, a root-owned `/etc/fcarena/backup.env` with mode `600`, and `/var/backups/fcarena` writable only by the backup account.
+
+Example installation flow:
+
+```bash
+sudo install -o root -g root -m 0755 ops/backup/fcarena-backup.sh /usr/local/sbin/fcarena-backup
+sudo install -o root -g root -m 0644 ops/backup/fcarena-backup.service /etc/systemd/system/fcarena-backup.service
+sudo install -o root -g root -m 0644 ops/backup/fcarena-backup.timer /etc/systemd/system/fcarena-backup.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now fcarena-backup.timer
 ```
+
+The timer runs daily at 02:30 UTC with up to 15 minutes of randomized delay and uses `Persistent=true`, so a missed run is triggered after the host returns.
 
 A backup is considered healthy by the Admin System page when the latest successful report is no more than 30 hours old.
 

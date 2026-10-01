@@ -2,6 +2,20 @@ plugins {
     id 'com.android.application'
 }
 
+def versionPropsFile = file("../version.properties")
+if (!versionPropsFile.exists()) {
+    throw new GradleException("Missing apps/android/version.properties")
+}
+def versionProps = new Properties()
+versionPropsFile.withInputStream { versionProps.load(it) }
+
+def fcVersionCode = Integer.parseInt(versionProps.getProperty("VERSION_CODE"))
+def fcVersionName = versionProps.getProperty("VERSION_NAME")
+
+if (!fcVersionName) {
+    throw new GradleException("VERSION_NAME is missing from apps/android/version.properties")
+}
+
 def keyStoreFile = System.getenv("FC_ARENA_KEYSTORE_FILE")
 def keyStorePassword = System.getenv("FC_ARENA_STORE_PASSWORD")
 def keyAliasValue = System.getenv("FC_ARENA_KEY_ALIAS")
@@ -33,8 +47,8 @@ android {
         applicationId 'in.fcarena.app'
         minSdk 24
         targetSdk 36
-        versionCode 10
-        versionName '1.0.8'
+        versionCode fcVersionCode
+        versionName fcVersionName
         buildConfigField 'String', 'FIREBASE_APP_ID', firebaseString(firebaseClient?.client_info?.mobilesdk_app_id)
         buildConfigField 'String', 'FIREBASE_API_KEY', firebaseString(firebaseClient?.api_key?.getAt(0)?.current_key)
         buildConfigField 'String', 'FIREBASE_PROJECT_ID', firebaseString(firebaseConfig?.project_info?.project_id)

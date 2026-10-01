@@ -202,6 +202,8 @@ enum LeagueWarStatus {
   LIVE
   COMPLETED
   CANCELLED
+  REJECTED
+  EXPIRED
 }
 
 enum LeagueWarLegType {
@@ -209,9 +211,24 @@ enum LeagueWarLegType {
   HOME_AWAY
 }
 
+enum LeagueWarPairingMode {
+  SLOT
+  MANUAL
+  RANDOM
+}
+
 enum LeagueWarMatchStatus {
   SCHEDULED
   COMPLETED
+}
+
+enum LeagueWarResultStatus {
+  NONE
+  PENDING_CONFIRMATION
+  CONFIRMED
+  DISPUTED
+  WALKOVER_PENDING
+  WALKOVER_CONFIRMED
 }
 
 enum NotificationType {
@@ -921,23 +938,36 @@ model PushDelivery {
 
 
 model LeagueWar {
-  id              String            @id @default(uuid()) @db.Uuid
-  name            String            @db.VarChar(140)
-  homeLeagueId    String            @db.Uuid
-  awayLeagueId    String            @db.Uuid
-  createdByUserId String            @db.Uuid
-  winnerLeagueId  String?           @db.Uuid
-  status          LeagueWarStatus   @default(INVITED)
-  playerCount     Int
-  legType         LeagueWarLegType  @default(SINGLE_LEG)
-  winPoints       Int               @default(3)
-  drawPoints      Int               @default(1)
-  lossPoints      Int               @default(0)
-  acceptedAt      DateTime?
-  startedAt       DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id                   String               @id @default(uuid()) @db.Uuid
+  name                 String               @db.VarChar(140)
+  homeLeagueId         String               @db.Uuid
+  awayLeagueId         String               @db.Uuid
+  createdByUserId      String               @db.Uuid
+  winnerLeagueId       String?              @db.Uuid
+  rematchOfWarId       String?              @db.Uuid
+  status               LeagueWarStatus      @default(INVITED)
+  playerCount          Int
+  legType              LeagueWarLegType     @default(SINGLE_LEG)
+  pairingMode          LeagueWarPairingMode @default(SLOT)
+  winPoints            Int                  @default(3)
+  drawPoints           Int                  @default(1)
+  lossPoints           Int                  @default(0)
+  challengeExpiresAt   DateTime?
+  scheduledStartAt     DateTime?
+  deadlineAt           DateTime?
+  acceptedAt           DateTime?
+  homeReadyAt          DateTime?
+  awayReadyAt          DateTime?
+  homeRosterLockedAt   DateTime?
+  awayRosterLockedAt   DateTime?
+  rejectedAt           DateTime?
+  rejectionReason      String?              @db.VarChar(500)
+  cancelledAt          DateTime?
+  cancellationReason   String?              @db.VarChar(500)
+  startedAt            DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   homeLeague   League  @relation("LeagueWarHomeLeague", fields: [homeLeagueId], references: [id], onDelete: Cascade)
   awayLeague   League  @relation("LeagueWarAwayLeague", fields: [awayLeagueId], references: [id], onDelete: Cascade)
@@ -949,6 +979,8 @@ model LeagueWar {
   @@index([homeLeagueId, status])
   @@index([awayLeagueId, status])
   @@index([createdByUserId])
+  @@index([challengeExpiresAt])
+  @@index([rematchOfWarId])
   @@map("league_wars")
 }
 
@@ -972,19 +1004,29 @@ model LeagueWarParticipant {
 }
 
 model LeagueWarMatch {
-  id                    String               @id @default(uuid()) @db.Uuid
-  warId                 String               @db.Uuid
-  sequence              Int
-  leg                   Int                  @default(1)
-  homePlayerUserId      String               @db.Uuid
-  awayPlayerUserId      String               @db.Uuid
-  homeScore             Int?
-  awayScore             Int?
-  status                LeagueWarMatchStatus @default(SCHEDULED)
-  resultUpdatedByUserId String?              @db.Uuid
-  completedAt           DateTime?
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  id                       String                @id @default(uuid()) @db.Uuid
+  warId                    String                @db.Uuid
+  sequence                 Int
+  leg                      Int                   @default(1)
+  homePlayerUserId         String                @db.Uuid
+  awayPlayerUserId         String                @db.Uuid
+  homeScore                Int?
+  awayScore                Int?
+  status                   LeagueWarMatchStatus  @default(SCHEDULED)
+  resultStatus             LeagueWarResultStatus @default(NONE)
+  resultUpdatedByUserId    String?               @db.Uuid
+  resultSubmittedByUserId  String?               @db.Uuid
+  resultSubmittedByLeagueId String?              @db.Uuid
+  resultConfirmedByUserId  String?               @db.Uuid
+  proofUrl                 String?               @db.Text
+  disputeReason            String?               @db.VarChar(1000)
+  walkoverLeagueId         String?               @db.Uuid
+  submittedAt              DateTime?
+  confirmedAt              DateTime?
+  disputedAt               DateTime?
+  completedAt              DateTime?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
 
   war             LeagueWar @relation(fields: [warId], references: [id], onDelete: Cascade)
   homePlayer      User      @relation("LeagueWarMatchHomePlayer", fields: [homePlayerUserId], references: [id], onDelete: Restrict)
@@ -993,6 +1035,7 @@ model LeagueWarMatch {
 
   @@unique([warId, sequence])
   @@index([warId, status])
+  @@index([warId, resultStatus])
   @@index([homePlayerUserId])
   @@index([awayPlayerUserId])
   @@map("league_war_matches")

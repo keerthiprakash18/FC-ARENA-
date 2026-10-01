@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
+import { SponsoredPlacement } from "@/components/commercial/sponsored-placement";
 
 import type { FcIconName } from "@/components/fc/fc-icons";
 
@@ -458,6 +459,7 @@ export default function DashboardPage() {
     >
       <div className="fc-dashboard-page relative space-y-5 sm:space-y-6">
         <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
+        <SponsoredPlacement placementKey="DASHBOARD" />
         <Link href="/notifications" className="theme-action-row flex items-center justify-between rounded-xl border p-4 font-semibold"><span>Your action inbox</span><span className="text-sm">Reminders & approvals →</span></Link>
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">

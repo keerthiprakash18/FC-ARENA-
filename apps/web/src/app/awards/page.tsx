@@ -1212,6 +1212,54 @@ export default function AwardsPage() {
         </div>
       </section>
 
+      <section className="grid gap-3 sm:grid-cols-2">
+        <Link
+          href="/awards/hall-of-fame"
+          className="group block"
+        >
+          <FcPanel className="h-full border-amber-400/20 p-5 transition group-hover:border-amber-300/40">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              FC Arena Legacy
+            </p>
+
+            <h2 className="mt-2 text-xl font-black">
+              🏛 Hall of Fame
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Ballon champions, season podiums, tournament winners and historic major honours.
+            </p>
+
+            <p className="mt-4 text-sm font-black text-amber-300">
+              Explore history →
+            </p>
+          </FcPanel>
+        </Link>
+
+        <Link
+          href="/discover"
+          className="group block"
+        >
+          <FcPanel className="h-full border-sky-400/15 p-5 transition group-hover:border-sky-300/35">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+              V3.2 Discover
+            </p>
+
+            <h2 className="mt-2 text-xl font-black">
+              ⌕ Search FC Arena
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Find players, Leagues, Tournaments and Ballon seasons across FC Arena.
+            </p>
+
+            <p className="mt-4 text-sm font-black text-sky-400">
+              Open Discover →
+            </p>
+          </FcPanel>
+        </Link>
+      </section>
+
       <section className="grid gap-4 lg:grid-cols-2">
         <FcPanel className="p-5">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">

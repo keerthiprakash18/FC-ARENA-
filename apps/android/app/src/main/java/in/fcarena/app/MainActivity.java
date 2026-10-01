@@ -2,6 +2,7 @@ package in.fcarena.app;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,12 +28,24 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+
 public final class MainActivity extends Activity {
     private static final String START_URL = "https://fcarena.in/dashboard";
     private static final String ALLOWED_HOST = "fcarena.in";
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final String PREFS_NAME = "fc_arena_android";
     private static final String STARTUP_GUARD_KEY = "startup_guard";
+    private static final String VERSION_CHECK_AT_KEY = "version_check_at";
+    private static final String VERSION_CHECK_URL =
+            "https://api.fcarena.in/api/mobile/android/version?versionCode=";
+    private static final long VERSION_CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
 
     private FrameLayout root;
     private WebView webView;
@@ -72,6 +85,7 @@ public final class MainActivity extends Activity {
         root.requestApplyInsets();
 
         preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        scheduleVersionCheck();
 
         // If the previous process died during WebView startup, do not enter
         // the same crash loop again. Show a native safe screen instead.
@@ -108,6 +122,148 @@ public final class MainActivity extends Activity {
                     + "You can still use the secure FC Arena website."
             );
         }
+    }
+
+    private void scheduleVersionCheck() {
+        if (preferences == null) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        long lastCheckedAt = preferences.getLong(VERSION_CHECK_AT_KEY, 0L);
+
+        if (now - lastCheckedAt < VERSION_CHECK_INTERVAL_MS) {
+            return;
+        }
+
+        Thread worker = new Thread(() -> {
+            HttpURLConnection connection = null;
+
+            try {
+                URL url = new URL(VERSION_CHECK_URL + BuildConfig.VERSION_CODE);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setUseCaches(false);
+                connection.setRequestProperty("Accept", "application/json");
+
+                int statusCode = connection.getResponseCode();
+
+                if (statusCode < 200 || statusCode >= 300) {
+                    return;
+                }
+
+                StringBuilder body = new StringBuilder();
+
+                try (
+                        BufferedReader reader = new BufferedReader(
+                                new InputStreamReader(
+                                        connection.getInputStream(),
+                                        StandardCharsets.UTF_8
+                                )
+                        )
+                ) {
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        body.append(line);
+                    }
+                }
+
+                JSONObject payload = new JSONObject(body.toString());
+                JSONObject data = payload.optJSONObject("data");
+
+                if (data == null) {
+                    return;
+                }
+
+                preferences.edit()
+                        .putLong(VERSION_CHECK_AT_KEY, System.currentTimeMillis())
+                        .apply();
+
+                if (!data.optBoolean("updateAvailable", false)) {
+                    return;
+                }
+
+                JSONObject latest = data.optJSONObject("latest");
+
+                if (latest == null) {
+                    return;
+                }
+
+                final boolean forceUpdate = data.optBoolean("forceUpdate", false);
+                final String versionName =
+                        latest.optString("versionName", "new version");
+                final String releaseNotes =
+                        latest.isNull("releaseNotes")
+                                ? ""
+                                : latest.optString("releaseNotes", "").trim();
+                final String playStoreUrl =
+                        latest.isNull("playStoreUrl")
+                                ? "https://play.google.com/store/apps/details?id=in.fcarena.app"
+                                : latest.optString(
+                                        "playStoreUrl",
+                                        "https://play.google.com/store/apps/details?id=in.fcarena.app"
+                                );
+
+                runOnUiThread(() ->
+                        showVersionUpdateDialog(
+                                versionName,
+                                releaseNotes,
+                                playStoreUrl,
+                                forceUpdate
+                        )
+                );
+            } catch (Throwable ignored) {
+                // Version checks must never block app startup.
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        }, "fc-arena-version-check");
+
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private void showVersionUpdateDialog(
+            String latestVersionName,
+            String releaseNotes,
+            String playStoreUrl,
+            boolean forceUpdate
+    ) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append("FC Arena ")
+                .append(latestVersionName)
+                .append(" is available.");
+
+        if (!releaseNotes.isEmpty()) {
+            message.append("\n\n").append(releaseNotes);
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(forceUpdate ? "FC ARENA Update Required" : "FC ARENA Update Available")
+                .setMessage(message.toString())
+                .setPositiveButton(
+                        "Update",
+                        (dialog, which) -> openExternal(Uri.parse(playStoreUrl))
+                );
+
+        if (forceUpdate) {
+            builder.setCancelable(false);
+        } else {
+            builder.setNegativeButton("Later", null);
+        }
+
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(!forceUpdate);
+        dialog.show();
     }
 
     private void addProgressBar() {

@@ -7,6 +7,10 @@ import {
 } from '../auth/auth.module.js';
 
 import {
+  MatchesModule,
+} from '../matches/matches.module.js';
+
+import {
   DisputesController,
 } from './disputes.controller.js';
 
@@ -17,6 +21,7 @@ import {
 @Module({
   imports: [
     AuthModule,
+    MatchesModule,
   ],
 
   controllers: [

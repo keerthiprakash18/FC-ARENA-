@@ -324,6 +324,180 @@ export class FairPlayService {
     };
   }
 
+  async getLeagueMembersForAdmin(
+    adminUserId: string,
+    leagueId: string,
+    rawSearch?: string,
+  ) {
+    await this.authorization.assertLeagueAdmin(
+      adminUserId,
+      leagueId,
+    );
+
+    const search =
+      rawSearch
+        ?.trim()
+        .slice(
+          0,
+          80,
+        );
+
+    const members =
+      await this.prisma.leagueMember.findMany({
+        where: {
+          leagueId,
+
+          ...(search
+            ? {
+                user: {
+                  OR: [
+                    {
+                      fullName: {
+                        contains:
+                          search,
+                        mode:
+                          'insensitive',
+                      },
+                    },
+                    {
+                      player: {
+                        is: {
+                          playerCode: {
+                            contains:
+                              search,
+                            mode:
+                              'insensitive',
+                          },
+                        },
+                      },
+                    },
+                    {
+                      player: {
+                        is: {
+                          identity: {
+                            is: {
+                              inGameName: {
+                                contains:
+                                  search,
+                                mode:
+                                  'insensitive',
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              }
+            : {}),
+        },
+
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+
+              player: {
+                select: {
+                  playerCode:
+                    true,
+                  profileImageUrl:
+                    true,
+
+                  identity: {
+                    select: {
+                      inGameName:
+                        true,
+                      isVerified:
+                        true,
+                    },
+                  },
+                },
+              },
+
+              leagueAdminRoles: {
+                where: {
+                  leagueId,
+                },
+
+                select: {
+                  role: true,
+                },
+
+                take: 1,
+              },
+            },
+          },
+        },
+
+        orderBy: {
+          joinedAt:
+            'asc',
+        },
+
+        take: 100,
+      });
+
+    return {
+      success: true,
+
+      data: {
+        members:
+          members.map(
+            (
+              membership,
+            ) => ({
+              membershipId:
+                membership.id,
+              membershipType:
+                membership.type,
+              joinedAt:
+                membership.joinedAt,
+
+              user: {
+                id:
+                  membership.user.id,
+                fullName:
+                  membership.user
+                    .fullName,
+                playerCode:
+                  membership.user
+                    .player
+                    ?.playerCode ??
+                  null,
+                profileImageUrl:
+                  membership.user
+                    .player
+                    ?.profileImageUrl ??
+                  null,
+                inGameName:
+                  membership.user
+                    .player
+                    ?.identity
+                    ?.inGameName ??
+                  null,
+                identityVerified:
+                  membership.user
+                    .player
+                    ?.identity
+                    ?.isVerified ??
+                  false,
+                adminRole:
+                  membership.user
+                    .leagueAdminRoles[0]
+                    ?.role ??
+                  null,
+              },
+            }),
+          ),
+      },
+
+      error: null,
+    };
+  }
+
   async issueEvent(
     adminUserId: string,
     dto:

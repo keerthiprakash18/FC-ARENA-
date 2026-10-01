@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 $ExpectedVersionCode = "10"
 $ExpectedVersionName = "1.0.8"
-$ExpectedUploadFingerprint = "23:96:BA:D7:80:3E:DB:34:D8:31:EA:CB:4B:02:00:47:37:C7:AD:E8:A4:E6:8A:F8:CC:36:2D:AE:32:5B:B9:E2"
+$ExpectedUploadFingerprint = "8E:D9:C7:3B:EF:2F:66:21:5F:7F:8C:91:7B:A8:32:B2:02:CC:4F:C4:34:6C:A9:87:40:63:0B:87:1A:DE:60:6D"
 $FinalName = "FC_ARENA_v1.0.8_build10_signed.aab"
 $GradleVersion = "8.13"
 

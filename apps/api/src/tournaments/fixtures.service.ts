@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
@@ -27,8 +28,12 @@ import {
 export class FixturesService {
   constructor(
     private readonly prisma: PrismaService,
+
     private readonly authorization:
       AuthorizationService,
+
+    private readonly realtime:
+      MatchRealtimeService,
   ) {}
 
   async generateFixtures(
@@ -824,10 +829,45 @@ export class FixturesService {
           data: {
             status:
               'SCHEDULED',
+
+            homeReadyAt:
+              null,
+
+            awayReadyAt:
+              null,
           },
         });
       },
     );
+
+    const scheduledMatch =
+      await this.prisma.match.findUnique({
+        where: {
+          fixtureId:
+            fixture.id,
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (
+      scheduledMatch
+    ) {
+      this.realtime.publish(
+        scheduledMatch.id,
+        'fixture_scheduled',
+        {
+          scheduledAt:
+            scheduledAt.toISOString(),
+
+          venue:
+            dto.venue?.trim() ||
+            null,
+        },
+      );
+    }
 
     return {
       success: true,
@@ -890,10 +930,38 @@ export class FixturesService {
             fixture.id,
         },
         data: {
-          status: 'POSTPONED',
+          status:
+            'POSTPONED',
+
+          homeReadyAt:
+            null,
+
+          awayReadyAt:
+            null,
         },
       }),
     ]);
+
+    const postponedMatch =
+      await this.prisma.match.findUnique({
+        where: {
+          fixtureId:
+            fixture.id,
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (
+      postponedMatch
+    ) {
+      this.realtime.publish(
+        postponedMatch.id,
+        'fixture_postponed',
+      );
+    }
 
     return {
       success: true,
@@ -953,10 +1021,38 @@ export class FixturesService {
             fixture.id,
         },
         data: {
-          status: 'CANCELLED',
+          status:
+            'CANCELLED',
+
+          homeReadyAt:
+            null,
+
+          awayReadyAt:
+            null,
         },
       }),
     ]);
+
+    const cancelledMatch =
+      await this.prisma.match.findUnique({
+        where: {
+          fixtureId:
+            fixture.id,
+        },
+
+        select: {
+          id: true,
+        },
+      });
+
+    if (
+      cancelledMatch
+    ) {
+      this.realtime.publish(
+        cancelledMatch.id,
+        'fixture_cancelled',
+      );
+    }
 
     return {
       success: true,

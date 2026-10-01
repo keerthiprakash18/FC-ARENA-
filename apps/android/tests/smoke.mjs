@@ -54,6 +54,7 @@ async function prepare(page) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
         case '/api/players/me/career': data = career; break;
+        case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
         default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();

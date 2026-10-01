@@ -242,8 +242,12 @@ enum NotificationType {
   FIXTURE_CREATED
   FIXTURE_CHANGED
   MATCH_REMINDER
+  MATCH_READY
   RESULT_SUBMITTED
+  RESULT_REJECTED
   RESULT_CONFIRMED
+  DISPUTE_OPENED
+  DISPUTE_RESOLVED
   STATISTICS_UPDATED
   TOURNAMENT_COMPLETED
   ACHIEVEMENT_RECEIVED
@@ -630,6 +634,8 @@ model Match {
   fixtureId                   String      @unique @db.Uuid
   status                      MatchStatus @default(UNSCHEDULED)
   confirmedResultSubmissionId String?     @unique @db.Uuid
+  homeReadyAt                 DateTime?
+  awayReadyAt                 DateTime?
   createdAt                   DateTime    @default(now())
   updatedAt                   DateTime    @updatedAt
 

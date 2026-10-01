@@ -399,7 +399,7 @@ export function FixtureCard({
           href={`/matches/${fixture.match.id}`}
           className="theme-secondary-button mt-4 flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold"
         >
-          Open Match Center
+          Open Match Room
         </Link>
       ) : null}
 

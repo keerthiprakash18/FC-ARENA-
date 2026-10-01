@@ -5,9 +5,11 @@ import { AdminOpsModule } from './admin-ops/admin-ops.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BallonModule } from './ballon/ballon.module.js';
+import { CommercialModule } from './commercial/commercial.module.js';
 import { PrismaModule } from './database/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { DisputesModule } from './disputes/disputes.module.js';
+import { FairPlayModule } from './fair-play/fair-play.module.js';
 import { DiscoverModule } from './discover/discover.module.js';
 import { LeaguesModule } from './leagues/leagues.module.js';
 import { LeagueWarsModule } from './league-wars/league-wars.module.js';
@@ -41,6 +43,8 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
     NotificationsModule,
     PlayerCareerModule,
     DisputesModule,
+    FairPlayModule,
+    CommercialModule,
     DiscoverModule,
     PublicModule,
   ],

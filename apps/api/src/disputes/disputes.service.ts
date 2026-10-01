@@ -13,6 +13,10 @@ import {
   PrismaService,
 } from '../database/prisma.service.js';
 
+import {
+  MatchRealtimeService,
+} from '../matches/match-realtime.service.js';
+
 import type {
   CreateDisputeDto,
 } from './dto/create-dispute.dto.js';
@@ -50,6 +54,9 @@ export class DisputesService {
   constructor(
     private readonly prisma:
       PrismaService,
+
+    private readonly realtime:
+      MatchRealtimeService,
   ) {}
 
   async getMatchDisputes(
@@ -214,6 +221,15 @@ export class DisputesService {
         },
       },
     });
+
+    this.realtime.publish(
+      matchId,
+      'dispute_opened',
+      {
+        disputeId:
+          id,
+      },
+    );
 
     return {
       success: true,
@@ -405,6 +421,16 @@ export class DisputesService {
         },
       },
     });
+
+    this.realtime.publish(
+      dispute.matchId,
+      'dispute_resolved',
+      {
+        disputeId,
+        status:
+          dto.status,
+      },
+    );
 
     return {
       success: true,

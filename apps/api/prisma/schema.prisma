@@ -196,6 +196,24 @@ enum SeasonalAwardType {
   RISING_STAR
 }
 
+enum LeagueWarStatus {
+  INVITED
+  ACCEPTED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum LeagueWarLegType {
+  SINGLE_LEG
+  HOME_AWAY
+}
+
+enum LeagueWarMatchStatus {
+  SCHEDULED
+  COMPLETED
+}
+
 enum NotificationType {
   LEAGUE_JOIN_REQUESTED
   LEAGUE_REQUEST_APPROVED
@@ -275,6 +293,11 @@ model User {
   wonRisingStarSeasons BallonSeason[] @relation("BallonSeasonRisingStar")
   ballonFinalRankings BallonFinalRanking[]
   seasonalAwards SeasonalAward[]
+  createdLeagueWars LeagueWar[] @relation("LeagueWarCreator")
+  leagueWarParticipants LeagueWarParticipant[]
+  leagueWarHomeMatches LeagueWarMatch[] @relation("LeagueWarMatchHomePlayer")
+  leagueWarAwayMatches LeagueWarMatch[] @relation("LeagueWarMatchAwayPlayer")
+  leagueWarResultUpdates LeagueWarMatch[] @relation("LeagueWarMatchResultUpdater")
 
   @@index([status])
   @@map("users")
@@ -363,6 +386,10 @@ model League {
   applications LeagueApplication[]
   admins       LeagueAdmin[]
   tournaments  Tournament[]
+  homeLeagueWars LeagueWar[] @relation("LeagueWarHomeLeague")
+  awayLeagueWars LeagueWar[] @relation("LeagueWarAwayLeague")
+  wonLeagueWars LeagueWar[] @relation("LeagueWarWinnerLeague")
+  leagueWarParticipants LeagueWarParticipant[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -892,6 +919,84 @@ model PushDelivery {
   @@map("push_deliveries")
 }
 
+
+model LeagueWar {
+  id              String            @id @default(uuid()) @db.Uuid
+  name            String            @db.VarChar(140)
+  homeLeagueId    String            @db.Uuid
+  awayLeagueId    String            @db.Uuid
+  createdByUserId String            @db.Uuid
+  winnerLeagueId  String?           @db.Uuid
+  status          LeagueWarStatus   @default(INVITED)
+  playerCount     Int
+  legType         LeagueWarLegType  @default(SINGLE_LEG)
+  winPoints       Int               @default(3)
+  drawPoints      Int               @default(1)
+  lossPoints      Int               @default(0)
+  acceptedAt      DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  homeLeague   League  @relation("LeagueWarHomeLeague", fields: [homeLeagueId], references: [id], onDelete: Cascade)
+  awayLeague   League  @relation("LeagueWarAwayLeague", fields: [awayLeagueId], references: [id], onDelete: Cascade)
+  winnerLeague League? @relation("LeagueWarWinnerLeague", fields: [winnerLeagueId], references: [id], onDelete: SetNull)
+  createdBy    User    @relation("LeagueWarCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  participants LeagueWarParticipant[]
+  matches      LeagueWarMatch[]
+
+  @@index([homeLeagueId, status])
+  @@index([awayLeagueId, status])
+  @@index([createdByUserId])
+  @@map("league_wars")
+}
+
+model LeagueWarParticipant {
+  id        String   @id @default(uuid()) @db.Uuid
+  warId     String   @db.Uuid
+  leagueId  String   @db.Uuid
+  userId    String   @db.Uuid
+  slot      Int
+  createdAt DateTime @default(now())
+
+  war    LeagueWar @relation(fields: [warId], references: [id], onDelete: Cascade)
+  league League    @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([warId, userId])
+  @@unique([warId, leagueId, slot])
+  @@index([leagueId])
+  @@index([userId])
+  @@map("league_war_participants")
+}
+
+model LeagueWarMatch {
+  id                    String               @id @default(uuid()) @db.Uuid
+  warId                 String               @db.Uuid
+  sequence              Int
+  leg                   Int                  @default(1)
+  homePlayerUserId      String               @db.Uuid
+  awayPlayerUserId      String               @db.Uuid
+  homeScore             Int?
+  awayScore             Int?
+  status                LeagueWarMatchStatus @default(SCHEDULED)
+  resultUpdatedByUserId String?              @db.Uuid
+  completedAt           DateTime?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  war             LeagueWar @relation(fields: [warId], references: [id], onDelete: Cascade)
+  homePlayer      User      @relation("LeagueWarMatchHomePlayer", fields: [homePlayerUserId], references: [id], onDelete: Restrict)
+  awayPlayer      User      @relation("LeagueWarMatchAwayPlayer", fields: [awayPlayerUserId], references: [id], onDelete: Restrict)
+  resultUpdatedBy User?     @relation("LeagueWarMatchResultUpdater", fields: [resultUpdatedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([warId, sequence])
+  @@index([warId, status])
+  @@index([homePlayerUserId])
+  @@index([awayPlayerUserId])
+  @@map("league_war_matches")
+}
 
 model BallonSeason {
   id                    String             @id @default(uuid()) @db.Uuid

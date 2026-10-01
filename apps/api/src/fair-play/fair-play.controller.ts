@@ -125,6 +125,25 @@ export class FairPlayAdminController {
     );
   }
 
+  @Get('members')
+  members(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Query('leagueId')
+    leagueId: string,
+
+    @Query('search')
+    search?: string,
+  ) {
+    return this.fairPlay.getLeagueMembersForAdmin(
+      request.user.sub,
+      leagueId,
+      search,
+    );
+  }
+
   @Post('events')
   issue(
     @Req()

@@ -196,6 +196,24 @@ enum SeasonalAwardType {
   RISING_STAR
 }
 
+enum MobileReleaseChannel {
+  INTERNAL
+  CLOSED
+  PRODUCTION
+}
+
+enum MobileReleaseStatus {
+  DRAFT
+  READY
+  PUBLISHED
+  SUPERSEDED
+}
+
+enum BackupRunStatus {
+  SUCCESS
+  FAILED
+}
+
 enum LeagueWarStatus {
   INVITED
   ACCEPTED
@@ -315,6 +333,7 @@ model User {
   ballonFinalRankings BallonFinalRanking[]
   seasonalAwards SeasonalAward[]
   createdLeagueWars LeagueWar[] @relation("LeagueWarCreator")
+  androidReleases AndroidRelease[] @relation("AndroidReleaseCreator")
   leagueWarParticipants LeagueWarParticipant[]
   leagueWarHomeMatches LeagueWarMatch[] @relation("LeagueWarMatchHomePlayer")
   leagueWarAwayMatches LeagueWarMatch[] @relation("LeagueWarMatchAwayPlayer")
@@ -942,6 +961,48 @@ model PushDelivery {
   @@map("push_deliveries")
 }
 
+
+model AndroidRelease {
+  id                          String              @id @default(uuid()) @db.Uuid
+  versionCode                 Int                 @unique
+  versionName                 String              @db.VarChar(40)
+  channel                     MobileReleaseChannel @default(INTERNAL)
+  status                      MobileReleaseStatus @default(DRAFT)
+  minimumSupportedVersionCode Int?
+  forceUpdateBelowVersionCode Int?
+  releaseNotes                String?             @db.Text
+  playStoreUrl                String?             @db.Text
+  sourceCommit                String?             @db.VarChar(40)
+  artifactSha256              String?             @db.VarChar(64)
+  createdByUserId             String              @db.Uuid
+  publishedAt                 DateTime?
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+
+  createdBy User @relation("AndroidReleaseCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([channel, status, versionCode])
+  @@index([createdAt])
+  @@map("android_releases")
+}
+
+model SystemBackupRun {
+  id             String          @id @default(uuid()) @db.Uuid
+  status         BackupRunStatus
+  startedAt      DateTime
+  completedAt    DateTime
+  sizeBytes      String?         @db.VarChar(32)
+  checksumSha256 String?         @db.VarChar(64)
+  storageKind    String          @default("LOCAL") @db.VarChar(40)
+  retentionDays  Int             @default(14)
+  sourceHost     String?         @db.VarChar(120)
+  errorMessage   String?         @db.Text
+  createdAt      DateTime        @default(now())
+
+  @@index([status, completedAt])
+  @@index([completedAt])
+  @@map("system_backup_runs")
+}
 
 model LeagueWar {
   id                   String               @id @default(uuid()) @db.Uuid

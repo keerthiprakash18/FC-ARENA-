@@ -460,7 +460,7 @@ export function InlineResultPanel({
               }
               className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-3.5 text-xs font-semibold text-[#F8FAFC] transition hover:border-[#38BDF8]/35"
             >
-              Match Center / Correction
+              Match Room / Correction
             </Link>
           </div>
         </div>
@@ -483,7 +483,7 @@ export function InlineResultPanel({
               }
               className="text-xs font-semibold text-[#38BDF8]"
             >
-              OCR / Match Center
+              OCR / Match Room
             </Link>
           </div>
 
@@ -499,7 +499,7 @@ export function InlineResultPanel({
               </span>
               . This is the same match for both players, so a duplicate result cannot be submitted.
               {isLeagueAdmin
-                ? ' Open Match Center to verify or reject it.'
+                ? ' Open Match Room to verify or reject it.'
                 : ' Waiting for admin verification.'}
             </div>
           ) : null}
@@ -630,7 +630,7 @@ export function InlineResultPanel({
       !confirmedResult &&
       !error ? (
         <p className="mt-3 text-xs text-[#A7B0BE]">
-          This match is marked completed. Open Match Center if the confirmed score is not visible here yet.
+          This match is marked completed. Open Match Room if the confirmed score is not visible here yet.
         </p>
       ) : null}
     </div>

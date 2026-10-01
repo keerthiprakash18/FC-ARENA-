@@ -36,7 +36,8 @@ export type FcIconName =
   | 'shield'
   | 'team'
   | 'tournament'
-  | 'trophy';
+  | 'trophy'
+  | 'war';
 
 const legacyMap:
   Record<string, FcIconName> = {
@@ -90,6 +91,7 @@ const legacyMap:
     'team': 'team',
     'tournament': 'tournament',
     'trophy': 'trophy',
+    'war': 'war',
   };
 
 export function iconNameFromLegacy(
@@ -179,6 +181,21 @@ export function FcIcon({
           <path d="M16 6h3.5v1.2c0 2.4-1.5 4.2-4.2 4.8" />
           <path d="M12 14v4" />
           <path d="M8.5 21h7" />
+        </>
+      );
+      break;
+
+    case 'war':
+      content = (
+        <>
+          <path d="m5 4 6.4 6.4" />
+          <path d="m19 4-6.4 6.4" />
+          <path d="M8.5 7.5 4 12l2 2 4.5-4.5" />
+          <path d="M15.5 7.5 20 12l-2 2-4.5-4.5" />
+          <path d="m9.5 14.5-5 5" />
+          <path d="m14.5 14.5 5 5" />
+          <path d="m3.8 18.8 1.4 1.4" />
+          <path d="m18.8 20.2 1.4-1.4" />
         </>
       );
       break;

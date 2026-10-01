@@ -214,6 +214,22 @@ export default function MorePage() {
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <FcMenuRow
+              href="/discover"
+              icon="search"
+              title="Discover"
+              description="Search players, Leagues, Tournaments and Ballon seasons"
+              tone="cyan"
+            />
+
+            <FcMenuRow
+              href="/awards/hall-of-fame"
+              icon="🏆"
+              title="Hall of Fame"
+              description="Ballon champions, podiums and historic FC Arena honours"
+              tone="amber"
+            />
+
+            <FcMenuRow
               href="/community/teams"
               icon="◈"
               title="Teams"

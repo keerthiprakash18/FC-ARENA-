@@ -6,10 +6,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$ExpectedVersionCode = "10"
-$ExpectedVersionName = "1.0.8"
 $ExpectedUploadFingerprint = "8E:D9:C7:3B:EF:2F:66:21:5F:7F:8C:91:7B:A8:32:B2:02:CC:4F:C4:34:6C:A9:87:40:63:0B:87:1A:DE:60:6D"
-$FinalName = "FC_ARENA_v1.0.8_build10_signed.aab"
 $GradleVersion = "8.13"
 
 function Normalize-Fingerprint {
@@ -110,9 +107,44 @@ $RepoRoot = (Resolve-Path (Join-Path $AndroidDir "..\..")).Path
 $BuildGradle = Join-Path $AndroidDir "app\build.gradle"
 $ReleaseDir = Join-Path $AndroidDir "release"
 $RawAab = Join-Path $AndroidDir "app\build\outputs\bundle\release\app-release.aab"
+$VersionFile = Join-Path $AndroidDir "version.properties"
+$LocalProperties = Join-Path $AndroidDir "local.properties"
+
+if (-not (Test-Path $VersionFile -PathType Leaf)) {
+    throw "Android version file not found: $VersionFile"
+}
+
+$versionValues = @{}
+Get-Content $VersionFile | ForEach-Object {
+    $line = $_.Trim()
+    if (-not $line -or $line.StartsWith("#")) {
+        return
+    }
+
+    $separator = $line.IndexOf("=")
+    if ($separator -lt 1) {
+        throw "Invalid version.properties line: $line"
+    }
+
+    $key = $line.Substring(0, $separator).Trim()
+    $value = $line.Substring($separator + 1).Trim()
+    $versionValues[$key] = $value
+}
+
+$ExpectedVersionCode = [string]$versionValues["VERSION_CODE"]
+$ExpectedVersionName = [string]$versionValues["VERSION_NAME"]
+
+if ($ExpectedVersionCode -notmatch "^[1-9][0-9]*$") {
+    throw "VERSION_CODE must be a positive integer in version.properties."
+}
+
+if ($ExpectedVersionName -notmatch "^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$") {
+    throw "VERSION_NAME must use semantic version format in version.properties."
+}
+
+$FinalName = "FC_ARENA_v${ExpectedVersionName}_build${ExpectedVersionCode}_signed.aab"
 $FinalAab = Join-Path $ReleaseDir $FinalName
 $MetadataFile = "$FinalAab.sha256.txt"
-$LocalProperties = Join-Path $AndroidDir "local.properties"
 
 # Gradle's Android plugin needs an SDK path. Java .properties treats backslashes
 # as escape characters, so always persist the Windows SDK path with forward slashes.
@@ -131,7 +163,7 @@ Set-Content -Path $LocalProperties -Value "sdk.dir=$sdkPath" -Encoding ASCII
 Write-Host "Android SDK local.properties configured: $sdkPath"
 
 Write-Host ""
-Write-Host "FC ARENA Build 10 signed release"
+Write-Host "FC ARENA Build $ExpectedVersionCode signed release"
 Write-Host "Repository: $RepoRoot"
 Write-Host ""
 
@@ -321,7 +353,7 @@ try {
     Set-Content -Path $MetadataFile -Value $metadata -Encoding UTF8
 
     Write-Host ""
-    Write-Host "SUCCESS - signed Build 10 is ready."
+    Write-Host "SUCCESS - signed Build $ExpectedVersionCode is ready."
     Write-Host "AAB: $FinalAab"
     Write-Host "Metadata: $MetadataFile"
     Write-Host "File SHA-256: $fileHash"

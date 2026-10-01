@@ -531,6 +531,8 @@ export default function LeagueWarPage() {
           }
         />
 
+        <SponsoredPlacement placementKey="LEAGUE_WAR" />
+
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
             {

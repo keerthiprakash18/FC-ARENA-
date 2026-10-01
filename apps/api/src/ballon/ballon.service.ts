@@ -752,6 +752,7 @@ export class BallonService {
           status: {
             in: [
               'LIVE',
+              'FINALIZING',
               'LOCKED',
               'ARCHIVED',
             ],
@@ -1250,6 +1251,25 @@ export class BallonService {
           },
 
           take: 100,
+        }),
+
+        this.prisma.tournamentRegistrationMember.findMany({
+          where: {
+            userId: {
+              in:
+                userIds,
+            },
+          },
+
+          select: {
+            userId: true,
+            createdAt: true,
+          },
+
+          orderBy: {
+            createdAt:
+              'asc',
+          },
         }),
 
         this.prisma.seasonalAward.findMany({
@@ -2294,6 +2314,7 @@ export class BallonService {
 
     const [
       placements,
+      registrations,
       previousBallonAwards,
     ] =
       await Promise.all([
@@ -2378,6 +2399,59 @@ export class BallonService {
         aggregate.bigMatchPoints +=
           1;
       }
+    }
+
+    const earliestRegistration =
+      new Map<
+        string,
+        Date
+      >();
+
+    for (
+      const registration
+      of registrations
+    ) {
+      if (
+        !earliestRegistration.has(
+          registration.userId,
+        )
+      ) {
+        earliestRegistration.set(
+          registration.userId,
+          registration.createdAt,
+        );
+      }
+    }
+
+    for (
+      const aggregate
+      of aggregates.values()
+    ) {
+      const registeredAt =
+        earliestRegistration.get(
+          aggregate.userId,
+        );
+
+      const matchAt =
+        aggregate.firstCompetitiveAt
+          ? new Date(
+              aggregate.firstCompetitiveAt,
+            )
+          : null;
+
+      const first =
+        registeredAt &&
+        matchAt
+          ? registeredAt <
+            matchAt
+            ? registeredAt
+            : matchAt
+          : registeredAt ??
+            matchAt;
+
+      aggregate.firstCompetitiveAt =
+        first?.toISOString() ??
+        null;
     }
 
     const weights =
@@ -2813,6 +2887,23 @@ export class BallonService {
       return live;
     }
 
+    const finalizing =
+      await this.prisma.ballonSeason.findFirst({
+        where: {
+          status:
+            'FINALIZING',
+        },
+
+        orderBy: {
+          endAt:
+            'desc',
+        },
+      });
+
+    if (finalizing) {
+      return finalizing;
+    }
+
     return this.prisma.ballonSeason.findFirst({
       where: {
         status: {
@@ -2888,6 +2979,7 @@ export class BallonService {
     if (
       [
         'LIVE',
+        'FINALIZING',
         'LOCKED',
         'ARCHIVED',
       ].includes(

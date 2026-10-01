@@ -270,6 +270,11 @@ model User {
   auditLogs       AuditLog[]       @relation("AuditActor")
   raisedDisputes  MatchDispute[]    @relation("DisputeRaiser")
   resolvedDisputes MatchDispute[]   @relation("DisputeResolver")
+  createdBallonSeasons BallonSeason[] @relation("BallonSeasonCreator")
+  wonBallonSeasons BallonSeason[] @relation("BallonSeasonWinner")
+  wonRisingStarSeasons BallonSeason[] @relation("BallonSeasonRisingStar")
+  ballonFinalRankings BallonFinalRanking[]
+  seasonalAwards SeasonalAward[]
 
   @@index([status])
   @@map("users")
@@ -908,6 +913,13 @@ model BallonSeason {
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
 
+  createdBy        User                    @relation("BallonSeasonCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  finalWinner      User?                   @relation("BallonSeasonWinner", fields: [finalWinnerUserId], references: [id], onDelete: SetNull)
+  risingStar       User?                   @relation("BallonSeasonRisingStar", fields: [risingStarUserId], references: [id], onDelete: SetNull)
+  rankingSnapshots BallonRankingSnapshot[]
+  finalRankings    BallonFinalRanking[]
+  seasonalAwards   SeasonalAward[]
+
   @@index([status, startAt, endAt])
   @@index([createdByUserId])
   @@map("ballon_seasons")
@@ -919,6 +931,8 @@ model BallonRankingSnapshot {
   day        DateTime @db.Date
   rows       Json
   capturedAt DateTime @default(now())
+
+  season BallonSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@unique([seasonId, day])
   @@index([seasonId, capturedAt])
@@ -934,6 +948,9 @@ model BallonFinalRanking {
   breakdown  Json
   statistics Json
   createdAt  DateTime @default(now())
+
+  season BallonSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([seasonId, userId])
   @@unique([seasonId, rank])
@@ -951,6 +968,9 @@ model SeasonalAward {
   metadata    Json?
   awardedAt   DateTime          @default(now())
   createdAt   DateTime          @default(now())
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season BallonSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, seasonId, type])
   @@index([userId, awardedAt])

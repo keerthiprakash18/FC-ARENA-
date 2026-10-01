@@ -23,6 +23,7 @@ import {
 } from '@/components/fc/fc-ui';
 import {
   authenticatedRequest,
+  authenticatedUpload,
   getCurrentUser,
   type CurrentUser,
 } from '@/lib/auth-client';
@@ -324,6 +325,17 @@ export default function LeagueWarDetailPage() {
       Record<
         string,
         string
+      >
+    >({});
+
+  const [
+    uploadProgress,
+    setUploadProgress,
+  ] =
+    useState<
+      Record<
+        string,
+        number
       >
     >({});
 
@@ -764,6 +776,127 @@ export default function LeagueWarDetailPage() {
           }),
       },
     );
+  }
+
+  async function uploadProof(
+    match:
+      WarMatch,
+    file:
+      File,
+  ) {
+    if (!war) {
+      return;
+    }
+
+    if (
+      ![
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+      ].includes(
+        file.type,
+      )
+    ) {
+      setError(
+        'Proof must be PNG, JPG, JPEG or WEBP.',
+      );
+      return;
+    }
+
+    if (
+      file.size >
+      8 * 1024 * 1024
+    ) {
+      setError(
+        'Proof screenshot must be 8 MB or smaller.',
+      );
+      return;
+    }
+
+    setBusy(
+      `proof-${match.id}`,
+    );
+    setError(
+      '',
+    );
+    setUploadProgress(
+      (
+        current,
+      ) => ({
+        ...current,
+        [match.id]:
+          0,
+      }),
+    );
+
+    try {
+      const body =
+        new FormData();
+
+      body.append(
+        'screenshot',
+        file,
+      );
+
+      const response =
+        await authenticatedUpload<{
+          success: true;
+          data: {
+            proofUrl: string;
+          };
+          error: null;
+        }>(
+          `/league-wars/${war.id}/matches/${match.id}/proof`,
+          body,
+          (
+            progress,
+          ) =>
+            setUploadProgress(
+              (
+                current,
+              ) => ({
+                ...current,
+                [match.id]:
+                  progress,
+              }),
+            ),
+        );
+
+      setProofs(
+        (
+          current,
+        ) => ({
+          ...current,
+          [match.id]:
+            response.data
+              .proofUrl,
+        }),
+      );
+
+      setUploadProgress(
+        (
+          current,
+        ) => ({
+          ...current,
+          [match.id]:
+            100,
+        }),
+      );
+
+      await load();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to upload match proof.',
+      );
+    } finally {
+      setBusy(
+        '',
+      );
+    }
   }
 
   async function submitResult(
@@ -1987,6 +2120,52 @@ export default function LeagueWarDetailPage() {
 
                       {editable ? (
                         <div className="mt-4 space-y-3">
+                          <label className="block cursor-pointer rounded-xl border border-dashed border-cyan-400/25 bg-cyan-400/[0.04] p-3 text-center transition hover:border-cyan-400/40">
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                              className="hidden"
+                              disabled={
+                                Boolean(
+                                  busy,
+                                )
+                              }
+                              onChange={(
+                                event,
+                              ) => {
+                                const file =
+                                  event
+                                    .target
+                                    .files?.[0];
+
+                                event.target.value =
+                                  '';
+
+                                if (
+                                  file
+                                ) {
+                                  void uploadProof(
+                                    match,
+                                    file,
+                                  );
+                                }
+                              }}
+                            />
+
+                            <span className="text-xs font-black text-cyan-300">
+                              {busy ===
+                              `proof-${match.id}`
+                                ? `Uploading proof... ${uploadProgress[match.id] ?? 0}%`
+                                : proofs[match.id]
+                                  ? '✓ Screenshot uploaded · Change proof'
+                                  : '📷 Upload Match Screenshot'}
+                            </span>
+
+                            <span className="mt-1 block text-[9px] text-slate-600">
+                              PNG · JPG · WEBP · max 8 MB
+                            </span>
+                          </label>
+
                           <input
                             value={
                               proofs[
@@ -2009,7 +2188,7 @@ export default function LeagueWarDetailPage() {
                                 }),
                               )
                             }
-                            placeholder="Screenshot / proof URL (optional)"
+                            placeholder="Or paste proof URL"
                             className="min-h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-xs outline-none focus:border-rose-400/40"
                           />
 

@@ -1,11 +1,14 @@
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsInt,
+  IsISO8601,
   IsOptional,
   IsString,
   IsUUID,
+  IsUrl,
   Max,
   MaxLength,
   Min,
@@ -41,6 +44,17 @@ export class CreateLeagueWarDto {
     | 'HOME_AWAY';
 
   @IsOptional()
+  @IsIn([
+    'SLOT',
+    'MANUAL',
+    'RANDOM',
+  ])
+  pairingMode?:
+    | 'SLOT'
+    | 'MANUAL'
+    | 'RANDOM';
+
+  @IsOptional()
   @IsInt()
   @Min(-10)
   @Max(20)
@@ -57,6 +71,20 @@ export class CreateLeagueWarDto {
   @Min(-10)
   @Max(20)
   lossPoints?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(168)
+  challengeExpiryHours?: number;
+
+  @IsOptional()
+  @IsISO8601()
+  scheduledStartAt?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  deadlineAt?: string;
 }
 
 export class SetLeagueWarRosterDto {
@@ -71,6 +99,14 @@ export class SetLeagueWarRosterDto {
   userIds!: string[];
 }
 
+export class SetLeagueWarReadyDto {
+  @IsUUID('4')
+  leagueId!: string;
+
+  @IsBoolean()
+  ready!: boolean;
+}
+
 export class UpdateLeagueWarResultDto {
   @IsInt()
   @Min(0)
@@ -81,4 +117,35 @@ export class UpdateLeagueWarResultDto {
   @Min(0)
   @Max(99)
   awayScore!: number;
+
+  @IsOptional()
+  @IsUrl({
+    require_protocol: true,
+  })
+  proofUrl?: string;
+}
+
+export class LeagueWarReasonDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  reason?: string;
+}
+
+export class LeagueWarDisputeDto {
+  @IsString()
+  @MinLength(3)
+  @MaxLength(1000)
+  reason!: string;
+}
+
+export class LeagueWarWalkoverDto {
+  @IsUUID('4')
+  winnerLeagueId!: string;
+
+  @IsOptional()
+  @IsUrl({
+    require_protocol: true,
+  })
+  proofUrl?: string;
 }

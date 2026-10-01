@@ -47,9 +47,15 @@ interface WarListItem {
   status: string;
   playerCount: number;
   legType: string;
+  pairingMode: string;
   winPoints: number;
   drawPoints: number;
   lossPoints: number;
+  challengeExpiresAt: string | null;
+  scheduledStartAt: string | null;
+  deadlineAt: string | null;
+  homeReadyAt: string | null;
+  awayReadyAt: string | null;
   createdAt: string;
   startedAt: string | null;
   completedAt: string | null;
@@ -99,6 +105,71 @@ interface WarListItem {
   };
 }
 
+interface LeagueRanking {
+  position: number;
+  league: {
+    id: string;
+    name: string;
+    code: string;
+    logoUrl: string | null;
+  };
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  ratingPoints: number;
+  winRate: number;
+  battlePointDifference: number;
+}
+
+interface PlayerRanking {
+  position: number;
+  userId: string;
+  fullName: string;
+  inGameName: string | null;
+  playerCode: string | null;
+  matches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  winRate: number;
+}
+
+function dateLabel(
+  value:
+    string | null,
+) {
+  if (!value) {
+    return 'Not set';
+  }
+
+  return new Date(
+    value,
+  ).toLocaleString();
+}
+
+function optionalIso(
+  value:
+    FormDataEntryValue | null,
+) {
+  const text =
+    String(
+      value ??
+        '',
+    ).trim();
+
+  if (!text) {
+    return undefined;
+  }
+
+  return new Date(
+    text,
+  ).toISOString();
+}
+
 export default function LeagueWarPage() {
   const router =
     useRouter();
@@ -124,6 +195,22 @@ export default function LeagueWarPage() {
     setWars,
   ] =
     useState<WarListItem[]>(
+      [],
+    );
+
+  const [
+    leagueRankings,
+    setLeagueRankings,
+  ] =
+    useState<LeagueRanking[]>(
+      [],
+    );
+
+  const [
+    playerRankings,
+    setPlayerRankings,
+  ] =
+    useState<PlayerRanking[]>(
       [],
     );
 
@@ -161,6 +248,7 @@ export default function LeagueWarPage() {
       current,
       leagueResponse,
       warResponse,
+      rankingResponse,
     ] =
       await Promise.all([
         getCurrentUser(),
@@ -169,6 +257,9 @@ export default function LeagueWarPage() {
         ),
         authenticatedRequest<any>(
           '/league-wars',
+        ),
+        authenticatedRequest<any>(
+          '/league-wars/rankings',
         ),
       ]);
 
@@ -185,6 +276,18 @@ export default function LeagueWarPage() {
       warResponse
         .data
         .wars ??
+        [],
+    );
+    setLeagueRankings(
+      rankingResponse
+        .data
+        .leagueRankings ??
+        [],
+    );
+    setPlayerRankings(
+      rankingResponse
+        .data
+        .playerRankings ??
         [],
     );
   }
@@ -320,6 +423,13 @@ export default function LeagueWarPage() {
                     ) ??
                       'SINGLE_LEG',
                   ),
+                pairingMode:
+                  String(
+                    form.get(
+                      'pairingMode',
+                    ) ??
+                      'SLOT',
+                  ),
                 winPoints:
                   Number(
                     form.get(
@@ -340,6 +450,25 @@ export default function LeagueWarPage() {
                       'lossPoints',
                     ) ??
                       0,
+                  ),
+                challengeExpiryHours:
+                  Number(
+                    form.get(
+                      'challengeExpiryHours',
+                    ) ??
+                      48,
+                  ),
+                scheduledStartAt:
+                  optionalIso(
+                    form.get(
+                      'scheduledStartAt',
+                    ),
+                  ),
+                deadlineAt:
+                  optionalIso(
+                    form.get(
+                      'deadlineAt',
+                    ),
                   ),
               }),
           },
@@ -377,10 +506,10 @@ export default function LeagueWarPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-7">
         <FcPageHeader
           title="League War"
-          subtitle="League vs League battles with locked rosters, live War Points and clear winner rules."
+          subtitle="League vs League battles with locked rosters, opponent-confirmed results, live War Points and rivalry history."
           action={
             adminLeagues.length >
             0 ? (
@@ -424,8 +553,8 @@ export default function LeagueWarPage() {
                   Create League War
                 </h2>
 
-                <p className="mt-2 text-sm text-slate-500">
-                  Enter the opponent League Code. Their owner/admin must accept before rosters can be locked.
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                  Opponent admin must accept. Both sides must lock a full roster and mark Ready before Start War unlocks.
                 </p>
               </div>
 
@@ -494,7 +623,7 @@ export default function LeagueWarPage() {
               </label>
 
               <label className="grid gap-2 text-sm font-bold text-slate-300">
-                War Name (optional)
+                War Name
                 <input
                   name="name"
                   placeholder="Friday Night League War"
@@ -529,6 +658,29 @@ export default function LeagueWarPage() {
                     Home & Away
                   </option>
                 </select>
+              </label>
+
+              <label className="grid gap-2 text-sm font-bold text-slate-300">
+                Pairing
+                <select
+                  name="pairingMode"
+                  defaultValue="SLOT"
+                  className="min-h-12 rounded-xl border border-white/10 bg-[#101923] px-4 outline-none"
+                >
+                  <option value="SLOT">
+                    Auto Slot Pairing
+                  </option>
+                  <option value="MANUAL">
+                    Manual Slot Order
+                  </option>
+                  <option value="RANDOM">
+                    Random Draw
+                  </option>
+                </select>
+
+                <span className="text-[11px] font-medium leading-5 text-slate-600">
+                  Manual uses the roster order chosen by each admin. Random shuffles the opponent roster when the War starts.
+                </span>
               </label>
 
               <div>
@@ -582,13 +734,53 @@ export default function LeagueWarPage() {
                 </div>
               </div>
 
+              <label className="grid gap-2 text-sm font-bold text-slate-300">
+                Challenge Expiry
+                <select
+                  name="challengeExpiryHours"
+                  defaultValue="48"
+                  className="min-h-12 rounded-xl border border-white/10 bg-[#101923] px-4 outline-none"
+                >
+                  <option value="24">
+                    24 Hours
+                  </option>
+                  <option value="48">
+                    48 Hours
+                  </option>
+                  <option value="72">
+                    72 Hours
+                  </option>
+                  <option value="168">
+                    7 Days
+                  </option>
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm font-bold text-slate-300">
+                Scheduled Start (optional)
+                <input
+                  name="scheduledStartAt"
+                  type="datetime-local"
+                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 outline-none"
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm font-bold text-slate-300">
+                War Deadline (optional)
+                <input
+                  name="deadlineAt"
+                  type="datetime-local"
+                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 outline-none"
+                />
+              </label>
+
               <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 lg:col-span-2">
                 <p className="text-xs font-black text-slate-300">
-                  Winner Rule
+                  Fair-play rules
                 </p>
 
                 <p className="mt-2 text-xs leading-5 text-slate-500">
-                  War Points → Goal Difference → Goals Scored → Wins → Draw. Rules are fixed once the War is created.
+                  Result submitted → opponent confirmation → official War Points. Proof URL, dispute and walkover use the same confirmation flow. Winner: War Points → GD → Goals Scored → Wins → Draw.
                 </p>
               </div>
 
@@ -619,6 +811,183 @@ export default function LeagueWarPage() {
             </form>
           </FcPanel>
         ) : null}
+
+        <section className="grid gap-4 xl:grid-cols-2">
+          <FcPanel className="overflow-hidden">
+            <div className="border-b border-white/[0.07] p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+                League Power
+              </p>
+
+              <h2 className="mt-1 text-xl font-black">
+                League War Rankings
+              </h2>
+
+              <p className="mt-1 text-xs text-slate-500">
+                War Win = 3 ranking pts · Draw = 1 · Loss = 0
+              </p>
+            </div>
+
+            <div className="divide-y divide-white/[0.06]">
+              {leagueRankings
+                .slice(
+                  0,
+                  10,
+                )
+                .map(
+                  (
+                    row,
+                  ) => (
+                    <div
+                      key={
+                        row.league
+                          .id
+                      }
+                      className="grid grid-cols-[32px_1fr_auto] items-center gap-3 px-5 py-3"
+                    >
+                      <span className={
+                        row.position <=
+                        3
+                          ? 'text-center text-sm font-black text-amber-300'
+                          : 'text-center text-xs font-black text-slate-600'
+                      }>
+                        #{
+                          row.position
+                        }
+                      </span>
+
+                      <div className="flex min-w-0 items-center gap-3">
+                        <FcCrest
+                          name={
+                            row.league
+                              .name
+                          }
+                          imageUrl={
+                            row.league
+                              .logoUrl
+                          }
+                          size="sm"
+                        />
+
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-black">
+                            {
+                              row.league
+                                .name
+                            }
+                          </p>
+
+                          <p className="mt-0.5 text-[9px] text-slate-600">
+                            {
+                              row.wins
+                            }W · {
+                              row.draws
+                            }D · {
+                              row.losses
+                            }L · {
+                              row.winRate
+                            }%
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="text-lg font-black text-rose-300">
+                        {
+                          row.ratingPoints
+                        }
+                      </span>
+                    </div>
+                  ),
+                )}
+
+              {leagueRankings.length ===
+              0 ? (
+                <p className="p-6 text-center text-sm text-slate-500">
+                  Complete the first League War to start rankings.
+                </p>
+              ) : null}
+            </div>
+          </FcPanel>
+
+          <FcPanel className="overflow-hidden">
+            <div className="border-b border-white/[0.07] p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">
+                Player Form
+              </p>
+
+              <h2 className="mt-1 text-xl font-black">
+                War Player Leaders
+              </h2>
+
+              <p className="mt-1 text-xs text-slate-500">
+                Wins → GD → Goals For → fewer losses
+              </p>
+            </div>
+
+            <div className="divide-y divide-white/[0.06]">
+              {playerRankings
+                .slice(
+                  0,
+                  10,
+                )
+                .map(
+                  (
+                    row,
+                  ) => (
+                    <div
+                      key={
+                        row.userId
+                      }
+                      className="grid grid-cols-[32px_1fr_auto] items-center gap-3 px-5 py-3"
+                    >
+                      <span className={
+                        row.position <=
+                        3
+                          ? 'text-center text-sm font-black text-emerald-300'
+                          : 'text-center text-xs font-black text-slate-600'
+                      }>
+                        #{
+                          row.position
+                        }
+                      </span>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black">
+                          {
+                            row.inGameName ||
+                            row.fullName
+                          }
+                        </p>
+
+                        <p className="mt-0.5 text-[9px] text-slate-600">
+                          {
+                            row.wins
+                          }W · GD {
+                            row.goalDifference
+                          } · {
+                            row.winRate
+                          }%
+                        </p>
+                      </div>
+
+                      <span className="text-xs font-black text-slate-300">
+                        {
+                          row.goalsFor
+                        } GF
+                      </span>
+                    </div>
+                  ),
+                )}
+
+              {playerRankings.length ===
+              0 ? (
+                <p className="p-6 text-center text-sm text-slate-500">
+                  Player leaders appear after confirmed War results.
+                </p>
+              ) : null}
+            </div>
+          </FcPanel>
+        </section>
 
         <FcPanel className="p-2">
           <div className="grid grid-cols-4 gap-2">
@@ -725,6 +1094,8 @@ export default function LeagueWarPage() {
                                   'HOME_AWAY'
                                     ? 'Home & Away'
                                     : 'One Leg'
+                                } · {
+                                  war.pairingMode
                                 }
                               </p>
                             </div>
@@ -740,7 +1111,15 @@ export default function LeagueWarPage() {
                                   : war.status ===
                                       'COMPLETED'
                                     ? 'emerald'
-                                    : 'amber'
+                                    : [
+                                          'REJECTED',
+                                          'CANCELLED',
+                                          'EXPIRED',
+                                        ].includes(
+                                          war.status,
+                                        )
+                                      ? 'slate'
+                                      : 'amber'
                               }
                             />
                           </div>
@@ -786,6 +1165,16 @@ export default function LeagueWarPage() {
                                   .points
                               }
                             </p>
+
+                            <p className={
+                              war.homeReadyAt
+                                ? 'mt-1 text-[9px] font-black uppercase text-emerald-400'
+                                : 'mt-1 text-[9px] font-black uppercase text-slate-600'
+                            }>
+                              {war.homeReadyAt
+                                ? '✓ Ready'
+                                : 'Not Ready'}
+                            </p>
                           </div>
 
                           <div className="text-center">
@@ -802,7 +1191,7 @@ export default function LeagueWarPage() {
                                 war
                                   .summary
                                   .totalMatches
-                              } matches
+                              } confirmed
                             </p>
                           </div>
 
@@ -845,27 +1234,50 @@ export default function LeagueWarPage() {
                                   .points
                               }
                             </p>
+
+                            <p className={
+                              war.awayReadyAt
+                                ? 'mt-1 text-[9px] font-black uppercase text-emerald-400'
+                                : 'mt-1 text-[9px] font-black uppercase text-slate-600'
+                            }>
+                              {war.awayReadyAt
+                                ? '✓ Ready'
+                                : 'Not Ready'}
+                            </p>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-white/[0.07] px-5 py-3 text-[10px] font-bold text-slate-600">
-                          <span>
-                            Roster {
-                              war.roster
-                                .home
-                            }/{
-                              war.playerCount
-                            } · {
-                              war.roster
-                                .away
-                            }/{
-                              war.playerCount
-                            }
-                          </span>
+                        <div className="border-t border-white/[0.07] px-5 py-3">
+                          <div className="flex items-center justify-between gap-3 text-[10px] font-bold text-slate-600">
+                            <span>
+                              Roster {
+                                war.roster
+                                  .home
+                              }/{
+                                war.playerCount
+                              } · {
+                                war.roster
+                                  .away
+                              }/{
+                                war.playerCount
+                              }
+                            </span>
 
-                          <span className="text-rose-300">
-                            Open War →
-                          </span>
+                            <span className="text-rose-300">
+                              Open War →
+                            </span>
+                          </div>
+
+                          {war.status ===
+                          'INVITED' ? (
+                            <p className="mt-2 text-[9px] text-slate-700">
+                              Challenge expires: {
+                                dateLabel(
+                                  war.challengeExpiresAt,
+                                )
+                              }
+                            </p>
+                          ) : null}
                         </div>
                       </FcPanel>
                     </Link>

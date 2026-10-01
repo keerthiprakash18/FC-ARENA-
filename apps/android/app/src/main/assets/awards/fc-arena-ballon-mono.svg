@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">FC Arena Ballon monochrome mark</title>
+  <path d="M54 41 85 72l43-45 43 45 31-31-13 61H67Z" fill="currentColor"/>
+  <circle cx="128" cy="147" r="67" fill="none" stroke="currentColor" stroke-width="10"/>
+  <path d="m128 112 27 20-10 32h-34l-10-32Zm0 0V81m-27 51-31-10m85 10 31-10m-75 42-18 30m52-30 18 30M83 201h90l13 26H70Z" fill="none" stroke="currentColor" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

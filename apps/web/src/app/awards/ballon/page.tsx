@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -70,6 +71,67 @@ export default function BallonSeasonsPage() {
   ] =
     useState('');
 
+  const [
+    filter,
+    setFilter,
+  ] =
+    useState<
+      'ALL' |
+      'LIVE' |
+      'PAST'
+    >(
+      'ALL',
+    );
+
+  const visibleSeasons =
+    useMemo(
+      () =>
+        seasons.filter(
+          (
+            season,
+          ) =>
+            filter ===
+            'ALL'
+              ? true
+              : filter ===
+                  'LIVE'
+                ? season.status ===
+                    'LIVE' ||
+                  season.status ===
+                    'FINALIZING'
+                : season.status ===
+                    'LOCKED' ||
+                  season.status ===
+                    'ARCHIVED',
+        ),
+      [
+        seasons,
+        filter,
+      ],
+    );
+
+  const liveCount =
+    seasons.filter(
+      (
+        season,
+      ) =>
+        season.status ===
+          'LIVE' ||
+        season.status ===
+          'FINALIZING',
+    ).length;
+
+  const pastCount =
+    seasons.filter(
+      (
+        season,
+      ) =>
+        season.status ===
+          'LOCKED' ||
+        season.status ===
+          'ARCHIVED',
+    ).length;
+
   useEffect(() => {
     void authenticatedRequest<any>(
       '/ballon/seasons',
@@ -129,8 +191,53 @@ export default function BallonSeasonsPage() {
         />
       </div>
 
+      <FcPanel className="p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            {[
+              ['ALL', `All ${seasons.length}`],
+              ['LIVE', `Live ${liveCount}`],
+              ['PAST', `Past ${pastCount}`],
+            ].map(
+              (
+                item,
+              ) => (
+                <button
+                  key={
+                    item[0]
+                  }
+                  type="button"
+                  onClick={() =>
+                    setFilter(
+                      item[0] as
+                        | 'ALL'
+                        | 'LIVE'
+                        | 'PAST',
+                    )
+                  }
+                  className={
+                    filter ===
+                    item[0]
+                      ? 'theme-primary-button min-h-9 rounded-lg px-4 text-xs font-black'
+                      : 'theme-secondary-button min-h-9 rounded-lg border px-4 text-xs font-semibold'
+                  }
+                >
+                  {
+                    item[1]
+                  }
+                </button>
+              ),
+            )}
+          </div>
+
+          <span className="text-xs text-slate-600">
+            Locked seasons preserve immutable final rankings.
+          </span>
+        </div>
+      </FcPanel>
+
       <section className="grid gap-4 lg:grid-cols-2">
-        {seasons.map(
+        {visibleSeasons.map(
           (
             season,
           ) => (
@@ -228,10 +335,12 @@ export default function BallonSeasonsPage() {
           ),
         )}
 
-        {seasons.length ===
+        {visibleSeasons.length ===
         0 ? (
           <FcPanel className="p-10 text-center text-sm text-slate-500">
-            No FC Arena Ballon seasons have been created yet.
+            {seasons.length === 0
+              ? 'No FC Arena Ballon seasons have been created yet.'
+              : 'No seasons match this archive filter.'}
           </FcPanel>
         ) : null}
       </section>

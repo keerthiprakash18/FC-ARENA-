@@ -15,7 +15,9 @@ import {
   authenticatedRequest,
   authenticatedUpload,
   type CurrentUser,
+  type RealtimeConnectionState,
   getCurrentUser,
+  subscribeAuthenticatedEvents,
 } from "@/lib/auth-client";
 
 interface MatchEntry {
@@ -35,6 +37,22 @@ interface MatchCenter {
   matchCode: string | null;
   status: string;
   isLeagueAdmin: boolean;
+  isParticipant: boolean;
+  participantSide: "HOME" | "AWAY" | null;
+
+  readiness: {
+    homeReadyAt: string | null;
+    awayReadyAt: string | null;
+    homeReady: boolean;
+    awayReady: boolean;
+    bothReady: boolean;
+  };
+
+  schedule: {
+    scheduledAt: string | null;
+    estimatedDeadlineAt: string | null;
+    matchDurationMinutes: number;
+  };
 
   tournament: {
     id: string;
@@ -208,7 +226,47 @@ function confidenceClass(confidence: number | null) {
   return "border-red-400/20 bg-red-400/5 text-red-300";
 }
 
-export default function MatchCenterPage() {
+function formatCountdown(target: string | null, now: number) {
+  if (!target) {
+    return null;
+  }
+
+  const targetMs = new Date(target).getTime();
+
+  if (Number.isNaN(targetMs)) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.floor((targetMs - now) / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  return `${minutes}m ${seconds}s`;
+}
+
+function realtimeBadgeClass(state: RealtimeConnectionState) {
+  if (state === "connected") {
+    return "border-emerald-400/20 bg-emerald-400/[0.07] text-emerald-300";
+  }
+
+  if (state === "reconnecting" || state === "connecting") {
+    return "border-amber-400/20 bg-amber-400/[0.07] text-amber-300";
+  }
+
+  return "border-white/10 bg-white/[0.04] text-slate-500";
+}
+
+export default function MatchRoomPage() {
   const params = useParams<{
     matchId: string;
   }>();
@@ -238,6 +296,11 @@ export default function MatchCenterPage() {
   const [message, setMessage] = useState("");
 
   const [error, setError] = useState("");
+
+  const [realtimeState, setRealtimeState] =
+    useState<RealtimeConnectionState>("connecting");
+
+  const [now, setNow] = useState(() => Date.now());
 
   async function loadMatch() {
     const response = await authenticatedRequest<{
@@ -308,12 +371,63 @@ export default function MatchCenterPage() {
       } catch (err) {
         if (err instanceof ApiError && err.status === 401)
           router.replace("/login");
-        else setError("Unable to load this match. Please retry.");
+        else setError("Unable to load this Match Room. Please retry.");
       }
     }
 
     void load();
   }, [params.matchId, router]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let refreshTimer: number | null = null;
+
+    const stop = subscribeAuthenticatedEvents(
+      `/matches/${params.matchId}/events`,
+      (event) => {
+        const payload = event.data as {
+          type?: string;
+        } | null;
+
+        if (!payload?.type || payload.type === "connected") {
+          return;
+        }
+
+        if (refreshTimer !== null) {
+          window.clearTimeout(refreshTimer);
+        }
+
+        refreshTimer = window.setTimeout(() => {
+          void refreshMatchCenter().catch(() => undefined);
+          window.dispatchEvent(
+            new Event("fc-arena:notifications-changed"),
+          );
+        }, 120);
+      },
+      setRealtimeState,
+    );
+
+    return () => {
+      stop();
+
+      if (refreshTimer !== null) {
+        window.clearTimeout(refreshTimer);
+      }
+    };
+  }, [user?.id, params.matchId]);
 
   useEffect(() => {
     const status = latestOcr?.status;
@@ -386,6 +500,43 @@ export default function MatchCenterPage() {
     latestOcr?.detectedHomeScore,
     latestOcr?.detectedAwayScore,
   ]);
+
+  async function setReady(
+    side: "HOME" | "AWAY" | undefined,
+    ready: boolean,
+  ) {
+    setBusy(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: {
+          message: string;
+        };
+        error: null;
+      }>(`/matches/${params.matchId}/ready`, {
+        method: "POST",
+        body: JSON.stringify({
+          ready,
+          ...(side ? { side } : {}),
+        }),
+      });
+
+      setMessage(response.data.message);
+
+      await loadMatch();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update Ready status.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submitManualResult(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -807,7 +958,7 @@ export default function MatchCenterPage() {
   if (!user || !match) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Match Center...
+        Loading Match Room...
       </div>
     );
   }
@@ -834,11 +985,115 @@ export default function MatchCenterPage() {
     !latestOcr.resultSubmission &&
     !confirmedId;
 
-  const awaitingReview = !confirmed && submissions.some(item => item.status === "PENDING_VERIFICATION");
+  const awaitingReview =
+    !confirmed &&
+    submissions.some(
+      (item) => item.status === "PENDING_VERIFICATION",
+    );
+
+  const scheduledAtMs = match.schedule.scheduledAt
+    ? new Date(match.schedule.scheduledAt).getTime()
+    : null;
+
+  const deadlineAtMs = match.schedule.estimatedDeadlineAt
+    ? new Date(match.schedule.estimatedDeadlineAt).getTime()
+    : null;
+
+  const scheduleLabel =
+    scheduledAtMs === null || Number.isNaN(scheduledAtMs)
+      ? "Schedule pending"
+      : now < scheduledAtMs
+        ? `Starts in ${formatCountdown(match.schedule.scheduledAt, now)}`
+        : deadlineAtMs !== null &&
+            !Number.isNaN(deadlineAtMs) &&
+            now < deadlineAtMs
+          ? `Match window · ${formatCountdown(
+              match.schedule.estimatedDeadlineAt,
+              now,
+            )} left`
+          : "Scheduled match window ended";
+
+  const participantReady =
+    match.participantSide === "HOME"
+      ? match.readiness.homeReady
+      : match.participantSide === "AWAY"
+        ? match.readiness.awayReady
+        : false;
+
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
       <div className="space-y-6">
-        <section className="theme-panel rounded-2xl p-5"><p className="text-sm font-semibold">{confirmed ? "Result verified" : awaitingReview ? "Submitted · awaiting confirmation" : canSubmit ? "Ready to submit your result" : "Match details"}</p><div className="mt-3 flex flex-wrap gap-3">{!confirmed && (awaitingReview || canSubmit) && <a className="theme-primary-button rounded-xl px-4 py-3 text-sm" href={awaitingReview ? "#result-verification" : "#result-entry"}>{awaitingReview ? "Review submissions" : "Enter score"}</a>}{confirmed && <ShareCard label="Share result card" filename="fc-arena-result" title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`} lines={[match.tournament.name, "Verified result", match.matchCode || "FC ARENA Match"]} />}<MatchReminder title={`${home} vs ${away}`} scheduledAt={match.fixture.scheduledAt} matchId={String(params.matchId)} /></div></section>
+        <section className="theme-panel rounded-2xl p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${realtimeBadgeClass(
+                    realtimeState,
+                  )}`}
+                >
+                  {realtimeState === "connected"
+                    ? "● LIVE SYNC"
+                    : realtimeState === "reconnecting"
+                      ? "● RECONNECTING"
+                      : realtimeState === "connecting"
+                        ? "● CONNECTING"
+                        : "● OFFLINE"}
+                </span>
+
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+                  {match.status.replaceAll("_", " ")}
+                </span>
+              </div>
+
+              <p className="mt-3 text-sm font-semibold">
+                {confirmed
+                  ? "Verified result · Match Room locked"
+                  : awaitingReview
+                    ? "Result submitted · awaiting verification"
+                    : match.readiness.bothReady
+                      ? "Both sides Ready · play the match"
+                      : canSubmit
+                        ? "Match Room active"
+                        : "Match details"}
+              </p>
+
+              <p className="mt-1 text-xs text-slate-500">
+                {scheduleLabel}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {!confirmed && (awaitingReview || canSubmit) ? (
+                <a
+                  className="theme-primary-button rounded-xl px-4 py-3 text-sm"
+                  href={awaitingReview ? "#result-verification" : "#result-entry"}
+                >
+                  {awaitingReview ? "Review submissions" : "Enter score"}
+                </a>
+              ) : null}
+
+              {confirmed ? (
+                <ShareCard
+                  label="Share result card"
+                  filename="fc-arena-result"
+                  title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`}
+                  lines={[
+                    match.tournament.name,
+                    "Verified result",
+                    match.matchCode || "FC ARENA Match",
+                  ]}
+                />
+              ) : null}
+
+              <MatchReminder
+                title={`${home} vs ${away}`}
+                scheduledAt={match.fixture.scheduledAt}
+                matchId={String(params.matchId)}
+              />
+            </div>
+          </div>
+        </section>
         <div className="flex flex-wrap gap-4">
           <Link
             href={`/tournaments/${match.tournament.id}`}
@@ -855,52 +1110,158 @@ export default function MatchCenterPage() {
           </Link>
         </div>
 
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-10">
-          <div className="flex flex-wrap justify-between gap-4">
+        <section className="relative overflow-hidden rounded-[30px] border border-sky-400/15 bg-[#0a1018] p-6 md:p-10">
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/[0.07] blur-3xl" />
+
+          <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-                Match Center
+                Match Room · V3.1
               </p>
 
               <h1 className="mt-3 break-words text-xl font-semibold md:text-3xl">
                 {match.tournament.name}
               </h1>
 
-              <p className="mt-2 text-sm text-slate-500">
-                {match.matchCode}
+              <p className="mt-2 font-mono text-xs text-slate-500">
+                {match.matchCode || match.fixture.fixtureCode}
               </p>
             </div>
 
-            <span className="h-fit rounded-full border border-white/10 px-4 py-2 text-xs font-black text-slate-300">
-              {match.status.replaceAll("_", " ")}
-            </span>
+            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-right">
+              <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-600">
+                Live Countdown
+              </p>
+              <p className="mt-1 text-sm font-black text-sky-300">
+                {scheduleLabel}
+              </p>
+            </div>
           </div>
 
-          <div className="mt-10 grid grid-cols-[1fr_auto_1fr] items-center gap-5">
-            <div className="text-center">
-              <p className="text-xl font-black md:text-3xl">{home}</p>
+          <div className="relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
+            <div className="min-w-0 text-center">
+              <p className="break-words text-lg font-black md:text-3xl">
+                {home}
+              </p>
+
+              <p
+                className={
+                  match.readiness.homeReady
+                    ? "mt-3 text-[10px] font-black uppercase tracking-wider text-emerald-300"
+                    : "mt-3 text-[10px] font-black uppercase tracking-wider text-slate-600"
+                }
+              >
+                {match.readiness.homeReady ? "✓ Ready" : "Not Ready"}
+              </p>
 
               {confirmed ? (
-                <p className="mt-5 text-6xl font-black text-sky-400">
+                <p className="mt-5 text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.homeScore}
                 </p>
               ) : null}
             </div>
 
-            <div className="rounded-full border border-white/10 bg-white/5 px-4 py-3 font-black text-slate-500">
-              {confirmed ? "FT" : "VS"}
+            <div className="text-center">
+              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-3 font-black text-slate-500">
+                {confirmed ? "FT" : "VS"}
+              </div>
+
+              {match.readiness.bothReady && !confirmed ? (
+                <p className="mt-3 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+                  Both Ready
+                </p>
+              ) : null}
             </div>
 
-            <div className="text-center">
-              <p className="text-xl font-black md:text-3xl">{away}</p>
+            <div className="min-w-0 text-center">
+              <p className="break-words text-lg font-black md:text-3xl">
+                {away}
+              </p>
+
+              <p
+                className={
+                  match.readiness.awayReady
+                    ? "mt-3 text-[10px] font-black uppercase tracking-wider text-emerald-300"
+                    : "mt-3 text-[10px] font-black uppercase tracking-wider text-slate-600"
+                }
+              >
+                {match.readiness.awayReady ? "✓ Ready" : "Not Ready"}
+              </p>
 
               {confirmed ? (
-                <p className="mt-5 text-6xl font-black text-sky-400">
+                <p className="mt-5 text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.awayScore}
                 </p>
               ) : null}
             </div>
           </div>
+
+          {!confirmed &&
+          (match.isParticipant || match.isLeagueAdmin) &&
+          ["UNSCHEDULED", "SCHEDULED"].includes(match.status) ? (
+            <div className="relative mt-8 rounded-2xl border border-white/[0.08] bg-black/15 p-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-sm font-black text-slate-200">
+                    Ready to Play
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    Mark Ready when your side is available. Both players can see the status instantly.
+                  </p>
+                </div>
+
+                {match.isParticipant && match.participantSide ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      void setReady(
+                        undefined,
+                        !participantReady,
+                      )
+                    }
+                    className={
+                      participantReady
+                        ? "min-h-11 rounded-xl border border-white/10 px-5 text-sm font-black text-slate-400 disabled:opacity-40"
+                        : "min-h-11 rounded-xl bg-emerald-400 px-5 text-sm font-black text-[#04130d] disabled:opacity-40"
+                    }
+                  >
+                    {participantReady ? "Set Not Ready" : "✓ I’m Ready"}
+                  </button>
+                ) : match.isLeagueAdmin ? (
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void setReady(
+                          "HOME",
+                          !match.readiness.homeReady,
+                        )
+                      }
+                      className="min-h-10 rounded-xl border border-white/10 px-4 text-xs font-black text-slate-300 disabled:opacity-40"
+                    >
+                      HOME · {match.readiness.homeReady ? "Clear Ready" : "Set Ready"}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() =>
+                        void setReady(
+                          "AWAY",
+                          !match.readiness.awayReady,
+                        )
+                      }
+                      className="min-h-10 rounded-xl border border-white/10 px-4 text-xs font-black text-slate-300 disabled:opacity-40"
+                    >
+                      AWAY · {match.readiness.awayReady ? "Clear Ready" : "Set Ready"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </section>
 
         {message ? (

@@ -15,8 +15,12 @@ type NotificationType =
   | 'FIXTURE_CREATED'
   | 'FIXTURE_CHANGED'
   | 'MATCH_REMINDER'
+  | 'MATCH_READY'
   | 'RESULT_SUBMITTED'
+  | 'RESULT_REJECTED'
   | 'RESULT_CONFIRMED'
+  | 'DISPUTE_OPENED'
+  | 'DISPUTE_RESOLVED'
   | 'STATISTICS_UPDATED'
   | 'TOURNAMENT_COMPLETED'
   | 'ACHIEVEMENT_RECEIVED';
@@ -620,6 +624,28 @@ export class NotificationsService {
             select: {
               id: true,
               status: true,
+              homeReadyAt: true,
+              awayReadyAt: true,
+            },
+          },
+
+          homeRegistration: {
+            select: {
+              members: {
+                select: {
+                  userId: true,
+                },
+              },
+            },
+          },
+
+          awayRegistration: {
+            select: {
+              members: {
+                select: {
+                  userId: true,
+                },
+              },
             },
           },
         },
@@ -628,10 +654,22 @@ export class NotificationsService {
     const now =
       new Date();
 
-    const reminderLimit =
+    const twoHourLimit =
       new Date(
         now.getTime() +
-          60 * 60 * 1000,
+          2 * 60 * 60 * 1000,
+      );
+
+    const thirtyMinuteLimit =
+      new Date(
+        now.getTime() +
+          30 * 60 * 1000,
+      );
+
+    const fiveMinuteLimit =
+      new Date(
+        now.getTime() +
+          5 * 60 * 1000,
       );
 
     for (
@@ -708,38 +746,231 @@ export class NotificationsService {
           fixture.match.status ===
             'SCHEDULED' &&
           fixture.scheduledAt >=
-            now &&
-          fixture.scheduledAt <=
-            reminderLimit
+            now
         ) {
-          await this.ensure(
-            userId,
-            {
-              type:
-                'MATCH_REMINDER',
+          if (
+            fixture.scheduledAt <=
+              twoHourLimit &&
+            fixture.scheduledAt >
+              thirtyMinuteLimit
+          ) {
+            await this.ensure(
+              userId,
+              {
+                type:
+                  'MATCH_REMINDER',
 
-              title:
-                'Match Reminder',
+                title:
+                  'Match in 2 Hours',
 
-              message:
-                `${fixture.tournament.name}: your ${fixture.roundName} match starts soon.`,
+                message:
+                  `${fixture.tournament.name}: ${fixture.roundName} is coming up. Open Match Room and get ready.`,
 
-              href:
-                `/matches/${fixture.match.id}`,
+                href:
+                  `/matches/${fixture.match.id}`,
 
-              entityType:
-                'Match',
+                entityType:
+                  'Match',
 
-              entityId:
-                fixture.match.id,
+                entityId:
+                  fixture.match.id,
 
-              dedupeKey:
-                `match-reminder:${fixture.match.id}:${fixture.scheduledAt.toISOString()}`,
+                dedupeKey:
+                  `match-reminder-2h:${fixture.match.id}:${fixture.scheduledAt.toISOString()}`,
 
-              eventAt:
-                now,
-            },
-          );
+                eventAt:
+                  now,
+              },
+            );
+          }
+
+          if (
+            fixture.scheduledAt <=
+              thirtyMinuteLimit &&
+            fixture.scheduledAt >
+              fiveMinuteLimit
+          ) {
+            await this.ensure(
+              userId,
+              {
+                type:
+                  'MATCH_REMINDER',
+
+                title:
+                  'Match in 30 Minutes',
+
+                message:
+                  `${fixture.tournament.name}: open Match Room, check your opponent and mark Ready to Play.`,
+
+                href:
+                  `/matches/${fixture.match.id}`,
+
+                entityType:
+                  'Match',
+
+                entityId:
+                  fixture.match.id,
+
+                dedupeKey:
+                  `match-reminder-30m:${fixture.match.id}:${fixture.scheduledAt.toISOString()}`,
+
+                eventAt:
+                  now,
+              },
+            );
+          }
+
+          if (
+            fixture.scheduledAt <=
+            fiveMinuteLimit
+          ) {
+            await this.ensure(
+              userId,
+              {
+                type:
+                  'MATCH_REMINDER',
+
+                title:
+                  'Match Starting Now',
+
+                message:
+                  `${fixture.tournament.name}: your ${fixture.roundName} match is starting now.`,
+
+                href:
+                  `/matches/${fixture.match.id}`,
+
+                entityType:
+                  'Match',
+
+                entityId:
+                  fixture.match.id,
+
+                dedupeKey:
+                  `match-reminder-now:${fixture.match.id}:${fixture.scheduledAt.toISOString()}`,
+
+                eventAt:
+                  now,
+              },
+            );
+          }
+        }
+      }
+
+      if (
+        fixture.match
+      ) {
+        const isHome =
+          fixture.homeRegistration
+            ?.members.some(
+              (
+                member,
+              ) =>
+                member.userId ===
+                userId,
+            ) ??
+          false;
+
+        const isAway =
+          fixture.awayRegistration
+            ?.members.some(
+              (
+                member,
+              ) =>
+                member.userId ===
+                userId,
+            ) ??
+          false;
+
+        if (
+          isHome ||
+          isAway
+        ) {
+          const myReadyAt =
+            isHome
+              ? fixture.match
+                  .homeReadyAt
+              : fixture.match
+                  .awayReadyAt;
+
+          const opponentReadyAt =
+            isHome
+              ? fixture.match
+                  .awayReadyAt
+              : fixture.match
+                  .homeReadyAt;
+
+          if (
+            opponentReadyAt
+          ) {
+            await this.ensure(
+              userId,
+              {
+                type:
+                  'MATCH_READY',
+
+                title:
+                  'Opponent is Ready',
+
+                message:
+                  `${fixture.tournament.name}: your opponent marked Ready to Play.`,
+
+                href:
+                  `/matches/${fixture.match.id}`,
+
+                entityType:
+                  'Match',
+
+                entityId:
+                  fixture.match.id,
+
+                dedupeKey:
+                  `opponent-ready:${fixture.match.id}:${opponentReadyAt.toISOString()}`,
+
+                eventAt:
+                  opponentReadyAt,
+              },
+            );
+          }
+
+          if (
+            myReadyAt &&
+            opponentReadyAt
+          ) {
+            const bothReadyAt =
+              myReadyAt >
+              opponentReadyAt
+                ? myReadyAt
+                : opponentReadyAt;
+
+            await this.ensure(
+              userId,
+              {
+                type:
+                  'MATCH_READY',
+
+                title:
+                  'Both Sides Ready',
+
+                message:
+                  `${fixture.tournament.name}: both sides are Ready to Play.`,
+
+                href:
+                  `/matches/${fixture.match.id}`,
+
+                entityType:
+                  'Match',
+
+                entityId:
+                  fixture.match.id,
+
+                dedupeKey:
+                  `both-ready:${fixture.match.id}:${bothReadyAt.toISOString()}`,
+
+                eventAt:
+                  bothReadyAt,
+              },
+            );
+          }
         }
       }
     }
@@ -838,6 +1069,164 @@ export class NotificationsService {
           },
         );
       }
+    }
+
+    /*
+     * 6b. Opponent result submissions
+     */
+    const participantPendingResults =
+      await this.prisma.resultSubmission.findMany({
+        where: {
+          status:
+            'PENDING_VERIFICATION',
+
+          submittedByUserId: {
+            not:
+              userId,
+          },
+
+          match: {
+            OR: [
+              {
+                fixture: {
+                  homeRegistration: {
+                    is: {
+                      members: {
+                        some: {
+                          userId,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                fixture: {
+                  awayRegistration: {
+                    is: {
+                      members: {
+                        some: {
+                          userId,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+
+        include: {
+          match: {
+            include: {
+              tournament: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    for (
+      const result
+      of participantPendingResults
+    ) {
+      await this.ensure(
+        userId,
+        {
+          type:
+            'RESULT_SUBMITTED',
+
+          title:
+            'Opponent Submitted a Result',
+
+          message:
+            `${result.match.tournament.name}: ${result.homeScore}-${result.awayScore} is waiting for verification.`,
+
+          href:
+            `/matches/${result.matchId}#result-verification`,
+
+          entityType:
+            'ResultSubmission',
+
+          entityId:
+            result.id,
+
+          dedupeKey:
+            `opponent-result-submitted:${result.id}`,
+
+          eventAt:
+            result.createdAt,
+        },
+      );
+    }
+
+    /*
+     * 6c. My rejected result submissions
+     */
+    const rejectedResults =
+      await this.prisma.resultSubmission.findMany({
+        where: {
+          submittedByUserId:
+            userId,
+
+          status:
+            'REJECTED',
+        },
+
+        include: {
+          match: {
+            include: {
+              tournament: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    for (
+      const result
+      of rejectedResults
+    ) {
+      const eventAt =
+        result.reviewedAt ??
+        result.updatedAt;
+
+      await this.ensure(
+        userId,
+        {
+          type:
+            'RESULT_REJECTED',
+
+          title:
+            'Result Needs Attention',
+
+          message:
+            result.rejectionReason
+              ? `${result.match.tournament.name}: result rejected — ${result.rejectionReason}`
+              : `${result.match.tournament.name}: your result submission was rejected.`,
+
+          href:
+            `/matches/${result.matchId}#result-entry`,
+
+          entityType:
+            'ResultSubmission',
+
+          entityId:
+            result.id,
+
+          dedupeKey:
+            `result-rejected:${result.id}`,
+
+          eventAt,
+        },
+      );
     }
 
     /*
@@ -955,6 +1344,170 @@ export class NotificationsService {
             `statistics-updated:${result.id}:${userId}`,
 
           eventAt,
+        },
+      );
+    }
+
+    /*
+     * 7b. Match disputes
+     */
+    if (
+      adminLeagueIds.length >
+      0
+    ) {
+      const openDisputes =
+        await this.prisma.matchDispute.findMany({
+          where: {
+            status:
+              'OPEN',
+
+            match: {
+              tournament: {
+                leagueId: {
+                  in:
+                    adminLeagueIds,
+                },
+              },
+            },
+          },
+
+          include: {
+            match: {
+              include: {
+                tournament: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+
+            raisedBy: {
+              select: {
+                fullName: true,
+                player: {
+                  select: {
+                    identity: {
+                      select: {
+                        inGameName:
+                          true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+
+      for (
+        const dispute
+        of openDisputes
+      ) {
+        const raiser =
+          dispute.raisedBy
+            .player
+            ?.identity
+            ?.inGameName ??
+          dispute.raisedBy
+            .fullName;
+
+        await this.ensure(
+          userId,
+          {
+            type:
+              'DISPUTE_OPENED',
+
+            title:
+              'Match Dispute Opened',
+
+            message:
+              `${raiser} raised a dispute in ${dispute.match.tournament.name}.`,
+
+            href:
+              `/matches/${dispute.matchId}/dispute`,
+
+            entityType:
+              'MatchDispute',
+
+            entityId:
+              dispute.id,
+
+            dedupeKey:
+              `dispute-opened:${dispute.id}`,
+
+            eventAt:
+              dispute.createdAt,
+          },
+        );
+      }
+    }
+
+    const resolvedDisputes =
+      await this.prisma.matchDispute.findMany({
+        where: {
+          raisedByUserId:
+            userId,
+
+          status: {
+            in: [
+              'RESOLVED',
+              'REJECTED',
+            ],
+          },
+
+          resolvedAt: {
+            not:
+              null,
+          },
+        },
+
+        include: {
+          match: {
+            include: {
+              tournament: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    for (
+      const dispute
+      of resolvedDisputes
+    ) {
+      await this.ensure(
+        userId,
+        {
+          type:
+            'DISPUTE_RESOLVED',
+
+          title:
+            dispute.status ===
+            'RESOLVED'
+              ? 'Dispute Resolved'
+              : 'Dispute Rejected',
+
+          message:
+            `${dispute.match.tournament.name}: your match dispute has been ${dispute.status.toLowerCase()}.`,
+
+          href:
+            `/matches/${dispute.matchId}/dispute`,
+
+          entityType:
+            'MatchDispute',
+
+          entityId:
+            dispute.id,
+
+          dedupeKey:
+            `dispute-closed:${dispute.id}:${dispute.status}`,
+
+          eventAt:
+            dispute.resolvedAt!,
         },
       );
     }

@@ -32,6 +32,11 @@ interface CategoryConfig {
   backendTypes: string[];
   raceKey?: RaceKey;
   seasonal?: boolean;
+  calculationTitle: string;
+  rules: Array<{
+    label: string;
+    detail: string;
+  }>;
 }
 
 const categories:
@@ -44,6 +49,13 @@ const categories:
         'GOLDEN_BOOT',
       ],
       raceKey: 'goldenBoot',
+      calculationTitle: 'Golden Boot ranking order',
+      rules: [
+        { label: '1 · Total Goals', detail: 'More verified goals ranks higher.' },
+        { label: '2 · Goals / Match', detail: 'If goals are tied, the higher scoring rate ranks higher.' },
+        { label: '3 · Goal Difference', detail: 'Next tie-break is the better overall goal difference.' },
+        { label: '4 · Wins', detail: 'Next tie-break is more wins. Exact ties can share the award.' },
+      ],
     },
     'golden-glove': {
       title: 'Golden Glove',
@@ -53,6 +65,13 @@ const categories:
         'GOLDEN_GLOVE',
       ],
       raceKey: 'goldenGlove',
+      calculationTitle: 'Golden Glove ranking order',
+      rules: [
+        { label: '1 · Clean Sheets', detail: 'More verified clean sheets ranks higher.' },
+        { label: '2 · Clean Sheet %', detail: 'If tied, the better clean-sheet rate ranks higher.' },
+        { label: '3 · Goals Against / Match', detail: 'Lower goals conceded per match ranks higher.' },
+        { label: '4 · Matches + Total GA', detail: 'Then more matches, followed by fewer total goals conceded. Exact ties can share the award.' },
+      ],
     },
     'player-of-tournament': {
       title: 'Player of the Tournament',
@@ -63,6 +82,15 @@ const categories:
         'PLAYER_OF_TOURNAMENT',
       ],
       raceKey: 'playerOfTournament',
+      calculationTitle: 'FC Arena performance rating · 100 points',
+      rules: [
+        { label: 'Match Performance · 30', detail: '55% points per match (Win 3, Draw 1) + 45% win rate.' },
+        { label: 'Attack · 20', detail: '70% goals per match + 30% total goals.' },
+        { label: 'Defence · 15', detail: '60% clean-sheet rate + 40% goals-conceded efficiency.' },
+        { label: 'Goal Difference · 15', detail: 'Positive goal difference per match relative to the best rate.' },
+        { label: 'Big Matches · 15', detail: 'QF win +0.5, SF +1, Final +2, Champion +3, Runner-up +1.' },
+        { label: 'Consistency · 5', detail: 'Longest win streak and low-loss rate.' },
+      ],
     },
     'rising-star': {
       title: 'Rising Star',
@@ -72,6 +100,13 @@ const categories:
         'RISING_STAR',
       ],
       seasonal: true,
+      calculationTitle: 'Rising Star eligibility',
+      rules: [
+        { label: 'Ballon Eligible', detail: 'Player must meet the season minimum-match requirement.' },
+        { label: 'Newcomer Window', detail: 'First competitive activity must fall from 90 days before season start through season end.' },
+        { label: 'No Previous Ballon', detail: 'A previous FC Arena Ballon winner cannot receive Rising Star.' },
+        { label: 'Highest Ranked', detail: 'The highest Ballon-ranked player who meets the newcomer rules wins.' },
+      ],
     },
     'tournament-champion': {
       title: 'Tournament Champion',
@@ -79,6 +114,11 @@ const categories:
       detail: 'Official championship honours generated when a tournament is completed.',
       backendTypes: [
         'TOURNAMENT_CHAMPION',
+      ],
+      calculationTitle: 'How Champion is decided',
+      rules: [
+        { label: 'League / Round Robin', detail: 'Final standings decide the winner using tournament standing rules.' },
+        { label: 'Knockout', detail: 'The verified winner of the final receives the Champion honour.' },
       ],
     },
     'tournament-runner-up': {
@@ -88,6 +128,11 @@ const categories:
       backendTypes: [
         'TOURNAMENT_RUNNER_UP',
       ],
+      calculationTitle: 'How Runner-Up is decided',
+      rules: [
+        { label: 'League / Round Robin', detail: 'Second place in the final standings receives Runner-Up.' },
+        { label: 'Knockout', detail: 'The verified losing finalist receives Runner-Up.' },
+      ],
     },
     'winning-streak': {
       title: 'Winning Streak',
@@ -95,6 +140,11 @@ const categories:
       detail: 'Verified winning-run achievements earned in FC Arena tournaments.',
       backendTypes: [
         'WINNING_STREAK',
+      ],
+      calculationTitle: 'Winning Streak rule',
+      rules: [
+        { label: '3+ Consecutive Wins', detail: 'The achievement starts at three verified wins in a row.' },
+        { label: 'Longest Run', detail: 'Draws and losses reset the active streak. The longest verified run is stored.' },
       ],
     },
   };
@@ -553,6 +603,42 @@ export default function AwardCategoryPage() {
           </div>
         </div>
       </section>
+
+      <details className="overflow-hidden rounded-[24px] border border-amber-400/15 bg-amber-400/[0.035]" open>
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              How scoring works
+            </p>
+            <h2 className="mt-1 text-base font-black">
+              {config.calculationTitle}
+            </h2>
+          </div>
+          <span className="text-lg">
+            ⓘ
+          </span>
+        </summary>
+
+        <div className="grid gap-3 border-t border-white/[0.07] p-5 sm:grid-cols-2">
+          {config.rules.map((rule) => (
+            <div
+              key={rule.label}
+              className="rounded-2xl border border-white/[0.07] bg-black/10 p-4"
+            >
+              <p className="text-sm font-black text-slate-200">
+                {rule.label}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                {rule.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p className="border-t border-white/[0.07] px-5 py-4 text-xs leading-5 text-slate-500">
+          Live individual award races use verified SOLO match data only. Unverified, cancelled or duplicate fixture records do not count.
+        </p>
+      </details>
 
       {config.raceKey ? (
         <section>

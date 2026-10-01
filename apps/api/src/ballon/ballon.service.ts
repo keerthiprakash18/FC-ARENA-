@@ -1105,12 +1105,16 @@ export class BallonService {
         rawLimit,
       );
 
-    const limit =
-      [10, 20, 50].includes(
-        requested,
-      )
-        ? requested
-        : season.rankingLimit;
+    const limit:
+      number | undefined =
+      rawLimit ===
+      'all'
+        ? undefined
+        : [10, 20, 50].includes(
+              requested,
+            )
+          ? requested
+          : season.rankingLimit;
 
     const rankings =
       await this.getRankingsData(
@@ -1149,7 +1153,6 @@ export class BallonService {
     const rankings =
       await this.getRankingsData(
         season,
-        50,
       );
 
     return {
@@ -1190,7 +1193,6 @@ export class BallonService {
     const rankings =
       await this.getRankingsData(
         season,
-        50,
       );
 
     const ranking =
@@ -1522,7 +1524,7 @@ export class BallonService {
 
   private async getRankingsData(
     season: any,
-    limit: number,
+    limit?: number,
   ) {
     if (
       season.status ===
@@ -1542,8 +1544,13 @@ export class BallonService {
               'asc',
           },
 
-          take:
-            limit,
+          ...(typeof limit ===
+          'number'
+            ? {
+                take:
+                  limit,
+              }
+            : {}),
         });
 
       const users =
@@ -1601,11 +1608,15 @@ export class BallonService {
     return {
       locked: false,
       rows:
-        computed.rows
-          .slice(
-            0,
-            limit,
-          )
+        (
+          typeof limit ===
+          'number'
+            ? computed.rows.slice(
+                0,
+                limit,
+              )
+            : computed.rows
+        )
           .map(
             (row) => {
               const previous =

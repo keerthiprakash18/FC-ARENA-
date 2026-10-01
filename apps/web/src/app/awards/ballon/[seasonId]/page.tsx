@@ -29,6 +29,14 @@ interface Season {
   minimumMatches: number;
   rankingLimit: number;
   status: string;
+  scoringConfig?: {
+    matchPerformance?: number;
+    attack?: number;
+    defence?: number;
+    goalDifference?: number;
+    bigMatches?: number;
+    consistency?: number;
+  } | null;
 }
 
 interface RankingRow {
@@ -168,8 +176,8 @@ export default function BallonRankingsPage() {
     setLimit,
   ] =
     useState<
-      10 | 20 | 50
-    >(20);
+      10 | 20 | 50 | 'all'
+    >('all');
 
   const [
     error,
@@ -293,6 +301,37 @@ export default function BallonRankingsPage() {
       ],
     );
 
+  const scoring = {
+    matchPerformance:
+      season?.scoringConfig
+        ?.matchPerformance ??
+      30,
+    attack:
+      season?.scoringConfig
+        ?.attack ??
+      20,
+    defence:
+      season?.scoringConfig
+        ?.defence ??
+      15,
+    goalDifference:
+      season?.scoringConfig
+        ?.goalDifference ??
+      15,
+    bigMatches:
+      season?.scoringConfig
+        ?.bigMatches ??
+      15,
+    consistency:
+      season?.scoringConfig
+        ?.consistency ??
+      5,
+  };
+
+  const live =
+    season?.status ===
+    'LIVE';
+
   return (
     <SecondaryFeaturePage
       eyebrow="FC Arena Ballon"
@@ -318,8 +357,14 @@ export default function BallonRankingsPage() {
           ← Hall of Honours
         </Link>
 
-        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
-          ● Live · refresh 10s
+        <span className={
+          live
+            ? 'rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300'
+            : 'rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400'
+        }>
+          {live
+            ? '● LIVE · refresh 10s'
+            : season?.status ?? 'Loading'}
           {lastUpdated
             ? ` · ${lastUpdated.toLocaleTimeString([], {
                 hour: '2-digit',
@@ -328,9 +373,10 @@ export default function BallonRankingsPage() {
             : ''}
         </span>
 
-        <div className="flex rounded-xl border border-white/[0.08] bg-white/[0.025] p-1">
+        <div className="flex flex-wrap rounded-xl border border-white/[0.08] bg-white/[0.025] p-1">
           {(
             [
+              'all',
               10,
               20,
               50,
@@ -356,15 +402,89 @@ export default function BallonRankingsPage() {
                     : 'rounded-lg px-4 py-2 text-xs font-black text-slate-500'
                 }
               >
-                TOP{' '}
-                {
-                  value
-                }
+                {value ===
+                'all'
+                  ? 'ALL'
+                  : `TOP ${value}`}
               </button>
             ),
           )}
         </div>
       </div>
+
+      <details className="overflow-hidden rounded-[24px] border border-amber-400/15 bg-amber-400/[0.035]">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              Transparent Scoring
+            </p>
+            <h2 className="mt-1 text-base font-black">
+              How is the Ballon rating calculated?
+            </h2>
+          </div>
+          <span className="text-sm font-black text-amber-300">
+            100 pts
+          </span>
+        </summary>
+
+        <div className="border-t border-white/[0.07] p-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                label: 'Match Performance',
+                value: scoring.matchPerformance,
+                detail: '55% points per match (Win 3, Draw 1) + 45% win rate.',
+              },
+              {
+                label: 'Attack',
+                value: scoring.attack,
+                detail: '70% goals per match + 30% total goals, normalized against the field.',
+              },
+              {
+                label: 'Defence',
+                value: scoring.defence,
+                detail: '60% clean-sheet rate + 40% goals-conceded efficiency.',
+              },
+              {
+                label: 'Goal Difference',
+                value: scoring.goalDifference,
+                detail: 'Positive goal difference per match, normalized against the best rate.',
+              },
+              {
+                label: 'Big Matches',
+                value: scoring.bigMatches,
+                detail: 'QF win +0.5, SF +1, Final +2, Champion +3, Runner-up +1; capped by this weight.',
+              },
+              {
+                label: 'Consistency',
+                value: scoring.consistency,
+                detail: '60% longest win streak (up to 5) + 40% low-loss rate.',
+              },
+            ].map((rule) => (
+              <div
+                key={rule.label}
+                className="rounded-2xl border border-white/[0.07] bg-black/10 p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-black">
+                    {rule.label}
+                  </p>
+                  <span className="text-sm font-black text-amber-300">
+                    {rule.value}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-slate-500">
+                  {rule.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs leading-5 text-slate-500">
+            Only canonical confirmed SOLO results inside this season&apos;s eligible scope and date window count. Players must complete at least <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> to become eligible. Eligible players rank first; ties are then resolved by rating, wins, goal difference and goals scored.
+          </p>
+        </div>
+      </details>
 
       <section className="overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0B0F14]">
         <div className="grid gap-5 border-b border-white/[0.07] p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-7">

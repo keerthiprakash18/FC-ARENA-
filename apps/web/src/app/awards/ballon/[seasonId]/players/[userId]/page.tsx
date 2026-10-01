@@ -54,6 +54,14 @@ interface Season {
   name: string;
   minimumMatches: number;
   status: string;
+  scoringConfig?: {
+    matchPerformance?: number;
+    attack?: number;
+    defence?: number;
+    goalDifference?: number;
+    bigMatches?: number;
+    consistency?: number;
+  } | null;
 }
 
 const breakdownLabels:
@@ -68,16 +76,6 @@ const breakdownLabels:
       'Big Matches',
     consistency:
       'Consistency',
-  };
-
-const breakdownMaximum:
-  Record<string, number> = {
-    matchPerformance: 30,
-    attack: 20,
-    defence: 15,
-    goalDifference: 15,
-    bigMatches: 15,
-    consistency: 5,
   };
 
 function stat(
@@ -145,37 +143,82 @@ export default function BallonPlayerPage() {
   ] =
     useState('');
 
+  const [
+    lastUpdated,
+    setLastUpdated,
+  ] =
+    useState<Date | null>(
+      null,
+    );
+
   useEffect(() => {
-    void authenticatedRequest<any>(
-      `/ballon/seasons/${seasonId}/players/${userId}`,
-    )
-      .then(
-        (
-          response,
-        ) => {
-          setSeason(
-            response
-              .data
-              .season,
+    let active =
+      true;
+
+    async function loadPlayer() {
+      try {
+        const response =
+          await authenticatedRequest<any>(
+            `/ballon/seasons/${seasonId}/players/${userId}`,
           );
 
-          setRanking(
-            response
-              .data
-              .ranking,
-          );
+        if (!active) {
+          return;
+        }
+
+        setSeason(
+          response
+            .data
+            .season,
+        );
+
+        setRanking(
+          response
+            .data
+            .ranking,
+        );
+
+        setError('');
+        setLastUpdated(
+          new Date(),
+        );
+      } catch (
+        err
+      ) {
+        if (!active) {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Unable to load player Ballon profile.',
+        );
+      }
+    }
+
+    void loadPlayer();
+
+    const interval =
+      window.setInterval(
+        () => {
+          if (
+            document.visibilityState ===
+            'visible'
+          ) {
+            void loadPlayer();
+          }
         },
-      )
-      .catch(
-        (
-          err,
-        ) =>
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Unable to load player Ballon profile.',
-          ),
+        10_000,
       );
+
+    return () => {
+      active =
+        false;
+      window.clearInterval(
+        interval,
+      );
+    };
   }, [
     seasonId,
     userId,
@@ -209,6 +252,34 @@ export default function BallonPlayerPage() {
     ranking.inGameName ||
     ranking.fullName;
 
+  const breakdownMaximum:
+    Record<string, number> = {
+      matchPerformance:
+        season?.scoringConfig
+          ?.matchPerformance ??
+        30,
+      attack:
+        season?.scoringConfig
+          ?.attack ??
+        20,
+      defence:
+        season?.scoringConfig
+          ?.defence ??
+        15,
+      goalDifference:
+        season?.scoringConfig
+          ?.goalDifference ??
+        15,
+      bigMatches:
+        season?.scoringConfig
+          ?.bigMatches ??
+        15,
+      consistency:
+        season?.scoringConfig
+          ?.consistency ??
+        5,
+    };
+
   return (
     <SecondaryFeaturePage
       eyebrow={
@@ -224,14 +295,34 @@ export default function BallonPlayerPage() {
           : `Not Yet Eligible · Minimum ${season?.minimumMatches ?? '—'} matches`
       }
     >
-      <Link
-        href={
-          `/awards/ballon/${seasonId}`
-        }
-        className="text-sm font-black text-slate-500 transition hover:text-amber-300"
-      >
-        ← Ballon Rankings
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          href={
+            `/awards/ballon/${seasonId}`
+          }
+          className="text-sm font-black text-slate-500 transition hover:text-amber-300"
+        >
+          ← Ballon Rankings
+        </Link>
+
+        <span className={
+          season?.status ===
+          'LIVE'
+            ? 'rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300'
+            : 'rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400'
+        }>
+          {season?.status ===
+          'LIVE'
+            ? '● LIVE · refresh 10s'
+            : season?.status ?? 'Loading'}
+          {lastUpdated
+            ? ` · ${lastUpdated.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}`
+            : ''}
+        </span>
+      </div>
 
       <section className="relative overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0B0F14] p-6 sm:p-8">
         <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
@@ -377,6 +468,50 @@ export default function BallonPlayerPage() {
           tone="cyan"
         />
       </section>
+
+      <details className="overflow-hidden rounded-[24px] border border-amber-400/15 bg-amber-400/[0.035]">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              Why this rating?
+            </p>
+            <h2 className="mt-1 text-base font-black">
+              Scoring formula
+            </h2>
+          </div>
+          <span className="text-sm font-black text-amber-300">
+            / 100
+          </span>
+        </summary>
+
+        <div className="grid gap-3 border-t border-white/[0.07] p-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ['Match Performance', breakdownMaximum.matchPerformance, 'Points per match + win rate'],
+            ['Attack', breakdownMaximum.attack, 'Goals per match + total goals'],
+            ['Defence', breakdownMaximum.defence, 'Clean sheets + low goals conceded'],
+            ['Goal Difference', breakdownMaximum.goalDifference, 'Positive GD per match'],
+            ['Big Matches', breakdownMaximum.bigMatches, 'QF/SF/Final wins + placements'],
+            ['Consistency', breakdownMaximum.consistency, 'Win streak + low-loss rate'],
+          ].map((rule) => (
+            <div
+              key={String(rule[0])}
+              className="rounded-xl border border-white/[0.07] bg-black/10 p-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-black">
+                  {rule[0]}
+                </p>
+                <span className="text-xs font-black text-amber-300">
+                  {rule[1]}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                {rule[2]}
+              </p>
+            </div>
+          ))}
+        </div>
+      </details>
 
       <FcPanel className="overflow-hidden">
         <div className="border-b border-white/[0.07] p-5">

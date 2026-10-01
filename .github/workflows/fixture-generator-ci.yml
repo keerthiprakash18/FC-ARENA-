@@ -19,6 +19,7 @@ jobs:
 
     env:
       NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fc_arena_ci
 
     steps:
       - name: Checkout

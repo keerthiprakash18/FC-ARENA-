@@ -20,7 +20,7 @@ export function BottomNavigation({
       className="theme-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t px-1 pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Primary navigation"
     >
-      <div className="mx-auto grid max-w-2xl grid-cols-6">
+      <div className="mx-auto grid max-w-3xl grid-cols-7">
         {primaryNavigation.map(
           (
             item,

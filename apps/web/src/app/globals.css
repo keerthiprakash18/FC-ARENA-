@@ -3349,3 +3349,138 @@ html[data-mode="dark"],
       var(--theme-elevated)
     );
 }
+
+
+/* =========================================================
+   FC ARENA — DARK MODE LEGACY UTILITY COMPATIBILITY
+   Some older screens still use literal dark Tailwind utilities.
+   The light-theme compatibility layer remaps those literals to
+   cream/white surfaces with !important; dark mode must explicitly
+   restore them to theme tokens so cards/tabs never become pale.
+   ========================================================= */
+
+[data-mode="dark"] .fc-main [class~="bg-[#071019]"],
+[data-mode="dark"] .fc-main [class~="bg-[#0B0F14]"],
+[data-mode="dark"] .fc-main [class~="bg-[#030812]"],
+[data-mode="dark"] .fc-main [class~="bg-[#05080d]"] {
+  background-color: var(--theme-background) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-[#0B1118]"],
+[data-mode="dark"] .fc-main [class~="bg-[#0B151F]"],
+[data-mode="dark"] .fc-main [class~="bg-[#101923]"],
+[data-mode="dark"] .fc-main [class~="bg-[#121821]"],
+[data-mode="dark"] .fc-main [class~="bg-[#121D28]"],
+[data-mode="dark"] .fc-main [class~="bg-[#0a1018]"],
+[data-mode="dark"] .fc-main [class~="bg-[#08111b]"] {
+  background-color: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-[#14212D]"],
+[data-mode="dark"] .fc-main [class~="bg-[#151C26]"],
+[data-mode="dark"] .fc-main [class~="bg-[#18212C]"],
+[data-mode="dark"] .fc-main [class~="bg-[#182936]"],
+[data-mode="dark"] .fc-main [class~="bg-[#0E1A25]"],
+[data-mode="dark"] .fc-main [class~="bg-[#080e15]"],
+[data-mode="dark"] .fc-main [class~="bg-[#080E15]"] {
+  background-color: var(--theme-elevated) !important;
+  color: var(--theme-text) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-white/[0.02]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.025]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.03]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.035]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.04]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.05]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.06]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.07]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.08]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.09]"],
+[data-mode="dark"] .fc-main [class~="bg-white/[0.10]"] {
+  background-color: var(--theme-elevated) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="border-[#203141]"],
+[data-mode="dark"] .fc-main [class~="border-[#253140]"],
+[data-mode="dark"] .fc-main [class~="border-[#284154]"],
+[data-mode="dark"] .fc-main [class~="border-[#2B3948]"],
+[data-mode="dark"] .fc-main [class~="border-white/10"],
+[data-mode="dark"] .fc-main [class~="border-white/[0.10]"],
+[data-mode="dark"] .fc-main [class~="border-white/[0.09]"],
+[data-mode="dark"] .fc-main [class~="border-white/[0.08]"],
+[data-mode="dark"] .fc-main [class~="border-white/[0.07]"],
+[data-mode="dark"] .fc-main [class~="border-white/[0.06]"] {
+  border-color: var(--theme-border) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#F8FAFC]"],
+[data-mode="dark"] .fc-main [class~="text-[#F3F6F8]"],
+[data-mode="dark"] .fc-main [class~="text-white"] {
+  color: var(--theme-text) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#A7B0BE]"],
+[data-mode="dark"] .fc-main [class~="text-slate-300"],
+[data-mode="dark"] .fc-main [class~="text-slate-400"],
+[data-mode="dark"] .fc-main [class~="text-slate-500"] {
+  color: var(--theme-text-secondary) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#6F7B8A]"],
+[data-mode="dark"] .fc-main [class~="text-[#536273]"],
+[data-mode="dark"] .fc-main [class~="text-[#8290A0]"],
+[data-mode="dark"] .fc-main [class~="text-slate-600"],
+[data-mode="dark"] .fc-main [class~="text-slate-700"] {
+  color: var(--theme-text-muted) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#19B7FF]"],
+[data-mode="dark"] .fc-main [class~="text-[#38BDF8]"],
+[data-mode="dark"] .fc-main [class~="text-sky-300"],
+[data-mode="dark"] .fc-main [class~="text-sky-400"] {
+  color: var(--theme-primary) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#F3B326]"],
+[data-mode="dark"] .fc-main [class~="text-amber-300"],
+[data-mode="dark"] .fc-main [class~="text-amber-400"] {
+  color: var(--theme-warning) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#1FD18A]"],
+[data-mode="dark"] .fc-main [class~="text-emerald-300"],
+[data-mode="dark"] .fc-main [class~="text-emerald-400"] {
+  color: var(--theme-success) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="text-[#EF5350]"],
+[data-mode="dark"] .fc-main [class~="text-red-300"],
+[data-mode="dark"] .fc-main [class~="text-red-400"] {
+  color: var(--theme-danger) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-[#19B7FF]"],
+[data-mode="dark"] .fc-main [class~="bg-[#38BDF8]"],
+[data-mode="dark"] .fc-main [class~="bg-sky-400"] {
+  background: var(--theme-primary) !important;
+  color: #071018 !important;
+  box-shadow: none !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-[#1FD18A]"],
+[data-mode="dark"] .fc-main [class~="bg-emerald-400"] {
+  background-color: var(--theme-success) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-[#F3B326]"],
+[data-mode="dark"] .fc-main [class~="bg-amber-300"],
+[data-mode="dark"] .fc-main [class~="bg-amber-400"] {
+  background-color: var(--theme-warning) !important;
+}
+
+[data-mode="dark"] .fc-main [class~="bg-[#EF5350]"],
+[data-mode="dark"] .fc-main [class~="bg-red-400"] {
+  background-color: var(--theme-danger) !important;
+}

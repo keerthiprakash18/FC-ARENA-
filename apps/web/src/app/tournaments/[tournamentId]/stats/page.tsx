@@ -368,7 +368,7 @@ export default function TournamentStatsPage() {
 
           <Link
             href={
-              `/tournaments/${params.tournamentId}/achievements`
+              `/tournaments/${tournamentId}/achievements`
             }
             className="mt-4 inline-flex text-sm font-black text-amber-300"
           >

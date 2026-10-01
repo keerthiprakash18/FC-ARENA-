@@ -1011,6 +1011,91 @@ export class NotificationsService {
         },
       );
     }
+    /*
+     * 9. Seasonal FC Arena awards
+     */
+    const seasonalAwards =
+      await this.prisma.seasonalAward.findMany({
+        where: {
+          userId,
+        },
+
+        orderBy: {
+          awardedAt:
+            'asc',
+        },
+      });
+
+    const seasonIds =
+      [
+        ...new Set(
+          seasonalAwards.map(
+            (award) =>
+              award.seasonId,
+          ),
+        ),
+      ];
+
+    const awardSeasons =
+      seasonIds.length > 0
+        ? await this.prisma.ballonSeason.findMany({
+            where: {
+              id: {
+                in:
+                  seasonIds,
+              },
+            },
+
+            select: {
+              id: true,
+              name: true,
+            },
+          })
+        : [];
+
+    const awardSeasonNames =
+      new Map(
+        awardSeasons.map(
+          (season) => [
+            season.id,
+            season.name,
+          ],
+        ),
+      );
+
+    for (
+      const award
+      of seasonalAwards
+    ) {
+      await this.ensure(
+        userId,
+        {
+          type:
+            'ACHIEVEMENT_RECEIVED',
+
+          title:
+            'Seasonal Award Received',
+
+          message:
+            `${award.title} — ${awardSeasonNames.get(award.seasonId) ?? 'FC Arena'}`,
+
+          href:
+            '/awards',
+
+          entityType:
+            'SeasonalAward',
+
+          entityId:
+            award.id,
+
+          dedupeKey:
+            `seasonal-award:${award.id}`,
+
+          eventAt:
+            award.awardedAt,
+        },
+      );
+    }
   }
 
   private async ensure(

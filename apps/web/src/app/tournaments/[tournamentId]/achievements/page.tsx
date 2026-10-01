@@ -1,6 +1,5 @@
 'use client';
 
-import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
 import {
   useParams,
@@ -13,7 +12,15 @@ import {
 import {
   AppShell,
 } from '@/components/app/app-shell';
-
+import {
+  confirmAction,
+} from '@/components/fc/confirmation-provider';
+import {
+  FcPanel,
+} from '@/components/fc/fc-ui';
+import {
+  TournamentNavigation,
+} from '@/components/tournaments/tournament-navigation';
 import {
   authenticatedRequest,
   type CurrentUser,
@@ -25,6 +32,7 @@ interface Achievement {
   type: string;
   title: string;
   description: string | null;
+  metadata?: Record<string, unknown> | null;
   awardedAt: string;
 
   user: {
@@ -33,7 +41,6 @@ interface Achievement {
 
     player: {
       playerCode: string;
-
       identity: {
         inGameName: string;
       } | null;
@@ -53,9 +60,46 @@ interface AchievementData {
   };
 
   isLeagueAdmin: boolean;
+  achievements: Achievement[];
+}
 
-  achievements:
-    Achievement[];
+interface RaceRow {
+  position: number;
+  userId: string;
+  fullName: string;
+  inGameName: string | null;
+  playerCode: string | null;
+  profileImageUrl: string | null;
+  matches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goals: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  goalsPerMatch: number;
+  cleanSheets: number;
+  cleanSheetRate: number;
+  goalsAgainstPerMatch: number;
+  rating: number | null;
+  ratingBreakdown:
+    Record<string, number> | null;
+}
+
+interface AwardRaceData {
+  tournament: {
+    id: string;
+    name: string;
+    status: string;
+    mode: string;
+  };
+
+  available: boolean;
+  reason: string | null;
+  goldenBoot: RaceRow[];
+  goldenGlove: RaceRow[];
+  playerOfTournament:
+    RaceRow[];
 }
 
 function playerName(
@@ -69,70 +113,230 @@ function playerName(
   );
 }
 
+function racePlayerName(
+  row: RaceRow,
+) {
+  return (
+    row.inGameName ||
+    row.fullName
+  );
+}
+
 function iconFor(
   type: string,
 ) {
   switch (type) {
     case 'TOURNAMENT_CHAMPION':
       return '🏆';
-
     case 'TOURNAMENT_RUNNER_UP':
       return '🥈';
-
     case 'GOLDEN_BOOT':
       return '⚽';
-
+    case 'GOLDEN_GLOVE':
+      return '🧤';
     case 'BEST_PLAYER':
       return '⭐';
-
     case 'WINNING_STREAK':
       return '🔥';
-
     default:
       return '🎖';
   }
 }
 
+function publicAwardName(
+  type: string,
+) {
+  if (
+    type ===
+    'BEST_PLAYER'
+  ) {
+    return 'Player of the Tournament';
+  }
+
+  return type
+    .replaceAll(
+      '_',
+      ' ',
+    )
+    .toLowerCase()
+    .replace(
+      /\b\w/g,
+      (
+        character,
+      ) =>
+        character.toUpperCase(),
+    );
+}
+
+function RaceList({
+  title,
+  icon,
+  rows,
+  metric,
+}: {
+  title: string;
+  icon: string;
+  rows: RaceRow[];
+  metric: (
+    row: RaceRow,
+  ) => string;
+}) {
+  return (
+    <FcPanel className="overflow-hidden">
+      <div className="border-b border-white/[0.07] p-5">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+          Live Race
+        </p>
+
+        <h2 className="mt-1 flex items-center gap-2 text-lg font-black">
+          <span>
+            {icon}
+          </span>
+          {title}
+        </h2>
+      </div>
+
+      <div className="divide-y divide-white/[0.06]">
+        {rows
+          .slice(
+            0,
+            5,
+          )
+          .map(
+            (
+              row,
+            ) => (
+              <div
+                key={
+                  row.userId
+                }
+                className="grid grid-cols-[32px_1fr_auto] items-center gap-3 p-4"
+              >
+                <span className={
+                  row.position <=
+                  3
+                    ? 'text-center text-sm font-black text-amber-300'
+                    : 'text-center text-xs font-black text-slate-600'
+                }>
+                  #
+                  {
+                    row.position
+                  }
+                </span>
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-black">
+                    {racePlayerName(
+                      row,
+                    )}
+                  </p>
+
+                  <p className="mt-1 truncate font-mono text-[9px] text-slate-600">
+                    {
+                      row.playerCode ||
+                      'FC Arena Player'
+                    }
+                  </p>
+                </div>
+
+                <p className="text-right text-xs font-black text-slate-300">
+                  {metric(
+                    row,
+                  )}
+                </p>
+              </div>
+            ),
+          )}
+
+        {rows.length ===
+        0 ? (
+          <div className="p-6 text-center text-sm text-slate-500">
+            Verified results will populate this race.
+          </div>
+        ) : null}
+      </div>
+    </FcPanel>
+  );
+}
+
 export default function AchievementsPage() {
   const params =
     useParams<{
-      tournamentId: string;
+      tournamentId:
+        string;
     }>();
 
-  const [user, setUser] =
+  const [
+    user,
+    setUser,
+  ] =
     useState<CurrentUser | null>(
       null,
     );
 
-  const [data, setData] =
+  const [
+    data,
+    setData,
+  ] =
     useState<AchievementData | null>(
       null,
     );
 
-  const [busy, setBusy] =
+  const [
+    races,
+    setRaces,
+  ] =
+    useState<AwardRaceData | null>(
+      null,
+    );
+
+  const [
+    busy,
+    setBusy,
+  ] =
     useState(false);
 
-  const [message, setMessage] =
+  const [
+    message,
+    setMessage,
+  ] =
     useState('');
 
-  const [error, setError] =
+  const [
+    error,
+    setError,
+  ] =
     useState('');
 
   async function load() {
-    const response =
-      await authenticatedRequest<{
-        success: true;
+    const [
+      achievementsResponse,
+      racesResponse,
+    ] =
+      await Promise.all([
+        authenticatedRequest<{
+          success: true;
+          data: AchievementData;
+          error: null;
+        }>(
+          `/tournaments/${params.tournamentId}/achievements`,
+        ),
 
-        data:
-          AchievementData;
-
-        error: null;
-      }>(
-        `/tournaments/${params.tournamentId}/achievements`,
-      );
+        authenticatedRequest<{
+          success: true;
+          data: AwardRaceData;
+          error: null;
+        }>(
+          `/tournaments/${params.tournamentId}/award-races`,
+        ),
+      ]);
 
     setData(
-      response.data,
+      achievementsResponse.data,
+    );
+
+    setRaces(
+      racesResponse.data,
     );
   }
 
@@ -142,14 +346,18 @@ export default function AchievementsPage() {
         const current =
           await getCurrentUser();
 
-        setUser(current);
+        setUser(
+          current,
+        );
 
         await load();
-      } catch (err) {
+      } catch (
+        err
+      ) {
         setError(
           err instanceof Error
             ? err.message
-            : 'Unable to load achievements.',
+            : 'Unable to load tournament awards.',
         );
       }
     })();
@@ -160,47 +368,50 @@ export default function AchievementsPage() {
   async function completeTournament() {
     if (
       !(await confirmAction(
-        'Complete this Tournament? Champion and verified achievements will be generated permanently.',
+        'Complete this Tournament? Final verified achievements will be generated permanently.',
       ))
     ) {
       return;
     }
 
-    setBusy(true);
-    setMessage('');
-    setError('');
+    setBusy(
+      true,
+    );
+
+    setMessage(
+      '',
+    );
+
+    setError(
+      '',
+    );
 
     try {
-      const response =
-        await authenticatedRequest<{
-          success: true;
-
-          data:
-            AchievementData;
-
-          error: null;
-        }>(
-          `/tournaments/${params.tournamentId}/complete`,
-          {
-            method: 'POST',
-          },
-        );
-
-      setData(
-        response.data,
+      await authenticatedRequest(
+        `/tournaments/${params.tournamentId}/complete`,
+        {
+          method:
+            'POST',
+        },
       );
+
+      await load();
 
       setMessage(
-        'Tournament completed and achievements generated.',
+        'Tournament completed and final awards generated.',
       );
-    } catch (err) {
+    } catch (
+      err
+    ) {
       setError(
         err instanceof Error
           ? err.message
           : 'Unable to complete Tournament.',
       );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
@@ -210,203 +421,318 @@ export default function AchievementsPage() {
   ) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        {error ||
-          'Loading Achievements...'}
+        {
+          error ||
+          'Loading Awards...'
+        }
       </div>
     );
   }
 
   const headlineAwards =
     data.achievements.filter(
-      (achievement) =>
+      (
+        achievement,
+      ) =>
         achievement.type !==
         'TOURNAMENT_PARTICIPATION',
     );
 
   const participation =
     data.achievements.filter(
-      (achievement) =>
+      (
+        achievement,
+      ) =>
         achievement.type ===
         'TOURNAMENT_PARTICIPATION',
     );
 
+  const isCompleted =
+    data.tournament.status ===
+    'COMPLETED';
+
   return (
     <AppShell
       playerName={
-        user.player?.identity
+        user.player
+          ?.identity
           ?.inGameName
       }
     >
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
-            href={`/tournaments/${params.tournamentId}`}
-            className="text-sm font-bold text-slate-500 hover:text-white"
+            href={
+              `/tournaments/${params.tournamentId}`
+            }
+            className="text-sm font-black text-slate-500 transition hover:text-white"
           >
             ← Tournament
           </Link>
 
           <Link
-            href={`/tournaments/${params.tournamentId}/rankings`}
-            className="text-sm font-bold text-sky-400"
+            href="/awards"
+            className="text-sm font-black text-amber-300"
           >
-            Rankings
+            Hall of Honours →
           </Link>
         </div>
 
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-8 md:p-10">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
-            Hall of Champions
-          </p>
+        <TournamentNavigation
+          tournamentId={
+            params.tournamentId
+          }
+        />
 
-          <h1 className="mt-3 text-4xl font-black md:text-6xl">
-            {data.tournament.name}
-          </h1>
+        <section className="relative overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0a1018] p-6 sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-amber-300/10 blur-3xl" />
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-black text-sky-300">
-              {data.tournament.mode}
-            </span>
-
-            <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-black text-slate-400">
-              {data.tournament.status}
-            </span>
-          </div>
-
-          {data.tournament.completedAt ? (
-            <p className="mt-5 text-sm text-slate-500">
-              Completed{' '}
-              {new Date(
-                data.tournament.completedAt,
-              ).toLocaleString()}
+          <div className="relative">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+              Tournament Honours
             </p>
-          ) : null}
 
-          {data.isLeagueAdmin &&
-          data.tournament.status !==
-            'COMPLETED' &&
-          data.tournament.status !==
-            'CANCELLED' ? (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() =>
-                void completeTournament()
+            <h1 className="mt-3 text-3xl font-black sm:text-5xl">
+              {
+                data.tournament
+                  .name
               }
-              className="mt-8 rounded-xl bg-amber-300 px-6 py-3 font-black text-black disabled:opacity-50"
-            >
-              Complete Tournament & Generate Achievements
-            </button>
-          ) : null}
+            </h1>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-xs font-black text-sky-300">
+                {
+                  data.tournament
+                    .mode
+                }
+              </span>
+
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-black text-slate-400">
+                {
+                  data.tournament
+                    .status
+                }
+              </span>
+            </div>
+
+            {data.isLeagueAdmin &&
+            !isCompleted &&
+            data.tournament
+              .status !==
+              'CANCELLED' ? (
+              <button
+                type="button"
+                disabled={
+                  busy
+                }
+                onClick={() =>
+                  void completeTournament()
+                }
+                className="mt-7 rounded-xl bg-amber-300 px-5 py-3 text-sm font-black text-[#151006] disabled:opacity-50"
+              >
+                {
+                  busy
+                    ? 'Generating...'
+                    : 'Complete Tournament & Generate Awards'
+                }
+              </button>
+            ) : null}
+          </div>
         </section>
 
         {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-4 text-sm font-semibold text-emerald-300">
+            {
+              message
+            }
           </div>
         ) : null}
 
         {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
+            {
+              error
+            }
           </div>
         ) : null}
 
-        {data.tournament.status !==
-        'COMPLETED' ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-8 text-center">
-            <p className="text-5xl">
-              🏆
+        {!isCompleted &&
+        races?.available ? (
+          <section>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Live Performance
             </p>
 
-            <h2 className="mt-4 text-2xl font-black">
-              Tournament Still Active
+            <h2 className="mt-1 text-2xl font-black">
+              Award Races
             </h2>
 
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-500">
-              Achievements are generated only after all Tournament Matches are completed and results are verified.
-            </p>
-          </section>
-        ) : null}
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+              <RaceList
+                title="Golden Boot"
+                icon="⚽"
+                rows={
+                  races.goldenBoot
+                }
+                metric={
+                  (
+                    row,
+                  ) =>
+                    `${row.goals} goals · ${row.goalsPerMatch}/M`
+                }
+              />
 
-        {headlineAwards.length >
-        0 ? (
-          <section>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-              Official Awards
-            </p>
+              <RaceList
+                title="Golden Glove"
+                icon="🧤"
+                rows={
+                  races.goldenGlove
+                }
+                metric={
+                  (
+                    row,
+                  ) =>
+                    `${row.cleanSheets} CS · ${row.goalsAgainstPerMatch} GA/M`
+                }
+              />
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {headlineAwards.map(
-                (achievement) => (
-                  <article
-                    key={
-                      achievement.id
-                    }
-                    className="relative overflow-hidden rounded-[24px] border border-amber-400/15 bg-[#0a1018] p-6"
-                  >
-                    <div className="absolute -right-6 -top-6 text-8xl opacity-[0.05]">
-                      {iconFor(
-                        achievement.type,
-                      )}
-                    </div>
-
-                    <p className="text-4xl">
-                      {iconFor(
-                        achievement.type,
-                      )}
-                    </p>
-
-                    <h2 className="mt-5 text-xl font-black">
-                      {
-                        achievement.title
-                      }
-                    </h2>
-
-                    <p className="mt-3 text-lg font-black text-sky-400">
-                      {playerName(
-                        achievement,
-                      )}
-                    </p>
-
-                    <p className="mt-1 font-mono text-xs text-slate-600">
-                      {achievement.user
-                        .player
-                        ?.playerCode ||
-                        '—'}
-                    </p>
-
-                    {achievement.description ? (
-                      <p className="mt-4 text-sm leading-6 text-slate-500">
-                        {
-                          achievement.description
-                        }
-                      </p>
-                    ) : null}
-                  </article>
-                ),
-              )}
+              <RaceList
+                title="Player of Tournament"
+                icon="⭐"
+                rows={
+                  races.playerOfTournament
+                }
+                metric={
+                  (
+                    row,
+                  ) =>
+                    `${row.rating ?? 0}/100`
+                }
+              />
             </div>
           </section>
         ) : null}
 
-        {participation.length >
-        0 ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-              Tournament Participants
+        {!isCompleted &&
+        races &&
+        !races.available ? (
+          <FcPanel className="p-5">
+            <p className="text-sm leading-6 text-slate-500">
+              {
+                races.reason
+              }
+            </p>
+          </FcPanel>
+        ) : null}
+
+        {isCompleted ? (
+          <section>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Official Awards
             </p>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <h2 className="mt-1 text-2xl font-black">
+              Final Honours
+            </h2>
+
+            {headlineAwards.length >
+            0 ? (
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {headlineAwards.map(
+                  (
+                    achievement,
+                  ) => (
+                    <FcPanel
+                      key={
+                        achievement.id
+                      }
+                      className="relative overflow-hidden p-6"
+                    >
+                      <div className="absolute -right-4 -top-5 text-7xl opacity-[0.05]">
+                        {iconFor(
+                          achievement.type,
+                        )}
+                      </div>
+
+                      <p className="text-4xl">
+                        {iconFor(
+                          achievement.type,
+                        )}
+                      </p>
+
+                      <p className="mt-5 text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+                        {publicAwardName(
+                          achievement.type,
+                        )}
+                      </p>
+
+                      <h3 className="mt-2 text-xl font-black">
+                        {playerName(
+                          achievement,
+                        )}
+                      </h3>
+
+                      <p className="mt-1 font-mono text-[10px] text-slate-600">
+                        {
+                          achievement.user
+                            .player
+                            ?.playerCode ||
+                          'FC Arena Player'
+                        }
+                      </p>
+
+                      {achievement.description ? (
+                        <p className="mt-4 text-sm leading-6 text-slate-500">
+                          {
+                            achievement.description
+                          }
+                        </p>
+                      ) : null}
+                    </FcPanel>
+                  ),
+                )}
+              </div>
+            ) : (
+              <FcPanel className="mt-4 p-8 text-center text-sm text-slate-500">
+                No final awards were generated.
+              </FcPanel>
+            )}
+          </section>
+        ) : (
+          <FcPanel className="p-6 text-center">
+            <p className="text-4xl">
+              🏆
+            </p>
+
+            <h2 className="mt-3 text-xl font-black">
+              Tournament Still Active
+            </h2>
+
+            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+              Final achievements are locked only after tournament matches are complete and verified.
+            </p>
+          </FcPanel>
+        )}
+
+        {participation.length >
+        0 ? (
+          <section>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Participants
+            </p>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {participation.map(
-                (achievement) => (
-                  <div
+                (
+                  achievement,
+                ) => (
+                  <FcPanel
                     key={
                       achievement.id
                     }
-                    className="rounded-xl border border-white/5 bg-black/10 p-4"
+                    className="p-4"
                   >
-                    <p className="font-black">
+                    <p className="text-sm font-black">
                       🎖{' '}
                       {playerName(
                         achievement,
@@ -416,20 +742,11 @@ export default function AchievementsPage() {
                     <p className="mt-1 text-xs text-slate-600">
                       Tournament Participation
                     </p>
-                  </div>
+                  </FcPanel>
                 ),
               )}
             </div>
           </section>
-        ) : null}
-
-        {data.tournament.status ===
-          'COMPLETED' &&
-        data.achievements.length ===
-          0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#0a1018] p-10 text-center text-slate-500">
-            No achievements were generated.
-          </div>
         ) : null}
       </div>
     </AppShell>

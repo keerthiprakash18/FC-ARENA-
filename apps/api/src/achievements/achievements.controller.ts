@@ -53,6 +53,23 @@ export class AchievementsController {
   }
 
   @Get(
+    'tournaments/:tournamentId/award-races',
+  )
+  tournamentAwardRaces(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+  ): Promise<unknown> {
+    return this.achievementsService.getTournamentAwardRaces(
+      request.user.sub,
+      tournamentId,
+    );
+  }
+
+  @Get(
     'tournaments/:tournamentId/achievements',
   )
   tournamentAchievements(

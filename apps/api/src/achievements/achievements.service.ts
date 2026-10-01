@@ -5,11 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { AwardsService } from '../awards/awards.service.js';
 
 @Injectable()
 export class AchievementsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly awardsService: AwardsService,
   ) {}
 
   async completeTournament(
@@ -137,6 +139,15 @@ export class AchievementsService {
         },
       });
     }
+
+    const awardRaceResponse =
+      await this.awardsService.getTournamentAwardRace(
+        adminUserId,
+        tournamentId,
+      );
+
+    const awardRace =
+      awardRaceResponse.data;
 
     await this.prisma.$transaction(
       async (tx) => {
@@ -365,7 +376,7 @@ export class AchievementsService {
         if (
           statistics.length > 0
         ) {
-          const ranked =
+          const fallbackRanked =
             [...statistics].sort(
               (a, b) => {
                 const aPoints =
@@ -404,16 +415,32 @@ export class AchievementsService {
               },
             );
 
+          const raceBest =
+            awardRace
+              .individualAwardsSupported
+              ? awardRace
+                  .playerOfTheTournament[0]
+              : null;
+
           const best =
-            ranked[0];
+            (
+              raceBest
+                ? statistics.find(
+                    (stat) =>
+                      stat.userId ===
+                      raceBest.userId,
+                  )
+                : null
+            ) ??
+            fallbackRanked[0];
 
           await this.award(
             tx,
             best.userId,
             tournamentId,
             'BEST_PLAYER',
-            'â­ Best Player',
-            `Best Player of ${currentTournament.name}.`,
+            '⭐ Player of the Tournament',
+            `Player of the Tournament in ${currentTournament.name}.`,
             {
               matches:
                 best.matches,
@@ -427,45 +454,108 @@ export class AchievementsService {
                 best.goalsFor,
               goalDifference:
                 best.goalDifference,
+              ...(raceBest
+                ? {
+                    rating:
+                      raceBest.rating,
+                  }
+                : {}),
             },
           );
 
           if (
             currentTournament.mode ===
-            'SOLO'
+              'SOLO' &&
+            awardRace
+              .individualAwardsSupported
           ) {
-            const topGoals =
-              Math.max(
-                ...statistics.map(
-                  (stat) =>
-                    stat.goalsFor,
-                ),
-              );
+            const boot =
+              awardRace.goldenBoot;
+
+            const topBoot =
+              boot[0];
 
             if (
-              topGoals > 0
+              topBoot &&
+              topBoot.goalsFor >
+                0
             ) {
-              const goldenBootPlayers =
-                statistics.filter(
-                  (stat) =>
-                    stat.goalsFor ===
-                    topGoals,
+              const jointBoot =
+                boot.filter(
+                  (player) =>
+                    player.goalsFor ===
+                      topBoot.goalsFor &&
+                    player.goalsPerMatch ===
+                      topBoot.goalsPerMatch &&
+                    player.goalDifference ===
+                      topBoot.goalDifference &&
+                    player.wins ===
+                      topBoot.wins,
                 );
 
               for (
                 const player
-                of goldenBootPlayers
+                of jointBoot
               ) {
                 await this.award(
                   tx,
                   player.userId,
                   tournamentId,
                   'GOLDEN_BOOT',
-                  'âš½ Golden Boot',
-                  `Top scorer in ${currentTournament.name} with ${topGoals} goals.`,
+                  '⚽ Golden Boot',
+                  `Top scorer in ${currentTournament.name} with ${player.goalsFor} goals.`,
                   {
                     goals:
-                      topGoals,
+                      player.goalsFor,
+                    goalsPerMatch:
+                      player.goalsPerMatch,
+                  },
+                );
+              }
+            }
+
+            const glove =
+              awardRace.goldenGlove;
+
+            const topGlove =
+              glove[0];
+
+            if (topGlove) {
+              const jointGlove =
+                glove.filter(
+                  (player) =>
+                    player.cleanSheets ===
+                      topGlove.cleanSheets &&
+                    player.cleanSheetRate ===
+                      topGlove.cleanSheetRate &&
+                    player.goalsAgainstPerMatch ===
+                      topGlove.goalsAgainstPerMatch &&
+                    player.matches ===
+                      topGlove.matches &&
+                    player.goalsAgainst ===
+                      topGlove.goalsAgainst,
+                );
+
+              for (
+                const player
+                of jointGlove
+              ) {
+                await this.award(
+                  tx,
+                  player.userId,
+                  tournamentId,
+                  'GOLDEN_GLOVE',
+                  '🧤 Golden Glove',
+                  `Best defensive record in ${currentTournament.name} with ${player.cleanSheets} clean sheet(s).`,
+                  {
+                    cleanSheets:
+                      player.cleanSheets,
+                    cleanSheetRate:
+                      player.cleanSheetRate,
+                    goalsAgainst:
+                      player.goalsAgainst,
+                    goalsAgainstPerMatch:
+                      player.goalsAgainstPerMatch,
                   },
                 );
               }
@@ -996,6 +1086,7 @@ export class AchievementsService {
       | 'TOURNAMENT_CHAMPION'
       | 'TOURNAMENT_RUNNER_UP'
       | 'GOLDEN_BOOT'
+      | 'GOLDEN_GLOVE'
       | 'BEST_PLAYER'
       | 'WINNING_STREAK'
       | 'TOURNAMENT_PARTICIPATION',
@@ -1028,6 +1119,39 @@ export class AchievementsService {
         title,
         description,
         metadata,
+      },
+    });
+
+    const eventAt =
+      new Date();
+
+    await tx.notification.upsert({
+      where: {
+        dedupeKey:
+          `achievement:${tournamentId}:${type}:${userId}`,
+      },
+      create: {
+        userId,
+        type:
+          'ACHIEVEMENT_RECEIVED',
+        title,
+        message:
+          description,
+        href:
+          `/tournaments/${tournamentId}/achievements`,
+        entityType:
+          'ACHIEVEMENT',
+        entityId:
+          `${tournamentId}:${type}`,
+        dedupeKey:
+          `achievement:${tournamentId}:${type}:${userId}`,
+        eventAt,
+      },
+      update: {
+        title,
+        message:
+          description,
+        eventAt,
       },
     });
   }

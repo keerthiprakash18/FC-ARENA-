@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">FC Arena Ballon mark</title>
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#FFF2A6"/>
+      <stop offset=".45" stop-color="#F5C451"/>
+      <stop offset="1" stop-color="#9A5D0B"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#0B0C0F"/>
+  <path d="M54 41 85 72l43-45 43 45 31-31-13 61H67Z" fill="url(#g)"/>
+  <circle cx="128" cy="147" r="67" fill="url(#g)" stroke="#FFE58A" stroke-width="5"/>
+  <path d="m128 112 27 20-10 32h-34l-10-32Z" fill="#171207"/>
+  <path d="m128 112 0-31M101 132l-31-10M155 132l31-10M111 164l-18 30M145 164l18 30" stroke="#704409" stroke-width="7" stroke-linecap="round"/>
+  <path d="M83 201h90l13 26H70Z" fill="url(#g)"/>
+</svg>

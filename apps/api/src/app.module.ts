@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AchievementsModule } from './achievements/achievements.module.js';
+import { AwardsModule } from './awards/awards.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { PrismaModule } from './database/prisma.module.js';
@@ -30,6 +31,7 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
     OcrModule,
     RankingsModule,
     AchievementsModule,
+    AwardsModule,
     AiModule,
     NotificationsModule,
     PlayerCareerModule,

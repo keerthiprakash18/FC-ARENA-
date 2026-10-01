@@ -177,9 +177,17 @@ enum AchievementType {
   TOURNAMENT_CHAMPION
   TOURNAMENT_RUNNER_UP
   GOLDEN_BOOT
+  GOLDEN_GLOVE
   BEST_PLAYER
   WINNING_STREAK
   TOURNAMENT_PARTICIPATION
+}
+
+enum BallonSeasonStatus {
+  DRAFT
+  LIVE
+  LOCKED
+  ARCHIVED
 }
 
 enum NotificationType {
@@ -248,8 +256,11 @@ model User {
   ocrSubmissions  OcrExtraction[]  @relation("OcrSubmitter")
   ocrHomeMatches  OcrExtraction[]  @relation("OcrHomeMatchedUser")
   ocrAwayMatches  OcrExtraction[]  @relation("OcrAwayMatchedUser")
-  achievements    Achievement[]
-  notifications   Notification[]
+  achievements               Achievement[]
+  createdBallonSeasons       BallonSeason[] @relation("BallonSeasonCreator")
+  wonBallonSeasons           BallonSeason[] @relation("BallonSeasonWinner")
+  wonRisingStarBallonSeasons BallonSeason[] @relation("BallonSeasonRisingStarWinner")
+  notifications              Notification[]
   pushDevices PushDevice[]
   roleAssignments RoleAssignment[] @relation("AssignedRoleUser")
   rolesAssigned   RoleAssignment[] @relation("RoleAssigner")
@@ -342,8 +353,9 @@ model League {
   creator      User                @relation("LeagueCreator", fields: [creatorUserId], references: [id], onDelete: Restrict)
   members      LeagueMember[]
   applications LeagueApplication[]
-  admins       LeagueAdmin[]
-  tournaments  Tournament[]
+  admins        LeagueAdmin[]
+  tournaments   Tournament[]
+  ballonSeasons BallonSeason[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -448,6 +460,7 @@ model Tournament {
   playerStatistics    PlayerTournamentStatistic[]
   statEvents          MatchResultStatEvent[]
   achievements        Achievement[]
+  ballonSeasonEntries BallonSeasonTournament[]
   groups              TournamentGroup[]
 
   @@index([leagueId, status])
@@ -830,6 +843,66 @@ model AuthRateLimit {
   @@id([action, keyHash])
   @@index([updatedAt])
   @@map("auth_rate_limits")
+}
+
+model BallonSeason {
+  id                     String             @id @default(uuid()) @db.Uuid
+  name                   String             @db.VarChar(120)
+  startAt                DateTime
+  endAt                  DateTime
+  minMatches             Int                @default(6)
+  rankingSize            Int                @default(20)
+  soloOnly               Boolean            @default(true)
+  status                 BallonSeasonStatus @default(DRAFT)
+  leagueId               String?            @db.Uuid
+  createdByUserId        String             @db.Uuid
+  winnerUserId           String?            @db.Uuid
+  winnerRating           Float?
+  risingStarWinnerUserId String?            @db.Uuid
+  startedAt              DateTime?
+  lockedAt               DateTime?
+  archivedAt             DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  league           League?                  @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  createdBy        User                     @relation("BallonSeasonCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  winner           User?                    @relation("BallonSeasonWinner", fields: [winnerUserId], references: [id], onDelete: SetNull)
+  risingStarWinner User?                    @relation("BallonSeasonRisingStarWinner", fields: [risingStarWinnerUserId], references: [id], onDelete: SetNull)
+  tournaments      BallonSeasonTournament[]
+  snapshots        BallonRankingSnapshot[]
+
+  @@index([status, startAt, endAt])
+  @@index([leagueId, status])
+  @@map("ballon_seasons")
+}
+
+model BallonSeasonTournament {
+  id           String   @id @default(uuid()) @db.Uuid
+  seasonId     String   @db.Uuid
+  tournamentId String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  season     BallonSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  tournament Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, tournamentId])
+  @@index([tournamentId])
+  @@map("ballon_season_tournaments")
+}
+
+model BallonRankingSnapshot {
+  id         String   @id @default(uuid()) @db.Uuid
+  seasonId   String   @db.Uuid
+  day        DateTime @db.Date
+  capturedAt DateTime @default(now())
+  positions  Json
+
+  season BallonSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, day])
+  @@index([seasonId, capturedAt])
+  @@map("ballon_ranking_snapshots")
 }
 
 model RankingSnapshot {

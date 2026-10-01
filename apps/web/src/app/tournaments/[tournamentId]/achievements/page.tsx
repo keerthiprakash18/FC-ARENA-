@@ -82,6 +82,9 @@ function iconFor(
     case 'GOLDEN_BOOT':
       return '⚽';
 
+    case 'GOLDEN_GLOVE':
+      return '🧤';
+
     case 'BEST_PLAYER':
       return '⭐';
 

@@ -120,16 +120,6 @@ export default function BallonSeasonsPage() {
           </Link>
         </div>
 
-        <div className="hidden">
-        <Link
-          href="/awards"
-          className="text-sm font-black text-slate-500 transition hover:text-amber-300"
-        >
-          ← Awards
-        </Link>
-
-        </div>
-
         <Image
           src="/awards/fc-arena-ballon-mark.svg"
           alt="FC Arena Ballon"

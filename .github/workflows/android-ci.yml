@@ -41,6 +41,14 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verify Android version source
+        run: node apps/android/verify-version.mjs
+
       - name: Validate Windows signing helper syntax
         shell: pwsh
         run: |

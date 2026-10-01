@@ -42,16 +42,33 @@ interface RosterSlot {
   user: Player;
 }
 
+interface MatchPermission {
+  canSubmit: boolean;
+  canConfirm: boolean;
+  canDispute: boolean;
+}
+
 interface WarMatch {
   id: string;
   sequence: number;
   leg: number;
   status: string;
+  resultStatus: string;
   homeScore: number | null;
   awayScore: number | null;
+  proofUrl: string | null;
+  disputeReason: string | null;
+  walkoverLeagueId: string | null;
+  resultSubmittedByLeagueId: string | null;
+  submittedAt: string | null;
+  confirmedAt: string | null;
+  disputedAt: string | null;
   completedAt: string | null;
+  homeLeagueId: string;
+  awayLeagueId: string;
   homePlayer: Player;
   awayPlayer: Player;
+  permissions: MatchPermission;
 }
 
 interface SideScore {
@@ -64,19 +81,48 @@ interface SideScore {
   goalDifference: number;
 }
 
+interface PlayerWarStat {
+  position: number;
+  userId: string;
+  fullName: string;
+  inGameName: string | null;
+  playerCode: string | null;
+  matches: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  winRate: number;
+}
+
 interface WarDetail {
   id: string;
   name: string;
   status: string;
   playerCount: number;
   legType: string;
+  pairingMode: string;
   winPoints: number;
   drawPoints: number;
   lossPoints: number;
+  challengeExpiresAt: string | null;
+  scheduledStartAt: string | null;
+  deadlineAt: string | null;
   acceptedAt: string | null;
+  homeReadyAt: string | null;
+  awayReadyAt: string | null;
+  homeRosterLockedAt: string | null;
+  awayRosterLockedAt: string | null;
+  rejectedAt: string | null;
+  rejectionReason: string | null;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
   startedAt: string | null;
   completedAt: string | null;
   winnerLeagueId: string | null;
+  rematchOfWarId: string | null;
   homeLeague: {
     id: string;
     name: string;
@@ -89,13 +135,20 @@ interface WarDetail {
     code: string;
     logoUrl: string | null;
   };
+  readiness: {
+    home: boolean;
+    away: boolean;
+  };
   permissions: {
     canManageHome: boolean;
     canManageAway: boolean;
     canAccept: boolean;
+    canReject: boolean;
+    canCancel: boolean;
     canStart: boolean;
     canUpdateResults: boolean;
     canComplete: boolean;
+    canRematch: boolean;
   };
   roster: {
     home: RosterSlot[];
@@ -115,15 +168,84 @@ interface WarDetail {
     leaderLeagueId: string | null;
     tieBreakOrder: string[];
   };
+  playerStats: PlayerWarStat[];
+  mvp: PlayerWarStat | null;
+  rivalry: {
+    previousWars: number;
+    homeWins: number;
+    awayWins: number;
+    draws: number;
+    homeBattlePoints: number;
+    awayBattlePoints: number;
+    recent: Array<{
+      id: string;
+      name: string;
+      completedAt: string | null;
+      winnerLeagueId: string | null;
+    }>;
+  };
 }
 
 function displayName(
-  player: Player,
+  player:
+    Player,
 ) {
   return (
     player.inGameName ||
     player.fullName
   );
+}
+
+function dateLabel(
+  value:
+    string | null,
+) {
+  if (!value) {
+    return 'Not set';
+  }
+
+  return new Date(
+    value,
+  ).toLocaleString();
+}
+
+function resultTone(
+  status: string,
+):
+  | 'emerald'
+  | 'amber'
+  | 'red'
+  | 'slate' {
+  if (
+    [
+      'CONFIRMED',
+      'WALKOVER_CONFIRMED',
+    ].includes(
+      status,
+    )
+  ) {
+    return 'emerald';
+  }
+
+  if (
+    [
+      'PENDING_CONFIRMATION',
+      'WALKOVER_PENDING',
+    ].includes(
+      status,
+    )
+  ) {
+    return 'amber';
+  }
+
+  if (
+    status ===
+    'DISPUTED'
+  ) {
+    return 'red';
+  }
+
+  return 'slate';
 }
 
 export default function LeagueWarDetailPage() {
@@ -184,6 +306,28 @@ export default function LeagueWarDetailPage() {
     >({});
 
   const [
+    proofs,
+    setProofs,
+  ] =
+    useState<
+      Record<
+        string,
+        string
+      >
+    >({});
+
+  const [
+    disputes,
+    setDisputes,
+  ] =
+    useState<
+      Record<
+        string,
+        string
+      >
+    >({});
+
+  const [
     busy,
     setBusy,
   ] =
@@ -211,13 +355,21 @@ export default function LeagueWarDetailPage() {
 
     const next:
       WarDetail =
-      response.data.war;
+      response
+        .data
+        .war;
 
-    setWar(next);
+    setWar(
+      next,
+    );
 
     if (
-      next.status !==
-      'LIVE'
+      [
+        'INVITED',
+        'ACCEPTED',
+      ].includes(
+        next.status,
+      )
     ) {
       setHomeSelection(
         next.roster.home.map(
@@ -239,31 +391,56 @@ export default function LeagueWarDetailPage() {
     }
 
     setScores(
-      Object.fromEntries(
-        next.matches.map(
-          (
-            match,
-          ) => [
-            match.id,
-            {
-              home:
-                match.homeScore ===
-                null
-                  ? ''
-                  : String(
-                      match.homeScore,
-                    ),
-              away:
-                match.awayScore ===
-                null
-                  ? ''
-                  : String(
-                      match.awayScore,
-                    ),
-            },
-          ],
+      (
+        current,
+      ) =>
+        Object.fromEntries(
+          next.matches.map(
+            (
+              match,
+            ) => [
+              match.id,
+              current[
+                match.id
+              ] ?? {
+                home:
+                  match.homeScore ===
+                  null
+                    ? ''
+                    : String(
+                        match.homeScore,
+                      ),
+                away:
+                  match.awayScore ===
+                  null
+                    ? ''
+                    : String(
+                        match.awayScore,
+                      ),
+              },
+            ],
+          ),
         ),
-      ),
+    );
+
+    setProofs(
+      (
+        current,
+      ) =>
+        Object.fromEntries(
+          next.matches.map(
+            (
+              match,
+            ) => [
+              match.id,
+              current[
+                match.id
+              ] ??
+                match.proofUrl ??
+                '',
+            ],
+          ),
+        ),
     );
 
     setLastUpdated(
@@ -349,6 +526,15 @@ export default function LeagueWarDetailPage() {
       ],
     );
 
+  const deadlinePassed =
+    Boolean(
+      war?.deadlineAt &&
+      new Date() >
+        new Date(
+          war.deadlineAt,
+        ),
+    );
+
   async function action(
     key: string,
     path: string,
@@ -381,6 +567,85 @@ export default function LeagueWarDetailPage() {
           : 'League War action failed.',
       );
     } finally {
+      setBusy(
+        '',
+      );
+    }
+  }
+
+  async function reasonAction(
+    kind:
+      'reject' |
+      'cancel',
+  ) {
+    if (!war) {
+      return;
+    }
+
+    const reason =
+      window.prompt(
+        kind ===
+        'reject'
+          ? 'Reason for rejecting this challenge? (optional)'
+          : 'Reason for cancelling this War? (optional)',
+      );
+
+    if (
+      reason ===
+      null
+    ) {
+      return;
+    }
+
+    await action(
+      kind,
+      `/league-wars/${war.id}/${kind}`,
+      {
+        method:
+          'POST',
+        body:
+          JSON.stringify({
+            reason:
+              reason.trim() ||
+              undefined,
+          }),
+      },
+    );
+  }
+
+  async function createRematch() {
+    if (!war) {
+      return;
+    }
+
+    setBusy(
+      'rematch',
+    );
+    setError(
+      '',
+    );
+
+    try {
+      const response =
+        await authenticatedRequest<any>(
+          `/league-wars/${war.id}/rematch`,
+          {
+            method:
+              'POST',
+          },
+        );
+
+      router.push(
+        `/league-war/${response.data.war.id}`,
+      );
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to create rematch.',
+      );
       setBusy(
         '',
       );
@@ -471,7 +736,37 @@ export default function LeagueWarDetailPage() {
     );
   }
 
-  async function saveResult(
+  async function setReady(
+    side:
+      'home' |
+      'away',
+    ready:
+      boolean,
+  ) {
+    if (!war) {
+      return;
+    }
+
+    await action(
+      `ready-${side}`,
+      `/league-wars/${war.id}/ready`,
+      {
+        method:
+          'POST',
+        body:
+          JSON.stringify({
+            leagueId:
+              side ===
+              'home'
+                ? war.homeLeague.id
+                : war.awayLeague.id,
+            ready,
+          }),
+      },
+    );
+  }
+
+  async function submitResult(
     match:
       WarMatch,
   ) {
@@ -527,6 +822,78 @@ export default function LeagueWarDetailPage() {
               home,
             awayScore:
               away,
+            proofUrl:
+              proofs[
+                match.id
+              ]?.trim() ||
+              undefined,
+          }),
+      },
+    );
+  }
+
+  async function disputeResult(
+    match:
+      WarMatch,
+  ) {
+    if (!war) {
+      return;
+    }
+
+    const reason =
+      disputes[
+        match.id
+      ]?.trim();
+
+    if (
+      !reason ||
+      reason.length <
+        3
+    ) {
+      setError(
+        'Enter a dispute reason before disputing the result.',
+      );
+      return;
+    }
+
+    await action(
+      `dispute-${match.id}`,
+      `/league-wars/${war.id}/matches/${match.id}/dispute`,
+      {
+        method:
+          'POST',
+        body:
+          JSON.stringify({
+            reason,
+          }),
+      },
+    );
+  }
+
+  async function submitWalkover(
+    match:
+      WarMatch,
+    winnerLeagueId:
+      string,
+  ) {
+    if (!war) {
+      return;
+    }
+
+    await action(
+      `walkover-${match.id}`,
+      `/league-wars/${war.id}/matches/${match.id}/walkover`,
+      {
+        method:
+          'POST',
+        body:
+          JSON.stringify({
+            winnerLeagueId,
+            proofUrl:
+              proofs[
+                match.id
+              ]?.trim() ||
+              undefined,
           }),
       },
     );
@@ -556,7 +923,7 @@ export default function LeagueWarDetailPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/league-war"
@@ -565,7 +932,7 @@ export default function LeagueWarDetailPage() {
             ← League Wars
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FcStatusBadge
               label={
                 war.status
@@ -577,7 +944,15 @@ export default function LeagueWarDetailPage() {
                   : war.status ===
                       'COMPLETED'
                     ? 'emerald'
-                    : 'amber'
+                    : [
+                          'REJECTED',
+                          'CANCELLED',
+                          'EXPIRED',
+                        ].includes(
+                          war.status,
+                        )
+                      ? 'slate'
+                      : 'amber'
               }
             />
 
@@ -592,6 +967,27 @@ export default function LeagueWarDetailPage() {
                     })}`
                   : ''}
               </span>
+            ) : null}
+
+            {war.permissions
+              .canRematch ? (
+              <button
+                type="button"
+                disabled={
+                  Boolean(
+                    busy,
+                  )
+                }
+                onClick={() =>
+                  void createRematch()
+                }
+                className="min-h-9 rounded-xl border border-rose-400/25 bg-rose-400/[0.06] px-4 text-xs font-black text-rose-300 disabled:opacity-40"
+              >
+                {busy ===
+                'rematch'
+                  ? 'Creating...'
+                  : '↻ Rematch'}
+              </button>
             ) : null}
           </div>
         </div>
@@ -628,7 +1024,9 @@ export default function LeagueWarDetailPage() {
                 'HOME_AWAY'
                   ? 'Home & Away'
                   : 'One Leg'
-              } · W{
+              } · {
+                war.pairingMode
+              } Pairing · W{
                 war.winPoints
               } / D{
                 war.drawPoints
@@ -680,6 +1078,18 @@ export default function LeagueWarDetailPage() {
               <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-600">
                 War Points
               </p>
+
+              <p className={
+                war.readiness
+                  .home
+                  ? 'mt-2 text-[10px] font-black uppercase text-emerald-400'
+                  : 'mt-2 text-[10px] font-black uppercase text-slate-600'
+              }>
+                {war.readiness
+                  .home
+                  ? '✓ Ready & Locked'
+                  : 'Not Ready'}
+              </p>
             </div>
 
             <div className="text-center">
@@ -698,7 +1108,7 @@ export default function LeagueWarDetailPage() {
               </p>
 
               <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                played
+                confirmed
               </p>
             </div>
 
@@ -743,6 +1153,18 @@ export default function LeagueWarDetailPage() {
               <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-600">
                 War Points
               </p>
+
+              <p className={
+                war.readiness
+                  .away
+                  ? 'mt-2 text-[10px] font-black uppercase text-emerald-400'
+                  : 'mt-2 text-[10px] font-black uppercase text-slate-600'
+              }>
+                {war.readiness
+                  .away
+                  ? '✓ Ready & Locked'
+                  : 'Not Ready'}
+              </p>
             </div>
           </div>
 
@@ -768,6 +1190,64 @@ export default function LeagueWarDetailPage() {
               </p>
             </div>
           ) : null}
+        </section>
+
+        <section className="grid gap-3 md:grid-cols-3">
+          <FcPanel className="p-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">
+              Challenge Expiry
+            </p>
+            <p className="mt-2 text-sm font-black">
+              {
+                dateLabel(
+                  war.challengeExpiresAt,
+                )
+              }
+            </p>
+          </FcPanel>
+
+          <FcPanel className="p-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">
+              Scheduled Start
+            </p>
+            <p className="mt-2 text-sm font-black">
+              {
+                dateLabel(
+                  war.scheduledStartAt,
+                )
+              }
+            </p>
+          </FcPanel>
+
+          <FcPanel className={
+            deadlinePassed &&
+            war.status ===
+              'LIVE'
+              ? 'border-red-400/25 p-4'
+              : 'p-4'
+          }>
+            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">
+              War Deadline
+            </p>
+            <p className={
+              deadlinePassed &&
+              war.status ===
+                'LIVE'
+                ? 'mt-2 text-sm font-black text-red-300'
+                : 'mt-2 text-sm font-black'
+            }>
+              {
+                dateLabel(
+                  war.deadlineAt,
+                )
+              }
+              {deadlinePassed &&
+              war.status ===
+                'LIVE'
+                ? ' · OVERDUE'
+                : ''}
+            </p>
+          </FcPanel>
         </section>
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
@@ -826,55 +1306,116 @@ export default function LeagueWarDetailPage() {
           />
         </section>
 
-        {war.permissions
-          .canAccept ? (
+        {war.status ===
+          'INVITED' ? (
           <FcPanel className="border-amber-400/20 p-5 sm:p-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
-              Challenge Received
-            </p>
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+                  Challenge
+                </p>
 
-            <h2 className="mt-1 text-xl font-black">
-              Accept League War?
-            </h2>
+                <h2 className="mt-1 text-xl font-black">
+                  Waiting for decision
+                </h2>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Accepting locks the rules and opens roster selection for both League admins.
-            </p>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Opponent League owner/admin can Accept or Reject. Challenger can Cancel before the War starts.
+                </p>
+              </div>
 
-            <button
-              type="button"
-              disabled={
-                Boolean(
-                  busy,
-                )
-              }
-              onClick={() =>
-                void action(
-                  'accept',
-                  `/league-wars/${war.id}/accept`,
-                )
-              }
-              className="mt-5 min-h-11 rounded-xl bg-amber-300 px-6 text-sm font-black text-[#151006] disabled:opacity-40"
-            >
-              {busy ===
-              'accept'
-                ? 'Accepting...'
-                : 'Accept Challenge ⚔'}
-            </button>
+              <div className="flex flex-wrap gap-2">
+                {war.permissions
+                  .canAccept ? (
+                  <button
+                    type="button"
+                    disabled={
+                      Boolean(
+                        busy,
+                      )
+                    }
+                    onClick={() =>
+                      void action(
+                        'accept',
+                        `/league-wars/${war.id}/accept`,
+                      )
+                    }
+                    className="min-h-11 rounded-xl bg-emerald-400 px-5 text-sm font-black text-[#04130d] disabled:opacity-40"
+                  >
+                    {busy ===
+                    'accept'
+                      ? 'Accepting...'
+                      : '✓ Accept Challenge'}
+                  </button>
+                ) : null}
+
+                {war.permissions
+                  .canReject ? (
+                  <button
+                    type="button"
+                    disabled={
+                      Boolean(
+                        busy,
+                      )
+                    }
+                    onClick={() =>
+                      void reasonAction(
+                        'reject',
+                      )
+                    }
+                    className="min-h-11 rounded-xl border border-red-400/25 bg-red-400/[0.06] px-5 text-sm font-black text-red-300 disabled:opacity-40"
+                  >
+                    Reject
+                  </button>
+                ) : null}
+
+                {war.permissions
+                  .canCancel ? (
+                  <button
+                    type="button"
+                    disabled={
+                      Boolean(
+                        busy,
+                      )
+                    }
+                    onClick={() =>
+                      void reasonAction(
+                        'cancel',
+                      )
+                    }
+                    className="min-h-11 rounded-xl border border-white/10 px-5 text-sm font-black text-slate-400 disabled:opacity-40"
+                  >
+                    Cancel Challenge
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </FcPanel>
         ) : null}
 
-        {war.status ===
-          'INVITED' &&
-        !war.permissions
-          .canAccept ? (
+        {[
+          'REJECTED',
+          'CANCELLED',
+          'EXPIRED',
+        ].includes(
+          war.status,
+        ) ? (
           <FcPanel className="p-5">
-            <p className="text-sm font-black text-amber-300">
-              Waiting for {
-                war.awayLeague
-                  .name
-              } admin to accept.
+            <p className="text-sm font-black text-slate-300">
+              This challenge is {
+                war.status.toLowerCase()
+              }.
             </p>
+
+            {war.rejectionReason ||
+            war.cancellationReason ? (
+              <p className="mt-2 text-sm text-slate-500">
+                Reason: {
+                  war.rejectionReason ||
+                  war.cancellationReason
+                }
+              </p>
+            ) : null}
           </FcPanel>
         ) : null}
 
@@ -898,6 +1439,9 @@ export default function LeagueWarDetailPage() {
                 roster:
                   war.roster
                     .home,
+                ready:
+                  war.readiness
+                    .home,
               },
               {
                 side:
@@ -915,6 +1459,9 @@ export default function LeagueWarDetailPage() {
                 roster:
                   war.roster
                     .away,
+                ready:
+                  war.readiness
+                    .away,
               },
             ].map(
               (
@@ -924,45 +1471,67 @@ export default function LeagueWarDetailPage() {
                   key={
                     side.side
                   }
-                  className="overflow-hidden"
+                  className={
+                    side.ready
+                      ? 'overflow-hidden border-emerald-400/20'
+                      : 'overflow-hidden'
+                  }
                 >
                   <div className="border-b border-white/[0.07] p-5">
-                    <div className="flex items-center gap-3">
-                      <FcCrest
-                        name={
-                          side.league
-                            .name
-                        }
-                        imageUrl={
-                          side.league
-                            .logoUrl
-                        }
-                      />
-
-                      <div className="min-w-0">
-                        <h2 className="truncate text-lg font-black">
-                          {
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <FcCrest
+                          name={
                             side.league
                               .name
                           }
-                        </h2>
-
-                        <p className="text-xs text-slate-500">
-                          Roster {
-                            side.roster
-                              .length
-                          }/{
-                            war.playerCount
+                          imageUrl={
+                            side.league
+                              .logoUrl
                           }
-                        </p>
+                        />
+
+                        <div className="min-w-0">
+                          <h2 className="truncate text-lg font-black">
+                            {
+                              side.league
+                                .name
+                            }
+                          </h2>
+
+                          <p className="text-xs text-slate-500">
+                            Roster {
+                              side.roster
+                                .length
+                            }/{
+                              war.playerCount
+                            }
+                          </p>
+                        </div>
                       </div>
+
+                      <span className={
+                        side.ready
+                          ? 'rounded-full bg-emerald-400/10 px-3 py-1 text-[9px] font-black uppercase text-emerald-300'
+                          : 'rounded-full bg-white/[0.04] px-3 py-1 text-[9px] font-black uppercase text-slate-600'
+                      }>
+                        {side.ready
+                          ? '✓ Ready & Locked'
+                          : 'Not Ready'}
+                      </span>
                     </div>
                   </div>
 
                   {side.canManage ? (
                     <div className="p-5">
                       <p className="text-xs leading-5 text-slate-500">
-                        Select players in pairing order. Slot 1 faces opponent Slot 1, Slot 2 faces Slot 2, and so on.
+                        {war.pairingMode ===
+                        'RANDOM'
+                          ? 'Select the roster. Opponent pairings will be randomized when the War starts.'
+                          : war.pairingMode ===
+                              'MANUAL'
+                            ? 'Selection order is the manual pairing order: Slot 1 vs Slot 1, Slot 2 vs Slot 2.'
+                            : 'Select players in slot order. Slot 1 faces Slot 1, Slot 2 faces Slot 2.'}
                       </p>
 
                       <div className="mt-4 max-h-[360px] space-y-2 overflow-y-auto pr-1">
@@ -987,6 +1556,9 @@ export default function LeagueWarDetailPage() {
                                   player.id
                                 }
                                 type="button"
+                                disabled={
+                                  side.ready
+                                }
                                 onClick={() =>
                                   togglePlayer(
                                     side.side,
@@ -995,8 +1567,8 @@ export default function LeagueWarDetailPage() {
                                 }
                                 className={
                                   selected
-                                    ? 'flex w-full items-center gap-3 rounded-xl border border-rose-400/30 bg-rose-400/[0.08] p-3 text-left'
-                                    : 'flex w-full items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 text-left'
+                                    ? 'flex w-full items-center gap-3 rounded-xl border border-rose-400/30 bg-rose-400/[0.08] p-3 text-left disabled:cursor-not-allowed disabled:opacity-60'
+                                    : 'flex w-full items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-3 text-left disabled:cursor-not-allowed disabled:opacity-60'
                                 }
                               >
                                 <span className={
@@ -1029,24 +1601,59 @@ export default function LeagueWarDetailPage() {
                         )}
                       </div>
 
+                      {!side.ready ? (
+                        <button
+                          type="button"
+                          disabled={
+                            Boolean(
+                              busy,
+                            )
+                          }
+                          onClick={() =>
+                            void saveRoster(
+                              side.side,
+                            )
+                          }
+                          className="mt-4 min-h-11 w-full rounded-xl border border-rose-400/25 bg-rose-400/[0.06] px-5 text-sm font-black text-rose-300 disabled:opacity-40"
+                        >
+                          {busy ===
+                          `roster-${side.side}`
+                            ? 'Saving...'
+                            : `Save Roster (${side.selection.length}/${war.playerCount})`}
+                        </button>
+                      ) : null}
+
                       <button
                         type="button"
                         disabled={
                           Boolean(
                             busy,
+                          ) ||
+                          (
+                            !side.ready &&
+                            side.roster
+                              .length !==
+                              war.playerCount
                           )
                         }
                         onClick={() =>
-                          void saveRoster(
+                          void setReady(
                             side.side,
+                            !side.ready,
                           )
                         }
-                        className="mt-4 min-h-11 w-full rounded-xl bg-rose-400 px-5 text-sm font-black text-[#18070b] disabled:opacity-40"
+                        className={
+                          side.ready
+                            ? 'mt-2 min-h-11 w-full rounded-xl border border-white/10 px-5 text-sm font-black text-slate-400 disabled:opacity-40'
+                            : 'mt-2 min-h-11 w-full rounded-xl bg-emerald-400 px-5 text-sm font-black text-[#04130d] disabled:opacity-40'
+                        }
                       >
                         {busy ===
-                        `roster-${side.side}`
-                          ? 'Saving...'
-                          : `Save Roster (${side.selection.length}/${war.playerCount})`}
+                        `ready-${side.side}`
+                          ? 'Updating...'
+                          : side.ready
+                            ? 'Unlock / Not Ready'
+                            : '✓ Lock Roster & Ready'}
                       </button>
                     </div>
                   ) : (
@@ -1089,40 +1696,61 @@ export default function LeagueWarDetailPage() {
               ),
             )}
 
-            {war.permissions
-              .canStart ? (
-              <FcPanel className="p-5 xl:col-span-2">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-300">
-                      Ready Check
-                    </p>
+            <FcPanel className="p-5 xl:col-span-2">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-300">
+                    Both-Team Ready Check
+                  </p>
 
-                    <h2 className="mt-1 text-xl font-black">
-                      Start League War
-                    </h2>
+                  <h2 className="mt-1 text-xl font-black">
+                    Start League War
+                  </h2>
 
-                    <p className="mt-2 text-sm text-slate-500">
-                      Both rosters need exactly {
-                        war.playerCount
-                      } players. Pairings are created by roster slot order.
-                    </p>
-                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Home: {
+                      war.readiness
+                        .home
+                        ? 'Ready ✅'
+                        : 'Waiting'
+                    } · Away: {
+                      war.readiness
+                        .away
+                        ? 'Ready ✅'
+                        : 'Waiting'
+                    }. Start unlocks only when both rosters are locked and the scheduled start time has arrived.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {war.permissions
+                    .canCancel ? (
+                    <button
+                      type="button"
+                      disabled={
+                        Boolean(
+                          busy,
+                        )
+                      }
+                      onClick={() =>
+                        void reasonAction(
+                          'cancel',
+                        )
+                      }
+                      className="min-h-12 rounded-xl border border-white/10 px-5 text-sm font-black text-slate-500"
+                    >
+                      Cancel War
+                    </button>
+                  ) : null}
 
                   <button
                     type="button"
                     disabled={
+                      !war.permissions
+                        .canStart ||
                       Boolean(
                         busy,
-                      ) ||
-                      war.roster
-                        .home
-                        .length !==
-                        war.playerCount ||
-                      war.roster
-                        .away
-                        .length !==
-                        war.playerCount
+                      )
                     }
                     onClick={() =>
                       void action(
@@ -1138,8 +1766,8 @@ export default function LeagueWarDetailPage() {
                       : 'Start War ⚔'}
                   </button>
                 </div>
-              </FcPanel>
-            ) : null}
+              </div>
+            </FcPanel>
           </section>
         ) : null}
 
@@ -1162,7 +1790,7 @@ export default function LeagueWarDetailPage() {
               </div>
 
               <p className="text-xs font-semibold text-slate-500">
-                Results instantly update War Points
+                Submitted result → opponent confirm → official War Points
               </p>
             </div>
 
@@ -1179,12 +1807,55 @@ export default function LeagueWarDetailPage() {
                       away: '',
                     };
 
+                  const homeLeague =
+                    match.homeLeagueId ===
+                    war.homeLeague.id
+                      ? war.homeLeague
+                      : war.awayLeague;
+
+                  const awayLeague =
+                    match.awayLeagueId ===
+                    war.awayLeague.id
+                      ? war.awayLeague
+                      : war.homeLeague;
+
+                  const editable =
+                    match.permissions
+                      .canSubmit &&
+                    [
+                      'NONE',
+                      'DISPUTED',
+                    ].includes(
+                      match.resultStatus,
+                    );
+
+                  const pending =
+                    [
+                      'PENDING_CONFIRMATION',
+                      'WALKOVER_PENDING',
+                    ].includes(
+                      match.resultStatus,
+                    );
+
+                  const confirmed =
+                    match.status ===
+                    'COMPLETED';
+
                   return (
                     <FcPanel
                       key={
                         match.id
                       }
-                      className="p-4 sm:p-5"
+                      className={
+                        match.resultStatus ===
+                        'DISPUTED'
+                          ? 'border-red-400/25 p-4 sm:p-5'
+                          : pending
+                            ? 'border-amber-400/20 p-4 sm:p-5'
+                            : confirmed
+                              ? 'border-emerald-400/15 p-4 sm:p-5'
+                              : 'p-4 sm:p-5'
+                      }
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
@@ -1197,13 +1868,15 @@ export default function LeagueWarDetailPage() {
 
                         <FcStatusBadge
                           label={
-                            match.status
+                            match.resultStatus ===
+                            'NONE'
+                              ? match.status
+                              : match.resultStatus
                           }
                           tone={
-                            match.status ===
-                            'COMPLETED'
-                              ? 'emerald'
-                              : 'slate'
+                            resultTone(
+                              match.resultStatus,
+                            )
                           }
                         />
                       </div>
@@ -1218,14 +1891,12 @@ export default function LeagueWarDetailPage() {
 
                           <p className="mt-1 truncate text-[9px] text-slate-600">
                             {
-                              war.homeLeague
-                                .name
+                              homeLeague.name
                             }
                           </p>
                         </div>
 
-                        {war.permissions
-                          .canUpdateResults ? (
+                        {editable ? (
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
@@ -1308,37 +1979,237 @@ export default function LeagueWarDetailPage() {
 
                           <p className="mt-1 truncate text-[9px] text-slate-600">
                             {
-                              war.awayLeague
-                                .name
+                              awayLeague.name
                             }
                           </p>
                         </div>
                       </div>
 
-                      {war.permissions
-                        .canUpdateResults ? (
-                        <button
-                          type="button"
-                          disabled={
-                            Boolean(
-                              busy,
-                            )
-                          }
-                          onClick={() =>
-                            void saveResult(
-                              match,
-                            )
-                          }
-                          className="mt-4 min-h-10 w-full rounded-xl border border-rose-400/25 bg-rose-400/[0.07] px-4 text-xs font-black text-rose-300 disabled:opacity-40"
-                        >
-                          {busy ===
-                          `match-${match.id}`
-                            ? 'Saving...'
-                            : match.status ===
-                                'COMPLETED'
-                              ? 'Update Result'
-                              : 'Save Result'}
-                        </button>
+                      {editable ? (
+                        <div className="mt-4 space-y-3">
+                          <input
+                            value={
+                              proofs[
+                                match.id
+                              ] ??
+                              ''
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              setProofs(
+                                (
+                                  current,
+                                ) => ({
+                                  ...current,
+                                  [match.id]:
+                                    event
+                                      .target
+                                      .value,
+                                }),
+                              )
+                            }
+                            placeholder="Screenshot / proof URL (optional)"
+                            className="min-h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-xs outline-none focus:border-rose-400/40"
+                          />
+
+                          <button
+                            type="button"
+                            disabled={
+                              Boolean(
+                                busy,
+                              )
+                            }
+                            onClick={() =>
+                              void submitResult(
+                                match,
+                              )
+                            }
+                            className="min-h-10 w-full rounded-xl bg-rose-400 px-4 text-xs font-black text-[#18070b] disabled:opacity-40"
+                          >
+                            {busy ===
+                            `match-${match.id}`
+                              ? 'Submitting...'
+                              : match.resultStatus ===
+                                  'DISPUTED'
+                                ? 'Resubmit Corrected Result'
+                                : 'Submit Result for Confirmation'}
+                          </button>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              disabled={
+                                Boolean(
+                                  busy,
+                                )
+                              }
+                              onClick={() =>
+                                void submitWalkover(
+                                  match,
+                                  match.homeLeagueId,
+                                )
+                              }
+                              className="min-h-10 rounded-xl border border-amber-400/20 bg-amber-400/[0.05] px-2 text-[10px] font-black text-amber-300"
+                            >
+                              {homeLeague.name} Walkover
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={
+                                Boolean(
+                                  busy,
+                                )
+                              }
+                              onClick={() =>
+                                void submitWalkover(
+                                  match,
+                                  match.awayLeagueId,
+                                )
+                              }
+                              className="min-h-10 rounded-xl border border-amber-400/20 bg-amber-400/[0.05] px-2 text-[10px] font-black text-amber-300"
+                            >
+                              {awayLeague.name} Walkover
+                            </button>
+                          </div>
+
+                          <p className="text-[10px] leading-4 text-slate-600">
+                            Walkover is recorded as 3–0 and still needs opponent confirmation.
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {pending ? (
+                        <div className="mt-4 rounded-xl border border-amber-400/15 bg-amber-400/[0.04] p-3">
+                          <p className="text-xs font-black text-amber-300">
+                            Waiting for opponent confirmation
+                          </p>
+
+                          {match.proofUrl ? (
+                            <a
+                              href={
+                                match.proofUrl
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-block text-[11px] font-black text-cyan-300 underline"
+                            >
+                              View Match Proof ↗
+                            </a>
+                          ) : null}
+
+                          {match.permissions
+                            .canConfirm ? (
+                            <div className="mt-3 space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  type="button"
+                                  disabled={
+                                    Boolean(
+                                      busy,
+                                    )
+                                  }
+                                  onClick={() =>
+                                    void action(
+                                      `confirm-${match.id}`,
+                                      `/league-wars/${war.id}/matches/${match.id}/confirm`,
+                                    )
+                                  }
+                                  className="min-h-10 rounded-xl bg-emerald-400 px-3 text-xs font-black text-[#04130d] disabled:opacity-40"
+                                >
+                                  ✓ Confirm
+                                </button>
+
+                                <button
+                                  type="button"
+                                  disabled={
+                                    Boolean(
+                                      busy,
+                                    )
+                                  }
+                                  onClick={() =>
+                                    void disputeResult(
+                                      match,
+                                    )
+                                  }
+                                  className="min-h-10 rounded-xl border border-red-400/25 bg-red-400/[0.06] px-3 text-xs font-black text-red-300 disabled:opacity-40"
+                                >
+                                  ⚠ Dispute
+                                </button>
+                              </div>
+
+                              <input
+                                value={
+                                  disputes[
+                                    match.id
+                                  ] ??
+                                  ''
+                                }
+                                onChange={(
+                                  event,
+                                ) =>
+                                  setDisputes(
+                                    (
+                                      current,
+                                    ) => ({
+                                      ...current,
+                                      [match.id]:
+                                        event
+                                          .target
+                                          .value,
+                                    }),
+                                  )
+                                }
+                                placeholder="Dispute reason (required only if disputing)"
+                                className="min-h-10 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-xs outline-none"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {match.resultStatus ===
+                      'DISPUTED' ? (
+                        <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/[0.05] p-3">
+                          <p className="text-xs font-black text-red-300">
+                            Result disputed
+                          </p>
+
+                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                            {
+                              match.disputeReason ||
+                              'Opponent requested a corrected result.'
+                            }
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {confirmed ? (
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3 text-[10px] font-bold text-slate-600">
+                          <span>
+                            ✓ Official confirmed result
+                          </span>
+
+                          {match.walkoverLeagueId ? (
+                            <span className="text-amber-300">
+                              Walkover
+                            </span>
+                          ) : null}
+
+                          {match.proofUrl ? (
+                            <a
+                              href={
+                                match.proofUrl
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-cyan-300 underline"
+                            >
+                              Proof ↗
+                            </a>
+                          ) : null}
+                        </div>
                       ) : null}
                     </FcPanel>
                   );
@@ -1362,7 +2233,7 @@ export default function LeagueWarDetailPage() {
                     </h2>
 
                     <p className="mt-2 text-sm text-slate-500">
-                      Winner: War Points → GD → Goals Scored → Wins. Exact tie stays a draw.
+                      Every result must be opponent-confirmed first. Winner: War Points → GD → Goals Scored → Wins.
                     </p>
                   </div>
 
@@ -1393,23 +2264,263 @@ export default function LeagueWarDetailPage() {
           </section>
         ) : null}
 
-        <details className="rounded-2xl border border-white/[0.07] bg-white/[0.025]">
+        {war.playerStats.length >
+        0 ? (
+          <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+            <FcPanel className="relative overflow-hidden border-amber-300/20 p-5">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-amber-300/10 blur-3xl" />
+
+              <div className="relative">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+                  War MVP
+                </p>
+
+                <h2 className="mt-1 text-2xl font-black">
+                  {war.mvp
+                    ? war.mvp.inGameName ||
+                      war.mvp.fullName
+                    : '—'}
+                </h2>
+
+                {war.mvp ? (
+                  <div className="mt-5 grid grid-cols-3 gap-2">
+                    <div className="rounded-xl border border-white/[0.07] bg-black/10 p-3 text-center">
+                      <p className="text-xl font-black text-amber-300">
+                        {
+                          war.mvp.wins
+                        }
+                      </p>
+                      <p className="mt-1 text-[8px] font-black uppercase text-slate-600">
+                        Wins
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-white/[0.07] bg-black/10 p-3 text-center">
+                      <p className="text-xl font-black">
+                        {
+                          war.mvp.goalDifference
+                        }
+                      </p>
+                      <p className="mt-1 text-[8px] font-black uppercase text-slate-600">
+                        GD
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl border border-white/[0.07] bg-black/10 p-3 text-center">
+                      <p className="text-xl font-black">
+                        {
+                          war.mvp.winRate
+                        }%
+                      </p>
+                      <p className="mt-1 text-[8px] font-black uppercase text-slate-600">
+                        Win Rate
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <p className="mt-4 text-[10px] leading-5 text-slate-600">
+                  MVP order: Wins → Goal Difference → Goals For → fewer losses.
+                </p>
+              </div>
+            </FcPanel>
+
+            <FcPanel className="overflow-hidden">
+              <div className="border-b border-white/[0.07] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">
+                  Player War Stats
+                </p>
+
+                <h2 className="mt-1 text-xl font-black">
+                  Live Player Table
+                </h2>
+              </div>
+
+              <div className="max-h-[420px] divide-y divide-white/[0.06] overflow-y-auto">
+                {war.playerStats.map(
+                  (
+                    row,
+                  ) => (
+                    <div
+                      key={
+                        row.userId
+                      }
+                      className="grid grid-cols-[32px_1fr_auto] items-center gap-3 px-5 py-3"
+                    >
+                      <span className={
+                        row.position <=
+                        3
+                          ? 'text-center text-sm font-black text-emerald-300'
+                          : 'text-center text-xs font-black text-slate-600'
+                      }>
+                        #{
+                          row.position
+                        }
+                      </span>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black">
+                          {
+                            row.inGameName ||
+                            row.fullName
+                          }
+                        </p>
+
+                        <p className="mt-0.5 text-[9px] text-slate-600">
+                          {
+                            row.matches
+                          }P · {
+                            row.wins
+                          }W · {
+                            row.draws
+                          }D · {
+                            row.losses
+                          }L
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-xs font-black text-slate-300">
+                          GD {
+                            row.goalDifference
+                          }
+                        </p>
+
+                        <p className="mt-0.5 text-[9px] text-slate-600">
+                          {
+                            row.winRate
+                          }%
+                        </p>
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+            </FcPanel>
+          </section>
+        ) : null}
+
+        <FcPanel className="overflow-hidden">
+          <div className="border-b border-white/[0.07] p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">
+              Rivalry
+            </p>
+
+            <h2 className="mt-1 text-xl font-black">
+              {
+                war.homeLeague
+                  .name
+              } vs {
+                war.awayLeague
+                  .name
+              }
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 p-5 text-center">
+            <div>
+              <p className="text-2xl font-black text-cyan-300">
+                {
+                  war.rivalry
+                    .homeWins
+                }
+              </p>
+              <p className="mt-1 text-[9px] font-black uppercase text-slate-600">
+                {
+                  war.homeLeague
+                    .name
+                } Wins
+              </p>
+            </div>
+
+            <div>
+              <p className="text-2xl font-black">
+                {
+                  war.rivalry
+                    .draws
+                }
+              </p>
+              <p className="mt-1 text-[9px] font-black uppercase text-slate-600">
+                Draws
+              </p>
+            </div>
+
+            <div>
+              <p className="text-2xl font-black text-amber-300">
+                {
+                  war.rivalry
+                    .awayWins
+                }
+              </p>
+              <p className="mt-1 text-[9px] font-black uppercase text-slate-600">
+                {
+                  war.awayLeague
+                    .name
+                } Wins
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-white/[0.07] px-5 py-4 text-xs text-slate-500">
+            Previous wars: <strong className="text-slate-300">{war.rivalry.previousWars}</strong> · Historical battle points: <strong className="text-slate-300">{war.rivalry.homeBattlePoints} – {war.rivalry.awayBattlePoints}</strong>
+          </div>
+        </FcPanel>
+
+        <details className="rounded-2xl border border-white/[0.07] bg-white/[0.025]" open>
           <summary className="cursor-pointer px-5 py-4 text-sm font-black">
-            How League War scoring works
+            How League War V2 works
           </summary>
 
-          <div className="border-t border-white/[0.07] p-5 text-sm leading-6 text-slate-500">
-            <p>
-              Win = <strong className="text-slate-200">{war.winPoints}</strong> · Draw = <strong className="text-slate-200">{war.drawPoints}</strong> · Loss = <strong className="text-slate-200">{war.lossPoints}</strong>.
-            </p>
+          <div className="grid gap-3 border-t border-white/[0.07] p-5 md:grid-cols-2">
+            {[
+              [
+                'Ready + Roster Lock',
+                'Both admins select their roster, lock it and mark Ready. Start unlocks only after both sides are Ready.',
+              ],
+              [
+                'Result Confirmation',
+                'A submitted score does not count immediately. The opposing League admin must confirm it first.',
+              ],
+              [
+                'Proof + Dispute',
+                'Result proof URL is supported. Opponent can dispute and request a corrected resubmission.',
+              ],
+              [
+                'Walkover',
+                'Admin can submit a 3–0 walkover. It still requires opponent confirmation before points count.',
+              ],
+              [
+                'Pairing',
+                'Auto Slot, Manual Slot Order and Random Draw are supported. Home & Away reverses the actual second-leg home side.',
+              ],
+              [
+                'Winner',
+                `Win = ${war.winPoints}, Draw = ${war.drawPoints}, Loss = ${war.lossPoints}. Tie-break: War Points → GD → Goals Scored → Wins.`,
+              ],
+            ].map(
+              (
+                rule,
+              ) => (
+                <div
+                  key={
+                    rule[0]
+                  }
+                  className="rounded-xl border border-white/[0.07] bg-black/10 p-4"
+                >
+                  <p className="text-sm font-black text-slate-200">
+                    {
+                      rule[0]
+                    }
+                  </p>
 
-            <p className="mt-2">
-              Winner order: <strong className="text-slate-200">War Points → Goal Difference → Goals Scored → Wins</strong>. If everything is still equal, the War is recorded as a draw.
-            </p>
-
-            <p className="mt-2">
-              In Home & Away mode every roster pairing plays twice. Admin-entered results update both League scores immediately.
-            </p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">
+                    {
+                      rule[1]
+                    }
+                  </p>
+                </div>
+              ),
+            )}
           </div>
         </details>
       </div>

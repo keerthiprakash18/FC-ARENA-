@@ -21,6 +21,7 @@ const items = [
   ['Standings', '/standings'],
   ['Bracket', '/playoffs'],
   ['Stats', '/stats'],
+  ['Awards', '/achievements'],
   ['Settings', '/settings'],
 ] as const;
 

@@ -20,6 +20,10 @@ import {
 } from '../auth/guards/jwt-auth.guard.js';
 import {
   CreateLeagueWarDto,
+  LeagueWarDisputeDto,
+  LeagueWarReasonDto,
+  LeagueWarWalkoverDto,
+  SetLeagueWarReadyDto,
   SetLeagueWarRosterDto,
   UpdateLeagueWarResultDto,
 } from './dto/league-war.dto.js';
@@ -50,6 +54,11 @@ export class LeagueWarsController {
     return this.service.getWars(
       request.user.sub,
     );
+  }
+
+  @Get('rankings')
+  getRankings() {
+    return this.service.getRankings();
   }
 
   @Post()
@@ -98,6 +107,61 @@ export class LeagueWarsController {
     );
   }
 
+  @Post(':warId/reject')
+  reject(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Body()
+    dto:
+      LeagueWarReasonDto,
+  ) {
+    return this.service.rejectWar(
+      request.user.sub,
+      warId,
+      dto.reason,
+    );
+  }
+
+  @Post(':warId/cancel')
+  cancel(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Body()
+    dto:
+      LeagueWarReasonDto,
+  ) {
+    return this.service.cancelWar(
+      request.user.sub,
+      warId,
+      dto.reason,
+    );
+  }
+
+  @Post(':warId/rematch')
+  rematch(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+  ) {
+    return this.service.rematch(
+      request.user.sub,
+      warId,
+    );
+  }
+
   @Post(':warId/roster')
   setRoster(
     @Req()
@@ -112,6 +176,26 @@ export class LeagueWarsController {
       SetLeagueWarRosterDto,
   ) {
     return this.service.setRoster(
+      request.user.sub,
+      warId,
+      dto,
+    );
+  }
+
+  @Post(':warId/ready')
+  setReady(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Body()
+    dto:
+      SetLeagueWarReadyDto,
+  ) {
+    return this.service.setReady(
       request.user.sub,
       warId,
       dto,
@@ -136,7 +220,7 @@ export class LeagueWarsController {
   @Patch(
     ':warId/matches/:matchId/result',
   )
-  updateResult(
+  submitResult(
     @Req()
     request:
       AuthenticatedRequest,
@@ -151,7 +235,80 @@ export class LeagueWarsController {
     dto:
       UpdateLeagueWarResultDto,
   ) {
-    return this.service.updateResult(
+    return this.service.submitResult(
+      request.user.sub,
+      warId,
+      matchId,
+      dto,
+    );
+  }
+
+  @Post(
+    ':warId/matches/:matchId/confirm',
+  )
+  confirmResult(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Param('matchId')
+    matchId: string,
+  ) {
+    return this.service.confirmResult(
+      request.user.sub,
+      warId,
+      matchId,
+    );
+  }
+
+  @Post(
+    ':warId/matches/:matchId/dispute',
+  )
+  disputeResult(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Param('matchId')
+    matchId: string,
+
+    @Body()
+    dto:
+      LeagueWarDisputeDto,
+  ) {
+    return this.service.disputeResult(
+      request.user.sub,
+      warId,
+      matchId,
+      dto.reason,
+    );
+  }
+
+  @Post(
+    ':warId/matches/:matchId/walkover',
+  )
+  walkover(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('warId')
+    warId: string,
+
+    @Param('matchId')
+    matchId: string,
+
+    @Body()
+    dto:
+      LeagueWarWalkoverDto,
+  ) {
+    return this.service.submitWalkover(
       request.user.sub,
       warId,
       matchId,

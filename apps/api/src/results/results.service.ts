@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import {
   deduplicateFixtureRecords,
@@ -47,8 +48,12 @@ interface CanonicalAggregate {
 export class ResultsService {
   constructor(
     private readonly prisma: PrismaService,
+
     private readonly authorization:
       AuthorizationService,
+
+    private readonly realtime:
+      MatchRealtimeService,
   ) {}
 
   async submitResult(
@@ -246,6 +251,21 @@ export class ResultsService {
               'Serializable',
           },
         );
+
+      this.realtime.publish(
+        matchId,
+        'result_submitted',
+        {
+          resultSubmissionId:
+            submission.id,
+
+          homeScore:
+            submission.homeScore,
+
+          awayScore:
+            submission.awayScore,
+        },
+      );
 
       return {
         success: true,
@@ -488,7 +508,8 @@ export class ResultsService {
       initial.match.id,
     );
 
-    return this.prisma.$transaction(
+    const response =
+      await this.prisma.$transaction(
       async (tx) => {
         const submission =
           await tx.resultSubmission.findUnique({
@@ -874,6 +895,16 @@ export class ResultsService {
           'Serializable',
       },
     );
+
+    this.realtime.publish(
+      initial.match.id,
+      'result_confirmed',
+      {
+        resultSubmissionId,
+      },
+    );
+
+    return response;
   }
 
   async rejectResult(
@@ -944,6 +975,19 @@ export class ResultsService {
           null,
       },
     });
+
+    this.realtime.publish(
+      submission.match.id,
+      'result_rejected',
+      {
+        resultSubmissionId:
+          submission.id,
+
+        reason:
+          dto.reason?.trim() ||
+          null,
+      },
+    );
 
     return {
       success: true,

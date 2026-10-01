@@ -7,6 +7,10 @@ import {
 } from '../auth/auth.module.js';
 
 import {
+  AwardsModule,
+} from '../awards/awards.module.js';
+
+import {
   AchievementsController,
 } from './achievements.controller.js';
 
@@ -17,6 +21,7 @@ import {
 @Module({
   imports: [
     AuthModule,
+    AwardsModule,
   ],
 
   controllers: [

@@ -104,12 +104,31 @@ export default function BallonSeasonsPage() {
       subtitle="Live, locked and archived seasonal player honours."
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/awards"
+            className="text-sm font-black text-slate-500 transition hover:text-amber-300"
+          >
+            ← Awards
+          </Link>
+
+          <Link
+            href="/awards/hall-of-fame"
+            className="text-sm font-black text-amber-300 transition hover:text-amber-200"
+          >
+            Hall of Fame →
+          </Link>
+        </div>
+
+        <div className="hidden">
         <Link
           href="/awards"
           className="text-sm font-black text-slate-500 transition hover:text-amber-300"
         >
           ← Awards
         </Link>
+
+        </div>
 
         <Image
           src="/awards/fc-arena-ballon-mark.svg"

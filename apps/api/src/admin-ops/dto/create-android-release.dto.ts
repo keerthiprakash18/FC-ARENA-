@@ -16,6 +16,9 @@ export class CreateAndroidReleaseDto {
 
   @IsString()
   @MaxLength(40)
+  @Matches(
+    /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/,
+  )
   versionName!: string;
 
   @IsIn([

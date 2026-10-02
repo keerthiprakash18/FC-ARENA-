@@ -75,6 +75,15 @@ describe(
                     'identity-1',
                 }),
           },
+
+          auditLog: {
+            create:
+              vi.fn()
+                .mockResolvedValue({
+                  id:
+                    'terms-audit-1',
+                }),
+          },
         };
 
         const prisma = {
@@ -134,6 +143,8 @@ describe(
               'password1',
             confirmPassword:
               'password1',
+            acceptTerms:
+              true,
           });
 
         expect(

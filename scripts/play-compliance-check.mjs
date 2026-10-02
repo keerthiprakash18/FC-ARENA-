@@ -29,6 +29,9 @@ const registerDto = read('apps/api/src/auth/dto/register.dto.ts');
 const termsPage = read('apps/web/src/app/terms/page.tsx');
 const aiPage = read('apps/web/src/app/ai/page.tsx');
 const aiController = read('apps/api/src/ai/ai.controller.ts');
+const privacyOps = read('apps/api/src/admin-ops/privacy-ops.service.ts');
+const privacyAdminPage = read('apps/web/src/app/admin/privacy/page.tsx');
+const jwtGuard = read('apps/api/src/auth/guards/jwt-auth.guard.ts');
 const version = read('apps/android/version.properties');
 
 const targetSdkMatch = gradle.match(/targetSdk\s+(\d+)/);
@@ -178,6 +181,31 @@ if (
   pass('FC ARENA AI has an in-app offensive-output report control.');
 } else {
   fail('Generative AI output must have an in-app report/flag mechanism.');
+}
+
+if (
+  privacyOps.includes('ACCOUNT_DELETION_COMPLETED') &&
+  privacyOps.includes('personalAccountData') &&
+  privacyOps.includes('profileImages.removeAvatar') &&
+  privacyOps.includes('refreshSession.deleteMany') &&
+  privacyOps.includes('pushDevice.deleteMany') &&
+  privacyOps.includes('ocrExtraction.updateMany') &&
+  privacyAdminPage.includes('Complete Deletion')
+) {
+  pass('Account deletion has a verified operational completion/anonymization workflow.');
+} else {
+  fail('Account deletion must include an operational completion workflow, not only a request form.');
+}
+
+if (
+  jwtGuard.includes('refreshSession') &&
+  jwtGuard.includes("status:") &&
+  jwtGuard.includes("'ACTIVE'") &&
+  jwtGuard.includes('revokedAt')
+) {
+  pass('Authenticated requests verify live session/account status so deleted or logged-out accounts lose access immediately.');
+} else {
+  fail('Authenticated access must stop immediately after session revocation/account deletion.');
 }
 
 const versionCode = version.match(/VERSION_CODE=(\d+)/)?.[1];

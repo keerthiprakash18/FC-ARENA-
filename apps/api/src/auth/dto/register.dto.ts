@@ -1,4 +1,6 @@
 import {
+  Equals,
+  IsBoolean,
   IsEmail,
   IsOptional,
   IsString,
@@ -43,4 +45,11 @@ export class RegisterDto {
   @IsString()
   @MaxLength(100)
   gameUid?: string;
+
+  @IsBoolean()
+  @Equals(true, {
+    message:
+      'You must accept the FC ARENA Terms of Service and Community Rules.',
+  })
+  acceptTerms!: boolean;
 }

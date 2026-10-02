@@ -41,6 +41,10 @@ const adminItems = [
     '/admin/disputes',
   ],
   [
+    'Fair Play',
+    '/admin/fair-play',
+  ],
+  [
     'Ballon',
     '/admin/ballon',
   ],

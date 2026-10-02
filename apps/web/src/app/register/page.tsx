@@ -40,6 +40,9 @@ export default function RegisterPage() {
       gameUid: String(form.get('gameUid') ?? '') || undefined,
       password: String(form.get('password') ?? ''),
       confirmPassword: String(form.get('confirmPassword') ?? ''),
+      acceptTerms:
+        form.get('acceptTerms') ===
+        'on',
     };
 
     try {
@@ -152,6 +155,37 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
+
+        <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4 text-sm leading-6">
+          <input
+            type="checkbox"
+            name="acceptTerms"
+            required
+            className="mt-1 h-4 w-4 shrink-0"
+          />
+
+          <span>
+            I agree to the{' '}
+            <Link
+              className="text-link font-semibold"
+              href="/terms"
+              target="_blank"
+              rel="noreferrer"
+            >
+              FC ARENA Terms of Service & Community Rules
+            </Link>{' '}
+            and acknowledge the{' '}
+            <Link
+              className="text-link font-semibold"
+              href="/privacy"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Privacy Policy
+            </Link>
+            . This acceptance is required before creating or uploading community content.
+          </span>
+        </label>
 
         {error ? <div className="error-box">{error}</div> : null}
 

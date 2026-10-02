@@ -65,3 +65,31 @@ At least monthly:
 A backup that has never been restored is not considered fully verified.
 
 Do not store production database dumps or private GPG keys in Git, Vercel, or GitHub Actions artifacts.
+
+
+## Off-server backup requirement
+
+Production should set `BACKUP_REQUIRE_REMOTE=true` and configure
+`BACKUP_REMOTE_DEST` to a dedicated rclone destination such as an S3/B2
+bucket or separate recovery host. When remote backup is required, the job fails
+closed if the encrypted archive cannot be copied off the application server.
+Only encrypted `.dump.gpg` artifacts and SHA-256 sidecars are copied.
+
+Use a storage-side lifecycle policy for remote retention, and keep the GPG
+private recovery key outside the application VPS.
+
+## Automated restore-pipeline verification
+
+The `.github/workflows/backup-restore-ci.yml` workflow proves the complete
+backup toolchain with synthetic data: dump, archive validation, GPG encryption,
+required off-server-style rclone copy, checksum verification, decryption,
+restore into a separately named recovery database, and restored-data checking.
+
+The guarded recovery helper is
+`ops/backup/fcarena-restore-verify.sh`. It refuses to run unless the target
+database name contains `restore`, `recovery`, or `verify` and
+`FC_ARENA_RESTORE_CONFIRM=VERIFY_ON_RECOVERY_DATABASE`.
+
+A periodic real-production recovery drill on a separate recovery host is still
+required because synthetic CI cannot prove that a specific production backup
+contains the expected live data.

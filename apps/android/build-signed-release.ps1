@@ -357,7 +357,7 @@ try {
     Write-Host "File SHA-256: $fileHash"
     Write-Host "Source commit: $headCommit"
     Write-Host ""
-    Write-Host "Next: upload THIS exact AAB to Play Console Internal testing."
+    Write-Host "Next: upload THIS exact AAB to Play Console Closed testing."
 }
 finally {
     Remove-Item Env:FC_ARENA_KEYSTORE_FILE -ErrorAction SilentlyContinue

@@ -104,6 +104,23 @@ export default function AiPage() {
   ] =
     useState('');
 
+  const [
+    reportingMessageId,
+    setReportingMessageId,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  const [
+    reportedMessageIds,
+    setReportedMessageIds,
+  ] =
+    useState<Set<string>>(
+      () =>
+        new Set(),
+    );
+
   useEffect(() => {
     void (async () => {
       try {
@@ -254,6 +271,86 @@ export default function AiPage() {
     }
   }
 
+  async function reportResponse(
+    message:
+      ChatMessage,
+  ) {
+    if (
+      message.role !==
+      'assistant' ||
+      reportingMessageId
+    ) {
+      return;
+    }
+
+    const reason =
+      window.prompt(
+        'Why are you reporting this AI response? You can describe offensive, unsafe, deceptive or inappropriate content.',
+        '',
+      );
+
+    if (
+      reason ===
+      null
+    ) {
+      return;
+    }
+
+    setReportingMessageId(
+      message.id,
+    );
+    setError(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        '/ai/report',
+        {
+          method:
+            'POST',
+          body:
+            JSON.stringify({
+              response:
+                message.content,
+              reason:
+                reason.trim() ||
+                undefined,
+            }),
+        },
+      );
+
+      setReportedMessageIds(
+        (
+          current,
+        ) => {
+          const next =
+            new Set(
+              current,
+            );
+
+          next.add(
+            message.id,
+          );
+
+          return next;
+        },
+      );
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to report this AI response.',
+      );
+    } finally {
+      setReportingMessageId(
+        null,
+      );
+    }
+  }
+
   function submit(
     event:
       FormEvent<HTMLFormElement>,
@@ -375,6 +472,37 @@ export default function AiPage() {
                             message.content
                           }
                         </p>
+
+                        {message.role ===
+                        'assistant' ? (
+                          <div className="mt-3 border-t border-white/[0.07] pt-2">
+                            <button
+                              type="button"
+                              disabled={
+                                reportingMessageId ===
+                                  message.id ||
+                                reportedMessageIds.has(
+                                  message.id,
+                                )
+                              }
+                              onClick={() =>
+                                void reportResponse(
+                                  message,
+                                )
+                              }
+                              className="text-xs font-black text-red-400 transition hover:text-red-300 disabled:opacity-50"
+                            >
+                              {reportedMessageIds.has(
+                                message.id,
+                              )
+                                ? '✓ Reported for safety review'
+                                : reportingMessageId ===
+                                    message.id
+                                  ? 'Reporting...'
+                                  : '⚑ Report AI response'}
+                            </button>
+                          </div>
+                        ) : null}
                       </div>
                     ),
                   )
@@ -437,7 +565,7 @@ export default function AiPage() {
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="theme-muted text-xs">
-                    Read-only • {status.limits.perDay} questions/day • no competition data changes
+                    Read-only • {status.limits.perDay} questions/day • no competition data changes • unsafe responses can be reported in-app
                   </p>
 
                   <button

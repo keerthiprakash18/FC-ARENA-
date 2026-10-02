@@ -282,14 +282,22 @@ try {
 
     Write-Host "Building signed Android App Bundle..."
     Push-Location $AndroidDir
+    $previousErrorActionPreference = $ErrorActionPreference
     try {
+        # Gradle writes warnings/notes (for example deprecated API notices) to STDERR.
+        # With ErrorActionPreference=Stop, PowerShell can incorrectly promote those
+        # harmless native STDERR lines to NativeCommandError and abort a successful build.
+        $ErrorActionPreference = "Continue"
         & $gradleExe ":app:clean" ":app:bundleRelease" "--stacktrace"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Gradle signed release build failed."
-        }
+        $gradleExitCode = $LASTEXITCODE
     }
     finally {
+        $ErrorActionPreference = $previousErrorActionPreference
         Pop-Location
+    }
+
+    if ($gradleExitCode -ne 0) {
+        throw "Gradle signed release build failed with exit code $gradleExitCode."
     }
 
     if (-not (Test-Path $RawAab -PathType Leaf)) {

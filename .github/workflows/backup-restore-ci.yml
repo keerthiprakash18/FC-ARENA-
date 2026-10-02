@@ -1,0 +1,142 @@
+name: Backup Restore Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "ops/backup/**"
+      - ".github/workflows/backup-restore-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "ops/backup/**"
+      - ".github/workflows/backup-restore-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena_source
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena_source"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install backup verification tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client gnupg rclone
+
+      - name: Seed source and recovery databases
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d fcarena_source -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TABLE backup_probe (
+            id integer PRIMARY KEY,
+            marker text NOT NULL
+          );
+          INSERT INTO backup_probe (id, marker)
+          VALUES (1, 'fc-arena-backup-restore-ok');
+          SQL
+
+          psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1             -c 'CREATE DATABASE fcarena_restore;'
+
+      - name: Create ephemeral encryption key
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -p "$GNUPGHOME"
+          chmod 700 "$GNUPGHOME"
+
+          cat > "$RUNNER_TEMP/gpg-key.conf" <<'KEY'
+          %no-protection
+          Key-Type: RSA
+          Key-Length: 2048
+          Name-Real: FC Arena Backup CI
+          Name-Email: backup-ci@fcarena.invalid
+          Expire-Date: 0
+          %commit
+          KEY
+
+          gpg --batch --generate-key "$RUNNER_TEMP/gpg-key.conf"
+
+          RECIPIENT="$(gpg --batch --with-colons --list-keys backup-ci@fcarena.invalid | awk -F: '$1 == "fpr" {print $10; exit}')"
+
+          if [ -z "$RECIPIENT" ]; then
+            echo "Unable to determine CI encryption recipient."
+            exit 1
+          fi
+
+          echo "GNUPGHOME=$GNUPGHOME" >> "$GITHUB_ENV"
+          echo "BACKUP_ENCRYPTION_RECIPIENT=$RECIPIENT" >> "$GITHUB_ENV"
+
+      - name: Run encrypted backup with required off-server copy
+        shell: bash
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena_source
+          BACKUP_REPORTING_ENABLED: "false"
+          BACKUP_DIR: ${{ runner.temp }}/fcarena-backups
+          BACKUP_REMOTE_DEST: ${{ runner.temp }}/fcarena-offsite
+          BACKUP_REQUIRE_REMOTE: "true"
+          BACKUP_RETENTION_DAYS: "14"
+        run: |
+          set -euo pipefail
+          chmod +x ops/backup/fcarena-backup.sh
+          ops/backup/fcarena-backup.sh
+
+          BACKUP_FILE="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'fcarena-*.dump.gpg' | head -n 1)"
+          if [ -z "$BACKUP_FILE" ]; then
+            echo "Backup artifact was not produced."
+            exit 1
+          fi
+
+          OFFSITE_FILE="$BACKUP_REMOTE_DEST/$(basename "$BACKUP_FILE")"
+          test -s "$OFFSITE_FILE"
+          test -s "${OFFSITE_FILE}.sha256"
+
+          echo "BACKUP_FILE=$BACKUP_FILE" >> "$GITHUB_ENV"
+
+      - name: Restore encrypted backup into recovery database
+        shell: bash
+        env:
+          RECOVERY_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena_restore
+          FC_ARENA_RESTORE_CONFIRM: VERIFY_ON_RECOVERY_DATABASE
+          EXPECTED_MIN_TABLES: "1"
+        run: |
+          set -euo pipefail
+          chmod +x ops/backup/fcarena-restore-verify.sh
+          ops/backup/fcarena-restore-verify.sh
+
+      - name: Verify restored application data
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          MARKER="$(psql -h 127.0.0.1 -U postgres -d fcarena_restore -Atc 'SELECT marker FROM backup_probe WHERE id = 1;')"
+          test "$MARKER" = "fc-arena-backup-restore-ok"
+          echo "Encrypted backup + off-server copy + restore verification passed."

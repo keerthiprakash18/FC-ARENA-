@@ -42,7 +42,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Community safety data can include reports you submit, the reported player or content category, optional report details, block and unblock actions, and moderation outcomes. We use this information to prevent abuse, enforce community rules and protect users.
+          Community safety data can include reports you submit, the reported player or content category, optional report details, block and unblock actions, and moderation outcomes. Fair Play data can include League-admin-issued conduct events, fixed policy point changes, reasons, optional evidence links, expiry or revocation details, and player appeals and appeal outcomes. We use this information to support transparent competition conduct, appeals, abuse prevention and community safety.
         </p>
 
         <p>
@@ -104,6 +104,10 @@ export default function PrivacyPage() {
         <p>
           Tournaments configured as public may expose public competition information such as Tournament names, fixtures, standings and participant display identities. Ordinary member email addresses and private game UID values are not intended to be exposed through public Tournament views.
         </p>
+
+        <p>
+          Signed-in members may see a limited Fair Play summary on player profiles, such as the current score and status. Detailed Fair Play reasons, evidence, event history and appeal information are not exposed through public player profiles. Reports and disputes do not automatically reduce a Fair Play score.
+        </p>
       </PublicInfoCard>
 
       <PublicInfoCard
@@ -111,7 +115,7 @@ export default function PrivacyPage() {
         icon="shield"
       >
         <p>
-          Signed-in users can report inappropriate player profiles or community content and can block other players from new League-owner membership interactions. FC ARENA Super Admin moderation can review submitted reports and record resolution outcomes.
+          Signed-in users can report inappropriate player profiles or community content and can block other players from new League-owner membership interactions. FC ARENA Super Admin moderation can review submitted reports and record resolution outcomes. League Admins can issue Fair Play events only for members of Leagues they administer, using FC ARENA's fixed event policy; affected players can review their event history and submit an appeal, and authorized admins can record the appeal outcome or revoke an event.
         </p>
 
         <p>
@@ -139,7 +143,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Some completed competition, audit, dispute or security records may be retained in a de-identified or anonymized form where necessary to preserve competition integrity, prevent abuse or satisfy legal obligations. Retained records are not used to recreate a deleted account.
+          Some completed competition, audit, dispute, Fair Play moderation or security records may be retained in a de-identified or anonymized form where necessary to preserve competition integrity, prevent abuse or satisfy legal obligations. Retained records are not used to recreate a deleted account.
         </p>
       </PublicInfoCard>
 

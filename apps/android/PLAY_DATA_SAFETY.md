@@ -29,7 +29,7 @@ This document is the engineering checklist for the **exact Android release build
 | User IDs | FC Arena account ID, Player Code, In-Game Name identity | Required for account/competition identity | Account management, app functionality | Public competition identity may be shown to other participants |
 | Other personal info | Optional game UID | Optional | Competition identity / verification | Must not be exposed through public Discover or public tournament views |
 | Photos | Profile image, match/result evidence screenshot | Optional | App functionality, result verification, disputes | Cloudinary may process hosted images/evidence |
-| Other user-generated content | League/Tournament names where user is admin, reports, dispute text, result evidence metadata, optional deletion-request details | Depends on feature | App functionality, safety, fraud prevention | Review exact Play Console category wording |
+| Other user-generated content | League/Tournament names where user is admin, reports, dispute text, result evidence metadata, optional deletion-request details, reported AI-output text | Depends on feature | App functionality, safety, fraud prevention | Review exact Play Console category wording |
 | App activity / other actions | Tournament registrations, fixtures, results, standings-related actions, League War actions, readiness, confirmations, reports | Feature-dependent | App functionality, fraud prevention, competition integrity | Stored as competition records/audit events |
 | In-app search history | Discover search query is sent to FC ARENA to return results | Optional / feature-use | App functionality | Current product does not intentionally use it for ads or ad profiling; confirm whether server/access logs retain query strings beyond ephemeral processing |
 | Device or other IDs | FCM registration token / Firebase installation identifier after phone notifications are enabled | Optional | App functionality, developer communications | FCM auto-init is disabled by default; user can disable notifications |
@@ -82,6 +82,8 @@ Verify all of the following against the exact AAB and production configuration:
 - no new external API receives user data
 - Firebase notification behavior still matches this document
 - optional AI provider behavior is accurately disclosed
+- AI-output reporting remains available in-app if generative AI is enabled
+- current Terms acceptance and UGC moderation controls remain enabled
 - search/log retention behavior is known
 - Privacy Policy matches the form
 - deletion resource is publicly reachable without sign-in

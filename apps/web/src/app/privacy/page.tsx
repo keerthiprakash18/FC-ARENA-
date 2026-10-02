@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Effective date: 28 September 2026.
+          Effective date: 2 October 2026.
         </p>
       </PublicInfoCard>
 

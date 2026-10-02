@@ -39,6 +39,18 @@ import {
   UpdateAndroidReleaseDto,
 } from './dto/update-android-release.dto.js';
 
+import {
+  CompleteAccountDeletionDto,
+} from './dto/complete-account-deletion.dto.js';
+
+import {
+  VerifyAccountDeletionDto,
+} from './dto/verify-account-deletion.dto.js';
+
+import {
+  PrivacyOpsService,
+} from './privacy-ops.service.js';
+
 type AuthenticatedRequest =
   Request & {
     user:
@@ -51,6 +63,9 @@ export class AdminOpsController {
   constructor(
     private readonly adminOps:
       AdminOpsService,
+
+    private readonly privacyOps:
+      PrivacyOpsService,
   ) {}
 
   @Get('overview')
@@ -61,6 +76,61 @@ export class AdminOpsController {
   ) {
     return this.adminOps.overview(
       request.user.sub,
+    );
+  }
+
+  @Get('privacy/deletion-requests')
+  deletionRequests(
+    @Req()
+    request:
+      AuthenticatedRequest,
+  ) {
+    return this.privacyOps.listDeletionRequests(
+      request.user.sub,
+    );
+  }
+
+  @Post(
+    'privacy/deletion-requests/:requestId/verify',
+  )
+  verifyDeletionRequest(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('requestId')
+    requestId: string,
+
+    @Body()
+    dto:
+      VerifyAccountDeletionDto,
+  ) {
+    return this.privacyOps.verifyDeletionRequest(
+      request.user.sub,
+      requestId,
+      dto,
+    );
+  }
+
+  @Post(
+    'privacy/deletion-requests/:requestId/complete',
+  )
+  completeDeletionRequest(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('requestId')
+    requestId: string,
+
+    @Body()
+    dto:
+      CompleteAccountDeletionDto,
+  ) {
+    return this.privacyOps.completeDeletionRequest(
+      request.user.sub,
+      requestId,
+      dto,
     );
   }
 

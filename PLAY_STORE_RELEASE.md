@@ -1,5 +1,7 @@
 # FC ARENA Android stabilization release gate
 
+> Production-access compliance gate: before any Production application or release upload, complete `PLAY_STORE_PRODUCTION_ACCESS.md`, review `apps/android/PLAY_DATA_SAFETY.md`, and run `npm run play:compliance`. Do not treat CI success alone as proof that Play Console closed-testing or policy requirements are complete.
+
 Stabilization checks passed on the pre-bump candidate. Current release candidate is **10 / 1.0.8**.
 It must be merged and uploaded only after the post-bump validation remains green. Package stays `in.fcarena.app`.
 

@@ -75,6 +75,11 @@ const quickSearchItems = [
     href: '/awards/hall-of-fame',
   },
   {
+    label: 'Fair Play',
+    keywords: 'fair play reputation conduct appeal',
+    href: '/fair-play',
+  },
+  {
     label: 'More',
     keywords: 'more settings help awards achievements',
     href: '/more',

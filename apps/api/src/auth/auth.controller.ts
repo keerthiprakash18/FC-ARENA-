@@ -321,6 +321,20 @@ export class AuthController {
     return result;
   }
 
+  @Post('accept-terms')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async acceptTerms(
+    @Req()
+    request: Request & {
+      user: AccessTokenPayload;
+    },
+  ) {
+    return this.authService.acceptTerms(
+      request.user.sub,
+    );
+  }
+
   @Patch('preferences/theme')
   @UseGuards(JwtAuthGuard)
   async updateThemePreference(

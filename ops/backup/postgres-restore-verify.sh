@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-COMPOSE_FILE="\${FC_ARENA_COMPOSE_FILE:-/opt/fcarena/docker-compose.prod.yml}"
-BACKUP_DIR="\${FC_ARENA_BACKUP_DIR:-/opt/fcarena/backups/postgres}"
-POSTGRES_IMAGE="\${FC_ARENA_RESTORE_VERIFY_IMAGE:-}"
-LATEST_BACKUP="\${1:-}"
+COMPOSE_FILE="${FC_ARENA_COMPOSE_FILE:-/opt/fcarena/docker-compose.prod.yml}"
+BACKUP_DIR="${FC_ARENA_BACKUP_DIR:-/opt/fcarena/backups/postgres}"
+POSTGRES_IMAGE="${FC_ARENA_RESTORE_VERIFY_IMAGE:-}"
+LATEST_BACKUP="${1:-}"
 
 fail() {
   echo "FC_ARENA_RESTORE_VERIFY_FAIL: $*" >&2
@@ -23,7 +23,7 @@ fi
 [[ -f "$LATEST_BACKUP" ]] || fail "backup not found: $LATEST_BACKUP"
 [[ -s "$LATEST_BACKUP" ]] || fail "backup is empty: $LATEST_BACKUP"
 
-checksum_file="\${LATEST_BACKUP}.sha256"
+checksum_file="${LATEST_BACKUP}.sha256"
 if [[ -f "$checksum_file" ]]; then
   (cd "$(dirname "$LATEST_BACKUP")" && sha256sum -c "$(basename "$checksum_file")")
 fi

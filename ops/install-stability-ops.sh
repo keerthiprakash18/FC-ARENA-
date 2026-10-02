@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-REPO_ROOT="\${FC_ARENA_REPO_ROOT:-/opt/fcarena}"
+REPO_ROOT="${FC_ARENA_REPO_ROOT:-/opt/fcarena}"
 SYSTEMD_DIR="/etc/systemd/system"
 
 fail() {

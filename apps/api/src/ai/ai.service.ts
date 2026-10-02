@@ -13,6 +13,10 @@ import type {
   AiChatDto,
 } from './dto/chat.dto.js';
 
+import type {
+  ReportAiOutputDto,
+} from './dto/report-ai-output.dto.js';
+
 const MINUTE_LIMIT = 10;
 const DAILY_LIMIT = 30;
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -132,6 +136,64 @@ export class AiService {
         engine,
       },
 
+      error: null,
+    };
+  }
+
+  async reportOutput(
+    userId: string,
+    dto:
+      ReportAiOutputDto,
+  ) {
+    const reportId =
+      crypto.randomUUID();
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId:
+          userId,
+        action:
+          'AI_OUTPUT_REPORTED',
+        targetType:
+          'AI_RESPONSE',
+        targetId:
+          reportId,
+        scopeType:
+          'SAFETY',
+        scopeId:
+          'AI',
+        metadata: {
+          response:
+            dto.response
+              .trim()
+              .slice(
+                0,
+                4000,
+              ),
+          reason:
+            dto.reason
+              ?.trim()
+              .slice(
+                0,
+                500,
+              ) ??
+            null,
+          reportedAt:
+            new Date()
+              .toISOString(),
+          source:
+            'IN_APP_AI_REPORT',
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        reportId,
+        message:
+          'AI response reported for safety review.',
+      },
       error: null,
     };
   }

@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Effective date: 28 September 2026.
+          Effective date: 2 October 2026.
         </p>
       </PublicInfoCard>
 
@@ -48,6 +48,10 @@ export default function PrivacyPage() {
         <p>
           If you voluntarily upload a profile photo or match/result evidence, we process those files to provide profile, OCR, verification and dispute features.
         </p>
+
+        <p>
+          Search terms entered in FC ARENA Discover are sent to the FC ARENA service to return matching players, Leagues, Tournaments and seasons. FC ARENA does not use Discover searches for advertising or ad profiling.
+        </p>
       </PublicInfoCard>
 
       <PublicInfoCard
@@ -61,6 +65,14 @@ export default function PrivacyPage() {
         <p>
           OTPs are time-limited, and refresh sessions have a limited lifetime. We may also retain ordinary server and security logs for troubleshooting, fraud prevention, abuse prevention and service reliability.
         </p>
+
+        <p>
+          If you choose to enable phone notifications in the Android app, FC ARENA uses Google Firebase Cloud Messaging to deliver competition alerts. Firebase Cloud Messaging and its Firebase Installations dependency may process a push registration token, Firebase installation identifier, application version and related technical service metadata needed to route notifications. FC ARENA stores the push token with your signed-in account/session so notifications can be delivered to the correct installation.
+        </p>
+
+        <p>
+          Phone notifications are optional. The Android build keeps Firebase Messaging auto-initialization disabled until notification support is enabled by the user, and the current FC ARENA Android build does not enable Firebase Analytics collection. Disabling FC ARENA phone notifications removes the app&apos;s push token from the device and stops FC ARENA from using it for future push delivery.
+        </p>
       </PublicInfoCard>
 
       <PublicInfoCard
@@ -72,7 +84,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          We do not sell personal information, and the current FC ARENA app does not use advertising SDKs for targeted advertising.
+          We do not sell personal information. The current FC ARENA Android app does not include an advertising SDK, does not use Firebase Analytics, and does not use collected data for targeted advertising.
         </p>
       </PublicInfoCard>
 
@@ -81,7 +93,7 @@ export default function PrivacyPage() {
         icon="document"
       >
         <p>
-          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery and Cloudinary for player profile image storage and delivery.
+          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery, Cloudinary for player profile images and match/result evidence, and Google Firebase Cloud Messaging for optional Android push notifications.
         </p>
 
         <p>

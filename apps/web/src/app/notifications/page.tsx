@@ -81,6 +81,8 @@ function notificationIcon(type: string) {
       return "★";
     case "ACHIEVEMENT_RECEIVED":
       return "🏅";
+    case "FAIR_PLAY_UPDATED":
+      return "🛡";
     default:
       return "●";
   }
@@ -216,6 +218,7 @@ export default function NotificationsPage() {
                 "DISPUTE_OPENED",
                 "DISPUTE_RESOLVED",
                 "LEAGUE_JOIN_REQUESTED",
+                "FAIR_PLAY_UPDATED",
               ].includes(notification.type),
           )
         : filter === "unread"
@@ -309,7 +312,7 @@ export default function NotificationsPage() {
         <FcPageHeader
           eyebrow="FC ARENA Activity"
           title="Notifications"
-          subtitle="Smart match reminders, Ready alerts, result actions, disputes, league activity and achievements in one place."
+          subtitle="Match reminders, Fair Play reviews, disputes, league activity and achievements in one place."
           action={
             data.unreadCount > 0 ? (
               <button

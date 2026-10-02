@@ -7,6 +7,10 @@ import {
 } from '../auth/auth.module.js';
 
 import {
+  PlayerCareerModule,
+} from '../player-career/player-career.module.js';
+
+import {
   AdminOpsController,
   BackupReportController,
   MobileVersionController,
@@ -16,9 +20,14 @@ import {
   AdminOpsService,
 } from './admin-ops.service.js';
 
+import {
+  PrivacyOpsService,
+} from './privacy-ops.service.js';
+
 @Module({
   imports: [
     AuthModule,
+    PlayerCareerModule,
   ],
 
   controllers: [
@@ -29,6 +38,7 @@ import {
 
   providers: [
     AdminOpsService,
+    PrivacyOpsService,
   ],
 
   exports: [

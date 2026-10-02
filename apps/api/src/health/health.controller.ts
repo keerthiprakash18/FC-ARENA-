@@ -3,7 +3,7 @@ import {
   Get,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 
 import {
   PrismaService,

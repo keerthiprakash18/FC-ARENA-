@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+COMPOSE_FILE="\${FC_ARENA_COMPOSE_FILE:-/opt/fcarena/docker-compose.prod.yml}"
 BACKUP_DIR="\${FC_ARENA_BACKUP_DIR:-/opt/fcarena/backups/postgres}"
-POSTGRES_IMAGE="\${FC_ARENA_RESTORE_VERIFY_IMAGE:-postgres:17}"
+POSTGRES_IMAGE="\${FC_ARENA_RESTORE_VERIFY_IMAGE:-}"
 LATEST_BACKUP="\${1:-}"
 
 fail() {
@@ -12,6 +13,7 @@ fail() {
 
 command -v docker >/dev/null 2>&1 || fail "docker is required"
 command -v sha256sum >/dev/null 2>&1 || fail "sha256sum is required"
+[[ -f "$COMPOSE_FILE" ]] || fail "compose file not found: $COMPOSE_FILE"
 
 if [[ -z "$LATEST_BACKUP" ]]; then
   LATEST_BACKUP="$(find "$BACKUP_DIR" -maxdepth 1 -type f -name 'fcarena_*.dump' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n 1 | cut -d' ' -f2-)"
@@ -26,12 +28,20 @@ if [[ -f "$checksum_file" ]]; then
   (cd "$(dirname "$LATEST_BACKUP")" && sha256sum -c "$(basename "$checksum_file")")
 fi
 
+if [[ -z "$POSTGRES_IMAGE" ]]; then
+  postgres_container="$(docker compose -f "$COMPOSE_FILE" ps -q postgres)"
+  [[ -n "$postgres_container" ]] || fail "production postgres service is not running"
+  POSTGRES_IMAGE="$(docker inspect --format '{{.Config.Image}}' "$postgres_container")"
+fi
+
+[[ -n "$POSTGRES_IMAGE" ]] || fail "unable to determine PostgreSQL image"
+
 container="fc-arena-restore-verify-$$"
 database="fcarena_restore_verify"
 cleanup() { docker rm -f "$container" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-echo "Starting isolated restore verification container: $container"
+echo "Starting isolated restore verification with image: $POSTGRES_IMAGE"
 docker run --detach --rm --name "$container" --env POSTGRES_PASSWORD=restore_verify_only --env POSTGRES_DB="$database" "$POSTGRES_IMAGE" >/dev/null
 
 ready=0
@@ -52,4 +62,4 @@ table_count="$(docker exec "$container" psql -U postgres -d "$database" -Atc "SE
 
 docker exec "$container" psql -U postgres -d "$database" -v ON_ERROR_STOP=1 -Atc "SELECT 1;" | grep -qx "1"
 
-echo "FC_ARENA_RESTORE_VERIFY_OK backup=$LATEST_BACKUP public_tables=$table_count"
+echo "FC_ARENA_RESTORE_VERIFY_OK backup=$LATEST_BACKUP image=$POSTGRES_IMAGE public_tables=$table_count"

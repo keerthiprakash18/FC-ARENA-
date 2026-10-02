@@ -81,7 +81,11 @@ export default function PrivacyPage() {
         icon="document"
       >
         <p>
-          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery and Cloudinary for player profile image storage and delivery.
+          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, and Google Firebase Cloud Messaging for Android push-notification delivery.
+        </p>
+
+        <p>
+          For Android push notifications, FC ARENA can process a Firebase Cloud Messaging registration token and limited notification-delivery metadata so that competition reminders and account activity can be delivered to your device. Notification permission is optional and can be disabled through Android settings.
         </p>
 
         <p>

@@ -48,6 +48,10 @@ const adminItems = [
 
 const superAdminItems = [
   [
+    'Privacy',
+    '/admin/privacy',
+  ],
+  [
     'System',
     '/admin/system',
   ],

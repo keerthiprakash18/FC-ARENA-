@@ -49,6 +49,9 @@ jobs:
       - name: Verify Android version source
         run: node apps/android/verify-version.mjs
 
+      - name: Google Play compliance gate
+        run: npm run check:play-compliance
+
       - name: Validate Windows signing helper syntax
         shell: pwsh
         run: |

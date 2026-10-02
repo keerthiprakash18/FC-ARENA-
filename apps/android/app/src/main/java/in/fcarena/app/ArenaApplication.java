@@ -3,6 +3,7 @@ package in.fcarena.app;
 import android.app.Application;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 public final class ArenaApplication extends Application {
@@ -14,7 +15,7 @@ public final class ArenaApplication extends Application {
         // Firebase Messaging auto-init remains disabled in AndroidManifest.xml,
         // so push notifications still require the user's explicit opt-in.
         try {
-            FirebaseApp firebaseApp = FirebaseApp.initializeApp(this);
+            FirebaseApp firebaseApp = initializeFirebase();
 
             if (firebaseApp != null) {
                 FirebaseCrashlytics crashlytics = FirebaseCrashlytics.getInstance();
@@ -33,5 +34,24 @@ public final class ArenaApplication extends Application {
         if (PushSupport.enabled(this)) {
             PushSupport.initialize(this);
         }
+    }
+
+    private FirebaseApp initializeFirebase() {
+        if (!FirebaseApp.getApps(this).isEmpty()) {
+            return FirebaseApp.getInstance();
+        }
+
+        if (BuildConfig.FIREBASE_APP_ID.isEmpty()) {
+            return null;
+        }
+
+        FirebaseOptions options = new FirebaseOptions.Builder()
+                .setApplicationId(BuildConfig.FIREBASE_APP_ID)
+                .setApiKey(BuildConfig.FIREBASE_API_KEY)
+                .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
+                .setGcmSenderId(BuildConfig.FIREBASE_SENDER_ID)
+                .build();
+
+        return FirebaseApp.initializeApp(this, options);
     }
 }

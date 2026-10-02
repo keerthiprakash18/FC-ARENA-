@@ -9,6 +9,7 @@ import { PrismaModule } from './database/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { DisputesModule } from './disputes/disputes.module.js';
 import { DiscoverModule } from './discover/discover.module.js';
+import { FairPlayModule } from './fair-play/fair-play.module.js';
 import { LeaguesModule } from './leagues/leagues.module.js';
 import { LeagueWarsModule } from './league-wars/league-wars.module.js';
 import { MatchesModule } from './matches/matches.module.js';
@@ -42,6 +43,7 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
     PlayerCareerModule,
     DisputesModule,
     DiscoverModule,
+    FairPlayModule,
     PublicModule,
   ],
 })

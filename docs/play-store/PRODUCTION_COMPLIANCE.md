@@ -33,8 +33,9 @@ FC ARENA closed-test flows to exercise:
 10. Verify standings/statistics/awards update correctly.
 11. Open notifications and deep links.
 12. Exercise Discover/public player profile without exposing private data.
-13. Request account deletion from Settings and verify the public deletion page.
-14. Repeat on Wi-Fi/mobile data and after background/resume.
+13. Verify Fair Play: player sees own event details/appeal rights; other members see summary only.
+14. Request account deletion from Settings and verify the public deletion page.
+15. Repeat on Wi-Fi/mobile data and after background/resume.
 
 Record tester feedback in `docs/play-store/CLOSED_TEST_EVIDENCE.md`.
 
@@ -77,7 +78,7 @@ Current code can process the following categories:
 | User IDs | FC Arena player/account identifiers | Includes internal account/player IDs |
 | Photos / images | Optional profile photos and match/result evidence | Cloudinary can process uploaded images |
 | App activity / competition content | Leagues, tournaments, fixtures, results, disputes, awards | Core app functionality |
-| User-generated content | Names, team/tournament content, reports/disputes | Safety/reporting controls exist |
+| User-generated / moderation content | Names, team/tournament content, reports/disputes, Fair Play event reasons and appeals | Safety/reporting controls and Fair Play appeal/revocation flow exist |
 | Device or other identifiers | Firebase Cloud Messaging registration token | Used for Android push delivery |
 | Diagnostics / security records | Server/security logs and rate-limit identifiers | Verify retention/collection wording before submission |
 

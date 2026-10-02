@@ -38,8 +38,8 @@ if data.get("api") != "connected":
     errors.append("api != connected")
 if data.get("database") != "connected":
     errors.append("database != connected")
-if data.get("redis") not in {"connected", "not_configured"}:
-    errors.append("redis unavailable")
+if data.get("redis") != "connected":
+    errors.append("redis != connected")
 if data.get("status") == "unhealthy":
     errors.append("status=unhealthy")
 

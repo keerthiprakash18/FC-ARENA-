@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-API_HEALTH_URL="\${FC_ARENA_HEALTH_URL:-https://api.fcarena.in/api/health}"
-DISK_WARN_PERCENT="\${FC_ARENA_DISK_WARN_PERCENT:-85}"
-MEMORY_WARN_PERCENT="\${FC_ARENA_MEMORY_WARN_PERCENT:-90}"
+API_HEALTH_URL="${FC_ARENA_HEALTH_URL:-https://api.fcarena.in/api/health}"
+DISK_WARN_PERCENT="${FC_ARENA_DISK_WARN_PERCENT:-85}"
+MEMORY_WARN_PERCENT="${FC_ARENA_MEMORY_WARN_PERCENT:-90}"
 
 fail() {
   echo "FC_ARENA_MONITOR_FAIL: $*" >&2
@@ -60,15 +60,15 @@ PY
 
 disk_percent="$(df -P / | awk 'NR==2 {gsub("%", "", $5); print $5}')"
 [[ "$disk_percent" =~ ^[0-9]+$ ]] || fail "unable to read root disk usage"
-(( disk_percent < DISK_WARN_PERCENT )) || fail "root disk usage is \${disk_percent}% (threshold \${DISK_WARN_PERCENT}%)"
+(( disk_percent < DISK_WARN_PERCENT )) || fail "root disk usage is ${disk_percent}% (threshold ${DISK_WARN_PERCENT}%)"
 
 read -r memory_total_kb memory_available_kb < <(
   awk '/^MemTotal:/ { total=$2 } /^MemAvailable:/ { available=$2 } END { print total, available }' /proc/meminfo
 )
-[[ "\${memory_total_kb:-}" =~ ^[0-9]+$ ]] || fail "unable to read total memory"
-[[ "\${memory_available_kb:-}" =~ ^[0-9]+$ ]] || fail "unable to read available memory"
+[[ "${memory_total_kb:-}" =~ ^[0-9]+$ ]] || fail "unable to read total memory"
+[[ "${memory_available_kb:-}" =~ ^[0-9]+$ ]] || fail "unable to read available memory"
 
 memory_used_percent="$(awk -v total="$memory_total_kb" -v available="$memory_available_kb" 'BEGIN { printf "%.0f", ((total - available) / total) * 100 }')"
-(( memory_used_percent < MEMORY_WARN_PERCENT )) || fail "memory usage is \${memory_used_percent}% (threshold \${MEMORY_WARN_PERCENT}%)"
+(( memory_used_percent < MEMORY_WARN_PERCENT )) || fail "memory usage is ${memory_used_percent}% (threshold ${MEMORY_WARN_PERCENT}%)"
 
-echo "FC_ARENA_HOST_OK disk=\${disk_percent}% memory=\${memory_used_percent}%"
+echo "FC_ARENA_HOST_OK disk=${disk_percent}% memory=${memory_used_percent}%"

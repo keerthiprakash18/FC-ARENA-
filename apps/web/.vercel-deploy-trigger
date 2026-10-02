@@ -1,4 +1,4 @@
 FC ARENA production deployment trigger.
-Reason: deploy V3.1 + V3.2 + V3.3 + Play Store compliance pass to Vercel production.
-Release source: 8091d130b5f4ce30ac147f6cdfe2f1c325c1d9ec
-Date: 2026-10-02
+Reason: manual Vercel production retry for latest FC Arena release.
+Release source: 7340568a98ae2b84c66671d7618897431c745b62
+Date: 2026-10-02 14:46 IST

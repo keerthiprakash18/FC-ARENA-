@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
 }
 
@@ -107,4 +108,20 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:34.19.0')
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-crashlytics'
+}
+
+
+/*
+ * google-services.json intentionally contains only the production
+ * in.fcarena.app Firebase client. Debug uses in.fcarena.app.debug and
+ * initializes Firebase from the existing BuildConfig values instead of
+ * pretending to be a second registered Firebase Android app.
+ *
+ * Keep the Google Services plugin applied for the supported Crashlytics v3
+ * release integration, but do not run its config-generation task for debug.
+ */
+tasks.configureEach { task ->
+    if (task.name == 'processDebugGoogleServices') {
+        task.enabled = false
+    }
 }

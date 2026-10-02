@@ -24,8 +24,17 @@ public final class ArenaMessagingService extends FirebaseMessagingService {
         int requestId = id == null ? 1 : id.hashCode();
         PendingIntent pending = PendingIntent.getActivity(this,requestId,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder builder = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this,"competition") : new Notification.Builder(this);
-        String title = message.getNotification() == null ? "FC ARENA" : message.getNotification().getTitle();
-        builder.setSmallIcon(R.drawable.ic_launcher).setContentTitle(title).setContentText("Open FC ARENA to view your latest competition update.").setContentIntent(pending).setAutoCancel(true);
+        String title = "FC ARENA";
+        String body = "Open FC ARENA to view your latest competition update.";
+        if (message.getNotification() != null) {
+            if (message.getNotification().getTitle() != null && !message.getNotification().getTitle().isBlank()) {
+                title = message.getNotification().getTitle();
+            }
+            if (message.getNotification().getBody() != null && !message.getNotification().getBody().isBlank()) {
+                body = message.getNotification().getBody();
+            }
+        }
+        builder.setSmallIcon(R.drawable.ic_launcher).setContentTitle(title).setContentText(body).setStyle(new Notification.BigTextStyle().bigText(body)).setContentIntent(pending).setAutoCancel(true);
         getSystemService(NotificationManager.class).notify(id,requestId,builder.build());
     }
 }

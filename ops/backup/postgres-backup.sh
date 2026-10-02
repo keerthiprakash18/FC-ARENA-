@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-COMPOSE_FILE="\${FC_ARENA_COMPOSE_FILE:-/opt/fcarena/docker-compose.prod.yml}"
-BACKUP_DIR="\${FC_ARENA_BACKUP_DIR:-/opt/fcarena/backups/postgres}"
-RETENTION_DAYS="\${FC_ARENA_BACKUP_RETENTION_DAYS:-14}"
-MIRROR_DIR="\${FC_ARENA_BACKUP_MIRROR_DIR:-}"
-RCLONE_REMOTE="\${FC_ARENA_BACKUP_RCLONE_REMOTE:-}"
+COMPOSE_FILE="${FC_ARENA_COMPOSE_FILE:-/opt/fcarena/docker-compose.prod.yml}"
+BACKUP_DIR="${FC_ARENA_BACKUP_DIR:-/opt/fcarena/backups/postgres}"
+RETENTION_DAYS="${FC_ARENA_BACKUP_RETENTION_DAYS:-14}"
+MIRROR_DIR="${FC_ARENA_BACKUP_MIRROR_DIR:-}"
+RCLONE_REMOTE="${FC_ARENA_BACKUP_RCLONE_REMOTE:-}"
 
 fail() {
   echo "FC_ARENA_BACKUP_FAIL: $*" >&2
@@ -23,9 +23,9 @@ chmod 700 "$BACKUP_DIR"
 docker compose -f "$COMPOSE_FILE" ps --services --status running | grep -qx "postgres" || fail "postgres service is not running"
 
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-final_file="$BACKUP_DIR/fcarena_\${timestamp}.dump"
-partial_file="\${final_file}.part"
-checksum_file="\${final_file}.sha256"
+final_file="$BACKUP_DIR/fcarena_${timestamp}.dump"
+partial_file="${final_file}.part"
+checksum_file="${final_file}.sha256"
 
 cleanup() { rm -f "$partial_file"; }
 trap cleanup EXIT

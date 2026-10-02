@@ -1,0 +1,57 @@
+name: FC Arena Production Health
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fc-arena-production-health
+  cancel-in-progress: true
+
+jobs:
+  api-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify production API, database and Redis health
+        shell: bash
+        run: |
+          set -euo pipefail
+          body_file="$(mktemp)"
+          trap 'rm -f "$body_file"' EXIT
+          http_code="$(curl --silent --show-error --location --connect-timeout 10 --max-time 20 --retry 2 --retry-delay 2 --output "$body_file" --write-out "%{http_code}" "https://api.fcarena.in/api/health")"
+          if [[ "$http_code" != "200" ]]; then
+            echo "FC Arena health endpoint returned HTTP $http_code"
+            cat "$body_file"
+            exit 1
+          fi
+          node - "$body_file" <<'NODE'
+          const fs = require('fs');
+          const file = process.argv[2];
+          const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const data = payload?.data;
+          const failures = [];
+          if (payload?.success !== true) failures.push('success != true');
+          if (!data) failures.push('missing data');
+          if (data?.api !== 'connected') failures.push('API is not connected');
+          if (data?.database !== 'connected') failures.push('database is not connected');
+          if (data?.redis !== 'connected') failures.push('Redis is not connected');
+          if (data?.status === 'unhealthy') failures.push('health status is unhealthy');
+          if (failures.length) {
+            console.error('Production health check failed:', failures.join('; '));
+            console.error(JSON.stringify(payload, null, 2));
+            process.exit(1);
+          }
+          console.log('FC Arena production health OK', JSON.stringify({
+            status: data.status,
+            databaseLatencyMs: data?.checks?.database?.latencyMs ?? null,
+            redisLatencyMs: data?.checks?.redis?.latencyMs ?? null,
+            uptimeSeconds: data?.runtime?.uptimeSeconds ?? null,
+            rssMb: data?.runtime?.memory?.rssMb ?? null,
+            release: data?.runtime?.release ?? null,
+          }));
+          NODE

@@ -1,0 +1,10 @@
+[Unit]
+Description=FC Arena production health check
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/fcarena
+ExecStart=/opt/fcarena/ops/monitor/health-check.sh

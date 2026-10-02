@@ -1,0 +1,52 @@
+name: Stability Ops Verify
+
+on:
+  pull_request:
+    paths:
+      - "ops/**"
+      - ".github/workflows/production-health.yml"
+      - ".github/workflows/stability-ops-verify.yml"
+  push:
+    branches:
+      - "ops/stability-monitoring-v1"
+    paths:
+      - "ops/**"
+      - ".github/workflows/production-health.yml"
+      - ".github/workflows/stability-ops-verify.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n ops/monitor/health-check.sh
+          bash -n ops/backup/postgres-backup.sh
+          bash -n ops/backup/postgres-restore-verify.sh
+          bash -n ops/install-stability-ops.sh
+
+      - name: Verify restore test is isolated
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'docker run' ops/backup/postgres-restore-verify.sh
+          if grep -q 'docker compose.*postgres.*psql' ops/backup/postgres-restore-verify.sh; then
+            echo "Restore verification must not run psql against the production Compose postgres service."
+            exit 1
+          fi
+
+      - name: Verify backup safety guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'pg_restore --list' ops/backup/postgres-backup.sh
+          grep -q 'sha256sum' ops/backup/postgres-backup.sh
+          grep -q 'FC_ARENA_BACKUP_OK' ops/backup/postgres-backup.sh

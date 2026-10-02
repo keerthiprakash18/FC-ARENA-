@@ -52,7 +52,22 @@ Useful FC ARENA examples should only be used if they truly came from the test:
 - notification delivery issue → push handling fix
 - Android update issue → version-control/update handling fix
 
-## 3. App-content / policy gate
+## 3. Submitted Play Console baseline
+
+Keep future changes consistent with the existing FC ARENA Play Console positioning unless the Console answers are deliberately updated before review:
+
+- product positioning: football / FC Mobile esports community and Tournament management
+- store-listing focus: Tournaments, fixtures, standings, statistics and leaderboards
+- intended users: players, communities and competitive Leagues
+- children/families-specific category: not selected in the prior setup
+- ads: No for the current build
+- paid app: No
+- future monetization intention previously selected: subscriptions / in-app purchases may be used later
+- current release code must not imply that subscriptions, paid entry, wagering or advertising are already available when they are not
+
+Before final Production submission, open Play Console and verify these remembered baseline choices still match the saved Console answers. If a saved answer differs, update this document or the Console deliberately; do not let the store declaration and shipped build silently diverge.
+
+## 4. App-content / policy gate
 
 Before applying:
 
@@ -65,14 +80,14 @@ Before applying:
 - content rating answers match actual football esports/community features
 - target audience answers match the intended audience; do not mark children unless FC ARENA is deliberately designed and compliant for children
 - no gambling/betting or real-money wagering claims are present
-- no payment/subscription declarations are added until those features actually exist and have been separately reviewed
+- no payment SDK, paid entry, purchase flow or subscription UI is shipped until that feature is separately reviewed; the previously selected future monetization intention can remain a plan rather than a claim that purchases already exist
 - new registrations explicitly accept the current Terms of Service & Community Rules
 - existing signed-in users are blocked by the in-app Terms gate until they accept the current Terms version
 - UGC reporting and blocking remain available from Safety & Reporting
 - AI-generated responses keep an in-app “Report AI response” control while FC ARENA AI is available
 - store listing screenshots/text match the tested build
 
-## 4. Android release gate
+## 5. Android release gate
 
 - package remains `in.fcarena.app`
 - target SDK is at least the current Play requirement (36 for the planned 2026 submission)
@@ -88,7 +103,7 @@ Before applying:
 Official target-API reference:
 https://support.google.com/googleplay/android-developer/answer/11926878
 
-## 5. Pre-launch / quality gate
+## 6. Pre-launch / quality gate
 
 Before Production:
 
@@ -103,12 +118,15 @@ Before Production:
 - file/photo upload works on the Play-installed build
 - push notification opt-in/opt-out works
 - account-deletion page works without login
+- Super Admin Privacy queue can verify a deletion request and complete irreversible account anonymization
+- completion deletes/revokes login sessions, push tokens, OTPs, profile identity/contact fields and managed uploaded evidence while retaining de-identified competition history
+- a disabled/deleted account cannot continue using an already-issued access token
 - Terms acceptance gate works for an existing account with no current acceptance record
 - a new registration cannot complete without accepting the Terms
 - report/block controls work inside the app
 - an FC ARENA AI response can be reported without leaving the app
 
-## 6. Production-access response evidence
+## 7. Production-access response evidence
 
 Google asks about:
 
@@ -122,7 +140,7 @@ Google asks about:
 
 Answer factually from the feedback log, release notes, Play testing history and CI/device evidence. Do not invent tester behavior or feedback.
 
-## 7. Current engineering safeguards
+## 8. Current engineering safeguards
 
 Run:
 

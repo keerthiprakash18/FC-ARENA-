@@ -24,6 +24,15 @@ import {
   authenticatedRequest,
 } from '@/lib/auth-client';
 
+interface PublicFairPlay {
+  score: number;
+  status: string;
+  activePenaltyEvents: number;
+  commendations: number;
+  lastUpdatedAt: string | null;
+  detailVisibility: string;
+}
+
 interface PublicPlayerData {
   player: {
     userId: string;
@@ -143,6 +152,14 @@ export default function PublicPlayerPage() {
   ] =
     useState('');
 
+  const [
+    fairPlay,
+    setFairPlay,
+  ] =
+    useState<PublicFairPlay | null>(
+      null,
+    );
+
   useEffect(() => {
     void authenticatedRequest<{
       success: true;
@@ -167,6 +184,38 @@ export default function PublicPlayerPage() {
             err instanceof Error
               ? err.message
               : 'Unable to load player.',
+          ),
+      );
+  }, [
+    params.userId,
+  ]);
+
+  useEffect(() => {
+    void authenticatedRequest<{
+      success: true;
+
+      data: {
+        fairPlay:
+          PublicFairPlay;
+      };
+
+      error: null;
+    }>(
+      `/fair-play/players/${params.userId}`,
+    )
+      .then(
+        (
+          response,
+        ) =>
+          setFairPlay(
+            response.data
+              .fairPlay,
+          ),
+      )
+      .catch(
+        () =>
+          setFairPlay(
+            null,
           ),
       );
   }, [
@@ -266,6 +315,33 @@ export default function PublicPlayerPage() {
                   ).toLocaleDateString()}
                 </p>
               </div>
+
+              {fairPlay ? (
+                <div className="shrink-0 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.04] p-4 text-center sm:min-w-[150px]">
+                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600">
+                    Fair Play
+                  </p>
+
+                  <p className="mt-1 text-3xl font-black">
+                    {
+                      fairPlay.score
+                    }
+                  </p>
+
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                    {
+                      fairPlay.status.replaceAll(
+                        '_',
+                        ' ',
+                      )
+                    }
+                  </p>
+
+                  <p className="mt-2 text-[9px] text-slate-600">
+                    Summary only · event details private
+                  </p>
+                </div>
+              ) : null}
             </div>
           </FcPanel>
 

@@ -3,7 +3,7 @@ name: Production Smoke Monitor
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "*/15 * * * *"
 
 permissions:
   contents: read
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
 
     steps:
       - name: Check public web
@@ -33,11 +33,89 @@ jobs:
       - name: Check public API health
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error \
+          HEALTH_JSON="$(curl --fail --silent --show-error \
             --connect-timeout 10 \
             --max-time 30 \
             --retry 3 \
             --retry-delay 2 \
             --retry-all-errors \
-            https://api.fcarena.in/api/health
-          echo
+            https://api.fcarena.in/api/health)"
+          printf '%s\n' "$HEALTH_JSON"
+          printf '%s' "$HEALTH_JSON" | grep -q '"success":true'
+
+      - name: Configure pinned VPS SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${VPS_SSH_KEY}" ]; then
+            echo "Missing GitHub Actions secret: VPS_SSH_KEY"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${VPS_SSH_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -T 10 -t ed25519 162.35.111.245 > /tmp/fcarena_host_key
+
+          ACTUAL_FINGERPRINT="$(ssh-keygen -lf /tmp/fcarena_host_key -E sha256 | awk '{print $2}')"
+          EXPECTED_FINGERPRINT="SHA256:4WyL0P7CfMAEcG3OQY6Jp4Q0q5lOtGPmad0bzHiJMvY"
+
+          if [ "${ACTUAL_FINGERPRINT}" != "${EXPECTED_FINGERPRINT}" ]; then
+            echo "VPS host fingerprint mismatch. Monitoring stopped."
+            exit 1
+          fi
+
+          cat /tmp/fcarena_host_key >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Check VPS service and resources
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            fcarena-deploy@162.35.111.245 \
+            'bash -s' <<'REMOTE'
+          set -euo pipefail
+
+          systemctl is-active --quiet fcarena-api.service
+
+          curl --fail --silent --show-error \
+            --connect-timeout 5 \
+            --max-time 15 \
+            http://127.0.0.1:4000/api/health \
+            > /dev/null
+
+          DISK_USED="$(df -P / | awk 'NR==2 {gsub("%","",$5); print $5}')"
+          if [ -z "$DISK_USED" ] || [ "$DISK_USED" -ge 90 ]; then
+            echo "Root disk usage is unsafe: ${DISK_USED:-unknown}%"
+            exit 1
+          fi
+
+          MEM_TOTAL_KB="$(awk '/MemTotal:/ {print $2}' /proc/meminfo)"
+          MEM_AVAILABLE_KB="$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)"
+
+          if [ -z "$MEM_TOTAL_KB" ] || [ -z "$MEM_AVAILABLE_KB" ] || [ "$MEM_TOTAL_KB" -le 0 ]; then
+            echo "Unable to read VPS memory metrics."
+            exit 1
+          fi
+
+          MEM_AVAILABLE_PERCENT="$((MEM_AVAILABLE_KB * 100 / MEM_TOTAL_KB))"
+          if [ "$MEM_AVAILABLE_PERCENT" -lt 10 ]; then
+            echo "Available VPS memory is below 10%: ${MEM_AVAILABLE_PERCENT}%"
+            exit 1
+          fi
+
+          echo "VPS API service: active"
+          echo "Root disk used: ${DISK_USED}%"
+          echo "Memory available: ${MEM_AVAILABLE_PERCENT}%"
+          echo "Load average: $(cat /proc/loadavg | awk '{print $1, $2, $3}')"
+          REMOTE

@@ -61,6 +61,10 @@ export default function PrivacyPage() {
         <p>
           OTPs are time-limited, and refresh sessions have a limited lifetime. We may also retain ordinary server and security logs for troubleshooting, fraud prevention, abuse prevention and service reliability.
         </p>
+
+        <p>
+          The Android app uses Firebase Crashlytics for production diagnostics. If the Android app crashes, becomes unresponsive or encounters a non-fatal application error, limited technical diagnostic information such as app version, device and operating-system information, crash stack traces and related runtime data can be processed to identify and fix reliability problems. FC ARENA does not enable Google Analytics in the Android app for this crash-reporting integration.
+        </p>
       </PublicInfoCard>
 
       <PublicInfoCard

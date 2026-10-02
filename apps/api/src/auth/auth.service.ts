@@ -36,6 +36,7 @@ const OTP_EXPIRY_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_HOURLY_LIMIT = 5;
+const TERMS_VERSION = '2026-10-02';
 
 @Injectable()
 export class AuthService {
@@ -157,6 +158,32 @@ export class AuthService {
             inGameName,
             inGameNameNormalized,
             gameUid,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId:
+              user.id,
+            action:
+              'TERMS_ACCEPTED',
+            targetType:
+              'USER',
+            targetId:
+              user.id,
+            scopeType:
+              'LEGAL',
+            scopeId:
+              TERMS_VERSION,
+            metadata: {
+              version:
+                TERMS_VERSION,
+              source:
+                'REGISTRATION',
+              acceptedAt:
+                new Date()
+                  .toISOString(),
+            },
           },
         });
 
@@ -876,18 +903,110 @@ export class AuthService {
       });
     }
 
-    const themePreference =
-      await this.getThemePreference(
-        user.id,
-      );
+    const [
+      themePreference,
+      terms,
+    ] =
+      await Promise.all([
+        this.getThemePreference(
+          user.id,
+        ),
+        this.getTermsStatus(
+          user.id,
+        ),
+      ]);
 
     return {
       success: true,
       data: {
-        user: this.publicUser({
-          ...user,
-          themePreference,
-        }),
+        user: {
+          ...this.publicUser({
+            ...user,
+            themePreference,
+          }),
+          termsAccepted:
+            terms.accepted,
+          termsVersion:
+            TERMS_VERSION,
+        },
+      },
+      error: null,
+    };
+  }
+
+  async acceptTerms(
+    userId: string,
+  ) {
+    const user =
+      await this.prisma.user.findUnique({
+        where: {
+          id:
+            userId,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+    if (
+      !user ||
+      user.status !==
+      'ACTIVE'
+    ) {
+      throw new UnauthorizedException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ACCOUNT_NOT_ACTIVE',
+          message:
+            'An active FC ARENA account is required.',
+        },
+      });
+    }
+
+    const existing =
+      await this.getTermsStatus(
+        userId,
+      );
+
+    if (
+      !existing.accepted
+    ) {
+      await this.prisma.auditLog.create({
+        data: {
+          actorUserId:
+            userId,
+          action:
+            'TERMS_ACCEPTED',
+          targetType:
+            'USER',
+          targetId:
+            userId,
+          scopeType:
+            'LEGAL',
+          scopeId:
+            TERMS_VERSION,
+          metadata: {
+            version:
+              TERMS_VERSION,
+            source:
+              'IN_APP_GATE',
+            acceptedAt:
+              new Date()
+                .toISOString(),
+          },
+        },
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        accepted: true,
+        version:
+          TERMS_VERSION,
       },
       error: null,
     };
@@ -931,6 +1050,42 @@ export class AuthService {
         themePreference,
       },
       error: null,
+    };
+  }
+
+  private async getTermsStatus(
+    userId: string,
+  ) {
+    const record =
+      await this.prisma.auditLog.findFirst({
+        where: {
+          actorUserId:
+            userId,
+          action:
+            'TERMS_ACCEPTED',
+          scopeType:
+            'LEGAL',
+          scopeId:
+            TERMS_VERSION,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt:
+            'desc',
+        },
+      });
+
+    return {
+      accepted:
+        Boolean(
+          record,
+        ),
+      acceptedAt:
+        record?.createdAt ??
+        null,
     };
   }
 

@@ -66,6 +66,10 @@ Before applying:
 - target audience answers match the intended audience; do not mark children unless FC ARENA is deliberately designed and compliant for children
 - no gambling/betting or real-money wagering claims are present
 - no payment/subscription declarations are added until those features actually exist and have been separately reviewed
+- new registrations explicitly accept the current Terms of Service & Community Rules
+- existing signed-in users are blocked by the in-app Terms gate until they accept the current Terms version
+- UGC reporting and blocking remain available from Safety & Reporting
+- AI-generated responses keep an in-app “Report AI response” control while FC ARENA AI is available
 - store listing screenshots/text match the tested build
 
 ## 4. Android release gate
@@ -99,6 +103,10 @@ Before Production:
 - file/photo upload works on the Play-installed build
 - push notification opt-in/opt-out works
 - account-deletion page works without login
+- Terms acceptance gate works for an existing account with no current acceptance record
+- a new registration cannot complete without accepting the Terms
+- report/block controls work inside the app
+- an FC ARENA AI response can be reported without leaving the app
 
 ## 6. Production-access response evidence
 

@@ -202,6 +202,14 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/fair-play"
+              icon="◉"
+              title="Fair Play"
+              description="Your conduct score, event history and appeal rights"
+              tone="emerald"
+            />
+
+            <FcMenuRow
               href="/match-system"
               icon="⚽"
               title="Match System"
@@ -331,6 +339,14 @@ export default function MorePage() {
                 title="Disputes"
                 description="Match-level dispute access"
                 tone="red"
+              />
+
+              <FcMenuRow
+                href="/admin/fair-play"
+                icon="◉"
+                title="Fair Play Management"
+                description="Conduct events, fixed policy points and player appeals"
+                tone="amber"
               />
             </div>
           </details>

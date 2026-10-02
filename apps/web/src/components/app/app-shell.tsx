@@ -15,6 +15,7 @@ import {
 } from 'react';
 
 import {
+  authenticatedRequest,
   getCurrentUser,
   logoutCurrentUser,
 } from '@/lib/auth-client';
@@ -573,6 +574,26 @@ export function AppShell({
       null,
     );
 
+  const [
+    termsAccepted,
+    setTermsAccepted,
+  ] =
+    useState<boolean | null>(
+      null,
+    );
+
+  const [
+    acceptingTerms,
+    setAcceptingTerms,
+  ] =
+    useState(false);
+
+  const [
+    termsError,
+    setTermsError,
+  ] =
+    useState('');
+
   useEffect(() => {
     let active =
       true;
@@ -589,6 +610,10 @@ export function AppShell({
               current.player
                 ?.profileImageUrl ??
               null,
+            );
+
+            setTermsAccepted(
+              current.termsAccepted,
             );
           }
         },
@@ -646,6 +671,48 @@ export function AppShell({
     );
 
 
+  async function acceptCurrentTerms() {
+    if (
+      acceptingTerms
+    ) {
+      return;
+    }
+
+    setAcceptingTerms(
+      true,
+    );
+    setTermsError(
+      '',
+    );
+
+    try {
+      await authenticatedRequest(
+        '/auth/accept-terms',
+        {
+          method:
+            'POST',
+        },
+      );
+
+      setTermsAccepted(
+        true,
+      );
+    } catch (
+      error
+    ) {
+      setTermsError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to record Terms acceptance. Please retry.',
+      );
+    } finally {
+      setAcceptingTerms(
+        false,
+      );
+    }
+  }
+
+
   async function logout() {
     if (
       loggingOut
@@ -688,6 +755,86 @@ export function AppShell({
   return (
     <div className="fc-app-shell min-h-screen">
       <PushSync />
+
+      {termsAccepted === false ? (
+        <div className="fixed inset-0 z-[120] grid place-items-center bg-black/80 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="fc-terms-title"
+            className="theme-panel w-full max-w-xl rounded-3xl border p-6 shadow-2xl sm:p-7"
+          >
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
+              Community Safety
+            </p>
+
+            <h2
+              id="fc-terms-title"
+              className="mt-2 text-2xl font-black"
+            >
+              Accept FC ARENA Terms
+            </h2>
+
+            <p className="theme-secondary-text mt-3 text-sm leading-6">
+              Before creating, uploading or interacting with community content, you must accept the current Terms of Service and Community Rules. They prohibit harassment, hate, sexual or graphic content, scams, impersonation, illegal content and intellectual-property abuse.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-3 text-sm font-black">
+              <Link
+                href="/terms"
+                target="_blank"
+                rel="noreferrer"
+                className="text-sky-400 underline underline-offset-4"
+              >
+                Read Terms & Community Rules ↗
+              </Link>
+
+              <Link
+                href="/privacy"
+                target="_blank"
+                rel="noreferrer"
+                className="text-sky-400 underline underline-offset-4"
+              >
+                Privacy Policy ↗
+              </Link>
+            </div>
+
+            {termsError ? (
+              <p className="mt-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] p-3 text-sm text-red-300">
+                {termsError}
+              </p>
+            ) : null}
+
+            <button
+              type="button"
+              disabled={
+                acceptingTerms
+              }
+              onClick={() =>
+                void acceptCurrentTerms()
+              }
+              className="theme-primary-button mt-5 min-h-12 w-full rounded-xl px-5 text-sm font-black disabled:opacity-50"
+            >
+              {acceptingTerms
+                ? 'Saving acceptance...'
+                : 'I Accept the Terms & Community Rules'}
+            </button>
+
+            <button
+              type="button"
+              disabled={
+                acceptingTerms
+              }
+              onClick={() =>
+                void logout()
+              }
+              className="theme-secondary-button mt-2 min-h-11 w-full rounded-xl border px-5 text-sm font-black disabled:opacity-50"
+            >
+              Sign out instead
+            </button>
+          </div>
+        </div>
+      ) : null}
       <a href="#main-content" className="fc-skip-link">Skip to content</a>
       <aside className="theme-sidebar fc-sidebar-art fixed inset-y-0 left-0 z-40 hidden w-[270px] overflow-hidden border-r lg:flex lg:flex-col">
         <div className="theme-sidebar-divider shrink-0 border-b px-[22px] py-5">

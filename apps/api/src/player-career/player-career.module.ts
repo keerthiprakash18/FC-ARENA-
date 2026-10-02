@@ -39,6 +39,7 @@ import {
 
   exports: [
     PlayerCareerService,
+    PlayerProfileImageService,
   ],
 })
 export class PlayerCareerModule {}

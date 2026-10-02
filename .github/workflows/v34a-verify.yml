@@ -69,19 +69,21 @@ jobs:
         run: npm run check:play-compliance
 
       - name: Validate Prisma schema
-        run: npm run prisma:validate --workspace=apps/api
+        working-directory: apps/api
+        run: npx prisma validate --schema=prisma/schema.prisma
 
       - name: Apply clean test migrations
-        run: npm run prisma:migrate:deploy --workspace=apps/api
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
 
       - name: API build
-        run: npm run build --workspace=apps/api
+        run: npm run build:api
 
       - name: API lint
         run: npm run lint --workspace=apps/api
 
       - name: API unit tests
-        run: npm test --workspace=apps/api -- --runInBand
+        run: npm run test --workspace=apps/api
 
       - name: API E2E tests
         run: npm run test:e2e --workspace=apps/api

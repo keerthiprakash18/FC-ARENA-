@@ -214,6 +214,22 @@ enum BackupRunStatus {
   FAILED
 }
 
+enum FairPlayEventKind {
+  COMMENDATION
+  WARNING
+  LATE_RESULT
+  NO_SHOW
+  RESULT_INTEGRITY
+  CONDUCT
+  OTHER
+}
+
+enum FairPlayAppealStatus {
+  PENDING
+  UPHELD
+  OVERTURNED
+}
+
 enum LeagueWarStatus {
   INVITED
   ACCEPTED
@@ -269,6 +285,7 @@ enum NotificationType {
   STATISTICS_UPDATED
   TOURNAMENT_COMPLETED
   ACHIEVEMENT_RECEIVED
+  FAIR_PLAY_UPDATED
 }
 
 enum ScopedRole {
@@ -334,6 +351,11 @@ model User {
   seasonalAwards SeasonalAward[]
   createdLeagueWars LeagueWar[] @relation("LeagueWarCreator")
   androidReleases AndroidRelease[] @relation("AndroidReleaseCreator")
+  fairPlayEvents FairPlayEvent[] @relation("FairPlayTarget")
+  issuedFairPlayEvents FairPlayEvent[] @relation("FairPlayIssuer")
+  revokedFairPlayEvents FairPlayEvent[] @relation("FairPlayRevoker")
+  fairPlayAppeals FairPlayAppeal[] @relation("FairPlayAppealer")
+  resolvedFairPlayAppeals FairPlayAppeal[] @relation("FairPlayAppealResolver")
   leagueWarParticipants LeagueWarParticipant[]
   leagueWarHomeMatches LeagueWarMatch[] @relation("LeagueWarMatchHomePlayer")
   leagueWarAwayMatches LeagueWarMatch[] @relation("LeagueWarMatchAwayPlayer")
@@ -430,6 +452,7 @@ model League {
   awayLeagueWars LeagueWar[] @relation("LeagueWarAwayLeague")
   wonLeagueWars LeagueWar[] @relation("LeagueWarWinnerLeague")
   leagueWarParticipants LeagueWarParticipant[]
+  fairPlayEvents FairPlayEvent[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -1002,6 +1025,57 @@ model SystemBackupRun {
   @@index([status, completedAt])
   @@index([completedAt])
   @@map("system_backup_runs")
+}
+
+model FairPlayEvent {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String            @db.Uuid
+  leagueId        String            @db.Uuid
+  kind            FairPlayEventKind
+  pointsDelta     Int
+  title           String            @db.VarChar(160)
+  reason          String            @db.VarChar(1000)
+  evidenceUrl     String?           @db.Text
+  issuedByUserId  String            @db.Uuid
+  issuedAt        DateTime          @default(now())
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  revokedByUserId String?           @db.Uuid
+  revocationNote  String?           @db.VarChar(1000)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user      User  @relation("FairPlayTarget", fields: [userId], references: [id], onDelete: Cascade)
+  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  issuedBy  User  @relation("FairPlayIssuer", fields: [issuedByUserId], references: [id], onDelete: Restrict)
+  revokedBy User? @relation("FairPlayRevoker", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  appeals   FairPlayAppeal[]
+
+  @@index([userId, issuedAt])
+  @@index([userId, expiresAt, revokedAt])
+  @@index([leagueId, issuedAt])
+  @@map("fair_play_events")
+}
+
+model FairPlayAppeal {
+  id               String               @id @default(uuid()) @db.Uuid
+  eventId          String               @db.Uuid
+  appealedByUserId String               @db.Uuid
+  reason           String               @db.VarChar(1000)
+  status           FairPlayAppealStatus @default(PENDING)
+  resolutionNote   String?              @db.VarChar(1000)
+  resolvedByUserId String?              @db.Uuid
+  resolvedAt       DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  event      FairPlayEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  appealedBy User          @relation("FairPlayAppealer", fields: [appealedByUserId], references: [id], onDelete: Cascade)
+  resolvedBy User?         @relation("FairPlayAppealResolver", fields: [resolvedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, appealedByUserId])
+  @@index([status, createdAt])
+  @@map("fair_play_appeals")
 }
 
 model LeagueWar {

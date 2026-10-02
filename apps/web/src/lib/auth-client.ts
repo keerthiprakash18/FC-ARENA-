@@ -10,6 +10,8 @@ export interface CurrentUser {
   phoneNumber: string | null;
   role: string;
   status: string;
+  termsAccepted: boolean;
+  termsVersion: string;
   themePreference:
     | 'LUXURY_GOLD'
     | 'CLASSIC_BLUE';

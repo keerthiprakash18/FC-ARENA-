@@ -85,6 +85,14 @@ requireMatch(
   'Privacy Policy must explain Android push-token processing.',
 );
 
+if (fs.existsSync(path.join(root, 'apps/web/src/app/fair-play/page.tsx'))) {
+  requireMatch(
+    privacy.includes('Fair Play') &&
+      privacy.includes('appeal'),
+    'Fair Play privacy disclosure and appeal handling must remain documented.',
+  );
+}
+
 requireMatch(
   settings.includes('/account-deletion'),
   'The signed-in Settings page must expose an in-app account deletion path.',

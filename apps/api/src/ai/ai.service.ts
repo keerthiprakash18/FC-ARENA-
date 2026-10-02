@@ -1,4 +1,8 @@
 import {
+  randomUUID,
+} from 'node:crypto';
+
+import {
   HttpException,
   HttpStatus,
   Injectable,
@@ -146,7 +150,7 @@ export class AiService {
       ReportAiOutputDto,
   ) {
     const reportId =
-      crypto.randomUUID();
+      randomUUID();
 
     await this.prisma.auditLog.create({
       data: {

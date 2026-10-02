@@ -39,7 +39,7 @@ jobs:
           if (!data) failures.push('missing data');
           if (data?.api !== 'connected') failures.push('API is not connected');
           if (data?.database !== 'connected') failures.push('database is not connected');
-          if (!['connected', 'not_configured'].includes(data?.redis)) failures.push('Redis is unavailable');
+          if (data?.redis !== 'connected') failures.push('Redis is not connected');
           if (data?.status === 'unhealthy') failures.push('health status is unhealthy');
           if (failures.length) {
             console.error('Production health check failed:', failures.join('; '));

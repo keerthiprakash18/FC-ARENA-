@@ -27,6 +27,10 @@ import {
   AiChatDto,
 } from './dto/chat.dto.js';
 
+import {
+  ReportAiOutputDto,
+} from './dto/report-ai-output.dto.js';
+
 type AuthenticatedRequest =
   Request & {
     user:
@@ -57,6 +61,22 @@ export class AiController {
       AiChatDto,
   ) {
     return this.aiService.chat(
+      request.user.sub,
+      dto,
+    );
+  }
+
+  @Post('report')
+  report(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Body()
+    dto:
+      ReportAiOutputDto,
+  ) {
+    return this.aiService.reportOutput(
       request.user.sub,
       dto,
     );

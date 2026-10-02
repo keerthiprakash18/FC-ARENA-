@@ -1,0 +1,10 @@
+[Unit]
+Description=FC Arena isolated PostgreSQL backup restore verification
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/fcarena
+ExecStart=/opt/fcarena/ops/backup/postgres-restore-verify.sh

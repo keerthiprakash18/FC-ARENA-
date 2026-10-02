@@ -24,6 +24,11 @@ const privacy = read('apps/web/src/app/privacy/page.tsx');
 const settings = read('apps/web/src/app/settings/page.tsx');
 const deletionPage = read('apps/web/src/app/account-deletion/page.tsx');
 const deletionForm = read('apps/web/src/app/account-deletion/account-deletion-form.tsx');
+const registerPage = read('apps/web/src/app/register/page.tsx');
+const registerDto = read('apps/api/src/auth/dto/register.dto.ts');
+const termsPage = read('apps/web/src/app/terms/page.tsx');
+const aiPage = read('apps/web/src/app/ai/page.tsx');
+const aiController = read('apps/api/src/ai/ai.controller.ts');
 const version = read('apps/android/version.properties');
 
 const targetSdkMatch = gradle.match(/targetSdk\s+(\d+)/);
@@ -143,6 +148,36 @@ if (
   pass('Privacy Policy links to the account-deletion resource.');
 } else {
   fail('Privacy Policy must link to the public account-deletion resource.');
+}
+
+if (
+  registerPage.includes('name="acceptTerms"') &&
+  registerPage.includes('href="/terms"') &&
+  registerDto.includes('@Equals(true')
+) {
+  pass('Registration requires explicit Terms / Community Rules acceptance.');
+} else {
+  fail('UGC-enabled registration must require explicit Terms acceptance.');
+}
+
+if (
+  termsPage.includes('Community content rules') &&
+  termsPage.includes('Reporting, blocking & moderation') &&
+  termsPage.includes('harassment') &&
+  termsPage.includes('intellectual-property')
+) {
+  pass('Terms define objectionable UGC and moderation/reporting expectations.');
+} else {
+  fail('Terms must define prohibited UGC and reporting/blocking rules.');
+}
+
+if (
+  aiPage.includes('Report AI response') &&
+  aiController.includes("@Post('report')")
+) {
+  pass('FC ARENA AI has an in-app offensive-output report control.');
+} else {
+  fail('Generative AI output must have an in-app report/flag mechanism.');
 }
 
 const versionCode = version.match(/VERSION_CODE=(\d+)/)?.[1];

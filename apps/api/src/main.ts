@@ -65,6 +65,7 @@ async function bootstrap(): Promise<void> {
       next:
         NextFunction,
     ) => {
+      response.setHeader('Cache-Control', 'no-store');
       response.setHeader(
         'X-Content-Type-Options',
         'nosniff',
@@ -136,7 +137,7 @@ async function bootstrap(): Promise<void> {
 
       callback(
         new Error(
-          `Origin not allowed by CORS: ${origin}`,
+          'Origin not allowed by CORS',
         ),
         false,
       );

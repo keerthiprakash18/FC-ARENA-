@@ -7,6 +7,9 @@ import { createHash } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 
 type RateLimitAction =
+  | 'API_IP'
+  | 'API_WRITE_IP'
+  | 'VERIFY_EMAIL_IDENTIFIER'
   | 'LOGIN_IP'
   | 'LOGIN_IDENTIFIER'
   | 'REGISTER_IP'
@@ -25,146 +28,35 @@ export class AuthRateLimitService {
       PrismaService,
   ) {}
 
-  async assertAllowed(
-    action: RateLimitAction,
-    rawKey: string,
-    limit: number,
-    windowMs: number,
-  ): Promise<void> {
-    const keyHash =
-      this.hashKey(rawKey);
-
-    const rows =
-      await this.prisma.$queryRaw<
-        Array<{
-          attemptCount: number;
-          windowStartedAt: Date;
-        }>
-      >`
-        SELECT
-          "attemptCount",
-          "windowStartedAt"
-        FROM "auth_rate_limits"
-        WHERE
-          "action" = ${action}
-          AND "keyHash" = ${keyHash}
-        LIMIT 1
-      `;
-
-    const row =
-      rows[0];
-
-    if (!row) {
-      return;
-    }
-
-    const expired =
-      row.windowStartedAt
-        .getTime() <=
-      Date.now() -
-        windowMs;
-
-    if (expired) {
-      await this.clear(
-        action,
-        rawKey,
-      );
-
-      return;
-    }
-
-    if (
-      row.attemptCount >=
-      limit
-    ) {
-      throw new HttpException(
-        {
-          success: false,
-          data: null,
-          error: {
-            code:
-              'RATE_LIMITED',
-            message:
-              'Too many attempts. Please try again later.',
-          },
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
-  }
-
-  async recordAttempt(
-    action: RateLimitAction,
-    rawKey: string,
-    windowMs: number,
-  ): Promise<void> {
-    const keyHash =
-      this.hashKey(rawKey);
-
-    const cutoff =
-      new Date(
-        Date.now() -
-          windowMs,
-      );
-
-    await this.prisma
-      .$executeRaw`
-        DELETE FROM
-          "auth_rate_limits"
-        WHERE
-          "action" = ${action}
-          AND "keyHash" = ${keyHash}
-          AND "windowStartedAt" <=
-            ${cutoff}
-      `;
-
-    await this.prisma
-      .$executeRaw`
-        INSERT INTO
-          "auth_rate_limits" (
-            "action",
-            "keyHash",
-            "windowStartedAt",
-            "attemptCount",
-            "updatedAt"
-          )
-        VALUES (
-          ${action},
-          ${keyHash},
-          NOW(),
-          1,
-          NOW()
-        )
-        ON CONFLICT (
-          "action",
-          "keyHash"
-        )
-        DO UPDATE SET
-          "attemptCount" =
-            "auth_rate_limits"."attemptCount" + 1,
-          "updatedAt" =
-            NOW()
-      `;
-  }
-
   async consume(
     action: RateLimitAction,
     rawKey: string,
     limit: number,
     windowMs: number,
   ): Promise<void> {
-    await this.assertAllowed(
-      action,
-      rawKey,
-      limit,
-      windowMs,
-    );
-
-    await this.recordAttempt(
-      action,
-      rawKey,
-      windowMs,
-    );
+    // A single upsert locks the bucket: parallel requests cannot all pass
+    // a separate read before incrementing the counter.
+    const keyHash = this.hashKey(rawKey);
+    const rows = await this.prisma.$queryRaw<Array<{ attemptCount: number }>>`
+      INSERT INTO "auth_rate_limits"
+        ("action", "keyHash", "windowStartedAt", "attemptCount", "updatedAt")
+      VALUES (${action}, ${keyHash}, NOW(), 1, NOW())
+      ON CONFLICT ("action", "keyHash") DO UPDATE SET
+        "attemptCount" = CASE
+          WHEN "auth_rate_limits"."windowStartedAt" <= NOW() - (${windowMs} * INTERVAL '1 millisecond') THEN 1
+          ELSE LEAST("auth_rate_limits"."attemptCount" + 1, ${limit + 1}) END,
+        "windowStartedAt" = CASE
+          WHEN "auth_rate_limits"."windowStartedAt" <= NOW() - (${windowMs} * INTERVAL '1 millisecond') THEN NOW()
+          ELSE "auth_rate_limits"."windowStartedAt" END,
+        "updatedAt" = NOW()
+      RETURNING "attemptCount"
+    `;
+    if (!rows[0] || rows[0].attemptCount > limit) {
+      throw new HttpException({
+        success: false, data: null,
+        error: { code: 'RATE_LIMITED', message: 'Too many attempts. Please try again later.' },
+      }, HttpStatus.TOO_MANY_REQUESTS);
+    }
   }
 
   async clear(

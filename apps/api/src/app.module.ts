@@ -1,3 +1,5 @@
+import { APP_FILTER } from '@nestjs/core';
+import { SafeExceptionFilter } from './security/safe-exception.filter.js';
 import { Module } from '@nestjs/common';
 
 import { AchievementsModule } from './achievements/achievements.module.js';
@@ -23,6 +25,7 @@ import { SecurityModule } from './security/security.module.js';
 import { TournamentsModule } from './tournaments/tournaments.module.js';
 
 @Module({
+  providers: [{ provide: APP_FILTER, useClass: SafeExceptionFilter }],
   imports: [
     PrismaModule,
     SecurityModule,

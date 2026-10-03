@@ -43,3 +43,24 @@ docker/data/
 .arena/
 
 # Android Firebase client config is tracked; service-account keys must stay outside git.
+
+# Local credentials and private server material (Firebase Android client config stays tracked).
+.env.*
+!.env.example
+!.env.*.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+keystore.properties
+*service-account*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
+credentials.json
+id_rsa*
+id_ed25519*
+backups/
+*.sql.gz
+*.dump

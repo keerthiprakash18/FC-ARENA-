@@ -451,6 +451,8 @@ public final class MainActivity extends Activity {
                     return true;
                 }
                 rendererCrashCount++;
+                // A picker result must never be delivered to a dead renderer.
+                fileChooserCallback = null;
 
                 if (view != null) {
                     try {
@@ -540,7 +542,7 @@ public final class MainActivity extends Activity {
                 try {
                     startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST);
                     return true;
-                } catch (ActivityNotFoundException error) {
+                } catch (ActivityNotFoundException | SecurityException error) {
                     fileChooserCallback = null;
                     toast("No file picker is available on this device.");
                     return false;
@@ -616,7 +618,7 @@ public final class MainActivity extends Activity {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             startActivity(intent);
-        } catch (ActivityNotFoundException error) {
+        } catch (ActivityNotFoundException | SecurityException error) {
             toast("No app can open this link.");
         }
     }

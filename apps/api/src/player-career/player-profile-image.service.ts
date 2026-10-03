@@ -1,3 +1,4 @@
+import { assertImageFormat } from '../security/image-format.js';
 import {
   BadRequestException,
   Injectable,
@@ -139,6 +140,7 @@ export class PlayerProfileImageService {
 
       const metadata =
         await image.metadata();
+      assertImageFormat(file.mimetype, metadata.format);
 
       if (
         !metadata.width ||

@@ -675,10 +675,11 @@ export class AuthService {
         refreshToken,
         {
           secret: this.refreshSecret,
+          algorithms: ['HS256'],
         },
       );
 
-      if (payload.type !== 'refresh') {
+      if (payload.type !== 'refresh' || typeof payload.sub !== 'string' || !payload.sub || typeof payload.sid !== 'string' || !payload.sid) {
         throw new Error('Invalid token type.');
       }
     } catch {
@@ -819,28 +820,21 @@ export class AuthService {
 
   async logout(refreshToken?: string) {
     if (refreshToken) {
+      let payload: RefreshTokenPayload | undefined;
       try {
-        const payload = await this.jwt.verifyAsync<RefreshTokenPayload>(
-          refreshToken,
-          {
-            secret: this.refreshSecret,
-          },
-        );
-
-        if (payload.type === 'refresh') {
-          await this.prisma.refreshSession.updateMany({
-            where: {
-              id: payload.sid,
-              userId: payload.sub,
-              revokedAt: null,
-            },
-            data: {
-              revokedAt: new Date(),
-            },
-          });
-        }
+        payload = await this.jwt.verifyAsync<RefreshTokenPayload>(refreshToken, {
+          secret: this.refreshSecret,
+          algorithms: ['HS256'],
+        });
       } catch {
-        // Invalid or expired token behaves as already logged out.
+        // An invalid/expired token is already logged out. Storage failures below
+        // must propagate instead of falsely reporting successful revocation.
+      }
+      if (payload?.type === 'refresh' && typeof payload.sub === 'string' && payload.sub && typeof payload.sid === 'string' && payload.sid) {
+        await this.prisma.refreshSession.updateMany({
+          where: { id: payload.sid, userId: payload.sub, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
       }
     }
 

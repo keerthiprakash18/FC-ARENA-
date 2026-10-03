@@ -99,8 +99,8 @@ jobs:
       - name: Web lint
         run: npm run lint --workspace=apps/web
 
-      - name: Dependency critical-severity gate
-        run: npm audit --audit-level=critical
+      - name: Dependency high-severity gate
+        run: npm audit --audit-level=high
 
       - name: Web production build
         run: npm run build:web

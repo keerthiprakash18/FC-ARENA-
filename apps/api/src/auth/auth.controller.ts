@@ -89,6 +89,9 @@ export class AuthController {
       15 * MINUTE_MS,
     );
 
+    await this.rateLimit.consume(
+      'VERIFY_EMAIL_IDENTIFIER', dto.email, 10, 15 * MINUTE_MS,
+    );
     return this.authService.verifyEmail(dto);
   }
 
@@ -124,62 +127,45 @@ export class AuthController {
         dto,
       ) || 'empty';
 
-    await this.rateLimit.assertAllowed(
+    await this.rateLimit.consume(
       'LOGIN_IP',
       ip,
       20,
       10 * MINUTE_MS,
     );
 
-    await this.rateLimit.assertAllowed(
+    await this.rateLimit.consume(
       'LOGIN_IDENTIFIER',
       identifier,
       5,
       15 * MINUTE_MS,
     );
 
-    try {
-      const result =
-        await this.authService.login(
-          dto,
-        );
-
-      await this.rateLimit.clear(
-        'LOGIN_IDENTIFIER',
-        identifier,
+    const result =
+      await this.authService.login(
+        dto,
       );
 
-      this.setRefreshCookie(
-        response,
-        result.data.refreshToken,
-      );
+    await this.rateLimit.clear(
+      'LOGIN_IDENTIFIER',
+      identifier,
+    );
 
-      const {
-        refreshToken:
-          _refreshToken,
-        ...safeData
-      } = result.data;
+    this.setRefreshCookie(
+      response,
+      result.data.refreshToken,
+    );
 
-      return {
-        ...result,
-        data: safeData,
-      };
-    } catch (error) {
-      await Promise.allSettled([
-        this.rateLimit.recordAttempt(
-          'LOGIN_IP',
-          ip,
-          10 * MINUTE_MS,
-        ),
-        this.rateLimit.recordAttempt(
-          'LOGIN_IDENTIFIER',
-          identifier,
-          15 * MINUTE_MS,
-        ),
-      ]);
+    const {
+      refreshToken:
+        _refreshToken,
+      ...safeData
+    } = result.data;
 
-      throw error;
-    }
+    return {
+      ...result,
+      data: safeData,
+    };
   }
 
   @Post('forgot-password')

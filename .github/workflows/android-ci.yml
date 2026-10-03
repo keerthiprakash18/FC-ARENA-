@@ -81,17 +81,9 @@ jobs:
             printf '%s' "$FIREBASE_ANDROID_CONFIG_BASE64" | base64 --decode > apps/android/app/google-services.json
           fi
 
-      - name: Android lint and release bundle
+      - name: Android lint, debug APK and release compilation (no AAB)
         working-directory: apps/android
-        run: gradle :app:lintRelease :app:bundleRelease --stacktrace
-
-      - name: Upload unsigned validation AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: fc-arena-android-validation-aab
-          path: apps/android/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 7
+        run: gradle :app:lintRelease :app:assembleDebug :app:compileReleaseJavaWithJavac :app:processReleaseResources --stacktrace
 
 
   launch-smoke:

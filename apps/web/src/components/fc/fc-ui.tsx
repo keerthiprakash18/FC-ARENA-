@@ -553,15 +553,34 @@ export function competitionLabel(
 
 export function FcErrorState({
   message,
+  onRetry,
+  retryLabel = 'Retry',
+  busy = false,
 }: {
   message: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+  busy?: boolean;
 }) {
   return (
     <div
       className="theme-error-box rounded-2xl border p-4 text-sm"
       role="alert"
     >
-      {message}
+      <p>{message}</p>
+
+      {onRetry ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onRetry}
+          className="theme-secondary-button mt-3 min-h-10 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50"
+        >
+          {busy
+            ? 'Retrying...'
+            : retryLabel}
+        </button>
+      ) : null}
     </div>
   );
 }

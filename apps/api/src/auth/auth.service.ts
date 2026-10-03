@@ -963,9 +963,9 @@ export class AuthService {
             metadata:
               redactedMetadata,
             beforeData:
-              null,
+              redactedMetadata,
             afterData:
-              null,
+              redactedMetadata,
           },
         });
 
@@ -982,9 +982,9 @@ export class AuthService {
             metadata:
               redactedMetadata,
             beforeData:
-              null,
+              redactedMetadata,
             afterData:
-              null,
+              redactedMetadata,
           },
         });
 

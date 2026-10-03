@@ -1,0 +1,115 @@
+name: Readiness Steps 11-15
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "apps/android/**"
+      - "scripts/verify-step11-indexes.mjs"
+      - "tests/resilience.test.cjs"
+      - "tests/update-performance.test.cjs"
+      - "docs/readiness/step-11-db-query-optimization.md"
+      - "docs/readiness/step-12-resilience.md"
+      - "docs/readiness/step-13-push-finalization.md"
+      - "docs/readiness/step-14-safety-moderation.md"
+      - "docs/readiness/step-15-account-deletion.md"
+      - ".github/workflows/readiness-steps-11-15.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena?schema=public
+      JWT_ACCESS_SECRET: readiness-steps-11-15-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: readiness-steps-11-15-refresh-secret-at-least-32-characters
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:4000/api
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      AI_ASSISTANT_ENABLED: "false"
+      PUSH_ENABLED: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        working-directory: apps/api
+        run: npx prisma validate --schema=prisma/schema.prisma
+
+      - name: Apply migrations to isolated database
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: Verify Step 11 indexes
+        run: node scripts/verify-step11-indexes.mjs
+
+      - name: API build
+        run: npm run build:api
+
+      - name: API lint
+        run: npm run lint --workspace=apps/api
+
+      - name: API unit tests
+        run: npm run test --workspace=apps/api
+
+      - name: API E2E tests including account deletion
+        run: npm run test:e2e --workspace=apps/api
+
+      - name: Resilience retry tests
+        run: node tests/resilience.test.cjs
+
+      - name: Update and push-session regression tests
+        run: node tests/update-performance.test.cjs
+
+      - name: Web lint
+        run: npm run lint --workspace=apps/web
+
+      - name: Web production build
+        run: npm run build:web
+
+      - name: Diff whitespace check
+        run: git diff --check

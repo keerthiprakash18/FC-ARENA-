@@ -318,7 +318,10 @@ export default function AwardCategoryPage() {
     let active =
       true;
 
+    let loadingRequest = false;
     async function load() {
+      if (loadingRequest) return;
+      loadingRequest = true;
       try {
         const response =
           await authenticatedRequest<{
@@ -404,6 +407,7 @@ export default function AwardCategoryPage() {
             : 'Unable to load this award category.',
         );
       } finally {
+        loadingRequest = false;
         if (active) {
           setLoading(
             false,

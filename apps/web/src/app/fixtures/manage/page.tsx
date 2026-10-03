@@ -83,17 +83,11 @@ export default function FixtureManagementPage() {
   useEffect(() => {
     void (async () => {
       try {
-        const current =
-          await getCurrentUser();
-
-        setUser(
-          current,
-        );
-
-        const leaguesResponse =
-          await authenticatedRequest<any>(
-            '/leagues/my',
-          );
+        const [current, leaguesResponse] = await Promise.all([
+          getCurrentUser(),
+          authenticatedRequest<any>('/leagues/my'),
+        ]);
+        setUser(current);
 
         const adminLeagues:
           Membership[] =

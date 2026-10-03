@@ -1,0 +1,6 @@
+{
+  "method": "Real fixture-management component effect with mocked React setters and two 40ms API reads; not device rendering",
+  "samples": 15,
+  "medianMs": 40.26,
+  "p95Ms": 40.75
+}

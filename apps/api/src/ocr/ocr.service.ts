@@ -1,3 +1,4 @@
+import { assertImageFormat } from '../security/image-format.js';
 import {
   BadRequestException,
   ConflictException,
@@ -150,6 +151,7 @@ export class OcrService {
         await sharp(
           file.buffer,
         ).metadata();
+      assertImageFormat(file.mimetype, metadata.format);
     } catch {
       throw new BadRequestException({
         success: false,
@@ -761,9 +763,7 @@ export class OcrService {
       });
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : 'Unknown OCR processing error.';
+        'OCR processing failed. Please retry with a clear image.';
 
       await this.prisma.ocrExtraction.update({
         where: {

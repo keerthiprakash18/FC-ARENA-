@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - "apps/web/**"
+      - "tests/deployment-id.test.cjs"
       - "packages/**"
       - "package.json"
       - "package-lock.json"
@@ -37,6 +38,9 @@ jobs:
 
       - name: Web lint
         run: npm run lint --workspace=apps/web
+
+      - name: Validate Vercel deployment ID length
+        run: node --test tests/deployment-id.test.cjs
 
       - name: Web production build
         run: npm run build:web

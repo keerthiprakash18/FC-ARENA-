@@ -63,7 +63,7 @@ describe(
         };
 
         const rateLimit = {
-          assertAllowed:
+          consume:
             vi.fn()
               .mockResolvedValue(
                 undefined,
@@ -118,7 +118,7 @@ describe(
 
         expect(
           rateLimit
-            .assertAllowed,
+            .consume,
         ).toHaveBeenCalled();
 
         expect(

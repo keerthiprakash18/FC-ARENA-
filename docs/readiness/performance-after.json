@@ -1,0 +1,85 @@
+{
+  "method": "Isolated real auth-client, 40ms mocked transport; not production page latency",
+  "results": [
+    {
+      "path": "/auth/me",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.26,
+      "p95Ms": 40.62
+    },
+    {
+      "path": "/players/me/dashboard",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.23,
+      "p95Ms": 40.39
+    },
+    {
+      "path": "/leagues/my",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.22,
+      "p95Ms": 40.29
+    },
+    {
+      "path": "/leagues/test/tournaments",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.21,
+      "p95Ms": 40.31
+    },
+    {
+      "path": "/tournaments/test/fixtures",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.23,
+      "p95Ms": 40.33
+    },
+    {
+      "path": "/tournaments/test/standings",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.24,
+      "p95Ms": 40.29
+    },
+    {
+      "path": "/awards/overview",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.23,
+      "p95Ms": 40.42
+    },
+    {
+      "path": "/notifications",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.25,
+      "p95Ms": 40.37
+    },
+    {
+      "path": "/players/me/career",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.22,
+      "p95Ms": 40.51
+    },
+    {
+      "path": "/admin/system",
+      "samples": 15,
+      "consumersPerSample": 3,
+      "requestsPerSample": 1,
+      "medianMs": 40.24,
+      "p95Ms": 40.74
+    }
+  ]
+}

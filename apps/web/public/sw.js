@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fc-arena-v7';
+const CACHE_NAME = 'fc-arena-v8';
 
 const PRECACHE = [
   '/icons/icon-192-v3.png',
@@ -21,7 +21,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => key.startsWith('fc-arena-') && key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       );
     })
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.open(CACHE_NAME).then((cache) => cache.match(event.request)).then((cached) => {
       if (cached) {
         return cached;
       }

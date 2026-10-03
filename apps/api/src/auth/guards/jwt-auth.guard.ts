@@ -6,13 +6,14 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
+import { PrismaService } from '../../database/prisma.service.js';
 import type { AccessTokenPayload } from '../auth.types.js';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   private readonly accessSecret: string;
 
-  constructor(private readonly jwtService: JwtService) {
+  constructor(private readonly jwtService: JwtService, private readonly prisma: PrismaService) {
     const secret = process.env.JWT_ACCESS_SECRET;
 
     if (!secret) {
@@ -42,20 +43,20 @@ export class JwtAuthGuard implements CanActivate {
 
     const token = authorization.slice(7);
 
+    let payload: AccessTokenPayload;
     try {
-      const payload = await this.jwtService.verifyAsync<AccessTokenPayload>(
+      payload = await this.jwtService.verifyAsync<AccessTokenPayload>(
         token,
         {
           secret: this.accessSecret,
+          algorithms: ['HS256'],
         },
       );
 
-      if (payload.type !== 'access') {
+      if (payload.type !== 'access' || typeof payload.sub !== 'string' || !payload.sub) {
         throw new Error('Invalid token type.');
       }
 
-      request.user = payload;
-      return true;
     } catch {
       throw new UnauthorizedException({
         success: false,
@@ -66,5 +67,15 @@ export class JwtAuthGuard implements CanActivate {
         },
       });
     }
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { status: true, role: true },
+    });
+    if (!user || user.status !== 'ACTIVE') {
+      throw new UnauthorizedException({ success: false, data: null, error: { code: 'AUTH_TOKEN_INVALID', message: 'Access token is invalid or expired.' } });
+    }
+    // Do not keep a removed admin role alive until JWT expiry.
+    request.user = { ...payload, role: user.role };
+    return true;
   }
 }

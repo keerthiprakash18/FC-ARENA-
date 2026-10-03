@@ -1,3 +1,5 @@
+import { APP_GUARD } from '@nestjs/core';
+import { ApiRateLimitGuard } from '../security/api-rate-limit.guard.js';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller.js';
@@ -16,6 +18,7 @@ import { OtpMailService } from './mail.service.js';
   ],
 
   providers: [
+    { provide: APP_GUARD, useClass: ApiRateLimitGuard },
     AuthRateLimitService,
     AuthService,
     JwtAuthGuard,

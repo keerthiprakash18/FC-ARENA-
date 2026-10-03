@@ -1,3 +1,4 @@
+import { assertImageFormat } from '../security/image-format.js';
 import {
   BadRequestException,
   ForbiddenException,
@@ -222,6 +223,7 @@ export class LeagueWarProofService {
 
       const metadata =
         await image.metadata();
+      assertImageFormat(file.mimetype, metadata.format);
 
       if (
         !metadata.width ||

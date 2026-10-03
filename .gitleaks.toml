@@ -1,0 +1,16 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public Firebase Android client API key, not a server service-account credential"
+condition = "AND"
+paths = ['''^apps/android/app/google-services\.json$''']
+regexTarget = "line"
+regexes = ['''"current_key"\s*:\s*"''']
+
+[[allowlists]]
+description = "Unmodified public Nest typescript-starter CircleCI badge template"
+condition = "AND"
+paths = ['''^apps/api/README\.md$''']
+regexTarget = "line"
+regexes = ['''\[circleci-image\]:\s*https://img\.shields\.io/circleci/build/github/nestjs/nest/master\?token=''']

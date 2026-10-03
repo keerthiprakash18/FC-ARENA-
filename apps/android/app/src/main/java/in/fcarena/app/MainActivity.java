@@ -85,6 +85,15 @@ public final class MainActivity extends Activity {
         root.requestApplyInsets();
 
         preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        // Reset only build-specific crash/update bookkeeping. Keep cookies,
+        // fc_push consent, app settings and WebView data across in-place updates.
+        if (preferences.getInt("installed_version_code", -1) != BuildConfig.VERSION_CODE) {
+            preferences.edit()
+                    .putInt("installed_version_code", BuildConfig.VERSION_CODE)
+                    .remove(STARTUP_GUARD_KEY)
+                    .remove(VERSION_CHECK_AT_KEY)
+                    .commit();
+        }
         scheduleVersionCheck();
 
         // If the previous process died during WebView startup, do not enter
@@ -451,6 +460,8 @@ public final class MainActivity extends Activity {
                     return true;
                 }
                 rendererCrashCount++;
+                // A picker result must never be delivered to a dead renderer.
+                fileChooserCallback = null;
 
                 if (view != null) {
                     try {
@@ -540,7 +551,7 @@ public final class MainActivity extends Activity {
                 try {
                     startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST);
                     return true;
-                } catch (ActivityNotFoundException error) {
+                } catch (ActivityNotFoundException | SecurityException error) {
                     fileChooserCallback = null;
                     toast("No file picker is available on this device.");
                     return false;
@@ -616,7 +627,7 @@ public final class MainActivity extends Activity {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);
             startActivity(intent);
-        } catch (ActivityNotFoundException error) {
+        } catch (ActivityNotFoundException | SecurityException error) {
             toast("No app can open this link.");
         }
     }
@@ -751,6 +762,21 @@ public final class MainActivity extends Activity {
         ) {
             lastAllowedUrl = intent.getData().toString();
             webView.loadUrl(lastAllowedUrl);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // FCM may rotate its token while the app is backgrounded or updated.
+        // Publish the current token using the existing authenticated web bridge.
+        if (webView != null && webView.getUrl() != null
+                && isAllowedUrl(Uri.parse(webView.getUrl()))) {
+            try {
+                PushSupport.publish(this, webView);
+            } catch (RuntimeException ignored) {
+                // Push refresh is optional and must not interrupt app resume.
+            }
         }
     }
 

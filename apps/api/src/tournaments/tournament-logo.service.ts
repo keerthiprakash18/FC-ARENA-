@@ -1,3 +1,4 @@
+import { assertImageFormat } from '../security/image-format.js';
 import {
   BadRequestException,
   ConflictException,
@@ -114,6 +115,7 @@ export class TournamentLogoService {
         await sharp(
           file.buffer,
         ).metadata();
+      assertImageFormat(file.mimetype, metadata.format);
 
       if (
         ![
@@ -229,8 +231,7 @@ export class TournamentLogoService {
             file.mimetype,
         },
       ),
-      file.originalname ||
-        'tournament-logo',
+      'tournament-logo',
     );
 
     formData.append(
@@ -433,7 +434,6 @@ export class TournamentLogoService {
             code:
               'TOURNAMENT_LOGO_REMOVE_FAILED',
             message:
-              payload.error.message ??
               'Tournament logo could not be removed.',
           },
         });

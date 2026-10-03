@@ -26,10 +26,12 @@ export interface CurrentUser {
   } | null;
 }
 
+const pendingReads = new Map<string, Promise<unknown>>();
+
 let notificationRequest: Promise<unknown> | null = null;
 let notificationCache: { value: unknown; expiresAt: number } | null = null;
 let notificationGeneration = 0;
-function clearNotificationCache() { notificationGeneration++; notificationRequest = null; notificationCache = null; }
+function clearNotificationCache() { pendingReads.clear(); notificationGeneration++; notificationRequest = null; notificationCache = null; }
 
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
@@ -51,6 +53,7 @@ export function establishLoginSession(
       1000;
 
   refreshPromise = null;
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('fc-arena:signed-in'));
 }
 
 export async function refreshAccessToken(
@@ -124,7 +127,23 @@ export async function authenticatedRequest<T>(
   if (path.startsWith('/notifications') && method !== 'GET') clearNotificationCache();
   const request = () => apiRequest<T>(path, { ...options, headers: { ...(options.headers ?? {}), Authorization: `Bearer ${token}` } });
   if (path.startsWith('/notifications') && method !== 'GET') return request().finally(clearNotificationCache);
-  if (path !== '/notifications' || method !== 'GET') return request();
+  if (method !== 'GET') {
+    pendingReads.clear();
+    return request().finally(() => pendingReads.clear());
+  }
+  if (path !== '/notifications') {
+    // Share only simultaneous, default GETs. Never cache resolved private data
+    // or merge requests with different headers, signals or freshness options.
+    if (!Object.keys(options).every(key => key === 'method')) return request();
+    const key = `${token}\0${path}`;
+    const existing = pendingReads.get(key);
+    if (existing) return existing as Promise<T>;
+    const pending = request().finally(() => {
+      if (pendingReads.get(key) === pending) pendingReads.delete(key);
+    });
+    pendingReads.set(key, pending);
+    return pending;
+  }
   if (notificationCache && notificationCache.expiresAt > Date.now()) return notificationCache.value as T;
   if (notificationRequest) return notificationRequest as Promise<T>;
   const generation = notificationGeneration;

@@ -90,9 +90,6 @@ export class OtpMailService {
       });
     }
 
-    let lastFailure:
-      unknown = null;
-
     for (
       let attempt = 1;
       attempt <=
@@ -210,25 +207,13 @@ export class OtpMailService {
           return;
         }
 
-        const body =
-          await response.text();
-
-        lastFailure =
-          new Error(
-            `Brevo returned ${response.status}: ${body.slice(0, 500)}`,
-          );
-
         console.error(
           'Brevo email delivery failed:',
           {
             attempt,
             status:
               response.status,
-            body:
-              body.slice(
-                0,
-                500,
-              ),
+
           },
         );
 
@@ -239,17 +224,13 @@ export class OtpMailService {
         ) {
           break;
         }
-      } catch (
-        error
-      ) {
-        lastFailure =
-          error;
+      } catch {
 
         console.error(
           'FC ARENA email delivery attempt failed:',
           {
             attempt,
-            error,
+            reason: 'Provider request failed',
           },
         );
       } finally {
@@ -271,7 +252,7 @@ export class OtpMailService {
 
     console.error(
       'FC ARENA email delivery exhausted retries:',
-      lastFailure,
+      { reason: 'Provider retries exhausted' },
     );
 
     throw new ServiceUnavailableException({

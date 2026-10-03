@@ -31,7 +31,11 @@ async function bind() {
       window.dispatchEvent(new Event("fc-arena:push-bound"));
     })
     .finally(() => {
-      if (registering === pending) registering = null;
+      if (registering === pending) {
+        registering = null;
+        if (generation === bindingGeneration && window.__fcPush?.enabled
+            && window.__fcPush.token !== native.token) void bind().catch(() => {});
+      }
     });
   registering = pending;
   return pending;
@@ -49,9 +53,15 @@ export function PushSync() {
     sync();
     window.addEventListener("fc-arena:native-push", sync);
     window.addEventListener("fc-arena:signed-out", reset);
+    window.addEventListener("fc-arena:signed-in", sync);
+    window.addEventListener("online", sync);
+    window.addEventListener("focus", sync);
     return () => {
       window.removeEventListener("fc-arena:native-push", sync);
       window.removeEventListener("fc-arena:signed-out", reset);
+      window.removeEventListener("fc-arena:signed-in", sync);
+      window.removeEventListener("online", sync);
+      window.removeEventListener("focus", sync);
     };
   }, []);
   return null;

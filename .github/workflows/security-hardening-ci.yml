@@ -8,6 +8,7 @@ on:
       - "apps/api/**"
       - "apps/web/**"
       - "packages/**"
+      - "tests/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/security-hardening-ci.yml"
@@ -99,8 +100,16 @@ jobs:
       - name: Web lint
         run: npm run lint --workspace=apps/web
 
-      - name: Dependency critical-severity gate
+      - name: Update compatibility and request isolation regression tests
+        run: |
+          node tests/notification-cache.test.cjs
+          node tests/update-performance.test.cjs
+
+      - name: Dependency critical gate (all dependencies)
         run: npm audit --audit-level=critical
+
+      - name: Production dependency high-severity gate
+        run: node scripts/security-audit-gate.mjs
 
       - name: Web production build
         run: npm run build:web

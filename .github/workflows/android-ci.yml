@@ -151,7 +151,7 @@ jobs:
             adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity
-            ANDROID_SMOKE=1 node apps/android/tests/smoke.mjs
+            bash apps/android/tests/run-emulator-smoke.sh
             # The smoke harness itself performs five real HOME -> resume cycles.
             # Keep the cold-launch loop on one shell line because
             # android-emulator-runner executes script lines independently.

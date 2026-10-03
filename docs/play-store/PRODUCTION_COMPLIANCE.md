@@ -1,6 +1,6 @@
 # FC ARENA — Google Play Production Compliance Gate
 
-Last reviewed: 2 October 2026
+Last reviewed: 3 October 2026
 
 This file is the release gate for the FC ARENA Android app (`in.fcarena.app`).
 It is intentionally stricter than the minimum build requirements: if a new feature
@@ -44,7 +44,7 @@ Record tester feedback in `docs/play-store/CLOSED_TEST_EVIDENCE.md`.
 Current intended baseline:
 
 - Package: `in.fcarena.app`
-- Target SDK: 36+
+- Target SDK: 36+ (required for new mobile apps/app updates from 31 August 2026)
 - Minimum SDK: 24
 - HTTPS only
 - Firebase Analytics collection disabled
@@ -83,9 +83,11 @@ Current code can process the following categories:
 | Diagnostics / security records | Server/security logs and rate-limit identifiers | Verify retention/collection wording before submission |
 
 Current production service providers disclosed in the Privacy Policy include hosting
-providers, Brevo, Cloudinary, and Google Firebase Cloud Messaging. If the optional AI
+providers, Brevo, Cloudinary, Google Firebase Cloud Messaging, and Google Firebase Crashlytics. If the optional AI
 provider is enabled in production, verify the exact provider and Data Safety/privacy
 disclosures before Play submission.
+
+Authoritative release worksheet: `docs/readiness/step-16-privacy-data-safety.md`.
 
 Do not add advertising SDKs, analytics SDKs, payment SDKs, location collection, contact
 collection, or other sensitive data processing without updating the Privacy Policy and

@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Effective date: 2 October 2026.
+          Effective date: 3 October 2026.
         </p>
       </PublicInfoCard>
 
@@ -85,7 +85,7 @@ export default function PrivacyPage() {
         icon="document"
       >
         <p>
-          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, and Google Firebase Cloud Messaging for Android push-notification delivery.
+          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, Google Firebase Cloud Messaging for Android push-notification delivery, and Google Firebase Crashlytics for Android crash and reliability diagnostics.
         </p>
 
         <p>
@@ -198,7 +198,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          For privacy questions or account deletion requests, use the public account deletion resource below. It is available without a login.
+          For privacy questions or account deletion requests, use the public account deletion resource below as FC ARENA&apos;s public privacy contact mechanism. It is available without a login. Do not include passwords, OTPs or other secret credentials.
         </p>
 
         <Link

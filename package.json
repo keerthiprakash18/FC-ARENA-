@@ -22,7 +22,9 @@
     "db:reset:test-data": "npm run db:reset:test-data --workspace=apps/api",
     "check:play-compliance": "node scripts/check-play-store-compliance.mjs",
     "load:test": "node scripts/load-test.mjs",
-    "load:test:verify": "node --test tests/load-test.test.mjs"
+    "load:test:verify": "node --test tests/load-test.test.mjs",
+    "check:data-safety": "node scripts/check-data-safety.mjs",
+    "check:final-release": "node scripts/final-release-gate.mjs"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

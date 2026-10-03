@@ -1,0 +1,9 @@
+{
+  "packageName": "in.fcarena.app",
+  "highestKnownUploadedVersionCode": 10,
+  "highestKnownUploadedVersionName": "1.0.8",
+  "nextCandidateVersionCode": 11,
+  "nextCandidateVersionName": "1.0.9",
+  "lastReviewed": "2026-10-03",
+  "note": "Update this file immediately after every Play Console upload. A versionCode that has been uploaded to any Play track must never be reused."
+}

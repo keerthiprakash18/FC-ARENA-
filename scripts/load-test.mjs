@@ -294,10 +294,22 @@ export async function runLoadTest(plan) {
   const started = performance.now();
   const deadline = started + plan.durationSeconds * 1_000;
   const intervalPerVuMs = Math.max(0, (plan.vus / plan.targetRps) * 1_000);
+  const startSpreadMs = Math.min(
+    plan.durationSeconds * 1_000,
+    intervalPerVuMs,
+  );
   let issued = 0;
 
   const workers = Array.from({ length: plan.vus }, (_, workerIndex) =>
     (async () => {
+      // Spread VU starts across one per-VU interval so a rate-controlled
+      // profile does not become an artificial first-second thundering herd.
+      const initialDelayMs =
+        plan.vus > 1 ? (workerIndex / plan.vus) * startSpreadMs : 0;
+      if (initialDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, initialDelayMs));
+      }
+
       let iteration = 0;
       while (performance.now() < deadline && issued < plan.maxRequests) {
         const iterationStarted = performance.now();

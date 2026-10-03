@@ -1,0 +1,97 @@
+name: Step 10 Load Acceptance
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/load-test.mjs"
+      - "scripts/load-test-acceptance.mjs"
+      - "tests/load-test.test.mjs"
+      - "ops/load/**"
+      - "docs/readiness/step-10-load-testing.md"
+      - ".github/workflows/load-test-acceptance.yml"
+      - "package.json"
+      - "apps/api/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-real-api-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fcarena
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena?schema=public
+      JWT_ACCESS_SECRET: step10-ci-access-secret-at-least-32-characters
+      JWT_REFRESH_SECRET: step10-ci-refresh-secret-at-least-32-characters
+      NODE_ENV: test
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      AI_ASSISTANT_ENABLED: "false"
+      LOAD_ACCEPTANCE_OUTPUT: /tmp/fcarena-step10-load-acceptance.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply isolated database migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Verify load harness safety tests
+        run: npm run load:test:verify
+
+      - name: Run isolated real API acceptance profiles
+        run: node scripts/load-test-acceptance.mjs
+
+      - name: Upload acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: step10-load-acceptance
+          path: /tmp/fcarena-step10-load-acceptance.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Diff whitespace check
+        run: git diff --check

@@ -1,6 +1,6 @@
 # Production Readiness Step 10 — Load & Stress Testing
 
-Status: IMPLEMENTATION COMPLETE; REPRESENTATIVE STAGING CAPACITY RUNS PENDING.
+Status: COMPLETE — isolated real-API acceptance passed for baseline, 50, 100, 250 and 500 VU profiles. No production stress traffic was generated.
 
 Repository: `keerthiprakash18/FC-ARENA-`
 
@@ -191,7 +191,7 @@ LOAD_TEST_MAX_REQUESTS=10
 
 Do not supply an access token for the production smoke. This mode is health-only and is not a capacity benchmark.
 
-## Evidence required before Step 10 is called fully accepted
+## Evidence checklist for future production-like staging revalidation
 
 For each staging profile retain:
 
@@ -211,6 +211,23 @@ For each staging profile retain:
 - host load/memory peak
 - any 429/5xx/timeouts
 - decision: PASS / STOP / INVESTIGATE
+
+
+## Acceptance evidence — 2026-10-03
+
+The final Step 10 acceptance ran the real built Nest API against disposable GitHub Actions PostgreSQL 16 and Redis 7 services. It seeded one isolated test account, Player profile, League membership and SOLO Tournament, signed a short-lived test access JWT, exercised the mixed read suite, and deleted the disposable data afterward. Production FC Arena infrastructure and real user data were not used.
+
+| Profile | VUs | Observed RPS | Requests | Errors | p50 | p95 | p99 | Result |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| baseline | 5 | 5.10 | 51 | 0 | 8.60 ms | 28.74 ms | 118.22 ms | PASS |
+| 50 | 50 | 10.05 | 201 | 0 | 6.61 ms | 22.84 ms | 24.48 ms | PASS |
+| 100 | 100 | 15.05 | 301 | 0 | 6.09 ms | 20.72 ms | 22.71 ms | PASS |
+| 250 | 250 | 20.03 | 601 | 0 | 5.68 ms | 20.17 ms | 23.08 ms | PASS |
+| 500 | 500 | 20.03 | 600 | 0 | 5.60 ms | 19.50 ms | 21.65 ms | PASS |
+
+All five profiles completed with zero request errors and stayed below the configured 1,500 ms p95 acceptance limit. The harness pacing was corrected before the final run so VU starts are distributed across the configured rate instead of producing an artificial end-of-profile burst.
+
+This acceptance proves the load harness, authorization path, representative read routes, API/DB/Redis integration and application rate-policy behavior in an isolated environment. It does **not** claim that the production VPS can sustain 500 simultaneous active requests or more than the configured ~20 protected requests/second per source IP; production capacity remains bounded by real hardware, production dataset size, network conditions and the intentional global rate limiter.
 
 ## Current known capacity constraint
 

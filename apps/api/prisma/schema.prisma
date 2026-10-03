@@ -560,6 +560,7 @@ model Tournament {
   groups              TournamentGroup[]
 
   @@index([leagueId, status])
+  @@index([leagueId, status, createdAt])
   @@index([createdByUserId])
   @@map("tournaments")
 }
@@ -625,6 +626,7 @@ model TournamentRegistrationMember {
   @@unique([tournamentId, userId])
   @@unique([registrationId, userId])
   @@index([registrationId])
+  @@index([userId, tournamentId, registrationId])
   @@map("tournament_registration_members")
 }
 
@@ -661,6 +663,7 @@ model Fixture {
   @@index([tournamentId, roundNumber])
   @@index([tournamentId, matchday])
   @@index([tournamentId, scheduledAt])
+  @@index([tournamentId, status, scheduledAt, sequence])
   @@index([groupId])
   @@index([homeRegistrationId])
   @@index([awayRegistrationId])
@@ -690,6 +693,7 @@ model Match {
   disputes          MatchDispute[]
 
   @@index([tournamentId, status])
+  @@index([tournamentId, status, updatedAt])
   @@map("matches")
 }
 
@@ -716,6 +720,7 @@ model ResultSubmission {
   ocrExtraction     OcrExtraction?         @relation(fields: [ocrExtractionId], references: [id], onDelete: SetNull)
 
   @@index([matchId, status])
+  @@index([matchId, status, createdAt])
   @@index([submittedByUserId, status])
   @@map("result_submissions")
 }
@@ -793,7 +798,9 @@ model AuditLog {
   actor User? @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
   @@index([actorUserId, createdAt])
+  @@index([actorUserId, action, createdAt])
   @@index([targetType, targetId])
+  @@index([action, targetType, targetId, createdAt])
   @@index([scopeType, scopeId, createdAt])
   @@index([action, createdAt])
   @@map("audit_logs")
@@ -819,6 +826,7 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, eventAt])
+  @@index([userId, readAt, eventAt])
   @@map("notifications")
 }
 
@@ -968,6 +976,7 @@ model PushDevice {
   deliveries PushDelivery[]
   @@index([lastSyncedAt])
   @@index([userId])
+  @@index([userId, lastSyncedAt])
   @@map("push_devices")
 }
 

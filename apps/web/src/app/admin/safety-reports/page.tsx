@@ -50,11 +50,17 @@ interface AdminSafetyReport {
 
   status:
     | 'OPEN'
-    | 'RESOLVED';
+    | 'RESOLVED'
+    | 'DISMISSED';
+
+  reportsAgainstTarget: number;
 
   createdAt: string;
 
   resolution: {
+    decision:
+      | 'RESOLVED'
+      | 'DISMISSED';
     note: string | null;
     resolvedAt: string;
   } | null;
@@ -147,13 +153,23 @@ export default function AdminSafetyReportsPage() {
     router,
   ]);
 
-  async function resolve(
-    reportId: string,
+  async function review(
+    reportId:
+      string,
+    decision:
+      | 'RESOLVED'
+      | 'DISMISSED',
   ) {
     const note =
       window.prompt(
-        'Resolution note (optional):',
-        'Reviewed by FC ARENA moderation.',
+        decision ===
+        'DISMISSED'
+          ? 'Dismissal note (optional):'
+          : 'Resolution note (optional):',
+        decision ===
+        'DISMISSED'
+          ? 'Reviewed and no moderation action is required.'
+          : 'Reviewed by FC ARENA moderation.',
       );
 
     if (
@@ -182,6 +198,7 @@ export default function AdminSafetyReportsPage() {
 
           body:
             JSON.stringify({
+              decision,
               note:
                 note.trim() ||
                 undefined,
@@ -191,13 +208,13 @@ export default function AdminSafetyReportsPage() {
 
       await loadReports();
     } catch (
-      resolveError
+      reviewError
     ) {
       setError(
-        resolveError instanceof
+        reviewError instanceof
           Error
-          ? resolveError.message
-          : 'Unable to resolve this report.',
+          ? reviewError.message
+          : 'Unable to review this report.',
       );
     } finally {
       setBusyId(
@@ -286,12 +303,21 @@ export default function AdminSafetyReportsPage() {
                           report.status ===
                           'RESOLVED'
                             ? 'emerald'
-                            : 'red'
+                            : report.status ===
+                                'DISMISSED'
+                              ? 'slate'
+                              : 'red'
                         }
                       />
                     </div>
 
-                    <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                    <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+                      <p className="theme-secondary-text">
+                        <span className="theme-muted">
+                          Reports against player:{' '}
+                        </span>
+                        {report.reportsAgainstTarget}
+                      </p>
                       <p className="theme-secondary-text">
                         <span className="theme-muted">
                           Type:{' '}
@@ -325,7 +351,10 @@ export default function AdminSafetyReportsPage() {
 
                     {report.resolution ? (
                       <p className="mt-3 text-sm text-emerald-700">
-                        Resolved
+                        {report.resolution.decision ===
+                        'DISMISSED'
+                          ? 'Dismissed'
+                          : 'Resolved'}
                         {report.resolution
                           .note
                           ? ': ' +
@@ -334,24 +363,44 @@ export default function AdminSafetyReportsPage() {
                           : '.'}
                       </p>
                     ) : (
-                      <button
-                        type="button"
-                        disabled={
-                          busyId ===
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={
+                            busyId ===
+                            report.id
+                          }
+                          onClick={() =>
+                            void review(
+                              report.id,
+                              'RESOLVED',
+                            )
+                          }
+                          className="theme-primary-button min-h-10 rounded-xl px-4 text-sm font-semibold disabled:opacity-50"
+                        >
+                          {busyId ===
                           report.id
-                        }
-                        onClick={() =>
-                          void resolve(
-                            report.id,
-                          )
-                        }
-                        className="theme-primary-button mt-4 min-h-10 rounded-xl px-4 text-sm font-semibold disabled:opacity-50"
-                      >
-                        {busyId ===
-                        report.id
-                          ? 'Saving...'
-                          : 'Mark Resolved'}
-                      </button>
+                            ? 'Saving...'
+                            : 'Resolve'}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={
+                            busyId ===
+                            report.id
+                          }
+                          onClick={() =>
+                            void review(
+                              report.id,
+                              'DISMISSED',
+                            )
+                          }
+                          className="theme-secondary-button min-h-10 rounded-xl border px-4 text-sm font-semibold disabled:opacity-50"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
                     )}
                   </div>
                 ),

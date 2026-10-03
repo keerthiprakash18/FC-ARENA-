@@ -1,9 +1,9 @@
 # FC ARENA — Final Android Play Release Runbook
 
-Current final candidate: **versionCode 11 / versionName 1.0.9**
+Current final candidate: **versionCode 12 / versionName 1.0.10**
 Package: `in.fcarena.app`
 
-The highest versionCode currently recorded as uploaded to Google Play is 10. Build 11 was prepared previously but was not uploaded, so versionCode 11 remains the final candidate until a Play upload occurs. After any upload, update `apps/android/play-upload-history.json` immediately.
+The highest versionCode currently recorded as uploaded to Google Play is 11. Build 12 was prepared previously but was not uploaded, so versionCode 12 remains the final candidate until a Play upload occurs. After any upload, update `apps/android/play-upload-history.json` immediately.
 
 ## Final order
 
@@ -17,7 +17,7 @@ The highest versionCode currently recorded as uploaded to Google Play is 10. Bui
    `apps/android/build-signed-release.ps1`
 7. The signing helper verifies the expected upload-certificate SHA-256 before and after the build and writes artifact metadata.
 8. Expected artifact:
-   `FC_ARENA_v1.0.9_build11_signed.aab`
+   `FC_ARENA_v1.0.10_build12_signed.aab`
 9. Record the exact source SHA and AAB SHA-256.
 10. Upload that exact AAB to the required Google Play testing track.
 11. Install/update through Google Play and perform final physical-device acceptance.
@@ -47,7 +47,7 @@ Use only a controlled non-public/test path to generate one diagnostic crash/non-
 
 ## Version rule
 
-A versionCode that has been uploaded to **any** Play track is consumed and must never be reused. If versionCode 11 is uploaded before the final artifact is produced, stop and move to the next unused code/name instead of overwriting Build 11.
+A versionCode that has been uploaded to **any** Play track is consumed and must never be reused. If versionCode 12 is uploaded before the final artifact is produced, stop and move to the next unused code/name instead of overwriting Build 12.
 
 ## Signing rule
 

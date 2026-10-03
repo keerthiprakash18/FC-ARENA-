@@ -54,8 +54,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // One stable build identifier, shared by all instances of this deployment.
+  // Does not touch Android versions, cookies or local settings.
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA,
+
   async headers() {
     return [
+      { source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }] },
       {
         source:
           '/(.*)',

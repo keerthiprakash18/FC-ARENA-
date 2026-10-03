@@ -63,7 +63,7 @@ async function prepare(page) {
     }
     if (url.hostname === 'fcarena.in') {
       try {
-        const response = await fetch(`http://127.0.0.1:3000${url.pathname}${url.search}`, { headers: { ...route.request().headers(), host: 'localhost:3000' } });
+        const response = await fetch(`${process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000'}${url.pathname}${url.search}`, { headers: { ...route.request().headers(), host: 'localhost:3000' } });
         const headers = Object.fromEntries(response.headers);
         delete headers['content-encoding']; delete headers['transfer-encoding']; delete headers['content-length'];
         return route.fulfill({ status: response.status, headers, body: Buffer.from(await response.arrayBuffer()) });

@@ -5,7 +5,7 @@
 CREATE INDEX IF NOT EXISTS "tournaments_leagueId_status_createdAt_idx"
 ON "tournaments"("leagueId", "status", "createdAt");
 
-CREATE INDEX IF NOT EXISTS "tournament_registration_members_userId_tournamentId_registrationId_idx"
+CREATE INDEX IF NOT EXISTS "trm_user_tournament_registration_idx"
 ON "tournament_registration_members"("userId", "tournamentId", "registrationId");
 
 CREATE INDEX IF NOT EXISTS "fixtures_tournamentId_status_scheduledAt_sequence_idx"

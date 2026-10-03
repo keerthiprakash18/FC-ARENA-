@@ -4,9 +4,13 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import {
+  unlink,
+} from 'node:fs/promises';
 import bcrypt from 'bcryptjs';
 import {
   createHash,
@@ -22,6 +26,7 @@ import type {
 } from './auth.types.js';
 import { OtpMailService } from './mail.service.js';
 import type { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
+import type { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import type { LoginDto } from './dto/login.dto.js';
 import type { RegisterDto } from './dto/register.dto.js';
@@ -561,6 +566,644 @@ export class AuthService {
         requestId,
         message:
           'Your account and data deletion request has been recorded. We may contact you to verify account ownership before deletion is completed.',
+      },
+      error: null,
+    };
+  }
+
+  async deleteAccount(
+    userId: string,
+    dto:
+      DeleteAccountDto,
+  ) {
+    const user =
+      await this.prisma.user.findUnique({
+        where: {
+          id:
+            userId,
+        },
+        include: {
+          player: {
+            include: {
+              identity:
+                true,
+            },
+          },
+        },
+      });
+
+    if (
+      !user ||
+      user.status !==
+        'ACTIVE'
+    ) {
+      throw new UnauthorizedException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ACCOUNT_NOT_ACTIVE',
+          message:
+            'This account is not active.',
+        },
+      });
+    }
+
+    const passwordValid =
+      await this.passwordMatches(
+        dto.password,
+        user.passwordHash,
+      );
+
+    if (
+      !passwordValid
+    ) {
+      throw new UnauthorizedException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ACCOUNT_DELETE_PASSWORD_INVALID',
+          message:
+            'Password confirmation is incorrect.',
+        },
+      });
+    }
+
+    const suffix =
+      randomBytes(
+        8,
+      )
+        .toString(
+          'hex',
+        );
+
+    const anonymousName =
+      'Deleted Player';
+
+    const anonymousInGameName =
+      `Deleted-${suffix.slice(
+        0,
+        12,
+      )}`;
+
+    const anonymousPlayerCode =
+      `DEL-${suffix
+        .slice(
+          0,
+          12,
+        )
+        .toUpperCase()}`;
+
+    const anonymousEmail =
+      `deleted-${suffix}@deleted.fcarena.invalid`;
+
+    const anonymousTargetId =
+      `DELETED:${suffix}`;
+
+    const oldInGameName =
+      user.player
+        ?.identity
+        ?.inGameName ??
+      null;
+
+    const oldPlayerCode =
+      user.player
+        ?.playerCode ??
+      null;
+
+    const ocrArtifacts =
+      await this.prisma.ocrExtraction.findMany({
+        where: {
+          OR: [
+            {
+              submittedByUserId:
+                userId,
+            },
+            {
+              homeMatchedUserId:
+                userId,
+            },
+            {
+              awayMatchedUserId:
+                userId,
+            },
+          ],
+        },
+        select: {
+          imagePath:
+            true,
+        },
+      });
+
+    /*
+     * External/local image cleanup runs before the database anonymization.
+     * If cleanup cannot be verified, do not claim successful deletion while
+     * a personal image may still remain outside PostgreSQL.
+     */
+    if (
+      user.player
+        ?.profileImageUrl &&
+      user.player.id
+    ) {
+      await this.removeDeletedAccountProfileImage(
+        user.player.id,
+      );
+    }
+
+    await this.removeDeletedAccountOcrArtifacts(
+      ocrArtifacts.map(
+        (
+          artifact,
+        ) =>
+          artifact.imagePath,
+      ),
+    );
+
+    const randomPassword =
+      await bcrypt.hash(
+        randomBytes(
+          48,
+        )
+          .toString(
+            'base64url',
+          ),
+        12,
+      );
+
+    await this.prisma.$transaction(
+      async (
+        tx,
+      ) => {
+        const memberships =
+          await tx.tournamentRegistrationMember.findMany({
+            where: {
+              userId,
+            },
+            select: {
+              registrationId:
+                true,
+              tournament: {
+                select: {
+                  teamSize:
+                    true,
+                },
+              },
+            },
+          });
+
+        const soloRegistrationIds =
+          [
+            ...new Set(
+              memberships
+                .filter(
+                  (
+                    membership,
+                  ) =>
+                    membership
+                      .tournament
+                      .teamSize ===
+                    1,
+                )
+                .map(
+                  (
+                    membership,
+                  ) =>
+                    membership
+                      .registrationId,
+                ),
+            ),
+          ];
+
+        if (
+          soloRegistrationIds.length >
+          0
+        ) {
+          await tx.tournamentRegistration.updateMany({
+            where: {
+              id: {
+                in:
+                  soloRegistrationIds,
+              },
+            },
+            data: {
+              entryName:
+                anonymousInGameName,
+            },
+          });
+        }
+
+        await tx.roleAssignment.deleteMany({
+          where: {
+            userId,
+          },
+        });
+
+        await tx.roleAssignment.updateMany({
+          where: {
+            assignedByUserId:
+              userId,
+          },
+          data: {
+            assignedByUserId:
+              null,
+          },
+        });
+
+        await tx.leagueAdmin.deleteMany({
+          where: {
+            userId,
+          },
+        });
+
+        await tx.pushDevice.deleteMany({
+          where: {
+            userId,
+          },
+        });
+
+        await tx.refreshSession.deleteMany({
+          where: {
+            userId,
+          },
+        });
+
+        await tx.authOtp.deleteMany({
+          where: {
+            userId,
+          },
+        });
+
+        await tx.notification.deleteMany({
+          where: {
+            userId,
+          },
+        });
+
+        await tx.matchDispute.updateMany({
+          where: {
+            raisedByUserId:
+              userId,
+          },
+          data: {
+            reason:
+              'Retained de-identified dispute record.',
+            evidenceUrl:
+              null,
+            resolutionNote:
+              null,
+          },
+        });
+
+        await tx.fairPlayAppeal.updateMany({
+          where: {
+            appealedByUserId:
+              userId,
+          },
+          data: {
+            reason:
+              'Retained de-identified Fair Play appeal.',
+            resolutionNote:
+              null,
+          },
+        });
+
+        await tx.fairPlayEvent.updateMany({
+          where: {
+            userId,
+          },
+          data: {
+            reason:
+              'Retained de-identified Fair Play record.',
+            evidenceUrl:
+              null,
+            revocationNote:
+              null,
+          },
+        });
+
+        await tx.ocrExtraction.updateMany({
+          where: {
+            OR: [
+              {
+                submittedByUserId:
+                  userId,
+              },
+              {
+                homeMatchedUserId:
+                  userId,
+              },
+              {
+                awayMatchedUserId:
+                  userId,
+              },
+            ],
+          },
+          data: {
+            imagePath:
+              'redacted://account-deletion',
+            rawText:
+              null,
+            detectedHomeName:
+              null,
+            detectedAwayName:
+              null,
+            homeMatchedUserId:
+              null,
+            awayMatchedUserId:
+              null,
+            failureReason:
+              null,
+          },
+        });
+
+        await tx.achievement.updateMany({
+          where: {
+            userId,
+          },
+          data: {
+            description:
+              null,
+            metadata: {
+              redacted:
+                true,
+            },
+          },
+        });
+
+        await tx.seasonalAward.updateMany({
+          where: {
+            userId,
+          },
+          data: {
+            description:
+              null,
+            metadata: {
+              redacted:
+                true,
+            },
+          },
+        });
+
+        const redactedMetadata = {
+          redacted:
+            true,
+          reason:
+            'ACCOUNT_DELETION',
+        };
+
+        await tx.auditLog.updateMany({
+          where: {
+            actorUserId:
+              userId,
+          },
+          data: {
+            actorUserId:
+              null,
+            metadata:
+              redactedMetadata,
+            beforeData:
+              null,
+            afterData:
+              null,
+          },
+        });
+
+        await tx.auditLog.updateMany({
+          where: {
+            targetType:
+              'USER',
+            targetId:
+              userId,
+          },
+          data: {
+            targetId:
+              anonymousTargetId,
+            metadata:
+              redactedMetadata,
+            beforeData:
+              null,
+            afterData:
+              null,
+          },
+        });
+
+        /*
+         * Cached ranking snapshots are JSON documents rather than relations.
+         * Replace stable public identifiers so archived leaderboards cannot
+         * reconnect the anonymized account to its previous identity.
+         */
+        await tx.$executeRaw`
+          UPDATE "ballon_ranking_snapshots"
+          SET "rows" =
+            replace(
+              "rows"::text,
+              ${userId},
+              ${anonymousTargetId}
+            )::jsonb
+          WHERE "rows"::text LIKE
+            ${`%${userId}%`}
+        `;
+
+        await tx.$executeRaw`
+          UPDATE "ranking_snapshots"
+          SET "positions" =
+            replace(
+              "positions"::text,
+              ${userId},
+              ${anonymousTargetId}
+            )::jsonb
+          WHERE "positions"::text LIKE
+            ${`%${userId}%`}
+        `;
+
+        if (
+          oldInGameName
+        ) {
+          await tx.$executeRaw`
+            UPDATE "ballon_ranking_snapshots"
+            SET "rows" =
+              replace(
+                "rows"::text,
+                ${oldInGameName},
+                ${anonymousInGameName}
+              )::jsonb
+            WHERE "rows"::text LIKE
+              ${`%${oldInGameName}%`}
+          `;
+
+          await tx.$executeRaw`
+            UPDATE "ranking_snapshots"
+            SET "positions" =
+              replace(
+                "positions"::text,
+                ${oldInGameName},
+                ${anonymousInGameName}
+              )::jsonb
+            WHERE "positions"::text LIKE
+              ${`%${oldInGameName}%`}
+          `;
+
+          await tx.$executeRaw`
+            UPDATE "notifications"
+            SET
+              "title" =
+                replace(
+                  "title",
+                  ${oldInGameName},
+                  ${anonymousInGameName}
+                ),
+              "message" =
+                replace(
+                  "message",
+                  ${oldInGameName},
+                  ${anonymousInGameName}
+                ),
+              "updatedAt" =
+                NOW()
+            WHERE
+              "title" LIKE
+                ${`%${oldInGameName}%`}
+              OR
+              "message" LIKE
+                ${`%${oldInGameName}%`}
+          `;
+        }
+
+        if (
+          oldPlayerCode
+        ) {
+          await tx.$executeRaw`
+            UPDATE "ballon_ranking_snapshots"
+            SET "rows" =
+              replace(
+                "rows"::text,
+                ${oldPlayerCode},
+                ${anonymousPlayerCode}
+              )::jsonb
+            WHERE "rows"::text LIKE
+              ${`%${oldPlayerCode}%`}
+          `;
+
+          await tx.$executeRaw`
+            UPDATE "ranking_snapshots"
+            SET "positions" =
+              replace(
+                "positions"::text,
+                ${oldPlayerCode},
+                ${anonymousPlayerCode}
+              )::jsonb
+            WHERE "positions"::text LIKE
+              ${`%${oldPlayerCode}%`}
+          `;
+        }
+
+        if (
+          user.player
+        ) {
+          await tx.player.update({
+            where: {
+              id:
+                user.player.id,
+            },
+            data: {
+              playerCode:
+                anonymousPlayerCode,
+              profileImageUrl:
+                null,
+            },
+          });
+
+          if (
+            user.player
+              .identity
+          ) {
+            await tx.playerIdentity.update({
+              where: {
+                playerId:
+                  user.player.id,
+              },
+              data: {
+                inGameName:
+                  anonymousInGameName,
+                inGameNameNormalized:
+                  anonymousInGameName
+                    .toLowerCase(),
+                gameUid:
+                  null,
+                isVerified:
+                  false,
+                verifiedAt:
+                  null,
+                lockedAt:
+                  new Date(),
+              },
+            });
+          }
+        }
+
+        await tx.user.update({
+          where: {
+            id:
+              userId,
+          },
+          data: {
+            fullName:
+              anonymousName,
+            email:
+              anonymousEmail,
+            phoneNumber:
+              null,
+            passwordHash:
+              randomPassword,
+            role:
+              'USER',
+            status:
+              'DISABLED',
+            themePreference:
+              'CLASSIC_BLUE',
+            emailVerifiedAt:
+              null,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            actorUserId:
+              null,
+            action:
+              'ACCOUNT_DELETION_COMPLETED',
+            targetType:
+              'DELETED_ACCOUNT',
+            targetId:
+              anonymousTargetId,
+            scopeType:
+              'GLOBAL',
+            scopeId:
+              'PRIVACY',
+            metadata: {
+              completedAt:
+                new Date()
+                  .toISOString(),
+              retained:
+                'De-identified competition, integrity and security records only.',
+            },
+          },
+        });
+      },
+      {
+        isolationLevel:
+          'Serializable',
+      },
+    );
+
+    return {
+      success: true,
+      data: {
+        accountDeleted:
+          true,
+        message:
+          'Your FC ARENA account has been deleted. Competition history that must remain has been de-identified.',
       },
       error: null,
     };
@@ -1265,6 +1908,243 @@ export class AuthService {
           }
         : null,
     };
+  }
+
+  private async removeDeletedAccountProfileImage(
+    playerId:
+      string,
+  ) {
+    const cloudinaryUrl =
+      process.env
+        .CLOUDINARY_URL
+        ?.trim();
+
+    let cloudName =
+      process.env
+        .CLOUDINARY_CLOUD_NAME
+        ?.trim();
+
+    let apiKey =
+      process.env
+        .CLOUDINARY_API_KEY
+        ?.trim();
+
+    let apiSecret =
+      process.env
+        .CLOUDINARY_API_SECRET
+        ?.trim();
+
+    if (
+      cloudinaryUrl
+    ) {
+      try {
+        const parsed =
+          new URL(
+            cloudinaryUrl,
+          );
+
+        if (
+          parsed.protocol ===
+          'cloudinary:'
+        ) {
+          cloudName =
+            parsed.hostname;
+
+          apiKey =
+            decodeURIComponent(
+              parsed.username,
+            );
+
+          apiSecret =
+            decodeURIComponent(
+              parsed.password,
+            );
+        }
+      } catch {
+        // Fall through to
+        // individual variables.
+      }
+    }
+
+    if (
+      !cloudName ||
+      !apiKey ||
+      !apiSecret
+    ) {
+      throw new ServiceUnavailableException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ACCOUNT_DELETION_IMAGE_CLEANUP_UNAVAILABLE',
+          message:
+            'Account deletion could not verify profile-image cleanup. Please retry later.',
+        },
+      });
+    }
+
+    const timestamp =
+      Math.floor(
+        Date.now() /
+          1000,
+      );
+
+    const publicId =
+      `fc-arena/players/${playerId}/profile`;
+
+    const unsigned =
+      [
+        'invalidate=true',
+        `public_id=${publicId}`,
+        `timestamp=${timestamp}`,
+      ].join(
+        '&',
+      );
+
+    const signature =
+      createHash(
+        'sha1',
+      )
+        .update(
+          `${unsigned}${apiSecret}`,
+        )
+        .digest(
+          'hex',
+        );
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      'api_key',
+      apiKey,
+    );
+
+    formData.append(
+      'timestamp',
+      String(
+        timestamp,
+      ),
+    );
+
+    formData.append(
+      'public_id',
+      publicId,
+    );
+
+    formData.append(
+      'invalidate',
+      'true',
+    );
+
+    formData.append(
+      'signature',
+      signature,
+    );
+
+    try {
+      const response =
+        await fetch(
+          `https://api.cloudinary.com/v1_1/${encodeURIComponent(
+            cloudName,
+          )}/image/destroy`,
+          {
+            method:
+              'POST',
+            body:
+              formData,
+          },
+        );
+
+      const payload =
+        await response.json() as {
+          error?: {
+            message?:
+              string;
+          };
+        };
+
+      if (
+        !response.ok ||
+        payload.error
+      ) {
+        throw new Error(
+          'Profile image cleanup failed.',
+        );
+      }
+    } catch {
+      throw new ServiceUnavailableException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ACCOUNT_DELETION_IMAGE_CLEANUP_FAILED',
+          message:
+            'Account deletion could not verify profile-image cleanup. Please retry later.',
+        },
+      });
+    }
+  }
+
+  private async removeDeletedAccountOcrArtifacts(
+    rawPaths:
+      string[],
+  ) {
+    const paths =
+      [
+        ...new Set(
+          rawPaths.filter(
+            Boolean,
+          ),
+        ),
+      ];
+
+    for (
+      const path
+      of paths
+    ) {
+      if (
+        path.startsWith(
+          'redacted://',
+        )
+      ) {
+        continue;
+      }
+
+      try {
+        await unlink(
+          path,
+        );
+      } catch (
+        error
+      ) {
+        const code =
+          (
+            error as {
+              code?:
+                string;
+            }
+          ).code;
+
+        if (
+          code ===
+          'ENOENT'
+        ) {
+          continue;
+        }
+
+        throw new ServiceUnavailableException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'ACCOUNT_DELETION_OCR_CLEANUP_FAILED',
+            message:
+              'Account deletion could not verify stored screenshot cleanup. Please retry later.',
+          },
+        });
+      }
+    }
   }
 
   private normalizeLoginIdentifier(

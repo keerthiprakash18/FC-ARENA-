@@ -222,54 +222,6 @@ export class SafetyService {
         ),
       );
 
-    const uniqueTargetIds =
-      [
-        ...new Set(
-          reports.map(
-            (
-              report,
-            ) =>
-              report.targetId,
-          ),
-        ),
-      ];
-
-    const reportCounts =
-      uniqueTargetIds.length ===
-      0
-        ? []
-        : await this.prisma.auditLog.groupBy({
-            by: [
-              'targetId',
-            ],
-            where: {
-              action:
-                'UGC_REPORT_SUBMITTED',
-              targetType:
-                'USER',
-              targetId: {
-                in:
-                  uniqueTargetIds,
-              },
-            },
-            _count: {
-              _all:
-                true,
-            },
-          });
-
-    const reportCountByTarget =
-      new Map(
-        reportCounts.map(
-          (
-            row,
-          ) => [
-            row.targetId,
-            row._count._all,
-          ],
-        ),
-      );
-
     return {
       success: true,
 

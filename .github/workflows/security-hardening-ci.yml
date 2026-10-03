@@ -105,8 +105,11 @@ jobs:
           node tests/notification-cache.test.cjs
           node tests/update-performance.test.cjs
 
-      - name: Dependency high-severity gate
-        run: npm audit --audit-level=high
+      - name: Dependency critical gate (all dependencies)
+        run: npm audit --audit-level=critical
+
+      - name: Production dependency high-severity gate
+        run: node scripts/security-audit-gate.mjs
 
       - name: Web production build
         run: npm run build:web

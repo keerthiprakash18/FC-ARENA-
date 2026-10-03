@@ -43,10 +43,36 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
   onModuleDestroy() {
     if (this.timer) clearInterval(this.timer);
   }
-  status() {
+  async status(
+    userId: string,
+    sessionId:
+      string | undefined,
+  ) {
+    const boundDevices =
+      sessionId
+        ? await this.prisma.pushDevice.count({
+            where: {
+              userId,
+              sessionId,
+              session: {
+                revokedAt: null,
+                expiresAt: {
+                  gt: new Date(),
+                },
+              },
+            },
+          })
+        : 0;
+
     return {
       success: true,
-      data: { configured: this.app !== null },
+      data: {
+        configured:
+          this.app !== null,
+        bound:
+          boundDevices > 0,
+        boundDevices,
+      },
       error: null,
     };
   }
@@ -94,24 +120,138 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
       existing?.userId === userId && existing?.sessionId === sessionId;
     await this.prisma.pushDevice.upsert({
       where: { token },
-      create: { userId, sessionId, token },
+      create: {
+        userId,
+        sessionId,
+        token,
+        lastSyncedAt:
+          new Date(0),
+      },
       update: {
         userId,
         sessionId,
-        ...(sameSession ? {} : { enabledAt: new Date() }),
+        lastSyncedAt:
+          new Date(0),
+        ...(sameSession
+          ? {}
+          : {
+              enabledAt:
+                new Date(),
+            }),
       },
     });
     return { success: true, data: { enabled: true }, error: null };
   }
-  async disable(userId: string, token: string) {
-    await this.prisma.pushDevice.deleteMany({ where: { userId, token } });
-    return { success: true, data: { enabled: false }, error: null };
+  async disable(
+    userId: string,
+    token: string,
+  ) {
+    await this.prisma.pushDevice.deleteMany({
+      where: {
+        userId,
+        token,
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        enabled: false,
+      },
+      error: null,
+    };
   }
+
+  async disableSession(
+    userId: string,
+    sessionId:
+      string | undefined,
+  ) {
+    if (
+      !sessionId
+    ) {
+      return {
+        success: true,
+        data: {
+          enabled: false,
+          removed: 0,
+        },
+        error: null,
+      };
+    }
+
+    const removed =
+      await this.prisma.pushDevice.deleteMany({
+        where: {
+          userId,
+          sessionId,
+        },
+      });
+
+    return {
+      success: true,
+      data: {
+        enabled: false,
+        removed:
+          removed.count,
+      },
+      error: null,
+    };
+  }
+
+  private async pruneDevices(
+    now: Date,
+  ) {
+    const staleBefore =
+      new Date(
+        now.getTime() -
+          90 *
+            24 *
+            60 *
+            60 *
+            1000,
+      );
+
+    await this.prisma.pushDevice.deleteMany({
+      where: {
+        OR: [
+          {
+            session: {
+              OR: [
+                {
+                  revokedAt: {
+                    not: null,
+                  },
+                },
+                {
+                  expiresAt: {
+                    lte: now,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            lastSyncedAt: {
+              lt:
+                staleBefore,
+            },
+          },
+        ],
+      },
+    });
+  }
+
   async tick() {
     if (this.running || !this.app) return;
     this.running = true;
     try {
       const now = new Date();
+
+      await this.pruneDevices(
+        now,
+      );
+
       const devices = await this.prisma.pushDevice.findMany({
         where: {
           user: { status: 'ACTIVE' },

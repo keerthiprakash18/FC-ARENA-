@@ -7,6 +7,10 @@ import {
   AccountDeletionForm,
 } from './account-deletion-form';
 
+import {
+  AuthenticatedAccountDeletion,
+} from './authenticated-account-deletion';
+
 export default function AccountDeletionPage() {
   return (
     <PublicInfoPage
@@ -42,6 +46,17 @@ export default function AccountDeletionPage() {
       >
         <p>
           Enter the email address used for your FC ARENA account. Your In-Game Name is optional but can help us locate the correct account. Never send us your password or OTP.
+        </p>
+      </PublicInfoCard>
+
+      <AuthenticatedAccountDeletion />
+
+      <PublicInfoCard
+        title="Cannot sign in?"
+        icon="profile"
+      >
+        <p>
+          Use the request form below. FC ARENA may contact the account email to verify ownership before completing deletion. Never send a password or OTP in this form.
         </p>
       </PublicInfoCard>
 

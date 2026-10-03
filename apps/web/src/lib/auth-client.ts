@@ -123,33 +123,243 @@ export async function authenticatedRequest<T>(
   const token =
     await refreshAccessToken();
 
-  const method = (options.method || 'GET').toUpperCase();
-  if (path.startsWith('/notifications') && method !== 'GET') clearNotificationCache();
-  const request = () => apiRequest<T>(path, { ...options, headers: { ...(options.headers ?? {}), Authorization: `Bearer ${token}` } });
-  if (path.startsWith('/notifications') && method !== 'GET') return request().finally(clearNotificationCache);
-  if (method !== 'GET') {
-    pendingReads.clear();
-    return request().finally(() => pendingReads.clear());
+  const method =
+    (
+      options.method ||
+      'GET'
+    ).toUpperCase();
+
+  if (
+    path.startsWith(
+      '/notifications',
+    ) &&
+    method !== 'GET'
+  ) {
+    clearNotificationCache();
   }
-  if (path !== '/notifications') {
+
+  const perform =
+    (
+      bearerToken:
+        string,
+    ) =>
+      apiRequest<T>(
+        path,
+        {
+          ...options,
+          headers: {
+            ...(
+              options.headers ??
+              {}
+            ),
+            Authorization:
+              `Bearer ${bearerToken}`,
+          },
+        },
+      );
+
+  /*
+   * Only idempotent reads get an automatic auth retry.
+   * Mutations/uploads never replay after an ambiguous failure, preventing
+   * duplicate result submissions or duplicate writes.
+   */
+  const request =
+    async () => {
+      try {
+        return await perform(
+          token,
+        );
+      } catch (
+        error
+      ) {
+        const status =
+          (
+            error as {
+              status?: unknown;
+            } | null
+          )?.status;
+
+        if (
+          method === 'GET' &&
+          status === 401
+        ) {
+          const freshToken =
+            await refreshAccessToken(
+              true,
+            );
+
+          return perform(
+            freshToken,
+          );
+        }
+
+        throw error;
+      }
+    };
+
+  if (
+    path.startsWith(
+      '/notifications',
+    ) &&
+    method !== 'GET'
+  ) {
+    return request()
+      .finally(
+        clearNotificationCache,
+      );
+  }
+
+  if (
+    method !== 'GET'
+  ) {
+    pendingReads.clear();
+
+    return request()
+      .finally(
+        () =>
+          pendingReads.clear(),
+      );
+  }
+
+  if (
+    path !==
+      '/notifications'
+  ) {
     // Share only simultaneous, default GETs. Never cache resolved private data
     // or merge requests with different headers, signals or freshness options.
-    if (!Object.keys(options).every(key => key === 'method')) return request();
-    const key = `${token}\0${path}`;
-    const existing = pendingReads.get(key);
-    if (existing) return existing as Promise<T>;
-    const pending = request().finally(() => {
-      if (pendingReads.get(key) === pending) pendingReads.delete(key);
-    });
-    pendingReads.set(key, pending);
+    if (
+      !Object.keys(
+        options,
+      ).every(
+        (
+          key,
+        ) =>
+          key ===
+          'method',
+      )
+    ) {
+      return request();
+    }
+
+    const key =
+      `${token}\0${path}`;
+
+    const existing =
+      pendingReads.get(
+        key,
+      );
+
+    if (
+      existing
+    ) {
+      return existing as
+        Promise<T>;
+    }
+
+    const pending =
+      request()
+        .finally(
+          () => {
+            if (
+              pendingReads.get(
+                key,
+              ) === pending
+            ) {
+              pendingReads.delete(
+                key,
+              );
+            }
+          },
+        );
+
+    pendingReads.set(
+      key,
+      pending,
+    );
+
     return pending;
   }
-  if (notificationCache && notificationCache.expiresAt > Date.now()) return notificationCache.value as T;
-  if (notificationRequest) return notificationRequest as Promise<T>;
-  const generation = notificationGeneration;
-  const pending = request().then(value => { if (generation === notificationGeneration) notificationCache = { value, expiresAt: Date.now() + 10_000 }; return value; }).finally(() => { if (notificationRequest === pending) notificationRequest = null; });
-  notificationRequest = pending;
+
+  if (
+    notificationCache &&
+    notificationCache
+      .expiresAt >
+      Date.now()
+  ) {
+    return notificationCache
+      .value as T;
+  }
+
+  if (
+    notificationRequest
+  ) {
+    return notificationRequest as
+      Promise<T>;
+  }
+
+  const generation =
+    notificationGeneration;
+
+  const pending =
+    request()
+      .then(
+        (
+          value,
+        ) => {
+          if (
+            generation ===
+            notificationGeneration
+          ) {
+            notificationCache = {
+              value,
+              expiresAt:
+                Date.now() +
+                10_000,
+            };
+          }
+
+          return value;
+        },
+      )
+      .finally(
+        () => {
+          if (
+            notificationRequest ===
+            pending
+          ) {
+            notificationRequest =
+              null;
+          }
+        },
+      );
+
+  notificationRequest =
+    pending;
+
   return pending;
+}
+
+class UploadRequestError
+  extends Error {
+  readonly status:
+    number;
+
+  constructor(
+    message:
+      string,
+    status:
+      number,
+  ) {
+    super(
+      message,
+    );
+
+    this.name =
+      'UploadRequestError';
+
+    this.status =
+      status;
+  }
 }
 
 function sendUpload<T>(
@@ -176,6 +386,9 @@ function sendUpload<T>(
       xhr.withCredentials =
         true;
 
+      xhr.timeout =
+        30_000;
+
       xhr.setRequestHeader(
         'Authorization',
         `Bearer ${token}`,
@@ -192,8 +405,10 @@ function sendUpload<T>(
 
           const percentage =
             Math.round(
-              (event.loaded /
-                event.total) *
+              (
+                event.loaded /
+                event.total
+              ) *
                 100,
             );
 
@@ -202,55 +417,72 @@ function sendUpload<T>(
           );
         };
 
-      xhr.onerror = () => {
-        reject(
-          new Error(
-            'Unable to upload file.',
-          ),
-        );
-      };
-
-      xhr.onload = () => {
-        let payload:
-          unknown = null;
-
-        try {
-          payload =
-            xhr.responseText
-              ? JSON.parse(
-                  xhr.responseText,
-                )
-              : null;
-        } catch {
-          payload = null;
-        }
-
-        if (
-          xhr.status >= 200 &&
-          xhr.status < 300
-        ) {
-          resolve(
-            payload as T,
+      xhr.onerror =
+        () => {
+          reject(
+            new UploadRequestError(
+              'Unable to upload file. Check your connection and retry.',
+              0,
+            ),
           );
+        };
 
-          return;
-        }
+      xhr.ontimeout =
+        () => {
+          reject(
+            new UploadRequestError(
+              'The upload timed out. Please retry.',
+              408,
+            ),
+          );
+        };
 
-        const failure =
-          payload as {
-            error?: {
-              message?: string;
-            };
-          } | null;
+      xhr.onload =
+        () => {
+          let payload:
+            unknown = null;
 
-        reject(
-          new Error(
-            failure?.error
-              ?.message ??
-              'File upload failed.',
-          ),
-        );
-      };
+          try {
+            payload =
+              xhr.responseText
+                ? JSON.parse(
+                    xhr.responseText,
+                  )
+                : null;
+          } catch {
+            payload =
+              null;
+          }
+
+          if (
+            xhr.status >= 200 &&
+            xhr.status < 300
+          ) {
+            resolve(
+              payload as T,
+            );
+
+            return;
+          }
+
+          const failure =
+            payload as {
+              error?: {
+                message?:
+                  string;
+              };
+            } | null;
+
+          reject(
+            new UploadRequestError(
+              failure
+                ?.error
+                ?.message ??
+                'File upload failed.',
+              xhr.status,
+            ),
+          );
+        };
 
       xhr.send(
         formData,
@@ -276,17 +508,25 @@ export async function authenticatedUpload<T>(
       token,
       onProgress,
     );
-  } catch (error) {
+  } catch (
+    error
+  ) {
+    /*
+     * Uploads can have side effects. Retry only when the server explicitly
+     * rejected authentication (401), never after network/timeout/5xx errors
+     * where the upload may already have reached storage.
+     */
     if (
-      !(error instanceof Error)
+      !(
+        error instanceof
+        UploadRequestError
+      ) ||
+      error.status !==
+        401
     ) {
       throw error;
     }
 
-    /*
-     * Retry once using a
-     * freshly rotated access token.
-     */
     token =
       await refreshAccessToken(
         true,

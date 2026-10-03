@@ -69,6 +69,7 @@ export function PushSync() {
 export function PhonePushSettings() {
   const [native, setNative] = useState<NativePush | null>(null);
   const [configured, setConfigured] = useState(false);
+  const [backendBound, setBackendBound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -78,13 +79,23 @@ export function PhonePushSettings() {
       setNative(window.__fcPush ?? null);
       if (window.__fcPush?.error) setMessage(window.__fcPush.error);
     };
+    const markBound = () => {
+      setBackendBound(true);
+    };
     sync();
     window.addEventListener("fc-arena:native-push", sync);
-    void authenticatedRequest<{ data: { configured: boolean } }>(
-      "/notifications/push/status",
-    )
+    window.addEventListener("fc-arena:push-bound", markBound);
+    void authenticatedRequest<{
+      data: {
+        configured: boolean;
+        bound: boolean;
+      };
+    }>("/notifications/push/status")
       .then((result) => {
-        if (active) setConfigured(result.data.configured);
+        if (active) {
+          setConfigured(result.data.configured);
+          setBackendBound(result.data.bound);
+        }
       })
       .catch(() => {
         if (active)
@@ -96,6 +107,7 @@ export function PhonePushSettings() {
     return () => {
       active = false;
       window.removeEventListener("fc-arena:native-push", sync);
+      window.removeEventListener("fc-arena:push-bound", markBound);
     };
   }, []);
   useEffect(() => {
@@ -103,8 +115,10 @@ export function PhonePushSettings() {
     let active = true;
     void bind()
       .then(() => {
-        if (active)
+        if (active) {
+          setBackendBound(true);
           setMessage("Phone notifications enabled for this signed-in account.");
+        }
       })
       .catch(() => {
         if (active)
@@ -119,12 +133,13 @@ export function PhonePushSettings() {
   async function disable() {
     setBusy(true);
     try {
-      if (native?.token)
-        await authenticatedRequest("/notifications/push/disable", {
-          method: "POST",
-          body: JSON.stringify({ token: native.token }),
-        });
+      // Remove every backend token associated with this authenticated refresh
+      // session even if Android cannot currently return its FCM token.
+      await authenticatedRequest("/notifications/push/disable-session", {
+        method: "POST",
+      });
       boundToken = "";
+      setBackendBound(false);
       window.location.href = "/native/push-disable";
       setMessage("Phone notifications disabled.");
     } catch {
@@ -157,13 +172,13 @@ export function PhonePushSettings() {
           disabled={busy}
           className="theme-primary-button mt-4 rounded-lg px-4 py-3 text-sm"
           onClick={() => {
-            if (native.enabled) void disable();
+            if (native.enabled || backendBound) void disable();
             else window.location.href = "/native/push-enable";
           }}
         >
           {busy
             ? "Updating…"
-            : native.enabled
+            : native.enabled || backendBound
               ? "Disable phone notifications"
               : "Enable phone notifications"}
         </button>

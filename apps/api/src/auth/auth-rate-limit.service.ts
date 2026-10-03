@@ -19,7 +19,8 @@ type RateLimitAction =
   | 'RESEND_VERIFICATION_IP'
   | 'VERIFY_EMAIL_IP'
   | 'REFRESH_IP'
-  | 'ACCOUNT_DELETION_REQUEST_IP';
+  | 'ACCOUNT_DELETION_REQUEST_IP'
+  | 'ACCOUNT_DELETE_USER';
 
 @Injectable()
 export class AuthRateLimitService {

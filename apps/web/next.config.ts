@@ -53,10 +53,17 @@ const securityHeaders = [
   },
 ];
 
+// Next.js/Vercel limits custom deployment IDs to 32 characters; Git commit
+// SHAs are 40 characters. Keep one stable, per-build prefix across instances.
+const deploymentId = (
+  process.env.NEXT_DEPLOYMENT_ID ??
+  process.env.VERCEL_GIT_COMMIT_SHA
+)?.slice(0, 32);
+
 const nextConfig: NextConfig = {
   // One stable build identifier, shared by all instances of this deployment.
   // Does not touch Android versions, cookies or local settings.
-  deploymentId: process.env.NEXT_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA,
+  deploymentId,
 
   async headers() {
     return [

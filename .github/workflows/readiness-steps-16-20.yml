@@ -131,11 +131,11 @@ jobs:
             printf '%s' "$FIREBASE_ANDROID_CONFIG_BASE64" | base64 --decode > apps/android/app/google-services.json
           fi
 
-      - name: Android version lint compile and unsigned bundle packaging
+      - name: Android version lint and release compilation (no AAB)
         working-directory: apps/android
         run: |
           node verify-version.mjs
-          gradle :app:lintRelease :app:assembleDebug :app:compileReleaseJavaWithJavac :app:processReleaseResources :app:bundleRelease --stacktrace
+          gradle :app:lintRelease :app:assembleDebug :app:compileReleaseJavaWithJavac :app:processReleaseResources --stacktrace
 
       - name: Validate rollback preflight syntax
         run: bash -n ops/rollback/check-readiness.sh

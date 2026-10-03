@@ -22,9 +22,16 @@ test('protected scenarios are added only when an access token is supplied', () =
   }).map((item) => item.name);
   assert.ok(names.includes('dashboard'));
   assert.ok(names.includes('leagues'));
+  assert.ok(!names.includes('notifications-sync'));
   assert.ok(names.includes('fixtures'));
   assert.ok(names.includes('standings'));
   assert.ok(names.includes('award-races'));
+
+  const withNotificationSync = buildScenarios({
+    LOAD_TEST_ACCESS_TOKEN: 'redacted-test-token',
+    LOAD_TEST_INCLUDE_NOTIFICATION_SYNC: 'true',
+  }).map((item) => item.name);
+  assert.ok(withNotificationSync.includes('notifications-sync'));
 });
 
 test('remote staging requires explicit opt-in', () => {

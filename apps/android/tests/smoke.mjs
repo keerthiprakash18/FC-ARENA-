@@ -106,16 +106,25 @@ async function swipe(page, upwards) {
   await pause(800);
 }
 async function performVerifiedSwipe(page, upwards, startY, name) {
-  let current = await metrics(page);
+  // Android WebView may recycle only the DevTools target while the app process
+  // and document stay alive, especially around lifecycle/gesture transitions.
+  // Re-acquire the live target before and after each real ADB swipe so the
+  // smoke harness does not confuse a debugger-target recycle with an app crash.
+  let activePage = android ? await waitForResumedMain(page) : page;
+  let current = await metrics(activePage);
+
   for (let attempt = 1; attempt <= 5; attempt++) {
-    await swipe(page, upwards);
-    current = await metrics(page);
+    await swipe(activePage, upwards);
+    if (android) {
+      activePage = await waitForResumedMain(activePage);
+    }
+    current = await metrics(activePage);
     const moved = upwards
       ? current.scrollY > startY + 10
       : current.scrollY < startY - 10;
     if (moved) return current;
 
-    // API 36 emulators can occasionally drop the first OS-level input event
+    // Emulator images can occasionally drop the first OS-level input event
     // immediately after a navigation/paint. Keep the test real (ADB swipe),
     // but retry the physical gesture before declaring the page stuck.
     await pause(500);

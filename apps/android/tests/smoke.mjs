@@ -90,7 +90,7 @@ async function swipe(page, upwards) {
     const size = adb('shell', 'wm', 'size').match(/(\d+)x(\d+)/);
     const x = Math.round(Number(size[1]) * 0.5);
     const low = Math.round(Number(size[2]) * 0.70), high = Math.round(Number(size[2]) * 0.30);
-    adb('shell', 'input', 'swipe', String(x), String(upwards ? low : high), String(x), String(upwards ? high : low), '500');
+    adb('shell', 'input', 'touchscreen', 'swipe', String(x), String(upwards ? low : high), String(x), String(upwards ? high : low), '700');
   } else {
     const session = await page.context().newCDPSession(page);
     const { width, height } = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
@@ -107,7 +107,7 @@ async function swipe(page, upwards) {
 }
 async function performVerifiedSwipe(page, upwards, startY, name) {
   let current = await metrics(page);
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 1; attempt <= 5; attempt++) {
     await swipe(page, upwards);
     current = await metrics(page);
     const moved = upwards
@@ -121,11 +121,43 @@ async function performVerifiedSwipe(page, upwards, startY, name) {
     await pause(500);
   }
   throw new Error(
-    `${name}: REAL SWIPE DID NOT SCROLL after 3 ADB attempts ${JSON.stringify({ startY, current })}`,
+    `${name}: REAL SWIPE DID NOT SCROLL after 5 ADB attempts ${JSON.stringify({ startY, current })}`,
   );
 }
 
+async function recoverAndroidPage(page) {
+  if (!android || !page.isClosed()) return page;
+
+  assert(adb('shell', 'pidof', 'in.fcarena.app.debug'), 'Android app process died while WebView target disconnected');
+
+  const webView = await androidDevice.webView(
+    { pkg: 'in.fcarena.app.debug' },
+    { timeout: 30_000 },
+  );
+  const replacement = await webView.page();
+  assert(replacement, 'Unable to reconnect to FC Arena Android WebView');
+  await prepare(replacement);
+  return replacement;
+}
+
+async function waitForResumedMain(page) {
+  let activePage = page;
+  try {
+    await activePage.locator('.fc-main').waitFor({ timeout: 15_000 });
+    return activePage;
+  } catch (error) {
+    if (!android || !activePage.isClosed()) throw error;
+    activePage = await recoverAndroidPage(activePage);
+    await activePage.locator('.fc-main').waitFor({ timeout: 15_000 });
+    return activePage;
+  }
+}
+
 async function checkScroll(page, name, required = false) {
+  // Let WebView finish its first paint after navigation before injecting a
+  // real OS-level touch gesture. Newer emulator images can drop input while
+  // the compositor is still settling even though the DOM is already ready.
+  if (android) await pause(400);
   const before = await metrics(page);
   assert.equal(before.native, 'android', 'native stylesheet marker missing');
   assert(before.scrollWidth <= before.width + 1, `${name}: horizontal overflow`);
@@ -155,7 +187,7 @@ try {
           hasTouch: true,
           userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/131.0.0.0 Mobile Safari/537.36 FC-Arena-Android/1.0.6-debug',
         });
-    const page = android ? androidPage : await context.newPage();
+    let page = android ? androidPage : await context.newPage();
     await prepare(page);
     await page.goto('https://fcarena.in/dashboard');
     await page.locator('.fc-dashboard-hero').waitFor();
@@ -212,12 +244,14 @@ try {
 
         // Resume the SAME activity without force-stop.
         adb('shell', 'am', 'start', '-W', '-n', 'in.fcarena.app.debug/in.fcarena.app.MainActivity');
-        await page.locator('.fc-main').waitFor();
+        page = await waitForResumedMain(page);
 
         // Process must survive the background/resume cycle.
         assert(adb('shell', 'pidof', 'in.fcarena.app.debug'), `resume cycle ${cycle} crashed`);
 
-        // The same WebView/session must remain usable.
+        // If Playwright's DevTools target was recycled while backgrounded,
+        // reconnect to it but still require the original document marker.
+        // A real renderer/document replacement therefore remains a failure.
         assert.equal(await page.evaluate(() => window.__smokeDocument), 'same-document', `session lost on resume cycle ${cycle}`);
 
         // Scrolling must still work after resume. The pre-background swipe

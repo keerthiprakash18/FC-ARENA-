@@ -626,7 +626,7 @@ model TournamentRegistrationMember {
   @@unique([tournamentId, userId])
   @@unique([registrationId, userId])
   @@index([registrationId])
-  @@index([userId, tournamentId, registrationId])
+  @@index([userId, tournamentId, registrationId], map: "trm_user_tournament_registration_idx")
   @@map("tournament_registration_members")
 }
 

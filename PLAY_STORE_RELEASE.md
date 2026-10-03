@@ -1,26 +1,56 @@
-# FC ARENA Android stabilization release gate
+# FC ARENA — Final Android Play Release Runbook
 
-Stabilization checks passed on the pre-bump candidate. Current release candidate is **10 / 1.0.8**.
-It must be merged and uploaded only after the post-bump validation remains green. Package stays `in.fcarena.app`.
+Current final candidate: **versionCode 11 / versionName 1.0.9**
+Package: `in.fcarena.app`
 
-1. Pass Android release lint, debug APK, release bundle and real-swipe tests
-   on Android 13/14/15/16, plus repeated launch/resume checks.
-2. Pass web lint/production build, CodeQL and Security Hardening CI.
-3. Review the final diff, bump version, rerun checks and merge only green code.
-4. Run final validation on the merge commit. The native stylesheet must also
-   be deployed to https://fcarena.in; the wrapper loads the live frontend.
-5. Build using the existing FC Arena upload keystore. Verify the signer SHA-256
-   against the known upload certificate (not merely the Play app-signing key).
-   An unsigned CI validation bundle is never a Play upload artifact.
-6. Name the verified bundle `FC_ARENA_v1.0.8_build10_signed.aab` and record its
-   file SHA-256 and source commit.
-7. Play Console → Testing → Internal testing → Create new release → upload
-   the signed Build 10 → review and roll out to internal testers.
-8. Install/update through the actual Play internal-test link. Check cold open,
-   five open/close cycles, login/logout and retained login, full dashboard
-   scrolling, all tabs, profile photo picker/upload, Android back, bottom bar,
-   Wi-Fi/mobile data, and background/resume. Check fatal errors/ANRs.
-9. Only after that passes, promote the SAME Build 10 to Closed testing.
+The highest versionCode currently recorded as uploaded to Google Play is 10. Build 11 was prepared previously but was not uploaded, so versionCode 11 remains the final candidate until a Play upload occurs. After any upload, update `apps/android/play-upload-history.json` immediately.
 
-Do not rotate signing keys, reset production data, or claim physical-device
-acceptance based only on fixture-driven emulator tests.
+## Final order
+
+1. Complete production-readiness Steps 1–19.
+2. Merge the final readiness changes to `main`.
+3. Confirm the same final source is deployed to the web/API where applicable.
+4. Run:
+   `npm run check:final-release`
+5. Confirm Android lint/debug/release compilation and the final readiness CI are green.
+6. From a clean, current local `main`, use the **existing FC ARENA upload keystore** with:
+   `apps/android/build-signed-release.ps1`
+7. The signing helper verifies the expected upload-certificate SHA-256 before and after the build and writes artifact metadata.
+8. Expected artifact:
+   `FC_ARENA_v1.0.9_build11_signed.aab`
+9. Record the exact source SHA and AAB SHA-256.
+10. Upload that exact AAB to the required Google Play testing track.
+11. Install/update through Google Play and perform final physical-device acceptance.
+12. Confirm Crashlytics reporting and FCM push delivery/deep links on the final-source build.
+13. Review Play pre-launch report and policy declarations before production access/promotion.
+
+## Required physical-device acceptance
+
+- cold launch
+- repeated close/open and background/resume
+- login/logout and retained session
+- Dashboard and navigation
+- League/Tournament/Fixtures/Standings/Awards
+- profile photo picker/upload
+- Android Back behavior
+- offline/reconnect path
+- notification permission allow/deny
+- enable/disable push
+- foreground/background push
+- safe notification deep link
+- old closed-test build -> final build update preserves expected session/preferences
+- no fatal crash/ANR during the smoke run
+
+## Crashlytics acceptance
+
+Use only a controlled non-public/test path to generate one diagnostic crash/non-fatal event from the final-source Android build. Reopen the app and confirm the event appears in Firebase Crashlytics. Do not deliberately crash the public production population.
+
+## Version rule
+
+A versionCode that has been uploaded to **any** Play track is consumed and must never be reused. If versionCode 11 is uploaded before the final artifact is produced, stop and move to the next unused code/name instead of overwriting Build 11.
+
+## Signing rule
+
+Do not create a new keystore. Do not rotate the upload key for this release. Never commit or paste keystore passwords, private keys or Firebase Admin credentials.
+
+The final release is not complete merely because an AAB compiles: source/deployment traceability, signer verification, device testing and Play Console review must all match the exact artifact.

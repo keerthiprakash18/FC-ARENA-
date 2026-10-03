@@ -1,0 +1,57 @@
+name: Step 10 Load Test Verify
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/load-test.mjs"
+      - "tests/load-test.test.mjs"
+      - "ops/load/**"
+      - "docs/readiness/step-10-load-testing.md"
+      - "package.json"
+      - ".github/workflows/load-test-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Unit test load harness and safety gates
+        run: npm run load:test:verify
+
+      - name: Validate all staged profiles without sending traffic
+        shell: bash
+        run: |
+          set -euo pipefail
+          for profile in baseline 50 100 250 500; do
+            LOAD_TEST_PROFILE="$profile"             LOAD_TEST_DRY_RUN=true             npm run load:test >/dev/null
+          done
+
+      - name: Verify production target is blocked by default
+        shell: bash
+        run: |
+          set -euo pipefail
+          if LOAD_TEST_BASE_URL="https://api.fcarena.in"              LOAD_TEST_DRY_RUN=true              npm run load:test >/tmp/production-block.out 2>&1; then
+            echo "Production safety gate unexpectedly allowed a load test." >&2
+            exit 1
+          fi
+          grep -q "Production load testing is blocked" /tmp/production-block.out
+
+      - name: Validate read-only observer shell syntax
+        run: bash -n ops/load/observe.sh
+
+      - name: Diff whitespace check
+        run: git diff --check

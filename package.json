@@ -20,7 +20,9 @@
     "build": "npm run build:api && npm run build:web",
     "lint": "npm run lint --workspaces --if-present",
     "db:reset:test-data": "npm run db:reset:test-data --workspace=apps/api",
-    "check:play-compliance": "node scripts/check-play-store-compliance.mjs"
+    "check:play-compliance": "node scripts/check-play-store-compliance.mjs",
+    "load:test": "node scripts/load-test.mjs",
+    "load:test:verify": "node --test tests/load-test.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

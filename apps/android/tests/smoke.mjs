@@ -221,6 +221,17 @@ try {
       // resume the SAME activity (no force-stop). Validate process survival,
       // session continuity, scroll behavior, and header/nav stability.
       for (let cycle = 1; cycle <= 5; cycle++) {
+        // Android can recycle only the DevTools target while keeping the app
+        // process/WebView document alive. Re-acquire that target before each
+        // lifecycle iteration, but still require the continuity marker so a
+        // real renderer/document replacement remains a hard failure.
+        page = await waitForResumedMain(page);
+        assert.equal(
+          await page.evaluate(() => window.__smokeDocument),
+          'same-document',
+          `session lost before resume cycle ${cycle}`,
+        );
+
         // Start every lifecycle cycle away from a scroll boundary. Previous
         // cycles intentionally move the document, so without this reset a
         // later upward swipe can begin at maxScrollY and falsely look stuck.

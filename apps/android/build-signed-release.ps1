@@ -198,6 +198,33 @@ if ($LASTEXITCODE -ne 0) {
     throw "There are staged changes. Commit/stash them before building the Play release."
 }
 
+$node = Get-Command "node" -ErrorAction SilentlyContinue
+if (-not $node) {
+    throw "Node.js is required for the FC ARENA final release gate."
+}
+
+$finalGate = Join-Path $RepoRoot "scripts\final-release-gate.mjs"
+if (-not (Test-Path $finalGate -PathType Leaf)) {
+    throw "Final release gate not found: $finalGate"
+}
+
+$previousFinalGateMode = $env:FC_ARENA_ENFORCE_CLEAN_MAIN
+try {
+    $env:FC_ARENA_ENFORCE_CLEAN_MAIN = "true"
+    & $node.Source $finalGate
+    if ($LASTEXITCODE -ne 0) {
+        throw "FC ARENA final release gate failed. Do not build/upload the AAB."
+    }
+}
+finally {
+    if ($null -eq $previousFinalGateMode) {
+        Remove-Item Env:FC_ARENA_ENFORCE_CLEAN_MAIN -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:FC_ARENA_ENFORCE_CLEAN_MAIN = $previousFinalGateMode
+    }
+}
+
 $gradleText = Get-Content $BuildGradle -Raw
 
 if ($gradleText -notmatch "versionCode\s+fcVersionCode") {

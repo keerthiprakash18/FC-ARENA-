@@ -879,10 +879,15 @@ export class SafetyService {
 
       data: {
         message:
-          'Safety report marked as resolved.',
+          decision ===
+          'DISMISSED'
+            ? 'Safety report dismissed after review.'
+            : 'Safety report marked as resolved.',
 
         reportId:
           report.id,
+
+        decision,
 
         resolvedAt:
           resolution.createdAt,

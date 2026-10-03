@@ -323,7 +323,11 @@ export async function runLoadTest(plan) {
 
         const elapsed = performance.now() - iterationStarted;
         const waitMs = intervalPerVuMs - elapsed;
-        if (waitMs > 0 && performance.now() + waitMs < deadline) {
+        if (waitMs > 0) {
+          const remainingMs = deadline - performance.now();
+          if (waitMs >= remainingMs) {
+            break;
+          }
           await new Promise((resolve) => setTimeout(resolve, waitMs));
         }
       }

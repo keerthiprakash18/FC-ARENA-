@@ -18,8 +18,8 @@ The release gate requires the candidate `VERSION_CODE` to be strictly greater th
 
 Current recorded state:
 
-- Highest known uploaded: versionCode 10 / versionName 1.0.8.
-- Final candidate: versionCode 11 / versionName 1.0.9.
+- Highest known uploaded: versionCode 11 / versionName 1.0.9.
+- Final candidate: versionCode 12 / versionName 1.0.10.
 - Package: `in.fcarena.app`.
 
 ## Source freeze

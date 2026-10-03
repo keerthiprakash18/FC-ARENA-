@@ -9,7 +9,7 @@ Last reviewed: 3 October 2026
 - Package: `in.fcarena.app`
 - versionCode: 11
 - versionName: 1.0.9
-- Highest known Play-uploaded versionCode: 10
+- Highest known Play-uploaded versionCode: 11
 - Upload key: existing FC ARENA upload key only
 
 `scripts/final-release-gate.mjs` blocks the candidate when the version is not strictly newer than recorded Play upload history, package/SDK policy changes, legal/Data Safety controls disappear, rollback prerequisites are missing, or the signing helper loses traceability controls.
@@ -44,9 +44,9 @@ Required artifact evidence:
 - AAB SHA-256
 - exact artifact filename
 
-Expected candidate filename while versionCode 11 is unused:
+Expected candidate filename while versionCode 12 is unused:
 
-`FC_ARENA_v1.0.9_build11_signed.aab`
+`FC_ARENA_v1.0.10_build12_signed.aab`
 
 ## Post-build acceptance
 

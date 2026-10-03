@@ -62,9 +62,18 @@ export function buildScenarios(env = process.env) {
       { name: 'auth-me', path: '/api/auth/me', auth: true },
       { name: 'dashboard', path: '/api/players/me/dashboard', auth: true },
       { name: 'leagues', path: '/api/leagues/my', auth: true },
-      { name: 'notifications', path: '/api/notifications', auth: true },
       { name: 'awards-overview', path: '/api/awards/overview', auth: true },
     );
+
+    // GET /notifications synchronizes materialized notifications and can write
+    // deduplicated rows. Keep it opt-in and use only isolated test accounts.
+    if (bool(env.LOAD_TEST_INCLUDE_NOTIFICATION_SYNC)) {
+      scenarios.push({
+        name: 'notifications-sync',
+        path: '/api/notifications',
+        auth: true,
+      });
+    }
 
     const leagueId = env.LOAD_TEST_LEAGUE_ID?.trim();
     if (leagueId) {

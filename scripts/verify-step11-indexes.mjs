@@ -2,7 +2,7 @@ import pg from 'pg';
 
 const expected = [
   'tournaments_leagueId_status_createdAt_idx',
-  'tournament_registration_members_userId_tournamentId_registrationId_idx',
+  'trm_user_tournament_registration_idx',
   'fixtures_tournamentId_status_scheduledAt_sequence_idx',
   'matches_tournamentId_status_updatedAt_idx',
   'result_submissions_matchId_status_createdAt_idx',

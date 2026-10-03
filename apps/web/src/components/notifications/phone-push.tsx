@@ -79,8 +79,12 @@ export function PhonePushSettings() {
       setNative(window.__fcPush ?? null);
       if (window.__fcPush?.error) setMessage(window.__fcPush.error);
     };
+    const markBound = () => {
+      setBackendBound(true);
+    };
     sync();
     window.addEventListener("fc-arena:native-push", sync);
+    window.addEventListener("fc-arena:push-bound", markBound);
     void authenticatedRequest<{
       data: {
         configured: boolean;
@@ -103,6 +107,7 @@ export function PhonePushSettings() {
     return () => {
       active = false;
       window.removeEventListener("fc-arena:native-push", sync);
+      window.removeEventListener("fc-arena:push-bound", markBound);
     };
   }, []);
   useEffect(() => {
@@ -110,8 +115,10 @@ export function PhonePushSettings() {
     let active = true;
     void bind()
       .then(() => {
-        if (active)
+        if (active) {
+          setBackendBound(true);
           setMessage("Phone notifications enabled for this signed-in account.");
+        }
       })
       .catch(() => {
         if (active)

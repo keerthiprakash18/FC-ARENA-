@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,6 +16,7 @@ import type { Request, Response } from 'express';
 import { AuthRateLimitService } from './auth-rate-limit.service.js';
 import { AuthService } from './auth.service.js';
 import { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
+import { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { AccessTokenPayload } from './auth.types.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -238,6 +240,62 @@ export class AuthController {
       .requestAccountDeletion(
         dto,
       );
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async deleteAccount(
+    @Req()
+    request:
+      Request & {
+        user:
+          AccessTokenPayload;
+      },
+    @Body()
+    dto:
+      DeleteAccountDto,
+    @Res({
+      passthrough:
+        true,
+    })
+    response:
+      Response,
+  ) {
+    await this.rateLimit.consume(
+      'ACCOUNT_DELETE_USER',
+      request.user.sub,
+      3,
+      HOUR_MS,
+    );
+
+    const result =
+      await this.authService.deleteAccount(
+        request.user.sub,
+        dto,
+      );
+
+    const isProduction =
+      process.env.NODE_ENV ===
+      'production';
+
+    response.clearCookie(
+      REFRESH_COOKIE_NAME,
+      {
+        httpOnly:
+          true,
+        secure:
+          isProduction,
+        sameSite:
+          isProduction
+            ? 'strict'
+            : 'lax',
+        path:
+          '/api/auth',
+      },
+    );
+
+    return result;
   }
 
   @Post('refresh')

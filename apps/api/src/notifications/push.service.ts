@@ -232,10 +232,20 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
             },
           },
           {
-            lastSyncedAt: {
-              lt:
-                staleBefore,
-            },
+            AND: [
+              {
+                lastSyncedAt: {
+                  lt:
+                    staleBefore,
+                },
+              },
+              {
+                enabledAt: {
+                  lt:
+                    staleBefore,
+                },
+              },
+            ],
           },
         ],
       },

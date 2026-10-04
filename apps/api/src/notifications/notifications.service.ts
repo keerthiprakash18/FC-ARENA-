@@ -38,16 +38,26 @@ interface NotificationInput {
 
 @Injectable()
 export class NotificationsService {
+  private readonly pendingSyncs = new Map<string, Promise<void>>();
   constructor(
     private readonly prisma: PrismaService,
   ) {}
 
   async getNotifications(
     userId: string,
+    summaryOnly = false,
   ) {
     await this.syncForUser(
       userId,
     );
+
+    // The shell badge needs only a count; do not load 100 full inbox rows.
+    if (summaryOnly) {
+      const unreadCount = await this.prisma.notification.count({
+        where: { userId, readAt: null },
+      });
+      return { success: true, data: { unreadCount }, error: null };
+    }
 
     const [
       notifications,
@@ -162,7 +172,19 @@ export class NotificationsService {
     };
   }
 
-  async syncForUser(
+  syncForUser(userId: string): Promise<void> {
+    const existing = this.pendingSyncs.get(userId);
+    if (existing) return existing;
+    const pending = this.synchronizeForUser(userId).finally(() => {
+      if (this.pendingSyncs.get(userId) === pending) {
+        this.pendingSyncs.delete(userId);
+      }
+    });
+    this.pendingSyncs.set(userId, pending);
+    return pending;
+  }
+
+  private async synchronizeForUser(
     userId: string,
   ) {
     const adminRoles =

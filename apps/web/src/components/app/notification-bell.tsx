@@ -32,7 +32,7 @@ export function NotificationBell() {
         try {
           const response =
             await authenticatedRequest<NotificationSummaryResponse>(
-              '/notifications',
+              '/notifications?summary=true',
             );
 
           setUnreadCount(

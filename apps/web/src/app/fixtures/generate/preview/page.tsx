@@ -1784,7 +1784,7 @@ export default function FixturePreviewPage() {
         )}
 
 
-        <div className="flex items-center justify-between border-t border-[#253140] pt-5">
+        <div className="fc-workflow-actions flex items-center justify-between border-t pt-5">
           <button
             type="button"
             onClick={() =>

@@ -367,6 +367,7 @@ export default function FixtureGeneratorSetupPage() {
       setError(
         'Fixture List Name must contain at least 3 characters.',
       );
+      document.getElementById('fixture-list-name')?.focus();
 
       return;
     }
@@ -378,6 +379,7 @@ export default function FixtureGeneratorSetupPage() {
       setError(
         'Select a League and Draft Tournament.',
       );
+      document.getElementById('fixture-tournament')?.focus();
 
       return;
     }
@@ -394,6 +396,7 @@ export default function FixtureGeneratorSetupPage() {
       setError(
         'Participant count must be between 2 and 128.',
       );
+      document.getElementById('fixture-participant-count')?.focus();
 
       return;
     }
@@ -499,6 +502,9 @@ export default function FixtureGeneratorSetupPage() {
               </span>
 
               <input
+                id="fixture-list-name"
+                aria-invalid={error.startsWith('Fixture List Name')}
+                aria-describedby={error.startsWith('Fixture List Name') ? 'fixture-name-error' : undefined}
                 value={
                   draft.fixtureListName
                 }
@@ -516,6 +522,7 @@ export default function FixtureGeneratorSetupPage() {
                 placeholder="FC Arena Premier League Season 1"
                 className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-4 text-[#F8FAFC] outline-none focus:border-[#38BDF8]"
               />
+              {error.startsWith('Fixture List Name') ? <span id="fixture-name-error" role="alert" className="theme-tone-danger rounded-lg p-2 text-sm">{error}</span> : null}
             </label>
 
 
@@ -579,10 +586,13 @@ export default function FixtureGeneratorSetupPage() {
 
             <label className="grid gap-2">
               <span className="text-sm font-medium text-[#A7B0BE]">
-                Tournament
+                Tournament <span className="theme-muted text-xs">Required</span>
               </span>
 
               <select
+                id="fixture-tournament"
+                aria-invalid={error === 'Select a League and Draft Tournament.'}
+                aria-describedby={error === 'Select a League and Draft Tournament.' ? 'fixture-tournament-error' : undefined}
                 value={
                   draft.tournamentId
                 }
@@ -648,6 +658,7 @@ export default function FixtureGeneratorSetupPage() {
                   ),
                 )}
               </select>
+              {error === 'Select a League and Draft Tournament.' ? <span id="fixture-tournament-error" role="alert" className="theme-tone-danger rounded-lg p-2 text-sm">{error}</span> : null}
 
               {tournaments.length ===
               0 ? (
@@ -707,6 +718,9 @@ export default function FixtureGeneratorSetupPage() {
 
               <input
                 type="number"
+                id="fixture-participant-count"
+                aria-invalid={error.startsWith('Participant count')}
+                aria-describedby={error.startsWith('Participant count') ? 'fixture-count-error' : undefined}
                 min="2"
                 max="128"
                 value={
@@ -727,6 +741,7 @@ export default function FixtureGeneratorSetupPage() {
                 }
                 className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-4 text-[#F8FAFC]"
               />
+              {error.startsWith('Participant count') ? <span id="fixture-count-error" role="alert" className="theme-tone-danger rounded-lg p-2 text-sm">{error}</span> : null}
             </label>
 
 
@@ -940,7 +955,7 @@ export default function FixtureGeneratorSetupPage() {
           ) : null}
 
 
-          <div className="mt-6 flex justify-end">
+          <div className="fc-workflow-actions mt-6 flex justify-end">
             <button
               type="button"
               onClick={

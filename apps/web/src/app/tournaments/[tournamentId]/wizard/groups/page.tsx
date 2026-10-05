@@ -1122,7 +1122,7 @@ export default function GroupsWizardPage() {
         </div>
 
 
-        <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
+        <div className="fc-workflow-actions mt-8 flex items-center justify-between border-t pt-5">
 
           <button
             type="button"

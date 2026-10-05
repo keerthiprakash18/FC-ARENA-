@@ -194,6 +194,14 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/league-war"
+              icon="⚔"
+              title="League War"
+              description="League rivalry challenges, rosters and War Points"
+              tone="red"
+            />
+
+            <FcMenuRow
               href="/awards"
               icon="🏆"
               title="Awards"

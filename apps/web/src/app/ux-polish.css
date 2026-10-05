@@ -1,0 +1,45 @@
+/* Phase 3 workflow hierarchy. Native scroll/safe-area rules remain last. */
+.fc-context-nav-wrap { min-width: 0; }
+.fc-context-nav { position: relative; }
+.fc-context-nav-hint { margin: 5px 4px 0; font-size: 12px; }
+.fc-context-nav-link:focus-visible { outline-offset: -3px !important; }
+.fc-form-section-title { font-size: 18px; font-weight: 650; line-height: 1.4; }
+.fc-workflow-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  border-color: var(--theme-border); padding-block: 16px;
+  background: var(--theme-surface);
+}
+.fc-workflow-actions > button, .fc-workflow-actions > a {
+  min-height: 44px; max-width: 100%; border-radius: var(--fc-control-radius);
+}
+.fc-help-disclosure {
+  border: 1px solid var(--theme-border); border-radius: var(--fc-control-radius);
+  background: var(--theme-secondary-background); padding: 12px 16px;
+}
+.fc-help-disclosure > summary, .fc-row-details > summary {
+  cursor: pointer; min-height: 44px; display: list-item; align-content: center;
+  color: var(--theme-text-secondary); font-size: 13px; font-weight: 600;
+}
+.fc-help-disclosure[open] > summary { margin-bottom: 12px; }
+.fc-help-disclosure > .field { margin-top: 16px; }
+.fc-row-details .fc-standing-stats { grid-template-columns: repeat(auto-fit,minmax(45px,1fr)); }
+.fc-filter-bar :where(input, select) { min-height: 44px; }
+.fc-wizard-progress progress { accent-color: var(--theme-primary); }
+.fc-main :where(label, .field) { min-width: 0; }
+.fc-workflow-shell [role="alert"], .fc-wizard-shell [role="alert"] { scroll-margin-top: 90px; }
+
+@media (max-width: 639px) {
+  .fc-workflow-actions > :last-child { flex: 1; text-align: center; }
+  .fc-workflow-actions { gap: 8px; }
+  .fc-wizard-shell h1 { font-size: 28px; }
+  .fc-workflow-shell .theme-panel { padding: 16px; }
+  .fc-main .fc-match-room-score-grid,
+  .fc-main .fc-league-war-scoreboard { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 8px; }
+  .fc-main .fc-match-room-score-grid > *,
+  .fc-main .fc-league-war-scoreboard > * { order: initial; }
+  .fc-match-room-score-grid { margin-top: 24px; }
+  .fc-match-room-score-grid > div > p:first-child { font-size: 16px; line-height: 1.4; }
+  .fc-league-war-scoreboard > div > p { overflow-wrap: anywhere; white-space: normal; }
+  .fc-match-room-score-grid > div:nth-child(2) > div { padding: 8px; }
+  .fc-public-mobile-table article { padding: 14px; }
+}

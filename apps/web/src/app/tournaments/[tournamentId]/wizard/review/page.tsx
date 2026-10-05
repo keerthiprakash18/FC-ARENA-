@@ -344,7 +344,8 @@ export default function ReviewPage() {
         ) : null}
 
 
-        <div className="mt-8 flex justify-between border-t border-white/10 pt-5">
+        <p className="theme-secondary-text mt-6 text-sm">Publishing makes this tournament active. Check the teams, format and fixture count above before continuing.</p>
+        <div className="fc-workflow-actions mt-8 flex justify-between border-t pt-5">
 
           <button
             type="button"

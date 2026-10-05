@@ -55,6 +55,16 @@ export const primaryNavigation:
     },
   ];
 
+// Keep the mobile rail focused on the five highest-frequency destinations.
+// Awards and League War remain available through More and the desktop shell.
+export const mobilePrimaryNavigation: PrimaryNavigationItem[] = [
+  primaryNavigation[0],
+  primaryNavigation[1],
+  primaryNavigation[2],
+  primaryNavigation[4],
+  primaryNavigation[6],
+];
+
 export function getActivePrimarySection(
   pathname: string,
 ) {

@@ -61,7 +61,7 @@ export function FixtureGeneratorShell({
     );
 
   return (
-    <div className="space-y-6">
+    <div className="fc-workflow-shell space-y-6">
       <div className="fc-fixture-generator-header">
         <Link
           href="/fixtures"
@@ -82,6 +82,12 @@ export function FixtureGeneratorShell({
         <p className="theme-secondary-text mt-2 max-w-2xl text-sm leading-6">
           {description}
         </p>
+      </div>
+
+      <div className="fc-wizard-progress theme-panel rounded-xl border p-4">
+        <p className="theme-text text-sm font-semibold">Step {currentIndex + 1} of {steps.length} · {steps[currentIndex].label}</p>
+        <progress className="mt-3 h-2 w-full" value={currentIndex + 1} max={steps.length} aria-label="Fixture generator progress" />
+        <p className="theme-muted mt-2 text-xs">{step === 'SAVE' ? 'Check the preview and confirm before saving official fixtures.' : 'Changes are kept in this draft. Review the preview before saving official fixtures.'}</p>
       </div>
 
       <FcContextNav

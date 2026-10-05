@@ -46,6 +46,17 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   min-width: 0; max-width: 100%; min-height: 44px; font-size: 16px; border-radius: 10px;
 }
 .fc-main textarea { min-height: 100px; }
+.fc-main :where(input, select, textarea):user-invalid {
+  border-color: color-mix(in srgb, var(--theme-danger) 58%, var(--theme-border)) !important;
+}
+.fc-main .field,
+.fc-main .fc-field-label { gap: 7px; }
+.fc-main .field input,
+.fc-main .field select,
+.fc-main .field textarea,
+.fc-main .fc-field-label input,
+.fc-main .fc-field-label select,
+.fc-main .fc-field-label textarea { width: 100%; }
 .fc-main input[type="checkbox"], .fc-main input[type="radio"] { width: 20px; height: 20px; accent-color: var(--theme-primary); }
 .fc-fixture-card { min-width: 0; }
 .fc-fixture-card input { width: 100%; }
@@ -205,6 +216,31 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .fc-context-nav-link[data-complete="true"] .fc-context-nav-step {
   background: var(--theme-success-soft);
   color: var(--theme-success);
+}
+
+.theme-search-result.is-highlighted {
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
+}
+
+.fc-wizard-shell .fc-wizard-content > form,
+.fc-wizard-shell .fc-wizard-content > section,
+.fc-workflow-shell > .theme-panel {
+  min-width: 0;
+}
+
+.fc-main .fc-match-room-score-grid {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.fc-main .fc-league-war-scoreboard {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+@media (max-width: 639px) {
+  .theme-bottom-item { min-height: 64px; }
+  .theme-bottom-item > span:last-child { font-size: 10px; letter-spacing: normal; }
+  .fc-wizard-shell .fc-wizard-content { padding: 18px; }
 }
 
 .fc-back-link {

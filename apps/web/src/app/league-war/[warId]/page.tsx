@@ -1163,7 +1163,7 @@ export default function LeagueWarDetailPage() {
             </p>
           </div>
 
-          <div className="relative mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="fc-league-war-scoreboard relative mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <div className="min-w-0 text-center">
               <div className="mx-auto flex justify-center">
                 <FcCrest
@@ -1319,7 +1319,9 @@ export default function LeagueWarDetailPage() {
           ) : null}
         </section>
 
-        <section className="grid gap-3 md:grid-cols-3">
+        <p className="theme-secondary-text text-sm">{war.status === 'LIVE' ? `Play the remaining matches and confirm opponent results. Deadline: ${dateLabel(war.deadlineAt)}.` : war.status === 'ACCEPTED' ? 'Choose and save a full roster, then lock it and mark Ready. Both leagues must be ready before starting.' : war.status === 'INVITED' ? 'The opponent league must accept the challenge before rosters can be selected.' : war.status === 'COMPLETED' ? 'All results are locked. Review match results and player rankings below.' : 'This challenge is closed. Check its status or create a new challenge from League War.'}</p>
+        <details className="fc-help-disclosure"><summary>War schedule &amp; expiry</summary>
+        <section className="mt-3 grid gap-3 md:grid-cols-3">
           <FcPanel className="p-4">
             <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">
               Challenge Expiry
@@ -1376,8 +1378,10 @@ export default function LeagueWarDetailPage() {
             </p>
           </FcPanel>
         </section>
+        </details>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <details className="fc-help-disclosure"><summary>Team statistics</summary>
+        <section className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-6">
           <FcStatCard
             label="Home Wins"
             value={
@@ -1432,6 +1436,7 @@ export default function LeagueWarDetailPage() {
             }
           />
         </section>
+        </details>
 
         {war.status ===
           'INVITED' ? (

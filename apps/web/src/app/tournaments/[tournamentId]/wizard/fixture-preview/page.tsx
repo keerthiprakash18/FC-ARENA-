@@ -664,7 +664,7 @@ export default function FixturePreviewPage() {
         </div>
 
 
-        <div className="mt-8 flex justify-between border-t border-white/10 pt-5">
+        <div className="fc-workflow-actions mt-8 flex justify-between border-t pt-5">
 
           <button
             type="button"

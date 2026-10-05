@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import {
   useEffect,
@@ -274,6 +275,17 @@ export default function AdminAnalyticsPage() {
                 </FcPanel>
               ),
             )}
+          </section>
+
+          <section className="theme-panel rounded-2xl border p-5" aria-label="Admin workspace">
+            <h2 className="fc-form-section-title">Pending review</h2>
+            <p className="theme-secondary-text mt-1 text-sm">Choose the queue that needs your attention.</p>
+            <div className="fc-admin-task-list mt-4 grid gap-3 sm:grid-cols-3">
+              <Link className="theme-action-row rounded-xl border p-4" href="/admin/results"><strong className="block">{data.totals.pendingResults} results</strong><span className="theme-muted text-xs">Review submitted scores →</span></Link>
+              <Link className="theme-action-row rounded-xl border p-4" href="/admin/disputes"><strong className="block">{data.totals.openDisputes} disputes</strong><span className="theme-muted text-xs">Review evidence and decisions →</span></Link>
+              <Link className="theme-action-row rounded-xl border p-4" href="/admin/leagues"><strong className="block">{data.totals.pendingApplications} applications</strong><span className="theme-muted text-xs">Open managed leagues →</span></Link>
+            </div>
+            <p className="theme-muted mt-3 text-xs">Recently completed: {data.totals.completedMatches} matches · {data.totals.completedTournaments} tournaments</p>
           </section>
 
           <section className="grid gap-4 xl:grid-cols-[1.4fr_0.8fr]">

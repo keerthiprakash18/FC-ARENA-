@@ -229,10 +229,12 @@ function StandingTable({
               <strong className="min-w-0 flex-1 break-words">{row.entryName}</strong>
               <span className="fc-standing-points">{row.points}<small>PTS</small></span>
             </div>
+            <details className="fc-row-details"><summary>Statistics &amp; recent form</summary>
             <dl className="fc-standing-stats">
               {[['Played', row.played], ['Won', row.wins], ['Drawn', row.draws], ['Lost', row.losses], ['GF', row.goalsFor], ['GA', row.goalsAgainst], ['GD', row.goalDifference]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
             </dl>
             <p className="theme-secondary-text mt-2 text-xs">Recent form <strong className="ml-2 tracking-widest">{row.form || '—'}</strong></p>
+            </details>
           </li>
         ))}
       </ol>

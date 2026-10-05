@@ -1,4 +1,5 @@
 'use client';
+import { AdminFilterBar } from '@/components/admin/admin-filter-bar';
 import { promptAction } from '@/components/fc/confirmation-provider';
 
 import {
@@ -70,6 +71,8 @@ interface AdminSafetyReport {
 }
 
 export default function AdminSafetyReportsPage() {
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const router =
     useRouter();
 
@@ -239,6 +242,11 @@ export default function AdminSafetyReportsPage() {
       ?.inGameName ||
     user.fullName;
 
+  const visibleReports = reports.filter(report =>
+    (!statusFilter || report.status === statusFilter) &&
+    [report.target.fullName, report.target.inGameName, report.reporter.fullName, report.reason, report.details].join(' ').toLowerCase().includes(query.trim().toLowerCase()),
+  );
+
   return (
     <AppShell
       playerName={
@@ -255,14 +263,15 @@ export default function AdminSafetyReportsPage() {
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
+        <AdminFilterBar query={query} onQueryChange={setQuery} status={statusFilter} onStatusChange={setStatusFilter} count={visibleReports.length} statuses={['OPEN', 'RESOLVED', 'DISMISSED']} />
 
         <FcPanel className="p-5 sm:p-6">
-          {reports.length ===
+          {visibleReports.length ===
           0 ? (
-            <FcEmptyState title="No safety reports" description="Submitted safety reports will appear here for review." icon="shield" />
+            <FcEmptyState title={query || statusFilter ? 'No matching safety reports' : 'No safety reports'} description={query || statusFilter ? 'Clear or adjust your filters to see other reports.' : 'Submitted safety reports will appear here for review.'} icon="shield" />
           ) : (
             <div className="space-y-4">
-              {reports.map(
+              {visibleReports.map(
                 (
                   report,
                 ) => (

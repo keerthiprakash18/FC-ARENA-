@@ -444,6 +444,7 @@ export default function FixtureRulesPage() {
             </section>
 
 
+            <details className="fc-help-disclosure md:col-span-2"><summary>Optional scheduling &amp; matchday names</summary><div className="mt-4 grid gap-5 md:grid-cols-2">
             <label className="grid gap-2">
               <span className="text-sm font-medium text-[#A7B0BE]">
                 Matchday Naming
@@ -559,6 +560,7 @@ export default function FixtureRulesPage() {
                 className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-4"
               />
             </label>
+            </div></details>
           </div>
 
 
@@ -609,7 +611,7 @@ export default function FixtureRulesPage() {
         </FcPanel>
 
 
-        <div className="flex items-center justify-between border-t border-[#253140] pt-5">
+        <div className="fc-workflow-actions flex items-center justify-between border-t pt-5">
           <button
             type="button"
             onClick={() => {

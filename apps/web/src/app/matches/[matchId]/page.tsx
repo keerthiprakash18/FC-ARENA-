@@ -1105,7 +1105,7 @@ export default function MatchRoomPage() {
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-                Match Room · V3.1
+                Match Center
               </p>
 
               <h1 className="mt-3 break-words text-xl font-semibold md:text-3xl">
@@ -1127,7 +1127,7 @@ export default function MatchRoomPage() {
             </div>
           </div>
 
-          <div className="relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
+          <div className="fc-match-room-score-grid relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
             <div className="min-w-0 text-center">
               <p className="break-words text-lg font-black md:text-3xl">
                 {home}
@@ -1256,7 +1256,8 @@ export default function MatchRoomPage() {
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
 
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <details className="fc-help-disclosure"><summary>Schedule, round &amp; venue</summary>
+        <section className="fc-match-room-meta mt-3 grid grid-cols-1 gap-3 md:grid-cols-4" aria-label="Match metadata">
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
             <p className="text-xs text-slate-600">Round</p>
 
@@ -1285,6 +1286,7 @@ export default function MatchRoomPage() {
             <p className="mt-2 font-black">{match.fixture.venue || "—"}</p>
           </article>
         </section>
+        </details>
 
         {canSubmit ? (
           <details
@@ -1656,6 +1658,7 @@ export default function MatchRoomPage() {
                 </label>
               </div>
 
+              <label className="fc-field-label">Correction reason <span className="theme-muted">Required · at least 3 characters</span>
               <textarea
                 name="correctionReason"
                 rows={3}
@@ -1664,6 +1667,7 @@ export default function MatchRoomPage() {
                 placeholder="Correction reason"
                 className="rounded-xl border border-white/10 bg-[#080e15] p-4"
               />
+              </label>
 
               <div className="flex flex-wrap gap-3">
                 <button

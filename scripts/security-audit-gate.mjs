@@ -1,3 +1,4 @@
+import { parseAuditResult } from './security-audit-report.mjs';
 import { spawnSync } from 'node:child_process';
 
 const exceptionExpires = new Date('2026-11-15T00:00:00Z');
@@ -13,17 +14,11 @@ const result = spawnSync(
   { encoding: 'utf8' },
 );
 
-if (!result.stdout?.trim()) {
-  console.error(result.stderr || 'npm audit produced no JSON output');
-  process.exit(1);
-}
-
 let audit;
 try {
-  audit = JSON.parse(result.stdout);
-} catch {
-  console.error('Unable to parse npm audit JSON');
-  console.error(result.stdout.slice(0, 4000));
+  audit = parseAuditResult(result);
+} catch (error) {
+  console.error(error.message);
   process.exit(1);
 }
 
@@ -36,22 +31,20 @@ const acceptedDirect = new Map([
     'deepmerge-ts',
     new Set(['https://github.com/advisories/GHSA-ggr8-5vv4-36mx']),
   ],
-  [
-    'mysql2',
-    new Set([
-      'https://github.com/advisories/GHSA-3f6p-5ww8-9rcr',
-      'https://github.com/advisories/GHSA-rgwj-5xj2-c3m3',
-    ]),
-  ],
 ]);
 
 const acceptedParents = new Map([
   ['@prisma/config', new Set(['deepmerge-ts'])],
-  ['prisma', new Set(['@prisma/config', 'mysql2'])],
+  ['prisma', new Set(['@prisma/config'])],
 ]);
 
 for (const [name, finding] of Object.entries(vulnerabilities)) {
   if (!['high', 'critical'].includes(finding.severity)) continue;
+
+  if (finding.severity === 'critical') {
+    blocking.push({ name, severity: finding.severity, via: finding.via, range: finding.range });
+    continue;
+  }
 
   if (acceptedDirect.has(name)) {
     const allowedUrls = acceptedDirect.get(name);

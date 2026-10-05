@@ -1,3 +1,4 @@
+import { normalizeLoginIdentifier } from './login-identifier.js';
 import {
   BadRequestException,
   ConflictException,
@@ -1211,7 +1212,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const identifier =
-      this.normalizeLoginIdentifier(
+      normalizeLoginIdentifier(
         dto.identifier ??
         dto.email ??
         '',
@@ -2146,19 +2147,6 @@ export class AuthService {
       }
     }
   }
-
-  private normalizeLoginIdentifier(
-    value: string,
-  ): string {
-    return value
-      .normalize('NFKC')
-      .replace(
-        /[\u200B-\u200D\uFEFF]/g,
-        '',
-      )
-      .trim();
-  }
-
 
   private async passwordMatches(
     submittedPassword: string,

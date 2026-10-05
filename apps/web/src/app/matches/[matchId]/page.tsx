@@ -1313,6 +1313,7 @@ export default function MatchRoomPage() {
             <form onSubmit={uploadScreenshot} className="mt-6 grid gap-4">
               <input
                 name="screenshot"
+                aria-label="Match result screenshot"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 required

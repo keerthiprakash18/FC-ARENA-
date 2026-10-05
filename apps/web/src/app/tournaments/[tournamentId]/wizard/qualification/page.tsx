@@ -1,4 +1,5 @@
 'use client';
+import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import {
   useParams,
@@ -100,7 +101,7 @@ export default function QualificationPage() {
       );
     }
 
-    void load();
+    void load().catch(err => setError(err instanceof Error ? err.message : 'Unable to load qualification.'));
   }, [
     tournamentId,
   ]);
@@ -142,15 +143,14 @@ export default function QualificationPage() {
   }
 
 
+  if (error && (!user || steps.length === 0)) return <main className="fc-state-screen"><FcErrorState message={error} onRetry={() => window.location.reload()} /></main>;
   if (
     !user ||
     steps.length ===
       0
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Qualification...
-      </div>
+      <FcLoadingScreen label="Loading Qualification..." />
     );
   }
 
@@ -177,7 +177,7 @@ export default function QualificationPage() {
       >
 
         {error ? (
-          <div className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
+          <div role="alert" className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
             {error}
           </div>
         ) : null}
@@ -252,6 +252,7 @@ export default function QualificationPage() {
                       value,
                     )
                   }
+                  aria-pressed={method === value}
                   className={`rounded-2xl border p-5 text-left font-black ${
                     method ===
                     value

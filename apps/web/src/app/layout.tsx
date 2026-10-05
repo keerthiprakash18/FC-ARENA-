@@ -17,16 +17,17 @@ import './design-tokens.css';
 import './modernization.css';
 import './ux-polish.css';
 import './interactions.css';
+import './release-consistency.css';
 import './native-android.css';
 
 export const metadata: Metadata = {
   metadataBase:
     new URL('https://fcarena.in'),
 
-  title: 'FC ARENA',
+  title: { default: 'FC ARENA — Football & esports competitions', template: '%s | FC ARENA' },
 
   description:
-    'Premium football and esports competition platform',
+    'Organize leagues and tournaments, follow fixtures, confirm match results and celebrate player achievements with FC ARENA.',
 
   applicationName:
     'FC ARENA',

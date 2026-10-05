@@ -1,0 +1,26 @@
+/* Shared release contract: controls, reading order and long product names. */
+.fc-main :where(button, summary) { min-height: var(--fc-control-height); }
+.fc-main :where(button, a, h1, h2, h3, label, summary) { overflow-wrap: anywhere; }
+.fc-main [aria-invalid="true"] { border-color: var(--theme-danger) !important; }
+.fc-main .field > label { color: var(--theme-text-secondary); font-weight: 600; }
+.fc-main button[aria-pressed="true"] {
+  border-color: var(--theme-primary) !important;
+  background: var(--theme-primary-soft) !important;
+  color: var(--theme-primary) !important;
+}
+.fc-main :is([class~="border-sky-400/20"], [class~="border-sky-400/40"], [class~="border-sky-400/30"]) {
+  border-color: color-mix(in srgb, var(--theme-primary) 28%, var(--theme-border)) !important;
+}
+.fc-wizard-progress progress { appearance: none; border: 0; background: var(--theme-border); border-radius: 999px; overflow: hidden; }
+.fc-wizard-progress progress::-webkit-progress-bar { background: var(--theme-border); }
+.fc-wizard-progress progress::-webkit-progress-value { background: var(--theme-primary); }
+.fc-wizard-progress progress::-moz-progress-bar { background: var(--theme-primary); }
+.fc-main :where(input, textarea, select):focus-visible { scroll-margin-block: 96px; }
+.fc-bracket-round > div:first-child { flex-wrap: wrap; gap: 12px; }
+.fc-standing-top > .min-w-0 { overflow-wrap: anywhere; }
+.fc-share-card, .fc-league-invite, .fc-filter-bar { min-width: 0; }
+.theme-top-header { container: fc-header / inline-size; }
+@container fc-header (max-width: 560px) {
+  .theme-top-header .theme-profile-chip > :not(:first-child) { display: none; }
+  .theme-top-header .theme-divider { display: none; }
+}

@@ -255,7 +255,7 @@ export default function FairPlayPage() {
 
   return (
     <SecondaryFeaturePage
-      eyebrow="FC Arena V3.4"
+      eyebrow="FC Arena"
       title="Fair Play"
       subtitle="Transparent competition conduct record with fixed policy values, expiry and appeal rights."
       backHref="/more"

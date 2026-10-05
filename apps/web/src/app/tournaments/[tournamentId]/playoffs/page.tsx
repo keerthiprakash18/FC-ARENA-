@@ -399,7 +399,7 @@ export default function PlayoffsPage() {
       });
 
       setMessage(
-        `${response.data.message} ${response.data.totalQualifiers} qualifiers â†’ ${response.data.fixtures} knockout fixtures.`,
+        `${response.data.message} ${response.data.totalQualifiers} qualifiers → ${response.data.fixtures} knockout fixtures.`,
       );
 
       await loadFixtures();
@@ -427,7 +427,7 @@ export default function PlayoffsPage() {
           onClick={() => router.back()}
           className="text-sm font-black text-slate-500 hover:text-white"
         >
-          â† Back
+          ← Back
         </button>
 
         <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">

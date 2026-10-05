@@ -1392,6 +1392,7 @@ export default function FixturePreviewPage() {
               </button>
 
               <select
+                aria-label="Preview matchday"
                 value={
                   currentRound
                 }

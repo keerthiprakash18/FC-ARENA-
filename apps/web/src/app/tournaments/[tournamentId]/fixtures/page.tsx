@@ -662,7 +662,7 @@ export default function TournamentFixturesPage() {
           }
           className="text-sm font-black text-slate-500 transition hover:text-white"
         >
-          â† Back
+          ← Back
         </button>
 
 

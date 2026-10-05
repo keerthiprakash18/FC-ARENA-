@@ -1,4 +1,5 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
@@ -636,9 +637,7 @@ export default function GroupsWizardPage() {
     !data
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Groups...
-      </div>
+      <FcLoadingScreen label="Loading Groups..." />
     );
   }
 
@@ -738,6 +737,7 @@ export default function GroupsWizardPage() {
           className="mt-7 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 sm:flex-row"
         >
 
+          <label className="fc-field-label min-w-0 flex-1">Group name
           <input
             name="groupName"
             required
@@ -747,6 +747,7 @@ export default function GroupsWizardPage() {
             placeholder="Example: North Zone"
             className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#080e15] px-4 py-3"
           />
+          </label>
 
           <button
             type="submit"
@@ -825,6 +826,7 @@ export default function GroupsWizardPage() {
 
 
                     <select
+                      aria-label={`Group for ${entry.entryName || 'unnamed team'}`}
                       defaultValue="UNASSIGNED"
                       disabled={
                         busy
@@ -898,6 +900,7 @@ export default function GroupsWizardPage() {
                     <div className="flex gap-2">
 
                       <input
+                        aria-label={`Rename ${group.name}`}
                         value={
                           editingName
                         }
@@ -1062,6 +1065,7 @@ export default function GroupsWizardPage() {
 
 
                           <select
+                            aria-label={`Group for ${entry.entryName || 'unnamed team'}`}
                             value={
                               entry.groupId ??
                               'UNASSIGNED'

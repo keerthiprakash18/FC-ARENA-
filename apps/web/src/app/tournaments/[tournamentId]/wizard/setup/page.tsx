@@ -1,4 +1,5 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import {
   useParams,
@@ -484,9 +485,7 @@ export default function TournamentSetupPage() {
     !wizard
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Tournament Setup...
-      </div>
+      <FcLoadingScreen label="Loading Tournament Setup..." />
     );
   }
 
@@ -513,7 +512,7 @@ export default function TournamentSetupPage() {
       >
 
         {error ? (
-          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
+          <div role="alert" className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
             {error}
           </div>
         ) : null}
@@ -591,6 +590,7 @@ export default function TournamentSetupPage() {
                         value,
                       )
                     }
+                    aria-pressed={mode === value}
                     className={`rounded-2xl border p-4 text-left ${
                       mode ===
                       value
@@ -711,6 +711,7 @@ export default function TournamentSetupPage() {
                         );
                       }
                     }}
+                    aria-pressed={competitionFormat === value}
                     className={`rounded-2xl border p-4 text-left ${
                       competitionFormat ===
                       value
@@ -761,6 +762,7 @@ export default function TournamentSetupPage() {
                         value,
                       )
                     }
+                    aria-pressed={groupMode === value}
                     className={`rounded-2xl border p-4 text-left disabled:opacity-30 ${
                       groupMode ===
                       value

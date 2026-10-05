@@ -449,7 +449,7 @@ export default function DiscoverPage() {
 
   return (
     <SecondaryFeaturePage
-      eyebrow="FC Arena V3.2"
+      eyebrow="FC Arena"
       title="Discover"
       subtitle="Search the FC Arena ecosystem — players, leagues, tournaments and Ballon seasons."
       backHref="/dashboard"

@@ -24,6 +24,9 @@
 .fc-help-disclosure > .field { margin-top: 16px; }
 .fc-row-details .fc-standing-stats { grid-template-columns: repeat(auto-fit,minmax(45px,1fr)); }
 .fc-filter-bar :where(input, select) { min-height: 44px; }
+.fc-filter-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.fc-filter-controls > * { min-width: 0; flex: 1 1 160px; }
+.fc-filter-controls > .fc-filter-search { flex-basis: 240px; }
 .fc-wizard-progress progress { accent-color: var(--theme-primary); }
 .fc-main :where(label, .field) { min-width: 0; }
 .fc-workflow-shell [role="alert"], .fc-wizard-shell [role="alert"] { scroll-margin-top: 90px; }

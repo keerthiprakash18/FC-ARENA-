@@ -658,7 +658,7 @@ export default function AdminFairPlayPage() {
 
   return (
     <SecondaryFeaturePage
-      eyebrow="Admin · V3.4"
+      eyebrow="Admin"
       title="Fair Play Management"
       subtitle="Auditable conduct events, fixed point policy, automatic expiry and player appeals."
       backHref="/more"

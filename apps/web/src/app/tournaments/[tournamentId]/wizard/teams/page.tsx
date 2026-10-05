@@ -1,4 +1,5 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
@@ -768,9 +769,7 @@ export default function TeamsWizardPage() {
     !wizard
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Teams...
-      </div>
+      <FcLoadingScreen label="Loading Teams..." />
     );
   }
 
@@ -1026,6 +1025,7 @@ export default function TeamsWizardPage() {
                     participantManagementOpen ? (
                       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
                         <input
+                          aria-label={`Team name for ${entry.entryName || 'unnamed team'}`}
                           value={
                             editName
                           }
@@ -1043,6 +1043,7 @@ export default function TeamsWizardPage() {
                         />
 
                         <input
+                          aria-label={`Logo URL for ${entry.entryName || 'unnamed team'}`}
                           value={
                             editLogo
                           }
@@ -1242,11 +1243,12 @@ export default function TeamsWizardPage() {
                 className="grid gap-4 md:grid-cols-[1fr_1fr_auto]"
               >
                 <div className="field">
-                  <label>
+                  <label htmlFor="wizard-entry-name">
                     Team Name
                   </label>
 
                   <input
+                    id="wizard-entry-name"
                     name="entryName"
                     required
                     placeholder="Manchester City"
@@ -1254,11 +1256,12 @@ export default function TeamsWizardPage() {
                 </div>
 
                 <div className="field">
-                  <label>
+                  <label htmlFor="wizard-entry-logo">
                     Logo URL — optional
                   </label>
 
                   <input
+                    id="wizard-entry-logo"
                     name="entryLogoUrl"
                     type="url"
                     placeholder="https://..."
@@ -1306,7 +1309,9 @@ export default function TeamsWizardPage() {
                 </div>
 
 
+                <label className="fc-field-label mt-4" htmlFor="wizard-bulk-entries">Team names · one per line</label>
                 <textarea
+                  id="wizard-bulk-entries"
                   value={
                     bulkText
                   }

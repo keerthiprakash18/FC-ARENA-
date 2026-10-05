@@ -261,7 +261,7 @@ export default function AdminSystemPage() {
 
   return (
     <SecondaryFeaturePage
-      eyebrow="SUPER_ADMIN · V3.3"
+      eyebrow="Super Admin"
       title="System Monitoring"
       subtitle="API runtime, database latency, push delivery, moderation queues and production backup health."
       backHref="/more"
@@ -675,7 +675,7 @@ export default function AdminSystemPage() {
               </div>
             ) : (
               <div className="mt-5 rounded-xl border border-dashed border-amber-400/20 p-5 text-sm text-slate-500">
-                No successful production backup has reported yet. Configure the V3.3 backup runner before launch.
+                No successful production backup has reported yet. Configure the backup runner before launch.
               </div>
             )}
 

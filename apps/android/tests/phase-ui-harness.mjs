@@ -28,6 +28,7 @@ export async function createUiContext(browser, { width, native = false, reducedM
     const request = route.request(), url = new URL(request.url());
     const headers = { 'access-control-allow-origin': 'https://fcarena.in', 'access-control-allow-credentials': 'true', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS', 'access-control-allow-headers': 'Authorization,Content-Type' };
     if (url.pathname.startsWith('/api/')) {
+      if (url.pathname === '/api/matches/phase3/events') return route.fulfill({ headers: { ...headers, 'content-type': 'text/event-stream' }, body: 'event: connected\ndata: {"type":"connected"}\n\n' });
       if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
       if (!['GET', 'HEAD'].includes(request.method()) && url.pathname !== '/api/auth/refresh') {
         mutations.push({ method: request.method(), path: url.pathname, body: request.postData() });
@@ -67,6 +68,7 @@ export async function createUiContext(browser, { width, native = false, reducedM
 
 export async function checkLayout(page, label) {
   const metrics = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, idleAnimations: document.getAnimations().filter(animation => animation.effect?.getTiming().iterations === Infinity).length }));
+  if (metrics.scrollWidth > metrics.width + 1) console.log('Overflow diagnostic', label, await page.evaluate(() => [...document.querySelectorAll('body *')].filter(element => element.getBoundingClientRect().right > innerWidth + 1 && getComputedStyle(element).position !== 'absolute').map(element => ({ tag: element.tagName, class: element.className, text: element.textContent?.slice(0, 80), right: element.getBoundingClientRect().right })).slice(0, 12)));
   assert(metrics.scrollWidth <= metrics.width + 1, `${label}: horizontal overflow ${metrics.scrollWidth}`);
   assert.equal(metrics.idleAnimations, 0, `${label}: idle continuous animation`);
 }

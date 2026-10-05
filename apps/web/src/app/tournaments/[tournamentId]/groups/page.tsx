@@ -101,7 +101,7 @@ function getEntrySubtitle(
         member.inGameName ||
         member.fullName,
     )
-    .join(' ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ');
+    .join(' · ');
 }
 
 export default function TournamentGroupsPage() {
@@ -676,7 +676,7 @@ export default function TournamentGroupsPage() {
           scroll
           className="inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-white"
         >
-          ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Tournament
+          ← Tournament
         </Link>
 
         <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
@@ -960,7 +960,7 @@ export default function TournamentGroupsPage() {
                                   }
                                   className="rounded-lg border border-sky-400/20 bg-sky-400/[0.05] px-3 py-2 text-xs font-black text-sky-300 disabled:opacity-40"
                                 >
-                                  ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢{' '}
+                                  →{' '}
                                   {
                                     group.name
                                   }
@@ -1243,7 +1243,7 @@ export default function TournamentGroupsPage() {
                   className="mt-6 rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] opacity-50"
                 >
                   Generate Group
-                  Fixtures ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Next
+                  Fixtures — Next
                   Stage
                 </button>
               ) : null}

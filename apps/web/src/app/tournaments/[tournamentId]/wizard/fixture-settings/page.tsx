@@ -1,4 +1,5 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import {
   useParams,
@@ -220,9 +221,7 @@ export default function FixtureSettingsPage() {
       0
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Fixture Settings...
-      </div>
+      <FcLoadingScreen label="Loading Fixture Settings..." />
     );
   }
 
@@ -248,7 +247,7 @@ export default function FixtureSettingsPage() {
       >
 
         {error ? (
-          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
+            <div role="alert" className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
             {error}
           </div>
         ) : null}
@@ -281,6 +280,7 @@ export default function FixtureSettingsPage() {
                         value,
                       )
                     }
+                    aria-pressed={fixtureMode === value}
                     className={`rounded-2xl border p-5 text-left font-black ${
                       fixtureMode ===
                       value
@@ -333,6 +333,7 @@ export default function FixtureSettingsPage() {
                         value,
                       )
                     }
+                    aria-pressed={legType === value}
                     className={`rounded-2xl border p-5 text-left font-black ${
                       legType ===
                       value

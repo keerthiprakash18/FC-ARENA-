@@ -693,6 +693,7 @@ export default function FixtureGeneratorSetupPage() {
                             value,
                         })
                       }
+                      aria-pressed={draft.participantType === value}
                       className={`min-h-11 rounded-[10px] border px-4 text-sm font-medium ${
                         draft.participantType ===
                         value
@@ -776,6 +777,7 @@ export default function FixtureGeneratorSetupPage() {
                             value as FixtureGeneratorDraft['meetings'],
                         })
                       }
+                      aria-pressed={draft.meetings === value}
                       className={`min-h-11 rounded-[10px] border px-3 text-sm font-medium ${
                         draft.meetings ===
                         value

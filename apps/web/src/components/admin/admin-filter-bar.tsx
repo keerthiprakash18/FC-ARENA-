@@ -11,8 +11,8 @@ export function AdminFilterBar({ query, onQueryChange, status, onStatusChange, c
   const filtered = Boolean(query.trim() || status);
   return (
     <section className="theme-panel fc-filter-bar rounded-2xl border p-4" aria-label="Review filters">
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_auto]">
-        <label className="fc-field-label">Search review queue
+      <div className="fc-filter-controls">
+        <label className="fc-field-label fc-filter-search">Search review queue
           <input type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="Name, competition or reason" className="theme-input border px-3" />
         </label>
         <label className="fc-field-label">Review status

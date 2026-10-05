@@ -488,7 +488,7 @@ export default function AdminAndroidReleasesPage() {
 
   return (
     <SecondaryFeaturePage
-      eyebrow="SUPER_ADMIN · V3.3"
+      eyebrow="Super Admin"
       title="Android Version Control"
       subtitle="Track Play builds, immutable versionCodes, release channels and production update policy."
       backHref="/more"

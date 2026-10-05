@@ -177,7 +177,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <SecondaryFeaturePage
-      eyebrow="Admin · V3.3"
+      eyebrow="Admin"
       title="Analytics"
       subtitle="Competition health, operational workload and verified activity for your admin scope."
       backHref="/more"

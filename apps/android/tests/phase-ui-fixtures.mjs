@@ -1,6 +1,7 @@
 // Shared, isolated modernization fixtures. Values are never sent to production.
 export const tournament = {
-  id: 'phase3', code: 'PHASE3', name: 'Responsive Cup', logoUrl: null,
+  id: 'phase3', leagueId: 'phase3', code: 'PHASE3', name: 'Responsive Cup', logoUrl: null,
+  isLeagueAdmin: false, dailyMatchLimit: 20, matchesPerParticipantPerDay: 1, matchDurationMinutes: 30,
   description: 'Competition fixture', rules: '', mode: 'SOLO', status: 'DRAFT',
   format: 'ROUND_ROBIN', competitionFormat: 'GROUP_STAGE_KNOCKOUT', groupMode: 'MULTIPLE_GROUPS',
   legType: 'SINGLE_LEG', fixtureMode: 'AUTOMATIC', visibility: 'LEAGUE', registrationMode: 'APPROVAL',
@@ -43,11 +44,39 @@ export const war = {
 };
 const dispute = { id: 'dispute-1', matchId: 'result-test', reason: 'Incorrect result', evidenceUrl: null, status: 'OPEN', resolutionNote: null, raisedByName: player.fullName, raisedByInGameName: null, resolvedByName: null, tournamentName: tournament.name, tournamentCode: 'PHASE3', leagueName: 'Arena League', roundName: 'Round 1', fixtureCode: 'F1', createdAt: '2026-10-01T12:00:00Z', resolvedAt: null };
 const report = { id: 'report-1', reporter: { userId: 'phase3', ...player }, target: { userId: 'opponent', ...player, fullName: 'Opponent Player' }, reason: 'ABUSE', contentType: 'PROFILE', details: 'Review fixture', contentReference: null, status: 'OPEN', reportsAgainstTarget: 1, createdAt: '2026-10-01T12:00:00Z', resolution: null };
+const season = { id: 'phase3', name: 'Arena Season', startAt: '2026-10-01T00:00:00Z', endAt: '2026-12-01T00:00:00Z', minimumMatches: 5, rankingLimit: 100, status: 'ACTIVE', scoringConfig: null };
+const ranking = { position: 1, userId: 'phase3', fullName: player.fullName, inGameName: null, playerCode: 'P3', profileImageUrl: null, rating: 75, eligible: true, previousPosition: null, rankChange: null, matches: 5, wins: 3, draws: 1, losses: 1, goalsFor: 8, goalsAgainst: 4, goalDifference: 4, cleanSheets: 1, ratingBreakdown: { matchPerformance: 30, attack: 15, defence: 10, goalDifference: 10, bigMatches: 5, consistency: 5 } };
+const tournamentPlayerRank = { ...ranking, winRate: 60, performancePoints: 12, form: 'WWDLW' };
 export const phaseData = {
+  '/api/matches/phase3': { match: { id: 'phase3', matchCode: 'M-P3', status: 'SCHEDULED', isLeagueAdmin: false, isParticipant: true, participantSide: 'HOME', readiness: { homeReadyAt: null, awayReadyAt: null, homeReady: false, awayReady: false, bothReady: false }, schedule: { scheduledAt: '2027-01-01T12:00:00Z', estimatedDeadlineAt: null, matchDurationMinutes: 15 }, tournament, league: tournament.league, fixture: { ...fixture, fixtureCode: 'F1' } } },
+  '/api/matches/phase3/results': { isLeagueAdmin: false, canVerifyResult: false, confirmedResultSubmissionId: null, submissions: [] },
+  '/api/matches/phase3/ocr/latest': { extraction: null },
+  '/api/matches/phase3/disputes': { disputes: [] },
+  '/api/awards/overview': { currentBallon: null, trophyCabinet: {}, myTournamentAwards: [], mySeasonalAwards: [], activeAwardTournaments: [], recentSeasonalWinners: [] },
+  '/api/admin/ballon/seasons': { seasons: [] },
+  '/api/ballon/seasons': { seasons: [] },
+  '/api/ballon/seasons/phase3/rankings': { season, rows: [ranking], rankings: [ranking], locked: false },
+  '/api/ballon/seasons/phase3/players/phase3': { season, ranking },
+  '/api/discover/players/phase3': { player: { ...player, userId: 'phase3', joinedAt: '2026-01-01T00:00:00Z', verified: true }, leagues: [], lifetimeStatistics: { matches: 5, wins: 3, draws: 1, losses: 1, goalsFor: 8, goalsAgainst: 4, goalDifference: 4, winRate: 60, achievements: 0, seasonalAwards: 0 }, achievements: [], seasonalAwards: [], ballonHistory: [] },
+  '/api/fair-play/players/phase3': { summary: { score: 100, status: 'GOOD_STANDING', activePenaltyEvents: 0, commendations: 0, lastUpdatedAt: null, detailVisibility: 'SUMMARY_ONLY' } },
+  '/api/discover/featured': { tournaments: [], leagues: [], seasons: [], recentHonours: [] },
+  '/api/discover/search': { query: '', type: 'all', minimumQueryLength: 2, total: 0, players: [], leagues: [], tournaments: [], seasons: [] },
+  '/api/discover/hall-of-fame': { seasons: [], legends: [], champions: [], totals: { seasons: 0, recordedHonours: 0, champions: 0, legends: 0 }, scoringNote: 'Verified competition results' },
+  '/api/safety/blocks': { blockedUsers: [] },
+  '/api/safety/reports/mine': { reports: [] },
+  '/api/fair-play/me': { summary: { score: 100, status: 'GOOD_STANDING', baseScore: 100, activePointsDelta: 0, activeEvents: 0, activePenaltyEvents: 0, activeWarnings: 0, commendations: 0, lastUpdatedAt: null, automaticPenalty: false }, policy: [], events: [] },
+  '/api/ai/status': { enabled: false, configured: false, mode: 'READ_ONLY', limits: { perMinute: 5, perDay: 20 } },
+  '/api/notifications/push/status': { configured: false, bound: false },
+  '/api/admin/ops/android/releases': { releases: [] },
+  '/api/security/roles/LEAGUE/phase3': { assignments: [] },
+  '/api/security/audit/LEAGUE/phase3': { logs: [] },
   '/api/leagues/my': { leagues: [{ membershipType: 'PRIMARY', adminRole: 'OWNER', league: { ...tournament.league, members: 2, maxMembers: 20 } }] },
   '/api/leagues/phase3/tournaments': { tournaments: [tournament] },
   '/api/leagues/phase3': { league: { ...tournament.league, members: 2, maxMembers: 20, pendingApplications: 0, membershipType: 'PRIMARY', adminRole: 'OWNER', creator: { id: 'phase3', fullName: 'Test Admin' } } },
   '/api/leagues/phase3/members': { members: [] },
+  '/api/leagues/phase3/roles': { assignments: [], roles: [], audit: [] },
+  '/api/leagues/phase3/audit': { logs: [] },
+  '/api/leagues/phase3/applications': { applications: [] },
   '/api/leagues/phase3/rankings': {
     league: tournament.league, filter: { mode: null }, summary: { members: 2, rankedPlayers: 1, tournaments: 1, verifiedMatches: 4, lastUpdatedAt: null }, myPosition: 1,
     rankings: [{ position: 1, userId: 'phase3', fullName: player.fullName, playerCode: 'P3', inGameName: null, profileImageUrl: null, tournamentsPlayed: 1, matches: 4, wins: 2, draws: 1, losses: 1, goalsFor: 6, goalsAgainst: 4, goalDifference: 2, winRate: 50, performancePoints: 10, form: 'WWDL' }],
@@ -57,6 +86,14 @@ export const phaseData = {
   '/api/tournaments/phase3/entries': { tournament, entries },
   '/api/tournaments/phase3/groups': { tournament, groups: [{ id: 'group-1', name: 'Group A', position: 1, entries }], unassigned: [] },
   '/api/tournaments/phase3/my-statistics': { statistic: null },
+  '/api/tournaments/phase3/rankings': { tournament, myPosition: 1, categories: { bestPlayers: [tournamentPlayerRank], mostWins: [tournamentPlayerRank], highestWinRate: [tournamentPlayerRank], bestGoalDifference: [tournamentPlayerRank], topGoals: { available: true, reason: null, entries: [tournamentPlayerRank] }, topAssists: { available: false, reason: 'No verified events yet.', entries: [] }, bestTeams: { available: true, reason: null, entries: [{ position: 1, registrationId: 'entry-1', entryName: 'Competition Entry 1', played: 5, wins: 3, draws: 1, losses: 1, goalsFor: 8, goalsAgainst: 4, goalDifference: 4, points: 10, form: 'WWDLW' }] } } },
+  '/api/tournaments/phase3/achievements': { tournament, isLeagueAdmin: false, achievements: [] },
+  '/api/tournaments/phase3/award-races': { tournament, available: false, reason: 'No verified results yet.', goldenBoot: [], goldenGlove: [], playerOfTournament: [] },
+  '/api/tournaments/phase3/registration': { tournament, registrations: [], pending: [], entries: [], myRegistration: null },
+  '/api/tournaments/phase3/my-registration': { registration: null },
+  '/api/tournaments/phase3/registrations': { registrations: [] },
+  '/api/tournaments/phase3/statistics': { tournament, statistics: [], players: [], summary: {} },
+  '/api/public/tournaments/PHASE3': { tournament: { ...tournament, status: 'PUBLISHED' }, groups: [], fixtures: [], topPlayers: [], standings: entries.map((entry, index) => ({ position: index + 1, registrationId: entry.id, name: entry.entryName, played: 4, wins: 2, draws: 1, losses: 1, goalsFor: 6, goalsAgainst: 4, goalDifference: 2, points: 7, form: 'WWDL' })) },
   '/api/tournaments/phase3/fixtures': { tournament, fixtures: [{ ...fixture, fixtureCode: 'F1', bracketPosition: 1, stage: 'KNOCKOUT', group: null, match: null }] },
   '/api/tournaments/phase3/standings': { tournament, standings: entries.map((entry, index) => ({ registrationId: entry.id, entryName: entry.entryName, position: index + 1, played: 4, wins: 2, draws: 1, losses: 1, goalsFor: 6, goalsAgainst: 4, goalDifference: 2, points: 7, form: 'WWDL' })) },
   '/api/tournaments/phase3/wizard/fixture-settings': { fixtureMode: 'AUTOMATIC', legType: 'SINGLE_LEG', dailyMatchLimit: 20, matchDurationMinutes: 30 },

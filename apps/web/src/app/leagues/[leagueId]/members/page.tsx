@@ -367,6 +367,7 @@ export default function LeagueMembersPage() {
                   )
               }
               placeholder="Search member..."
+              aria-label="Search league members"
               className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
             />
 

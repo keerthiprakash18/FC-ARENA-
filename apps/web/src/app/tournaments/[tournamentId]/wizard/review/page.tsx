@@ -1,4 +1,5 @@
 'use client';
+import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
@@ -163,6 +164,7 @@ export default function ReviewPage() {
   }
 
 
+  if (error && (!user || !review)) return <main className="fc-state-screen"><FcErrorState message={error} onRetry={() => window.location.reload()} /></main>;
   if (
     !user ||
     !review ||
@@ -170,9 +172,7 @@ export default function ReviewPage() {
       0
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Review...
-      </div>
+      <FcLoadingScreen label="Loading Review..." />
     );
   }
 

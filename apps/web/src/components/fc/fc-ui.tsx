@@ -78,7 +78,7 @@ export function FcPanel({
   return (
     <section
       className={
-        'theme-panel min-w-0 rounded-2xl border ' +
+        'fc-panel theme-panel min-w-0 rounded-2xl border ' +
         className
       }
     >

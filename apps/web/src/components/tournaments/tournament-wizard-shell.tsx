@@ -61,16 +61,16 @@ export function TournamentWizardShell({
       <div>
         <Link
           href="/tournaments"
-          className="text-sm font-black text-slate-500 transition hover:text-white"
+          className="fc-back-link theme-text-link text-sm font-semibold transition"
         >
           ← Tournaments
         </Link>
 
-        <p className="mt-6 text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+        <p className="theme-muted mt-6 text-xs font-semibold">
           Tournament Builder
         </p>
 
-        <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] md:text-5xl">
+        <h1 className="theme-text fc-display-strong mt-2 text-4xl md:text-5xl">
           {title}
         </h1>
 
@@ -82,7 +82,7 @@ export function TournamentWizardShell({
       </div>
 
       <div className="theme-panel rounded-xl p-4"><div className="flex flex-wrap justify-between gap-2 text-sm"><span>Step {currentIndex + 1} of {steps.length} · {stepLabels[currentStep]}</span><Link className="theme-text-link font-semibold" href={`/tournaments/${tournamentId}`}>Exit builder</Link></div><progress className="mt-3 h-2 w-full" value={currentIndex + 1} max={steps.length} aria-label="Builder step progress"/><p className="mt-2 text-xs theme-muted">Save changes using the button on each step before leaving. Your saved tournament can be resumed from Tournaments.</p></div>
-      <section className="overflow-x-auto rounded-[22px] border border-white/10 bg-[#0a1018] p-4">
+      <section className="fc-context-nav overflow-x-auto rounded-[22px] border p-4">
         <div className="flex min-w-max items-center gap-2">
           {steps.map((step, index) => {
             const active = step === currentStep;
@@ -95,19 +95,19 @@ export function TournamentWizardShell({
                   href={`/tournaments/${tournamentId}/wizard/${stepRoutes[step]}`}
                   className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-black transition ${
                     active
-                      ? "border-sky-400/40 bg-sky-400/10 text-sky-300"
+                      ? "border-transparent bg-[var(--theme-primary-soft)] text-[var(--theme-primary)]"
                       : complete
                         ? "border-emerald-400/20 bg-emerald-400/[0.04] text-emerald-300"
-                        : "border-white/10 bg-black/10 text-slate-500"
+                        : "border-transparent bg-[var(--theme-secondary-background)] text-[var(--theme-text-muted)]"
                   }`}
                 >
                   <span
                     className={`grid h-6 w-6 place-items-center rounded-lg ${
                       active
-                        ? "bg-sky-400 text-[#041019]"
+                        ? "bg-[var(--theme-primary)] text-white"
                         : complete
                           ? "bg-emerald-400/10 text-emerald-300"
-                          : "bg-white/[0.04]"
+                          : "bg-[var(--theme-surface)]"
                     }`}
                   >
                     {complete ? "✓" : index + 1}
@@ -117,7 +117,7 @@ export function TournamentWizardShell({
                 </Link>
 
                 {index < steps.length - 1 ? (
-                  <span className="text-slate-700">→</span>
+                  <span className="theme-muted">→</span>
                 ) : null}
               </div>
             );
@@ -125,7 +125,7 @@ export function TournamentWizardShell({
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-white/10 bg-[#0a1018] p-5 sm:p-6 md:p-8">
+      <section className="theme-panel rounded-[28px] border p-5 sm:p-6 md:p-8">
         {children}
       </section>
     </div>

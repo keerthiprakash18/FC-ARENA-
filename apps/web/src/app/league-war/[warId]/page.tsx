@@ -1056,11 +1056,11 @@ export default function LeagueWarDetailPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="fc-league-war-page space-y-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/league-war"
-            className="text-sm font-black text-slate-500 transition hover:text-rose-300"
+            className="fc-back-link theme-text-link text-sm font-semibold transition"
           >
             ← League Wars
           </Link>
@@ -1114,7 +1114,7 @@ export default function LeagueWarDetailPage() {
                 onClick={() =>
                   void createRematch()
                 }
-                className="min-h-9 rounded-xl border border-rose-400/25 bg-rose-400/[0.06] px-4 text-xs font-black text-rose-300 disabled:opacity-40"
+                className="theme-secondary-button min-h-9 rounded-xl border px-4 text-xs font-semibold disabled:opacity-40"
               >
                 {busy ===
                 'rematch'
@@ -1127,12 +1127,12 @@ export default function LeagueWarDetailPage() {
 
         <FcNotice tone="error">{error}</FcNotice>
 
-        <section className="relative overflow-hidden rounded-[30px] border border-rose-400/20 bg-[#0B0F14] p-5 sm:p-7">
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-400/10 blur-3xl" />
+        <section className="fc-war-hero relative overflow-hidden rounded-[30px] border p-5 sm:p-7">
+          <div className="fc-war-hero-glow pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
 
           <div className="relative text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-rose-300">
-              ⚔ FC Arena League War
+            <p className="fc-war-kicker text-[10px] font-semibold">
+              FC Arena League War
             </p>
 
             <h1 className="mt-2 text-2xl font-black sm:text-4xl">

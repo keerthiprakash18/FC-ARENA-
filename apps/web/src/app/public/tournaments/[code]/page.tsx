@@ -236,7 +236,7 @@ export default function PublicTournamentPage() {
     !error
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#F5F8FD] text-sm font-semibold text-[#60708A]">
+      <div className="fc-public-page fc-public-state grid min-h-screen place-items-center text-sm font-semibold">
         Loading public Tournament...
       </div>
     );
@@ -246,17 +246,17 @@ export default function PublicTournamentPage() {
     !data
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#F5F8FD] p-6">
-        <div className="max-w-md rounded-3xl border border-[#DCE5F1] bg-white p-8 text-center shadow-sm">
+      <div className="fc-public-page fc-public-state grid min-h-screen place-items-center p-6">
+        <div className="theme-panel max-w-md rounded-3xl border p-8 text-center">
           <p className="text-4xl">
             ⚽
           </p>
 
-          <h1 className="mt-4 text-2xl font-bold text-[#0B1F44]">
+          <h1 className="theme-text mt-4 text-2xl font-bold">
             Tournament unavailable
           </h1>
 
-          <p className="mt-2 text-sm leading-6 text-[#60708A]">
+          <p className="theme-secondary-text mt-2 text-sm leading-6">
             {
               error
             }
@@ -264,7 +264,7 @@ export default function PublicTournamentPage() {
 
           <Link
             href="/"
-            className="mt-6 inline-flex rounded-xl bg-[#1478F2] px-5 py-3 text-sm font-semibold text-white"
+            className="theme-primary-button mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-semibold"
           >
             FC ARENA
           </Link>
@@ -277,20 +277,20 @@ export default function PublicTournamentPage() {
     data.tournament;
 
   return (
-    <main className="min-h-screen bg-[#F5F8FD] text-[#0B1F44]">
-      <header className="border-b border-[#DCE5F1] bg-white/95 backdrop-blur">
+    <main className="fc-public-page min-h-screen">
+      <header className="fc-public-header border-b">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link
             href="/"
             className="flex items-center gap-2 font-bold"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0B1F44] text-white">
-              ♛
+            <span className="theme-brand-mark grid h-10 w-10 place-items-center rounded-xl border">
+              FC
             </span>
 
             <span>
               FC{' '}
-              <span className="text-[#1478F2]">
+              <span className="theme-brand-accent">
                 ARENA
               </span>
             </span>
@@ -301,7 +301,7 @@ export default function PublicTournamentPage() {
             onClick={() =>
               void share()
             }
-            className="rounded-xl border border-[#DCE5F1] bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:border-[#1478F2]"
+            className="theme-secondary-button rounded-xl border px-4 py-2 text-sm font-semibold transition"
           >
             {copied
               ? 'Link copied ✓'

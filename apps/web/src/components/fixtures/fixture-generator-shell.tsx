@@ -5,6 +5,8 @@ import type {
   ReactNode,
 } from 'react';
 
+import { FcContextNav } from '@/components/fc/fc-context-nav';
+
 const steps = [
   {
     key: 'SETUP',
@@ -60,83 +62,45 @@ export function FixtureGeneratorShell({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="fc-fixture-generator-header">
         <Link
           href="/fixtures"
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#6F7B8A] transition hover:text-[#38BDF8]"
+          className="fc-back-link theme-text-link inline-flex items-center gap-2 text-sm font-semibold transition"
         >
-          ← Fixtures
+          <span aria-hidden="true">←</span>
+          Fixtures
         </Link>
 
-        <p className="mt-5 text-xs font-medium text-[#6F7B8A]">
+        <p className="theme-muted mt-5 text-xs font-semibold">
           Fixture Generator
         </p>
 
-        <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-[32px]">
+        <h1 className="theme-text fc-display-strong mt-1 text-[26px] leading-tight sm:text-[32px]">
           {title}
         </h1>
 
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7B0BE]">
+        <p className="theme-secondary-text mt-2 max-w-2xl text-sm leading-6">
           {description}
         </p>
       </div>
 
-
-      <nav className="overflow-x-auto rounded-2xl border border-[#253140] bg-[#121821] p-1.5">
-        <div className="flex min-w-max gap-1">
-          {steps.map(
-            (
-              item,
-              index,
-            ) => {
-              const active =
-                item.key ===
-                step;
-
-              const complete =
-                index <
-                currentIndex;
-
-              return (
-                <Link
-                  key={
-                    item.key
-                  }
-                  href={
-                    index <=
-                    currentIndex
-                      ? item.href
-                      : '#'
-                  }
-                  aria-disabled={
-                    index >
-                    currentIndex
-                  }
-                  className={`rounded-[10px] px-3.5 py-2.5 text-xs font-medium transition ${
-                    active
-                      ? 'bg-sky-400/[0.10] text-[#F8FAFC]'
-                      : complete
-                        ? 'text-emerald-300'
-                        : 'pointer-events-none text-[#6F7B8A]'
-                  }`}
-                >
-                  <span className="mr-1.5">
-                    {complete
-                      ? '✓'
-                      : index +
-                        1}
-                  </span>
-
-                  {
-                    item.label
-                  }
-                </Link>
-              );
-            },
-          )}
-        </div>
-      </nav>
-
+      <FcContextNav
+        ariaLabel="Fixture generator steps"
+        items={steps.map((item, index) => ({
+          label: (
+            <>
+              <span className="fc-context-nav-number" aria-hidden="true">
+                {index + 1}
+              </span>
+              {item.label}
+            </>
+          ),
+          href: item.href,
+          active: item.key === step,
+          complete: index < currentIndex,
+          disabled: index > currentIndex,
+        }))}
+      />
 
       {
         children

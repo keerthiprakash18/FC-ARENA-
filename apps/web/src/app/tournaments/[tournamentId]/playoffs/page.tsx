@@ -704,7 +704,8 @@ export default function PlayoffsPage() {
             {playoffRounds.filter(([name]) => selectedRound === "ALL" || name === selectedRound).map(([roundName, roundFixtures]) => (
               <article
                 key={roundName}
-                className="rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
+                className="fc-bracket-round rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
+                aria-label={`${roundName} bracket`}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-black">{roundName}</h3>

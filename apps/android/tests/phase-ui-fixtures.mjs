@@ -46,6 +46,7 @@ const report = { id: 'report-1', reporter: { userId: 'phase3', ...player }, targ
 export const phaseData = {
   '/api/leagues/my': { leagues: [{ membershipType: 'PRIMARY', adminRole: 'OWNER', league: { ...tournament.league, members: 2, maxMembers: 20 } }] },
   '/api/leagues/phase3/tournaments': { tournaments: [tournament] },
+  '/api/leagues/phase3': { league: { ...tournament.league, members: 2, maxMembers: 20, pendingApplications: 0, membershipType: 'PRIMARY', adminRole: 'OWNER', creator: { id: 'phase3', fullName: 'Test Admin' } } },
   '/api/leagues/phase3/members': { members: [] },
   '/api/leagues/phase3/rankings': {
     league: tournament.league, filter: { mode: null }, summary: { members: 2, rankedPlayers: 1, tournaments: 1, verifiedMatches: 4, lastUpdatedAt: null }, myPosition: 1,
@@ -56,6 +57,7 @@ export const phaseData = {
   '/api/tournaments/phase3/entries': { tournament, entries },
   '/api/tournaments/phase3/groups': { tournament, groups: [{ id: 'group-1', name: 'Group A', position: 1, entries }], unassigned: [] },
   '/api/tournaments/phase3/my-statistics': { statistic: null },
+  '/api/tournaments/phase3/fixtures': { tournament, fixtures: [{ ...fixture, fixtureCode: 'F1', bracketPosition: 1, stage: 'KNOCKOUT', group: null, match: null }] },
   '/api/tournaments/phase3/standings': { tournament, standings: entries.map((entry, index) => ({ registrationId: entry.id, entryName: entry.entryName, position: index + 1, played: 4, wins: 2, draws: 1, losses: 1, goalsFor: 6, goalsAgainst: 4, goalDifference: 2, points: 7, form: 'WWDL' })) },
   '/api/tournaments/phase3/wizard/fixture-settings': { fixtureMode: 'AUTOMATIC', legType: 'SINGLE_LEG', dailyMatchLimit: 20, matchDurationMinutes: 30 },
   '/api/tournaments/phase3/wizard/fixture-preview': { tournament, fixtures: [fixture], summary: { totalFixtures: 1, rounds: 1 } },

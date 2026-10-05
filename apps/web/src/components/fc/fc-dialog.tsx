@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { FcActionButton } from './fc-action-button';
 
 export interface FcDialogOptions {
   title: string;
@@ -60,10 +61,10 @@ export function FcDialog({
             data-initial-focus={destructive || !children ? '' : undefined}
             className="theme-secondary-button min-h-11 rounded-[10px] border px-4 text-sm font-medium"
           >{cancelLabel}</button>
-          <button
-            type="submit" disabled={busy}
+          <FcActionButton
+            type="submit" busy={busy} busyLabel="Working..."
             className={'min-h-11 rounded-[10px] px-4 text-sm font-semibold ' + (destructive ? 'theme-danger-button border' : 'theme-primary-button')}
-          >{busy ? 'Working...' : confirmLabel}</button>
+          >{confirmLabel}</FcActionButton>
         </div>
       </form>
     </dialog>

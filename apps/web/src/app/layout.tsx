@@ -16,6 +16,7 @@ import './globals.css';
 import './design-tokens.css';
 import './modernization.css';
 import './ux-polish.css';
+import './interactions.css';
 import './native-android.css';
 
 export const metadata: Metadata = {

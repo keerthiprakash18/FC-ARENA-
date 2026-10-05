@@ -64,3 +64,12 @@ id_ed25519*
 backups/
 *.sql.gz
 *.dump
+
+# Additional private key, environment and backup variants
+*.p8
+*.p7b
+.envrc
+.envrc.*
+*.backup
+*.bak
+*.sql.zip

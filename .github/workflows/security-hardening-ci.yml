@@ -9,12 +9,17 @@ on:
       - "apps/web/**"
       - "packages/**"
       - "tests/**"
+      - "scripts/security-*.mjs"
+      - "scripts/check-security-env.mjs"
+      - "docker-compose.yml"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/security-hardening-ci.yml"
       - ".github/workflows/codeql-security.yml"
       - ".github/workflows/backend-deploy.yml"
       - ".github/workflows/frontend-ci.yml"
+  schedule:
+    - cron: "41 4 * * 1"
   workflow_dispatch:
 
 concurrency:
@@ -104,6 +109,9 @@ jobs:
         run: |
           node tests/notification-cache.test.cjs
           node tests/update-performance.test.cjs
+
+      - name: Security gate and environment checker regression tests
+        run: node --test tests/security-audit-report.test.mjs tests/security-env.test.mjs
 
       - name: Dependency critical gate (all dependencies)
         run: npm audit --audit-level=critical

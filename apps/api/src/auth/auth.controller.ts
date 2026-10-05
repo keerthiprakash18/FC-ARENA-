@@ -1,3 +1,4 @@
+import { normalizeLoginIdentifier } from './login-identifier.js';
 import {
   Body,
   Controller,
@@ -44,14 +45,7 @@ function clientIp(request: Request): string {
 function normalizedIdentifier(
   dto: LoginDto,
 ): string {
-  return (
-    dto.identifier ??
-    dto.email ??
-    ''
-  )
-    .normalize('NFKC')
-    .trim()
-    .toLowerCase();
+  return normalizeLoginIdentifier(dto.identifier ?? dto.email ?? '').toLowerCase();
 }
 
 @Controller('auth')

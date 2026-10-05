@@ -28,5 +28,8 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
+  },
+  "overrides": {
+    "mysql2": "3.24.5"
   }
 }

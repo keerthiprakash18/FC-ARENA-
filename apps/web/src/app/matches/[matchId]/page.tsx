@@ -1,7 +1,8 @@
 "use client";
 
 import { ApiError } from "@/lib/api";
-import { confirmAction } from "@/components/fc/confirmation-provider";
+import { confirmAction, promptAction } from "@/components/fc/confirmation-provider";
+import { FcEmptyState, FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
 import { ShareCard } from "@/components/fc/share-card";
 import { MatchReminder } from "@/components/fc/match-reminder";
 import Link from "next/link";
@@ -753,7 +754,7 @@ export default function MatchRoomPage() {
   async function confirmResult(submissionId: string) {
     if (
       !(await confirmAction(
-        "Confirm this result? Statistics and standings will be updated.",
+        { title: 'Confirm result?', description: 'Confirm this result? Player statistics and tournament standings will be updated.', confirmLabel: 'Confirm result' },
       ))
     ) {
       return;
@@ -789,7 +790,7 @@ export default function MatchRoomPage() {
   }
 
   async function rejectResult(submissionId: string) {
-    const reason = window.prompt("Reason for rejection (optional):");
+    const reason = await promptAction({ title: 'Reject result?', description: 'Reject this submitted result? You can add a reason to explain the decision.', label: 'Rejection reason', confirmLabel: 'Reject result', destructive: true });
 
     if (reason === null) {
       return;
@@ -844,7 +845,7 @@ export default function MatchRoomPage() {
     }
 
     if (
-      !(await confirmAction(`Correct result to ${homeScore}-${awayScore}?`))
+      !(await confirmAction({ title: 'Correct result?', description: `Replace the confirmed score with ${homeScore}-${awayScore}? Player statistics and tournament standings will be recalculated.`, confirmLabel: 'Correct result' }))
     ) {
       return;
     }
@@ -885,9 +886,7 @@ export default function MatchRoomPage() {
   }
 
   async function reverseConfirmedResult() {
-    const reason = window.prompt(
-      "Why are you reversing this confirmed result?",
-    );
+    const reason = await promptAction({ title: 'Reverse confirmed result?', description: 'Reversing this result removes its statistics and updates the tournament standings. Explain why this result needs to be reversed.', label: 'Reversal reason', required: true, confirmLabel: 'Continue', destructive: true, validate: value => value.trim().length < 3 ? 'Reversal reason must contain at least 3 characters.' : undefined });
 
     if (reason === null) {
       return;
@@ -901,7 +900,7 @@ export default function MatchRoomPage() {
 
     if (
       !(await confirmAction(
-        "Reverse this confirmed result and remove its statistics?",
+        { title: 'Reverse confirmed result?', description: 'Reverse this confirmed result and remove its contribution to player statistics and tournament standings?', confirmLabel: 'Reverse result', destructive: true },
       ))
     ) {
       return;
@@ -943,23 +942,13 @@ export default function MatchRoomPage() {
   if ((!user || !match) && error)
     return (
       <AppShell>
-        <div role="alert" className="theme-panel rounded-xl p-6">
-          <p>{error}</p>
-          <button
-            className="theme-primary-button mt-4 rounded-lg px-4"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
+        <FcErrorState message={error} onRetry={() => window.location.reload()} />
       </AppShell>
     );
 
   if (!user || !match) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Match Room...
-      </div>
+      <FcLoadingScreen label="Loading Match Room..." />
     );
   }
 
@@ -1264,17 +1253,8 @@ export default function MatchRoomPage() {
           ) : null}
         </section>
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
@@ -1796,9 +1776,7 @@ export default function MatchRoomPage() {
             })}
 
             {submissions.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-600">
-                No result submissions yet.
-              </p>
+              <FcEmptyState title="No result submissions" description="Submitted results will appear here for verification." icon="fixtures" />
             ) : null}
           </div>
         </section>

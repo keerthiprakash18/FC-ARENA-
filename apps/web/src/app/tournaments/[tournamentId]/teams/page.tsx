@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import Link from 'next/link';
 import {
   useParams,
@@ -419,6 +420,8 @@ export default function TournamentTeamsPage() {
       return;
     }
 
+    if (!(await confirmAction({ title: 'Remove Match Admin access?', description: 'Remove this player’s Match Admin role for this tournament? They will lose the access granted by this role.', confirmLabel: 'Remove access', destructive: true }))) return;
+
     setBusy(
       true,
     );
@@ -590,7 +593,7 @@ export default function TournamentTeamsPage() {
 
     const confirmed =
       (await confirmAction(
-        `Delete "${entry.entryName ?? 'this team'}" from this Tournament? This cannot be undone.`,
+        { title: 'Delete tournament team?', description: `Permanently remove “${entry.entryName ?? 'this team'}” from this tournament? This cannot be undone.`, confirmLabel: 'Delete team', destructive: true },
       ));
 
     if (
@@ -806,22 +809,8 @@ export default function TournamentTeamsPage() {
         ) : null}
 
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
-            {
-              message
-            }
-          </div>
-        ) : null}
-
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         {entries.length ===

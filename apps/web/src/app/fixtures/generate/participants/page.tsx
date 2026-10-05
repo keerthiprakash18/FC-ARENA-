@@ -735,7 +735,7 @@ export default function FixtureParticipantsPage() {
   async function clearParticipants() {
     if (
       !(await confirmAction(
-        'Clear the current participant selection?',
+        { title: 'Clear participant selection?', description: 'Clear all participants currently selected in this draft? You will need to select them again.', confirmLabel: 'Clear selection', destructive: true },
       ))
     ) {
       return;

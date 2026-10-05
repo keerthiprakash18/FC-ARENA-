@@ -303,7 +303,7 @@ export function TournamentLogoUpload({
 
     if (
       !(await confirmAction(
-        'Remove the Tournament logo?',
+        { title: 'Remove tournament logo?', description: 'Remove the current tournament logo? You can upload a new logo later.', confirmLabel: 'Remove logo', destructive: true },
       ))
     ) {
       return;

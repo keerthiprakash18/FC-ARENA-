@@ -290,9 +290,7 @@ export function FixtureCard({
   ) {
     const confirmed =
       (await confirmAction(
-        type === 'cancel'
-          ? 'Cancel this fixture?'
-          : 'Postpone this fixture?',
+        { title: type === 'cancel' ? 'Cancel fixture?' : 'Postpone fixture?', description: `${type === 'cancel' ? 'Cancel' : 'Postpone'} ${entryName(fixture.home, fixture.homeSource)} vs ${entryName(fixture.away, fixture.awaySource)}? This changes the fixture status.`, confirmLabel: type === 'cancel' ? 'Cancel fixture' : 'Postpone fixture', destructive: type === 'cancel' },
       ));
 
     if (!confirmed) {

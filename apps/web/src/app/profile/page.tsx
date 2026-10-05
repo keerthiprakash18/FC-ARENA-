@@ -1,6 +1,7 @@
 "use client";
 
 import { confirmAction } from "@/components/fc/confirmation-provider";
+import { FcNotice } from "@/components/fc/fc-ui";
 import { ShareCard } from "@/components/fc/share-card";
 import Link from "next/link";
 
@@ -196,7 +197,7 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!(await confirmAction("Remove your profile photo?"))) {
+    if (!(await confirmAction({ title: 'Remove profile photo?', description: 'Remove your current profile photo? You can upload a new photo later.', confirmLabel: 'Remove photo', destructive: true }))) {
       return;
     }
 
@@ -391,15 +392,15 @@ export default function ProfilePage() {
             </div>
 
             {imageMessage ? (
-              <div className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.05] p-3 text-sm text-emerald-700">
+              <div className="mt-5"><FcNotice>
                 {imageMessage}
-              </div>
+              </FcNotice></div>
             ) : null}
 
             {imageError ? (
-              <div className="mt-5 rounded-xl border border-red-400/20 bg-red-400/[0.05] p-3 text-sm text-red-600">
+              <div className="mt-5"><FcNotice tone="error">
                 {imageError}
-              </div>
+              </FcNotice></div>
             ) : null}
           </div>
         </FcPanel>

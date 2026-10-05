@@ -1,6 +1,7 @@
 'use client';
 
-import { confirmAction } from '@/components/fc/confirmation-provider';
+import { confirmAction, formAction } from '@/components/fc/confirmation-provider';
+import { FcEmptyState, FcLoadingScreen, FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -230,7 +231,7 @@ export default function FixturePreviewPage() {
   async function regenerate() {
     if (
       !(await confirmAction(
-        'Regenerate fixture preview? Current draft changes will be replaced.',
+        { title: 'Replace fixture preview?', description: 'Regenerate the fixture preview? Your current draft changes will be replaced.', confirmLabel: 'Regenerate preview', destructive: true },
       ))
     ) {
       return;
@@ -271,21 +272,19 @@ export default function FixturePreviewPage() {
   async function reset() {
     if (
       !(await confirmAction(
-        'Reset all draft fixtures?',
+        { title: 'Reset draft fixtures?', description: 'Remove all fixtures from this draft preview? You will need to generate or add draft fixtures again.', confirmLabel: 'Reset draft', destructive: true },
       ))
     ) {
       return;
     }
 
-    await authenticatedRequest(
+    await updateDraft(() => authenticatedRequest(
       `/tournaments/${tournamentId}/wizard/fixture-preview`,
       {
         method:
           'DELETE',
       },
-    );
-
-    await loadPreview();
+    ));
   }
 
 
@@ -293,15 +292,13 @@ export default function FixturePreviewPage() {
     fixtureId:
       string,
   ) {
-    await authenticatedRequest(
+    await updateDraft(() => authenticatedRequest(
       `/tournaments/${tournamentId}/wizard/fixture-preview/${fixtureId}/swap`,
       {
         method:
           'POST',
       },
-    );
-
-    await loadPreview();
+    ));
   }
 
 
@@ -311,21 +308,19 @@ export default function FixturePreviewPage() {
   ) {
     if (
       !(await confirmAction(
-        'Delete this fixture?',
+        { title: 'Delete draft fixture?', description: 'Remove this fixture from the draft preview?', confirmLabel: 'Delete fixture', destructive: true },
       ))
     ) {
       return;
     }
 
-    await authenticatedRequest(
+    await updateDraft(() => authenticatedRequest(
       `/tournaments/${tournamentId}/wizard/fixture-preview/${fixtureId}`,
       {
         method:
           'DELETE',
       },
-    );
-
-    await loadPreview();
+    ));
   }
 
 
@@ -333,14 +328,11 @@ export default function FixturePreviewPage() {
     fixture:
       Fixture,
   ) {
-    const value =
-      window.prompt(
-        'Move to Matchday:',
-        String(
-          fixture.matchday ??
-          fixture.roundNumber,
-        ),
-      );
+    const values = await formAction({
+      title: 'Move draft fixture', description: 'Choose the matchday for this fixture.', confirmLabel: 'Move fixture',
+      fields: [{ name: 'matchday', label: 'Matchday', type: 'number', required: true, min: 1, step: 1, defaultValue: String(fixture.matchday ?? fixture.roundNumber) }],
+    });
+    const value = values?.matchday;
 
     if (!value) {
       return;
@@ -361,7 +353,7 @@ export default function FixturePreviewPage() {
       return;
     }
 
-    await authenticatedRequest(
+    await updateDraft(() => authenticatedRequest(
       `/tournaments/${tournamentId}/wizard/fixture-preview/${fixture.id}`,
       {
         method:
@@ -375,9 +367,7 @@ export default function FixturePreviewPage() {
             matchday,
           }),
       },
-    );
-
-    await loadPreview();
+    ));
   }
 
 
@@ -389,41 +379,20 @@ export default function FixturePreviewPage() {
       return;
     }
 
-    const home =
-      window.prompt(
-        `Home Team ID:\n${entries
-          .map(
-            (
-              entry,
-            ) =>
-              `${entry.entryName}: ${entry.id}`,
-          )
-          .join('\n')}`,
-      );
+    const options = entries.map(entry => ({ value: entry.id, label: entry.entryName || entry.id }));
+    const values = await formAction({
+      title: 'Add draft fixture', description: 'Select the home and away teams and choose a matchday.', confirmLabel: 'Add fixture',
+      fields: [
+        { name: 'home', label: 'Home team', type: 'select', required: true, options },
+        { name: 'away', label: 'Away team', type: 'select', required: true, options },
+        { name: 'matchday', label: 'Matchday', type: 'number', required: true, min: 1, step: 1, defaultValue: '1' },
+      ],
+      validate: values => values.home === values.away ? 'Choose two different teams.' : undefined,
+    });
+    if (!values) return;
+    const home = values.home, away = values.away, round = Number(values.matchday);
 
-    if (!home) {
-      return;
-    }
-
-    const away =
-      window.prompt(
-        'Away Team ID:',
-      );
-
-    if (!away) {
-      return;
-    }
-
-    const round =
-      Number(
-        window.prompt(
-          'Matchday:',
-          '1',
-        ) ??
-        '1',
-      );
-
-    await authenticatedRequest(
+    await updateDraft(() => authenticatedRequest(
       `/tournaments/${tournamentId}/wizard/fixture-preview`,
       {
         method:
@@ -444,9 +413,22 @@ export default function FixturePreviewPage() {
               round,
           }),
       },
-    );
+    ));
+  }
 
-    await loadPreview();
+  async function updateDraft(mutate: () => Promise<unknown>) {
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      await mutate();
+      await loadPreview();
+      setMessage('Fixture preview updated.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update the fixture preview.');
+    } finally {
+      setBusy(false);
+    }
   }
 
 
@@ -495,9 +477,7 @@ export default function FixturePreviewPage() {
       0
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Fixture Preview...
-      </div>
+      <FcLoadingScreen label="Loading Fixture Preview..." />
     );
   }
 
@@ -523,23 +503,15 @@ export default function FixturePreviewPage() {
         description="Review and edit fixtures before they become official."
       >
 
-        {message ? (
-          <div className="mb-5 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <div className="flex flex-wrap gap-2">
 
           <button
             type="button"
+            disabled={busy || entries.length < 2}
             onClick={() =>
               void addMatch()
             }
@@ -550,6 +522,7 @@ export default function FixturePreviewPage() {
 
           <button
             type="button"
+            disabled={busy}
             onClick={() =>
               void regenerate()
             }
@@ -560,6 +533,7 @@ export default function FixturePreviewPage() {
 
           <button
             type="button"
+            disabled={busy || fixtures.length === 0}
             onClick={() =>
               void reset()
             }
@@ -572,6 +546,7 @@ export default function FixturePreviewPage() {
 
 
         <div className="mt-7 space-y-7">
+          {fixtures.length === 0 ? <FcEmptyState title="No draft fixtures" description="Add a match or regenerate the preview to start reviewing fixtures." icon="fixtures" /> : null}
 
           {rounds.map(
             ([
@@ -635,6 +610,7 @@ export default function FixturePreviewPage() {
 
                             <button
                               type="button"
+                              disabled={busy}
                               onClick={() =>
                                 void swap(
                                   fixture.id,
@@ -647,6 +623,7 @@ export default function FixturePreviewPage() {
 
                             <button
                               type="button"
+                              disabled={busy}
                               onClick={() =>
                                 void moveRound(
                                   fixture,
@@ -659,6 +636,7 @@ export default function FixturePreviewPage() {
 
                             <button
                               type="button"
+                              disabled={busy}
                               onClick={() =>
                                 void remove(
                                   fixture.id,

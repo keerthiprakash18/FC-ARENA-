@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -127,7 +128,7 @@ export default function ReviewPage() {
   async function publish() {
     if (
       !(await confirmAction(
-        'Publish this Tournament? It will become active.',
+        { title: 'Publish tournament?', description: 'Publish this tournament? It will become active.', confirmLabel: 'Publish tournament' },
       ))
     ) {
       return;
@@ -201,11 +202,7 @@ export default function ReviewPage() {
         description="Verify the final Tournament structure before publishing."
       >
 
-        {error ? (
-          <div className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <section className="rounded-[24px] border border-sky-400/20 bg-sky-400/[0.03] p-6">

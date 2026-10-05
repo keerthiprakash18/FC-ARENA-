@@ -11,6 +11,7 @@ import { InlineResultPanel } from "@/components/fixtures/inline-result-panel";
 
 import {
   FcCrest,
+  FcErrorState,
   FcEmptyState,
   FcLoadingScreen,
   FcPageHeader,
@@ -675,7 +676,7 @@ export default function FixturesPage() {
     (fixture) => dateGroup(fixture.scheduledAt) === "Today",
   ).length;
 
-  if (!user && error) return <AppShell><FcPanel className="p-6"><p role="alert">{error}</p><button className="theme-primary-button mt-4 rounded-xl px-5" onClick={() => { setError(""); setRetry(value => value + 1); }}>Retry</button></FcPanel></AppShell>;
+  if (!user && error) return <AppShell><FcErrorState message={error} onRetry={() => { setError(""); setRetry(value => value + 1); }} /></AppShell>;
 
   if (!user || (loading && memberships.length === 0)) {
     return <FcLoadingScreen label="Loading Fixtures..." />;
@@ -708,12 +709,7 @@ export default function FixturesPage() {
           }
         />
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {error}
-            <button className="theme-secondary-button ml-3 rounded-lg px-4" onClick={() => setRetry(value => value + 1)}>Retry</button>
-          </div>
-        ) : null}
+        {error ? <FcErrorState message={error} onRetry={() => { setError(""); setRetry(value => value + 1); }} /> : null}
 
         {memberships.length === 0 ? (
           <FcEmptyState

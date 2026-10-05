@@ -13,6 +13,7 @@ import {
 
 import { ConfirmationProvider } from '@/components/fc/confirmation-provider';
 import './globals.css';
+import './design-tokens.css';
 import './modernization.css';
 import './native-android.css';
 

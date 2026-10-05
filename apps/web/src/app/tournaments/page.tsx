@@ -1,6 +1,7 @@
 "use client";
 
 import { ResumeWizard } from "@/components/tournaments/resume-wizard";
+import { confirmNamedDeletion } from "@/components/fc/confirmation-provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -12,6 +13,7 @@ import {
   FcCrest,
   FcEmptyState,
   FcLoadingScreen,
+  FcNotice,
   FcPageHeader,
   FcPanel,
   FcSectionHeading,
@@ -121,6 +123,7 @@ export default function TournamentsPage() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const [deletingTournamentId, setDeletingTournamentId] = useState<
     string | null
@@ -240,9 +243,7 @@ export default function TournamentsPage() {
       return;
     }
 
-    const confirmation = window.prompt(
-      `Delete "${tournament.name}" permanently? This removes its teams, groups, fixtures, matches, standings and stats. Type the Tournament name exactly to continue.`,
-    );
+    const confirmation = await confirmNamedDeletion('Tournament', tournament.name);
 
     if (confirmation === null) {
       return;
@@ -257,6 +258,7 @@ export default function TournamentsPage() {
     setDeletingTournamentId(tournament.id);
 
     setError("");
+    setMessage("");
 
     try {
       await authenticatedRequest(`/tournaments/${tournament.id}`, {
@@ -270,6 +272,7 @@ export default function TournamentsPage() {
       setTournaments((current) =>
         current.filter((item) => item.id !== tournament.id),
       );
+      setMessage(`“${tournament.name}” deleted.`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Unable to delete Tournament.",
@@ -337,11 +340,8 @@ export default function TournamentsPage() {
           </FcPanel>
         ) : null}
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         {!selectedMembership ? (
           <FcEmptyState

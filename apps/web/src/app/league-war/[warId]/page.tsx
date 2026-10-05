@@ -1,4 +1,6 @@
 'use client';
+import { promptAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 
 import {
   useEffect,
@@ -594,13 +596,11 @@ export default function LeagueWarDetailPage() {
       return;
     }
 
-    const reason =
-      window.prompt(
-        kind ===
-        'reject'
-          ? 'Reason for rejecting this challenge? (optional)'
-          : 'Reason for cancelling this War? (optional)',
-      );
+    const reason = await promptAction({
+      title: kind === 'reject' ? 'Reject challenge?' : 'Cancel League War?',
+      description: kind === 'reject' ? 'Reject this League War challenge? You can include a reason for the other league.' : 'Cancel this League War? You can include a reason for the participating leagues.',
+      label: 'Reason', confirmLabel: kind === 'reject' ? 'Reject challenge' : 'Cancel League War', destructive: true,
+    });
 
     if (
       reason ===
@@ -1125,13 +1125,7 @@ export default function LeagueWarDetailPage() {
           </div>
         </div>
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice tone="error">{error}</FcNotice>
 
         <section className="relative overflow-hidden rounded-[30px] border border-rose-400/20 bg-[#0B0F14] p-5 sm:p-7">
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-400/10 blur-3xl" />

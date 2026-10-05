@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -375,7 +376,7 @@ export default function GroupsWizardPage() {
   ) {
     const confirmed =
       (await confirmAction(
-        `Delete ${group.name}? ${group.entries.length} team(s) inside it will become unassigned.`,
+        { title: 'Delete group?', description: `Delete “${group.name}”? Its ${group.entries.length} team(s) will become unassigned.`, confirmLabel: 'Delete group', destructive: true },
       ));
 
     if (!confirmed) {
@@ -480,7 +481,7 @@ export default function GroupsWizardPage() {
 
     if (
       !(await confirmAction(
-        `This will ${label}. Continue?`,
+        { title: 'Replace group assignments?', description: `This will ${label}, replacing their current group assignments.`, confirmLabel: 'Replace assignments', destructive: true },
       ))
     ) {
       return;
@@ -663,18 +664,8 @@ export default function GroupsWizardPage() {
         description="Create groups and decide exactly where every team belongs."
       >
 
-        {message ? (
-          <div className="mb-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-
-        {error ? (
-          <div className="mb-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <div className="flex flex-wrap items-end justify-between gap-4">

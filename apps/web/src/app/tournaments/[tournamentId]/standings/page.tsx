@@ -20,6 +20,7 @@ import {
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
+import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 
 
 interface Standing {
@@ -536,15 +537,13 @@ export default function StandingsPage() {
   ]);
 
 
-  if(loadError) return <AppShell><div className="theme-panel rounded-xl p-5"><p role="alert">{loadError}</p><button onClick={()=>window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></div></AppShell>;
+  if(loadError) return <AppShell><FcErrorState message={loadError} onRetry={() => window.location.reload()} /></AppShell>;
   if (
     !user ||
     loading
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Standings...
-      </div>
+      <FcLoadingScreen label="Loading Standings..." />
     );
   }
 

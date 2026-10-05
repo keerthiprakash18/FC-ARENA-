@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useEffect,
   useState,
@@ -546,15 +547,7 @@ export default function LeagueRolesPage() {
     if (
       busy ||
       !(await confirmAction(
-        'Remove ' +
-          roleLabel(
-            assignment.role,
-          ) +
-          ' from ' +
-          displayName(
-            assignment,
-          ) +
-          '?',
+        { title: 'Remove assigned role?', description: `Remove the ${roleLabel(assignment.role)} role from “${displayName(assignment)}”? They will lose the access granted by this role.`, confirmLabel: 'Remove role', destructive: true },
       ))
     ) {
       return;
@@ -660,13 +653,7 @@ export default function LeagueRolesPage() {
           }
         />
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
-            {
-              message
-            }
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
 
         {error ? (
           <FcErrorState

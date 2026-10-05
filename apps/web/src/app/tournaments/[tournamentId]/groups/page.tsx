@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import Link from 'next/link';
 
 import {
@@ -372,7 +373,7 @@ export default function TournamentGroupsPage() {
     ) {
       const confirmed =
         (await confirmAction(
-          'Saving group structure again will return every team to Unassigned. Continue?',
+          { title: 'Replace group structure?', description: 'Saving this group structure will remove all current team assignments. Every team will return to Unassigned.', confirmLabel: 'Replace groups', destructive: true },
         ));
 
       if (!confirmed) {
@@ -536,7 +537,7 @@ export default function TournamentGroupsPage() {
   async function generateGroupFixtures() {
     const confirmed =
       (await confirmAction(
-        'Generate group-stage fixtures now? Group assignments will be locked after generation.',
+        { title: 'Generate group fixtures?', description: 'Generate group-stage fixtures now? Group assignments will be locked after generation.', confirmLabel: 'Generate fixtures' },
       ));
 
     if (!confirmed) {
@@ -753,17 +754,8 @@ export default function TournamentGroupsPage() {
           </div>
         ) : null}
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         {tournament.isLeagueAdmin &&
         !locked ? (

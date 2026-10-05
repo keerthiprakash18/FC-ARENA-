@@ -8,6 +8,7 @@ import { BackHeader } from "@/components/app/back-header";
 import { CareerNavigation } from "@/components/career/career-navigation";
 import {
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
@@ -87,7 +88,7 @@ export default function CareerMatchesPage() {
     })().catch(() => setError("Unable to load match history. Please retry."));
   }, []);
 
-  if (error) return <AppShell><FcPanel className="p-6"><p role="alert">{error}</p><button onClick={() => window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></FcPanel></AppShell>;
+  if (error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
   if (!user || !career) {
     return <FcLoadingScreen label="Loading Match History..." />;
   }

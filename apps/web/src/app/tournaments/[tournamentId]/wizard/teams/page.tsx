@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -527,10 +528,7 @@ export default function TeamsWizardPage() {
   ) {
     const confirmed =
       (await confirmAction(
-        entry.fixtureCount >
-        0
-          ? `Delete ${entry.entryName ?? 'this team'}? It already has ${entry.fixtureCount} fixture(s).`
-          : `Delete ${entry.entryName ?? 'this team'}?`,
+        { title: 'Delete tournament team?', description: `Permanently delete “${entry.entryName ?? 'this team'}” from this tournament?${entry.fixtureCount > 0 ? ` It already has ${entry.fixtureCount} fixture(s).` : ''} This cannot be undone.`, confirmLabel: 'Delete team', destructive: true },
       ));
 
     if (!confirmed) {
@@ -836,18 +834,8 @@ export default function TeamsWizardPage() {
         description="Let League players register themselves. Approved entries automatically become Tournament participants."
       >
 
-        {message ? (
-          <div className="mb-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-
-        {error ? (
-          <div className="mb-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <section className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-5 sm:p-6">

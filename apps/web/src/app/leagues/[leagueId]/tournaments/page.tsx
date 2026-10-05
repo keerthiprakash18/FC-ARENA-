@@ -1,4 +1,6 @@
 'use client';
+import { confirmNamedDeletion } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 
 import Link from 'next/link';
 import {
@@ -385,10 +387,7 @@ export default function LeagueTournamentsPage() {
       return;
     }
 
-    const confirmation =
-      window.prompt(
-        `Delete "${tournament.name}" permanently? This removes all Tournament teams, groups, fixtures, matches, standings and stats. Type the Tournament name exactly to continue.`,
-      );
+    const confirmation = await confirmNamedDeletion('Tournament', tournament.name);
 
     if (
       confirmation ===
@@ -512,13 +511,7 @@ export default function LeagueTournamentsPage() {
         />
 
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         {(showCreate || (isAdmin && tournaments.length === 0)) &&

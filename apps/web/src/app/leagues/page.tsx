@@ -1,6 +1,6 @@
 "use client";
 
-import { confirmAction } from "@/components/fc/confirmation-provider";
+import { confirmAction, confirmNamedDeletion } from "@/components/fc/confirmation-provider";
 import Link from "next/link";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import {
   FcCrest,
   FcEmptyState,
   FcLoadingScreen,
+  FcNotice,
   FcPageHeader,
   FcPanel,
   FcSectionHeading,
@@ -202,9 +203,7 @@ export default function LeaguesPage() {
       return;
     }
 
-    const confirmation = window.prompt(
-      `Delete "${item.league.name}" permanently? This also removes its tournaments, fixtures, standings and League memberships. Type the League name exactly to continue.`,
-    );
+    const confirmation = await confirmNamedDeletion('League', item.league.name);
 
     if (confirmation === null) {
       return;
@@ -249,7 +248,7 @@ export default function LeaguesPage() {
       return;
     }
 
-    if (!(await confirmAction(`Leave "${item.league.name}"?`))) {
+    if (!(await confirmAction({ title: 'Leave league?', description: `Leave “${item.league.name}”? Your league membership will be removed. You will need to request membership again to rejoin.`, confirmLabel: 'Leave league', destructive: true }))) {
       return;
     }
 
@@ -301,17 +300,8 @@ export default function LeaguesPage() {
           }
         />
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         <section>
           <FcSectionHeading

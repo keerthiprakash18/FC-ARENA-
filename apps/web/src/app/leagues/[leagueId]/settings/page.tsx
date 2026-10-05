@@ -1,6 +1,6 @@
 'use client';
 
-import { confirmAction } from '@/components/fc/confirmation-provider';
+import { confirmAction, confirmNamedDeletion } from '@/components/fc/confirmation-provider';
 import {
   useParams,
   useRouter,
@@ -20,6 +20,7 @@ import {
 
 import {
   FcLoadingScreen,
+  FcNotice,
   FcPanel,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
@@ -246,7 +247,7 @@ export default function LeagueSettingsPage() {
     if (
       !league ||
       !(await confirmAction(
-        `Leave ${league.name}?`,
+        { title: 'Leave league?', description: `Leave “${league.name}”? Your league membership will be removed. You will need to request membership again to rejoin.`, confirmLabel: 'Leave league', destructive: true },
       ))
     ) {
       return;
@@ -293,10 +294,7 @@ export default function LeagueSettingsPage() {
       return;
     }
 
-    const confirmation =
-      window.prompt(
-        `This permanently deletes "${league.name}" and its tournaments, fixtures, standings and League memberships. Type the League name exactly to continue.`,
-      );
+    const confirmation = await confirmNamedDeletion('League', league.name);
 
     if (
       confirmation ===
@@ -455,21 +453,8 @@ export default function LeagueSettingsPage() {
         />
 
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
-            {
-              message
-            }
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <FcPanel className="p-5 sm:p-6">

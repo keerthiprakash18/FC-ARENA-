@@ -16,6 +16,7 @@ import {
   confirmAction,
 } from '@/components/fc/confirmation-provider';
 import {
+  FcNotice,
   FcPanel,
 } from '@/components/fc/fc-ui';
 import {
@@ -405,7 +406,7 @@ export default function AchievementsPage() {
   async function completeTournament() {
     if (
       !(await confirmAction(
-        'Complete this Tournament? Final verified achievements will be generated permanently.',
+        { title: 'Complete tournament?', description: 'Complete this tournament and permanently generate its final verified achievements?', confirmLabel: 'Complete tournament' },
       ))
     ) {
       return;
@@ -577,21 +578,8 @@ export default function AchievementsPage() {
           </div>
         </section>
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-4 text-sm font-semibold text-emerald-300">
-            {
-              message
-            }
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         {!isCompleted &&
         races?.available ? (

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useId, useRef } from 'react';
+import { FcDialog } from './fc-dialog';
 import type {
   ReactNode,
 } from 'react';
@@ -15,6 +15,7 @@ export type FcTone =
   | 'cyan'
   | 'emerald'
   | 'amber'
+  | 'gold'
   | 'red'
   | 'slate';
 
@@ -25,6 +26,8 @@ const toneClasses:
     emerald:
       'theme-tone-success',
     amber:
+      'theme-tone-warning',
+    gold:
       'theme-tone-premium',
     red:
       'theme-tone-danger',
@@ -552,11 +555,13 @@ export function competitionLabel(
 }
 
 export function FcErrorState({
+  title = 'Unable to complete this request',
   message,
   onRetry,
-  retryLabel = 'Retry',
+  retryLabel = 'Try again',
   busy = false,
 }: {
+  title?: string;
   message: string;
   onRetry?: () => void;
   retryLabel?: string;
@@ -567,7 +572,8 @@ export function FcErrorState({
       className="theme-error-box rounded-2xl border p-4 text-sm"
       role="alert"
     >
-      <p>{message}</p>
+      <h2 className="font-semibold">{title}</h2>
+      <p className="mt-1">{message}</p>
 
       {onRetry ? (
         <button
@@ -581,6 +587,24 @@ export function FcErrorState({
             : retryLabel}
         </button>
       ) : null}
+    </div>
+  );
+}
+
+export function FcNotice({ children, tone = 'success' }: { children: ReactNode; tone?: 'success' | 'error' }) {
+  return <div role={tone === 'error' ? 'alert' : 'status'} aria-live={tone === 'error' ? 'assertive' : 'polite'} aria-atomic="true" data-tone={tone} className={children ? 'fc-notice' : 'sr-only'}>{children}</div>;
+}
+
+export function FcUnauthorizedState({ forbidden = false }: { forbidden?: boolean }) {
+  return (
+    <div role="alert">
+      <FcEmptyState
+        title={forbidden ? 'Access unavailable' : 'Sign in to continue'}
+        description={forbidden ? 'Your account does not have access to this screen.' : 'Your session is unavailable. Sign in again to open this screen.'}
+        icon="shield"
+        actionLabel={forbidden ? 'Go to Dashboard' : 'Sign in'}
+        actionHref={forbidden ? '/dashboard' : '/login'}
+      />
     </div>
   );
 }
@@ -623,95 +647,8 @@ export function FcConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const titleId = useId();
-  const descriptionId = useId();
-  const cancelRef = useRef(onCancel);
-  useEffect(() => { cancelRef.current = onCancel; }, [onCancel]);
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.activeElement as HTMLElement | null;
-    const dialog = dialogRef.current;
-    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), [tabindex="0"]') ?? []);
-    (focusable()[0] ?? dialog)?.focus();
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) { event.preventDefault(); cancelRef.current(); }
-      if (event.key === 'Tab') {
-        const items = focusable();
-        const first = items[0], last = items[items.length - 1];
-        if (!first) { event.preventDefault(); dialog?.focus(); }
-        else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog)) { event.preventDefault(); first.focus(); }
-      }
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => { document.removeEventListener('keydown', handleKey); previous?.focus(); };
-  }, [open, busy]);
-  if (!open) return null;
-
   return (
-    <div className="theme-dialog-overlay fixed inset-0 z-[80] grid place-items-center p-4">
-      <div
-        role="dialog"
-        aria-modal="true"
-        ref={dialogRef}
-        tabIndex={-1}
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-        aria-busy={busy}
-        className="theme-dialog w-full max-w-md rounded-2xl border p-5"
-      >
-        <h2
-          id={titleId}
-          className="theme-text text-lg font-semibold"
-        >
-          {title}
-        </h2>
-
-        <p id={descriptionId} className="theme-secondary-text mt-2 text-sm leading-6">
-          {description}
-        </p>
-
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            disabled={
-              busy
-            }
-            onClick={
-              onCancel
-            }
-            className="theme-secondary-button min-h-11 rounded-[10px] border px-4 text-sm font-medium disabled:opacity-40"
-          >
-            {
-              cancelLabel
-            }
-          </button>
-
-          <button
-            type="button"
-            disabled={
-              busy
-            }
-            onClick={
-              onConfirm
-            }
-            className={
-              'min-h-11 rounded-[10px] px-4 text-sm font-semibold disabled:opacity-40 ' +
-              (
-                destructive
-                  ? 'theme-danger-button border'
-                  : 'theme-primary-button'
-              )
-            }
-          >
-            {busy
-              ? 'Working...'
-              : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+    <FcDialog open={open} title={title} description={description} confirmLabel={confirmLabel} cancelLabel={cancelLabel} destructive={destructive} busy={busy} onConfirm={onConfirm} onCancel={onCancel} />
   );
 }
 

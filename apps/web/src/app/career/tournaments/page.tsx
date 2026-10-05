@@ -8,6 +8,7 @@ import { BackHeader } from "@/components/app/back-header";
 import { CareerNavigation } from "@/components/career/career-navigation";
 import {
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
@@ -85,7 +86,7 @@ export default function CareerTournamentsPage() {
     })().catch(() => setError("Unable to load tournament history. Please retry."));
   }, []);
 
-  if(error) return <AppShell><FcPanel className="p-5"><p role="alert">{error}</p><button className="theme-primary-button mt-4 rounded-xl px-4" onClick={()=>window.location.reload()}>Retry</button></FcPanel></AppShell>;
+  if(error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
   if (!user || !career) {
     return <FcLoadingScreen label="Loading Tournament History..." />;
   }

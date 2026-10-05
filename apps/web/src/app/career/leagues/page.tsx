@@ -9,6 +9,7 @@ import { CareerNavigation } from '@/components/career/career-navigation';
 import {
   FcCrest,
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
@@ -47,6 +48,7 @@ interface CareerData {
 }
 
 export default function CareerLeaguesPage() {
+  const [error, setError] = useState('');
   const [user, setUser] =
     useState<CurrentUser | null>(null);
 
@@ -67,9 +69,10 @@ export default function CareerLeaguesPage() {
 
       setUser(current);
       setCareer(response.data);
-    })();
+    })().catch(err => setError(err instanceof Error ? err.message : 'Unable to load League History.'));
   }, []);
 
+  if (error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
   if (!user || !career) {
     return (
       <FcLoadingScreen

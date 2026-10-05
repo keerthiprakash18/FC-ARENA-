@@ -1,17 +1,17 @@
 .experience { min-height: 100svh; display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); background: var(--theme-background); color: var(--theme-text); }
-.visualPanel { position: relative; min-height: 100svh; padding: clamp(32px,5vw,72px); display: flex; flex-direction: column; background: #102b46; color: #fffefa; }
+.visualPanel { position: relative; min-height: 100svh; padding: clamp(32px,5vw,72px); display: flex; flex-direction: column; background: var(--fc-navy); color: var(--fc-on-navy); }
 .brandTop { display: flex; align-items: center; gap: 12px; }
 .logoBadge { width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; overflow: hidden; }
 .logoImage { width: 100%; height: 100%; object-fit: cover; }
 .brandName { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
-.brandName span { color: #d9b765; }
-.brandMini { margin-top: 4px; color: #becbd7; font-size: 11px; letter-spacing: .12em; }
+.brandName span { color: var(--fc-gold-bright); }
+.brandMini { margin-top: 4px; color: var(--fc-shell-muted); font-size: 11px; letter-spacing: .12em; }
 .hero { margin: auto 0; padding: 64px 0; max-width: 560px; }
 .heroBrandLogo { display: none; }
-.kicker { margin: 0 0 20px; color: #d9b765; font-size: 12px; letter-spacing: .14em; font-weight: 600; }
+.kicker { margin: 0 0 20px; color: var(--fc-gold-bright); font-size: 12px; letter-spacing: .14em; font-weight: 600; }
 .headline { margin: 0; font-size: clamp(44px,5vw,76px); line-height: 1.02; letter-spacing: -.045em; font-weight: 750; }
-.subline { margin-top: 28px; font-size: 13px; letter-spacing: .18em; color: #d9b765; }
-.supportCopy { margin-top: 16px; color: #becbd7; font-size: 16px; line-height: 1.6; }
+.subline { margin-top: 28px; font-size: 13px; letter-spacing: .18em; color: var(--fc-gold-bright); }
+.supportCopy { margin-top: 16px; color: var(--fc-shell-muted); font-size: 16px; line-height: 1.6; }
 .formPanel { display: grid; place-items: center; padding: 32px; min-width: 0; }
 .card { width: min(100%,480px); padding: clamp(24px,3vw,40px); border: 1px solid var(--theme-border); border-radius: 20px; background: var(--theme-surface); }
 .eyebrow { margin: 0 0 12px; color: var(--theme-text-secondary); font-size: 12px; font-weight: 600; letter-spacing: .12em; }
@@ -22,10 +22,10 @@
 .card :global(.auth-form) { gap: 18px; }
 .card :global(.field label) { color: var(--theme-text); font-size: 14px; font-weight: 600; }
 .card :global(.field input) { min-width: 0; width: 100%; min-height: 48px; border-radius: 10px; border: 1px solid var(--theme-border); background: var(--theme-surface); color: var(--theme-text); font-size: 16px; }
-.card :global(.field input:focus) { border-color: var(--theme-primary); box-shadow: 0 0 0 3px var(--theme-primary-soft); }
+.card :global(.field input:focus) { border-color: var(--theme-focus); box-shadow: none; }
 .card :global(.field input::placeholder) { color: var(--theme-text-muted); }
-.card :global(.primary-button) { width: 100%; min-height: 48px; background: #102b46; color: white; border-radius: 10px; font-weight: 600; box-shadow: none; transition: background-color 160ms ease; }
-.card :global(.primary-button:hover:not(:disabled)) { background: #20486c; transform: none; }
+.card :global(.primary-button) { width: 100%; min-height: 48px; background: var(--theme-primary); color: var(--theme-on-primary); border-radius: var(--fc-control-radius); font-weight: 600; box-shadow: none; transition: background-color var(--fc-motion); }
+.card :global(.primary-button:hover:not(:disabled)) { background: var(--theme-primary-hover); transform: none; }
 .card :global(.text-link) { color: var(--theme-text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .card :global(.link-row) { color: var(--theme-text-secondary); font-size: 14px; }
 .card :global(.login-button-content) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }

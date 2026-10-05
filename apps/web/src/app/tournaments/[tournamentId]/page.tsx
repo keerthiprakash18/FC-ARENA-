@@ -1,6 +1,7 @@
 "use client";
 
 import { PlayerProgress } from "@/components/tournaments/player-progress";
+import { confirmNamedDeletion } from "@/components/fc/confirmation-provider";
 import { ApiError } from "@/lib/api";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -14,7 +15,9 @@ import {
   competitionLabel,
   FcCrest,
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
+  FcNotice,
   FcPanel,
   FcStatCard,
   FcStatusBadge,
@@ -185,9 +188,7 @@ export default function TournamentOverviewPage() {
       return;
     }
 
-    const confirmation = window.prompt(
-      `Delete "${tournament.name}" permanently? This removes all teams, groups, fixtures, matches, standings and Tournament stats. Type the Tournament name exactly to continue.`,
-    );
+    const confirmation = await confirmNamedDeletion('Tournament', tournament.name);
 
     if (confirmation === null) {
       return;
@@ -224,7 +225,7 @@ export default function TournamentOverviewPage() {
     }
   }
 
-  if (loadError) return <AppShell><FcPanel className="p-5"><p role="alert">{loadError}</p><button onClick={()=>window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></FcPanel></AppShell>;
+  if (loadError) return <AppShell><FcErrorState message={loadError} onRetry={() => window.location.reload()} /></AppShell>;
   if (!user || !tournament) {
     return <FcLoadingScreen label="Loading Tournament Overview..." />;
   }
@@ -263,11 +264,7 @@ export default function TournamentOverviewPage() {
 
         <TournamentNavigation tournamentId={tournamentId} />
 
-        {deleteError ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {deleteError}
-          </div>
-        ) : null}
+        <FcNotice tone="error">{deleteError}</FcNotice>
 
         <FcPanel className="overflow-hidden">
           <div className="bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_65%)] p-5 sm:p-6">

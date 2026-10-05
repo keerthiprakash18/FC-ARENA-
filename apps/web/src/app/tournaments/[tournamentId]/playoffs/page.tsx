@@ -9,6 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
+import { FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
 
 import {
   FixtureCard,
@@ -367,7 +368,7 @@ export default function PlayoffsPage() {
     }
 
     const confirmed = await confirmAction(
-      `Generate knockout stage with ${qualifiersPerGroup} qualifier(s) from each group?`,
+      { title: 'Generate knockout stage?', description: `Generate the knockout stage with ${qualifiersPerGroup} qualifier(s) from each group?`, confirmLabel: 'Generate knockout stage' },
     );
 
     if (!confirmed) {
@@ -398,7 +399,7 @@ export default function PlayoffsPage() {
       });
 
       setMessage(
-        `${response.data.message} ${response.data.totalQualifiers} qualifiers â†’ ${response.data.fixtures} knockout fixtures.`,
+        `${response.data.message} ${response.data.totalQualifiers} qualifiers → ${response.data.fixtures} knockout fixtures.`,
       );
 
       await loadFixtures();
@@ -411,12 +412,10 @@ export default function PlayoffsPage() {
     }
   }
 
-  if (!loading && (!user || !tournament) && error) return <AppShell><div className="theme-panel rounded-xl p-5"><p role="alert">{error}</p><button onClick={()=>window.location.reload()} className="theme-primary-button mt-4 rounded-lg px-4">Retry</button></div></AppShell>;
+  if (!loading && (!user || !tournament) && error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
   if (loading || !user || !tournament) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Playoff Center...
-      </div>
+      <FcLoadingScreen label="Loading Playoff Center..." />
     );
   }
 
@@ -428,7 +427,7 @@ export default function PlayoffsPage() {
           onClick={() => router.back()}
           className="text-sm font-black text-slate-500 hover:text-white"
         >
-          â† Back
+          ← Back
         </button>
 
         <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
@@ -476,17 +475,8 @@ export default function PlayoffsPage() {
           </div>
         </section>
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
@@ -714,7 +704,8 @@ export default function PlayoffsPage() {
             {playoffRounds.filter(([name]) => selectedRound === "ALL" || name === selectedRound).map(([roundName, roundFixtures]) => (
               <article
                 key={roundName}
-                className="rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
+                className="fc-bracket-round rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
+                aria-label={`${roundName} bracket`}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-black">{roundName}</h3>

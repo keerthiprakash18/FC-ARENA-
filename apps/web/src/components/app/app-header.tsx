@@ -122,6 +122,12 @@ export function AppHeader({
   ] =
     useState(false);
 
+  const [
+    highlightedIndex,
+    setHighlightedIndex,
+  ] =
+    useState(0);
+
   const initials = (
     playerName ||
     'FC'
@@ -154,19 +160,10 @@ export function AppHeader({
         setSearchOpen(
           true,
         );
+
+        setHighlightedIndex(0);
       }
 
-      if (
-        event.key ===
-        'Escape'
-      ) {
-        setSearchOpen(
-          false,
-        );
-
-        searchRef.current
-          ?.blur();
-      }
     }
 
     window.addEventListener(
@@ -215,6 +212,46 @@ export function AppHeader({
         query,
       ],
     );
+
+  const hasGlobalSearch = query.trim().length >= 2;
+  const optionCount = results.length + (hasGlobalSearch ? 1 : 0);
+
+  function handleSearchKeyDown(event: {
+    key: string;
+    ctrlKey?: boolean;
+    metaKey?: boolean;
+    preventDefault: () => void;
+  }) {
+    if (event.key === 'ArrowDown' && optionCount > 0) {
+      event.preventDefault();
+      setSearchOpen(true);
+      setHighlightedIndex(index => (index + 1) % optionCount);
+      return;
+    }
+
+    if (event.key === 'ArrowUp' && optionCount > 0) {
+      event.preventDefault();
+      setSearchOpen(true);
+      setHighlightedIndex(index => (index - 1 + optionCount) % optionCount);
+      return;
+    }
+
+    if (event.key === 'Enter' && searchOpen && optionCount > 0) {
+      event.preventDefault();
+      if (hasGlobalSearch && highlightedIndex === 0) {
+        openResult(`/discover?q=${encodeURIComponent(query.trim())}`);
+      } else {
+        const result = results[highlightedIndex - (hasGlobalSearch ? 1 : 0)];
+        if (result) openResult(result.href);
+      }
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setSearchOpen(false);
+    }
+  }
 
 
   function openResult(
@@ -275,20 +312,27 @@ export function AppHeader({
               value={
                 query
               }
-              onFocus={() =>
-                setSearchOpen(
-                  true,
-                )
-              }
-              onChange={
-                (
-                  event,
-                ) =>
-                  setQuery(
-                    event.target.value,
-                  )
-              }
-              aria-label="Search app sections"
+               onFocus={() =>
+                 setSearchOpen(
+                   true,
+                 )
+               }
+               onChange={
+                 (
+                   event,
+                 ) => {
+                   setQuery(event.target.value);
+                   setHighlightedIndex(0);
+                 }
+               }
+               onKeyDown={handleSearchKeyDown}
+               role="combobox"
+               aria-label="Search app sections"
+               aria-controls="fc-search-results"
+               aria-expanded={searchOpen}
+               aria-autocomplete="list"
+               aria-haspopup="listbox"
+               aria-activedescendant={searchOpen && optionCount > 0 ? `fc-search-option-${highlightedIndex}` : undefined}
               placeholder="Search FC Arena or jump to a section..."
               className="theme-search-input min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
@@ -301,10 +345,16 @@ export function AppHeader({
 
           {searchOpen ? (
             <>
-              <div className="theme-search-menu absolute left-0 right-0 top-12 overflow-hidden rounded-xl border p-1.5 shadow-[0_18px_42px_rgba(11,37,69,0.12)]">
-                {query.trim().length >= 2 ? (
+               <div id="fc-search-results" role="listbox" aria-label="FC Arena search results" className="theme-search-menu absolute left-0 right-0 top-12 overflow-hidden rounded-xl border p-1.5 shadow-[0_18px_42px_rgba(11,37,69,0.12)]">
+                {hasGlobalSearch ? (
                   <button
                     type="button"
+                    id="fc-search-option-0"
+                    role="option"
+                    tabIndex={-1}
+                    onMouseDown={event => event.preventDefault()}
+                    aria-selected={highlightedIndex === 0}
+                    onMouseEnter={() => setHighlightedIndex(0)}
                     onClick={() =>
                       openResult(
                         `/discover?q=${encodeURIComponent(
@@ -312,7 +362,7 @@ export function AppHeader({
                         )}`,
                       )
                     }
-                    className="theme-search-result mb-1 flex min-h-11 w-full items-center justify-between rounded-[9px] border border-sky-400/15 px-3 text-left text-xs font-black text-sky-400 transition"
+                    className={`theme-search-result mb-1 flex min-h-11 w-full items-center justify-between rounded-[9px] border border-sky-400/15 px-3 text-left text-xs font-black text-sky-400 transition ${highlightedIndex === 0 ? 'is-highlighted' : ''}`}
                   >
                     <span>
                       Search all FC Arena for “{query.trim()}”
@@ -329,10 +379,11 @@ export function AppHeader({
 
                 {results.length >
                 0 ? (
-                  results.map(
-                    (
-                      item,
-                    ) => (
+                   results.map(
+                     (
+                       item,
+                       index,
+                     ) => (
                       <button
                         key={
                           item.href
@@ -343,7 +394,13 @@ export function AppHeader({
                             item.href,
                           )
                         }
-                        className="theme-search-result flex min-h-10 w-full items-center justify-between rounded-[9px] px-3 text-left text-xs transition"
+                         id={`fc-search-option-${(hasGlobalSearch ? 1 : 0) + index}`}
+                         role="option"
+                         tabIndex={-1}
+                         onMouseDown={event => event.preventDefault()}
+                         aria-selected={highlightedIndex === (hasGlobalSearch ? 1 : 0) + index}
+                         onMouseEnter={() => setHighlightedIndex((hasGlobalSearch ? 1 : 0) + index)}
+                         className={`theme-search-result flex min-h-10 w-full items-center justify-between rounded-[9px] px-3 text-left text-xs transition ${highlightedIndex === (hasGlobalSearch ? 1 : 0) + index ? 'is-highlighted' : ''}`}
                       >
                         <span>
                           {

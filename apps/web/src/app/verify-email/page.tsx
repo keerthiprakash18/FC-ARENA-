@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FcNotice } from '@/components/fc/fc-ui';
 
 import {
   AuthCard,
@@ -45,9 +46,9 @@ export default function VerifyEmailPage() {
       title="Email verification is not required"
       description="FC ARENA accounts can sign in immediately after registration. Redirecting you to sign in."
     >
-      <div className="success-box">
+      <FcNotice>
         Your account does not need an email OTP.
-      </div>
+      </FcNotice>
     </AuthCard>
   );
 }

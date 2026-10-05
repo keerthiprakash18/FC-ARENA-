@@ -464,7 +464,8 @@ export default function LeaderboardsPage() {
                           </div>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-6 gap-1 text-center">
+                         <details className="fc-row-details"><summary>Statistics &amp; recent form</summary>
+                         <div className="mt-4 grid grid-cols-6 gap-1 text-center">
                           {[
                             ["W", row.wins],
                             ["D", row.draws],
@@ -509,8 +510,9 @@ export default function LeaderboardsPage() {
                               </span>
                             ))}
                           </div>
-                        ) : null}
-                      </FcPanel>
+                         ) : null}
+                         </details>
+                       </FcPanel>
                     ))}
                   </div>
 

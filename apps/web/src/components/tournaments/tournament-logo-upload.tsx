@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useEffect,
   useRef,
@@ -87,6 +88,7 @@ export function TournamentLogoUpload({
     setError,
   ] =
     useState('');
+  const [message, setMessage] = useState('');
 
 
   useEffect(() => {
@@ -187,6 +189,7 @@ export function TournamentLogoUpload({
       validateFile(
         file,
       );
+    setMessage('');
 
     if (
       validationError
@@ -267,6 +270,7 @@ export function TournamentLogoUpload({
       setProgress(
         100,
       );
+      setMessage('Tournament logo uploaded.');
     } catch (
       err
     ) {
@@ -303,7 +307,7 @@ export function TournamentLogoUpload({
 
     if (
       !(await confirmAction(
-        'Remove the Tournament logo?',
+        { title: 'Remove tournament logo?', description: 'Remove the current tournament logo? You can upload a new logo later.', confirmLabel: 'Remove logo', destructive: true },
       ))
     ) {
       return;
@@ -312,6 +316,7 @@ export function TournamentLogoUpload({
     setRemoving(
       true,
     );
+    setMessage('');
 
     setError(
       '',
@@ -339,6 +344,7 @@ export function TournamentLogoUpload({
       setProgress(
         0,
       );
+      setMessage('Tournament logo removed.');
     } catch (
       err
     ) {
@@ -369,7 +375,7 @@ export function TournamentLogoUpload({
 
 
   return (
-    <section>
+    <section className="fc-logo-upload">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-black text-slate-300">
@@ -392,6 +398,7 @@ export function TournamentLogoUpload({
           inputRef
         }
         type="file"
+        aria-label="Choose tournament logo"
         accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
         className="hidden"
         onChange={
@@ -419,7 +426,7 @@ export function TournamentLogoUpload({
 
 
       {previewUrl ? (
-        <div className="mt-4 rounded-2xl border border-[#203141] bg-[#0B1118] p-4 sm:p-5">
+        <div className="fc-upload-preview mt-4 rounded-2xl border border-[#203141] bg-[#0B1118] p-4 sm:p-5" aria-busy={uploading || removing}>
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-[#284154] bg-[#101923]">
               <img
@@ -489,14 +496,9 @@ export function TournamentLogoUpload({
 
 
           {uploading ? (
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="h-full rounded-full bg-[#19B7FF] transition-all duration-200"
-                style={{
-                  width:
-                    `${progress}%`,
-                }}
-              />
+            <div className="mt-4">
+              <progress className="fc-upload-progress" value={progress} max={100} aria-label="Tournament logo upload progress" />
+              <p role="status" className="theme-muted mt-2 text-xs">Uploading tournament logo · {progress}%</p>
             </div>
           ) : null}
         </div>
@@ -595,13 +597,7 @@ export function TournamentLogoUpload({
       )}
 
 
-      {error ? (
-        <p className="mt-3 text-sm text-red-300">
-          {
-            error
-          }
-        </p>
-      ) : null}
+      <div className={error || message ? 'mt-3' : ''}><FcNotice tone="error">{error}</FcNotice><FcNotice>{message}</FcNotice></div>
     </section>
   );
 }

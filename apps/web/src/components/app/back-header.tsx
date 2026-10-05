@@ -18,29 +18,29 @@ export function BackHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <header className="space-y-4">
+    <header className="fc-back-header space-y-4">
       <Link
         href={backHref}
-        className="inline-flex items-center gap-2 text-sm font-medium text-[#6F7B8A] transition hover:text-[#38BDF8]"
+        className="fc-back-link theme-text-link inline-flex items-center gap-2 text-sm font-semibold transition"
       >
-        <span>←</span>
+        <span aria-hidden="true">←</span>
         <span>{backLabel}</span>
       </Link>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           {eyebrow ? (
-            <p className="text-xs font-medium text-[#6F7B8A]">
+            <p className="theme-muted text-xs font-semibold">
               {eyebrow}
             </p>
           ) : null}
 
-          <h1 className="mt-1 text-[26px] font-semibold tracking-[-0.025em] text-[#F8FAFC] sm:text-[32px]">
+          <h1 className="theme-text fc-display-strong mt-1 text-[26px] leading-tight sm:text-[32px]">
             {title}
           </h1>
 
           {subtitle ? (
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#A7B0BE]">
+            <p className="theme-secondary-text mt-2 max-w-2xl text-sm leading-6">
               {subtitle}
             </p>
           ) : null}

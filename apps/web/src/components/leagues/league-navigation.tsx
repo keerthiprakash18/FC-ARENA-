@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
-
 import {
   usePathname,
 } from 'next/navigation';
+
+import { FcContextNav } from '@/components/fc/fc-context-nav';
 
 const items = [
   ['Overview', ''],
@@ -28,57 +28,21 @@ export function LeagueNavigation({
     `/leagues/${leagueId}`;
 
   return (
-    <nav aria-label="League sections" className="fc-section-nav overflow-x-auto rounded-2xl border border-[#253140] bg-[#121821] p-1.5">
-      <div className="flex min-w-max gap-1.5">
-        {items.map(
-          ([
-            label,
-            suffix,
-          ]) => {
-            const isLeaderboard =
-              suffix ===
-              '/leaderboard';
+    <FcContextNav
+      ariaLabel="League sections"
+      items={items.map(([label, suffix]) => {
+        const isLeaderboard = suffix === '/leaderboard';
+        const href = isLeaderboard
+          ? `/leaderboards?league=${leagueId}`
+          : `${base}${suffix}`;
+        const active = isLeaderboard
+          ? pathname === '/leaderboards'
+          : suffix === ''
+            ? pathname === base
+            : pathname === href || pathname.startsWith(`${href}/`);
 
-            const href =
-              isLeaderboard
-                ? `/leaderboards?league=${leagueId}`
-                : `${base}${suffix}`;
-
-            const active =
-              isLeaderboard
-                ? pathname ===
-                  '/leaderboards'
-                : suffix === ''
-                  ? pathname ===
-                    base
-                  : pathname ===
-                      href ||
-                    pathname.startsWith(
-                      `${href}/`,
-                    );
-
-            return (
-              <Link
-                key={
-                  label
-                }
-                href={
-                  href
-                }
-                className={`inline-flex min-h-11 items-center rounded-[10px] border px-3.5 py-2.5 text-xs font-medium transition sm:text-sm ${
-                  active
-                    ? 'border-transparent bg-sky-400/[0.10] text-[#F8FAFC]'
-                    : 'border-transparent text-[#A7B0BE] hover:bg-[#151C26] hover:text-[#F8FAFC]'
-                }`}
-              >
-                {
-                  label
-                }
-              </Link>
-            );
-          },
-        )}
-      </div>
-    </nav>
+        return { label, href, active };
+      })}
+    />
   );
 }

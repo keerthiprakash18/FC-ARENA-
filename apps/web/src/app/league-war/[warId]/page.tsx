@@ -1,4 +1,6 @@
 'use client';
+import { promptAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 
 import {
   useEffect,
@@ -594,13 +596,11 @@ export default function LeagueWarDetailPage() {
       return;
     }
 
-    const reason =
-      window.prompt(
-        kind ===
-        'reject'
-          ? 'Reason for rejecting this challenge? (optional)'
-          : 'Reason for cancelling this War? (optional)',
-      );
+    const reason = await promptAction({
+      title: kind === 'reject' ? 'Reject challenge?' : 'Cancel League War?',
+      description: kind === 'reject' ? 'Reject this League War challenge? You can include a reason for the other league.' : 'Cancel this League War? You can include a reason for the participating leagues.',
+      label: 'Reason', confirmLabel: kind === 'reject' ? 'Reject challenge' : 'Cancel League War', destructive: true,
+    });
 
     if (
       reason ===
@@ -1056,11 +1056,11 @@ export default function LeagueWarDetailPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="fc-league-war-page space-y-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/league-war"
-            className="text-sm font-black text-slate-500 transition hover:text-rose-300"
+            className="fc-back-link theme-text-link text-sm font-semibold transition"
           >
             ← League Wars
           </Link>
@@ -1114,7 +1114,7 @@ export default function LeagueWarDetailPage() {
                 onClick={() =>
                   void createRematch()
                 }
-                className="min-h-9 rounded-xl border border-rose-400/25 bg-rose-400/[0.06] px-4 text-xs font-black text-rose-300 disabled:opacity-40"
+                className="theme-secondary-button min-h-9 rounded-xl border px-4 text-xs font-semibold disabled:opacity-40"
               >
                 {busy ===
                 'rematch'
@@ -1125,20 +1125,14 @@ export default function LeagueWarDetailPage() {
           </div>
         </div>
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice tone="error">{error}</FcNotice>
 
-        <section className="relative overflow-hidden rounded-[30px] border border-rose-400/20 bg-[#0B0F14] p-5 sm:p-7">
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-400/10 blur-3xl" />
+        <section className="fc-war-hero relative overflow-hidden rounded-[30px] border p-5 sm:p-7">
+          <div className="fc-war-hero-glow pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
 
           <div className="relative text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-rose-300">
-              ⚔ FC Arena League War
+            <p className="fc-war-kicker text-[10px] font-semibold">
+              FC Arena League War
             </p>
 
             <h1 className="mt-2 text-2xl font-black sm:text-4xl">
@@ -1169,7 +1163,7 @@ export default function LeagueWarDetailPage() {
             </p>
           </div>
 
-          <div className="relative mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="fc-league-war-scoreboard relative mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <div className="min-w-0 text-center">
               <div className="mx-auto flex justify-center">
                 <FcCrest
@@ -1325,7 +1319,9 @@ export default function LeagueWarDetailPage() {
           ) : null}
         </section>
 
-        <section className="grid gap-3 md:grid-cols-3">
+        <p className="theme-secondary-text text-sm">{war.status === 'LIVE' ? `Play the remaining matches and confirm opponent results. Deadline: ${dateLabel(war.deadlineAt)}.` : war.status === 'ACCEPTED' ? 'Choose and save a full roster, then lock it and mark Ready. Both leagues must be ready before starting.' : war.status === 'INVITED' ? 'The opponent league must accept the challenge before rosters can be selected.' : war.status === 'COMPLETED' ? 'All results are locked. Review match results and player rankings below.' : 'This challenge is closed. Check its status or create a new challenge from League War.'}</p>
+        <details className="fc-help-disclosure"><summary>War schedule &amp; expiry</summary>
+        <section className="mt-3 grid gap-3 md:grid-cols-3">
           <FcPanel className="p-4">
             <p className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">
               Challenge Expiry
@@ -1382,8 +1378,10 @@ export default function LeagueWarDetailPage() {
             </p>
           </FcPanel>
         </section>
+        </details>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <details className="fc-help-disclosure"><summary>Team statistics</summary>
+        <section className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-6">
           <FcStatCard
             label="Home Wins"
             value={
@@ -1438,6 +1436,7 @@ export default function LeagueWarDetailPage() {
             }
           />
         </section>
+        </details>
 
         {war.status ===
           'INVITED' ? (

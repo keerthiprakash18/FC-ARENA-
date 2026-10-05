@@ -1,4 +1,5 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import {
   useParams,
@@ -484,9 +485,7 @@ export default function TournamentSetupPage() {
     !wizard
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Tournament Setup...
-      </div>
+      <FcLoadingScreen label="Loading Tournament Setup..." />
     );
   }
 
@@ -513,7 +512,7 @@ export default function TournamentSetupPage() {
       >
 
         {error ? (
-          <div className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
+          <div role="alert" className="mb-6 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
             {error}
           </div>
         ) : null}
@@ -525,15 +524,17 @@ export default function TournamentSetupPage() {
           }
           className="space-y-8"
         >
-
+          <h2 className="fc-form-section-title">Basics</h2>
+          <p className="theme-muted text-xs">Fields marked Required are needed to save this step.</p>
           <div className="grid gap-5 md:grid-cols-2">
 
             <div className="field">
-              <label>
-                Tournament Name
+              <label htmlFor="tournament-name">
+                Tournament Name <span className="theme-muted text-xs">Required</span>
               </label>
 
               <input
+                id="tournament-name"
                 name="name"
                 required
                 defaultValue={
@@ -544,11 +545,12 @@ export default function TournamentSetupPage() {
 
 
             <div className="field">
-              <label>
-                Number of Teams / Entries
+              <label htmlFor="tournament-max-entries">
+                Number of Teams / Entries <span className="theme-muted text-xs">Required</span>
               </label>
 
               <input
+                id="tournament-max-entries"
                 name="maxEntries"
                 type="number"
                 min="2"
@@ -588,6 +590,7 @@ export default function TournamentSetupPage() {
                         value,
                       )
                     }
+                    aria-pressed={mode === value}
                     className={`rounded-2xl border p-4 text-left ${
                       mode ===
                       value
@@ -611,11 +614,12 @@ export default function TournamentSetupPage() {
           {mode ===
           'TEAM' ? (
             <div className="field">
-              <label>
+              <label htmlFor="tournament-team-size">
                 Players Per Team
               </label>
 
               <input
+                id="tournament-team-size"
                 name="teamSize"
                 type="number"
                 min="3"
@@ -632,7 +636,8 @@ export default function TournamentSetupPage() {
           ) : null}
 
 
-          <div>
+          <section aria-labelledby="tournament-format-heading">
+            <h2 id="tournament-format-heading" className="fc-form-section-title">Competition format</h2>
             <p className="mb-3 text-sm font-black text-slate-300">
               Tournament Format
             </p>
@@ -706,6 +711,7 @@ export default function TournamentSetupPage() {
                         );
                       }
                     }}
+                    aria-pressed={competitionFormat === value}
                     className={`rounded-2xl border p-4 text-left ${
                       competitionFormat ===
                       value
@@ -723,7 +729,7 @@ export default function TournamentSetupPage() {
               )}
 
             </div>
-          </div>
+          </section>
 
 
           <div>
@@ -756,6 +762,7 @@ export default function TournamentSetupPage() {
                         value,
                       )
                     }
+                    aria-pressed={groupMode === value}
                     className={`rounded-2xl border p-4 text-left disabled:opacity-30 ${
                       groupMode ===
                       value
@@ -780,11 +787,12 @@ export default function TournamentSetupPage() {
           <div className="grid gap-5 md:grid-cols-2">
 
             <div>
-              <p className="mb-3 text-sm font-black text-slate-300">
+              <label htmlFor="tournament-leg" className="mb-3 block text-sm font-semibold theme-secondary-text">
                 Match Leg
-              </p>
+              </label>
 
               <select
+                id="tournament-leg"
                 value={
                   legType
                 }
@@ -813,11 +821,12 @@ export default function TournamentSetupPage() {
 
 
             <div>
-              <p className="mb-3 text-sm font-black text-slate-300">
+              <label htmlFor="tournament-fixture-mode" className="mb-3 block text-sm font-semibold theme-secondary-text">
                 Fixture Mode
-              </p>
+              </label>
 
               <select
+                id="tournament-fixture-mode"
                 value={
                   fixtureMode
                 }
@@ -851,14 +860,16 @@ export default function TournamentSetupPage() {
           </div>
 
 
+          <h2 className="fc-form-section-title">Registration &amp; visibility</h2>
           <div className="grid gap-5 md:grid-cols-2">
 
             <div>
-              <p className="mb-3 text-sm font-black text-slate-300">
+              <label htmlFor="tournament-visibility" className="mb-3 block text-sm font-semibold theme-secondary-text">
                 Visibility
-              </p>
+              </label>
 
               <select
+                id="tournament-visibility"
                 value={
                   visibility
                 }
@@ -891,11 +902,12 @@ export default function TournamentSetupPage() {
 
 
             <div>
-              <p className="mb-3 text-sm font-black text-slate-300">
+              <label htmlFor="tournament-registration" className="mb-3 block text-sm font-semibold theme-secondary-text">
                 Registration Mode
-              </p>
+              </label>
 
               <select
+                id="tournament-registration"
                 value={
                   registrationMode
                 }
@@ -932,11 +944,12 @@ export default function TournamentSetupPage() {
           <div className="grid gap-5 md:grid-cols-2">
 
             <div className="field">
-              <label>
+              <label htmlFor="tournament-start">
                 Start Date
               </label>
 
               <input
+                id="tournament-start"
                 name="startAt"
                 type="datetime-local"
                 defaultValue={
@@ -949,11 +962,12 @@ export default function TournamentSetupPage() {
 
 
             <div className="field">
-              <label>
+              <label htmlFor="tournament-end">
                 End Date
               </label>
 
               <input
+                id="tournament-end"
                 name="endAt"
                 type="datetime-local"
                 defaultValue={
@@ -967,6 +981,8 @@ export default function TournamentSetupPage() {
           </div>
 
 
+          <details className="fc-help-disclosure">
+          <summary>Branding &amp; description (optional)</summary>
           <TournamentLogoUpload
             tournamentId={
               tournamentId
@@ -978,11 +994,12 @@ export default function TournamentSetupPage() {
 
 
           <div className="field">
-            <label>
+            <label htmlFor="tournament-description">
               Description
             </label>
 
             <textarea
+              id="tournament-description"
               name="description"
               rows={4}
               defaultValue={
@@ -992,14 +1009,16 @@ export default function TournamentSetupPage() {
               className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 outline-none"
             />
           </div>
+          </details>
 
 
           <div className="field">
-            <label>
+            <label htmlFor="tournament-rules">
               Rules
             </label>
 
             <textarea
+              id="tournament-rules"
               name="rules"
               rows={5}
               defaultValue={
@@ -1011,7 +1030,7 @@ export default function TournamentSetupPage() {
           </div>
 
 
-          <div className="sticky bottom-20 flex flex-wrap gap-3 justify-end border-t border-white/10 bg-[#0a1018]/95 pt-5 backdrop-blur lg:bottom-0">
+          <div className="fc-workflow-actions flex flex-wrap gap-3 justify-end border-t pt-5">
 
             <button type="submit" name="intent" value="save-exit" disabled={busy} className="theme-secondary-button rounded-xl px-5 py-3 font-semibold">Save draft & exit</button>
             <button

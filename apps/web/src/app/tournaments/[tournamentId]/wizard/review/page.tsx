@@ -1,6 +1,8 @@
 'use client';
+import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -127,7 +129,7 @@ export default function ReviewPage() {
   async function publish() {
     if (
       !(await confirmAction(
-        'Publish this Tournament? It will become active.',
+        { title: 'Publish tournament?', description: 'Publish this tournament? It will become active.', confirmLabel: 'Publish tournament' },
       ))
     ) {
       return;
@@ -162,6 +164,7 @@ export default function ReviewPage() {
   }
 
 
+  if (error && (!user || !review)) return <main className="fc-state-screen"><FcErrorState message={error} onRetry={() => window.location.reload()} /></main>;
   if (
     !user ||
     !review ||
@@ -169,9 +172,7 @@ export default function ReviewPage() {
       0
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Review...
-      </div>
+      <FcLoadingScreen label="Loading Review..." />
     );
   }
 
@@ -201,11 +202,7 @@ export default function ReviewPage() {
         description="Verify the final Tournament structure before publishing."
       >
 
-        {error ? (
-          <div className="mb-5 rounded-xl border border-red-400/20 bg-red-400/5 p-4 text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <section className="rounded-[24px] border border-sky-400/20 bg-sky-400/[0.03] p-6">
@@ -347,7 +344,8 @@ export default function ReviewPage() {
         ) : null}
 
 
-        <div className="mt-8 flex justify-between border-t border-white/10 pt-5">
+        <p className="theme-secondary-text mt-6 text-sm">Publishing makes this tournament active. Check the teams, format and fixture count above before continuing.</p>
+        <div className="fc-workflow-actions mt-8 flex justify-between border-t pt-5">
 
           <button
             type="button"

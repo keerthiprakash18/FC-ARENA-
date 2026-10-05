@@ -29,6 +29,7 @@ import {
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
+import { FcNotice } from '@/components/fc/fc-ui';
 
 
 type GroupFixture =
@@ -661,7 +662,7 @@ export default function TournamentFixturesPage() {
           }
           className="text-sm font-black text-slate-500 transition hover:text-white"
         >
-          â† Back
+          ← Back
         </button>
 
 
@@ -720,18 +721,8 @@ export default function TournamentFixturesPage() {
         </section>
 
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         {tournament.isLeagueAdmin ? (

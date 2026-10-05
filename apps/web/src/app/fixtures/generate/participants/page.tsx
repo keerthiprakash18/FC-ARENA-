@@ -735,7 +735,7 @@ export default function FixtureParticipantsPage() {
   async function clearParticipants() {
     if (
       !(await confirmAction(
-        'Clear the current participant selection?',
+        { title: 'Clear participant selection?', description: 'Clear all participants currently selected in this draft? You will need to select them again.', confirmLabel: 'Clear selection', destructive: true },
       ))
     ) {
       return;
@@ -1777,7 +1777,7 @@ export default function FixtureParticipantsPage() {
         </div>
 
 
-        <div className="flex items-center justify-between border-t border-[#253140] pt-5">
+        <div className="fc-workflow-actions flex items-center justify-between border-t pt-5">
           <button
             type="button"
             onClick={() =>

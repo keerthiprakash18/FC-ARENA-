@@ -17,6 +17,7 @@ import {
 } from '@/components/career/career-navigation';
 import {
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
 } from '@/components/fc/fc-ui';
@@ -127,6 +128,7 @@ function publicName(
 }
 
 export default function CareerAchievementsPage() {
+  const [error, setError] = useState('');
   const [
     user,
     setUser,
@@ -187,9 +189,10 @@ export default function CareerAchievementsPage() {
       setAwards(
         awardsResponse.data,
       );
-    })();
+    })().catch(err => setError(err instanceof Error ? err.message : 'Unable to load Achievements.'));
   }, []);
 
+  if (error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
   if (
     !user ||
     !career ||

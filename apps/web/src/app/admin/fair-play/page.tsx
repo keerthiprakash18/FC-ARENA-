@@ -1,4 +1,5 @@
 'use client';
+import { AdminFilterBar } from '@/components/admin/admin-filter-bar';
 
 import {
   FormEvent,
@@ -136,6 +137,8 @@ function nameFor(
 }
 
 export default function AdminFairPlayPage() {
+  const [eventQuery, setEventQuery] = useState('');
+  const [eventStatus, setEventStatus] = useState('');
   const [
     data,
     setData,
@@ -648,9 +651,14 @@ export default function AdminFairPlayPage() {
     }
   }
 
+  const visibleEvents = (data?.events ?? []).filter(item =>
+    (!eventStatus || (item.active ? 'ACTIVE' : item.revokedAt ? 'REVOKED' : 'EXPIRED') === eventStatus) &&
+    [item.player.fullName, item.player.inGameName, item.league.name, item.title, item.reason].join(' ').toLowerCase().includes(eventQuery.trim().toLowerCase()),
+  );
+
   return (
     <SecondaryFeaturePage
-      eyebrow="Admin · V3.4"
+      eyebrow="Admin"
       title="Fair Play Management"
       subtitle="Auditable conduct events, fixed point policy, automatic expiry and player appeals."
       backHref="/more"
@@ -1179,9 +1187,11 @@ export default function AdminFairPlayPage() {
               </h2>
             </div>
 
-            <FcPanel className="overflow-hidden">
+            <AdminFilterBar query={eventQuery} onQueryChange={setEventQuery} status={eventStatus} onStatusChange={setEventStatus} count={visibleEvents.length} statuses={['ACTIVE', 'REVOKED', 'EXPIRED']} />
+            {visibleEvents.length === 0 ? <FcEmptyState title={eventQuery || eventStatus ? 'No matching events' : 'No Fair Play events'} description="Clear filters to review the full history. New events appear after they are recorded." /> : null}
+            <FcPanel className="mt-3 overflow-hidden">
               <div className="divide-y divide-white/[0.06]">
-                {data.events.map(
+                {visibleEvents.map(
                   (
                     item,
                   ) => (

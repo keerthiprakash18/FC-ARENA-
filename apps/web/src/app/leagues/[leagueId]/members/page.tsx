@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -236,7 +237,7 @@ export default function LeagueMembersPage() {
   ) {
     if (
       !(await confirmAction(
-        `Remove ${member.user.inGameName || member.user.fullName} from this League?`,
+        { title: 'Remove league member?', description: `Remove “${member.user.inGameName || member.user.fullName}” from this league? Their league membership will be removed.`, confirmLabel: 'Remove member', destructive: true },
       ))
     ) {
       return;
@@ -340,21 +341,8 @@ export default function LeagueMembersPage() {
         />
 
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
-            {
-              message
-            }
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <FcPanel className="p-5">
@@ -379,6 +367,7 @@ export default function LeagueMembersPage() {
                   )
               }
               placeholder="Search member..."
+              aria-label="Search league members"
               className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
             />
 

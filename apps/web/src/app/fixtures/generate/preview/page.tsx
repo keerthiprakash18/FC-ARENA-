@@ -705,7 +705,7 @@ export default function FixturePreviewPage() {
   ) {
     if (
       !(await confirmAction(
-        'Remove this match from the draft fixture list?',
+        { title: 'Remove draft match?', description: 'Remove this match from the draft fixture list?', confirmLabel: 'Remove match', destructive: true },
       ))
     ) {
       return;
@@ -744,7 +744,7 @@ export default function FixturePreviewPage() {
   async function regenerate() {
     if (
       !(await confirmAction(
-        'Regenerate this preview? Manual fixture edits in this scope will be replaced.',
+        { title: 'Replace fixture preview?', description: 'Regenerate this preview? Manual fixture edits in the selected scope will be replaced.', confirmLabel: 'Regenerate preview', destructive: true },
       ))
     ) {
       return;
@@ -831,7 +831,7 @@ export default function FixturePreviewPage() {
   async function reset() {
     if (
       !(await confirmAction(
-        'Reset draft fixtures in this generator scope?',
+        { title: 'Reset draft fixtures?', description: 'Remove all draft fixtures in the selected generator scope? You will need to generate or add draft fixtures again.', confirmLabel: 'Reset draft', destructive: true },
       ))
     ) {
       return;
@@ -1392,6 +1392,7 @@ export default function FixturePreviewPage() {
               </button>
 
               <select
+                aria-label="Preview matchday"
                 value={
                   currentRound
                 }
@@ -1784,7 +1785,7 @@ export default function FixturePreviewPage() {
         )}
 
 
-        <div className="flex items-center justify-between border-t border-[#253140] pt-5">
+        <div className="fc-workflow-actions flex items-center justify-between border-t pt-5">
           <button
             type="button"
             onClick={() =>

@@ -1,0 +1,42 @@
+/* Short, purpose-led feedback. No route entry delays or decorative idle motion. */
+:root { --fc-feedback-duration: 160ms; --fc-feedback-easing: ease-out; }
+.fc-action-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--fc-control-height); }
+.fc-busy-indicator {
+  display: inline-block; width: 14px; height: 14px; flex-shrink: 0;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
+}
+.fc-app-shell :where(button, .theme-action-row, .fc-context-nav-link, .theme-nav-item, .theme-bottom-item),
+.fc-public-page :where(button, a), .theme-dialog button {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: var(--fc-feedback-duration);
+  transition-timing-function: var(--fc-feedback-easing);
+}
+.fc-app-shell :where(button, .theme-action-row, .fc-context-nav-link):active:not(:disabled),
+.theme-dialog button:active:not(:disabled) { filter: brightness(.97); }
+.fc-app-shell button:disabled, .theme-dialog button:disabled { cursor: not-allowed; opacity: .6; }
+.fc-app-shell [aria-busy="true"] { cursor: progress; }
+.fc-app-shell :where(input, textarea, select):focus-visible { transition: border-color var(--fc-motion), box-shadow var(--fc-motion); }
+.fc-upload-preview { overflow: hidden; }
+.fc-upload-progress { accent-color: var(--theme-primary); width: 100%; height: 8px; }
+.fc-bracket-round { min-width: 0; }
+.fc-bracket-round:focus-within { border-color: var(--theme-focus); }
+
+@media (hover: hover) {
+  .fc-app-shell .theme-action-row:hover { border-color: color-mix(in srgb, var(--theme-primary) 28%, var(--theme-border)); box-shadow: var(--fc-shadow-raised); }
+  .fc-main tbody tr:hover { background: var(--theme-primary-soft); }
+  .fc-main .fc-standing-row:hover, .fc-public-mobile-table article:hover { background: var(--theme-primary-soft); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .theme-search-menu, .theme-dialog[open], .fc-interaction-reveal, .fc-notice, .fc-upload-preview {
+    animation: fc-feedback-in var(--fc-feedback-duration) var(--fc-feedback-easing);
+  }
+  .fc-busy-indicator { animation: fc-busy-turn 800ms linear infinite; }
+}
+@keyframes fc-feedback-in { from { opacity: .65; } to { opacity: 1; } }
+@keyframes fc-busy-turn { to { transform: rotate(360deg); } }
+
+/* Busy text/progress and semantic feedback stay available without animation. */
+@media (prefers-reduced-motion: reduce) {
+  .fc-busy-indicator, .theme-search-menu, .theme-dialog, .fc-interaction-reveal, .fc-notice, .fc-upload-preview { animation: none !important; }
+}
+html[data-native-app="android"] :where(.fc-busy-indicator, .theme-search-menu, .theme-dialog, .fc-interaction-reveal, .fc-notice, .fc-upload-preview) { animation: none !important; }

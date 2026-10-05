@@ -236,7 +236,7 @@ export default function PublicTournamentPage() {
     !error
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#F5F8FD] text-sm font-semibold text-[#60708A]">
+      <div className="fc-public-page fc-public-state grid min-h-screen place-items-center text-sm font-semibold">
         Loading public Tournament...
       </div>
     );
@@ -246,17 +246,17 @@ export default function PublicTournamentPage() {
     !data
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#F5F8FD] p-6">
-        <div className="max-w-md rounded-3xl border border-[#DCE5F1] bg-white p-8 text-center shadow-sm">
+      <div className="fc-public-page fc-public-state grid min-h-screen place-items-center p-6">
+        <div className="theme-panel max-w-md rounded-3xl border p-8 text-center">
           <p className="text-4xl">
             ⚽
           </p>
 
-          <h1 className="mt-4 text-2xl font-bold text-[#0B1F44]">
+          <h1 className="theme-text mt-4 text-2xl font-bold">
             Tournament unavailable
           </h1>
 
-          <p className="mt-2 text-sm leading-6 text-[#60708A]">
+          <p className="theme-secondary-text mt-2 text-sm leading-6">
             {
               error
             }
@@ -264,7 +264,7 @@ export default function PublicTournamentPage() {
 
           <Link
             href="/"
-            className="mt-6 inline-flex rounded-xl bg-[#1478F2] px-5 py-3 text-sm font-semibold text-white"
+            className="theme-primary-button mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-semibold"
           >
             FC ARENA
           </Link>
@@ -277,20 +277,20 @@ export default function PublicTournamentPage() {
     data.tournament;
 
   return (
-    <main className="min-h-screen bg-[#F5F8FD] text-[#0B1F44]">
-      <header className="border-b border-[#DCE5F1] bg-white/95 backdrop-blur">
+    <main className="fc-public-page min-h-screen">
+      <header className="fc-public-header border-b">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link
             href="/"
             className="flex items-center gap-2 font-bold"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0B1F44] text-white">
-              ♛
+            <span className="theme-brand-mark grid h-10 w-10 place-items-center rounded-xl border">
+              FC
             </span>
 
             <span>
               FC{' '}
-              <span className="text-[#1478F2]">
+              <span className="theme-brand-accent">
                 ARENA
               </span>
             </span>
@@ -301,7 +301,7 @@ export default function PublicTournamentPage() {
             onClick={() =>
               void share()
             }
-            className="rounded-xl border border-[#DCE5F1] bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:border-[#1478F2]"
+            className="theme-secondary-button rounded-xl border px-4 py-2 text-sm font-semibold transition"
           >
             {copied
               ? 'Link copied ✓'
@@ -466,7 +466,31 @@ export default function PublicTournamentPage() {
               </div>
             </div>
 
-            <div className="mt-5 overflow-x-auto">
+            <div className="fc-public-mobile-table mt-5 grid gap-2 sm:hidden" aria-label="Mobile standings">
+              {data.standings.map(row => (
+                <article key={`mobile-${row.registrationId}`} className="theme-soft-accent rounded-xl border p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="theme-tone-premium grid h-9 w-9 shrink-0 place-items-center rounded-xl border font-bold">{row.position}</span>
+                    <p className="theme-text min-w-0 flex-1 truncate font-semibold">{row.name}</p>
+                    <p className="theme-text text-lg font-bold">{row.points}<span className="theme-muted ml-1 text-[10px] font-semibold">PTS</span></p>
+                  </div>
+                  <div className="theme-secondary-text mt-3 grid grid-cols-4 gap-2 text-center text-xs">
+                    <span><strong className="theme-text block">{row.played}</strong>Played</span>
+                    <span><strong className="theme-text block">{row.wins}</strong>Won</span>
+                    <span><strong className="theme-text block">{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</strong>GD</span>
+                    <span><strong className="theme-text block">{row.form || '—'}</strong>Form</span>
+                  </div>
+                  <details className="fc-row-details mt-2">
+                    <summary>More statistics</summary>
+                    <dl className="fc-standing-stats">
+                      {[['Drawn', row.draws], ['Lost', row.losses], ['Goals for', row.goalsFor], ['Goals against', row.goalsAgainst]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+                    </dl>
+                  </details>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-5 hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[720px] text-sm">
                 <thead className="text-left text-xs text-[#60708A]">
                   <tr>

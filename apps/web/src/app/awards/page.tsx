@@ -1242,7 +1242,7 @@ export default function AwardsPage() {
         >
           <FcPanel className="h-full border-sky-400/15 p-5 transition group-hover:border-sky-300/35">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
-              V3.2 Discover
+              Discover competitions
             </p>
 
             <h2 className="mt-2 text-xl font-black">

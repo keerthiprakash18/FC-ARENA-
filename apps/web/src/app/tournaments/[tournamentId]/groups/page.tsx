@@ -1,6 +1,7 @@
 'use client';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import Link from 'next/link';
 
 import {
@@ -100,7 +101,7 @@ function getEntrySubtitle(
         member.inGameName ||
         member.fullName,
     )
-    .join(' ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ');
+    .join(' · ');
 }
 
 export default function TournamentGroupsPage() {
@@ -372,7 +373,7 @@ export default function TournamentGroupsPage() {
     ) {
       const confirmed =
         (await confirmAction(
-          'Saving group structure again will return every team to Unassigned. Continue?',
+          { title: 'Replace group structure?', description: 'Saving this group structure will remove all current team assignments. Every team will return to Unassigned.', confirmLabel: 'Replace groups', destructive: true },
         ));
 
       if (!confirmed) {
@@ -536,7 +537,7 @@ export default function TournamentGroupsPage() {
   async function generateGroupFixtures() {
     const confirmed =
       (await confirmAction(
-        'Generate group-stage fixtures now? Group assignments will be locked after generation.',
+        { title: 'Generate group fixtures?', description: 'Generate group-stage fixtures now? Group assignments will be locked after generation.', confirmLabel: 'Generate fixtures' },
       ));
 
     if (!confirmed) {
@@ -675,7 +676,7 @@ export default function TournamentGroupsPage() {
           scroll
           className="inline-flex items-center gap-2 text-sm font-black text-slate-500 transition hover:text-white"
         >
-          ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Tournament
+          ← Tournament
         </Link>
 
         <section className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
@@ -753,17 +754,8 @@ export default function TournamentGroupsPage() {
           </div>
         ) : null}
 
-        {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         {tournament.isLeagueAdmin &&
         !locked ? (
@@ -968,7 +960,7 @@ export default function TournamentGroupsPage() {
                                   }
                                   className="rounded-lg border border-sky-400/20 bg-sky-400/[0.05] px-3 py-2 text-xs font-black text-sky-300 disabled:opacity-40"
                                 >
-                                  ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢{' '}
+                                  →{' '}
                                   {
                                     group.name
                                   }
@@ -1251,7 +1243,7 @@ export default function TournamentGroupsPage() {
                   className="mt-6 rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] opacity-50"
                 >
                   Generate Group
-                  Fixtures ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Next
+                  Fixtures — Next
                   Stage
                 </button>
               ) : null}

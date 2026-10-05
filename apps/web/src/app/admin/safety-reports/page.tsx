@@ -1,4 +1,6 @@
 'use client';
+import { AdminFilterBar } from '@/components/admin/admin-filter-bar';
+import { promptAction } from '@/components/fc/confirmation-provider';
 
 import {
   useEffect,
@@ -15,6 +17,8 @@ import {
 
 import {
   FcLoadingScreen,
+  FcEmptyState,
+  FcNotice,
   FcPageHeader,
   FcPanel,
   FcStatusBadge,
@@ -67,6 +71,8 @@ interface AdminSafetyReport {
 }
 
 export default function AdminSafetyReportsPage() {
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const router =
     useRouter();
 
@@ -99,6 +105,7 @@ export default function AdminSafetyReportsPage() {
     setError,
   ] =
     useState('');
+  const [message, setMessage] = useState('');
 
   async function loadReports() {
     const response =
@@ -160,17 +167,13 @@ export default function AdminSafetyReportsPage() {
       | 'RESOLVED'
       | 'DISMISSED',
   ) {
-    const note =
-      window.prompt(
-        decision ===
-        'DISMISSED'
-          ? 'Dismissal note (optional):'
-          : 'Resolution note (optional):',
-        decision ===
-        'DISMISSED'
-          ? 'Reviewed and no moderation action is required.'
-          : 'Reviewed by FC ARENA moderation.',
-      );
+    const note = await promptAction({
+      title: decision === 'DISMISSED' ? 'Dismiss safety report?' : 'Resolve safety report?',
+      description: decision === 'DISMISSED' ? 'Close this report as dismissed and record the review outcome.' : 'Mark this report as resolved and record the review outcome.',
+      label: decision === 'DISMISSED' ? 'Dismissal note' : 'Resolution note',
+      defaultValue: decision === 'DISMISSED' ? 'Reviewed and no moderation action is required.' : 'Reviewed by FC ARENA moderation.',
+      confirmLabel: decision === 'DISMISSED' ? 'Dismiss report' : 'Resolve report', destructive: decision === 'DISMISSED',
+    });
 
     if (
       note ===
@@ -182,6 +185,7 @@ export default function AdminSafetyReportsPage() {
     setBusyId(
       reportId,
     );
+    setMessage('');
 
     setError(
       '',
@@ -207,6 +211,7 @@ export default function AdminSafetyReportsPage() {
       );
 
       await loadReports();
+      setMessage(decision === 'DISMISSED' ? 'Safety report dismissed.' : 'Safety report resolved.');
     } catch (
       reviewError
     ) {
@@ -237,6 +242,11 @@ export default function AdminSafetyReportsPage() {
       ?.inGameName ||
     user.fullName;
 
+  const visibleReports = reports.filter(report =>
+    (!statusFilter || report.status === statusFilter) &&
+    [report.target.fullName, report.target.inGameName, report.reporter.fullName, report.reason, report.details].join(' ').toLowerCase().includes(query.trim().toLowerCase()),
+  );
+
   return (
     <AppShell
       playerName={
@@ -251,23 +261,17 @@ export default function AdminSafetyReportsPage() {
           subtitle="Review user reports and record moderation outcomes."
         />
 
-        {error ? (
-          <div className="rounded-xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-600">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
+        <AdminFilterBar query={query} onQueryChange={setQuery} status={statusFilter} onStatusChange={setStatusFilter} count={visibleReports.length} statuses={['OPEN', 'RESOLVED', 'DISMISSED']} />
 
         <FcPanel className="p-5 sm:p-6">
-          {reports.length ===
+          {visibleReports.length ===
           0 ? (
-            <p className="theme-secondary-text text-sm">
-              No safety reports have been submitted.
-            </p>
+            <FcEmptyState title={query || statusFilter ? 'No matching safety reports' : 'No safety reports'} description={query || statusFilter ? 'Clear or adjust your filters to see other reports.' : 'Submitted safety reports will appear here for review.'} icon="shield" />
           ) : (
             <div className="space-y-4">
-              {reports.map(
+              {visibleReports.map(
                 (
                   report,
                 ) => (

@@ -1,6 +1,8 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -375,7 +377,7 @@ export default function GroupsWizardPage() {
   ) {
     const confirmed =
       (await confirmAction(
-        `Delete ${group.name}? ${group.entries.length} team(s) inside it will become unassigned.`,
+        { title: 'Delete group?', description: `Delete “${group.name}”? Its ${group.entries.length} team(s) will become unassigned.`, confirmLabel: 'Delete group', destructive: true },
       ));
 
     if (!confirmed) {
@@ -480,7 +482,7 @@ export default function GroupsWizardPage() {
 
     if (
       !(await confirmAction(
-        `This will ${label}. Continue?`,
+        { title: 'Replace group assignments?', description: `This will ${label}, replacing their current group assignments.`, confirmLabel: 'Replace assignments', destructive: true },
       ))
     ) {
       return;
@@ -635,9 +637,7 @@ export default function GroupsWizardPage() {
     !data
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Groups...
-      </div>
+      <FcLoadingScreen label="Loading Groups..." />
     );
   }
 
@@ -663,18 +663,8 @@ export default function GroupsWizardPage() {
         description="Create groups and decide exactly where every team belongs."
       >
 
-        {message ? (
-          <div className="mb-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-
-        {error ? (
-          <div className="mb-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -747,6 +737,7 @@ export default function GroupsWizardPage() {
           className="mt-7 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/10 p-4 sm:flex-row"
         >
 
+          <label className="fc-field-label min-w-0 flex-1">Group name
           <input
             name="groupName"
             required
@@ -756,6 +747,7 @@ export default function GroupsWizardPage() {
             placeholder="Example: North Zone"
             className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#080e15] px-4 py-3"
           />
+          </label>
 
           <button
             type="submit"
@@ -834,6 +826,7 @@ export default function GroupsWizardPage() {
 
 
                     <select
+                      aria-label={`Group for ${entry.entryName || 'unnamed team'}`}
                       defaultValue="UNASSIGNED"
                       disabled={
                         busy
@@ -907,6 +900,7 @@ export default function GroupsWizardPage() {
                     <div className="flex gap-2">
 
                       <input
+                        aria-label={`Rename ${group.name}`}
                         value={
                           editingName
                         }
@@ -1071,6 +1065,7 @@ export default function GroupsWizardPage() {
 
 
                           <select
+                            aria-label={`Group for ${entry.entryName || 'unnamed team'}`}
                             value={
                               entry.groupId ??
                               'UNASSIGNED'
@@ -1131,7 +1126,7 @@ export default function GroupsWizardPage() {
         </div>
 
 
-        <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
+        <div className="fc-workflow-actions mt-8 flex items-center justify-between border-t pt-5">
 
           <button
             type="button"

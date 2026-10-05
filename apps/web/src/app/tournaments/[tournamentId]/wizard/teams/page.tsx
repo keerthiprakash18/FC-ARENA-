@@ -1,6 +1,8 @@
 'use client';
+import { FcLoadingScreen } from '@/components/fc/fc-ui';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
+import { FcNotice } from '@/components/fc/fc-ui';
 import {
   useParams,
   useRouter,
@@ -527,10 +529,7 @@ export default function TeamsWizardPage() {
   ) {
     const confirmed =
       (await confirmAction(
-        entry.fixtureCount >
-        0
-          ? `Delete ${entry.entryName ?? 'this team'}? It already has ${entry.fixtureCount} fixture(s).`
-          : `Delete ${entry.entryName ?? 'this team'}?`,
+        { title: 'Delete tournament team?', description: `Permanently delete “${entry.entryName ?? 'this team'}” from this tournament?${entry.fixtureCount > 0 ? ` It already has ${entry.fixtureCount} fixture(s).` : ''} This cannot be undone.`, confirmLabel: 'Delete team', destructive: true },
       ));
 
     if (!confirmed) {
@@ -770,9 +769,7 @@ export default function TeamsWizardPage() {
     !wizard
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-slate-500">
-        Loading Teams...
-      </div>
+      <FcLoadingScreen label="Loading Teams..." />
     );
   }
 
@@ -836,18 +833,8 @@ export default function TeamsWizardPage() {
         description="Let League players register themselves. Approved entries automatically become Tournament participants."
       >
 
-        {message ? (
-          <div className="mb-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4 text-sm text-emerald-300">
-            {message}
-          </div>
-        ) : null}
-
-
-        {error ? (
-          <div className="mb-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
+        <FcNotice>{message}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
 
         <section className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-5 sm:p-6">
@@ -1038,6 +1025,7 @@ export default function TeamsWizardPage() {
                     participantManagementOpen ? (
                       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
                         <input
+                          aria-label={`Team name for ${entry.entryName || 'unnamed team'}`}
                           value={
                             editName
                           }
@@ -1055,6 +1043,7 @@ export default function TeamsWizardPage() {
                         />
 
                         <input
+                          aria-label={`Logo URL for ${entry.entryName || 'unnamed team'}`}
                           value={
                             editLogo
                           }
@@ -1254,11 +1243,12 @@ export default function TeamsWizardPage() {
                 className="grid gap-4 md:grid-cols-[1fr_1fr_auto]"
               >
                 <div className="field">
-                  <label>
+                  <label htmlFor="wizard-entry-name">
                     Team Name
                   </label>
 
                   <input
+                    id="wizard-entry-name"
                     name="entryName"
                     required
                     placeholder="Manchester City"
@@ -1266,11 +1256,12 @@ export default function TeamsWizardPage() {
                 </div>
 
                 <div className="field">
-                  <label>
+                  <label htmlFor="wizard-entry-logo">
                     Logo URL — optional
                   </label>
 
                   <input
+                    id="wizard-entry-logo"
                     name="entryLogoUrl"
                     type="url"
                     placeholder="https://..."
@@ -1318,7 +1309,9 @@ export default function TeamsWizardPage() {
                 </div>
 
 
+                <label className="fc-field-label mt-4" htmlFor="wizard-bulk-entries">Team names · one per line</label>
                 <textarea
+                  id="wizard-bulk-entries"
                   value={
                     bulkText
                   }
@@ -1358,7 +1351,7 @@ Team Three`}
         ) : null}
 
 
-        <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-5">
+        <div className="fc-workflow-actions mt-8 flex items-center justify-between border-t pt-5">
           <button
             type="button"
             onClick={() =>

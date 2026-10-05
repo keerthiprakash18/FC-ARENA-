@@ -1,4 +1,5 @@
 'use client';
+import { AdminFilterBar } from '@/components/admin/admin-filter-bar';
 
 import {
   useEffect,
@@ -44,6 +45,9 @@ interface Dispute {
 }
 
 export default function AdminDisputesPage() {
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [
     disputes,
     setDisputes,
@@ -96,6 +100,7 @@ export default function AdminDisputesPage() {
           ? err.message
           : 'Unable to load disputes.',
       );
+
     }
   }
 
@@ -117,6 +122,8 @@ export default function AdminDisputesPage() {
       !note ||
       note.length < 3
     ) {
+      setFieldErrors(current => ({ ...current, [disputeId]: 'Add a resolution note of at least 3 characters.' }));
+      document.getElementById(`dispute-note-${disputeId}`)?.focus();
       setError(
         'Add a short resolution note before closing the dispute.',
       );
@@ -127,6 +134,7 @@ export default function AdminDisputesPage() {
     setBusyId(
       disputeId,
     );
+    setFieldErrors(current => ({ ...current, [disputeId]: '' }));
 
     setError('');
 
@@ -179,6 +187,11 @@ export default function AdminDisputesPage() {
         'OPEN',
     ).length;
 
+  const visibleDisputes = disputes.filter(dispute =>
+    (!statusFilter || dispute.status === statusFilter) &&
+    [dispute.raisedByName, dispute.raisedByInGameName, dispute.tournamentName, dispute.leagueName, dispute.reason].join(' ').toLowerCase().includes(query.trim().toLowerCase()),
+  );
+
   return (
     <SecondaryFeaturePage
       eyebrow="Admin"
@@ -199,6 +212,7 @@ export default function AdminDisputesPage() {
       }
     >
       <AdminNavigation />
+      <AdminFilterBar query={query} onQueryChange={setQuery} status={statusFilter} onStatusChange={setStatusFilter} count={visibleDisputes.length} statuses={['OPEN', 'RESOLVED', 'REJECTED']} />
 
       {error ? (
         <FcErrorState
@@ -209,7 +223,7 @@ export default function AdminDisputesPage() {
       ) : null}
 
       <section className="space-y-4">
-        {disputes.map(
+        {visibleDisputes.map(
           (
             dispute,
           ) => (
@@ -322,8 +336,12 @@ export default function AdminDisputesPage() {
 
                 {dispute.status ===
                 'OPEN' ? (
-                  <div className="w-full lg:max-w-sm">
-                    <textarea
+                   <div className="w-full lg:max-w-sm">
+                     <label htmlFor={`dispute-note-${dispute.id}`} className="fc-field-label mb-2">Resolution note <span className="theme-muted">Required · at least 3 characters</span></label>
+                     <textarea
+                       id={`dispute-note-${dispute.id}`}
+                       aria-invalid={Boolean(fieldErrors[dispute.id])}
+                       aria-describedby={fieldErrors[dispute.id] ? `dispute-error-${dispute.id}` : undefined}
                       value={
                         notes[
                           dispute.id
@@ -349,7 +367,8 @@ export default function AdminDisputesPage() {
                       maxLength={1000}
                       placeholder="Resolution note..."
                       className="theme-input w-full rounded-xl border p-3 text-sm outline-none"
-                    />
+                     />
+                     {fieldErrors[dispute.id] ? <p role="alert" id={`dispute-error-${dispute.id}`} className="theme-tone-danger mt-2 rounded-lg p-2 text-sm">{fieldErrors[dispute.id]}</p> : null}
 
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <button
@@ -393,11 +412,11 @@ export default function AdminDisputesPage() {
           ),
         )}
 
-        {disputes.length ===
+        {visibleDisputes.length ===
         0 ? (
           <FcEmptyState
-            title="No disputes"
-            description="No match result disputes are waiting for your League Admin account."
+            title={query || statusFilter ? 'No matching disputes' : 'No disputes'}
+            description={query || statusFilter ? 'Clear or adjust your filters to see other disputes.' : 'No match result disputes are waiting for your League Admin account.'}
           />
         ) : null}
       </section>

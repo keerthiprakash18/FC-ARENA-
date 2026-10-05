@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 
 import { AppShell } from '@/components/app/app-shell';
 import { BackHeader } from '@/components/app/back-header';
-import { FcLoadingScreen } from '@/components/fc/fc-ui';
+import { FcErrorState, FcLoadingScreen, FcUnauthorizedState } from '@/components/fc/fc-ui';
+import { ApiError } from '@/lib/api';
 import {
   type CurrentUser,
   getCurrentUser,
@@ -36,18 +37,37 @@ export function SecondaryFeaturePage({
       null,
     );
 
-  useEffect(() => {
-    void getCurrentUser()
-      .then(
-        setUser,
-      );
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [unauthorized, setUnauthorized] = useState<401 | 403 | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
-  if (!user) {
+  useEffect(() => {
+    let active = true;
+    void getCurrentUser()
+      .then(current => { if (active) setUser(current); })
+      .catch(err => {
+        if (!active) return;
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) setUnauthorized(err.status);
+        else setError('Unable to load your account. Check your connection and try again.');
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [attempt]);
+
+  if (loading) {
     return (
       <FcLoadingScreen
         label={`Loading ${title}...`}
       />
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="fc-state-screen">
+        {unauthorized ? <FcUnauthorizedState forbidden={unauthorized === 403} /> : <FcErrorState message={error} onRetry={() => { setLoading(true); setError(''); setUnauthorized(null); setAttempt(value => value + 1); }} />}
+      </main>
     );
   }
 

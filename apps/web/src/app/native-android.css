@@ -562,3 +562,10 @@ html[data-native-app="android"] .fc-main {
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+/* Reduced-motion also overrides the native shell's short colour transitions. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-native-app="android"] :is(.theme-nav-item, .theme-quick-action, .theme-profile-chip, .theme-header-icon, .theme-user-card, .theme-bottom-item, .theme-action-row) {
+    transition: none !important;
+  }
+}

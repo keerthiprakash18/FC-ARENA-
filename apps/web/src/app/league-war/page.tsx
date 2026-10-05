@@ -506,7 +506,7 @@ export default function LeagueWarPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-7">
+      <div className="fc-league-war-page space-y-7">
         <FcPageHeader
           title="League War"
           subtitle="League vs League battles with locked rosters, opponent-confirmed results, live War Points and rivalry history."
@@ -525,7 +525,7 @@ export default function LeagueWarPage() {
                 }
                 className="min-h-11 rounded-xl bg-rose-400 px-5 text-sm font-black text-[#18070b]"
               >
-                ⚔ Create War
+                Create War
               </button>
             ) : null
           }

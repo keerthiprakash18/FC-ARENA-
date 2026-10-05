@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
+import { FcNotice } from '@/components/fc/fc-ui';
 import { apiRequest } from '@/lib/api';
 import {
   establishLoginSession,
@@ -164,13 +165,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {notice ? (
-          <div className="success-box">
-            {notice}
-          </div>
-        ) : null}
-
-        {error ? <div className="error-box">{error}</div> : null}
+        <FcNotice>{notice}</FcNotice>
+        <FcNotice tone="error">{error}</FcNotice>
 
         <button
           className="primary-button"

@@ -1,17 +1,5 @@
 @import "tailwindcss";
 
-:root {
-  --background: #05080d;
-  --panel: #0a1018;
-  --panel-2: #0e1722;
-  --border: rgba(255, 255, 255, 0.1);
-  --text: #f3f7fb;
-  --muted: #8693a3;
-  --accent: #56c8ff;
-  --accent-strong: #18a8eb;
-  --success: #4ade80;
-  --danger: #fb7185;
-}
 
 * {
   box-sizing: border-box;
@@ -368,13 +356,6 @@ a {
 }
 
 /* FC ARENA PREMIUM VISUAL SYSTEM */
-:root {
-  --fc-bg: #030812;
-  --fc-panel: #08111b;
-  --fc-panel-2: #0a1520;
-  --fc-cyan: #38bdf8;
-  --fc-emerald: #34d399;
-}
 
 html {
   color-scheme: dark;
@@ -441,32 +422,6 @@ a {
 
 
 /* FC ARENA CALM PROFESSIONAL SYSTEM */
-:root {
-  --background: #0B0F14;
-  --panel: #121821;
-  --panel-2: #151C26;
-  --border: #253140;
-  --text: #F8FAFC;
-  --muted: #6F7B8A;
-  --secondary-text: #A7B0BE;
-  --accent: #38BDF8;
-  --accent-strong: #0EA5E9;
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-
-  --fc-bg: #0B0F14;
-  --fc-sidebar: #0E141B;
-  --fc-panel: #121821;
-  --fc-panel-2: #151C26;
-  --fc-elevated: #18212C;
-  --fc-border: #253140;
-  --fc-text: #F8FAFC;
-  --fc-secondary: #A7B0BE;
-  --fc-muted: #6F7B8A;
-  --fc-cyan: #38BDF8;
-  --fc-emerald: #22C55E;
-}
 
 html {
   background: #0B0F14;
@@ -572,14 +527,6 @@ textarea {
   transition-duration: 180ms;
 }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid rgba(56, 189, 248, 0.72);
-  outline-offset: 2px;
-}
 
 .auth-card,
 .hero-card,
@@ -619,32 +566,6 @@ textarea:focus-visible {
 
 
 /* FC ARENA HOME REFERENCE PALETTE */
-:root {
-  --background: #071019;
-  --panel: #101923;
-  --panel-2: #121D28;
-  --border: #203141;
-  --text: #F8FAFC;
-  --muted: #6F7B8A;
-  --secondary-text: #A7B0BE;
-  --accent: #19B7FF;
-  --accent-strong: #21C3FF;
-  --success: #1FD18A;
-  --warning: #F3B326;
-  --danger: #EF5350;
-
-  --fc-bg: #071019;
-  --fc-sidebar: #0B1118;
-  --fc-panel: #101923;
-  --fc-panel-2: #121D28;
-  --fc-elevated: #14212D;
-  --fc-border: #203141;
-  --fc-text: #F8FAFC;
-  --fc-secondary: #A7B0BE;
-  --fc-muted: #6F7B8A;
-  --fc-cyan: #19B7FF;
-  --fc-emerald: #1FD18A;
-}
 
 html {
   background: #071019;
@@ -729,31 +650,6 @@ body {
 /* =========================================================
    FC ARENA — REFERENCE-LOCKED CREAM / NAVY / GOLD DASHBOARD
    ========================================================= */
-:root {
-  --background: #F7F3EB;
-  --panel: #FFFDF9;
-  --panel-2: #FBF8F2;
-  --border: #DED8CD;
-  --text: #0B2545;
-  --muted: #8792A1;
-  --secondary-text: #54657A;
-  --accent: #C9972D;
-  --accent-strong: #B9811E;
-  --success: #22A06B;
-  --danger: #E34C4C;
-
-  --fc-bg: #F7F3EB;
-  --fc-sidebar: #061E35;
-  --fc-panel: #FFFDF9;
-  --fc-panel-2: #FBF8F2;
-  --fc-elevated: #FAF7F0;
-  --fc-border: #DED8CD;
-  --fc-text: #0B2545;
-  --fc-secondary: #54657A;
-  --fc-muted: #8792A1;
-  --fc-cyan: #C9972D;
-  --fc-emerald: #22A06B;
-}
 
 html {
   background: #F7F3EB;
@@ -1159,142 +1055,7 @@ body {
 }
 
 
-/* =========================================================
-   FC ARENA — USER SELECTABLE THEME TOKENS
-   The application uses one component tree. Only these tokens
-   change between Luxury Gold and Classic Blue.
-   ========================================================= */
-
-:root,
-[data-theme="classic-blue"] {
-  --theme-background: #F5F8FD;
-  --theme-secondary-background: #F8FAFE;
-  --theme-surface: #FFFFFF;
-  --theme-elevated: #F8FAFD;
-
-  --theme-sidebar: #FFFFFF;
-  --theme-sidebar-secondary: #F8FAFE;
-  --theme-sidebar-border: #DCE5F1;
-  --theme-sidebar-text: #0B1F44;
-  --theme-sidebar-muted: #60708A;
-  --theme-sidebar-icon: #536B91;
-
-  --theme-header: #FFFFFF;
-  --theme-header-alpha: rgba(255,255,255,0.96);
-
-  --theme-primary: #1478F2;
-  --theme-primary-hover: #0967DA;
-  --theme-primary-bright: #1685FF;
-  --theme-primary-soft: #E8F2FF;
-  --theme-primary-soft-strong: #D9EAFF;
-
-  --theme-text: #0B1F44;
-  --theme-text-secondary: #60708A;
-  --theme-text-muted: #8794A8;
-  --theme-border: #DCE5F1;
-
-  --theme-success: #18A66A;
-  --theme-warning: #E69A20;
-  --theme-danger: #EF4E4E;
-
-  --theme-hero-start: #E6F2FF;
-  --theme-hero-end: #CFE8FF;
-  --theme-hero-accent: rgba(20,120,242,0.11);
-
-  --theme-card-shadow: 0 6px 18px rgba(11,43,97,0.055);
-  --theme-card-shadow-hover: 0 12px 28px rgba(11,43,97,0.09);
-  --theme-overlay: rgba(11,31,68,0.48);
-
-  --background: var(--theme-background);
-  --panel: var(--theme-surface);
-  --panel-2: var(--theme-secondary-background);
-  --border: var(--theme-border);
-  --text: var(--theme-text);
-  --muted: var(--theme-text-muted);
-  --secondary-text: var(--theme-text-secondary);
-  --accent: var(--theme-primary);
-  --accent-strong: var(--theme-primary-hover);
-  --success: var(--theme-success);
-  --warning: var(--theme-warning);
-  --danger: var(--theme-danger);
-
-  --fc-bg: var(--theme-background);
-  --fc-sidebar: var(--theme-sidebar);
-  --fc-panel: var(--theme-surface);
-  --fc-panel-2: var(--theme-secondary-background);
-  --fc-elevated: var(--theme-elevated);
-  --fc-border: var(--theme-border);
-  --fc-text: var(--theme-text);
-  --fc-secondary: var(--theme-text-secondary);
-  --fc-muted: var(--theme-text-muted);
-  --fc-cyan: var(--theme-primary);
-  --fc-emerald: var(--theme-success);
-}
-
-[data-theme="luxury-gold"] {
-  --theme-background: #F7F3EB;
-  --theme-secondary-background: #FBF8F2;
-  --theme-surface: #FFFDF9;
-  --theme-elevated: #FAF7F0;
-
-  --theme-sidebar: #061E35;
-  --theme-sidebar-secondary: #082944;
-  --theme-sidebar-border: rgba(255,255,255,0.08);
-  --theme-sidebar-text: #FFFFFF;
-  --theme-sidebar-muted: #A9B4C2;
-  --theme-sidebar-icon: #A8B3C0;
-
-  --theme-header: #FFFDF9;
-  --theme-header-alpha: rgba(255,253,249,0.96);
-
-  --theme-primary: #C9972D;
-  --theme-primary-hover: #B9811E;
-  --theme-primary-bright: #D5AE5C;
-  --theme-primary-soft: #FAF2DD;
-  --theme-primary-soft-strong: #F5E8C8;
-
-  --theme-text: #0B2545;
-  --theme-text-secondary: #54657A;
-  --theme-text-muted: #8792A1;
-  --theme-border: #DED8CD;
-
-  --theme-success: #22A06B;
-  --theme-warning: #C9972D;
-  --theme-danger: #E34C4C;
-
-  --theme-hero-start: #FFFDF9;
-  --theme-hero-end: #F3E4BD;
-  --theme-hero-accent: rgba(217,180,90,0.15);
-
-  --theme-card-shadow: 0 4px 16px rgba(20,33,50,0.05);
-  --theme-card-shadow-hover: 0 10px 24px rgba(20,33,50,0.08);
-  --theme-overlay: rgba(7,30,53,0.55);
-
-  --background: var(--theme-background);
-  --panel: var(--theme-surface);
-  --panel-2: var(--theme-secondary-background);
-  --border: var(--theme-border);
-  --text: var(--theme-text);
-  --muted: var(--theme-text-muted);
-  --secondary-text: var(--theme-text-secondary);
-  --accent: var(--theme-primary);
-  --accent-strong: var(--theme-primary-hover);
-  --success: var(--theme-success);
-  --warning: var(--theme-warning);
-  --danger: var(--theme-danger);
-
-  --fc-bg: var(--theme-background);
-  --fc-sidebar: var(--theme-sidebar);
-  --fc-panel: var(--theme-surface);
-  --fc-panel-2: var(--theme-secondary-background);
-  --fc-elevated: var(--theme-elevated);
-  --fc-border: var(--theme-border);
-  --fc-text: var(--theme-text);
-  --fc-secondary: var(--theme-text-secondary);
-  --fc-muted: var(--theme-text-muted);
-  --fc-cyan: var(--theme-primary);
-  --fc-emerald: var(--theme-success);
-}
+/* Palette, display mode, sizing and legacy aliases live in design-tokens.css. */
 
 html {
   background: var(--theme-background);
@@ -2121,17 +1882,7 @@ body {
    of the signed-in user's saved application theme.
    ========================================================= */
 .auth-premium {
-  --auth-bg: #06111c;
-  --auth-bg-deep: #030912;
-  --auth-panel: #0d1722;
-  --auth-panel-2: #111d29;
-  --auth-border: #203245;
-  --auth-text: #f8fbff;
-  --auth-secondary: #9fb0c3;
-  --auth-muted: #6f8296;
-  --auth-accent: #20b8f5;
-  --auth-accent-strong: #0e9fe0;
-  --auth-success: #22c982;
+  color: var(--auth-text);
 }
 
 .auth-page.auth-premium {
@@ -2625,15 +2376,6 @@ body {
    the shared visual system across both user-selectable themes.
    ========================================================= */
 
-:root,
-[data-theme="classic-blue"],
-[data-theme="luxury-gold"] {
-  --fc-card-radius: 16px;
-  --fc-control-radius: 10px;
-  --fc-motion: 180ms ease;
-  --fc-shadow-subtle: 0 1px 2px rgba(11,31,68,0.04), 0 5px 16px rgba(11,31,68,0.045);
-  --fc-shadow-raised: 0 2px 4px rgba(11,31,68,0.05), 0 10px 22px rgba(11,31,68,0.07);
-}
 
 body {
   background: var(--theme-background) !important;
@@ -3150,81 +2892,6 @@ textarea:focus-visible {
 
 [data-mode="dark"] {
   color-scheme: dark;
-
-  --theme-background: #071019;
-  --theme-secondary-background: #0B1622;
-  --theme-surface: #101C29;
-  --theme-elevated: #142332;
-
-  --theme-sidebar: #06111C;
-  --theme-sidebar-secondary: #091827;
-  --theme-sidebar-border: #213346;
-  --theme-sidebar-text: #F4F7FB;
-  --theme-sidebar-muted: #8D9CAF;
-  --theme-sidebar-icon: #94A7BC;
-
-  --theme-header: #0B1622;
-  --theme-header-alpha: rgba(11,22,34,0.96);
-
-  --theme-primary: #3BA8FF;
-  --theme-primary-hover: #2197F3;
-  --theme-primary-bright: #67BBFF;
-  --theme-primary-soft: #102A42;
-  --theme-primary-soft-strong: #153A5B;
-
-  --theme-text: #F4F7FB;
-  --theme-text-secondary: #B4C0CE;
-  --theme-text-muted: #8190A2;
-  --theme-border: #26384A;
-
-  --theme-success: #3BC98A;
-  --theme-warning: #F1B84B;
-  --theme-danger: #F06B6B;
-
-  --theme-hero-start: #10263A;
-  --theme-hero-end: #0B1927;
-  --theme-hero-accent: rgba(59,168,255,0.12);
-
-  --theme-card-shadow: 0 8px 24px rgba(0,0,0,0.24);
-  --theme-card-shadow-hover: 0 14px 34px rgba(0,0,0,0.34);
-  --theme-overlay: rgba(0,0,0,0.68);
-
-  --background: var(--theme-background);
-  --panel: var(--theme-surface);
-  --panel-2: var(--theme-secondary-background);
-  --border: var(--theme-border);
-  --text: var(--theme-text);
-  --muted: var(--theme-text-muted);
-  --secondary-text: var(--theme-text-secondary);
-  --accent: var(--theme-primary);
-  --accent-strong: var(--theme-primary-hover);
-  --success: var(--theme-success);
-  --warning: var(--theme-warning);
-  --danger: var(--theme-danger);
-
-  --fc-bg: var(--theme-background);
-  --fc-sidebar: var(--theme-sidebar);
-  --fc-panel: var(--theme-surface);
-  --fc-panel-2: var(--theme-secondary-background);
-  --fc-elevated: var(--theme-elevated);
-  --fc-border: var(--theme-border);
-  --fc-text: var(--theme-text);
-  --fc-secondary: var(--theme-text-secondary);
-  --fc-muted: var(--theme-text-muted);
-  --fc-cyan: var(--theme-primary);
-  --fc-emerald: var(--theme-success);
-}
-
-[data-mode="dark"][data-theme="luxury-gold"] {
-  --theme-primary: #D5AE5C;
-  --theme-primary-hover: #C9972D;
-  --theme-primary-bright: #E4C57D;
-  --theme-primary-soft: #302712;
-  --theme-primary-soft-strong: #433519;
-  --theme-warning: #D5AE5C;
-  --theme-hero-start: #1C2028;
-  --theme-hero-end: #101722;
-  --theme-hero-accent: rgba(213,174,92,0.14);
 }
 
 [data-mode="dark"] html,

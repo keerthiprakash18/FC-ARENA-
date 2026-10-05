@@ -1,4 +1,5 @@
 'use client';
+import { confirmAction } from '@/components/fc/confirmation-provider';
 
 import {
   useEffect,
@@ -142,10 +143,7 @@ export function AuthenticatedAccountDeletion() {
       return;
     }
 
-    const accepted =
-      window.confirm(
-        'This permanently deletes your FC ARENA account and signs you out. Continue?',
-      );
+    const accepted = await confirmAction({ title: 'Delete your account permanently?', description: 'This deletes your FC ARENA account, removes or anonymizes your personal profile data, and signs you out of all sessions. Retained competition history is de-identified. This cannot be undone.', confirmLabel: 'Delete account', destructive: true });
 
     if (
       !accepted

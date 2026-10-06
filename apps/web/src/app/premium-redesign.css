@@ -229,8 +229,8 @@
 .fc-compact-standings-table { width: 100%; min-width: 320px; table-layout: fixed; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 .fc-compact-rank-column { width: 28px; }
 .fc-compact-played-column { width: 30px; }
-.fc-compact-goals-column { width: 32px; }
-.fc-compact-difference-column { width: 38px; }
+.fc-compact-stat-column { width: 32px; }
+.fc-compact-last-stat-column { width: 38px; }
 .fc-compact-points-column { width: 36px; }
 .fc-compact-standings-table :is(th,td) { padding: 6px 2px; text-align: center; vertical-align: middle; white-space: nowrap; border-bottom: 1px solid #294357; }
 .fc-premium .fc-compact-standings-table thead th { height: 36px; color: #c4d0dd; background: #091f34; font-size: 11px; font-weight: 600; }
@@ -238,7 +238,7 @@
 .fc-premium .fc-compact-standings-table tbody .fc-compact-team-row { border-left: 0; background: #0d263d; }
 .fc-premium .fc-compact-standings-table .fc-compact-team-row[data-highlighted="true"] { background: #18364e; }
 .fc-compact-team-row[data-highlighted="true"] .fc-compact-rank { color: #e5c77f; box-shadow: inset 3px 0 #d9b765; }
-.fc-compact-rank, .fc-compact-difference { font-weight: 600; }
+.fc-compact-rank, .fc-compact-last-stat { font-weight: 600; }
 .fc-compact-standings-table .fc-compact-team-cell { padding: 0 4px; text-align: left; white-space: normal; }
 .fc-compact-team-button { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 6px; padding: 6px 0; text-align: left; color: #fffefa; background: transparent; cursor: pointer; }
 .fc-compact-team-button > span:first-child { flex-shrink: 0; }
@@ -251,7 +251,7 @@
 .fc-compact-team-button[aria-expanded="true"] .fc-compact-team-name { color: #e5c77f; }
 .fc-compact-detail-row td { padding: 12px 16px; text-align: left; white-space: normal; background: #091f34; }
 .fc-compact-detail-row strong { display: block; overflow-wrap: anywhere; font-size: 13px; }
-.fc-compact-detail-row dl { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 8px; }
+.fc-compact-detail-row dl { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; }
 .fc-compact-detail-row dl div { display: flex; gap: 6px; }
 .fc-compact-detail-row dt { color: #c4d0dd; }
 .fc-compact-detail-row dd { margin: 0; font-weight: 650; }

@@ -70,13 +70,13 @@ async function auditContrast(sections) {
 }
 
 async function auditMobileTable(table, expected) {
-  assert.deepEqual(await table.locator('thead th').allTextContents(), ['#', 'Team / Duo', 'P', 'GF', 'GA', 'GD', 'Pts']);
+  assert.deepEqual(await table.locator('thead th').allTextContents(), ['#', 'Team / Duo', 'P', 'W', 'D', 'L', 'Pts']);
   const mainRows = table.locator('tbody > tr:visible');
   assert.equal(await mainRows.count(), expected.length, 'one visible row per team before details are opened');
   for (let index = 0; index < expected.length; index++) {
     const row = mainRows.nth(index), fixture = expected[index];
     const cells = await row.evaluate(row => [...row.children].map(cell => cell.querySelector('.fc-compact-team-name')?.textContent ?? cell.textContent));
-    assert.deepEqual(cells.map(cell => cell.trim()), [String(fixture.position), fixture.entryName, String(fixture.played), String(fixture.goalsFor), String(fixture.goalsAgainst), `${fixture.goalDifference > 0 ? '+' : ''}${fixture.goalDifference}`, String(fixture.points)]);
+    assert.deepEqual(cells.map(cell => cell.trim()), [String(fixture.position), fixture.entryName, String(fixture.played), String(fixture.wins), String(fixture.draws), String(fixture.losses), String(fixture.points)]);
   }
   const metrics = await table.evaluate(element => {
     const rect = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, height: r.height }; };
@@ -112,11 +112,17 @@ async function auditMobileTable(table, expected) {
   const detail = table.locator('.fc-compact-detail-row:visible');
   assert.equal(await detail.count(), 1);
   assert.equal(await detail.locator('strong').textContent(), expected[0].entryName);
-  assert.deepEqual(await detail.locator('dd').allTextContents(), [String(expected[0].wins), String(expected[0].draws), String(expected[0].losses), expected[0].form]);
+  assert.deepEqual(await detail.locator('dt').allTextContents(), ['GF', 'GA', 'GD', 'Form']);
+  assert.deepEqual(await detail.locator('dd').allTextContents(), [String(expected[0].goalsFor), String(expected[0].goalsAgainst), `${expected[0].goalDifference > 0 ? '+' : ''}${expected[0].goalDifference}`, expected[0].form]);
+  assert(await detail.evaluate(element => {
+    const stats = [...element.querySelectorAll('dl > div')].map(stat => stat.getBoundingClientRect().top);
+    return Math.max(...stats) - Math.min(...stats) <= 1 && element.getBoundingClientRect().height <= 80;
+  }), 'GF/GA/GD/form fit together in a compact secondary row');
   const longNameButton = table.locator('.fc-compact-team-row').nth(4).getByRole('button');
   await longNameButton.click();
   assert.equal(await detail.count(), 1, 'details remain secondary and only one is open');
   assert.equal(await detail.locator('strong').textContent(), expected[4].entryName, 'long names remain available on tap');
+  assert.deepEqual(await detail.locator('dd').allTextContents(), [String(expected[4].goalsFor), String(expected[4].goalsAgainst), String(expected[4].goalDifference), expected[4].form]);
   assert(await detail.evaluate(element => document.documentElement.scrollWidth <= innerWidth + 1), 'expanded details stay within the page');
   await longNameButton.click();
   assert.equal(await detail.count(), 0);

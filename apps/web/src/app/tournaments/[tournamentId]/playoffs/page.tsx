@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 import { FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
+import { PremiumHero } from "@/components/fc/premium-ui";
 
 import {
   FixtureCard,
@@ -421,7 +422,7 @@ export default function PlayoffsPage() {
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
-      <div className="space-y-7">
+      <div className="premium-page premium-playoffs">
         <button
           type="button"
           onClick={() => router.back()}
@@ -430,55 +431,43 @@ export default function PlayoffsPage() {
           ← Back
         </button>
 
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-            Knockout Stage
-          </p>
-
-          <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] md:text-5xl">
-            Playoff Center
-          </h1>
-
-          <p className="mt-3 text-xl font-black">{tournament.name}</p>
-
-          <p className="mt-1 font-mono text-xs text-slate-600">
-            {tournament.code}
-          </p>
+        <PremiumHero eyebrow={`${tournament.name} · Knockout stage`} title="Playoff Center" description="Every round matters. Follow the road to the final." crest={tournament.name}>
+          <div className="premium-hero-tags"><span>{tournament.code}</span><span>{playoffFixtures.length} knockout fixtures</span><span>{incompleteGroupFixtures} group matches remaining</span></div>
 
           <div className="mt-6 flex flex-wrap gap-2">
             <Link
               href={`/tournaments/${tournamentId}/groups`}
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400"
+              className="theme-secondary-button premium-button"
             >
               Groups
             </Link>
 
             <Link
               href={`/tournaments/${tournamentId}/standings`}
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400"
+              className="theme-secondary-button premium-button"
             >
               Standings
             </Link>
 
             <Link
               href={`/tournaments/${tournamentId}/fixtures`}
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400"
+              className="theme-secondary-button premium-button"
             >
               Fixtures
             </Link>
             <Link
               href={`/tournaments/${tournamentId}/achievements`}
-              className="rounded-xl border border-amber-400/20 bg-amber-400/[0.04] px-4 py-3 text-sm font-black text-amber-300"
+              className="theme-secondary-button premium-button"
             >
               Hall of Champions
             </Link>
           </div>
-        </section>
+        </PremiumHero>
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
 
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <section className="premium-metrics premium-standing-metrics" aria-label="Playoff progress">
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
             <p className="text-xs text-slate-600">Groups</p>
 
@@ -701,6 +690,7 @@ export default function PlayoffsPage() {
             </div>
 
             <label className="fc-field-label">Knockout round<select value={selectedRound} onChange={event => setSelectedRound(event.target.value)} className="theme-secondary-button rounded-xl p-3"><option value="ALL">All rounds</option>{playoffRounds.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label>
+            <div className="premium-bracket" role="region" aria-label="Knockout bracket" tabIndex={0}>
             {playoffRounds.filter(([name]) => selectedRound === "ALL" || name === selectedRound).map(([roundName, roundFixtures]) => (
               <article
                 key={roundName}
@@ -716,7 +706,7 @@ export default function PlayoffsPage() {
                   </span>
                 </div>
 
-                <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                <div className="premium-bracket-matches mt-5 grid gap-4">
                   {roundFixtures
                     .sort((a, b) => a.bracketPosition - b.bracketPosition)
                     .map((fixture) => (
@@ -730,6 +720,7 @@ export default function PlayoffsPage() {
                 </div>
               </article>
             ))}
+            </div>
           </section>
         )}
       </div>

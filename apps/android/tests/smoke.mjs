@@ -56,7 +56,10 @@ async function prepare(page) {
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
+        case '/api/league-wars': data = { wars: [] }; break;
+        case '/api/league-wars/rankings': data = { leagueRankings: [], playerRankings: [] }; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
+        case '/api/awards/overview': data = { currentBallon: null, trophyCabinet: {}, myTournamentAwards: [], mySeasonalAwards: [], activeAwardTournaments: [], recentSeasonalWinners: [] }; break;
         default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();
       }
       return route.fulfill({ json: { success: true, data, error: null }, headers: { 'access-control-allow-origin': 'https://fcarena.in', 'access-control-allow-credentials': 'true' } });
@@ -199,11 +202,11 @@ try {
     let page = android ? androidPage : await context.newPage();
     await prepare(page);
     await page.goto('https://fcarena.in/dashboard');
-    await page.locator('.fc-dashboard-hero').waitFor();
+    await page.locator('.premium-home-hero').waitFor();
     await checkScroll(page, `dashboard-${width || 'emulator'}`, true);
     await page.screenshot({ path: `${output}/dashboard-${width || 'emulator'}.png` });
     await page.evaluate(() => { window.__smokeDocument = 'same-document'; });
-    for (const path of ['/leagues','/tournaments','/fixtures','/more','/dashboard']) {
+    for (const path of ['/leagues','/tournaments','/fixtures','/awards','/league-war','/more','/dashboard']) {
       await page.locator(`.theme-bottom-nav a[href="${path}"]`).click();
       await page.waitForURL(`**${path}`);
       await page.locator('.fc-main').waitFor();

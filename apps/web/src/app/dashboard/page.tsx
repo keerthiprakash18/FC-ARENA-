@@ -16,10 +16,10 @@ import {
   FcCrest,
   FcLoadingScreen,
   FcPanel,
-  FcQuickActionTile,
   FcStatCard,
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
+import { AwardEmblem, PremiumDestination, PremiumMatch, PremiumPitch, PremiumSection } from "@/components/fc/premium-ui";
 
 import {
   authenticatedRequest,
@@ -456,172 +456,42 @@ export default function DashboardPage() {
       playerName={inGameName}
       playerRole={primaryMembership?.adminRole || "Player"}
     >
-      <div className="fc-dashboard-page relative space-y-5 sm:space-y-6">
-        <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
-        <Link href="/notifications" className="theme-action-row flex items-center justify-between rounded-xl border p-4 font-semibold"><span>Your action inbox</span><span className="text-sm">Reminders & approvals →</span></Link>
+      <div className="premium-page premium-dashboard fc-dashboard-page">
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {error}
           </div>
         ) : null}
 
-        <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
-          <div className="fc-hero-right hidden lg:block" />
-
-          <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
-            <div className="hidden lg:block">
-              <div className="theme-hero-avatar-ring grid h-[86px] w-[86px] place-items-center rounded-full border-[3px]">
-                <FcCrest
-                  name={inGameName}
-                  imageUrl={career.profile.profileImageUrl}
-                  size="lg"
-                />
-              </div>
+        <section className="premium-hero premium-home-hero">
+          <PremiumPitch />
+          <div className="premium-hero-copy">
+            <p className="premium-eyebrow">FC ARENA · Your competition home</p>
+            <h1>More than<br />a game.</h1>
+            <p className="premium-hero-description">Welcome back, {inGameName}. Your next match is where the story continues.</p>
+            <div className="premium-home-context">
+              <FcCrest name={primaryMembership?.league.name || inGameName} imageUrl={leagueLogo || career.profile.profileImageUrl} size="md" />
+              <div><strong>{primaryMembership?.league.name || "Build your competition legacy"}</strong><p>{activeTournament?.name || "Choose a league. Enter a tournament. Make your mark."}</p></div>
             </div>
-
-            <div className="min-w-0 lg:pr-5">
-              <p className="theme-hero-kicker fc-dashboard-kicker text-[12px] font-bold tracking-[0.16em]">
-                <span className="fc-dashboard-live-dot" aria-hidden="true" />
-                WELCOME BACK
-              </p>
-
-              <h1 className="theme-text mt-2 truncate text-[38px] font-bold leading-[0.98] tracking-[-0.035em] sm:text-[44px] lg:text-[48px]">
-                {inGameName}
-              </h1>
-
-              <p className="theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
-                Your next match. Your club. Your season.
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="theme-soft-accent rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold">
-                  {playerCode}
-                </span>
-
-                <FcStatusBadge label={user.status} tone="emerald" />
-
-                {career.profile.identity?.isVerified ? (
-                  <FcStatusBadge label="Verified" tone="amber" />
-                ) : null}
-              </div>
-            </div>
-
-            <div className="theme-hero-side-copy relative hidden h-full min-h-[168px] lg:block">
-              <div className="absolute right-2 top-2 text-right">
-                <p className="theme-hero-slogan rotate-[-5deg] text-[21px] font-semibold italic leading-[0.95] tracking-[-0.025em]">
-                  More Than
-                  <br />A Game
-                </p>
-              </div>
-
-              <div className="absolute bottom-1 right-2 text-right">
-                <p className="theme-hero-side-label text-[10px] font-semibold tracking-[0.18em]">
-                  PLAY
-                  <br />
-                  COMPETE
-                  <br />
-                  BELONG
-                </p>
-
-                <p className="theme-hero-side-code mt-3 font-mono text-[10px] tracking-[0.08em]">
-                  {playerCode}
-                </p>
-              </div>
-            </div>
+            <div className="premium-hero-tags"><span>{playerCode}</span><span>{primaryMembership?.adminRole || "Player"}</span><span>{user.status}</span>{career.profile.identity?.isVerified ? <span>Verified identity</span> : null}</div>
+          </div>
+          <div className="premium-home-next">
+            {nextFixture ? <PremiumMatch home={entryName(nextFixture.home)} away={entryName(nextFixture.away)} label={`Next Match · ${nextFixture.tournamentName} · ${nextFixture.roundName}`} status={<FcStatusBadge label={nextFixture.match?.status || nextFixture.status} />} href={nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${nextFixture.tournamentId}/fixtures`} action="View Match">
+              <span>{nextFixture.scheduledAt ? new Date(nextFixture.scheduledAt).toLocaleString() : "Schedule pending"}</span>
+            </PremiumMatch> : <div className="premium-home-empty"><FcIcon name="fixtures" size={36} /><h2>Your next chapter</h2><p>Your next scheduled fixture will appear here when a competition schedule is ready.</p><Link className="theme-primary-button premium-button" href="/fixtures">View Fixtures <FcIcon name="chevronRight" size={16} /></Link></div>}
           </div>
         </section>
 
+        <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
+        <PremiumDestination href="/notifications" icon="bell" title="Your action inbox" detail="Reminders, approvals and competition updates" />
+
         <section className="fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
-          <FcPanel className="fc-next-match-panel relative overflow-hidden p-5 sm:p-6">
-            <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
-
-            <div className="relative">
-              <SectionTitle
-                icon="fixtures"
-                title="Next Match"
-                href="/fixtures"
-              />
-
-              {nextFixture ? (
-                <>
-                  <p className="mt-4 text-xs font-medium text-[#8792A1]">
-                    {nextFixture.tournamentName}
-                    {" • "}
-                    {nextFixture.roundName}
-                  </p>
-
-                  <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
-                    <div className="flex min-w-0 flex-col items-center text-center">
-                      <FcCrest name={entryName(nextFixture.home)} size="lg" />
-
-                      <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
-                        {entryName(nextFixture.home)}
-                      </p>
-                    </div>
-
-                    <div className="theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold">
-                      VS
-                    </div>
-
-                    <div className="flex min-w-0 flex-col items-center text-center">
-                      <FcCrest name={entryName(nextFixture.away)} size="lg" />
-
-                      <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
-                        {entryName(nextFixture.away)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex flex-col gap-3 border-t border-[#DED8CD] pt-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs text-[#8792A1]">
-                        {nextFixture.leagueName}
-                      </p>
-
-                      <p className="mt-1 text-sm font-medium text-[#54657A]">
-                        {nextFixture.scheduledAt
-                          ? new Date(nextFixture.scheduledAt).toLocaleString()
-                          : "Schedule pending"}
-                      </p>
-                    </div>
-
-                    <Link
-                      href={
-                        nextFixture.match?.id
-                          ? `/matches/${nextFixture.match.id}`
-                          : `/tournaments/${nextFixture.tournamentId}/fixtures`
-                      }
-                      className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
-                    >
-                      View Match →
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
-                  <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
-                    ◷
-                  </div>
-
-                  <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
-                    No upcoming match
-                  </h3>
-
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">
-                    Your next scheduled fixture will appear here when a
-                    competition schedule is ready.
-                  </p>
-
-                  <Link
-                    href="/fixtures"
-                    className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
-                  >
-                    View Fixtures →
-                  </Link>
-                </div>
-              )}
+          <PremiumSection label="Your matchday" title="Upcoming matches" href="/fixtures">
+            <div className="premium-ledger">
+              {personalOpenFixtures.slice(0, 3).map(fixture => <Link key={fixture.id} className="premium-ledger-row" href={fixture.match?.id ? `/matches/${fixture.match.id}` : `/tournaments/${fixture.tournamentId}/fixtures`}><div><p>{entryName(fixture.home)} <span className="theme-muted">vs</span> {entryName(fixture.away)}</p><small>{fixture.tournamentName} · {fixture.roundName}</small></div><FcIcon name="chevronRight" size={18} /></Link>)}
+              {personalOpenFixtures.length === 0 ? <div><p className="font-semibold">No upcoming match</p><p className="theme-secondary-text mt-2 text-sm">Your schedule will appear when fixtures are ready.</p><Link className="premium-quiet" href="/fixtures">View Fixtures →</Link></div> : null}
             </div>
-          </FcPanel>
+          </PremiumSection>
 
           <FcPanel className="fc-league-panel p-5 sm:p-6">
             <SectionTitle
@@ -815,7 +685,7 @@ export default function DashboardPage() {
           </FcPanel>
         </section>
 
-        <section className="fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <section className="premium-metrics fc-dashboard-stats" aria-label="Career at a glance">
           <Link href="/career">
             <FcStatCard
               label="Matches"
@@ -855,58 +725,9 @@ export default function DashboardPage() {
           </Link>
         </section>
 
-        <div className="fc-quick-actions-panel">
-          <SectionTitle icon="activity" title="Quick Actions" />
-
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
-            <FcQuickActionTile
-              href="/leagues"
-              icon="+"
-              title="Join League"
-              description="Use invite code"
-              tone="cyan"
-            />
-
-            <FcQuickActionTile
-              href={createTournamentHref}
-              icon="◇"
-              title={isLeagueAdmin ? "Create Tournament" : "Tournaments"}
-              description={
-                isLeagueAdmin
-                  ? "Start a new competition"
-                  : "Browse competitions"
-              }
-              tone="emerald"
-            />
-
-            <FcQuickActionTile
-              href="/fixtures"
-              icon="fixtures"
-              title="View Fixtures"
-              description="Check upcoming matches"
-              tone="slate"
-            />
-
-            <FcQuickActionTile
-              href={
-                primaryMembership
-                  ? `/leaderboards?league=${primaryMembership.league.id}`
-                  : "/leaderboards"
-              }
-              icon="activity"
-              title="Leaderboard"
-              description="View League performance rankings"
-              tone="cyan"
-            />
-
-            <FcQuickActionTile
-              href="/profile"
-              icon="◎"
-              title="Update Profile"
-              description="Edit your information"
-              tone="amber"
-            />
-          </div>
+        <div className="premium-feature-pair">
+          <Link href="/awards" className="premium-prestige-gateway"><AwardEmblem /><div><p className="premium-eyebrow">Hall of honours</p><h2>Greatness gets recognised.</h2><p>Follow the Ballon, Golden Boot and Golden Glove races.</p><span className="premium-quiet">Explore Awards →</span></div></Link>
+          <Link href="/league-war" className="premium-rivalry-gateway"><FcIcon name="war" size={42} /><div><p className="premium-eyebrow">League against league</p><h2>A rivalry worth playing.</h2><p>Locked rosters. Verified results. One winning league.</p><span className="premium-quiet">Enter League War →</span></div></Link>
         </div>
         <FcPanel className="fc-activity-panel p-5 sm:p-6">
           <SectionTitle
@@ -985,6 +806,15 @@ export default function DashboardPage() {
             </div>
           )}
         </FcPanel>
+        <PremiumSection label="Make your next move" title="Quick Actions">
+          <div className="premium-quick-actions">
+            <PremiumDestination href="/leagues" icon="join" title="Join League" detail="Use an invite code" />
+            <PremiumDestination href={createTournamentHref} icon="tournament" title={isLeagueAdmin ? "Create Tournament" : "Tournaments"} detail={isLeagueAdmin ? "Start a new competition" : "Browse competitions"} />
+            <PremiumDestination href="/fixtures" icon="fixtures" title="View Fixtures" detail="Check upcoming matches" />
+            <PremiumDestination href={primaryMembership ? `/leaderboards?league=${primaryMembership.league.id}` : "/leaderboards"} icon="leaderboard" title="Leaderboard" detail="League performance rankings" />
+            <PremiumDestination href="/profile" icon="profile" title="Update Profile" detail="Edit your information" />
+          </div>
+        </PremiumSection>
       </div>
     </AppShell>
   );

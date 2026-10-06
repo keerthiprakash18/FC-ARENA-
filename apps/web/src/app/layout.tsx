@@ -18,6 +18,7 @@ import './modernization.css';
 import './ux-polish.css';
 import './interactions.css';
 import './release-consistency.css';
+import './premium-redesign.css';
 import './native-android.css';
 
 export const metadata: Metadata = {
@@ -122,7 +123,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body data-ui-build="push-rank-history-v4">
+      <body className="fc-premium" data-ui-build="premium-redesign">
         <ThemeProvider>
           <ConfirmationProvider />
           <ServiceWorkerRegister />

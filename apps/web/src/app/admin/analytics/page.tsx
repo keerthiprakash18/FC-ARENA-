@@ -1,5 +1,7 @@
 'use client';
 import Link from 'next/link';
+import { FcIcon } from '@/components/fc/fc-icons';
+import { PremiumHero, PremiumSection } from '@/components/fc/premium-ui';
 
 import {
   useEffect,
@@ -182,6 +184,10 @@ export default function AdminAnalyticsPage() {
       subtitle="Competition health, operational workload and verified activity for your admin scope."
       backHref="/more"
       backLabel="More"
+      className="premium-operations"
+      header={<PremiumHero eyebrow="FC Arena · Competition operations" title="Analytics" description="A clear view of your competitions. Put the next decision first." action={data ? <a href="#pending-review" className="theme-primary-button premium-button">Open review queues <FcIcon name="chevronRight" size={16} /></a> : undefined}>
+        {data ? <div className="premium-hero-tags"><span>{data.scope.global ? 'Global Scope' : `${data.scope.leagueIds.length} Managed League${data.scope.leagueIds.length === 1 ? '' : 's'}`}</span><span>{data.alerts.total} operational alerts</span><span>{data.totals.liveMatches} live matches</span></div> : null}
+      </PremiumHero>}
       action={
         data ? (
           <FcStatusBadge
@@ -225,7 +231,16 @@ export default function AdminAnalyticsPage() {
 
       {data ? (
         <>
-          <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <section id="pending-review" className="premium-review-workspace" aria-label="Admin workspace">
+            <div className="premium-section-heading"><div><p className="premium-eyebrow">Your next decisions</p><h2>Pending review</h2></div><FcStatusBadge label={data.alerts.total === 0 ? 'Alerts clear' : `${data.alerts.total} operational alerts`} tone={data.alerts.total === 0 ? 'emerald' : 'amber'} /></div>
+            <div className="premium-queue">
+              <Link href="/admin/results"><span className="premium-queue-count">{data.totals.pendingResults}</span><span><strong>Results to verify</strong><small>Review submitted scores and supporting evidence</small></span><FcIcon name="chevronRight" size={20} /></Link>
+              <Link href="/admin/disputes"><span className="premium-queue-count">{data.totals.openDisputes}</span><span><strong>Open disputes</strong><small>Review evidence and make the next decision</small></span><FcIcon name="chevronRight" size={20} /></Link>
+              <Link href="/admin/leagues"><span className="premium-queue-count">{data.totals.pendingApplications}</span><span><strong>League applications</strong><small>Open your managed leagues and review membership</small></span><FcIcon name="chevronRight" size={20} /></Link>
+            </div>
+            <p className="theme-muted mt-4 text-sm">Recently completed: {data.totals.completedMatches} matches · {data.totals.completedTournaments} tournaments</p>
+          </section>
+          <section className="premium-metrics" aria-label="Competition activity summary">
             {[
               [
                 'Players',
@@ -277,17 +292,6 @@ export default function AdminAnalyticsPage() {
             )}
           </section>
 
-          <section className="theme-panel rounded-2xl border p-5" aria-label="Admin workspace">
-            <h2 className="fc-form-section-title">Pending review</h2>
-            <p className="theme-secondary-text mt-1 text-sm">Choose the queue that needs your attention.</p>
-            <div className="fc-admin-task-list mt-4 grid gap-3 sm:grid-cols-3">
-              <Link className="theme-action-row rounded-xl border p-4" href="/admin/results"><strong className="block">{data.totals.pendingResults} results</strong><span className="theme-muted text-xs">Review submitted scores →</span></Link>
-              <Link className="theme-action-row rounded-xl border p-4" href="/admin/disputes"><strong className="block">{data.totals.openDisputes} disputes</strong><span className="theme-muted text-xs">Review evidence and decisions →</span></Link>
-              <Link className="theme-action-row rounded-xl border p-4" href="/admin/leagues"><strong className="block">{data.totals.pendingApplications} applications</strong><span className="theme-muted text-xs">Open managed leagues →</span></Link>
-            </div>
-            <p className="theme-muted mt-3 text-xs">Recently completed: {data.totals.completedMatches} matches · {data.totals.completedTournaments} tournaments</p>
-          </section>
-
           <section className="grid gap-4 xl:grid-cols-[1.4fr_0.8fr]">
             <FcPanel className="p-5">
               <div className="flex flex-wrap items-end justify-between gap-3">
@@ -316,7 +320,7 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 grid h-52 grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-1.5">
+               {data.trend.days.length > 0 ? <div className="premium-activity-chart mt-6 grid h-52 grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-1.5">
                 {data.trend.days.map(
                   (
                     day,
@@ -385,9 +389,9 @@ export default function AdminAnalyticsPage() {
                         }
                       </span>
                     </div>
-                  ),
-                )}
-              </div>
+                   ),
+                 )}
+              </div> : <p className="theme-secondary-text mt-6 py-6 text-sm">No activity recorded for this period.</p>}
             </FcPanel>
 
             <FcPanel className="p-5">
@@ -474,7 +478,8 @@ export default function AdminAnalyticsPage() {
             </FcPanel>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-2">
+           <PremiumSection label="Operational detail" title="Competition health">
+           <div className="premium-spread">
             <FcPanel className="p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
                 Competition Operations
@@ -484,7 +489,7 @@ export default function AdminAnalyticsPage() {
                 Current Load
               </h2>
 
-              <div className="mt-5 grid grid-cols-2 gap-2">
+               <div className="premium-operations-counts mt-5">
                 {Object.entries(
                   {
                     tournaments:
@@ -526,7 +531,7 @@ export default function AdminAnalyticsPage() {
                       key={
                         label
                       }
-                      className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3"
+                       className="premium-operations-count"
                     >
                       <p className="text-lg font-black">
                         {
@@ -609,7 +614,8 @@ export default function AdminAnalyticsPage() {
                 )}
               </div>
             </FcPanel>
-          </section>
+           </div>
+           </PremiumSection>
 
           <FcPanel className="overflow-hidden">
             <div className="border-b border-white/[0.07] p-5">

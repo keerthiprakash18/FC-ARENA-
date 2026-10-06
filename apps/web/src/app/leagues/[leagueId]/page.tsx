@@ -7,14 +7,13 @@ import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
-import { BackHeader } from "@/components/app/back-header";
+import { PremiumHero } from "@/components/fc/premium-ui";
+import { FcIcon, iconNameFromLegacy } from "@/components/fc/fc-icons";
 
 import {
-  FcCrest,
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
-  FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
 import { LeagueNavigation } from "@/components/leagues/league-navigation";
@@ -28,6 +27,7 @@ import {
 interface LeagueHome {
   id: string;
   name: string;
+  logoUrl?: string | null;
   code: string;
   description: string | null;
   region: string | null;
@@ -112,56 +112,20 @@ export default function LeagueOverviewPage() {
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
-      <div className="space-y-6">
-        <LeagueInvite code={league.code} name={league.name} />
-        <BackHeader
-          backHref="/leagues"
-          backLabel="My Leagues"
-          eyebrow="League Overview"
+      <div className="premium-page premium-league-hub">
+        <Link href="/leagues" className="premium-quiet">← My Leagues</Link>
+        <PremiumHero
+          eyebrow={`League hub · ${league.region || "Global"}`}
           title={league.name}
-          subtitle={league.region || "FC ARENA League"}
-          action={
-            <div className="flex flex-wrap gap-2">
-              <FcStatusBadge label={league.membershipType} tone="cyan" />
-
-              {league.adminRole ? (
-                <FcStatusBadge label={league.adminRole} tone="amber" />
-              ) : null}
-            </div>
-          }
-        />
+          description={league.description || "Your club. Your players. Your competition."}
+          crest={league.name}
+          imageUrl={league.logoUrl}
+          action={<Link href={`/leagues/${leagueId}/tournaments`} className="theme-primary-button premium-button">Open Tournaments <FcIcon name="chevronRight" size={16} /></Link>}
+        ><div className="premium-hero-tags"><span>{league.members} / {league.maxMembers} members</span><span>{league.membershipType}</span><span>{league.adminRole || "Player"}</span><span>{activeTournaments} active tournaments</span><span>{league.code}</span></div></PremiumHero>
 
         <LeagueNavigation leagueId={leagueId} />
 
-        <FcPanel className="overflow-hidden">
-          <div className="bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_65%)] p-5 sm:p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <FcCrest name={league.name} size="lg" />
-
-                <div>
-                  <p className="font-mono text-xs font-black text-sky-400">
-                    {league.code}
-                  </p>
-
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                    {league.description ||
-                      "No League description has been added yet."}
-                  </p>
-                </div>
-              </div>
-
-              <Link
-                href={`/leagues/${leagueId}/tournaments`}
-                className="rounded-xl bg-sky-400 px-5 py-3 text-center text-sm font-black text-[#031019]"
-              >
-                Open Tournaments
-              </Link>
-            </div>
-          </div>
-        </FcPanel>
-
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="premium-metrics" aria-label="League summary">
           <FcStatCard
             label="Members"
             value={league.members}
@@ -190,8 +154,14 @@ export default function LeagueOverviewPage() {
           />
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section className="premium-hub-links" aria-label="League destinations">
           {[
+            [
+              "Tournaments",
+              "Create and manage competitions",
+              `/leagues/${leagueId}/tournaments`,
+              "◇",
+            ],
             [
               "Leaderboards",
               "League-wide player performance across verified Tournaments",
@@ -230,34 +200,19 @@ export default function LeagueOverviewPage() {
               `/leagues/${leagueId}/settings`,
               "⚙",
             ],
-            [
-              "Tournaments",
-              "Create and manage competitions",
-              `/leagues/${leagueId}/tournaments`,
-              "◇",
-            ],
           ].map(([title, description, href, icon]) => (
             <Link
               key={title}
               href={href}
-              className="theme-action-row group rounded-[22px] border p-5 transition hover:-translate-y-0.5"
+              className={title === "Tournaments" ? "premium-destination is-featured" : "premium-destination"}
             >
-              <span className="theme-soft-accent grid h-11 w-11 place-items-center rounded-xl border text-lg">
-                {icon}
-              </span>
-
-              <h2 className="theme-text mt-4 text-lg font-semibold">{title}</h2>
-
-              <p className="theme-secondary-text mt-2 text-sm leading-6">
-                {description}
-              </p>
-
-              <span className="theme-text-link mt-4 inline-flex text-sm font-semibold">
-                Open →
-              </span>
+              <FcIcon name={iconNameFromLegacy(icon)} size={24} />
+              <span><strong>{title}</strong><span>{description}</span></span>
+              <FcIcon name="chevronRight" size={18} />
             </Link>
           ))}
         </section>
+        <LeagueInvite code={league.code} name={league.name} />
 
         <FcPanel className="p-5">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">

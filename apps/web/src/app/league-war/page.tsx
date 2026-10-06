@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { PremiumHero } from '@/components/fc/premium-ui';
 import {
   useEffect,
   useMemo,
@@ -17,7 +18,6 @@ import {
   FcCrest,
   FcEmptyState,
   FcLoadingScreen,
-  FcPageHeader,
   FcPanel,
   FcSectionHeading,
   FcStatusBadge,
@@ -506,10 +506,11 @@ export default function LeagueWarPage() {
           ?.inGameName
       }
     >
-      <div className="fc-league-war-page space-y-7">
-        <FcPageHeader
+      <div className="premium-page fc-league-war-page">
+        <PremiumHero
+          eyebrow="FC Arena · League against league"
           title="League War"
-          subtitle="League vs League battles with locked rosters, opponent-confirmed results, live War Points and rivalry history."
+          description="Your badge. Your roster. Your rivalry. League battles decided by verified results and live War Points."
           action={
             adminLeagues.length >
             0 ? (
@@ -523,13 +524,15 @@ export default function LeagueWarPage() {
                       !value,
                   )
                 }
-                className="min-h-11 rounded-xl bg-rose-400 px-5 text-sm font-black text-[#18070b]"
+                className="theme-primary-button premium-button"
               >
                 Create War
               </button>
             ) : null
           }
-        />
+        >
+          <div className="premium-hero-tags"><span>{wars.filter(war => war.status === 'LIVE').length} live rivalries</span><span>{wars.filter(war => war.status === 'COMPLETED').length} completed battles</span><span>Locked rosters · opponent-confirmed results</span></div>
+        </PremiumHero>
 
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
@@ -805,14 +808,15 @@ export default function LeagueWarPage() {
                 >
                   {busy
                     ? 'Creating...'
-                    : 'Send Challenge ⚔'}
+                    : 'Send Challenge'}
                 </button>
               </div>
             </form>
           </FcPanel>
         ) : null}
 
-        <section className="grid gap-4 xl:grid-cols-2">
+        <details className="premium-admin-controls premium-war-rankings"><summary>League rankings &amp; player form</summary>
+        <section className="premium-spread mt-5">
           <FcPanel className="overflow-hidden">
             <div className="border-b border-white/[0.07] p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
@@ -988,6 +992,7 @@ export default function LeagueWarPage() {
             </div>
           </FcPanel>
         </section>
+        </details>
 
         <FcPanel className="p-2">
           <div className="grid grid-cols-4 gap-2">
@@ -1012,6 +1017,7 @@ export default function LeagueWarPage() {
                       value,
                     )
                   }
+                  aria-pressed={filter === value}
                   className={
                     filter ===
                     value
@@ -1055,7 +1061,7 @@ export default function LeagueWarPage() {
               />
             </div>
           ) : (
-            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+            <div className="premium-war-list mt-4 grid gap-4 xl:grid-cols-2">
               {visibleWars.map(
                 (
                   war,
@@ -1074,7 +1080,7 @@ export default function LeagueWarPage() {
                       }
                       className="group"
                     >
-                      <FcPanel className="h-full overflow-hidden transition group-hover:border-rose-400/25">
+                      <FcPanel className="premium-war-preview h-full overflow-hidden transition">
                         <div className="border-b border-white/[0.07] p-5">
                           <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0">

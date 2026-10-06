@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { AwardEmblem, PremiumHero } from '@/components/fc/premium-ui';
+import { ShareCard } from '@/components/fc/share-card';
 import {
   useEffect,
   useState,
@@ -235,6 +237,11 @@ export default function PublicPlayerPage() {
       subtitle="Public FC Arena competition identity, verified statistics and honours."
       backHref="/discover"
       backLabel="Discover"
+      className="premium-player-page"
+      header={data ? <PremiumHero eyebrow="FC Arena · Player identity" title={nameFor(data)} crest={nameFor(data)} imageUrl={data.player.profileImageUrl} description="Verified competition statistics and a career built on the pitch." action={<ShareCard label="Share player card" filename="fc-arena-player" title={nameFor(data)} lines={[data.player.playerCode, `${data.lifetimeStatistics.matches} matches · ${data.lifetimeStatistics.wins} wins`, `${data.lifetimeStatistics.goalsFor} goals · ${data.lifetimeStatistics.winRate}% win rate`]} />}>
+        <div className="premium-hero-tags"><span>{data.player.playerCode}</span><span>Member since {new Date(data.player.joinedAt).toLocaleDateString()}</span>{data.player.verified ? <FcStatusBadge label="Verified" tone="emerald" /> : null}</div>
+        {fairPlay ? <div className="premium-player-fair-play"><strong>{fairPlay.score}</strong><div><p>Fair Play · {fairPlay.status.replaceAll('_', ' ')}</p><small>Summary only · event details private</small></div></div> : null}
+      </PremiumHero> : undefined}
     >
       {!data &&
       !error ? (
@@ -256,96 +263,7 @@ export default function PublicPlayerPage() {
 
       {data ? (
         <>
-          <FcPanel className="overflow-hidden p-5 sm:p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className="theme-avatar grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-3xl border text-2xl font-black">
-                {data.player
-                  .profileImageUrl ? (
-                  <img
-                    src={
-                      data.player
-                        .profileImageUrl
-                    }
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  nameFor(
-                    data,
-                  )
-                    .slice(
-                      0,
-                      2,
-                    )
-                    .toUpperCase()
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="truncate text-2xl font-black sm:text-3xl">
-                    {
-                      nameFor(
-                        data,
-                      )
-                    }
-                  </h1>
-
-                  {data.player
-                    .verified ? (
-                    <FcStatusBadge
-                      label="Verified"
-                      tone="emerald"
-                    />
-                  ) : null}
-                </div>
-
-                <p className="mt-2 font-mono text-xs font-black text-sky-400">
-                  {
-                    data.player
-                      .playerCode
-                  }
-                </p>
-
-                <p className="mt-2 text-sm text-slate-500">
-                  FC Arena member since{' '}
-                  {new Date(
-                    data.player
-                      .joinedAt,
-                  ).toLocaleDateString()}
-                </p>
-              </div>
-
-              {fairPlay ? (
-                <div className="shrink-0 rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.04] p-4 text-center sm:min-w-[150px]">
-                  <p className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-600">
-                    Fair Play
-                  </p>
-
-                  <p className="mt-1 text-3xl font-black">
-                    {
-                      fairPlay.score
-                    }
-                  </p>
-
-                  <p className="mt-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">
-                    {
-                      fairPlay.status.replaceAll(
-                        '_',
-                        ' ',
-                      )
-                    }
-                  </p>
-
-                  <p className="mt-2 text-[9px] text-slate-600">
-                    Summary only · event details private
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </FcPanel>
-
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
+          <section className="premium-metrics premium-player-metrics" aria-label="Player career summary">
             {[
               [
                 'Matches',
@@ -413,7 +331,7 @@ export default function PublicPlayerPage() {
             )}
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-2">
+          <section className="premium-spread">
             <FcPanel className="p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
                 League Identity
@@ -565,7 +483,7 @@ export default function PublicPlayerPage() {
               </Link>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="premium-player-honours">
               {data
                 .seasonalAwards
                 .map(
@@ -580,7 +498,9 @@ export default function PublicPlayerPage() {
                         `/awards/ballon/${award.season.id}`
                       }
                     >
-                      <FcPanel className="h-full border-amber-400/15 p-4">
+                      <FcPanel className="premium-honour-row h-full border-amber-400/15 p-4">
+                        <AwardEmblem kind={award.type === 'GOLDEN_BOOT' ? 'boot' : award.type === 'GOLDEN_GLOVE' ? 'glove' : 'ballon'} />
+                        <div>
                         <p className="text-[10px] font-black uppercase tracking-wider text-amber-300">
                           Seasonal Honour
                         </p>
@@ -598,6 +518,7 @@ export default function PublicPlayerPage() {
                               .name
                           }
                         </p>
+                        </div>
                       </FcPanel>
                     </Link>
                   ),
@@ -613,8 +534,10 @@ export default function PublicPlayerPage() {
                       key={
                         achievement.id
                       }
-                      className="h-full p-4"
+                      className="premium-honour-row h-full p-4"
                     >
+                      <AwardEmblem kind={achievement.type === 'GOLDEN_BOOT' ? 'boot' : achievement.type === 'GOLDEN_GLOVE' ? 'glove' : 'ballon'} />
+                      <div>
                       <p className="text-[10px] font-black uppercase tracking-wider text-sky-400">
                         Tournament Honour
                       </p>
@@ -639,6 +562,7 @@ export default function PublicPlayerPage() {
                             .name
                         }
                       </p>
+                      </div>
                     </FcPanel>
                   ),
                 )}

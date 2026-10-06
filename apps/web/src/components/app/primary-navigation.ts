@@ -30,12 +30,6 @@ export const primaryNavigation:
       icon: 'tournament',
     },
     {
-      label: 'LEAGUE WAR',
-      shortLabel: 'War',
-      href: '/league-war',
-      icon: 'war',
-    },
-    {
       label: 'FIXTURES',
       shortLabel: 'Fixtures',
       href: '/fixtures',
@@ -48,6 +42,12 @@ export const primaryNavigation:
       icon: 'award',
     },
     {
+      label: 'LEAGUE WAR',
+      shortLabel: 'League War',
+      href: '/league-war',
+      icon: 'war',
+    },
+    {
       label: 'MORE',
       shortLabel: 'More',
       href: '/more',
@@ -55,15 +55,8 @@ export const primaryNavigation:
     },
   ];
 
-// Keep the mobile rail focused on the five highest-frequency destinations.
-// Awards and League War remain available through More and the desktop shell.
-export const mobilePrimaryNavigation: PrimaryNavigationItem[] = [
-  primaryNavigation[0],
-  primaryNavigation[1],
-  primaryNavigation[2],
-  primaryNavigation[4],
-  primaryNavigation[6],
-];
+// The product destinations have the same direct access on every screen size.
+export const mobilePrimaryNavigation = primaryNavigation;
 
 export function getActivePrimarySection(
   pathname: string,
@@ -101,16 +94,5 @@ export function getActivePrimarySection(
 export function shouldShowPrimaryBottomNavigation(
   pathname: string,
 ) {
-  return (
-    [
-      '/dashboard',
-      '/leagues',
-      '/tournaments',
-      '/league-war',
-      '/fixtures',
-      '/more',
-    ].includes(pathname) ||
-    pathname === '/awards' ||
-    pathname.startsWith('/awards/')
-  );
+  return pathname.startsWith('/');
 }

@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
-import { BackHeader } from "@/components/app/back-header";
+import { PremiumHero, PremiumMatch } from "@/components/fc/premium-ui";
 
 import {
   competitionLabel,
@@ -240,34 +240,26 @@ export default function TournamentOverviewPage() {
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
-      <div className="space-y-6">
-        <PlayerProgress tournamentId={tournamentId} />
-        <BackHeader
-          backHref="/tournaments"
-          backLabel="Tournaments"
+      <div className="premium-page premium-tournament-hub">
+        <Link href="/tournaments" className="premium-quiet">← Tournaments</Link>
+        <PremiumHero
           eyebrow={tournament.league.name}
           title={tournament.name}
-          subtitle={tournament.description || "Tournament overview"}
+          description={tournament.description || "A competition worth winning."}
+          crest={tournament.name}
+          imageUrl={tournament.logoUrl}
           action={
-            <FcStatusBadge
-              label={tournament.status}
-              tone={
-                tournament.status === "COMPLETED"
-                  ? "emerald"
-                  : tournament.status === "DRAFT"
-                    ? "amber"
-                    : "cyan"
-              }
-            />
+            <Link className="theme-primary-button premium-button" href={tournament.status === "DRAFT" && tournament.isLeagueAdmin ? `/tournaments/${tournamentId}/wizard/setup` : `/tournaments/${tournamentId}/fixtures`}>{tournament.status === "DRAFT" && tournament.isLeagueAdmin ? "Continue Setup" : "Open Fixtures"} →</Link>
           }
-        />
+        ><div className="premium-hero-tags"><span>{competitionLabel(tournament.status)}</span><span>{competitionLabel(tournament.competitionFormat || tournament.format)}</span><span>{tournament.mode}</span><span>{tournament.approvedEntries} / {tournament.maxEntries} entries</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div></PremiumHero>
 
         <TournamentNavigation tournamentId={tournamentId} />
+        <PlayerProgress tournamentId={tournamentId} />
 
         <FcNotice tone="error">{deleteError}</FcNotice>
 
-        <FcPanel className="overflow-hidden">
-          <div className="bg-[linear-gradient(120deg,rgba(14,165,233,0.08),transparent_65%)] p-5 sm:p-6">
+        <FcPanel className="premium-competition-tools overflow-hidden">
+          <div className="p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-center gap-4">
                 <FcCrest
@@ -295,15 +287,6 @@ export default function TournamentOverviewPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {tournament.status === "DRAFT" && tournament.isLeagueAdmin ? (
-                  <Link
-                    href={`/tournaments/${tournamentId}/wizard/setup`}
-                    className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019]"
-                  >
-                    Continue Setup
-                  </Link>
-                ) : null}
-
                 {tournament.visibility === "PUBLIC" ? (
                   <Link
                     href={"/public/tournaments/" + tournament.code}
@@ -358,7 +341,7 @@ export default function TournamentOverviewPage() {
 
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.05]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
+                  className="theme-progress-bar h-full rounded-full"
                   style={{
                     width: `${progress}%`,
                   }}
@@ -368,7 +351,7 @@ export default function TournamentOverviewPage() {
           </div>
         </FcPanel>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="premium-metrics" aria-label="Tournament summary">
           <FcStatCard
             label="Teams"
             value={tournament.approvedEntries}
@@ -402,57 +385,9 @@ export default function TournamentOverviewPage() {
         </section>
 
         {nextFixture ? (
-          <FcPanel className="p-5 sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
-                  Next Match
-                </p>
-
-                <h2 className="mt-2 text-xl font-black">
-                  {nextFixture.roundName}
-                </h2>
-              </div>
-
-              <FcStatusBadge
-                label={nextFixture.match?.status || nextFixture.status}
-                tone="cyan"
-              />
-            </div>
-
-            <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <p className="truncate text-right font-black">
-                {entryName(nextFixture.home)}
-              </p>
-
-              <span className="rounded-xl border border-sky-400/20 bg-sky-400/[0.05] px-3 py-2 text-xs font-black text-sky-300">
-                VS
-              </span>
-
-              <p className="truncate font-black">
-                {entryName(nextFixture.away)}
-              </p>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-3 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-slate-500">
-                {nextFixture.scheduledAt
-                  ? new Date(nextFixture.scheduledAt).toLocaleString()
-                  : "Schedule pending"}
-              </p>
-
-              <Link
-                href={
-                  nextFixture.match?.id
-                    ? `/matches/${nextFixture.match.id}`
-                    : `/tournaments/${tournamentId}/fixtures`
-                }
-                className="rounded-xl bg-sky-400 px-4 py-3 text-center text-sm font-black text-[#031019]"
-              >
-                View Match
-              </Link>
-            </div>
-          </FcPanel>
+          <PremiumMatch home={entryName(nextFixture.home)} away={entryName(nextFixture.away)} label={`Next Match · ${nextFixture.roundName}`} status={<FcStatusBadge label={nextFixture.match?.status || nextFixture.status} />} href={nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${tournamentId}/fixtures`}>
+            <span>{nextFixture.scheduledAt ? new Date(nextFixture.scheduledAt).toLocaleString() : "Schedule pending"}</span>
+          </PremiumMatch>
         ) : (
           <FcEmptyState
             title="No upcoming match"
@@ -462,7 +397,7 @@ export default function TournamentOverviewPage() {
           />
         )}
 
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <section className="premium-hub-links" aria-label="Competition destinations">
           {[
             [
               "Teams",
@@ -488,17 +423,9 @@ export default function TournamentOverviewPage() {
             <Link
               key={title}
               href={href}
-              className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
+              className="premium-destination"
             >
-              <p className="font-black">{title}</p>
-
-              <p className="mt-2 text-xs leading-5 text-slate-600">
-                {description}
-              </p>
-
-              <span className="mt-3 inline-flex text-xs font-black text-sky-300">
-                Open →
-              </span>
+              <span><strong>{title}</strong><span>{description}</span></span><span aria-hidden="true">→</span>
             </Link>
           ))}
         </section>

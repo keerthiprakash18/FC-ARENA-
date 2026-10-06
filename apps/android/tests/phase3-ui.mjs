@@ -125,10 +125,11 @@ try {
     });
     if (width < 1024) {
       const primary = page.getByRole('navigation', { name: 'Primary navigation' });
-      assert.equal(await primary.getByRole('link').count(), 5, `Five-item mobile navigation at ${width}px`);
+      assert.equal(await primary.getByRole('link').count(), 7, `Six direct product destinations plus More at ${width}px`);
+      for (const href of ['/dashboard', '/leagues', '/tournaments', '/fixtures', '/awards', '/league-war']) assert.equal(await primary.locator(`a[href="${href}"]`).count(), 1);
       await page.goto('https://fcarena.in/league-war');
       await page.locator('.fc-main').waitFor();
-      assert.equal(await page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link', { name: 'More', exact: true }).getAttribute('aria-current'), 'page');
+      assert.equal(await page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('link', { name: 'League War', exact: true }).getAttribute('aria-current'), 'page');
     } else {
       const search = page.getByRole('combobox', { name: 'Search app sections' });
       await search.fill('career');

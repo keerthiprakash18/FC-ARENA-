@@ -1,6 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { FcCrest, FcStatusBadge } from '@/components/fc/fc-ui';
+import { FcIcon } from '@/components/fc/fc-icons';
+import { PremiumHero, PremiumMatch, PremiumSection } from '@/components/fc/premium-ui';
 
 import {
   useParams,
@@ -248,9 +251,7 @@ export default function PublicTournamentPage() {
     return (
       <div className="fc-public-page fc-public-state grid min-h-screen place-items-center p-6">
         <div className="theme-panel max-w-md rounded-3xl border p-8 text-center">
-          <p className="text-4xl">
-            ⚽
-          </p>
+           <FcIcon name="tournament" size={40} className="mx-auto" />
 
           <h1 className="theme-text mt-4 text-2xl font-bold">
             Tournament unavailable
@@ -277,7 +278,7 @@ export default function PublicTournamentPage() {
     data.tournament;
 
   return (
-    <main className="fc-public-page min-h-screen">
+    <main className="fc-public-page premium-public min-h-screen">
       <header className="fc-public-header border-b">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link
@@ -310,85 +311,19 @@ export default function PublicTournamentPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
-        <section className="overflow-hidden rounded-[28px] border border-[#DCE5F1] bg-white shadow-sm">
-          <div className="h-28 bg-gradient-to-r from-[#0B1F44] via-[#123568] to-[#1478F2] sm:h-36" />
+      <div className="premium-page mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <PremiumHero eyebrow={`FC Arena · ${tournament.league.name}`} title={tournament.name} crest={tournament.name} imageUrl={tournament.logoUrl} description={tournament.description || undefined} action={upcoming.length ? <a href="#upcoming-fixtures" className="theme-primary-button premium-button">View Fixtures <FcIcon name="chevronRight" size={16} /></a> : undefined}>
+          <div className="premium-hero-tags"><span>{formatCompetition(tournament.competitionFormat)}</span><span>{tournament.mode}</span><span>{formatCompetition(tournament.status)}</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div>
+        </PremiumHero>
+        <nav className="premium-public-tabs" aria-label="Public tournament sections">
+          {upcoming.length ? <a href="#upcoming-fixtures">Fixtures</a> : null}
+          {data.standings.length ? <a href="#standings">Standings</a> : null}
+          {data.fixtures.some(fixture => fixture.result) ? <a href="#results">Results</a> : null}
+          {data.topPlayers.length ? <a href="#top-players">Top Players</a> : null}
+          {tournament.rules ? <a href="#tournament-rules">Rules</a> : null}
+        </nav>
 
-          <div className="px-5 pb-6 sm:px-7">
-            <div className="-mt-10 flex flex-col gap-4 sm:-mt-12 sm:flex-row sm:items-end">
-              <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-3xl border-4 border-white bg-[#E8F2FF] text-xl font-bold text-[#1478F2] shadow-sm">
-                {tournament.logoUrl ? (
-                  <img
-                    src={
-                      tournament.logoUrl
-                    }
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  'FC'
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1 pb-1">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#1478F2]">
-                  {
-                    tournament.league
-                      .name
-                  }
-                </p>
-
-                <h1 className="mt-1 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
-                  {
-                    tournament.name
-                  }
-                </h1>
-
-                <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-[#60708A]">
-                  <span>
-                    {
-                      formatCompetition(
-                        tournament.competitionFormat,
-                      )
-                    }
-                  </span>
-
-                  <span>
-                    •
-                  </span>
-
-                  <span>
-                    {
-                      tournament.mode
-                    }
-                  </span>
-
-                  <span>
-                    •
-                  </span>
-
-                  <span>
-                    {
-                      formatCompetition(
-                        tournament.status,
-                      )
-                    }
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {tournament.description ? (
-              <p className="mt-5 max-w-3xl text-sm leading-6 text-[#60708A]">
-                {
-                  tournament.description
-                }
-              </p>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="premium-metrics" aria-label="Tournament summary">
           {[
             [
               'Teams',
@@ -433,7 +368,7 @@ export default function PublicTournamentPage() {
                 key={
                   label
                 }
-                className="rounded-2xl border border-[#DCE5F1] bg-white p-5 shadow-sm"
+                className="premium-public-metric"
               >
                 <p className="text-xs font-semibold text-[#60708A]">
                   {
@@ -453,7 +388,7 @@ export default function PublicTournamentPage() {
 
         {data.standings.length >
         0 ? (
-          <section className="rounded-[24px] border border-[#DCE5F1] bg-white p-5 shadow-sm sm:p-6">
+          <section id="standings" className="premium-surface premium-public-standings">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold text-[#1478F2]">
@@ -604,7 +539,7 @@ export default function PublicTournamentPage() {
 
         {upcoming.length >
         0 ? (
-          <section>
+          <section id="upcoming-fixtures">
             <p className="text-xs font-semibold text-[#1478F2]">
               Schedule
             </p>
@@ -613,68 +548,39 @@ export default function PublicTournamentPage() {
               Upcoming Fixtures
             </h2>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="premium-public-fixtures mt-4">
               {upcoming.map(
                 (
                   fixture,
                 ) => (
-                  <article
+                  <PremiumMatch
                     key={
                       fixture.id
                     }
-                    className="rounded-2xl border border-[#DCE5F1] bg-white p-5 shadow-sm"
+                    home={fixture.home}
+                    away={fixture.away}
+                    label={fixture.roundName}
+                    status={<FcStatusBadge label={formatCompetition(fixture.status)} />}
                   >
-                    <div className="flex items-center justify-between gap-3 text-xs font-semibold text-[#60708A]">
-                      <span>
-                        {
-                          fixture.roundName
-                        }
-                      </span>
-
-                      <span>
-                        {
-                          formatCompetition(
-                            fixture.status,
-                          )
-                        }
-                      </span>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                      <p className="text-right font-bold">
-                        {
-                          fixture.home
-                        }
-                      </p>
-
-                      <span className="rounded-lg bg-[#E8F2FF] px-3 py-2 text-xs font-bold text-[#1478F2]">
-                        VS
-                      </span>
-
-                      <p className="font-bold">
-                        {
-                          fixture.away
-                        }
-                      </p>
-                    </div>
-
-                    <p className="mt-4 text-center text-xs text-[#60708A]">
+                    <p>
                       {fixture.scheduledAt
                         ? new Date(
                             fixture.scheduledAt,
                           ).toLocaleString()
                         : 'Schedule pending'}
                     </p>
-                  </article>
+                  </PremiumMatch>
                 ),
               )}
             </div>
           </section>
         ) : null}
 
+        {data.fixtures.some(fixture => fixture.result) ? <div id="results"><PremiumSection label="Verified competition results" title="Results"><div className="premium-ledger">{data.fixtures.filter(fixture => fixture.result).map(fixture => <article key={fixture.id} className="premium-ledger-row"><div><p>{fixture.home} <span className="theme-muted">vs</span> {fixture.away}</p><small>{fixture.roundName} · {formatCompetition(fixture.status)}</small></div><span className="premium-ledger-score">{fixture.result!.homeScore} : {fixture.result!.awayScore}</span></article>)}</div></PremiumSection></div> : null}
+
         {data.topPlayers.length >
         0 ? (
-          <section>
+          <section id="top-players">
             <p className="text-xs font-semibold text-[#1478F2]">
               Performance
             </p>
@@ -683,7 +589,7 @@ export default function PublicTournamentPage() {
               Top Players
             </h2>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="premium-public-leaders mt-4">
               {data.topPlayers
                 .slice(
                   0,
@@ -698,10 +604,10 @@ export default function PublicTournamentPage() {
                         player.position +
                         player.name
                       }
-                      className="rounded-2xl border border-[#DCE5F1] bg-white p-5 shadow-sm"
+                      className="premium-public-player"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#E8F2FF] font-bold text-[#1478F2]">
+                        <span className="premium-player-position">
                           {
                             player.position
                           }
@@ -715,11 +621,11 @@ export default function PublicTournamentPage() {
                         </span>
                       </div>
 
-                      <h3 className="mt-4 font-bold">
+                      <div className="flex items-center gap-3 mt-4"><FcCrest name={player.name} size="sm" /><h3 className="font-bold">
                         {
                           player.name
                         }
-                      </h3>
+                      </h3></div>
 
                       <p className="mt-2 text-xs text-[#60708A]">
                         {
@@ -739,7 +645,7 @@ export default function PublicTournamentPage() {
         ) : null}
 
         {tournament.rules ? (
-          <section className="rounded-[24px] border border-[#DCE5F1] bg-white p-5 shadow-sm sm:p-6">
+          <section id="tournament-rules" className="premium-inset">
             <p className="text-xs font-semibold text-[#1478F2]">
               Tournament Rules
             </p>

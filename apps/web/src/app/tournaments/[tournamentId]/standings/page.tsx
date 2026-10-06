@@ -20,7 +20,8 @@ import {
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
-import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
+import { FcCrest, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
+import { PremiumHero } from '@/components/fc/premium-ui';
 
 
 interface Standing {
@@ -203,7 +204,7 @@ function StandingTable({
       );
 
   return (
-    <section className="overflow-hidden rounded-[26px] border border-white/10 bg-[#0a1018]">
+    <section className="premium-standings-table overflow-hidden rounded-[26px] border border-white/10 bg-[#0a1018]">
       <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
@@ -226,6 +227,7 @@ function StandingTable({
           <li key={row.registrationId} className="fc-standing-row">
             <div className="fc-standing-top">
               <span className="fc-standing-rank">{row.position}</span>
+              <FcCrest name={row.entryName} size="sm" />
               <strong className="min-w-0 flex-1 break-words">{row.entryName}</strong>
               <span className="fc-standing-points">{row.points}<small>PTS</small></span>
             </div>
@@ -313,11 +315,11 @@ function StandingTable({
                     </span>
                   </td>
 
-                  <td className="p-4 text-left font-black">
+                  <td className="p-4 text-left font-black"><div className="flex items-center gap-3"><FcCrest name={row.entryName} size="sm" />
                     {
                       row.entryName
                     }
-                  </td>
+                  </div></td>
 
                   <td className="p-4">
                     {
@@ -558,7 +560,7 @@ export default function StandingsPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-6">
+      <div className="premium-page">
         <Link
           href={`/tournaments/${params.tournamentId}`}
           scroll
@@ -568,25 +570,11 @@ export default function StandingsPage() {
           Tournament
         </Link>
 
-        <section>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-            {name}
-          </p>
-
-          <h1 className="mt-2 text-4xl font-black md:text-5xl">
-            Standings
-          </h1>
-
-          <p className="mt-3 text-sm text-slate-500">
-            Group tables update
-            from confirmed match
-            results.
-          </p>
-        </section>
+        <PremiumHero eyebrow={name} title="Standings" description="The competition, at a glance. Tables update from confirmed match results." />
 
 
         {statistic ? (
-          <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <section className="premium-metrics premium-standing-metrics" aria-label="Your competition statistics">
             <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
               <p className="text-xs text-slate-600">
                 Matches

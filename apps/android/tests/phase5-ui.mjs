@@ -37,7 +37,7 @@ async function audit(page, path) {
     assert.equal(await page.getByRole('list', { name: 'Player rankings' }).isVisible(), mobile);
     await page.getByRole('button', { name: 'Best Teams', exact: true }).click();
     assert.equal(await page.getByRole('button', { name: 'Best Teams', exact: true }).getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.getByRole('list', { name: 'Team rankings' }).isVisible(), mobile);
+    assert.equal(await page.getByRole('region', { name: 'Team rankings', exact: true }).isVisible(), mobile);
     assert(await page.getByText('Competition Entry 1', { exact: true }).filter({ visible: true }).count());
   }
   await checkLayout(page, path);

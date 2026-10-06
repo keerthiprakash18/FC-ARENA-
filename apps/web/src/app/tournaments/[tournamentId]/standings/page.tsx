@@ -22,6 +22,7 @@ import {
 } from '@/lib/auth-client';
 import { FcCrest, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 import { PremiumHero } from '@/components/fc/premium-ui';
+import { CompactStandingsTable } from '@/components/tournaments/compact-standings-table';
 
 
 interface Standing {
@@ -60,6 +61,7 @@ interface Statistic {
 interface GroupEntry {
   id: string;
   entryName: string | null;
+  entryLogoUrl?: string | null;
 
   members: Array<{
     fullName: string;
@@ -205,7 +207,7 @@ function StandingTable({
 
   return (
     <section className="premium-standings-table overflow-hidden rounded-[26px] border border-white/10 bg-[#0a1018]">
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
+      <div className="premium-standings-group-header flex items-center justify-between border-b border-white/10 px-5 py-5">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
             Group Standings
@@ -222,24 +224,10 @@ function StandingTable({
         </span>
       </div>
 
-      <ol className="fc-mobile-standings sm:hidden" aria-label={`${title} standings`}>
-        {rows.map((row) => (
-          <li key={row.registrationId} className="fc-standing-row">
-            <div className="fc-standing-top">
-              <span className="fc-standing-rank">{row.position}</span>
-              <FcCrest name={row.entryName} size="sm" />
-              <strong className="min-w-0 flex-1 break-words">{row.entryName}</strong>
-              <span className="fc-standing-points">{row.points}<small>PTS</small></span>
-            </div>
-            <details className="fc-row-details"><summary>Statistics &amp; recent form</summary>
-            <dl className="fc-standing-stats">
-              {[['Played', row.played], ['Won', row.wins], ['Drawn', row.draws], ['Lost', row.losses], ['GF', row.goalsFor], ['GA', row.goalsAgainst], ['GD', row.goalDifference]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-            </dl>
-            <p className="theme-secondary-text mt-2 text-xs">Recent form <strong className="ml-2 tracking-widest">{row.form || '—'}</strong></p>
-            </details>
-          </li>
-        ))}
-      </ol>
+      <CompactStandingsTable label={`${title} standings`} highlightedPositions={2} rows={rows.map(row => ({
+        ...row,
+        logoUrl: entries.find(entry => entry.id === row.registrationId)?.entryLogoUrl,
+      }))} />
       <div className="hidden overflow-x-auto sm:block" tabIndex={0} role="region" aria-label={`${title} detailed standings`}>
         <table className="w-full min-w-[850px] text-sm">
           <caption className="sr-only">{title} standings — played, wins, draws, losses, goals and points</caption>

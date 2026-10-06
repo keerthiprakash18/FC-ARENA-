@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FcCrest, FcStatusBadge } from '@/components/fc/fc-ui';
 import { FcIcon } from '@/components/fc/fc-icons';
 import { PremiumHero, PremiumMatch, PremiumSection } from '@/components/fc/premium-ui';
+import { CompactStandingsTable } from '@/components/tournaments/compact-standings-table';
 
 import {
   useParams,
@@ -389,7 +390,7 @@ export default function PublicTournamentPage() {
         {data.standings.length >
         0 ? (
           <section id="standings" className="premium-surface premium-public-standings">
-            <div className="flex items-end justify-between gap-4">
+            <div className="premium-public-standings-header flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold text-[#1478F2]">
                   Live table
@@ -401,29 +402,11 @@ export default function PublicTournamentPage() {
               </div>
             </div>
 
-            <div className="fc-public-mobile-table mt-5 grid gap-2 sm:hidden" aria-label="Mobile standings">
-              {data.standings.map(row => (
-                <article key={`mobile-${row.registrationId}`} className="theme-soft-accent rounded-xl border p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="theme-tone-premium grid h-9 w-9 shrink-0 place-items-center rounded-xl border font-bold">{row.position}</span>
-                    <p className="theme-text min-w-0 flex-1 truncate font-semibold">{row.name}</p>
-                    <p className="theme-text text-lg font-bold">{row.points}<span className="theme-muted ml-1 text-[10px] font-semibold">PTS</span></p>
-                  </div>
-                  <div className="theme-secondary-text mt-3 grid grid-cols-4 gap-2 text-center text-xs">
-                    <span><strong className="theme-text block">{row.played}</strong>Played</span>
-                    <span><strong className="theme-text block">{row.wins}</strong>Won</span>
-                    <span><strong className="theme-text block">{row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}</strong>GD</span>
-                    <span><strong className="theme-text block">{row.form || '—'}</strong>Form</span>
-                  </div>
-                  <details className="fc-row-details mt-2">
-                    <summary>More statistics</summary>
-                    <dl className="fc-standing-stats">
-                      {[['Drawn', row.draws], ['Lost', row.losses], ['Goals for', row.goalsFor], ['Goals against', row.goalsAgainst]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-                    </dl>
-                  </details>
-                </article>
-              ))}
-            </div>
+            <CompactStandingsTable label="Tournament standings" rows={data.standings.map(row => ({
+              ...row,
+              entryName: row.name,
+              logoUrl: data.groups.flatMap(group => group.entries).find(entry => entry.id === row.registrationId)?.logoUrl,
+            }))} />
 
             <div className="mt-5 hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[720px] text-sm">

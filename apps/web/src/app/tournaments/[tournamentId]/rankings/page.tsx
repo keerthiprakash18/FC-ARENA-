@@ -1,5 +1,6 @@
 'use client';
 import { FcEmptyState, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
+import { CompactStandingsTable } from '@/components/tournaments/compact-standings-table';
 
 import Link from 'next/link';
 import {
@@ -544,7 +545,7 @@ export default function RankingsPage() {
         categories.bestTeams
           .available ? (
           <section className="overflow-hidden rounded-[24px] border border-white/10 bg-[#0a1018]">
-            <ol className="fc-mobile-standings sm:hidden" aria-label="Team rankings">{categories.bestTeams.entries.map(team => <li key={team.registrationId} className="fc-standing-row"><div className="fc-standing-top"><span className="fc-standing-rank">{team.position}</span><strong className="min-w-0 flex-1 break-words">{team.entryName}</strong><span className="fc-standing-points">{team.points}<small>points</small></span></div><details className="fc-row-details"><summary>Team statistics</summary><dl className="fc-standing-stats">{[['Played', team.played], ['Wins', team.wins], ['Draws', team.draws], ['Losses', team.losses], ['GD', team.goalDifference]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></details></li>)}</ol>
+            <CompactStandingsTable label="Team rankings" rows={categories.bestTeams.entries} />
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[800px]">
                 <thead className="border-b border-white/10 bg-white/[0.03] text-xs uppercase text-slate-500">

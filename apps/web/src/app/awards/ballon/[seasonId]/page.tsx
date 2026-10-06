@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { AwardEmblem, PremiumHero, PremiumPodium } from '@/components/fc/premium-ui';
+import { FcIcon } from '@/components/fc/fc-icons';
 import {
   useParams,
 } from 'next/navigation';
@@ -348,6 +350,7 @@ export default function BallonRankingsPage() {
             ).toLocaleDateString()} · Minimum ${season.minimumMatches} matches · ${season.status}`
           : 'Loading seasonal ranking...'
       }
+      header={<PremiumHero eyebrow="FC Arena · Ballon d’Or" title={season?.name ?? 'Season Rankings'} description={season ? `${new Date(season.startAt).toLocaleDateString()} – ${new Date(season.endAt).toLocaleDateString()} · Minimum ${season.minimumMatches} matches · ${season.status}` : 'Loading seasonal ranking...'} />}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
@@ -412,7 +415,9 @@ export default function BallonRankingsPage() {
         </div>
       </div>
 
-      <details className="overflow-hidden rounded-[24px] border border-amber-400/15 bg-amber-400/[0.035]">
+      <PremiumPodium rows={rows} seasonId={seasonId} />
+
+      <details className="premium-admin-controls overflow-hidden rounded-xl border">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
@@ -486,15 +491,9 @@ export default function BallonRankingsPage() {
         </div>
       </details>
 
-      <section className="overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0B0F14]">
+      <section className="premium-ranking-ledger">
         <div className="grid gap-5 border-b border-white/[0.07] p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-7">
-          <Image
-            src="/awards/fc-arena-ballon-mark.svg"
-            alt="FC Arena Ballon"
-            width={84}
-            height={84}
-            className="h-16 w-16 sm:h-20 sm:w-20"
-          />
+          <AwardEmblem />
 
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
@@ -570,7 +569,7 @@ export default function BallonRankingsPage() {
                         />
                       ) : (
                         <span className="grid h-full place-items-center text-sm">
-                          ⚽
+                          <FcIcon name="profile" size={20} />
                         </span>
                       )}
                     </span>

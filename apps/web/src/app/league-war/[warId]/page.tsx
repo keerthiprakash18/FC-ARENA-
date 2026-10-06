@@ -1,4 +1,5 @@
 'use client';
+import { PremiumPitch } from '@/components/fc/premium-ui';
 import { promptAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
 
@@ -1127,11 +1128,11 @@ export default function LeagueWarDetailPage() {
 
         <FcNotice tone="error">{error}</FcNotice>
 
-        <section className="fc-war-hero relative overflow-hidden rounded-[30px] border p-5 sm:p-7">
-          <div className="fc-war-hero-glow pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" />
+        <section className="premium-hero premium-war-board">
+          <PremiumPitch />
 
           <div className="relative text-center">
-            <p className="fc-war-kicker text-[10px] font-semibold">
+            <p className="premium-eyebrow">
               FC Arena League War
             </p>
 
@@ -1193,7 +1194,7 @@ export default function LeagueWarDetailPage() {
                 winner ===
                   war.homeLeague
                     .id
-                  ? 'mt-3 text-5xl font-black text-rose-300'
+                  ? 'premium-leading mt-3 text-5xl font-black'
                   : 'mt-3 text-5xl font-black text-white'
               }>
                 {
@@ -1220,9 +1221,7 @@ export default function LeagueWarDetailPage() {
             </div>
 
             <div className="text-center">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-rose-400/20 bg-rose-400/[0.07] text-xl">
-                ⚔
-              </span>
+              <span className="premium-war-divider" aria-hidden="true">vs</span>
 
               <p className="mt-3 text-xs font-black text-slate-400">
                 {
@@ -1268,7 +1267,7 @@ export default function LeagueWarDetailPage() {
                 winner ===
                   war.awayLeague
                     .id
-                  ? 'mt-3 text-5xl font-black text-rose-300'
+                  ? 'premium-leading mt-3 text-5xl font-black'
                   : 'mt-3 text-5xl font-black text-white'
               }>
                 {
@@ -1294,6 +1293,8 @@ export default function LeagueWarDetailPage() {
               </p>
             </div>
           </div>
+
+          <div className="premium-war-progress"><span>{war.playerCount} players per league · {war.summary.remainingMatches} matches remaining</span><strong>{winner ? `${winner === war.homeLeague.id ? war.homeLeague.name : war.awayLeague.name} wins` : leader ? `${leader === war.homeLeague.id ? war.homeLeague.name : war.awayLeague.name} leads` : 'Level on War Points'}</strong><progress value={war.summary.completedMatches} max={Math.max(war.summary.totalMatches, 1)} aria-label="League War confirmed match progress" /></div>
 
           {war.status ===
           'COMPLETED' ? (

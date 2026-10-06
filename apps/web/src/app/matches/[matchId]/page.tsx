@@ -2,7 +2,8 @@
 
 import { ApiError } from "@/lib/api";
 import { confirmAction, promptAction } from "@/components/fc/confirmation-provider";
-import { FcEmptyState, FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
+import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
+import { PremiumPitch } from "@/components/fc/premium-ui";
 import { ShareCard } from "@/components/fc/share-card";
 import { MatchReminder } from "@/components/fc/match-reminder";
 import Link from "next/link";
@@ -1011,79 +1012,8 @@ export default function MatchRoomPage() {
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
-      <div className="space-y-6">
-        <section className="theme-panel rounded-2xl p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${realtimeBadgeClass(
-                    realtimeState,
-                  )}`}
-                >
-                  {realtimeState === "connected"
-                    ? "● LIVE SYNC"
-                    : realtimeState === "reconnecting"
-                      ? "● RECONNECTING"
-                      : realtimeState === "connecting"
-                        ? "● CONNECTING"
-                        : "● OFFLINE"}
-                </span>
-
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
-                  {match.status.replaceAll("_", " ")}
-                </span>
-              </div>
-
-              <p className="mt-3 text-sm font-semibold">
-                {confirmed
-                  ? "Verified result · Match Room locked"
-                  : awaitingReview
-                    ? "Result submitted · awaiting verification"
-                    : match.readiness.bothReady
-                      ? "Both sides Ready · play the match"
-                      : canSubmit
-                        ? "Match Room active"
-                        : "Match details"}
-              </p>
-
-              <p className="mt-1 text-xs text-slate-500">
-                {scheduleLabel}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {!confirmed && (awaitingReview || canSubmit) ? (
-                <a
-                  className="theme-primary-button rounded-xl px-4 py-3 text-sm"
-                  href={awaitingReview ? "#result-verification" : "#result-entry"}
-                >
-                  {awaitingReview ? "Review submissions" : "Enter score"}
-                </a>
-              ) : null}
-
-              {confirmed ? (
-                <ShareCard
-                  label="Share result card"
-                  filename="fc-arena-result"
-                  title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`}
-                  lines={[
-                    match.tournament.name,
-                    "Verified result",
-                    match.matchCode || "FC ARENA Match",
-                  ]}
-                />
-              ) : null}
-
-              <MatchReminder
-                title={`${home} vs ${away}`}
-                scheduledAt={match.fixture.scheduledAt}
-                matchId={String(params.matchId)}
-              />
-            </div>
-          </div>
-        </section>
-        <div className="flex flex-wrap gap-4">
+      <div className="premium-match-center space-y-6">
+        <div className="premium-match-links flex flex-wrap gap-4">
           <Link
             href={`/tournaments/${match.tournament.id}`}
             className="text-sm font-bold text-slate-500 hover:text-white"
@@ -1099,12 +1029,12 @@ export default function MatchRoomPage() {
           </Link>
         </div>
 
-        <section className="relative overflow-hidden rounded-[30px] border border-sky-400/15 bg-[#0a1018] p-6 md:p-10">
-          <div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-400/[0.07] blur-3xl" />
+        <section className="premium-hero premium-scoreboard">
+          <PremiumPitch />
 
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+              <p className="premium-eyebrow">
                 Match Center
               </p>
 
@@ -1112,12 +1042,10 @@ export default function MatchRoomPage() {
                 {match.tournament.name}
               </h1>
 
-              <p className="mt-2 font-mono text-xs text-slate-500">
-                {match.matchCode || match.fixture.fixtureCode}
-              </p>
+              <div className="premium-match-context"><span>{match.fixture.roundName}</span><span>{match.status.replaceAll("_", " ")}</span><span>{match.matchCode || match.fixture.fixtureCode}</span></div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-right">
+            <div className="premium-countdown rounded-2xl border px-4 py-3 text-right">
               <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-600">
                 Live Countdown
               </p>
@@ -1129,6 +1057,7 @@ export default function MatchRoomPage() {
 
           <div className="fc-match-room-score-grid relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
             <div className="min-w-0 text-center">
+              <FcCrest name={home} size="lg" />
               <p className="break-words text-lg font-black md:text-3xl">
                 {home}
               </p>
@@ -1163,6 +1092,7 @@ export default function MatchRoomPage() {
             </div>
 
             <div className="min-w-0 text-center">
+              <FcCrest name={away} size="lg" />
               <p className="break-words text-lg font-black md:text-3xl">
                 {away}
               </p>
@@ -1188,7 +1118,7 @@ export default function MatchRoomPage() {
           {!confirmed &&
           (match.isParticipant || match.isLeagueAdmin) &&
           ["UNSCHEDULED", "SCHEDULED"].includes(match.status) ? (
-            <div className="relative mt-8 rounded-2xl border border-white/[0.08] bg-black/15 p-4">
+            <div className="premium-readiness relative mt-8 rounded-xl border p-4">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-sm font-black text-slate-200">
@@ -1253,6 +1183,25 @@ export default function MatchRoomPage() {
           ) : null}
         </section>
 
+        <section className="premium-match-task">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${realtimeBadgeClass(realtimeState)}`}>
+                  {realtimeState === "connected" ? "● LIVE SYNC" : realtimeState === "reconnecting" ? "● RECONNECTING" : realtimeState === "connecting" ? "● CONNECTING" : "● OFFLINE"}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">{match.status.replaceAll("_", " ")}</span>
+              </div>
+              <p className="mt-3 text-sm font-semibold">{confirmed ? "Verified result · Match Room locked" : awaitingReview ? "Result submitted · awaiting verification" : match.readiness.bothReady ? "Both sides Ready · play the match" : canSubmit ? "Match Room active" : "Match details"}</p>
+              <p className="mt-1 text-xs text-slate-500">{scheduleLabel}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!confirmed && (awaitingReview || canSubmit) ? <a className="theme-primary-button rounded-xl px-4 py-3 text-sm" href={awaitingReview ? "#result-verification" : "#result-entry"}>{awaitingReview ? "Review submissions" : "Enter score"}</a> : null}
+              {confirmed ? <ShareCard label="Share result card" filename="fc-arena-result" title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`} lines={[match.tournament.name, "Verified result", match.matchCode || "FC ARENA Match"]} /> : null}
+              <MatchReminder title={`${home} vs ${away}`} scheduledAt={match.fixture.scheduledAt} matchId={String(params.matchId)} />
+            </div>
+          </div>
+        </section>
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
 

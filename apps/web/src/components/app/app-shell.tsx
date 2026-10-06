@@ -870,7 +870,7 @@ export function AppShell({
       </aside>
 
 
-      <div className="lg:pl-[270px]">
+      <div className="premium-shell-content lg:pl-[270px]">
         <AppHeader
           playerName={
             playerName

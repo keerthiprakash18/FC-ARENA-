@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { AwardEmblem, PremiumPitch, PremiumPodium } from '@/components/fc/premium-ui';
+import { FcIcon } from '@/components/fc/fc-icons';
 import {
   useEffect,
   useMemo,
@@ -134,56 +136,56 @@ interface AwardsOverview {
 const awardCards = [
   {
     type: 'FC_ARENA_BALLON',
-    icon: '👑',
+    icon: 'ballon',
     title: 'FC Arena Ballon',
     detail: 'Seasonal Player Honour',
     href: '/awards/ballon',
   },
   {
     type: 'GOLDEN_BOOT',
-    icon: '⚽',
+    icon: 'boot',
     title: 'Golden Boot',
     detail: 'Top Scorer',
     href: '/awards/golden-boot',
   },
   {
     type: 'GOLDEN_GLOVE',
-    icon: '🧤',
+    icon: 'glove',
     title: 'Golden Glove',
     detail: 'Best Defensive Record',
     href: '/awards/golden-glove',
   },
   {
     type: 'PLAYER_OF_TOURNAMENT',
-    icon: '⭐',
+    icon: 'playmaker',
     title: 'Player of Tournament',
     detail: 'Best Overall Performance',
     href: '/awards/player-of-tournament',
   },
   {
     type: 'RISING_STAR',
-    icon: '🚀',
+    icon: 'ranking',
     title: 'Rising Star',
     detail: 'Best Eligible Newcomer',
     href: '/awards/rising-star',
   },
   {
     type: 'TOURNAMENT_CHAMPION',
-    icon: '🏆',
+    icon: 'ballon',
     title: 'Champion',
     detail: 'Tournament Winner',
     href: '/awards/tournament-champion',
   },
   {
     type: 'TOURNAMENT_RUNNER_UP',
-    icon: '🥈',
+    icon: 'ballon',
     title: 'Runner-Up',
     detail: 'Tournament Second Place',
     href: '/awards/tournament-runner-up',
   },
   {
     type: 'WINNING_STREAK',
-    icon: '🔥',
+    icon: 'ranking',
     title: 'Winning Streak',
     detail: 'Verified Win Run',
     href: '/awards/winning-streak',
@@ -755,31 +757,24 @@ export default function AwardsPage() {
         </span>
       }
     >
-      <section className="relative overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0B0F14] p-5 sm:p-7 lg:p-9">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
+      <section className="premium-hero premium-awards-hero">
+        <PremiumPitch />
 
         <div className="relative grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.82fr)] lg:items-center">
           <div className="flex flex-col items-start">
-            <Image
-              src="/awards/fc-arena-ballon.svg"
-              alt="FC Arena Ballon"
-              width={168}
-              height={168}
-              priority
-              className="h-28 w-28 rounded-[26px] sm:h-36 sm:w-36"
-            />
+            <AwardEmblem />
 
-            <p className="mt-6 text-[10px] font-black uppercase tracking-[0.24em] text-amber-300">
+            <p className="premium-eyebrow mt-6">
               Seasonal Player Honour
             </p>
 
-            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
-              FC ARENA BALLON
+            <h2 className="premium-awards-title mt-2">
+              Ballon d’Or
             </h2>
 
             {data?.currentBallon ? (
               <>
-                <p className="mt-3 text-sm font-semibold text-slate-400">
+                <p className="premium-hero-description">
                   {
                     data.currentBallon
                       .season.name
@@ -799,7 +794,7 @@ export default function AwardsPage() {
                     }
                   </span>
 
-                  <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-bold text-slate-400">
+                  <span className="premium-hero-tag">
                     Min.{' '}
                     {
                       data.currentBallon
@@ -815,27 +810,27 @@ export default function AwardsPage() {
                     href={
                       `/awards/ballon/${data.currentBallon.season.id}`
                     }
-                    className="rounded-xl bg-amber-300 px-5 py-3 text-sm font-black text-[#151006] transition hover:bg-amber-200"
+                    className="theme-primary-button premium-button"
                   >
                     View Ballon Rankings →
                   </Link>
 
                   <Link
                     href="/awards/ballon"
-                    className="rounded-xl border border-white/10 bg-white/[0.025] px-5 py-3 text-sm font-black text-slate-300 transition hover:border-amber-400/20"
+                    className="theme-secondary-button premium-button"
                   >
                     All Seasons
                   </Link>
                 </div>
               </>
             ) : (
-              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-500">
+              <p className="premium-hero-description">
                 No Ballon season is live yet. Tournament awards continue to work normally until an administrator starts a season.
               </p>
             )}
           </div>
 
-          <FcPanel className="overflow-hidden">
+          <FcPanel className="premium-awards-leader overflow-hidden">
             <div className="border-b border-white/[0.07] p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
                 Current Leader
@@ -855,8 +850,8 @@ export default function AwardsPage() {
                         sizes="56px"
                       />
                     ) : (
-                      <div className="grid h-full w-full place-items-center text-xl">
-                        👑
+                        <div className="grid h-full w-full place-items-center text-xl">
+                          <FcIcon name="award" size={28} />
                       </div>
                     )}
                   </div>
@@ -961,8 +956,11 @@ export default function AwardsPage() {
         </div>
       </section>
 
+      {data?.currentBallon ? <PremiumPodium rows={rankings} seasonId={data.currentBallon.season.id} /> : null}
+
       {adminLeagues.length >
       0 ? (
+        <details className="premium-admin-controls"><summary>Administrator controls · {selectedAdminLeague?.adminRole}</summary>
         <FcPanel className="overflow-hidden border-amber-400/20">
           <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
@@ -1091,7 +1089,7 @@ export default function AwardsPage() {
                   >
                     {adminBusy
                       ? 'Starting...'
-                      : '▶ Start Ballon Season'}
+                      : 'Start Ballon Season'}
                   </button>
                 ) : (
                   <button
@@ -1107,7 +1105,7 @@ export default function AwardsPage() {
                   >
                     {adminBusy
                       ? 'Starting...'
-                      : '▶ Create & Start 3-Month Season'}
+                      : 'Create & Start 3-Month Season'}
                   </button>
                 )}
 
@@ -1129,6 +1127,7 @@ export default function AwardsPage() {
             </div>
           </div>
         </FcPanel>
+        </details>
       ) : null}
 
       <section>
@@ -1151,7 +1150,7 @@ export default function AwardsPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="premium-award-lanes">
           {awardCards.map(
             (
               award,
@@ -1163,52 +1162,16 @@ export default function AwardsPage() {
                 href={
                   award.href
                 }
-                className="group block"
+                className="premium-award-lane"
               >
-                <FcPanel className="h-full p-4 transition group-hover:-translate-y-0.5 group-hover:border-amber-400/30 sm:p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="text-3xl">
-                      {
-                        award.icon
-                      }
-                    </span>
-
-                    <span className="text-sm font-black text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-amber-300">
-                      →
-                    </span>
-                  </div>
-
-                  <h3 className="mt-4 text-sm font-black sm:text-base">
-                    {
-                      award.title
-                    }
-                  </h3>
-
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {
-                      award.detail
-                    }
-                  </p>
-
-                  <div className="mt-4 flex items-end justify-between gap-2">
-                    <p className="text-2xl font-black text-amber-300">
-                      {
-                        data
-                          ?.trophyCabinet[
-                          award.type
-                        ] ??
-                        0
-                      }
-                    </p>
-
-                    <span className="text-[9px] font-black uppercase tracking-[0.12em] text-slate-600">
-                      Open
-                    </span>
-                  </div>
-                </FcPanel>
+                <AwardEmblem kind={award.icon} />
+                <div><h3>{award.title}</h3><p>{award.detail}</p><span className="theme-muted text-xs">{data?.trophyCabinet[award.type] ?? 0} honours earned</span></div>
+                <FcIcon name="chevronRight" size={18} />
               </Link>
             ),
           )}
+          <Link href="/tournaments" className="premium-award-lane"><AwardEmblem kind="playmaker" /><div><h3>Playmaker</h3><p>Explore verified assist leaders in your tournament rankings.</p><span className="premium-quiet">Choose a tournament →</span></div></Link>
+          <Link href="/leaderboards" className="premium-award-lane"><AwardEmblem kind="ranking" /><div><h3>Power Ranking</h3><p>League performance, points and player identity from verified matches.</p><span className="premium-quiet">Explore rankings →</span></div></Link>
         </div>
       </section>
 
@@ -1223,7 +1186,7 @@ export default function AwardsPage() {
             </p>
 
             <h2 className="mt-2 text-xl font-black">
-              🏛 Hall of Fame
+              Hall of Fame
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -1306,7 +1269,7 @@ export default function AwardsPage() {
                     </div>
 
                     <span className="text-lg">
-                      ⚽
+                      <FcIcon name="football" size={20} />
                     </span>
                   </Link>
                 ),

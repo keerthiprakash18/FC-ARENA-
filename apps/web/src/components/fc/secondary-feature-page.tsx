@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 import { AppShell } from '@/components/app/app-shell';
 import { BackHeader } from '@/components/app/back-header';
@@ -19,6 +20,8 @@ export function SecondaryFeaturePage({
   backHref = '/more',
   backLabel = 'More',
   action,
+  header,
+  className = '',
   children,
 }: {
   title: string;
@@ -27,6 +30,8 @@ export function SecondaryFeaturePage({
   backHref?: string;
   backLabel?: string;
   action?: ReactNode;
+  header?: ReactNode;
+  className?: string;
   children: ReactNode;
 }) {
   const [
@@ -79,8 +84,8 @@ export function SecondaryFeaturePage({
           ?.inGameName
       }
     >
-      <div className="space-y-6">
-        <BackHeader
+      <div className={`${header ? 'premium-page' : 'space-y-6'} ${className}`}>
+        {header ? <><Link href={backHref} className="premium-quiet">← {backLabel}</Link>{header}</> : <BackHeader
           backHref={
             backHref
           }
@@ -99,7 +104,7 @@ export function SecondaryFeaturePage({
           action={
             action
           }
-        />
+        />}
 
         {
           children

@@ -287,7 +287,7 @@ export function FcCrest({
   return (
     <div
       className={
-        'theme-crest grid shrink-0 place-items-center overflow-hidden border font-semibold ' +
+        'theme-crest premium-crest grid shrink-0 place-items-center overflow-hidden border font-semibold ' +
         sizeClass
       }
     >

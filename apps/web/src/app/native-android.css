@@ -569,3 +569,19 @@ html[data-native-app="android"] .fc-main {
     transition: none !important;
   }
 }
+
+/* Preserve native insets/scrolling while giving every product area direct access. */
+html[data-native-app="android"] .fc-premium .theme-bottom-nav > .premium-primary-rail {
+  display: flex !important;
+  justify-content: flex-start !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+html[data-native-app="android"] .fc-premium .premium-primary-rail .theme-bottom-item {
+  flex: 1 0 78px !important;
+  min-width: 78px !important;
+}
+html[data-native-app="android"] .fc-premium .theme-bottom-item > span:last-child {
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+}

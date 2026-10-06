@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
+import { PremiumHero } from "@/components/fc/premium-ui";
 
 import { InlineResultPanel } from "@/components/fixtures/inline-result-panel";
 
@@ -14,7 +15,6 @@ import {
   FcErrorState,
   FcEmptyState,
   FcLoadingScreen,
-  FcPageHeader,
   FcPanel,
   FcSectionHeading,
   FcStatCard,
@@ -684,30 +684,31 @@ export default function FixturesPage() {
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
-      <div className="space-y-6">
-        <FcPageHeader
+      <div className="premium-page premium-fixture-page">
+        <PremiumHero
+          eyebrow="The matchday centre"
           title="Fixtures"
-          subtitle="Every match in one place, with simple filters for League, Tournament and status."
+          description="Every opponent. Every matchday. Every result."
           action={
             selectedMembership?.adminRole ? (
               <div className="flex gap-2">
                 <Link
                   href="/fixtures/manage"
-                  className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
+                  className="theme-secondary-button premium-button"
                 >
                   Manage
                 </Link>
 
                 <Link
                   href="/fixtures/generate"
-                  className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
+                  className="theme-primary-button premium-button"
                 >
                   + Create Fixtures
                 </Link>
               </div>
             ) : null
           }
-        />
+        ><div className="premium-hero-tags"><span>{upcomingCount} upcoming</span><span>{todayCount} today</span><span>{liveCount} live</span><span>{completedCount} completed</span></div></PremiumHero>
 
         {error ? <FcErrorState message={error} onRetry={() => { setError(""); setRetry(value => value + 1); }} /> : null}
 
@@ -721,8 +722,8 @@ export default function FixturesPage() {
         ) : (
           <>
             <div className="flex gap-2" aria-label="Match scope">{(["MY", "ALL"] as const).map(value => <button key={value} aria-pressed={scope === value} onClick={() => setScope(value)} className={`${scope === value ? "theme-primary-button" : "theme-secondary-button"} flex-1 rounded-xl px-4 py-3 font-semibold`}>{value === "MY" ? "My Matches" : "All Matches"}</button>)}</div>
-            <FcPanel className="p-4 sm:p-5">
-              <div className="grid gap-4 lg:grid-cols-2">
+            <details className="premium-filter-workbench"><summary>League &amp; tournament filters · {selectedMembership?.league.name}</summary>
+              <div className="premium-filters">
                 <label className="grid gap-2">
                   <span className="text-xs font-medium text-[#A7B0BE]">
                     League
@@ -778,7 +779,7 @@ export default function FixturesPage() {
                   </select>
                 </label>
               </div>
-            </FcPanel>
+            </details>
 
             <details className="theme-panel rounded-2xl p-4">
               <summary className="min-h-11 cursor-pointer font-semibold">More filters · {[selectedGroupId, selectedMatchday, selectedStage, selectedTeam].filter(value => value !== "ALL").length} active</summary>
@@ -876,7 +877,7 @@ export default function FixturesPage() {
               <button className="theme-secondary-button mt-4 rounded-lg px-4" onClick={() => { setSelectedGroupId("ALL"); setSelectedMatchday("ALL"); setSelectedStage("ALL"); setSelectedTeam("ALL"); setFilter("ALL"); setSelectedTournamentId("ALL"); }}>Clear filters</button>
             </details>
 
-            <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <section className="premium-metrics" aria-label="Matchday summary">
               <FcStatCard
                 label="Upcoming"
                 value={upcomingCount}
@@ -971,7 +972,7 @@ export default function FixturesPage() {
                         </span>
                       </div>
 
-                      <div className="mt-3 grid gap-3 xl:grid-cols-2">
+                      <div className="premium-fixture-ledger mt-3">
                         {items.map((fixture) => {
                           const home = entryName(fixture.home);
 
@@ -1012,7 +1013,7 @@ export default function FixturesPage() {
                                   />
                                 </div>
 
-                                <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                                <div className="premium-fixture-sides mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                                   <div className="flex min-w-0 items-center justify-end gap-2">
                                     <p className="truncate text-right text-sm font-black">
                                       {home}
@@ -1022,7 +1023,7 @@ export default function FixturesPage() {
                                   </div>
 
                                   <span className="rounded-lg border border-sky-400/15 bg-sky-400/[0.05] px-3 py-2 text-[10px] font-black text-sky-300">
-                                    VS
+                                    {completed ? "FT" : "VS"}
                                   </span>
 
                                   <div className="flex min-w-0 items-center gap-2">

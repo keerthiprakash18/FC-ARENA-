@@ -12,7 +12,7 @@ import { PrismaService } from '../database/prisma.service.js';
 import type { GeneratePlayoffsDto } from './dto/generate-playoffs.dto.js';
 
 import {
-  generateKnockoutFixtures,
+  generateSeededKnockoutFixtures,
 } from './fixture-engine.js';
 
 import type {
@@ -255,26 +255,6 @@ export class PlayoffsService {
       qualifiersPerGroup;
 
 
-    if (
-      !this.isPowerOfTwo(
-        totalQualifiers,
-      )
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'INVALID_KNOCKOUT_SIZE',
-
-          message:
-            `Total qualifiers must form a standard knockout bracket (4, 8, 16, 32, 64...). Current total: ${totalQualifiers}.`,
-        },
-      });
-    }
-
-
     const rankedGroups =
       groups.map(
         (group) => {
@@ -394,77 +374,28 @@ export class PlayoffsService {
 
 
     for (
-      let groupIndex = 0;
-      groupIndex <
-      rankedGroups.length;
-      groupIndex += 2
+      let rank = 0;
+      rank <
+      qualifiersPerGroup;
+      rank++
     ) {
-      const left =
-        rankedGroups[
-          groupIndex
-        ];
-
-      const right =
-        rankedGroups[
-          groupIndex + 1
-        ];
-
-
-      if (
-        !left ||
-        !right
-      ) {
-        throw new Error(
-          'Invalid group pairing state.',
-        );
-      }
-
-
-      if (
-        qualifiersPerGroup ===
-        1
-      ) {
-        seedOrder.push(
-          left.qualifiers[0].id,
-          right.qualifiers[0].id,
-        );
-
-        continue;
-      }
-
-
-      const half =
-        qualifiersPerGroup /
-        2;
-
-
       for (
-        let rank = 0;
-        rank < half;
-        rank++
+        const group
+        of rankedGroups
       ) {
-        const reverseRank =
-          qualifiersPerGroup -
-          1 -
-          rank;
+        const qualifier =
+          group.qualifiers[
+            rank
+          ];
 
+        if (!qualifier) {
+          throw new Error(
+            'Invalid playoff seed generation.',
+          );
+        }
 
         seedOrder.push(
-          left.qualifiers[
-            rank
-          ].id,
-
-          right.qualifiers[
-            reverseRank
-          ].id,
-
-          right.qualifiers[
-            rank
-          ].id,
-
-          left.qualifiers[
-            reverseRank
-          ].id,
+          qualifier.id,
         );
       }
     }
@@ -497,7 +428,7 @@ export class PlayoffsService {
 
 
     const blueprints =
-      generateKnockoutFixtures(
+      generateSeededKnockoutFixtures(
         seedOrder,
       );
 
@@ -838,18 +769,6 @@ export class PlayoffsService {
         },
       });
     }
-  }
-
-
-  private isPowerOfTwo(
-    value: number,
-  ) {
-    return (
-      value >= 2 &&
-      (value &
-        (value - 1)) ===
-        0
-    );
   }
 
 

@@ -31,6 +31,7 @@
   },
   "overrides": {
     "mysql2": "3.24.5",
-    "shell-quote": "1.12.0"
+    "shell-quote": "1.12.0",
+    "source-map-js": "1.2.2"
   }
 }

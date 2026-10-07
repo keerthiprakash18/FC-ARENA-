@@ -10,6 +10,9 @@ import {
   isCanonicalCompletedFixture,
 } from '../tournaments/fixture-deduplication.js';
 import {
+  countMissingRequiredFixtureResults,
+} from './competition-completion.js';
+import {
   calculatePerformanceRatings,
   tiedGoldenBootWinners,
   tiedGoldenGloveWinners,
@@ -123,6 +126,31 @@ export class AchievementsService {
         },
       });
     }
+
+    const missingRequiredResults =
+      countMissingRequiredFixtureResults(
+        matches,
+        tournament.competitionFormat,
+        tournament.legType,
+      );
+
+    if (
+      missingRequiredResults >
+      0
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'DOUBLE_LEG_RESULTS_INCOMPLETE',
+
+          message:
+            `Double Leg tournaments require a confirmed score for every fixture. ${missingRequiredResults} match(es) are still missing a confirmed result.`,
+        },
+      });
+    }
+
 
     const verifiedCount =
       matches.filter(

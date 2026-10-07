@@ -1264,6 +1264,12 @@ export class ResultsService {
             tournament.format,
           mode:
             tournament.mode,
+          status:
+            tournament.status,
+          competitionFormat:
+            tournament.competitionFormat,
+          legType:
+            tournament.legType,
         },
 
         standings:

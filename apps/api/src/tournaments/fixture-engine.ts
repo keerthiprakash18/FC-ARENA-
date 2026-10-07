@@ -368,6 +368,189 @@ export function generateKnockoutFixtures(
   return fixtures;
 }
 
+
+export function generateSeededKnockoutFixtures(
+  registrationIds: string[],
+): FixtureBlueprint[] {
+  if (registrationIds.length < 2) {
+    throw new Error(
+      'At least 2 entries are required for Knockout.',
+    );
+  }
+
+  const bracketSize =
+    nextPowerOfTwo(registrationIds.length);
+
+  const byeCount =
+    bracketSize - registrationIds.length;
+
+  const branchCount =
+    bracketSize / 2;
+
+  const matchCount =
+    registrationIds.length - branchCount;
+
+  const byeSeeds =
+    registrationIds.slice(0, byeCount);
+
+  const playingSeeds =
+    registrationIds.slice(byeCount);
+
+  const firstRoundPairs: Array<{
+    home: string;
+    away: string;
+  }> = [];
+
+  for (let index = 0; index < matchCount; index++) {
+    const home = playingSeeds[index];
+    const away = playingSeeds[playingSeeds.length - 1 - index];
+
+    if (!home || !away || home === away) {
+      throw new Error('Invalid seeded Knockout pairing.');
+    }
+
+    firstRoundPairs.push({ home, away });
+  }
+
+  const branchKinds: Array<'bye' | 'match'> = [];
+  let remainingByes = byeCount;
+  let remainingMatches = matchCount;
+
+  while (remainingByes > 0 && remainingMatches > 0) {
+    branchKinds.push('bye', 'match');
+    remainingByes--;
+    remainingMatches--;
+  }
+
+  while (remainingMatches >= 2) {
+    branchKinds.push('match', 'match');
+    remainingMatches -= 2;
+  }
+
+  while (remainingByes >= 2) {
+    branchKinds.push('bye', 'bye');
+    remainingByes -= 2;
+  }
+
+  if (remainingMatches === 1) {
+    branchKinds.push('match');
+  }
+
+  if (remainingByes === 1) {
+    branchKinds.push('bye');
+  }
+
+  if (branchKinds.length !== branchCount) {
+    throw new Error('Invalid seeded Knockout branch count.');
+  }
+
+  const fixtures: FixtureBlueprint[] = [];
+  const advancers: KnockoutSlot[] = [];
+  let byeIndex = 0;
+  let matchIndex = 0;
+  let firstRoundFixturePosition = 1;
+
+  for (const branchKind of branchKinds) {
+    if (branchKind === 'bye') {
+      const registrationId = byeSeeds[byeIndex];
+
+      if (!registrationId) {
+        throw new Error('Invalid seeded Knockout bye state.');
+      }
+
+      advancers.push({
+        type: 'registration',
+        id: registrationId,
+      });
+
+      byeIndex++;
+      continue;
+    }
+
+    const pair = firstRoundPairs[matchIndex];
+
+    if (!pair) {
+      throw new Error('Invalid seeded Knockout match state.');
+    }
+
+    const key = `ko-r1-f${firstRoundFixturePosition}`;
+
+    fixtures.push({
+      key,
+      roundNumber: 1,
+      roundName: byeCount > 0
+        ? 'PLAY-IN'
+        : getKnockoutRoundName(bracketSize),
+      matchday: null,
+      bracketPosition: firstRoundFixturePosition,
+      homeRegistrationId: pair.home,
+      awayRegistrationId: pair.away,
+      homeSourceKey: null,
+      awaySourceKey: null,
+    });
+
+    advancers.push({
+      type: 'fixture',
+      key,
+    });
+
+    matchIndex++;
+    firstRoundFixturePosition++;
+  }
+
+  let currentAdvancers = advancers;
+  let roundNumber = 2;
+
+  while (currentAdvancers.length > 1) {
+    const nextAdvancers: KnockoutSlot[] = [];
+    const participantCount = currentAdvancers.length;
+
+    for (let index = 0; index < currentAdvancers.length; index += 2) {
+      const homeSlot = currentAdvancers[index];
+      const awaySlot = currentAdvancers[index + 1];
+
+      if (!homeSlot || !awaySlot) {
+        throw new Error('Invalid seeded Knockout progression.');
+      }
+
+      const bracketPosition = index / 2 + 1;
+      const key = `ko-r${roundNumber}-f${bracketPosition}`;
+
+      fixtures.push({
+        key,
+        roundNumber,
+        roundName: getKnockoutRoundName(participantCount),
+        matchday: null,
+        bracketPosition,
+        homeRegistrationId:
+          homeSlot.type === 'registration' ? homeSlot.id : null,
+        awayRegistrationId:
+          awaySlot.type === 'registration' ? awaySlot.id : null,
+        homeSourceKey:
+          homeSlot.type === 'fixture' ? homeSlot.key : null,
+        awaySourceKey:
+          awaySlot.type === 'fixture' ? awaySlot.key : null,
+      });
+
+      nextAdvancers.push({
+        type: 'fixture',
+        key,
+      });
+    }
+
+    currentAdvancers = nextAdvancers;
+    roundNumber++;
+  }
+
+  if (fixtures.length !== registrationIds.length - 1) {
+    throw new Error(
+      `Invalid seeded Knockout fixture count. Expected ${registrationIds.length - 1}, received ${fixtures.length}.`,
+    );
+  }
+
+  return fixtures;
+}
+
 function roundRobinRoundsPerLeg(
   teamCount: number,
 ): number {

@@ -49,6 +49,8 @@ interface Tournament {
   code: string;
   status: string;
   fixturesGeneratedAt: string | null;
+  competitionFormat: string;
+  legType: string;
 
   dailyMatchLimit: number;
   matchesPerParticipantPerDay: number;
@@ -372,6 +374,84 @@ export default function TournamentFixturesPage() {
     );
 
 
+  const isDoubleLeg =
+    tournament?.competitionFormat ===
+      'DOUBLE_ROUND_ROBIN' ||
+    tournament?.legType ===
+      'HOME_AWAY';
+
+  const competitionLabel =
+    isDoubleLeg
+      ? 'Double Leg · Home & Away'
+      : 'Single Leg';
+
+  const legBoundaryByGroup =
+    useMemo(
+      () => {
+        const maximums =
+          new Map<string, number>();
+
+        if (!isDoubleLeg) {
+          return maximums;
+        }
+
+        for (
+          const fixture
+          of fixtures
+        ) {
+          if (
+            typeof fixture.matchday !==
+            'number'
+          ) {
+            continue;
+          }
+
+          const scope =
+            fixture.group?.id ??
+            'SINGLE';
+
+          maximums.set(
+            scope,
+            Math.max(
+              maximums.get(
+                scope,
+              ) ?? 0,
+              fixture.matchday,
+            ),
+          );
+        }
+
+        for (
+          const [
+            scope,
+            maximum,
+          ]
+          of maximums
+        ) {
+          if (
+            maximum % 2 ===
+            0
+          ) {
+            maximums.set(
+              scope,
+              maximum / 2,
+            );
+          } else {
+            maximums.delete(
+              scope,
+            );
+          }
+        }
+
+        return maximums;
+      },
+      [
+        fixtures,
+        isDoubleLeg,
+      ],
+    );
+
+
   const matchdays =
     useMemo(
       () =>
@@ -435,6 +515,7 @@ export default function TournamentFixturesPage() {
           new Map<
             string,
             {
+              groupId: string;
               groupName: string;
               groupPosition: number;
               matchdays: Map<
@@ -471,6 +552,8 @@ export default function TournamentFixturesPage() {
             result.set(
               groupKey,
               {
+                groupId:
+                  groupKey,
                 groupName,
                 groupPosition,
                 matchdays:
@@ -682,6 +765,20 @@ export default function TournamentFixturesPage() {
               tournament.code
             }
           </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3 py-2 text-xs font-black text-sky-300">
+              {
+                competitionLabel
+              }
+            </span>
+
+            {isDoubleLeg ? (
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-400">
+                Both legs count toward the overall standings
+              </span>
+            ) : null}
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
 
@@ -1086,12 +1183,30 @@ export default function TournamentFixturesPage() {
                           className="rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
                         >
 
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-4">
 
                             <div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
-                                Matchday
-                              </p>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
+                                  Matchday
+                                </p>
+
+                                {isDoubleLeg &&
+                                legBoundaryByGroup.get(
+                                  group.groupId,
+                                ) ? (
+                                  <span className="rounded-full border border-amber-400/20 bg-amber-400/[0.07] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                                    {
+                                      matchday <=
+                                      legBoundaryByGroup.get(
+                                        group.groupId,
+                                      )!
+                                        ? 'Leg 1'
+                                        : 'Leg 2'
+                                    }
+                                  </span>
+                                ) : null}
+                              </div>
 
                               <h3 className="mt-1 text-2xl font-black">
                                 Matchday {

@@ -210,6 +210,7 @@ interface RaceRow {
   matches: number;
   goals: number;
   cleanSheets: number;
+  cleanSheetRate: number;
   goalsAgainstPerMatch: number;
   rating: number | null;
 }
@@ -252,7 +253,7 @@ function raceMetric(
     key ===
     'goldenGlove'
   ) {
-    return `${row.cleanSheets} CS · ${row.goalsAgainstPerMatch} GA/M`;
+    return `${row.cleanSheets} CS · ${row.cleanSheetRate}% CS · ${row.goalsAgainstPerMatch} GA/M · ${row.matches} M`;
   }
 
   return `${row.rating ?? 0}/100`;

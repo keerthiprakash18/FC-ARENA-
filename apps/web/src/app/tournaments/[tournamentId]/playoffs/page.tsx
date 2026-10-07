@@ -81,8 +81,18 @@ function displayName(entry: GroupEntry) {
   );
 }
 
-function isPowerOfTwo(value: number) {
-  return value >= 2 && (value & (value - 1)) === 0;
+function nextPowerOfTwo(value: number) {
+  if (value <= 1) return 1;
+  return 2 ** Math.ceil(Math.log2(value));
+}
+
+function knockoutStageName(participants: number) {
+  if (participants <= 2) return "Final";
+  if (participants === 4) return "Semi Final";
+  if (participants === 8) return "Quarter Final";
+  if (participants === 16) return "Round of 16";
+  if (participants === 32) return "Round of 32";
+  return `Round of ${participants}`;
 }
 
 export default function PlayoffsPage() {
@@ -184,17 +194,10 @@ export default function PlayoffsPage() {
             ...loadedGroups.map((group) => group.entries.length),
           );
 
-          const options = [1, 2, 4, 8, 16, 32].filter(
-            (value) =>
-              value <= minimum && isPowerOfTwo(value * loadedGroups.length),
-          );
+          const preferred = Math.min(8, minimum);
 
-          if (options.length > 0) {
-            const preferred = options.filter((value) => value <= 8);
-
-            setQualifiersPerGroup(
-              preferred[preferred.length - 1] ?? options[options.length - 1],
-            );
+          if (preferred >= 1) {
+            setQualifiersPerGroup(preferred);
           }
         }
 
@@ -231,8 +234,9 @@ export default function PlayoffsPage() {
 
     const minimum = Math.min(...groups.map((group) => group.entries.length));
 
-    return [1, 2, 4, 8, 16, 32].filter(
-      (value) => value <= minimum && isPowerOfTwo(value * groups.length),
+    return Array.from(
+      { length: minimum },
+      (_, index) => index + 1,
     );
   }, [groups]);
 
@@ -296,52 +300,57 @@ export default function PlayoffsPage() {
 
   const totalQualifiers = qualifiersPerGroup * groups.length;
 
-  const firstRoundPairs = useMemo(() => {
-    if (rankedGroups.length !== 2) {
-      return [];
-    }
+  const bracketSize = totalQualifiers > 0 ? nextPowerOfTwo(totalQualifiers) : 0;
+  const byeCount = bracketSize > 0 ? bracketSize - totalQualifiers : 0;
+  const playInMatches = byeCount > 0 ? (totalQualifiers - byeCount) / 2 : 0;
+  const nextFullStageParticipants =
+    byeCount > 0 ? bracketSize / 2 : totalQualifiers;
+  const nextFullStage =
+    nextFullStageParticipants > 0
+      ? knockoutStageName(nextFullStageParticipants)
+      : "Knockout";
 
-    const groupA = rankedGroups[0];
-
-    const groupB = rankedGroups[1];
-
-    const pairs: Array<{
-      home: string;
-      away: string;
+  const seedEntries = useMemo(() => {
+    const entries: Array<{
+      registrationId: string;
+      entryName: string;
+      groupId: string;
     }> = [];
 
     for (let rank = 0; rank < qualifiersPerGroup; rank++) {
-      const reverse = qualifiersPerGroup - 1 - rank;
-
-      if (rank > reverse) {
-        break;
+      for (const group of rankedGroups) {
+        const entry = group.qualifiers[rank];
+        if (entry) {
+          entries.push({
+            registrationId: entry.registrationId,
+            entryName: entry.entryName,
+            groupId: group.id,
+          });
+        }
       }
+    }
 
-      if (rank === reverse) {
-        pairs.push({
-          home: groupA.qualifiers[rank]?.entryName ?? "TBD",
+    return entries;
+  }, [rankedGroups, qualifiersPerGroup]);
 
-          away: groupB.qualifiers[rank]?.entryName ?? "TBD",
-        });
+  const firstRoundPairs = useMemo(() => {
+    const remaining = seedEntries.slice(byeCount);
+    const pairs: Array<{ home: string; away: string }> = [];
 
-        continue;
-      }
+    for (let index = 0; index < remaining.length / 2; index++) {
+      const highSeed = remaining[index];
+      const lowSeed = remaining[remaining.length - 1 - index];
+
+      if (!highSeed || !lowSeed) continue;
 
       pairs.push({
-        home: groupA.qualifiers[rank]?.entryName ?? "TBD",
-
-        away: groupB.qualifiers[reverse]?.entryName ?? "TBD",
-      });
-
-      pairs.push({
-        home: groupB.qualifiers[rank]?.entryName ?? "TBD",
-
-        away: groupA.qualifiers[reverse]?.entryName ?? "TBD",
+        home: highSeed.entryName,
+        away: lowSeed.entryName,
       });
     }
 
     return pairs;
-  }, [rankedGroups, qualifiersPerGroup]);
+  }, [seedEntries, byeCount]);
 
   const playoffRounds = useMemo(() => {
     const map = new Map<string, PlayoffFixture[]>();
@@ -387,6 +396,9 @@ export default function PlayoffsPage() {
         data: {
           message: string;
           totalQualifiers: number;
+          byes: number;
+          playInMatches: number;
+          bracketSize: number;
           fixtures: number;
         };
 
@@ -512,37 +524,40 @@ export default function PlayoffsPage() {
 
               <h2 className="mt-2 text-2xl font-black">Qualifiers Per Group</h2>
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                {validQualifierOptions.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setQualifiersPerGroup(value)}
-                    className={`rounded-xl px-5 py-3 font-black ${
-                      qualifiersPerGroup === value
-                        ? "bg-sky-400 text-[#041019]"
-                        : "border border-white/10 text-slate-400"
-                    }`}
-                  >
-                    Top {value}
-                  </button>
-                ))}
-              </div>
+              <label className="mt-5 block max-w-sm">
+                <span className="fc-field-label">Qualifiers per group</span>
+                <select
+                  value={qualifiersPerGroup}
+                  onChange={(event) => setQualifiersPerGroup(Number(event.target.value))}
+                  className="theme-secondary-button mt-2 w-full rounded-xl p-3"
+                >
+                  {validQualifierOptions.map((value) => (
+                    <option key={value} value={value}>
+                      Top {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               <div className="mt-6 rounded-2xl bg-white/[0.03] p-5">
-                <p className="text-sm text-slate-500">Total Qualified</p>
-
-                <p className="mt-1 text-4xl font-black">{totalQualifiers}</p>
-
-                <p className="mt-2 text-sm font-bold text-sky-400">
-                  {totalQualifiers === 16
-                    ? "Round of 16"
-                    : totalQualifiers === 8
-                      ? "Quarter Final"
-                      : totalQualifiers === 4
-                        ? "Semi Final"
-                        : `${totalQualifiers}-Team Knockout`}
-                </p>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <p className="text-sm text-slate-500">Total Qualified</p>
+                    <p className="mt-1 text-4xl font-black">{totalQualifiers}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Byes</p>
+                    <p className="mt-1 text-2xl font-black">{byeCount}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Play-in Matches</p>
+                    <p className="mt-1 text-2xl font-black">{playInMatches}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">Next Full Stage</p>
+                    <p className="mt-1 text-lg font-black text-sky-400">{nextFullStage}</p>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -622,7 +637,7 @@ export default function PlayoffsPage() {
                 </p>
 
                 <h2 className="mt-2 text-2xl font-black">
-                  Cross-Group Seeding
+                  {byeCount > 0 ? "Play-in Seeding" : "Cross-Group Seeding"}
                 </h2>
 
                 <div className="mt-6 grid gap-3 lg:grid-cols-2">

@@ -7,6 +7,7 @@ import {
 import {
   generateDoubleRoundRobinFixtures,
   generateKnockoutFixtures,
+  generateSeededKnockoutFixtures,
   generateRoundRobinFixtures,
   type FixtureBlueprint,
 } from './fixture-engine.js';
@@ -1041,6 +1042,103 @@ describe(
         expect(
           finalFixture,
         ).toBeDefined();
+      },
+    );
+  },
+);
+
+
+describe(
+  'Seeded Knockout Fixture Engine',
+  () => {
+    it(
+      'handles 12 seeded qualifiers with four byes and four play-in fixtures',
+      () => {
+        const entrants = ids(12, 'SEED');
+        const fixtures = generateSeededKnockoutFixtures(entrants);
+
+        expect(fixtures).toHaveLength(11);
+
+        const playIns = fixtures.filter(
+          (fixture) => fixture.roundName === 'PLAY-IN',
+        );
+
+        expect(playIns).toHaveLength(4);
+
+        const playInParticipants = new Set(
+          playIns.flatMap((fixture) => [
+            fixture.homeRegistrationId,
+            fixture.awayRegistrationId,
+          ]),
+        );
+
+        expect(playInParticipants).toEqual(
+          new Set(entrants.slice(4)),
+        );
+
+        for (const byeSeed of entrants.slice(0, 4)) {
+          expect(playInParticipants.has(byeSeed)).toBe(false);
+        }
+
+        expect(
+          fixtures.filter(
+            (fixture) => fixture.roundName === 'QUARTER FINAL',
+          ),
+        ).toHaveLength(4);
+
+        expect(
+          fixtures.filter(
+            (fixture) => fixture.roundName === 'SEMI FINAL',
+          ),
+        ).toHaveLength(2);
+
+        expect(
+          fixtures.filter(
+            (fixture) => fixture.roundName === 'FINAL',
+          ),
+        ).toHaveLength(1);
+      },
+    );
+
+    it(
+      'supports non-power-of-two qualifier totals without duplicates',
+      () => {
+        for (const count of [3, 5, 6, 10, 12, 14, 20]) {
+          const entrants = ids(count, `N${count}`);
+          const fixtures = generateSeededKnockoutFixtures(entrants);
+
+          expect(fixtures).toHaveLength(count - 1);
+
+          const firstRoundParticipants =
+            fixtures
+              .filter((fixture) => fixture.roundNumber === 1)
+              .flatMap((fixture) => [
+                fixture.homeRegistrationId,
+                fixture.awayRegistrationId,
+              ])
+              .filter((value): value is string => Boolean(value));
+
+          expect(new Set(firstRoundParticipants).size).toBe(
+            firstRoundParticipants.length,
+          );
+
+          expect(
+            firstRoundParticipants.every((id) => entrants.includes(id)),
+          ).toBe(true);
+        }
+      },
+    );
+
+    it(
+      'is deterministic for the same ordered seeds',
+      () => {
+        const entrants = ids(12, 'SEED');
+
+        expect(
+          generateSeededKnockoutFixtures(entrants),
+        ).toEqual(
+          generateSeededKnockoutFixtures(entrants),
+        );
       },
     );
   },

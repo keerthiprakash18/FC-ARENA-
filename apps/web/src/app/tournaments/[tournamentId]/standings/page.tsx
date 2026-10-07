@@ -129,6 +129,16 @@ function compareRows(
     );
   }
 
+  if (
+    b.wins !==
+    a.wins
+  ) {
+    return (
+      b.wins -
+      a.wins
+    );
+  }
+
   return a.entryName.localeCompare(
     b.entryName,
   );
@@ -139,10 +149,12 @@ function StandingTable({
   title,
   entries,
   standings,
+  eyebrow = 'Group Standings',
 }: {
   title: string;
   entries: GroupEntry[];
   standings: Standing[];
+  eyebrow?: string;
 }) {
   const lookup =
     new Map(
@@ -218,7 +230,7 @@ function StandingTable({
       <div className="premium-standings-group-header flex items-center justify-between border-b border-white/10 px-5 py-5">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
-            Group Standings
+            {eyebrow}
           </p>
 
           <h2 className="mt-1 text-2xl font-black">
@@ -741,26 +753,34 @@ export default function StandingsPage() {
                 ),
               )}
           </div>
+        ) : standings.length > 0 ? (
+          <StandingTable
+            title="Overall Standings"
+            eyebrow="Competition Standings"
+            entries={
+              standings.map(
+                (standing) => ({
+                  id:
+                    standing.registrationId,
+                  entryName:
+                    standing.entryName,
+                  members: [],
+                }),
+              )
+            }
+            standings={
+              standings
+            }
+          />
         ) : (
           <section className="rounded-[24px] border border-dashed border-white/10 p-10 text-center">
             <p className="font-black text-slate-300">
-              Groups have not
-              been configured.
+              Standings will appear after confirmed results.
             </p>
 
             <p className="mt-2 text-sm text-slate-600">
-              Create tournament
-              groups before using
-              group standings.
+              Play and confirm tournament fixtures to populate the overall table.
             </p>
-
-            <Link
-              href={`/tournaments/${params.tournamentId}/groups`}
-              scroll
-              className="mt-5 inline-flex rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#041019]"
-            >
-              Open Groups
-            </Link>
           </section>
         )}
       </div>

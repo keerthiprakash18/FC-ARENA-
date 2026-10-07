@@ -81,8 +81,29 @@ function displayName(entry: GroupEntry) {
   );
 }
 
-function isPowerOfTwo(value: number) {
-  return value >= 2 && (value & (value - 1)) === 0;
+function nextPowerOfTwo(value: number) {
+  let size = 1;
+  while (size < value) size *= 2;
+  return size;
+}
+
+function knockoutStageName(participants: number) {
+  switch (participants) {
+    case 2:
+      return "Final";
+    case 4:
+      return "Semi Final";
+    case 8:
+      return "Quarter Final";
+    case 16:
+      return "Round of 16";
+    case 32:
+      return "Round of 32";
+    case 64:
+      return "Round of 64";
+    default:
+      return participants > 1 ? `Round of ${participants}` : "Knockout";
+  }
 }
 
 export default function PlayoffsPage() {
@@ -184,16 +205,9 @@ export default function PlayoffsPage() {
             ...loadedGroups.map((group) => group.entries.length),
           );
 
-          const options = [1, 2, 4, 8, 16, 32].filter(
-            (value) =>
-              value <= minimum && isPowerOfTwo(value * loadedGroups.length),
-          );
-
-          if (options.length > 0) {
-            const preferred = options.filter((value) => value <= 8);
-
+          if (minimum > 0) {
             setQualifiersPerGroup(
-              preferred[preferred.length - 1] ?? options[options.length - 1],
+              Math.min(minimum, 8),
             );
           }
         }
@@ -231,8 +245,9 @@ export default function PlayoffsPage() {
 
     const minimum = Math.min(...groups.map((group) => group.entries.length));
 
-    return [1, 2, 4, 8, 16, 32].filter(
-      (value) => value <= minimum && isPowerOfTwo(value * groups.length),
+    return Array.from(
+      { length: minimum },
+      (_, index) => index + 1,
     );
   }, [groups]);
 
@@ -297,51 +312,57 @@ export default function PlayoffsPage() {
   const totalQualifiers = qualifiersPerGroup * groups.length;
 
   const firstRoundPairs = useMemo(() => {
-    if (rankedGroups.length !== 2) {
+    if (rankedGroups.length < 2 || totalQualifiers < 2) {
       return [];
     }
 
-    const groupA = rankedGroups[0];
+    const seeded = Array.from(
+      { length: qualifiersPerGroup },
+      (_, rank) =>
+        rankedGroups
+          .map((group) => group.qualifiers[rank])
+          .filter(Boolean),
+    ).flat();
 
-    const groupB = rankedGroups[1];
+    const bracketSize = nextPowerOfTwo(totalQualifiers);
+    const byeCount = bracketSize - totalQualifiers;
+    const playingSeeds = seeded.slice(byeCount);
+    const matchCount = totalQualifiers - bracketSize / 2;
 
-    const pairs: Array<{
-      home: string;
-      away: string;
-    }> = [];
+    return Array.from({ length: matchCount }, (_, index) => {
+      const home = playingSeeds[index];
+      const away = playingSeeds[playingSeeds.length - 1 - index];
 
-    for (let rank = 0; rank < qualifiersPerGroup; rank++) {
-      const reverse = qualifiersPerGroup - 1 - rank;
+      return {
+        home: home?.entryName ?? "TBD",
+        away: away?.entryName ?? "TBD",
+      };
+    });
+  }, [rankedGroups, qualifiersPerGroup, totalQualifiers]);
 
-      if (rank > reverse) {
-        break;
-      }
+  const bracketSize =
+    totalQualifiers >= 2
+      ? nextPowerOfTwo(totalQualifiers)
+      : 0;
 
-      if (rank === reverse) {
-        pairs.push({
-          home: groupA.qualifiers[rank]?.entryName ?? "TBD",
+  const byeCount =
+    bracketSize > 0
+      ? bracketSize - totalQualifiers
+      : 0;
 
-          away: groupB.qualifiers[rank]?.entryName ?? "TBD",
-        });
+  const playInMatches =
+    byeCount > 0
+      ? totalQualifiers - bracketSize / 2
+      : 0;
 
-        continue;
-      }
+  const firstFullStageParticipants =
+    byeCount > 0
+      ? bracketSize / 2
+      : totalQualifiers;
 
-      pairs.push({
-        home: groupA.qualifiers[rank]?.entryName ?? "TBD",
+  const firstFullStageName =
+    knockoutStageName(firstFullStageParticipants);
 
-        away: groupB.qualifiers[reverse]?.entryName ?? "TBD",
-      });
-
-      pairs.push({
-        home: groupB.qualifiers[rank]?.entryName ?? "TBD",
-
-        away: groupA.qualifiers[reverse]?.entryName ?? "TBD",
-      });
-    }
-
-    return pairs;
-  }, [rankedGroups, qualifiersPerGroup]);
 
   const playoffRounds = useMemo(() => {
     const map = new Map<string, PlayoffFixture[]>();
@@ -512,37 +533,42 @@ export default function PlayoffsPage() {
 
               <h2 className="mt-2 text-2xl font-black">Qualifiers Per Group</h2>
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                {validQualifierOptions.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setQualifiersPerGroup(value)}
-                    className={`rounded-xl px-5 py-3 font-black ${
-                      qualifiersPerGroup === value
-                        ? "bg-sky-400 text-[#041019]"
-                        : "border border-white/10 text-slate-400"
-                    }`}
-                  >
-                    Top {value}
-                  </button>
-                ))}
-              </div>
+              <label className="mt-5 block max-w-sm">
+                <span className="fc-field-label">Qualifiers per group</span>
+                <select
+                  value={qualifiersPerGroup}
+                  onChange={(event) =>
+                    setQualifiersPerGroup(Number(event.target.value))
+                  }
+                  className="theme-secondary-button mt-2 w-full rounded-xl p-3"
+                >
+                  {validQualifierOptions.map((value) => (
+                    <option key={value} value={value}>
+                      Top {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-              <div className="mt-6 rounded-2xl bg-white/[0.03] p-5">
-                <p className="text-sm text-slate-500">Total Qualified</p>
-
-                <p className="mt-1 text-4xl font-black">{totalQualifiers}</p>
-
-                <p className="mt-2 text-sm font-bold text-sky-400">
-                  {totalQualifiers === 16
-                    ? "Round of 16"
-                    : totalQualifiers === 8
-                      ? "Quarter Final"
-                      : totalQualifiers === 4
-                        ? "Semi Final"
-                        : `${totalQualifiers}-Team Knockout`}
-                </p>
+              <div className="mt-6 grid gap-3 rounded-2xl bg-white/[0.03] p-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <p className="text-sm text-slate-500">Total Qualified</p>
+                  <p className="mt-1 text-3xl font-black">{totalQualifiers}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Byes</p>
+                  <p className="mt-1 text-3xl font-black">{byeCount}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">Play-in Matches</p>
+                  <p className="mt-1 text-3xl font-black">{playInMatches}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-500">First Full Stage</p>
+                  <p className="mt-2 text-sm font-bold text-sky-400">
+                    {firstFullStageName}
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -618,11 +644,11 @@ export default function PlayoffsPage() {
             {firstRoundPairs.length > 0 ? (
               <section className="rounded-[26px] border border-white/10 bg-[#0a1018] p-6">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-                  First Round Preview
+                  {byeCount > 0 ? "Play-in Preview" : "First Round Preview"}
                 </p>
 
                 <h2 className="mt-2 text-2xl font-black">
-                  Cross-Group Seeding
+                  Seeded Matchups
                 </h2>
 
                 <div className="mt-6 grid gap-3 lg:grid-cols-2">

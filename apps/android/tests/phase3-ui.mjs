@@ -146,11 +146,11 @@ try {
 
     await page.goto('https://fcarena.in/public/tournaments/PHASE3');
     await page.locator('.fc-public-page').waitFor();
-    assert.equal(await page.locator('.fc-public-mobile-table').count(), 1);
+    assert.equal(await page.locator('.fc-compact-standings').count(), 1);
     const metrics = await page.evaluate(() => ({
       width: innerWidth,
       scrollWidth: document.documentElement.scrollWidth,
-      mobileTable: getComputedStyle(document.querySelector('.fc-public-mobile-table')).display,
+      mobileTable: getComputedStyle(document.querySelector('.fc-compact-standings')).display,
     }));
     assert(metrics.scrollWidth <= width + 1, `Horizontal overflow at ${width}px`);
     if (width < 640) assert.notEqual(metrics.mobileTable, 'none');

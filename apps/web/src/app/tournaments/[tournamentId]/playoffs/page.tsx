@@ -558,7 +558,7 @@ export default function PlayoffsPage() {
                     <p className="mt-1 text-lg font-black text-sky-400">{nextFullStage}</p>
                   </div>
                 </div>
-              </div>>
+              </div>
             </section>
 
             <section>
@@ -637,7 +637,7 @@ export default function PlayoffsPage() {
                 </p>
 
                 <h2 className="mt-2 text-2xl font-black">
-                  ${byeCount > 0 ? "Play-in Seeding" : "Cross-Group Seeding"}
+                  {byeCount > 0 ? "Play-in Seeding" : "Cross-Group Seeding"}
                 </h2>
 
                 <div className="mt-6 grid gap-3 lg:grid-cols-2">

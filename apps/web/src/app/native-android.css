@@ -581,6 +581,6 @@ html[data-native-app="android"] .fc-premium .premium-primary-grid .theme-bottom-
   min-width: 0 !important;
 }
 html[data-native-app="android"] .fc-premium .theme-bottom-item > span:last-child {
-  font-size: 12px !important;
+  font-size: 9px !important;
   letter-spacing: 0 !important;
 }

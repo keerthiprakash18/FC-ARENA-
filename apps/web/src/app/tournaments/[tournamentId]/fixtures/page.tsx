@@ -10,6 +10,7 @@ import {
 import {
   useEffect,
   useMemo,
+  useCallback,
   useState,
 } from 'react';
 
@@ -53,6 +54,8 @@ interface Tournament {
   dailyMatchLimit: number;
   matchesPerParticipantPerDay: number;
   matchDurationMinutes: number;
+  competitionFormat?: string;
+  legType?: string;
 
   isLeagueAdmin: boolean;
   canManageFixtures: boolean;
@@ -138,14 +141,15 @@ export default function TournamentFixturesPage() {
     useState('');
 
 
-  async function loadFixtures() {
+  const loadFixtures = useCallback(async () => {
     const response =
       await authenticatedRequest<{
         success: true;
 
         data: {
-          fixtures:
-            GroupFixture[];
+          fixtures: GroupFixture[];
+          competitionFormat?: string;
+          legType?: string;
         };
 
         error: null;
@@ -153,10 +157,12 @@ export default function TournamentFixturesPage() {
         `/tournaments/${tournamentId}/fixtures`,
       );
 
-    setFixtures(
-      response.data.fixtures,
-    );
-  }
+    setFixtures(response.data.fixtures.map(fixture => ({
+      ...fixture,
+      competitionFormat: response.data.competitionFormat,
+      legType: response.data.legType,
+    })));
+  }, [tournamentId]);
 
 
   useEffect(() => {
@@ -203,6 +209,7 @@ export default function TournamentFixturesPage() {
 
     void load();
   }, [
+    loadFixtures,
     router,
     tournamentId,
   ]);
@@ -226,8 +233,9 @@ export default function TournamentFixturesPage() {
             success: true;
 
             data: {
-              fixtures:
-                GroupFixture[];
+              fixtures: GroupFixture[];
+              competitionFormat?: string;
+              legType?: string;
             };
 
             error: null;
@@ -238,9 +246,11 @@ export default function TournamentFixturesPage() {
         if (
           !cancelled
         ) {
-          setFixtures(
-            response.data.fixtures,
-          );
+          setFixtures(response.data.fixtures.map(fixture => ({
+            ...fixture,
+            competitionFormat: response.data.competitionFormat,
+            legType: response.data.legType,
+          })));
         }
       } catch {
         // Keep the current fixture list.
@@ -647,6 +657,7 @@ export default function TournamentFixturesPage() {
 
   return (
     <AppShell
+      currentUser={user}
       playerName={
         user.player
           ?.identity

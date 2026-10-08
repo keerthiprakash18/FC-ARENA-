@@ -6,13 +6,13 @@ import { AwardEmblem, PremiumPitch, PremiumPodium } from '@/components/fc/premiu
 import { FcIcon } from '@/components/fc/fc-icons';
 import {
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 
 import {
-  FcEmptyState,
+  FcErrorState,
   FcPanel,
+  FcUnauthorizedState,
 } from '@/components/fc/fc-ui';
 import {
   SecondaryFeaturePage,
@@ -20,6 +20,7 @@ import {
 import {
   authenticatedRequest,
 } from '@/lib/auth-client';
+import { ApiError } from '@/lib/api';
 
 interface BallonSeason {
   id: string;
@@ -247,6 +248,14 @@ function seasonRange(
 }
 
 export default function AwardsPage() {
+  const [attempt, setAttempt] = useState(0);
+  const [unauthorized, setUnauthorized] = useState<401 | 403 | null>(null);
+  function retryOverview() {
+    setLoading(!data);
+    setError('');
+    setUnauthorized(null);
+    setAttempt(value => value + 1);
+  }
   const [
     data,
     setData,
@@ -318,8 +327,11 @@ export default function AwardsPage() {
   useEffect(() => {
     let active =
       true;
+    let inFlight = false;
 
     async function loadOverview() {
+      if (inFlight) return;
+      inFlight = true;
       try {
         const response =
           await authenticatedRequest<{
@@ -336,6 +348,7 @@ export default function AwardsPage() {
           response.data,
         );
         setError('');
+        setUnauthorized(null);
         setLastUpdated(
           new Date(),
         );
@@ -346,12 +359,18 @@ export default function AwardsPage() {
           return;
         }
 
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          setUnauthorized(err.status);
+          setData(null);
+        }
+
         setError(
           err instanceof Error
             ? err.message
             : 'Unable to load Awards.',
         );
       } finally {
+        inFlight = false;
         if (active) {
           setLoading(
             false,
@@ -401,7 +420,7 @@ export default function AwardsPage() {
         refreshOnFocus,
       );
     };
-  }, []);
+  }, [attempt]);
 
   useEffect(() => {
     let active =
@@ -504,26 +523,10 @@ export default function AwardsPage() {
     rankings[0] ??
     null;
 
-  const cabinetTotal =
-    useMemo(
-      () =>
-        Object.values(
-          data
-            ?.trophyCabinet ??
-            {},
-        ).reduce(
-          (
-            total,
-            count,
-          ) =>
-            total +
-            count,
-          0,
-        ),
-      [
-        data,
-      ],
-    );
+  const cabinetTotal = Object.values(data?.trophyCabinet ?? {}).reduce(
+    (total, count) => total + count,
+    0,
+  );
 
   const selectedAdminLeague =
     adminLeagues.find(
@@ -747,7 +750,7 @@ export default function AwardsPage() {
       backLabel="Home"
       action={
         <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-300">
-          ● Live · 15s
+          {error ? 'Refresh failed' : loading ? 'Loading honours…' : 'Updated · 15s'}
           {lastUpdated
             ? ` · ${lastUpdated.toLocaleTimeString([], {
                 hour: '2-digit',
@@ -757,6 +760,11 @@ export default function AwardsPage() {
         </span>
       }
     >
+      {unauthorized ? <FcUnauthorizedState forbidden={unauthorized === 403} /> : error ? (
+        <FcErrorState title={data ? 'Unable to refresh Awards' : 'Awards unavailable'} message={error} onRetry={retryOverview} busy={loading} />
+      ) : null}
+      {loading && !data ? <FcPanel className="p-6"><p role="status" className="theme-secondary-text text-sm">Loading FC Arena honours…</p></FcPanel> : null}
+      {data ? <>
       <section className="premium-hero premium-awards-hero">
         <PremiumPitch />
 
@@ -1374,26 +1382,7 @@ export default function AwardsPage() {
         </FcPanel>
       </section>
 
-      {!loading &&
-      !data ? (
-        <FcEmptyState
-          title="Awards unavailable"
-          description={
-            error ||
-            'Unable to load the FC Arena Hall of Honours.'
-          }
-          actionLabel="Back to Dashboard"
-          actionHref="/dashboard"
-        />
-      ) : null}
-
-      {loading ? (
-        <FcPanel className="p-8 text-center">
-          <p className="text-sm text-slate-500">
-            Loading FC Arena honours...
-          </p>
-        </FcPanel>
-      ) : null}
+      </> : null}
     </SecondaryFeaturePage>
   );
 }

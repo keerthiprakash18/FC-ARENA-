@@ -2,7 +2,7 @@
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
-import { FcStatusBadge } from '@/components/fc/fc-ui';
+import { FcStatusBadge, legFormatLabel } from '@/components/fc/fc-ui';
 import {
   useEffect,
   useState,
@@ -37,6 +37,8 @@ export interface FixtureForUi {
   status: string;
   scheduledAt: string | null;
   venue: string | null;
+  competitionFormat?: string;
+  legType?: string;
 
   group: {
     id: string;
@@ -48,6 +50,11 @@ export interface FixtureForUi {
     id: string;
     matchCode: string | null;
     status: string;
+    confirmedResult?: {
+      homeScore: number;
+      awayScore: number;
+      status: string;
+    } | null;
   } | null;
 
   home:
@@ -363,7 +370,9 @@ export function FixtureCard({
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+      <p className="fc-fixture-meta mt-3">{legFormatLabel(fixture.legType, fixture.competitionFormat)} · {fixture.roundName}</p>
+
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
         <p className="break-words text-center text-base font-semibold">
           {home}
         </p>
@@ -377,7 +386,16 @@ export function FixtureCard({
         </p>
       </div>
 
-      <div className="mt-5 rounded-xl bg-white/[0.03] p-4 text-center">
+      <div className="fc-fixture-score mt-5" data-incomplete={!fixture.match?.confirmedResult ? 'true' : 'false'}>
+        {fixture.match?.confirmedResult ? (
+          <strong>{fixture.match.confirmedResult.homeScore} – {fixture.match.confirmedResult.awayScore}</strong>
+        ) : (
+          <strong>—</strong>
+        )}
+        <span>{fixture.match?.confirmedResult ? 'Confirmed score' : fixture.status === 'COMPLETED' ? 'Completed · result pending' : 'Result not submitted'}</span>
+      </div>
+
+      <div className="mt-3 rounded-xl bg-white/[0.03] p-4 text-center">
         <p className="text-sm font-bold">
           {fixture.scheduledAt
             ? new Date(

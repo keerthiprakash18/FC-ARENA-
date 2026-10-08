@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {
+  usePathname,
   useRouter,
 } from 'next/navigation';
 import {
@@ -50,6 +51,16 @@ const quickSearchItems = [
     href: '/fixtures',
   },
   {
+    label: 'Awards',
+    keywords: 'awards honours trophies ballon golden boot glove',
+    href: '/awards',
+  },
+  {
+    label: 'League War',
+    keywords: 'league war rivalry battles points',
+    href: '/league-war',
+  },
+  {
     label: 'Career Stats',
     keywords: 'career stats performance player rating',
     href: '/career',
@@ -96,6 +107,7 @@ export function AppHeader({
   playerRole?: string | null;
   playerImageUrl?: string | null;
 }) {
+  const pathname = usePathname();
   const router =
     useRouter();
 
@@ -523,6 +535,14 @@ export function AppHeader({
           </Link>
         </div>
       </div>
+      <nav aria-label="Awards and League War" className="theme-mobile-feature-nav mx-auto flex w-full max-w-[1440px] gap-2 px-4 pb-2 sm:px-6 lg:hidden">
+        <Link href="/awards" aria-current={pathname.startsWith('/awards') ? 'page' : undefined} className="theme-secondary-button flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold">
+          <FcIcon name="award" size={18} /> Awards
+        </Link>
+        <Link href="/league-war" aria-current={pathname.startsWith('/league-war') ? 'page' : undefined} className="theme-secondary-button flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold">
+          <FcIcon name="war" size={18} /> League War
+        </Link>
+      </nav>
     </header>
   );
 }

@@ -302,7 +302,17 @@ export class FixturesService {
           sequence: 'asc',
         },
         include: {
-          match: true,
+          match: {
+            include: {
+              confirmedResult: {
+                select: {
+                  homeScore: true,
+                  awayScore: true,
+                  status: true,
+                },
+              },
+            },
+          },
 
           group: {
             select: {
@@ -387,6 +397,8 @@ export class FixturesService {
       success: true,
       data: {
         format: tournament.format,
+        competitionFormat: tournament.competitionFormat,
+        legType: tournament.legType,
 
         fixtures:
           canonicalFixtures.map(
@@ -1578,6 +1590,13 @@ export class FixturesService {
             status:
               fixture.match
                 .status,
+            confirmedResult: fixture.match.confirmedResult
+              ? {
+                  homeScore: fixture.match.confirmedResult.homeScore,
+                  awayScore: fixture.match.confirmedResult.awayScore,
+                  status: fixture.match.confirmedResult.status,
+                }
+              : null,
           }
         : null,
 

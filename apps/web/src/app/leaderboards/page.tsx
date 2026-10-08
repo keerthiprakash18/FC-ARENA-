@@ -192,6 +192,10 @@ export default function LeaderboardsPage() {
     rankings.find((row) => row.userId === userId)?.position ??
     null;
 
+  const podiumRows = [rankings[1], rankings[0], rankings[2]].filter(
+    (row): row is RankingRow => Boolean(row),
+  );
+
   return (
     <SecondaryFeaturePage
       eyebrow="Competition"
@@ -259,10 +263,21 @@ export default function LeaderboardsPage() {
               </label>
             </div>
 
-            <p className="theme-muted mt-4 text-xs leading-5">
-              Performance Points use 3 points per win and 1 point per draw. Only
-              verified results from non-cancelled Tournaments are counted.
-            </p>
+            <div className="mt-4 grid grid-cols-4 gap-2" aria-label="Leaderboard scoring rules">
+              {[
+                ["Win", "+3"],
+                ["Draw", "+1"],
+                ["Loss", "+0"],
+                ["Results", "Verified"],
+              ].map(([label, value]) => (
+                <div key={label} className="theme-soft-accent rounded-xl border px-2 py-2 text-center">
+                  <p className="theme-muted text-[9px] font-semibold uppercase tracking-[0.08em] sm:text-[10px]">
+                    {label}
+                  </p>
+                  <p className="theme-text mt-1 text-xs font-black sm:text-sm">{value}</p>
+                </div>
+              ))}
+            </div>
           </FcPanel>
 
           {loading ? (
@@ -350,79 +365,77 @@ export default function LeaderboardsPage() {
                 />
               ) : (
                 <>
-                  <section className="grid gap-3 md:grid-cols-3">
-                    {rankings.slice(0, 3).map((row) => (
-                      <FcPanel
-                        key={row.userId}
-                        className={
-                          "p-5 " +
-                          (row.position === 1 ? "theme-soft-accent" : "")
-                        }
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <FcCrest
-                            name={playerName(row)}
-                            imageUrl={row.profileImageUrl}
-                          />
+                  <section className="grid grid-cols-3 items-end gap-2 sm:gap-3" aria-label="Top three players">
+                    {podiumRows.map((row) => {
+                      const champion = row.position === 1;
 
+                      return (
+                        <FcPanel
+                          key={row.userId}
+                          className={
+                            "relative overflow-hidden p-3 text-center sm:p-5 " +
+                            (champion
+                              ? "min-h-[220px] border-amber-400/25 theme-soft-accent sm:min-h-[250px]"
+                              : "min-h-[188px] sm:min-h-[220px]")
+                          }
+                        >
                           <span
                             className={
-                              "grid h-10 min-w-10 place-items-center rounded-xl border px-2 font-bold " +
-                              (row.position === 1
-                                ? "border-amber-400/25 bg-amber-400/10 text-amber-300"
+                              "mx-auto grid h-8 w-8 place-items-center rounded-full border text-xs font-black sm:h-10 sm:w-10 sm:text-sm " +
+                              (champion
+                                ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
                                 : "theme-tone-premium")
                             }
                           >
                             #{row.position}
-                            <span className="ml-1 text-xs" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
                           </span>
-                        </div>
 
-                        <h2 className="theme-text mt-4 truncate text-lg font-semibold">
-                          {playerName(row)}
-                        </h2>
-
-                        <p className="theme-muted mt-1 text-xs">
-                          {row.playerCode || row.fullName}
-                        </p>
-
-                        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                          <div className="theme-soft-accent rounded-xl border p-2">
-                            <p className="theme-muted text-xs uppercase">
-                              Pts
-                            </p>
-
-                            <p className="theme-text mt-1 font-bold">
-                              {row.performancePoints}
-                            </p>
+                          <div className="mt-3 flex justify-center">
+                            <FcCrest
+                              name={playerName(row)}
+                              imageUrl={row.profileImageUrl}
+                              size="sm"
+                            />
                           </div>
 
-                          <div className="theme-soft-accent rounded-xl border p-2">
-                            <p className="theme-muted text-xs uppercase">
-                              Wins
-                            </p>
+                          <h2 className="theme-text mt-3 truncate text-xs font-bold sm:text-base">
+                            {playerName(row)}
+                          </h2>
 
-                            <p className="theme-text mt-1 font-bold">
-                              {row.wins}
-                            </p>
+                          <p className="theme-text-link mt-3 text-xl font-black sm:text-3xl">
+                            {row.performancePoints}
+                          </p>
+                          <p className="theme-muted text-[9px] font-semibold uppercase tracking-[0.1em]">
+                            points
+                          </p>
+
+                          <div className="mt-3 grid grid-cols-2 gap-1 text-center">
+                            <div className="theme-soft-accent rounded-lg border px-1 py-1.5">
+                              <p className="theme-muted text-[9px]">W</p>
+                              <p className="theme-text text-xs font-bold">{row.wins}</p>
+                            </div>
+                            <div className="theme-soft-accent rounded-lg border px-1 py-1.5">
+                              <p className="theme-muted text-[9px]">WIN%</p>
+                              <p className="theme-text text-xs font-bold">{row.winRate}%</p>
+                            </div>
                           </div>
 
-                          <div className="theme-soft-accent rounded-xl border p-2">
-                            <p className="theme-muted text-xs uppercase">
-                              Win %
+                          {row.rankChange != null ? (
+                            <p className="theme-muted mt-2 text-[9px] sm:text-[10px]">
+                              {row.rankChange > 0
+                                ? `↑ ${row.rankChange} places`
+                                : row.rankChange < 0
+                                  ? `↓ ${Math.abs(row.rankChange)} places`
+                                  : "No rank change"}
                             </p>
-
-                            <p className="theme-text mt-1 font-bold">
-                              {row.winRate}%
-                            </p>
-                          </div>
-                        </div>
-                      </FcPanel>
-                    ))}
+                          ) : null}
+                        </FcPanel>
+                      );
+                    })}
                   </section>
 
                   <div className="grid gap-3 md:hidden">
-                    {rankings.map((row) => (
+                    {rankings.slice(3).map((row) => (
                       <FcPanel
                         key={row.userId}
                         className={

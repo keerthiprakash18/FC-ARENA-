@@ -276,6 +276,27 @@
 .premium-bracket .fc-bracket-round { min-width: 0; position: relative; }
 .premium-bracket-matches { min-height: 200px; align-content: space-around; }
 .premium-bracket .fc-bracket-round:not(:last-child)::after { content: ''; position: absolute; width: 24px; height: 1px; background: var(--premium-gold); right: -25px; top: 50%; }
+.premium-bracket-controls { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.premium-bracket-controls .fc-field-label { width: min(320px,100%); }
+.premium-bracket-hint { max-width: 420px; text-align: right; line-height: 1.5; }
+@media (max-width: 767px) {
+  .premium-bracket-controls { align-items: stretch; flex-direction: column; gap: 8px; }
+  .premium-bracket-controls .fc-field-label { width: 100%; }
+  .premium-bracket-hint { max-width: none; text-align: left; }
+  .premium-bracket { grid-auto-columns: minmax(86vw,86vw); gap: 14px; padding: 2px 2px 14px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .premium-bracket::-webkit-scrollbar { display: none; }
+  .premium-bracket .fc-bracket-round { scroll-snap-align: start; padding: 16px !important; border-radius: 16px !important; }
+  .premium-bracket .fc-bracket-round:not(:last-child)::after { display: none; }
+  .premium-bracket-round-head { align-items: center; gap: 10px; }
+  .premium-bracket-round-head h3 { font-size: 18px !important; line-height: 1.2; }
+  .premium-bracket-round-head > span { flex-shrink: 0; padding: 6px 9px; font-size: 10px; }
+  .premium-bracket-matches { min-height: 0; align-content: start; gap: 12px; }
+  .premium-bracket .fc-fixture-card { padding: 14px !important; border-radius: 14px !important; }
+  .premium-bracket .fc-fixture-card .fc-fixture-meta { margin-top: 8px; font-size: 10px; line-height: 1.4; }
+  .premium-bracket .fc-fixture-card .fc-fixture-score { margin-top: 14px; }
+  .premium-bracket .fc-fixture-card .fc-fixture-score strong { font-size: 24px; }
+  .premium-bracket .fc-fixture-card .fc-fixture-score + div { margin-top: 10px; padding: 10px; }
+}
 .fc-premium .fc-main .fc-league-war-page [class*="text-rose"] { color: var(--fc-gold) !important; }
 .fc-premium .fc-main .fc-league-war-page [class*="border-rose"] { border-color: var(--premium-gold) !important; }
 .fc-premium .fc-main .fc-league-war-page [class*="bg-rose-400/"] { background: var(--fc-gold-soft) !important; }

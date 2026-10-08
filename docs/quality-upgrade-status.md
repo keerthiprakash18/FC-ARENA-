@@ -163,7 +163,7 @@ The local test guard requires a loopback `*_test` database, `NODE_ENV=test` and 
 | API units and root regressions | PASS | 170 API tests + 22 root tests. |
 | Database integration/E2E | PASS | 28 tests; all migrations applied and no schema drift. |
 | Final fresh security checks | BLOCKED | Production audit/gate pass with zero findings; full gate fails the unpatched braces advisory. No exceptions. |
-| Final diff/sensitive-file review and local checkpoint | PASS | Intended substantive files are staged only. Pre-existing generated Prisma files/cache, EOL-only changes, CI/Android/web-source changes, untracked contributor work and deployment markers remain unstaged. The local checkpoint commit is the next repository action; no push/merge/deploy is performed. |
+| Final diff/sensitive-file review and local checkpoint | PASS | Intended substantive files were staged only and committed locally at `b1e3a83` (`feat(security): harden auth and competition integrity`). Pre-existing generated Prisma files/cache, EOL-only changes, CI/Android/web-source changes, untracked contributor work and deployment markers remain unstaged. No push/merge/deploy was performed. |
 
 ## Parts 2 and 3
 

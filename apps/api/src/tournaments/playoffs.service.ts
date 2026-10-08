@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,16 +7,15 @@ import {
 import { randomUUID } from 'node:crypto';
 
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
+import { qualificationSnapshot } from './qualification-integrity.js';
+import { buildPlayoffSeedPlan } from './playoff-seeding.js';
 
 import type { GeneratePlayoffsDto } from './dto/generate-playoffs.dto.js';
 
 import {
   generateKnockoutFixtures,
 } from './fixture-engine.js';
-
-import {
-  buildPlayoffSeedPlan,
-} from './playoff-seeding.js';
 
 import type {
   FixtureBlueprint,
@@ -38,6 +36,7 @@ interface RankedQualifier {
 export class PlayoffsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
 
@@ -65,10 +64,7 @@ export class PlayoffsService {
     }
 
 
-    await this.assertLeagueAdmin(
-      userId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageTournament(userId, tournamentId);
 
 
     const groups =
@@ -373,13 +369,8 @@ export class PlayoffsService {
       );
 
 
-    const seedPlan =
-      buildPlayoffSeedPlan(
-        rankedGroups,
-      );
-
-    const seedOrder =
-      seedPlan.seedOrder;
+    const seedPlan = buildPlayoffSeedPlan(rankedGroups);
+    const seedOrder = seedPlan.seedOrder;
 
 
     if (
@@ -411,21 +402,26 @@ export class PlayoffsService {
     const blueprints =
       generateKnockoutFixtures(
         seedOrder,
-      ).map((blueprint) =>
-        seedPlan.byeCount > 0 &&
-        blueprint.roundNumber === 1
-          ? {
-              ...blueprint,
-              roundName:
-                'PLAY-IN',
-            }
-          : blueprint,
-      );
+      ).map((blueprint) => seedPlan.byeCount > 0 && blueprint.roundNumber === 1
+        ? { ...blueprint, roundName: 'PLAY-IN' }
+        : blueprint);
 
 
     const created =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
         async (tx) => {
+          const currentGroups = await tx.tournamentGroup.findMany({
+            where: { tournamentId },
+            include: { registrations: { where: { status: 'APPROVED' }, include: { standing: true } } },
+          });
+          const incomplete = await tx.fixture.count({
+            where: { tournamentId, groupId: { not: null }, status: { not: 'COMPLETED' } },
+          });
+          if (incomplete || qualificationSnapshot(groups) !== qualificationSnapshot(currentGroups)) {
+            throw new ConflictException({ success: false, data: null, error: {
+              code: 'QUALIFICATION_CHANGED', message: 'Group results or entries changed. Recheck standings before generating playoffs.',
+            } });
+          }
           const existing =
             await tx.fixture.count({
               where: {
@@ -733,38 +729,6 @@ export class PlayoffsService {
 
           nextSlot:
             'AWAY',
-        },
-      });
-    }
-  }
-
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required.',
         },
       });
     }

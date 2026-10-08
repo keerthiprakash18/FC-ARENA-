@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import type {
@@ -149,25 +150,29 @@ export function InlineResultPanel({
       null,
     );
 
+  const loadingRef = useRef(false);
+
 
   const loadResults =
     useCallback(
       async (
         silent = false,
       ) => {
+        if (loadingRef.current) return;
+        loadingRef.current = true;
         if (
           !silent
         ) {
           setLoading(true);
         }
 
-        setError('');
-
         try {
           const response =
             await authenticatedRequest<MatchResultsResponse>(
               `/matches/${matchId}/results`,
             );
+
+          setError('');
 
           const confirmed =
             response.data.submissions.find(
@@ -220,6 +225,7 @@ export function InlineResultPanel({
               : 'Unable to load match result.',
           );
         } finally {
+          loadingRef.current = false;
           setLoading(false);
         }
       },
@@ -230,13 +236,7 @@ export function InlineResultPanel({
 
 
   useEffect(() => {
-    const initialLoad =
-      window.setTimeout(
-        () => {
-          void loadResults();
-        },
-        0,
-      );
+    void loadResults(true);
 
     const refresh =
       window.setInterval(
@@ -261,10 +261,6 @@ export function InlineResultPanel({
     );
 
     return () => {
-      window.clearTimeout(
-        initialLoad,
-      );
-
       window.clearInterval(
         refresh,
       );

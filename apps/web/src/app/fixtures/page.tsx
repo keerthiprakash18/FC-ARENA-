@@ -19,6 +19,7 @@ import {
   FcSectionHeading,
   FcStatCard,
   FcStatusBadge,
+  legFormatLabel,
 } from "@/components/fc/fc-ui";
 
 import {
@@ -64,6 +65,8 @@ interface Fixture {
   status: string;
   scheduledAt: string | null;
   venue?: string | null;
+  competitionFormat?: string;
+  legType?: string;
 
   group?: {
     id: string;
@@ -77,6 +80,11 @@ interface Fixture {
     id: string;
     matchCode: string | null;
     status: string;
+    confirmedResult?: {
+      homeScore: number;
+      awayScore: number;
+      status: string;
+    } | null;
   } | null;
 }
 
@@ -320,11 +328,16 @@ export default function FixturesPage() {
               const response = await authenticatedRequest<{
                 data: {
                   fixtures: Fixture[];
+                  competitionFormat?: string;
+                  legType?: string;
                 };
               }>(`/tournaments/${tournament.id}/fixtures`);
 
               return response.data.fixtures.map((fixture) => ({
                 ...fixture,
+
+                competitionFormat: response.data.competitionFormat,
+                legType: response.data.legType,
 
                 tournamentId: tournament.id,
 
@@ -514,6 +527,8 @@ export default function FixturesPage() {
     const response = await authenticatedRequest<{
       data: {
         fixtures: Fixture[];
+        competitionFormat?: string;
+        legType?: string;
       };
     }>(`/tournaments/${tournamentId}/fixtures`);
 
@@ -522,6 +537,8 @@ export default function FixturesPage() {
 
       ...response.data.fixtures.map((fixture) => ({
         ...fixture,
+        competitionFormat: response.data.competitionFormat,
+        legType: response.data.legType,
 
         tournamentId,
         tournamentName,
@@ -555,6 +572,8 @@ export default function FixturesPage() {
             const response = await authenticatedRequest<{
               data: {
                 fixtures: Fixture[];
+                competitionFormat?: string;
+                legType?: string;
               };
             }>(`/tournaments/${tournament.id}/fixtures`);
 
@@ -563,6 +582,8 @@ export default function FixturesPage() {
 
               fixtures: response.data.fixtures.map((fixture) => ({
                 ...fixture,
+                competitionFormat: response.data.competitionFormat,
+                legType: response.data.legType,
 
                 tournamentId: tournament.id,
 
@@ -683,7 +704,7 @@ export default function FixturesPage() {
   }
 
   return (
-    <AppShell playerName={user.player?.identity?.inGameName}>
+    <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
       <div className="premium-page premium-fixture-page">
         <PremiumHero
           eyebrow="The matchday centre"
@@ -998,7 +1019,7 @@ export default function FixturesPage() {
                                     </p>
 
                                     <p className="mt-1 text-xs text-slate-600">
-                                      {fixture.roundName}
+                                      {legFormatLabel(fixture.legType, fixture.competitionFormat)} · {fixture.roundName}
                                       {fixture.group
                                         ? ` · ${fixture.group.name}`
                                         : ""}
@@ -1023,7 +1044,11 @@ export default function FixturesPage() {
                                   </div>
 
                                   <span className="rounded-lg border border-sky-400/15 bg-sky-400/[0.05] px-3 py-2 text-[10px] font-black text-sky-300">
-                                    {completed ? "FT" : "VS"}
+                                     {fixture.match?.confirmedResult
+                                       ? `${fixture.match.confirmedResult.homeScore} – ${fixture.match.confirmedResult.awayScore}`
+                                       : completed
+                                         ? "Result pending"
+                                         : "VS"}
                                   </span>
 
                                   <div className="flex min-w-0 items-center gap-2">

@@ -74,6 +74,20 @@ export class JwtAuthGuard implements CanActivate {
     if (!user || user.status !== 'ACTIVE') {
       throw new UnauthorizedException({ success: false, data: null, error: { code: 'AUTH_TOKEN_INVALID', message: 'Access token is invalid or expired.' } });
     }
+    // Session-bound access tokens must stop working after logout, rotation or
+    // password reset. Legacy tokens without a sid retain their short expiry.
+    if (payload.sid !== undefined) {
+      if (typeof payload.sid !== 'string' || !payload.sid) {
+        throw new UnauthorizedException({ success: false, data: null, error: { code: 'AUTH_TOKEN_INVALID', message: 'Access token is invalid or expired.' } });
+      }
+      const session = await this.prisma.refreshSession.findUnique({
+        where: { id: payload.sid },
+        select: { userId: true, revokedAt: true, expiresAt: true },
+      });
+      if (!session || session.userId !== payload.sub || session.revokedAt || session.expiresAt.getTime() <= Date.now()) {
+        throw new UnauthorizedException({ success: false, data: null, error: { code: 'AUTH_TOKEN_INVALID', message: 'Access token is invalid or expired.' } });
+      }
+    }
     // Do not keep a removed admin role alive until JWT expiry.
     request.user = { ...payload, role: user.role };
     return true;

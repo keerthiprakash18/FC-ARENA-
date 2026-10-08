@@ -1,4 +1,3 @@
-import { normalizeLoginIdentifier } from './login-identifier.js';
 import {
   BadRequestException,
   ConflictException,
@@ -21,11 +20,13 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import type {
   AccessTokenPayload,
   RefreshTokenPayload,
 } from './auth.types.js';
 import { OtpMailService } from './mail.service.js';
+import { normalizeLoginIdentifier } from './login-identifier.js';
 import type { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import type { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';
@@ -239,6 +240,12 @@ export class AuthService {
       };
     }
 
+    if (user.status !== 'PENDING_VERIFICATION') {
+      throw new BadRequestException({ success: false, data: null, error: {
+        code: 'INVALID_VERIFICATION_REQUEST', message: 'Unable to verify this account.',
+      } });
+    }
+
     const otpRecord = await this.getLatestOtp(
       user.id,
       'EMAIL_VERIFICATION',
@@ -248,25 +255,18 @@ export class AuthService {
 
     const now = new Date();
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          status: 'ACTIVE',
-          emailVerifiedAt: now,
-        },
-      }),
-      this.prisma.authOtp.updateMany({
-        where: {
-          userId: user.id,
-          purpose: 'EMAIL_VERIFICATION',
-          consumedAt: null,
-        },
-        data: {
-          consumedAt: now,
-        },
-      }),
-    ]);
+    await this.prisma.$transaction(async (tx) => {
+      await this.consumeValidatedOtp(tx, otpRecord!.id, user.id, 'EMAIL_VERIFICATION', now);
+      const activated = await tx.user.updateMany({
+        where: { id: user.id, status: 'PENDING_VERIFICATION' },
+        data: { status: 'ACTIVE', emailVerifiedAt: now },
+      });
+      if (activated.count !== 1) {
+        throw new BadRequestException({ success: false, data: null, error: {
+          code: 'INVALID_VERIFICATION_REQUEST', message: 'Unable to verify this account.',
+        } });
+      }
+    });
 
     return {
       success: true,
@@ -298,6 +298,9 @@ export class AuthService {
       };
     }
 
+    if (user.status !== 'PENDING_VERIFICATION') {
+      return this.genericVerificationResponse();
+    }
     await this.enforceOtpRateLimit(user.id, 'EMAIL_VERIFICATION');
 
     const otpRecord =
@@ -356,7 +359,7 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || user.status !== 'ACTIVE') {
       return this.genericPasswordResetResponse();
     }
 
@@ -450,33 +453,13 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(dto.newPassword, 12);
     const now = new Date();
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          passwordHash,
-        },
-      }),
-      this.prisma.authOtp.updateMany({
-        where: {
-          userId: user.id,
-          purpose: 'PASSWORD_RESET',
-          consumedAt: null,
-        },
-        data: {
-          consumedAt: now,
-        },
-      }),
-      this.prisma.refreshSession.updateMany({
-        where: {
-          userId: user.id,
-          revokedAt: null,
-        },
-        data: {
-          revokedAt: now,
-        },
-      }),
-    ]);
+    await this.prisma.$transaction(async (tx) => {
+      await this.consumeValidatedOtp(tx, otpRecord!.id, user.id, 'PASSWORD_RESET', now);
+      await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+      await tx.refreshSession.updateMany({
+        where: { userId: user.id, revokedAt: null }, data: { revokedAt: now },
+      });
+    });
 
     return {
       success: true,
@@ -1405,6 +1388,7 @@ export class AuthService {
                   gt:
                     new Date(),
                 },
+                user: { is: { status: 'ACTIVE', passwordHash: session.user.passwordHash } },
               },
               data: {
                 revokedAt:
@@ -1647,21 +1631,24 @@ export class AuthService {
       );
     }
 
+    // Reserve an attempt atomically before checking the hash. Parallel requests
+    // cannot exceed the configured attempt budget using the same stale record.
+    const attempt = await this.prisma.authOtp.updateMany({
+      where: { id: otpRecord.id, consumedAt: null, expiresAt: { gt: new Date() }, attempts: { lt: OTP_MAX_ATTEMPTS } },
+      data: { attempts: { increment: 1 } },
+    });
+    if (attempt.count !== 1) {
+      throw new BadRequestException({ success: false, data: null, error: {
+        code: 'OTP_INVALID', message: 'The OTP is invalid or expired.',
+      } });
+    }
+
     const valid = await bcrypt.compare(
       submittedOtp,
       otpRecord.codeHash,
     );
 
     if (!valid) {
-      await this.prisma.authOtp.update({
-        where: { id: otpRecord.id },
-        data: {
-          attempts: {
-            increment: 1,
-          },
-        },
-      });
-
       throw new BadRequestException({
         success: false,
         data: null,
@@ -1671,6 +1658,25 @@ export class AuthService {
         },
       });
     }
+  }
+
+  private async consumeValidatedOtp(
+    tx: Prisma.TransactionClient,
+    otpId: string,
+    userId: string,
+    purpose: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET',
+    now: Date,
+  ): Promise<void> {
+    const claimed = await tx.authOtp.updateMany({
+      where: { id: otpId, userId, purpose, consumedAt: null, expiresAt: { gt: new Date() } },
+      data: { consumedAt: now },
+    });
+    if (claimed.count !== 1) {
+      throw this.invalidPasswordReset();
+    }
+    await tx.authOtp.updateMany({
+      where: { userId, purpose, consumedAt: null }, data: { consumedAt: now },
+    });
   }
 
   private async enforceOtpRateLimit(

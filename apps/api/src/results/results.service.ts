@@ -18,6 +18,7 @@ import {
 } from './standings-integrity.js';
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
+import { calculateResultDelta } from './result-outcome.js';
 
 type Outcome = 'W' | 'D' | 'L';
 
@@ -60,6 +61,7 @@ export class ResultsService {
     userId: string,
     matchId: string,
     dto: SubmitResultDto,
+    source: { ocrExtractionId?: string } = {},
   ) {
     const match =
       await this.prisma.match.findUnique({
@@ -150,7 +152,7 @@ export class ResultsService {
 
     try {
       const submission =
-        await this.prisma.$transaction(
+        await this.prisma.$transactionWithRetry(
           async (
             tx,
           ) => {
@@ -234,6 +236,18 @@ export class ResultsService {
               throw this.resultAlreadyPending();
             }
 
+            if (source.ocrExtractionId) {
+              const extraction = await tx.ocrExtraction.findUnique({
+                where: { id: source.ocrExtractionId }, include: { resultSubmission: true },
+              });
+              if (!extraction || extraction.matchId !== matchId || extraction.status !== 'COMPLETED') {
+                throw new ConflictException({ success: false, data: null, error: {
+                  code: 'OCR_NOT_READY', message: 'OCR processing has not completed for this match.',
+                } });
+              }
+              if (extraction.resultSubmission) throw this.resultAlreadyPending();
+            }
+
             return tx.resultSubmission.create({
               data: {
                 matchId,
@@ -243,6 +257,9 @@ export class ResultsService {
                   dto.homeScore,
                 awayScore:
                   dto.awayScore,
+                source: source.ocrExtractionId ? 'OCR' : 'MANUAL',
+                ocrExtractionId: source.ocrExtractionId,
+                status: 'PENDING_VERIFICATION',
               },
             });
           },
@@ -279,6 +296,9 @@ export class ResultsService {
     } catch (
       error
     ) {
+      if (source.ocrExtractionId && typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+        throw this.resultAlreadyPending();
+      }
       if (
         typeof error ===
           'object' &&
@@ -509,7 +529,7 @@ export class ResultsService {
     );
 
     const response =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
       async (tx) => {
         const submission =
           await tx.resultSubmission.findUnique({
@@ -954,10 +974,12 @@ export class ResultsService {
       });
     }
 
-    await this.prisma.resultSubmission.update({
+    const rejected = await this.prisma.resultSubmission.updateMany({
       where: {
         id:
           submission.id,
+        status: 'PENDING_VERIFICATION',
+        match: { is: { confirmedResultSubmissionId: null } },
       },
 
       data: {
@@ -975,6 +997,12 @@ export class ResultsService {
           null,
       },
     });
+
+    if (rejected.count !== 1) {
+      throw new ConflictException({ success: false, data: null, error: {
+        code: 'RESULT_NOT_PENDING', message: 'Only a pending result may be rejected.',
+      } });
+    }
 
     this.realtime.publish(
       submission.match.id,
@@ -1264,12 +1292,9 @@ export class ResultsService {
             tournament.format,
           mode:
             tournament.mode,
-          status:
-            tournament.status,
-          competitionFormat:
-            tournament.competitionFormat,
-          legType:
-            tournament.legType,
+          status: tournament.status,
+          competitionFormat: tournament.competitionFormat,
+          legType: tournament.legType,
         },
 
         standings:
@@ -1806,52 +1831,7 @@ export class ResultsService {
     goalsFor: number,
     goalsAgainst: number,
   ): SideDelta {
-    if (
-      goalsFor >
-      goalsAgainst
-    ) {
-      return {
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goalsFor,
-        goalsAgainst,
-        goalDifference:
-          goalsFor -
-          goalsAgainst,
-        points: 3,
-        outcome: 'W',
-      };
-    }
-
-    if (
-      goalsFor ===
-      goalsAgainst
-    ) {
-      return {
-        wins: 0,
-        draws: 1,
-        losses: 0,
-        goalsFor,
-        goalsAgainst,
-        goalDifference: 0,
-        points: 1,
-        outcome: 'D',
-      };
-    }
-
-    return {
-      wins: 0,
-      draws: 0,
-      losses: 1,
-      goalsFor,
-      goalsAgainst,
-      goalDifference:
-        goalsFor -
-        goalsAgainst,
-      points: 0,
-      outcome: 'L',
-    };
+    return calculateResultDelta(goalsFor, goalsAgainst);
   }
 
   private async applyStanding(

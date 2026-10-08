@@ -5,7 +5,10 @@ describe('JWT authorization boundary', () => {
   function fixture(status = 'ACTIVE', role = 'PLAYER') {
     process.env.JWT_ACCESS_SECRET = 'test-only-access-secret-not-for-production';
     const jwt = { verifyAsync: vi.fn().mockResolvedValue({ sub: 'user-1', type: 'access', role: 'SUPER_ADMIN' }) };
-    const prisma = { user: { findUnique: vi.fn().mockResolvedValue({ status, role }) } };
+    const prisma = {
+      user: { findUnique: vi.fn().mockResolvedValue({ status, role }) },
+      refreshSession: { findUnique: vi.fn().mockResolvedValue({ userId: 'user-1', revokedAt: null, expiresAt: new Date(Date.now() + 60_000) }) },
+    };
     const request = { headers: { authorization: 'Bearer test-token' }, user: undefined };
     const context = { switchToHttp: () => ({ getRequest: () => request }) };
     return { jwt, prisma, request, context, guard: new JwtAuthGuard(jwt as never, prisma as never) };
@@ -35,5 +38,24 @@ describe('JWT authorization boundary', () => {
     f.jwt.verifyAsync.mockResolvedValue({ sub: 'user-1', type: 'refresh', role: 'PLAYER' });
     await expect(f.guard.canActivate(f.context as never)).rejects.toMatchObject({ status: 401 });
     expect(f.prisma.user.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('accepts the active session belonging to the authenticated user', async () => {
+    const f = fixture();
+    f.jwt.verifyAsync.mockResolvedValue({ sub: 'user-1', type: 'access', role: 'USER', sid: 'session-1' } as never);
+    await expect(f.guard.canActivate(f.context as never)).resolves.toBe(true);
+  });
+
+  it.each([
+    null,
+    { userId: 'other-user', revokedAt: null, expiresAt: new Date(Date.now() + 60_000) },
+    { userId: 'user-1', revokedAt: new Date(), expiresAt: new Date(Date.now() + 60_000) },
+    { userId: 'user-1', revokedAt: null, expiresAt: new Date(0) },
+  ])('rejects missing, cross-user, revoked or expired sessions', async (session) => {
+    const f = fixture();
+    f.jwt.verifyAsync.mockResolvedValue({ sub: 'user-1', type: 'access', role: 'USER', sid: 'session-1' } as never);
+    f.prisma.refreshSession.findUnique.mockResolvedValue(session as never);
+    await expect(f.guard.canActivate(f.context as never)).rejects.toMatchObject({ status: 401 });
+    expect(f.request.user).toBeUndefined();
   });
 });

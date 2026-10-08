@@ -1,4 +1,3 @@
-import { normalizeLoginIdentifier } from './login-identifier.js';
 import {
   Body,
   Controller,
@@ -16,6 +15,7 @@ import {
 import type { Request, Response } from 'express';
 import { AuthRateLimitService } from './auth-rate-limit.service.js';
 import { AuthService } from './auth.service.js';
+import { normalizeLoginIdentifier } from './login-identifier.js';
 import { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { AccessTokenPayload } from './auth.types.js';

@@ -78,6 +78,7 @@ export function SecondaryFeaturePage({
 
   return (
     <AppShell
+      currentUser={user}
       playerName={
         user.player
           ?.identity

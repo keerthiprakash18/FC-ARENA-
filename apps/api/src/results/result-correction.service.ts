@@ -16,6 +16,7 @@ import {
 } from './standings-integrity.js';
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
+import { calculateResultDelta } from './result-outcome.js';
 
 type Outcome = 'W' | 'D' | 'L';
 
@@ -75,7 +76,7 @@ export class ResultCorrectionService {
     );
 
     const response =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
       async (tx) => {
         const match =
           await tx.match.findUnique({
@@ -450,6 +451,8 @@ export class ResultCorrectionService {
           match.tournamentId,
         );
 
+        await this.reopenCompletedTournament(tx, match.tournamentId, match.tournament.status);
+
         return {
           success: true,
 
@@ -527,7 +530,7 @@ export class ResultCorrectionService {
     );
 
     const response =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
       async (tx) => {
         const match =
           await tx.match.findUnique({
@@ -741,6 +744,8 @@ export class ResultCorrectionService {
             tx,
             match.tournamentId,
           );
+
+        await this.reopenCompletedTournament(tx, match.tournamentId, match.tournament.status);
 
         if (
           activeResultCount === 0 &&
@@ -1205,56 +1210,17 @@ export class ResultCorrectionService {
     goalsFor: number,
     goalsAgainst: number,
   ): SideDelta {
-    if (
-      goalsFor >
-      goalsAgainst
-    ) {
-      return {
-        wins: 1,
-        draws: 0,
-        losses: 0,
-        goalsFor,
-        goalsAgainst,
+    return calculateResultDelta(goalsFor, goalsAgainst);
+  }
 
-        goalDifference:
-          goalsFor -
-          goalsAgainst,
-
-        points: 3,
-        outcome: 'W',
-      };
-    }
-
-    if (
-      goalsFor ===
-      goalsAgainst
-    ) {
-      return {
-        wins: 0,
-        draws: 1,
-        losses: 0,
-        goalsFor,
-        goalsAgainst,
-        goalDifference: 0,
-        points: 1,
-        outcome: 'D',
-      };
-    }
-
-    return {
-      wins: 0,
-      draws: 0,
-      losses: 1,
-      goalsFor,
-      goalsAgainst,
-
-      goalDifference:
-        goalsFor -
-        goalsAgainst,
-
-      points: 0,
-      outcome: 'L',
-    };
+  private async reopenCompletedTournament(tx: any, tournamentId: string, status: string) {
+    if (status !== 'COMPLETED') return;
+    // Completion awards are derived from confirmed results. A correction must
+    // not leave the old champion/boot/glove visible as if they were still final.
+    await tx.achievement.deleteMany({ where: { tournamentId } });
+    await tx.tournament.update({
+      where: { id: tournamentId }, data: { status: 'ACTIVE', completedAt: null },
+    });
   }
 
   private async applyStanding(

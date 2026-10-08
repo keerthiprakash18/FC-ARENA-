@@ -20,10 +20,10 @@ describe('Login quota identity', () => {
     const controller = new AuthController({ login } as never, { consume } as never);
     const variants = ['Player', 'P\u200blayer', 'Pla\u200cyer', 'Play\u200der', '\ufeffPLAYER ', 'Ｐｌａｙｅｒ'];
     for (let index = 0; index < variants.length; index++) {
-      const request = controller.login({ ip: `192.0.2.${index}`, socket: {} } as never,
+      const attempt = controller.login({ ip: `192.0.2.${index}`, socket: {} } as never,
         { identifier: variants[index], password: 'incorrect1' }, {} as never);
-      if (index < 5) await expect(request).rejects.toThrow('Invalid credentials');
-      else await expect(request).rejects.toMatchObject({ status: 429 });
+      if (index < 5) await expect(attempt).rejects.toThrow('Invalid credentials');
+      else await expect(attempt).rejects.toMatchObject({ status: 429 });
     }
     expect(login).toHaveBeenCalledTimes(5);
     expect([...attempts.keys()]).toEqual(['player']);
@@ -33,18 +33,17 @@ describe('Login quota identity', () => {
 
 describe('New password byte limits', () => {
   for (const password of ['a'.repeat(71) + '1', 'é'.repeat(35) + 'a1']) {
-    it(`accepts a password exactly 72 bytes long (${password.length} characters)`, async () => {
-      const dto = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.com', inGameName: 'Tester', password, confirmPassword: password });
+    it(`accepts exactly 72 UTF-8 bytes (${password.length} characters)`, async () => {
+      const dto = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.test', inGameName: 'Tester', password, confirmPassword: password });
       expect(await validate(dto)).toHaveLength(0);
     });
   }
   for (const password of ['a'.repeat(72) + '1', 'é'.repeat(36) + 'a1']) {
-    it(`rejects truncating new passwords (${Buffer.byteLength(password)} bytes)`, async () => {
-      const register = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.com', inGameName: 'Tester', password, confirmPassword: password });
-      const reset = Object.assign(new ResetPasswordDto(), { email: 'test@example.com', otp: '123456', newPassword: password, confirmPassword: password });
-      expect((await validate(register)).some(e => e.constraints?.isByteLength)).toBe(true);
-      expect((await validate(reset)).some(e => e.constraints?.isByteLength)).toBe(true);
-      // Existing passwords must still be accepted by the legacy login contract.
+    it(`rejects new passwords bcrypt would truncate (${Buffer.byteLength(password)} bytes)`, async () => {
+      const register = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.test', inGameName: 'Tester', password, confirmPassword: password });
+      const reset = Object.assign(new ResetPasswordDto(), { email: 'test@example.test', otp: '123456', newPassword: password, confirmPassword: password });
+      expect((await validate(register)).some((error) => error.constraints?.isByteLength)).toBe(true);
+      expect((await validate(reset)).some((error) => error.constraints?.isByteLength)).toBe(true);
       expect(await validate(Object.assign(new LoginDto(), { identifier: 'Tester', password }))).toHaveLength(0);
     });
   }

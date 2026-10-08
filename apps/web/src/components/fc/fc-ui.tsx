@@ -591,6 +591,15 @@ export function FcErrorState({
   );
 }
 
+export function legFormatLabel(legType?: string, competitionFormat?: string) {
+  const double = legType === 'HOME_AWAY' || competitionFormat === 'DOUBLE_ROUND_ROBIN';
+  if (competitionFormat === 'GROUP_STAGE_KNOCKOUT') {
+    return `${double ? 'Double-leg' : 'Single-leg'} groups · Single-leg knockout`;
+  }
+  if (double) return 'Double leg · Home & Away';
+  return legType || competitionFormat ? 'Single leg' : 'Match format not specified';
+}
+
 export function FcNotice({ children, tone = 'success' }: { children: ReactNode; tone?: 'success' | 'error' }) {
   return <div role={tone === 'error' ? 'alert' : 'status'} aria-live={tone === 'error' ? 'assertive' : 'polite'} aria-atomic="true" data-tone={tone} className={children ? 'fc-notice' : 'sr-only'}>{children}</div>;
 }

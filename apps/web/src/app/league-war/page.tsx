@@ -5,6 +5,7 @@ import { PremiumHero } from '@/components/fc/premium-ui';
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -16,12 +17,14 @@ import {
 } from '@/components/app/app-shell';
 import {
   FcCrest,
+  FcErrorState,
   FcEmptyState,
   FcLoadingScreen,
   FcPanel,
   FcSectionHeading,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
+import { ApiError } from '@/lib/api';
 import {
   authenticatedRequest,
   getCurrentUser,
@@ -233,6 +236,20 @@ export default function LeagueWarPage() {
     useState('');
 
   const [
+    loading,
+    setLoading,
+  ] =
+    useState(true);
+
+  const [
+    attempt,
+    setAttempt,
+  ] =
+    useState(0);
+
+  const loadInFlight = useRef(false);
+
+  const [
     filter,
     setFilter,
   ] =
@@ -244,6 +261,10 @@ export default function LeagueWarPage() {
     >('ALL');
 
   async function load() {
+    if (loadInFlight.current) return;
+    loadInFlight.current = true;
+    setLoading(true);
+    setError('');
     const [
       current,
       leagueResponse,
@@ -290,17 +311,23 @@ export default function LeagueWarPage() {
         .playerRankings ??
         [],
     );
+    setLoading(false);
+    loadInFlight.current = false;
   }
 
   useEffect(() => {
-    void load().catch(
-      () =>
-        router.replace(
-          '/login',
-        ),
-    );
+    void load().catch((err) => {
+      loadInFlight.current = false;
+      setLoading(false);
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace('/login');
+      } else {
+        setError(err instanceof Error ? err.message : 'Unable to load League Wars.');
+      }
+    });
   }, [
     router,
+    attempt,
   ]);
 
   const adminLeagues =
@@ -492,14 +519,23 @@ export default function LeagueWarPage() {
     }
   }
 
-  if (!user) {
+  if (!user && loading) {
     return (
       <FcLoadingScreen label="Loading League Wars..." />
     );
   }
 
+  if (!user) {
+    return (
+      <main className="fc-state-screen">
+        <FcErrorState message={error || 'Unable to load League Wars.'} onRetry={() => setAttempt(value => value + 1)} />
+      </main>
+    );
+  }
+
   return (
     <AppShell
+      currentUser={user}
       playerName={
         user.player
           ?.identity
@@ -534,13 +570,7 @@ export default function LeagueWarPage() {
           <div className="premium-hero-tags"><span>{wars.filter(war => war.status === 'LIVE').length} live rivalries</span><span>{wars.filter(war => war.status === 'COMPLETED').length} completed battles</span><span>Locked rosters · opponent-confirmed results</span></div>
         </PremiumHero>
 
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.06] p-4 text-sm font-semibold text-red-300">
-            {
-              error
-            }
-          </div>
-        ) : null}
+        {error ? <FcErrorState message={error} onRetry={() => setAttempt(value => value + 1)} busy={loading} /> : null}
 
         {showCreate &&
         adminLeagues.length >

@@ -26,6 +26,25 @@
     "check:data-safety": "node scripts/check-data-safety.mjs",
     "check:final-release": "node scripts/final-release-gate.mjs"
   },
+  "overrides": {
+    "concurrently": {
+      "shell-quote": "1.11.0"
+    },
+    "@nestjs/mau": {
+      "undici": "6.28.1",
+      "tmp": "0.2.7"
+    },
+    "prisma": {
+      "mysql2": "3.24.5"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.2"
+    },
+    "gaxios@6.7.1": {
+      "uuid": "11.1.1"
+    },
+    "source-map-js": "1.2.2"
+  },
   "devDependencies": {
     "concurrently": "^10.0.5"
   },

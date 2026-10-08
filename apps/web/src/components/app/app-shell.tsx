@@ -17,6 +17,7 @@ import {
 import {
   getCurrentUser,
   logoutCurrentUser,
+  type CurrentUser,
 } from '@/lib/auth-client';
 
 import {
@@ -42,6 +43,7 @@ interface AppShellProps {
   children: ReactNode;
   playerName?: string | null;
   playerRole?: string | null;
+  currentUser?: CurrentUser;
 }
 
 
@@ -552,6 +554,7 @@ export function AppShell({
   children,
   playerName,
   playerRole,
+  currentUser,
 }: AppShellProps) {
   const pathname =
     usePathname();
@@ -566,18 +569,21 @@ export function AppShell({
     useState(false);
 
   const [
-    playerImageUrl,
-    setPlayerImageUrl,
+    profileImage,
+    setProfileImage,
   ] =
-    useState<string | null>(
+    useState<{ ownerId: string; url: string | null } | null>(
       null,
     );
+  const playerImageUrl = currentUser
+    ? profileImage?.ownerId === currentUser.id ? profileImage.url : currentUser.player?.profileImageUrl ?? null
+    : profileImage?.url ?? null;
 
   useEffect(() => {
     let active =
       true;
 
-    void getCurrentUser()
+    if (!currentUser) void getCurrentUser()
       .then(
         (
           current,
@@ -585,11 +591,7 @@ export function AppShell({
           if (
             active
           ) {
-            setPlayerImageUrl(
-              current.player
-                ?.profileImageUrl ??
-              null,
-            );
+            setProfileImage({ ownerId: current.id, url: current.player?.profileImageUrl ?? null });
           }
         },
       )
@@ -612,11 +614,7 @@ export function AppShell({
               }>
           ).detail;
 
-        setPlayerImageUrl(
-          detail
-            ?.profileImageUrl ??
-          null,
-        );
+        setProfileImage(previous => ({ ownerId: currentUser?.id ?? previous?.ownerId ?? '', url: detail?.profileImageUrl ?? null }));
       };
 
     window.addEventListener(
@@ -633,7 +631,7 @@ export function AppShell({
         onProfileImageChanged,
       );
     };
-  }, []);
+  }, [currentUser]);
 
   const active =
     getActivePrimarySection(

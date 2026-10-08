@@ -5,6 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
+import { assertRoundRobinComplete } from './completion-integrity.js';
 import {
   deduplicateFixtureRecords,
   isCanonicalCompletedFixture,
@@ -23,6 +25,7 @@ import {
 export class AchievementsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   async completeTournament(
@@ -40,10 +43,7 @@ export class AchievementsService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueAdmin(
-      adminUserId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageTournament(adminUserId, tournamentId);
 
     if (
       tournament.status ===
@@ -176,7 +176,7 @@ export class AchievementsService {
       });
     }
 
-    await this.prisma.$transaction(
+    await this.prisma.$transactionWithRetry(
       async (tx) => {
         const currentTournament =
           await tx.tournament.findUnique({
@@ -194,6 +194,21 @@ export class AchievementsService {
           'COMPLETED'
         ) {
           return;
+        }
+        if (currentTournament.status === 'CANCELLED') {
+          throw new ConflictException({ success: false, data: null, error: {
+            code: 'TOURNAMENT_CANCELLED', message: 'A cancelled Tournament cannot be completed.',
+          } });
+        }
+
+        const currentMatches = await tx.match.findMany({
+          where: { tournamentId }, include: { confirmedResult: true },
+        });
+        if (currentMatches.some((match) => match.status !== 'CANCELLED' &&
+          (match.status !== 'COMPLETED' || !match.confirmedResult || match.confirmedResult.status !== 'CONFIRMED'))) {
+          throw new ConflictException({ success: false, data: null, error: {
+            code: 'TOURNAMENT_MATCHES_INCOMPLETE', message: 'Every played match must have a confirmed result.',
+          } });
         }
 
         const registrations =
@@ -283,6 +298,11 @@ export class AchievementsService {
         const hasGroupPlayoffs =
           groupCount > 0 &&
           playoffFixtureCount > 0;
+
+        const completionFixtures = await tx.fixture.findMany({
+          where: { tournamentId }, include: { match: { include: { confirmedResult: true } } },
+        });
+        assertRoundRobinComplete(currentTournament, registrations, completionFixtures);
 
         const placement =
           hasGroupPlayoffs ||
@@ -1188,8 +1208,9 @@ export class AchievementsService {
     const finalFixture =
       fixtures.find(
         (fixture: any) =>
-          fixture.match
-            ?.confirmedResult &&
+          fixture.roundNumber === fixtures[0]?.roundNumber &&
+          fixture.nextFixtureId === null &&
+          isCanonicalCompletedFixture(fixture) &&
           fixture
             .homeRegistration &&
           fixture

@@ -51,10 +51,7 @@ export class FixturesService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueAdmin(
-      userId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageFixtures(userId, tournamentId);
 
     if (
       tournament.status !==
@@ -130,8 +127,20 @@ export class FixturesService {
 
     try {
       const fixtureCount =
-        await this.prisma.$transaction(
+        await this.prisma.$transactionWithRetry(
           async (tx) => {
+            const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
+            const currentEntries = await tx.tournamentRegistration.findMany({
+              where: { tournamentId, status: 'APPROVED' },
+              orderBy: [{ reviewedAt: 'asc' }, { createdAt: 'asc' }], select: { id: true },
+            });
+            if (current.status !== 'REGISTRATION_CLOSED' || current.format !== tournament.format ||
+              current.competitionFormat !== tournament.competitionFormat || current.legType !== tournament.legType ||
+              JSON.stringify(currentEntries.map((entry) => entry.id)) !== JSON.stringify(registrationIds)) {
+              throw new ConflictException({ success: false, data: null, error: {
+                code: 'FIXTURE_INPUTS_CHANGED', message: 'Tournament settings or approved entries changed. Generate the fixtures again.',
+              } });
+            }
             const existingCount =
               await tx.fixture.count({
                 where: {
@@ -293,7 +302,17 @@ export class FixturesService {
           sequence: 'asc',
         },
         include: {
-          match: true,
+          match: {
+            include: {
+              confirmedResult: {
+                select: {
+                  homeScore: true,
+                  awayScore: true,
+                  status: true,
+                },
+              },
+            },
+          },
 
           group: {
             select: {
@@ -378,6 +397,8 @@ export class FixturesService {
       success: true,
       data: {
         format: tournament.format,
+        competitionFormat: tournament.competitionFormat,
+        legType: tournament.legType,
 
         fixtures:
           canonicalFixtures.map(
@@ -1569,6 +1590,13 @@ export class FixturesService {
             status:
               fixture.match
                 .status,
+            confirmedResult: fixture.match.confirmedResult
+              ? {
+                  homeScore: fixture.match.confirmedResult.homeScore,
+                  awayScore: fixture.match.confirmedResult.awayScore,
+                  status: fixture.match.confirmedResult.status,
+                }
+              : null,
           }
         : null,
 

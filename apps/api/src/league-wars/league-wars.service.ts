@@ -9,6 +9,8 @@ import {
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
+import { assertCompleteWarFixtures } from './league-war-integrity.js';
 import type {
   CreateLeagueWarDto,
   LeagueWarWalkoverDto,
@@ -22,6 +24,7 @@ type WarCore = {
   homeLeagueId: string;
   awayLeagueId: string;
   legType?: string;
+  playerCount?: number;
   winPoints: number;
   drawPoints: number;
   lossPoints: number;
@@ -2076,6 +2079,11 @@ export class LeagueWarsService {
       async (
         tx,
       ) => {
+        const started = await tx.leagueWar.updateMany({
+          where: { id: warId, status: 'ACCEPTED' },
+          data: { status: 'LIVE', startedAt: new Date() },
+        });
+        if (started.count !== 1) throw this.invalidStatus('This League War has already started or changed state.');
         await tx.leagueWarMatch.deleteMany({
           where: {
             warId,
@@ -2159,12 +2167,7 @@ export class LeagueWarsService {
         ? war.homeLeagueId
         : war.awayLeagueId;
 
-    await this.prisma.leagueWarMatch.update({
-      where: {
-        id:
-          match.id,
-      },
-      data: {
+    await this.updateLiveWarMatch(warId, match, {
         homeScore:
           dto.homeScore,
         awayScore:
@@ -2206,7 +2209,6 @@ export class LeagueWarsService {
           dualAdmin
             ? new Date()
             : null,
-      },
     });
 
     return this.getWar(
@@ -2278,12 +2280,7 @@ export class LeagueWarsService {
       });
     }
 
-    await this.prisma.leagueWarMatch.update({
-      where: {
-        id:
-          match.id,
-      },
-      data: {
+    await this.updateLiveWarMatch(warId, match, {
         status:
           'COMPLETED',
         resultStatus:
@@ -2301,7 +2298,6 @@ export class LeagueWarsService {
           null,
         disputedAt:
           null,
-      },
     });
 
     return this.getWar(
@@ -2365,12 +2361,7 @@ export class LeagueWarsService {
       throw this.permissionRequired();
     }
 
-    await this.prisma.leagueWarMatch.update({
-      where: {
-        id:
-          match.id,
-      },
-      data: {
+    await this.updateLiveWarMatch(warId, match, {
         status:
           'SCHEDULED',
         resultStatus:
@@ -2385,7 +2376,6 @@ export class LeagueWarsService {
           null,
         completedAt:
           null,
-      },
     });
 
     return this.getWar(
@@ -2473,12 +2463,7 @@ export class LeagueWarsService {
         ? war.homeLeagueId
         : war.awayLeagueId;
 
-    await this.prisma.leagueWarMatch.update({
-      where: {
-        id:
-          match.id,
-      },
-      data: {
+    await this.updateLiveWarMatch(warId, match, {
         homeScore:
           homeWins
             ? 3
@@ -2524,7 +2509,6 @@ export class LeagueWarsService {
           dualAdmin
             ? new Date()
             : null,
-      },
     });
 
     return this.getWar(
@@ -2556,69 +2540,46 @@ export class LeagueWarsService {
       );
     }
 
-    const matches =
-      await this.prisma.leagueWarMatch.findMany({
-        where: {
-          warId,
-        },
-        orderBy: {
-          sequence:
-            'asc',
-        },
+    await this.prisma.$transactionWithRetry(async (tx) => {
+      await this.lockLiveWar(tx, warId);
+      const current = await tx.leagueWar.findUniqueOrThrow({
+        where: { id: warId }, include: { participants: true, matches: true },
       });
-
-    if (
-      matches.length ===
-        0 ||
-      matches.some(
-        (
-          match,
-        ) =>
-          match.status !==
-            'COMPLETED' ||
-          match.homeScore ===
-            null ||
-          match.awayScore ===
-            null,
-      )
-    ) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'LEAGUE_WAR_MATCHES_INCOMPLETE',
-          message:
-            'Every League War match must be confirmed before the War can be completed.',
-        },
+      assertCompleteWarFixtures(current, current.participants, current.matches);
+      const summary = this.summary(current, current.matches);
+      await tx.leagueWar.update({
+        where: { id: warId },
+        data: { status: 'COMPLETED', winnerLeagueId: summary.leaderLeagueId, completedAt: new Date() },
       });
-    }
-
-    const summary =
-      this.summary(
-        war,
-        matches,
-      );
-
-    await this.prisma.leagueWar.update({
-      where: {
-        id:
-          warId,
-      },
-      data: {
-        status:
-          'COMPLETED',
-        winnerLeagueId:
-          summary.leaderLeagueId,
-        completedAt:
-          new Date(),
-      },
     });
 
     return this.getWar(
       userId,
       warId,
     );
+  }
+
+  private async lockLiveWar(tx: Prisma.TransactionClient, warId: string): Promise<void> {
+    const wars = await tx.$queryRaw<Array<{ status: string }>>`
+      SELECT "status" FROM "league_wars" WHERE "id" = ${warId}::uuid FOR UPDATE
+    `;
+    if (wars[0]?.status !== 'LIVE') throw this.invalidStatus('Only a LIVE League War can be updated.');
+  }
+
+  private async updateLiveWarMatch(
+    warId: string,
+    snapshot: { id: string; updatedAt: Date },
+    data: Prisma.LeagueWarMatchUncheckedUpdateManyInput,
+  ): Promise<void> {
+    await this.prisma.$transactionWithRetry(async (tx) => {
+      // Completion and result changes share a lock. A stale opposing admin
+      // cannot confirm a score that changed since it was inspected.
+      await this.lockLiveWar(tx, warId);
+      const updated = await tx.leagueWarMatch.updateMany({
+        where: { id: snapshot.id, warId, updatedAt: snapshot.updatedAt }, data,
+      });
+      if (updated.count !== 1) throw this.invalidStatus('This result changed concurrently. Reload it before reviewing.');
+    });
   }
 
   private summary(
@@ -2781,11 +2742,11 @@ export class LeagueWarsService {
     return {
       completedMatches,
       totalMatches:
-        matches.length,
+        war.playerCount ? war.playerCount * (war.legType === 'HOME_AWAY' ? 2 : 1) : matches.length,
       remainingMatches:
         Math.max(
           0,
-          matches.length -
+          (war.playerCount ? war.playerCount * (war.legType === 'HOME_AWAY' ? 2 : 1) : matches.length) -
             completedMatches,
         ),
       home,

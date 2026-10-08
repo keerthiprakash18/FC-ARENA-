@@ -15,6 +15,7 @@ import {
 import type { Request, Response } from 'express';
 import { AuthRateLimitService } from './auth-rate-limit.service.js';
 import { AuthService } from './auth.service.js';
+import { normalizeLoginIdentifier } from './login-identifier.js';
 import { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { AccessTokenPayload } from './auth.types.js';
@@ -44,14 +45,7 @@ function clientIp(request: Request): string {
 function normalizedIdentifier(
   dto: LoginDto,
 ): string {
-  return (
-    dto.identifier ??
-    dto.email ??
-    ''
-  )
-    .normalize('NFKC')
-    .trim()
-    .toLowerCase();
+  return normalizeLoginIdentifier(dto.identifier ?? dto.email ?? '').toLowerCase();
 }
 
 @Controller('auth')

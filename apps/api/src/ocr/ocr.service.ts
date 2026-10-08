@@ -18,7 +18,6 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import {
-  extname,
   resolve,
 } from 'node:path';
 import {
@@ -28,6 +27,7 @@ import sharp, { type Metadata } from 'sharp';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import type { SubmitResultDto } from '../results/dto/submit-result.dto.js';
+import { ResultsService } from '../results/results.service.js';
 import {
   OCR_JOB_PROCESS_MATCH_RESULT,
   OCR_QUEUE,
@@ -54,6 +54,7 @@ export class OcrService {
 
     private readonly ocrProvider:
       TesseractOcrProvider,
+    private readonly results: ResultsService,
   ) {}
 
   async uploadScreenshot(
@@ -509,31 +510,10 @@ export class OcrService {
       });
     }
 
-    const submission =
-      await this.prisma.resultSubmission.create({
-        data: {
-          matchId:
-            extraction.matchId,
-
-          submittedByUserId:
-            userId,
-
-          source:
-            'OCR',
-
-          ocrExtractionId:
-            extraction.id,
-
-          homeScore:
-            dto.homeScore,
-
-          awayScore:
-            dto.awayScore,
-
-          status:
-            'PENDING_VERIFICATION',
-        },
-      });
+    const submitted = await this.results.submitResult(userId, extraction.matchId, dto, {
+      ocrExtractionId: extraction.id,
+    });
+    const submission = submitted.data.submission;
 
     return {
       success: true,

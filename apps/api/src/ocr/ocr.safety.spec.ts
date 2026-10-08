@@ -77,6 +77,7 @@ const ocrSource =
   readTypescriptTree(
     currentDirectory,
   );
+const sharedResultsSource = readFileSync(join(currentDirectory, '../results/results.service.ts'), 'utf8');
 
 describe(
   'FC ARENA OCR safety',
@@ -264,11 +265,8 @@ describe(
     it(
       'creates OCR result submission requiring human verification',
       () => {
-        expect(
-          ocrSource,
-        ).toMatch(
-          /PENDING_VERIFICATION/,
-        );
+        expect(ocrSource).toMatch(/this\.results\.submitResult/);
+        expect(sharedResultsSource).toMatch(/status:\s*'PENDING_VERIFICATION'/);
       },
     );
 

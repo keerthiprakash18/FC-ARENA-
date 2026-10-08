@@ -1,4 +1,5 @@
 import {
+  IsByteLength,
   IsEmail,
   IsString,
   Matches,
@@ -20,6 +21,7 @@ export class ResetPasswordDto {
     message:
       'Password must be at least 8 characters and contain at least one letter and one number.',
   })
+  @IsByteLength(0, 72, { message: 'Password must be at most 72 UTF-8 bytes.' })
   newPassword!: string;
 
   @IsString()

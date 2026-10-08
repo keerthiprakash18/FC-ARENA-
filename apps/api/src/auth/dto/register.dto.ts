@@ -1,4 +1,5 @@
 import {
+  IsByteLength,
   IsEmail,
   IsOptional,
   IsString,
@@ -28,6 +29,7 @@ export class RegisterDto {
     message:
       'Password must be at least 8 characters and contain at least one letter and one number.',
   })
+  @IsByteLength(0, 72, { message: 'Password must be at most 72 UTF-8 bytes.' })
   password!: string;
 
   @IsString()

@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +7,9 @@ import {
 import { randomUUID } from 'node:crypto';
 
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
+import { qualificationSnapshot } from './qualification-integrity.js';
+import { buildPlayoffSeedPlan } from './playoff-seeding.js';
 
 import type { GeneratePlayoffsDto } from './dto/generate-playoffs.dto.js';
 
@@ -34,6 +36,7 @@ interface RankedQualifier {
 export class PlayoffsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
 
@@ -61,10 +64,7 @@ export class PlayoffsService {
     }
 
 
-    await this.assertLeagueAdmin(
-      userId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageTournament(userId, tournamentId);
 
 
     const groups =
@@ -255,26 +255,6 @@ export class PlayoffsService {
       qualifiersPerGroup;
 
 
-    if (
-      !this.isPowerOfTwo(
-        totalQualifiers,
-      )
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'INVALID_KNOCKOUT_SIZE',
-
-          message:
-            `Total qualifiers must form a standard knockout bracket (4, 8, 16, 32, 64...). Current total: ${totalQualifiers}.`,
-        },
-      });
-    }
-
-
     const rankedGroups =
       groups.map(
         (group) => {
@@ -389,85 +369,8 @@ export class PlayoffsService {
       );
 
 
-    const seedOrder:
-      string[] = [];
-
-
-    for (
-      let groupIndex = 0;
-      groupIndex <
-      rankedGroups.length;
-      groupIndex += 2
-    ) {
-      const left =
-        rankedGroups[
-          groupIndex
-        ];
-
-      const right =
-        rankedGroups[
-          groupIndex + 1
-        ];
-
-
-      if (
-        !left ||
-        !right
-      ) {
-        throw new Error(
-          'Invalid group pairing state.',
-        );
-      }
-
-
-      if (
-        qualifiersPerGroup ===
-        1
-      ) {
-        seedOrder.push(
-          left.qualifiers[0].id,
-          right.qualifiers[0].id,
-        );
-
-        continue;
-      }
-
-
-      const half =
-        qualifiersPerGroup /
-        2;
-
-
-      for (
-        let rank = 0;
-        rank < half;
-        rank++
-      ) {
-        const reverseRank =
-          qualifiersPerGroup -
-          1 -
-          rank;
-
-
-        seedOrder.push(
-          left.qualifiers[
-            rank
-          ].id,
-
-          right.qualifiers[
-            reverseRank
-          ].id,
-
-          right.qualifiers[
-            rank
-          ].id,
-
-          left.qualifiers[
-            reverseRank
-          ].id,
-        );
-      }
-    }
+    const seedPlan = buildPlayoffSeedPlan(rankedGroups);
+    const seedOrder = seedPlan.seedOrder;
 
 
     if (
@@ -499,12 +402,26 @@ export class PlayoffsService {
     const blueprints =
       generateKnockoutFixtures(
         seedOrder,
-      );
+      ).map((blueprint) => seedPlan.byeCount > 0 && blueprint.roundNumber === 1
+        ? { ...blueprint, roundName: 'PLAY-IN' }
+        : blueprint);
 
 
     const created =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
         async (tx) => {
+          const currentGroups = await tx.tournamentGroup.findMany({
+            where: { tournamentId },
+            include: { registrations: { where: { status: 'APPROVED' }, include: { standing: true } } },
+          });
+          const incomplete = await tx.fixture.count({
+            where: { tournamentId, groupId: { not: null }, status: { not: 'COMPLETED' } },
+          });
+          if (incomplete || qualificationSnapshot(groups) !== qualificationSnapshot(currentGroups)) {
+            throw new ConflictException({ success: false, data: null, error: {
+              code: 'QUALIFICATION_CHANGED', message: 'Group results or entries changed. Recheck standings before generating playoffs.',
+            } });
+          }
           const existing =
             await tx.fixture.count({
               where: {
@@ -651,6 +568,9 @@ export class PlayoffsService {
         qualifiersPerGroup,
 
         totalQualifiers,
+        byes: seedPlan.byeCount,
+        playInMatches: seedPlan.playInMatches,
+        bracketSize: seedPlan.bracketSize,
 
         fixtures:
           created,
@@ -806,50 +726,6 @@ export class PlayoffsService {
         },
       });
     }
-  }
-
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required.',
-        },
-      });
-    }
-  }
-
-
-  private isPowerOfTwo(
-    value: number,
-  ) {
-    return (
-      value >= 2 &&
-      (value &
-        (value - 1)) ===
-        0
-    );
   }
 
 

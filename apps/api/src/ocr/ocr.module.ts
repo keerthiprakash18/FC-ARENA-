@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ResultsModule } from '../results/results.module.js';
 import {
   BullModule,
 } from '@nestjs/bullmq';
@@ -91,6 +92,7 @@ function getRedisConnection() {
 @Module({
   imports: [
     AuthModule,
+    ResultsModule,
 
     BullModule.registerQueue({
       name:

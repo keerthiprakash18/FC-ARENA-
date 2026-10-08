@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,6 +10,7 @@ import {
 } from 'node:crypto';
 
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 
 import {
   generateDoubleRoundRobinFixtures,
@@ -21,6 +21,7 @@ import {
 export class GroupFixturesService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   async generateGroupFixtures(
@@ -47,10 +48,7 @@ export class GroupFixturesService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueAdmin(
-      userId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageFixtures(userId, tournamentId);
 
     if (
       tournament.status !==
@@ -238,8 +236,23 @@ export class GroupFixturesService {
       );
 
     const result =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
         async (tx) => {
+          const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
+          const currentGroups = await tx.tournamentGroup.findMany({
+            where: { tournamentId },
+            include: { registrations: { where: { status: 'APPROVED' }, select: { id: true } } },
+          });
+          const snapshot = (rows: Array<{ id: string; name: string; registrations: Array<{ id: string }> }>) =>
+            JSON.stringify(rows.map((group) => ({ id: group.id, name: group.name,
+              entries: group.registrations.map((entry) => entry.id).sort((a, b) => a.localeCompare(b)),
+            })).sort((a, b) => a.id.localeCompare(b.id)));
+          if (current.status !== 'REGISTRATION_CLOSED' || current.competitionFormat !== tournament.competitionFormat ||
+            current.legType !== tournament.legType || snapshot(groups) !== snapshot(currentGroups)) {
+            throw new ConflictException({ success: false, data: null, error: {
+              code: 'FIXTURE_INPUTS_CHANGED', message: 'Group entries or settings changed. Generate the fixtures again.',
+            } });
+          }
           const fixtureCount =
             await tx.fixture.count({
               where: {
@@ -451,35 +464,6 @@ export class GroupFixturesService {
         matchCode,
       },
     });
-  }
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required to generate group fixtures.',
-        },
-      });
-    }
   }
 
   private createFixtureCode() {

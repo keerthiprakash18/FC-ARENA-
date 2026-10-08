@@ -704,7 +704,24 @@ export default function PlayoffsPage() {
               <h2 className="mt-2 text-3xl font-black">Road to the Final</h2>
             </div>
 
-            <label className="fc-field-label">Knockout round<select value={selectedRound} onChange={event => setSelectedRound(event.target.value)} className="theme-secondary-button rounded-xl p-3"><option value="ALL">All rounds</option>{playoffRounds.map(([name]) => <option key={name} value={name}>{name}</option>)}</select></label>
+            <div className="premium-bracket-controls">
+              <label className="fc-field-label">
+                Knockout round
+                <select
+                  value={selectedRound}
+                  onChange={event => setSelectedRound(event.target.value)}
+                  className="theme-secondary-button rounded-xl p-3"
+                >
+                  <option value="ALL">All rounds</option>
+                  {playoffRounds.map(([name]) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+              </label>
+              <p className="premium-bracket-hint theme-muted text-xs">
+                Swipe across rounds on mobile. Each match keeps teams, score and status visible.
+              </p>
+            </div>
             <div className="premium-bracket" role="region" aria-label="Knockout bracket" tabIndex={0}>
             {playoffRounds.filter(([name]) => selectedRound === "ALL" || name === selectedRound).map(([roundName, roundFixtures]) => (
               <article
@@ -712,7 +729,7 @@ export default function PlayoffsPage() {
                 className="fc-bracket-round rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
                 aria-label={`${roundName} bracket`}
               >
-                <div className="flex items-center justify-between">
+                <div className="premium-bracket-round-head flex items-center justify-between">
                   <h3 className="text-2xl font-black">{roundName}</h3>
 
                   <span className="rounded-full bg-sky-400/10 px-3 py-2 text-xs font-black text-sky-300">

@@ -8,13 +8,13 @@ function setup() {
     registrations: Array.from({ length: 6 }, (_, i) => ({ id: `${g}-${i}`, entryName: `${g}-${i}`, standing: { points: 20-i, goalDifference: 0, goalsFor: 0, wins: 0 } })),
   }));
   const plan = buildPlayoffSeedPlan(groups.map((g) => ({ ...g, qualifiers: g.registrations })));
-  const old = generateKnockoutFixtures(plan.seedOrder).map((f, i) => ({ ...f, id: `f${i}`, tournamentId: 't', groupId: null, status: 'UNSCHEDULED', scheduledAt: null as Date | null,
+  const old = generateKnockoutFixtures(plan.seedOrder).map((f, i) => ({ ...f, id: `f${i}`, fixtureCode: `FCA-F-${i}`, tournamentId: 't', groupId: null, status: 'UNSCHEDULED', scheduledAt: null as Date | null,
     nextFixtureId: null as string | null, nextSlot: null as 'HOME' | 'AWAY' | null,
     match: { id: `m${i}`, status: 'UNSCHEDULED', confirmedResultSubmissionId: null as string | null, homeReadyAt: null as Date | null, awayReadyAt: null as Date | null, _count: { resultSubmissions: 0, statEvents: 0, ocrExtractions: 0, disputes: 0 } },
   }));
   const tx = { tournamentGroup: { findMany: vi.fn().mockResolvedValue(groups) }, fixture: {
     count: vi.fn().mockResolvedValue(0), findMany: vi.fn().mockResolvedValue(old), update: vi.fn().mockResolvedValue({}),
-  }, auditLog: { create: vi.fn().mockResolvedValue({}) } };
+  }, match: { update: vi.fn().mockResolvedValue({}) }, auditLog: { create: vi.fn().mockResolvedValue({}) } };
   const prisma = { tournament: { findUnique: vi.fn().mockResolvedValue({ id: 't' }) }, tournamentGroup: { findMany: vi.fn().mockResolvedValue(groups) }, fixture: { count: vi.fn().mockResolvedValueOnce(220).mockResolvedValueOnce(0).mockResolvedValueOnce(11) }, $transactionWithRetry: vi.fn(async (fn) => fn(tx)) };
   const auth = { assertCanManageTournament: vi.fn().mockResolvedValue(undefined) };
   const service = new PlayoffsService(prisma as never, auth as never);
@@ -69,6 +69,7 @@ describe('Existing playoff reseeding', () => {
     expect(auth.assertCanManageTournament).toHaveBeenCalledWith('owner', 't');
     expect(tx.fixture.update.mock.calls.every(([args]) => old.some((f) => f.id === args.where.id))).toBe(true);
     expect(tx.fixture.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'f4' }, data: expect.objectContaining({ homeRegistrationId: '1-0', awayRegistrationId: null }) }));
+    expect(tx.match.update).toHaveBeenCalledTimes(old.length);
     expect(tx.auditLog.create).toHaveBeenCalledOnce();
   });
   it.each(['resultSubmissions', 'statEvents', 'ocrExtractions', 'disputes'] as const)('blocks %s without writes', async (field) => {
@@ -117,12 +118,10 @@ describe('Existing playoff reseeding', () => {
 
   it.each([
     ['fixture status', (old: ReturnType<typeof setup>['old']) => { old[0].status = 'LIVE'; }],
-    ['fixture schedule', (old: ReturnType<typeof setup>['old']) => { old[0].scheduledAt = new Date(); }],
-    ['match status', (old: ReturnType<typeof setup>['old']) => { old[0].match.status = 'LIVE'; }],
+    ['live match status', (old: ReturnType<typeof setup>['old']) => { old[0].match.status = 'LIVE'; }],
+    ['completed match status', (old: ReturnType<typeof setup>['old']) => { old[0].match.status = 'COMPLETED'; }],
     ['confirmed result', (old: ReturnType<typeof setup>['old']) => { old[0].match.confirmedResultSubmissionId = 'result'; }],
-    ['home readiness', (old: ReturnType<typeof setup>['old']) => { old[0].match.homeReadyAt = new Date(); }],
-    ['away readiness', (old: ReturnType<typeof setup>['old']) => { old[0].match.awayReadyAt = new Date(); }],
-  ])('blocks %s as match activity without writes', async (_label, mutate) => {
+  ])('blocks %s as real match activity without writes', async (_label, mutate) => {
     const { run, old, tx } = setup();
     mutate(old);
 
@@ -130,7 +129,33 @@ describe('Existing playoff reseeding', () => {
       response: { error: { code: 'RESEED_ACTIVITY' } },
     });
     expect(tx.fixture.update).not.toHaveBeenCalled();
+    expect(tx.match.update).not.toHaveBeenCalled();
     expect(tx.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['stale schedule', (old: ReturnType<typeof setup>['old']) => { old[0].scheduledAt = new Date(); }],
+    ['stale scheduled match status', (old: ReturnType<typeof setup>['old']) => { old[0].match.status = 'SCHEDULED'; }],
+    ['stale postponed match status', (old: ReturnType<typeof setup>['old']) => { old[0].match.status = 'POSTPONED'; }],
+    ['home readiness', (old: ReturnType<typeof setup>['old']) => { old[0].match.homeReadyAt = new Date(); }],
+    ['away readiness', (old: ReturnType<typeof setup>['old']) => { old[0].match.awayReadyAt = new Date(); }],
+  ])('normalizes %s and reseeds safely', async (_label, mutate) => {
+    const { run, old, tx } = setup();
+    mutate(old);
+
+    const result = await run();
+
+    expect(result.data.message).toContain('reseeded successfully');
+    expect(tx.fixture.update).toHaveBeenCalledTimes(old.length + 8);
+    expect(tx.fixture.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'f0' },
+      data: expect.objectContaining({ scheduledAt: null, status: 'UNSCHEDULED' }),
+    }));
+    expect(tx.match.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { fixtureId: 'f0' },
+      data: { status: 'UNSCHEDULED', homeReadyAt: null, awayReadyAt: null },
+    }));
+    expect(tx.auditLog.create).toHaveBeenCalledOnce();
   });
 
   it('enforces authorization before mutation', async () => {

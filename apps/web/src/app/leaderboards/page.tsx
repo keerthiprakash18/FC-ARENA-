@@ -604,7 +604,7 @@ export default function LeaderboardsPage() {
                               key={label}
                               className="theme-soft-accent rounded-lg border px-2 py-2.5"
                             >
-                              <p className="theme-muted text-xs">{label}</p>
+                              <p className="theme-muted text-[10px] font-semibold uppercase tracking-[0.08em]">{label}</p>
 
                               <p className="theme-text mt-1 text-xs font-bold">
                                 {value}

@@ -33,7 +33,7 @@ describe('Existing playoff reseeding', () => {
   });
   it.each(['resultSubmissions', 'statEvents', 'ocrExtractions', 'disputes'] as const)('blocks %s without writes', async (field) => {
     const { run, old, tx } = setup(); old[0].match._count[field] = 1;
-    await expect(run()).rejects.toThrow('match activity'); expect(tx.fixture.update).not.toHaveBeenCalled();
+    await expect(run()).rejects.toMatchObject({ response: { error: { code: 'RESEED_ACTIVITY' } } }); expect(tx.fixture.update).not.toHaveBeenCalled();
   });
   it('blocks started fixtures', async () => {
     const { run, old, tx } = setup(); old[0].status = 'LIVE';
@@ -41,7 +41,7 @@ describe('Existing playoff reseeding', () => {
   });
   it('blocks changes to the qualified team set', async () => {
     const { run, old, tx } = setup(); old[0].homeRegistrationId = 'other';
-    await expect(run()).rejects.toThrow('Qualified teams changed'); expect(tx.fixture.update).not.toHaveBeenCalled();
+    await expect(run()).rejects.toMatchObject({ response: { error: { code: 'RESEED_QUALIFIERS' } } }); expect(tx.fixture.update).not.toHaveBeenCalled();
   });
   it('enforces authorization before mutation', async () => {
     const { run, auth, tx } = setup(); auth.assertCanManageTournament.mockRejectedValue(new Error('Forbidden'));

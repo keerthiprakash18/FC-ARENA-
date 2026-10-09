@@ -442,14 +442,58 @@ export class PlayoffsService {
                 message: 'Existing playoff fixture count differs from the protected bracket structure.',
               } });
             }
-            if (old.some((f) =>
-              f.status !== 'UNSCHEDULED' || f.scheduledAt || !f.match ||
-              f.match.status !== 'UNSCHEDULED' || f.match.confirmedResultSubmissionId ||
-              f.match.homeReadyAt || f.match.awayReadyAt ||
-              Object.values(f.match._count).some((count) => count > 0)
-            )) {
-              throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_ACTIVITY', message: 'Playoff reseeding blocked: a match is scheduled, started, ready, or has match activity (result, OCR upload, dispute or stat event).' } });
+            const missingMatch = old.find((fixture) => !fixture.match);
+            if (missingMatch) {
+              throw new ConflictException({ success: false, data: null, error: {
+                code: 'RESEED_MATCH_MISSING',
+                message: `Playoff reseeding blocked: ${missingMatch.fixtureCode} is missing its match record.`,
+              } });
             }
+
+            const lockedFixture = old.find((fixture) => fixture.status !== 'UNSCHEDULED');
+            if (lockedFixture) {
+              throw new ConflictException({ success: false, data: null, error: {
+                code: 'RESEED_ACTIVITY',
+                message: `Playoff reseeding blocked: ${lockedFixture.fixtureCode} has fixture status ${lockedFixture.status}. Only UNSCHEDULED playoff fixtures can be reseeded.`,
+              } });
+            }
+
+            const realActivity = old.find((fixture) => {
+              const match = fixture.match!;
+              return (
+                ['LIVE', 'COMPLETED', 'CANCELLED'].includes(match.status) ||
+                Boolean(match.confirmedResultSubmissionId) ||
+                Object.values(match._count).some((count) => count > 0)
+              );
+            });
+
+            if (realActivity) {
+              const match = realActivity.match!;
+              const reasons = [
+                ['LIVE', 'COMPLETED', 'CANCELLED'].includes(match.status) ? `match status ${match.status}` : null,
+                match.confirmedResultSubmissionId ? 'confirmed result' : null,
+                match._count.resultSubmissions > 0 ? `${match._count.resultSubmissions} result submission(s)` : null,
+                match._count.ocrExtractions > 0 ? `${match._count.ocrExtractions} OCR upload(s)` : null,
+                match._count.disputes > 0 ? `${match._count.disputes} dispute(s)` : null,
+                match._count.statEvents > 0 ? `${match._count.statEvents} stat event(s)` : null,
+              ].filter(Boolean).join(', ');
+
+              throw new ConflictException({ success: false, data: null, error: {
+                code: 'RESEED_ACTIVITY',
+                message: `Playoff reseeding blocked by ${realActivity.fixtureCode}: ${reasons}. Existing results/activity were not modified.`,
+              } });
+            }
+
+            // Older brackets can contain stale pre-match metadata even while
+            // the fixture itself is UNSCHEDULED. This state has no score/result
+            // history, so it is safe to normalize while preserving fixture and
+            // match IDs. Readiness belongs to the old pairing and must be reset.
+            const hasStalePrematchState = old.some((fixture) =>
+              Boolean(fixture.scheduledAt) ||
+              fixture.match!.status !== 'UNSCHEDULED' ||
+              Boolean(fixture.match!.homeReadyAt) ||
+              Boolean(fixture.match!.awayReadyAt)
+            );
             const currentEntrants = new Set(old.flatMap((f) => [f.homeRegistrationId, f.awayRegistrationId]).filter(Boolean));
             if (currentEntrants.size !== seedOrder.length || seedOrder.some((id) => !currentEntrants.has(id))) {
               throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_QUALIFIERS', message: 'Qualified teams changed. Existing playoffs were not modified.' } });
@@ -480,7 +524,7 @@ export class PlayoffsService {
               }
             }
 
-            const alreadyProtected = blueprints.every((blueprint, index) => {
+            const alreadyProtected = !hasStalePrematchState && blueprints.every((blueprint, index) => {
               const current = old[index];
               const progression = desiredProgression.get(current.id)!;
               return current.homeRegistrationId === blueprint.homeRegistrationId &&
@@ -500,7 +544,14 @@ export class PlayoffsService {
               await tx.fixture.update({ where: { id: old[i].id }, data: {
                 homeRegistrationId: b.homeRegistrationId, awayRegistrationId: b.awayRegistrationId,
                 roundName: b.roundName, bracketPosition: b.bracketPosition,
+                scheduledAt: null,
+                status: 'UNSCHEDULED',
                 nextFixtureId: null, nextSlot: null,
+              } });
+              await tx.match.update({ where: { fixtureId: old[i].id }, data: {
+                status: 'UNSCHEDULED',
+                homeReadyAt: null,
+                awayReadyAt: null,
               } });
             }
             for (const b of blueprints) {
@@ -658,7 +709,7 @@ export class PlayoffsService {
         message:
           reseed
             ? operation.reseedChanged
-              ? 'Existing playoffs reseeded successfully.'
+              ? 'Existing playoffs reseeded successfully. Stale pre-match schedule/readiness state was reset where needed.'
               : 'Existing playoffs already use protected seeding. No changes were needed.'
             : 'Knockout stage generated successfully.',
 

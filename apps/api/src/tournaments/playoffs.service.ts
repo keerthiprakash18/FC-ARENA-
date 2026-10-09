@@ -402,6 +402,7 @@ export class PlayoffsService {
     const blueprints =
       generateKnockoutFixtures(
         seedOrder,
+        seedPlan.bracketSlots,
       ).map((blueprint) => seedPlan.byeCount > 0 && blueprint.roundNumber === 1
         ? { ...blueprint, roundName: 'PLAY-IN' }
         : blueprint);

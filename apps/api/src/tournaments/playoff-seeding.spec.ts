@@ -15,7 +15,7 @@ describe('Established playoff seeding rules', () => {
     expect(plan).toMatchObject({ bracketSize: 16, byeCount: 4, playInMatches: 4 });
     expect(plan.seedOrder.slice(0, 4)).toEqual(['G1-R1', 'G2-R1', 'G1-R2', 'G2-R2']);
     expect(new Set(plan.seedOrder).size).toBe(12);
-    const fixtures = generateKnockoutFixtures(plan.seedOrder);
+    const fixtures = generateKnockoutFixtures(plan.seedOrder, plan.bracketSlots);
     expect(fixtures).toHaveLength(11);
     expect(fixtures.filter((fixture) => fixture.roundNumber === 1)).toHaveLength(4);
     expect(fixtures.filter((fixture) => fixture.roundNumber === 2)).toHaveLength(4);
@@ -39,5 +39,69 @@ describe('Established playoff seeding rules', () => {
   });
   it('rejects duplicate qualifiers before bracket generation', () => {
     expect(() => buildPlayoffSeedPlan([{ id: 'A', position: 1, qualifiers: [{ id: 'duplicate' }, { id: 'duplicate' }] }])).toThrow('Duplicate');
+  });
+});
+
+
+describe('Protected playoff bracket progression', () => {
+  function draw(count: number, groupCount = 2) {
+    const plan = buildPlayoffSeedPlan(groups(groupCount, count));
+    const fixtures = generateKnockoutFixtures(plan.seedOrder, plan.bracketSlots);
+    const entrants = (key: string): string[] => {
+      const fixture = fixtures.find((item) => item.key === key)!;
+      return [
+        ...(fixture.homeRegistrationId ? [fixture.homeRegistrationId] : entrants(fixture.homeSourceKey!)),
+        ...(fixture.awayRegistrationId ? [fixture.awayRegistrationId] : entrants(fixture.awaySourceKey!)),
+      ];
+    };
+    return { plan, fixtures, entrants };
+  }
+
+  it('matches the approved 12-team quarterfinal paths', () => {
+    const { fixtures, entrants } = draw(6);
+    const quarters = fixtures.filter((f) => f.roundName === 'QUARTER FINAL');
+    expect(quarters.map((f) => entrants(f.key))).toEqual([
+      ['G1-R1', 'G2-R4', 'G1-R5'],
+      ['G2-R2', 'G1-R3', 'G2-R6'],
+      ['G2-R1', 'G1-R4', 'G2-R5'],
+      ['G1-R2', 'G2-R3', 'G1-R6'],
+    ]);
+    const firstRound = fixtures.filter((f) => f.roundNumber === 1);
+    expect(firstRound).toHaveLength(4);
+    expect(firstRound.every((f) => f.homeRegistrationId!.slice(0, 2) !== f.awayRegistrationId!.slice(0, 2))).toBe(true);
+  });
+
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 16])('protects seeds and every progression path with Top-%i groups', (count) => {
+    const { plan, fixtures, entrants } = draw(count);
+    expect(fixtures).toHaveLength(2 * count - 1);
+    const final = fixtures.find((f) => f.roundName === 'FINAL')!;
+    expect(entrants(final.key).sort()).toEqual([...plan.seedOrder].sort());
+    const semis = fixtures.filter((f) => f.roundName === 'SEMI FINAL');
+    expect(entrants(semis[0].key)).toContain('G1-R1');
+    expect(entrants(semis[0].key)).not.toContain('G2-R1');
+    expect(entrants(semis[1].key)).toContain('G2-R1');
+    expect(entrants(semis[0].key)).not.toContain('G1-R2');
+    expect(entrants(semis[1].key)).not.toContain('G2-R2');
+    const byes = plan.bracketSlots.flatMap((id, i, slots) => i % 2 === 0 && slots[i + 1] === null ? [id] : []);
+    expect(byes.sort()).toEqual(plan.seedOrder.slice(0, plan.byeCount).sort());
+    for (const fixture of fixtures) {
+      for (const source of [fixture.homeSourceKey, fixture.awaySourceKey]) {
+        if (!source) continue;
+        expect(fixtures.find((f) => f.key === source)!.roundNumber).toBe(fixture.roundNumber - 1);
+        expect(fixtures.filter((f) => f.homeSourceKey === source || f.awaySourceKey === source)).toHaveLength(1);
+      }
+    }
+  });
+
+  it('keeps four group winners in separate quarters', () => {
+    const { fixtures, entrants } = draw(3, 4);
+    const quarters = fixtures.filter((f) => f.roundName === 'QUARTER FINAL');
+    expect(quarters.map((f) => entrants(f.key).filter((id) => id.endsWith('-R1')).length)).toEqual([1, 1, 1, 1]);
+  });
+
+  it('rejects missing, duplicate and empty-branch slot layouts', () => {
+    expect(() => generateKnockoutFixtures(['A', 'B', 'C'], ['A', null, 'B', 'B'])).toThrow();
+    expect(() => generateKnockoutFixtures(['A', 'B'], [null, null])).toThrow();
+    expect(() => generateKnockoutFixtures(['A', 'B'], ['A', 'X'])).toThrow();
   });
 });

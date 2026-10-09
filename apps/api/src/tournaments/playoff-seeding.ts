@@ -6,6 +6,7 @@ export interface PlayoffSeedGroup {
 
 export interface PlayoffSeedPlan {
   seedOrder: string[];
+  bracketSlots: Array<string | null>;
   bracketSize: number;
   byeCount: number;
   playInMatches: number;
@@ -79,8 +80,20 @@ export function buildPlayoffSeedPlan(
     seedOrder.push(highSeed.id, lowSeed.id);
   }
 
+  // Place the strongest branches in separate halves/quarters. A missing
+  // opponent is an explicit bye, not a fixture that needs a result.
+  let branchSeeds = [1];
+  for (let size = 2; size <= bracketSize / 2; size *= 2) {
+    branchSeeds = branchSeeds.flatMap((seed) => [seed, size + 1 - seed]);
+  }
+  const bracketSlots = branchSeeds.flatMap((seed) => [
+    rankedSeeds[seed - 1].id,
+    rankedSeeds[bracketSize - seed]?.id ?? null,
+  ]);
+
   return {
     seedOrder,
+    bracketSlots,
     bracketSize,
     byeCount,
     playInMatches: byeCount > 0 ? remaining.length / 2 : 0,

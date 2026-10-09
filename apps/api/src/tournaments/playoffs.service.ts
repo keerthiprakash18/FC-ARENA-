@@ -226,7 +226,7 @@ export class PlayoffsService {
       ? (existingPlayoffs + 1) / groups.length
       : dto.qualifiersPerGroup;
     if (!Number.isInteger(qualifiersPerGroup) || qualifiersPerGroup < 1 || (reseed && !existingPlayoffs)) {
-      throw new ConflictException('Existing playoff qualification format cannot be reseeded.');
+      throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_FORMAT', message: 'Existing playoff qualification format cannot be reseeded.' } });
     }
 
 
@@ -442,15 +442,15 @@ export class PlayoffsService {
               f.match.homeReadyAt || f.match.awayReadyAt ||
               Object.values(f.match._count).some((count) => count > 0)
             )) {
-              throw new ConflictException('Only wholly unstarted, unscheduled playoffs without match activity can be reseeded.');
+              throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_ACTIVITY', message: 'Playoff reseeding blocked: a match is scheduled, started, ready, or has match activity (result, OCR upload, dispute or stat event).' } });
             }
             const currentEntrants = new Set(old.flatMap((f) => [f.homeRegistrationId, f.awayRegistrationId]).filter(Boolean));
             if (currentEntrants.size !== seedOrder.length || seedOrder.some((id) => !currentEntrants.has(id))) {
-              throw new ConflictException('Qualified teams changed. Existing playoffs were not modified.');
+              throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_QUALIFIERS', message: 'Qualified teams changed. Existing playoffs were not modified.' } });
             }
             const ids = new Map<string, string>();
             blueprints.forEach((b, i) => {
-              if (old[i].roundNumber !== b.roundNumber) throw new ConflictException('Existing playoff round structure differs.');
+              if (old[i].roundNumber !== b.roundNumber) throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_ROUNDS', message: 'Existing playoff round structure differs.' } });
               ids.set(b.key, old[i].id);
             });
             const before = old.map(({ match: _match, ...fixture }) => fixture);

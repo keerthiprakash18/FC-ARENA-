@@ -370,6 +370,28 @@ export default function PlayoffsPage() {
     );
   }, [playoffFixtures]);
 
+  async function reseedPlayoffs() {
+    if (busy) return;
+    const confirmed = await confirmAction({
+      title: "Apply balanced playoff seeding?",
+      description: "Update existing playoff opponents and winner progression. Group results, qualified teams and match IDs stay unchanged. This is allowed only before any playoff is scheduled or has match activity.",
+      confirmLabel: "Apply balanced seeding",
+    });
+    if (!confirmed) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await authenticatedRequest<{ data: { message: string } }>(`/tournaments/${tournamentId}/playoffs/reseed`, { method: "POST" });
+      await loadFixtures();
+      setMessage(response.data.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to reseed playoffs.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function generatePlayoffs() {
     if (incompleteGroupFixtures > 0) {
       setError(
@@ -516,6 +538,12 @@ export default function PlayoffsPage() {
             </p>
           </article>
         </section>
+
+        {tournament.isLeagueAdmin && playoffFixtures.length > 0 && incompleteGroupFixtures === 0 && playoffFixtures.every((f) => f.status === "UNSCHEDULED") && (
+          <button className="fc-button min-h-11" disabled={busy} onClick={() => void reseedPlayoffs()}>
+            {busy ? "Updating playoffs…" : "Apply balanced playoff seeding"}
+          </button>
+        )}
 
         {playoffFixtures.length === 0 ? (
           <>

@@ -13,6 +13,7 @@ export default defineConfig([
         ecmaVersion: "latest",
         sourceType: "module",
         ecmaFeatures: { jsx: true },
+        onUnsupportedTypeScriptVersion: "error",
       },
     },
     plugins: {
@@ -23,17 +24,20 @@ export default defineConfig([
     settings: {
       react: { version: "detect" },
     },
+    linterOptions: {
+      reportUnusedDisableDirectives: "error",
+    },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...reactPlugin.configs.recommended.rules,
       ...reactPlugin.configs["jsx-runtime"].rules,
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
       "react/prop-types": "off",
-      "react/no-unescaped-entities": "warn",
+      "react/no-unescaped-entities": "error",
       "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/exhaustive-deps": "error",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
   globalIgnores([

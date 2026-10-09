@@ -1,8 +1,11 @@
+import { fixupPluginRules } from "@eslint/compat";
 import { defineConfig, globalIgnores } from "eslint/config";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import reactPlugin from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
+
+const compatibleReactPlugin = fixupPluginRules(reactPlugin);
 
 export default defineConfig([
   {
@@ -18,7 +21,7 @@ export default defineConfig([
     },
     plugins: {
       "@typescript-eslint": tsPlugin,
-      react: reactPlugin,
+      react: compatibleReactPlugin,
       "react-hooks": reactHooks,
     },
     settings: {

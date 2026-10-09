@@ -46,5 +46,13 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
+  },
+  "allowScripts": {
+    "@firebase/util@1.15.3": true,
+    "@prisma/engines@7.10.0": true,
+    "prisma@7.10.0": true,
+    "msgpackr-extract@3.0.4": false,
+    "protobufjs@7.6.6": false,
+    "tesseract.js@7.0.0": false
   }
 }

@@ -113,8 +113,11 @@ jobs:
       - name: Security gate and environment checker regression tests
         run: node --test tests/security-audit-report.test.mjs tests/security-env.test.mjs
 
-      - name: Dependency critical gate (all dependencies)
-        run: npm audit --audit-level=critical
+      - name: Strict web CSP regression tests
+        run: node --test tests/web-csp.test.cjs
+
+      - name: Dependency high-severity gate (all dependencies)
+        run: npm audit --audit-level=high
 
       - name: Production dependency high-severity gate
         run: node scripts/security-audit-gate.mjs

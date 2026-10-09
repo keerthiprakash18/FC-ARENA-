@@ -2,6 +2,7 @@ import type {
   Metadata,
   Viewport,
 } from 'next';
+import { headers } from 'next/headers';
 
 import {
   ServiceWorkerRegister,
@@ -75,12 +76,16 @@ export const viewport: Viewport = {
     '#061E35',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children:
     React.ReactNode;
 }>) {
+  const nonce =
+    (await headers()).get('x-nonce') ??
+    undefined;
+
   const themeBootstrap = `
     (function () {
       if (/FC-Arena-Android\\//i.test(navigator.userAgent)) {
@@ -116,6 +121,7 @@ export default function RootLayout({
     >
       <head>
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html:
               themeBootstrap,

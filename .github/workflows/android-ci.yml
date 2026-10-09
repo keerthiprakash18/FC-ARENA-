@@ -86,9 +86,25 @@ jobs:
             printf '%s' "$FIREBASE_ANDROID_CONFIG_BASE64" | base64 --decode > apps/android/app/google-services.json
           fi
 
-      - name: Android lint, debug APK and release compilation (no AAB)
+      - name: Android lint, debug APK, R8 release APK and release bundle
         working-directory: apps/android
-        run: gradle :app:lintRelease :app:assembleDebug :app:compileReleaseJavaWithJavac :app:processReleaseResources --stacktrace
+        run: gradle :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
+
+      - name: Record release shrinker evidence
+        shell: bash
+        run: |
+          sha256sum apps/android/app/build/outputs/bundle/release/app-release.aab > apps/android/app/build/outputs/bundle/release/app-release.aab.sha256
+          test -s apps/android/app/build/outputs/mapping/release/mapping.txt
+
+      - name: Preserve R8 release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-r8-release-evidence
+          path: |
+            apps/android/app/build/outputs/bundle/release/app-release.aab
+            apps/android/app/build/outputs/bundle/release/app-release.aab.sha256
+            apps/android/app/build/outputs/mapping/release/mapping.txt
+          retention-days: 7
 
 
   launch-smoke:

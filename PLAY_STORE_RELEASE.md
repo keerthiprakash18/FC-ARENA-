@@ -24,6 +24,20 @@ The highest versionCode currently recorded as uploaded to Google Play is 11. Bui
 12. Confirm Crashlytics reporting and FCM push delivery/deep links on the final-source build.
 13. Review Play pre-launch report and policy declarations before production access/promotion.
 
+## Automated release evidence now required
+
+The repository CI now validates the Android release path more deeply before a Play artifact is accepted:
+
+- R8 code minification is enabled for release builds.
+- Android resource shrinking is enabled for release builds.
+- CI builds both a release APK and release AAB so shrinker failures are caught before local signing.
+- CI preserves the R8 `mapping.txt` file and an SHA-256 digest for the unsigned release bundle as build evidence.
+- Real Android WebView launch/navigation/scroll smoke runs on API 33, 34, 35 and 36.
+- The Android smoke exercises a real HTTPS notification deep-link intent and verifies it remains on the allowed `fcarena.in` host.
+- The signed-release helper still verifies the existing upload certificate before and after building and records the exact source SHA plus signed AAB SHA-256.
+
+These automated checks reduce the manual acceptance surface, but they do not replace Google Play or physical-device evidence.
+
 ## Required physical-device acceptance
 
 - cold launch

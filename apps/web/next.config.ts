@@ -45,12 +45,6 @@ const securityHeaders = [
     value:
       'camera=(), microphone=(), geolocation=()',
   },
-  {
-    key:
-      'Content-Security-Policy',
-    value:
-      "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://api.fcarena.in; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests",
-  },
 ];
 
 // Next.js/Vercel limits custom deployment IDs to 32 characters; Git commit

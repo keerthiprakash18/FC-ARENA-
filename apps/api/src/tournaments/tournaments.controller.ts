@@ -502,6 +502,11 @@ export class TournamentsController {
   }
 
 
+  @Post('tournaments/:tournamentId/playoffs/reseed')
+  reseedPlayoffs(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string) {
+    return this.playoffsService.generatePlayoffs(request.user.sub, tournamentId, { qualifiersPerGroup: 1 }, true);
+  }
+
   @Post(
     'tournaments/:tournamentId/playoffs/generate',
   )

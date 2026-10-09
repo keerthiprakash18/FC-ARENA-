@@ -44,6 +44,7 @@ export class PlayoffsService {
     userId: string,
     tournamentId: string,
     dto: GeneratePlayoffsDto,
+    reseed = false,
   ) {
     const tournament =
       await this.prisma.tournament.findUnique({
@@ -204,7 +205,7 @@ export class PlayoffsService {
 
     if (
       existingPlayoffs >
-      0
+      0 && !reseed
     ) {
       throw new ConflictException({
         success: false,
@@ -221,8 +222,12 @@ export class PlayoffsService {
     }
 
 
-    const qualifiersPerGroup =
-      dto.qualifiersPerGroup;
+    const qualifiersPerGroup = reseed
+      ? (existingPlayoffs + 1) / groups.length
+      : dto.qualifiersPerGroup;
+    if (!Number.isInteger(qualifiersPerGroup) || qualifiersPerGroup < 1 || (reseed && !existingPlayoffs)) {
+      throw new ConflictException('Existing playoff qualification format cannot be reseeded.');
+    }
 
 
     for (
@@ -423,6 +428,49 @@ export class PlayoffsService {
               code: 'QUALIFICATION_CHANGED', message: 'Group results or entries changed. Recheck standings before generating playoffs.',
             } });
           }
+          if (reseed) {
+            const old = await tx.fixture.findMany({
+              where: { tournamentId, groupId: null },
+              orderBy: [{ roundNumber: 'asc' }, { bracketPosition: 'asc' }, { sequence: 'asc' }],
+              include: { match: { include: { _count: { select: {
+                resultSubmissions: true, statEvents: true, ocrExtractions: true, disputes: true,
+              } } } } },
+            });
+            if (old.length !== blueprints.length || old.some((f) =>
+              f.status !== 'UNSCHEDULED' || f.scheduledAt || !f.match ||
+              f.match.status !== 'UNSCHEDULED' || f.match.confirmedResultSubmissionId ||
+              f.match.homeReadyAt || f.match.awayReadyAt ||
+              Object.values(f.match._count).some((count) => count > 0)
+            )) {
+              throw new ConflictException('Only wholly unstarted, unscheduled playoffs without match activity can be reseeded.');
+            }
+            const currentEntrants = new Set(old.flatMap((f) => [f.homeRegistrationId, f.awayRegistrationId]).filter(Boolean));
+            if (currentEntrants.size !== seedOrder.length || seedOrder.some((id) => !currentEntrants.has(id))) {
+              throw new ConflictException('Qualified teams changed. Existing playoffs were not modified.');
+            }
+            const ids = new Map<string, string>();
+            blueprints.forEach((b, i) => {
+              if (old[i].roundNumber !== b.roundNumber) throw new ConflictException('Existing playoff round structure differs.');
+              ids.set(b.key, old[i].id);
+            });
+            const before = old.map(({ match: _match, ...fixture }) => fixture);
+            for (const [i, b] of blueprints.entries()) {
+              await tx.fixture.update({ where: { id: old[i].id }, data: {
+                homeRegistrationId: b.homeRegistrationId, awayRegistrationId: b.awayRegistrationId,
+                roundName: b.roundName, bracketPosition: b.bracketPosition,
+                nextFixtureId: null, nextSlot: null,
+              } });
+            }
+            for (const b of blueprints) {
+              await this.connectPreviousFixtures(tx, b, ids.get(b.key)!, ids);
+            }
+            const after = await tx.fixture.findMany({ where: { tournamentId, groupId: null }, orderBy: { sequence: 'asc' } });
+            await tx.auditLog.create({ data: {
+              actorUserId: userId, action: 'PLAYOFFS_RESEEDED', targetType: 'Tournament', targetId: tournamentId,
+              beforeData: JSON.parse(JSON.stringify(before)), afterData: JSON.parse(JSON.stringify(after)),
+            } });
+            return old.length;
+          }
           const existing =
             await tx.fixture.count({
               where: {
@@ -564,7 +612,7 @@ export class PlayoffsService {
 
       data: {
         message:
-          'Knockout stage generated successfully.',
+          reseed ? 'Existing playoffs reseeded successfully.' : 'Knockout stage generated successfully.',
 
         qualifiersPerGroup,
 

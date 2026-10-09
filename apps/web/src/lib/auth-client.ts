@@ -841,9 +841,7 @@ export function subscribeAuthenticatedEvents(
               'Realtime connection closed.',
             );
           }
-        } catch (
-          error
-        ) {
+        } catch {
           if (
             stopped ||
             controller.signal

@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
+
 import { ApiError } from "@/lib/api";
 import { confirmAction, promptAction } from "@/components/fc/confirmation-provider";
 import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";

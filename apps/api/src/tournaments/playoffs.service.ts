@@ -413,7 +413,7 @@ export class PlayoffsService {
         : blueprint);
 
 
-    const created =
+    const operation =
       await this.prisma.$transactionWithRetry(
         async (tx) => {
           const currentGroups = await tx.tournamentGroup.findMany({
@@ -436,7 +436,13 @@ export class PlayoffsService {
                 resultSubmissions: true, statEvents: true, ocrExtractions: true, disputes: true,
               } } } } },
             });
-            if (old.length !== blueprints.length || old.some((f) =>
+            if (old.length !== blueprints.length) {
+              throw new ConflictException({ success: false, data: null, error: {
+                code: 'RESEED_ROUNDS',
+                message: 'Existing playoff fixture count differs from the protected bracket structure.',
+              } });
+            }
+            if (old.some((f) =>
               f.status !== 'UNSCHEDULED' || f.scheduledAt || !f.match ||
               f.match.status !== 'UNSCHEDULED' || f.match.confirmedResultSubmissionId ||
               f.match.homeReadyAt || f.match.awayReadyAt ||
@@ -448,11 +454,47 @@ export class PlayoffsService {
             if (currentEntrants.size !== seedOrder.length || seedOrder.some((id) => !currentEntrants.has(id))) {
               throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_QUALIFIERS', message: 'Qualified teams changed. Existing playoffs were not modified.' } });
             }
+
             const ids = new Map<string, string>();
             blueprints.forEach((b, i) => {
-              if (old[i].roundNumber !== b.roundNumber) throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_ROUNDS', message: 'Existing playoff round structure differs.' } });
+              if (old[i].roundNumber !== b.roundNumber) {
+                throw new ConflictException({ success: false, data: null, error: { code: 'RESEED_ROUNDS', message: 'Existing playoff round structure differs.' } });
+              }
               ids.set(b.key, old[i].id);
             });
+
+            const desiredProgression = new Map<string, { nextFixtureId: string | null; nextSlot: 'HOME' | 'AWAY' | null }>(
+              old.map((fixture) => [fixture.id, { nextFixtureId: null, nextSlot: null }]),
+            );
+            for (const blueprint of blueprints) {
+              const targetId = ids.get(blueprint.key)!;
+              if (blueprint.homeSourceKey) {
+                const sourceId = ids.get(blueprint.homeSourceKey);
+                if (!sourceId) throw new Error(`Missing source fixture: ${blueprint.homeSourceKey}`);
+                desiredProgression.set(sourceId, { nextFixtureId: targetId, nextSlot: 'HOME' });
+              }
+              if (blueprint.awaySourceKey) {
+                const sourceId = ids.get(blueprint.awaySourceKey);
+                if (!sourceId) throw new Error(`Missing source fixture: ${blueprint.awaySourceKey}`);
+                desiredProgression.set(sourceId, { nextFixtureId: targetId, nextSlot: 'AWAY' });
+              }
+            }
+
+            const alreadyProtected = blueprints.every((blueprint, index) => {
+              const current = old[index];
+              const progression = desiredProgression.get(current.id)!;
+              return current.homeRegistrationId === blueprint.homeRegistrationId &&
+                current.awayRegistrationId === blueprint.awayRegistrationId &&
+                current.roundName === blueprint.roundName &&
+                current.bracketPosition === blueprint.bracketPosition &&
+                current.nextFixtureId === progression.nextFixtureId &&
+                current.nextSlot === progression.nextSlot;
+            });
+
+            if (alreadyProtected) {
+              return { fixtures: old.length, reseedChanged: false };
+            }
+
             const before = old.map(({ match: _match, ...fixture }) => fixture);
             for (const [i, b] of blueprints.entries()) {
               await tx.fixture.update({ where: { id: old[i].id }, data: {
@@ -469,7 +511,7 @@ export class PlayoffsService {
               actorUserId: userId, action: 'PLAYOFFS_RESEEDED', targetType: 'Tournament', targetId: tournamentId,
               beforeData: JSON.parse(JSON.stringify(before)), afterData: JSON.parse(JSON.stringify(after)),
             } });
-            return old.length;
+            return { fixtures: old.length, reseedChanged: true };
           }
           const existing =
             await tx.fixture.count({
@@ -592,12 +634,14 @@ export class PlayoffsService {
           }
 
 
-          return (
-            sequence -
-            ((latestFixture
-              ?.sequence ??
-              0) + 1)
-          );
+          return {
+            fixtures:
+              sequence -
+              ((latestFixture
+                ?.sequence ??
+                0) + 1),
+            reseedChanged: false,
+          };
         },
 
         {
@@ -612,7 +656,11 @@ export class PlayoffsService {
 
       data: {
         message:
-          reseed ? 'Existing playoffs reseeded successfully.' : 'Knockout stage generated successfully.',
+          reseed
+            ? operation.reseedChanged
+              ? 'Existing playoffs reseeded successfully.'
+              : 'Existing playoffs already use protected seeding. No changes were needed.'
+            : 'Knockout stage generated successfully.',
 
         qualifiersPerGroup,
 
@@ -628,7 +676,7 @@ export class PlayoffsService {
           seedPlan.bracketSize,
 
         fixtures:
-          created,
+          operation.fixtures,
 
         groups:
           rankedGroups.map(

@@ -119,7 +119,7 @@ export default function PrivacyPage() {
         icon="shield"
       >
         <p>
-          Signed-in users can report inappropriate player profiles or community content and can block other players from new League-owner membership interactions. FC ARENA Super Admin moderation can review submitted reports and record resolution outcomes. League Admins can issue Fair Play events only for members of Leagues they administer, using FC ARENA's fixed event policy; affected players can review their event history and submit an appeal, and authorized admins can record the appeal outcome or revoke an event.
+          Signed-in users can report inappropriate player profiles or community content and can block other players from new League-owner membership interactions. FC ARENA Super Admin moderation can review submitted reports and record resolution outcomes. League Admins can issue Fair Play events only for members of Leagues they administer, using FC ARENA&apos;s fixed event policy; affected players can review their event history and submit an appeal, and authorized admins can record the appeal outcome or revoke an event.
         </p>
 
         <p>

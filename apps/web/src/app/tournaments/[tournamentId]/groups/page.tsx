@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
+
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
 import Link from 'next/link';
@@ -534,7 +536,7 @@ export default function TournamentGroupsPage() {
     );
   }
 
-  async function generateGroupFixtures() {
+  async function _generateGroupFixtures() {
     const confirmed =
       (await confirmAction(
         { title: 'Generate group fixtures?', description: 'Generate group-stage fixtures now? Group assignments will be locked after generation.', confirmLabel: 'Generate fixtures' },

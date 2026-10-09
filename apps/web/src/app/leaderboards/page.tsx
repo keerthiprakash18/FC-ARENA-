@@ -8,7 +8,6 @@ import {
   FcErrorState,
   FcPanel,
   FcStatCard,
-  FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
 import { SecondaryFeaturePage } from "@/components/fc/secondary-feature-page";

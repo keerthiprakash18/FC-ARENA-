@@ -192,6 +192,7 @@ export default function FixtureGeneratorSetupPage() {
       }
     })();
   }, [
+    draft.leagueId,
     router,
   ]);
 
@@ -277,6 +278,7 @@ export default function FixtureGeneratorSetupPage() {
       }
     })();
   }, [
+    draft.tournamentId,
     effectiveLeagueId,
   ]);
 

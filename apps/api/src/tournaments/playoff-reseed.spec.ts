@@ -8,9 +8,9 @@ function setup() {
     registrations: Array.from({ length: 6 }, (_, i) => ({ id: `${g}-${i}`, entryName: `${g}-${i}`, standing: { points: 20-i, goalDifference: 0, goalsFor: 0, wins: 0 } })),
   }));
   const plan = buildPlayoffSeedPlan(groups.map((g) => ({ ...g, qualifiers: g.registrations })));
-  const old = generateKnockoutFixtures(plan.seedOrder).map((f, i) => ({ ...f, id: `f${i}`, tournamentId: 't', groupId: null, status: 'UNSCHEDULED', scheduledAt: null,
-    nextFixtureId: null, nextSlot: null,
-    match: { id: `m${i}`, status: 'UNSCHEDULED', confirmedResultSubmissionId: null, homeReadyAt: null, awayReadyAt: null, _count: { resultSubmissions: 0, statEvents: 0, ocrExtractions: 0, disputes: 0 } },
+  const old = generateKnockoutFixtures(plan.seedOrder).map((f, i) => ({ ...f, id: `f${i}`, tournamentId: 't', groupId: null, status: 'UNSCHEDULED', scheduledAt: null as Date | null,
+    nextFixtureId: null as string | null, nextSlot: null as 'HOME' | 'AWAY' | null,
+    match: { id: `m${i}`, status: 'UNSCHEDULED', confirmedResultSubmissionId: null as string | null, homeReadyAt: null as Date | null, awayReadyAt: null as Date | null, _count: { resultSubmissions: 0, statEvents: 0, ocrExtractions: 0, disputes: 0 } },
   }));
   const tx = { tournamentGroup: { findMany: vi.fn().mockResolvedValue(groups) }, fixture: {
     count: vi.fn().mockResolvedValue(0), findMany: vi.fn().mockResolvedValue(old), update: vi.fn().mockResolvedValue({}),

@@ -374,7 +374,7 @@ export default function PlayoffsPage() {
     if (busy) return;
     const confirmed = await confirmAction({
       title: "Apply protected playoff seeding?",
-      description: "Give the strongest seeds bye priority where the bracket allows it and keep the strongest paths separated across the bracket. Existing fixture IDs, match IDs, group results and qualified teams stay unchanged. This is allowed only before any playoff is scheduled or has match activity.",
+      description: "Give the strongest seeds bye priority where the bracket allows it and keep the strongest paths separated across the bracket. Existing fixture IDs, match IDs, group results and qualified teams stay unchanged. Real match activity still blocks reseeding; stale pre-match schedule/readiness metadata on UNSCHEDULED fixtures is safely reset.",
       confirmLabel: "Apply protected seeding",
     });
     if (!confirmed) return;

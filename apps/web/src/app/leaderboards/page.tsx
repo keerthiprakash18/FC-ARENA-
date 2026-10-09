@@ -364,7 +364,7 @@ export default function LeaderboardsPage() {
                 />
               ) : (
                 <>
-                  <section className="grid grid-cols-3 items-end gap-2 sm:gap-3" aria-label="Top three players">
+                  <section className="hidden grid-cols-3 items-end gap-3 md:grid" aria-label="Top three players">
                     {podiumRows.map((row) => {
                       const champion = row.position === 1;
 
@@ -372,15 +372,15 @@ export default function LeaderboardsPage() {
                         <FcPanel
                           key={row.userId}
                           className={
-                            "relative overflow-hidden p-3 text-center sm:p-5 " +
+                            "relative overflow-hidden p-5 text-center " +
                             (champion
-                              ? "min-h-[220px] border-amber-400/25 theme-soft-accent sm:min-h-[250px]"
-                              : "min-h-[188px] sm:min-h-[220px]")
+                              ? "min-h-[250px] border-amber-400/25 theme-soft-accent"
+                              : "min-h-[220px]")
                           }
                         >
                           <span
                             className={
-                              "mx-auto grid h-8 w-8 place-items-center rounded-full border text-xs font-black sm:h-10 sm:w-10 sm:text-sm " +
+                              "mx-auto grid h-10 w-10 place-items-center rounded-full border text-sm font-black " +
                               (champion
                                 ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
                                 : "theme-tone-premium")
@@ -397,11 +397,11 @@ export default function LeaderboardsPage() {
                             />
                           </div>
 
-                          <h2 className="theme-text mt-3 truncate text-xs font-bold sm:text-base">
+                          <h2 className="theme-text mt-3 truncate text-base font-bold">
                             {playerName(row)}
                           </h2>
 
-                          <p className="theme-text-link mt-3 text-xl font-black sm:text-3xl">
+                          <p className="theme-text-link mt-3 text-3xl font-black">
                             {row.performancePoints}
                           </p>
                           <p className="theme-muted text-[9px] font-semibold uppercase tracking-[0.1em]">
@@ -420,7 +420,7 @@ export default function LeaderboardsPage() {
                           </div>
 
                           {row.rankChange != null ? (
-                            <p className="theme-muted mt-2 text-[9px] sm:text-[10px]">
+                            <p className="theme-muted mt-2 text-[10px]">
                               {row.rankChange > 0
                                 ? `↑ ${row.rankChange} places`
                                 : row.rankChange < 0
@@ -428,6 +428,115 @@ export default function LeaderboardsPage() {
                                   : "No rank change"}
                             </p>
                           ) : null}
+                        </FcPanel>
+                      );
+                    })}
+                  </section>
+
+                  <section className="grid gap-3 md:hidden" aria-label="Top three players">
+                    {rankings.slice(0, 3).map((row) => {
+                      const champion = row.position === 1;
+
+                      return (
+                        <FcPanel
+                          key={row.userId}
+                          className={
+                            "relative overflow-hidden p-4 " +
+                            (champion
+                              ? "border-amber-400/25 theme-soft-accent"
+                              : "")
+                          }
+                        >
+                          <div
+                            data-player-id={row.userId}
+                            className="flex min-w-0 items-center gap-3"
+                          >
+                            <span
+                              className={
+                                "grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-sm font-black " +
+                                (champion
+                                  ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                                  : "theme-tone-premium")
+                              }
+                            >
+                              #{row.position}
+                            </span>
+
+                            <FcCrest
+                              name={playerName(row)}
+                              imageUrl={row.profileImageUrl}
+                              size="sm"
+                            />
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <p className="theme-text min-w-0 truncate text-base font-bold">
+                                  {playerName(row)}
+                                </p>
+                                {champion ? (
+                                  <span className="shrink-0 rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-amber-300">
+                                    Leader
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="theme-muted mt-1 truncate text-[10px]">
+                                {row.tournamentsPlayed} tournaments · {row.matches} matches
+                              </p>
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <p className="theme-text-link text-xl font-black leading-none">
+                                {row.performancePoints}
+                              </p>
+                              <p className="theme-muted mt-1 text-[9px] font-semibold uppercase tracking-[0.08em]">
+                                pts
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                            <div className="theme-soft-accent rounded-lg border px-2 py-2">
+                              <p className="theme-muted text-[9px] uppercase tracking-[0.08em]">
+                                Wins
+                              </p>
+                              <p className="theme-text mt-1 text-sm font-black">
+                                {row.wins}
+                              </p>
+                            </div>
+                            <div className="theme-soft-accent rounded-lg border px-2 py-2">
+                              <p className="theme-muted text-[9px] uppercase tracking-[0.08em]">
+                                Win %
+                              </p>
+                              <p className="theme-text mt-1 text-sm font-black">
+                                {row.winRate}%
+                              </p>
+                            </div>
+                            <div className="theme-soft-accent rounded-lg border px-2 py-2">
+                              <p className="theme-muted text-[9px] uppercase tracking-[0.08em]">
+                                GD
+                              </p>
+                              <p className="theme-text mt-1 text-sm font-black">
+                                {row.goalDifference > 0
+                                  ? "+" + row.goalDifference
+                                  : row.goalDifference}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <p className="theme-muted text-[10px]">
+                              {row.rankChange == null
+                                ? "No previous rank"
+                                : row.rankChange > 0
+                                  ? `↑ ${row.rankChange} places`
+                                  : row.rankChange < 0
+                                    ? `↓ ${Math.abs(row.rankChange)} places`
+                                    : "No rank change"}
+                            </p>
+                            <p className="theme-muted text-[10px]">
+                              {row.goalsFor} GF · {row.goalsAgainst} GA
+                            </p>
+                          </div>
                         </FcPanel>
                       );
                     })}
@@ -477,7 +586,7 @@ export default function LeaderboardsPage() {
                         </div>
 
                          <details className="fc-row-details"><summary>Statistics &amp; recent form</summary>
-                         <div className="mt-4 grid grid-cols-6 gap-1 text-center">
+                         <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                           {[
                             ["W", row.wins],
                             ["D", row.draws],
@@ -493,7 +602,7 @@ export default function LeaderboardsPage() {
                           ].map(([label, value]) => (
                             <div
                               key={label}
-                              className="theme-soft-accent rounded-lg border px-1 py-2"
+                              className="theme-soft-accent rounded-lg border px-2 py-2.5"
                             >
                               <p className="theme-muted text-xs">{label}</p>
 

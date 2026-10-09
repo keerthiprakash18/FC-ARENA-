@@ -373,9 +373,9 @@ export default function PlayoffsPage() {
   async function reseedPlayoffs() {
     if (busy) return;
     const confirmed = await confirmAction({
-      title: "Apply balanced playoff seeding?",
-      description: "Update existing playoff opponents and winner progression. Group results, qualified teams and match IDs stay unchanged. This is allowed only before any playoff is scheduled or has match activity.",
-      confirmLabel: "Apply balanced seeding",
+      title: "Apply protected playoff seeding?",
+      description: "Give the strongest seeds bye priority where the bracket allows it and keep the strongest paths separated across the bracket. Existing fixture IDs, match IDs, group results and qualified teams stay unchanged. This is allowed only before any playoff is scheduled or has match activity.",
+      confirmLabel: "Apply protected seeding",
     });
     if (!confirmed) return;
     setBusy(true);
@@ -541,7 +541,7 @@ export default function PlayoffsPage() {
 
         {tournament.isLeagueAdmin && playoffFixtures.length > 0 && incompleteGroupFixtures === 0 && playoffFixtures.every((f) => f.status === "UNSCHEDULED") && (
           <button className="fc-button min-h-11" disabled={busy} onClick={() => void reseedPlayoffs()}>
-            {busy ? "Updating playoffs…" : "Apply balanced playoff seeding"}
+            {busy ? "Updating playoffs…" : "Apply protected playoff seeding"}
           </button>
         )}
 

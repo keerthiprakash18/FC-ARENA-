@@ -534,7 +534,7 @@ export default function TournamentGroupsPage() {
     );
   }
 
-  async function generateGroupFixtures() {
+  async function _generateGroupFixtures() {
     const confirmed =
       (await confirmAction(
         { title: 'Generate group fixtures?', description: 'Generate group-stage fixtures now? Group assignments will be locked after generation.', confirmLabel: 'Generate fixtures' },

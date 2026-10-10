@@ -34,6 +34,10 @@ import {
 } from '@/components/tournaments/tournament-navigation';
 
 import {
+  EntryLogoUpload,
+} from '@/components/tournaments/entry-logo-upload';
+
+import {
   authenticatedRequest,
   type CurrentUser,
   getCurrentUser,
@@ -73,6 +77,7 @@ interface RegistrationMember {
 interface Registration {
   id: string;
   entryName: string | null;
+  entryLogoUrl: string | null;
   status: string;
   createdAt: string;
   reviewedAt: string | null;
@@ -1211,6 +1216,50 @@ export default function TournamentRegistrationPage() {
               <p className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.04] p-4 text-sm leading-6 text-emerald-300">
                 Approved. Your entry is now eligible for Tournament groups, fixtures, standings and verified match statistics.
               </p>
+            ) : null}
+
+            {myRegistration.status !==
+            'REJECTED' ? (
+              <div className="mt-5 border-t border-white/[0.06] pt-5">
+                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                  Team Logo
+                </p>
+
+                <EntryLogoUpload
+                  tournamentId={
+                    tournamentId
+                  }
+                  registrationId={
+                    myRegistration.id
+                  }
+                  entryName={
+                    myRegistration.entryName ||
+                    memberGameName(
+                      myRegistration,
+                    )
+                  }
+                  logoUrl={
+                    myRegistration.entryLogoUrl
+                  }
+                  locked={
+                    ![
+                      'DRAFT',
+                      'REGISTRATION_OPEN',
+                      'REGISTRATION_CLOSED',
+                    ].includes(
+                      tournament.status,
+                    )
+                  }
+                  onChanged={async () => {
+                    const updatedTournament =
+                      await refreshTournament();
+
+                    await refreshRegistrationState(
+                      updatedTournament,
+                    );
+                  }}
+                />
+              </div>
             ) : null}
 
             {myRegistration.status ===

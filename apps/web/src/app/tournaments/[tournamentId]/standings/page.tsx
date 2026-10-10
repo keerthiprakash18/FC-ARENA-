@@ -29,6 +29,7 @@ interface Standing {
   position: number;
   registrationId: string;
   entryName: string;
+  entryLogoUrl: string | null;
 
   played: number;
   wins: number;

@@ -113,6 +113,24 @@ export class PlayoffsService {
 
 
     if (
+      reseed &&
+      tournament.playoffSeedingBasis ===
+        'RANDOM'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'RANDOM_RESEED_NOT_SUPPORTED',
+          message:
+            'Random seeding cannot be reapplied safely because it would create a new draw. Reset the playoff preview and generate a new random draw instead.',
+        },
+      });
+    }
+
+
+    if (
       tournament.competitionFormat ===
       'GROUP_STAGE_KNOCKOUT'
     ) {

@@ -110,6 +110,12 @@ export class TournamentFixturePreviewService {
           bracketPosition:
             1,
 
+          phase:
+            tournament.competitionFormat ===
+              'SINGLE_ELIMINATION'
+              ? 'PLAYOFF'
+              : 'STAGE',
+
           homeRegistrationId:
             dto.homeRegistrationId,
 
@@ -539,10 +545,22 @@ export class TournamentFixturePreviewService {
           });
         }
 
+        const hasExplicitProgression =
+          fixtures.some(
+            (
+              fixture,
+            ) =>
+              Boolean(
+                fixture.nextFixtureId ||
+                fixture.loserNextFixtureId,
+              ),
+          );
+
         if (
           !dto.groupId &&
           tournament.competitionFormat ===
-          'SINGLE_ELIMINATION'
+            'SINGLE_ELIMINATION' &&
+          !hasExplicitProgression
         ) {
           const byRound =
             new Map<
@@ -665,10 +683,7 @@ export class TournamentFixturePreviewService {
                     publishedAt,
 
                   wizardStep:
-                    tournament.competitionFormat ===
-                    'GROUP_STAGE_KNOCKOUT'
-                      ? 'QUALIFICATION'
-                      : 'REVIEW',
+                    'REVIEW',
                 }),
           },
         });
@@ -695,10 +710,7 @@ export class TournamentFixturePreviewService {
         nextStep:
           dto.groupId
             ? 'FIXTURES'
-            : tournament.competitionFormat ===
-              'GROUP_STAGE_KNOCKOUT'
-              ? 'QUALIFICATION'
-              : 'REVIEW',
+            : 'REVIEW',
       },
 
       error: null,

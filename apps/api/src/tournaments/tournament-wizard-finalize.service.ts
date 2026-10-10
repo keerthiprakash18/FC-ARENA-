@@ -36,6 +36,51 @@ export class TournamentWizardFinalizeService {
 
     if (
       ![
+        'DRAFT',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        tournament.status,
+      )
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'PLAYOFF_SETUP_LOCKED',
+          message:
+            'Playoff setup can only be changed before the Tournament becomes active.',
+        },
+      });
+    }
+
+    const existingPlayoffs =
+      await this.prisma.fixture.count({
+        where: {
+          tournamentId,
+          phase:
+            'PLAYOFF',
+        },
+      });
+
+    if (
+      existingPlayoffs >
+      0
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'PLAYOFF_SETUP_LOCKED',
+          message:
+            'Reset the existing playoff fixture preview before changing the playoff format or seeding rules.',
+        },
+      });
+    }
+
+    if (
+      ![
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
       ].includes(

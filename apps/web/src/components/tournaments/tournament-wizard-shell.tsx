@@ -20,7 +20,7 @@ const stepLabels: Record<TournamentWizardStep, string> = {
   GROUPS: "Groups",
   FIXTURE_SETTINGS: "Fixture Settings",
   FIXTURE_PREVIEW: "Fixture Preview",
-  QUALIFICATION: "Qualification",
+  QUALIFICATION: "Playoff Setup",
   REVIEW: "Review",
 };
 

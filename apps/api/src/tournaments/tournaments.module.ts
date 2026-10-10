@@ -31,6 +31,10 @@ import {
 } from './tournament-entries.service.js';
 
 import {
+  TournamentEntryLogoService,
+} from './tournament-entry-logo.service.js';
+
+import {
   TournamentFixturePreviewService,
 } from './tournament-fixture-preview.service.js';
 
@@ -88,6 +92,7 @@ import {
   providers: [
     TournamentsService,
     TournamentEntriesService,
+    TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,
     TournamentLogoService,
@@ -101,6 +106,7 @@ import {
   exports: [
     TournamentsService,
     TournamentEntriesService,
+    TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,
     GroupFixturesService,

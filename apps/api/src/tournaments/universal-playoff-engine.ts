@@ -825,8 +825,53 @@ export function buildUniversalPlayoffPlan(
     );
   }
 
-  const seeded =
+  const protectedMetrics =
     protectedBracketSlots
+      ? Array.from(
+          {
+            length:
+              protectedBracketSlots.length /
+              2,
+          },
+          (
+            _,
+            index,
+          ) => {
+            const home =
+              protectedBracketSlots[
+                index *
+                2
+              ] ??
+              null;
+
+            const away =
+              protectedBracketSlots[
+                index *
+                  2 +
+                1
+              ] ??
+              null;
+
+            return {
+              entrants:
+                Number(
+                  Boolean(
+                    home,
+                  ),
+                ) +
+                Number(
+                  Boolean(
+                    away,
+                  ),
+                ),
+            };
+          },
+        )
+      : null;
+
+  const seeded =
+    protectedBracketSlots &&
+    protectedMetrics
       ? {
           seedOrder: [
             ...seedOrder,
@@ -836,24 +881,21 @@ export function buildUniversalPlayoffPlan(
           bracketSize:
             protectedBracketSlots.length,
           byeCount:
-            protectedBracketSlots.filter(
+            protectedMetrics.filter(
               (
-                value,
-                index,
-                slots,
+                pair,
               ) =>
-                index %
-                  2 ===
-                  0 &&
-                value &&
-                slots[
-                  index +
-                  1
-                ] ===
-                  null,
+                pair.entrants ===
+                1,
             ).length,
           playInMatches:
-            0,
+            protectedMetrics.filter(
+              (
+                pair,
+              ) =>
+                pair.entrants ===
+                2,
+            ).length,
         }
       : buildSeededBracketPlan(
           seedOrder,

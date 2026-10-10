@@ -1070,8 +1070,10 @@ body {
 .fc-app-shell,
 .theme-app-background {
   background:
+    var(--theme-club-glow),
     radial-gradient(circle at 88% 2%, color-mix(in srgb, var(--theme-primary) 8%, transparent), transparent 24rem),
     var(--theme-background);
+  background-attachment: fixed;
   color: var(--theme-text);
 }
 

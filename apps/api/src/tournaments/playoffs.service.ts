@@ -53,6 +53,36 @@ interface RankedGroup {
   qualifiers: RankedEntry[];
 }
 
+interface ReseedFixtureRecord {
+  id: string;
+  fixtureCode: string;
+  phase: string;
+  sequence: number;
+  status: string;
+  scheduledAt: Date | null;
+  homeRegistrationId: string | null;
+  awayRegistrationId: string | null;
+  roundNumber: number;
+  roundName: string;
+  bracketPosition: number;
+  nextFixtureId: string | null;
+  nextSlot: 'HOME' | 'AWAY' | null;
+  loserNextFixtureId: string | null;
+  loserNextSlot: 'HOME' | 'AWAY' | null;
+  match: {
+    status: string;
+    confirmedResultSubmissionId: string | null;
+    homeReadyAt: Date | null;
+    awayReadyAt: Date | null;
+    _count: {
+      resultSubmissions: number;
+      statEvents: number;
+      ocrExtractions: number;
+      disputes: number;
+    };
+  } | null;
+}
+
 
 @Injectable()
 export class PlayoffsService {
@@ -667,7 +697,7 @@ export class PlayoffsService {
         string[];
     },
   ) {
-    const old =
+    const old: ReseedFixtureRecord[] =
       await tx.fixture.findMany({
         where: {
           tournamentId:

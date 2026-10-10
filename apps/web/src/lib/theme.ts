@@ -1,38 +1,178 @@
-export type ThemePreference = "LUXURY_GOLD" | "CLASSIC_BLUE";
+export const THEME_PREFERENCES = [
+  "LUXURY_GOLD",
+  "CLASSIC_BLUE",
+  "CITY_SKY",
+  "LONDON_RED",
+  "MERSEY_RED",
+  "MADRID_ROYAL",
+  "CATALAN_NIGHTS",
+  "MUNICH_RED",
+  "PARIS_NIGHT",
+  "MILAN_BLUE",
+  "MILAN_RED",
+  "TURIN_MONO",
+] as const;
 
-export type ThemeDataAttribute = "luxury-gold" | "classic-blue";
+export type ThemePreference = (typeof THEME_PREFERENCES)[number];
+
+export type ThemeDataAttribute =
+  | "luxury-gold"
+  | "classic-blue"
+  | "city-sky"
+  | "london-red"
+  | "mersey-red"
+  | "madrid-royal"
+  | "catalan-nights"
+  | "munich-red"
+  | "paris-night"
+  | "milan-blue"
+  | "milan-red"
+  | "turin-mono";
+
+export interface ThemeOption {
+  preference: ThemePreference;
+  dataTheme: ThemeDataAttribute;
+  name: string;
+  palette: string;
+  description: string;
+  inspiration: string;
+  preview: {
+    background: string;
+    sidebar: string;
+    accent: string;
+    surface: string;
+  };
+}
 
 export const DEFAULT_THEME_PREFERENCE: ThemePreference = "LUXURY_GOLD";
 
 export const THEME_STORAGE_KEY = "fc-arena-theme-preference";
 
-export const THEME_OPTIONS = [
+export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
-    preference: "LUXURY_GOLD" as const,
-    dataTheme: "luxury-gold" as const,
+    preference: "LUXURY_GOLD",
+    dataTheme: "luxury-gold",
     name: "Luxury Gold",
     palette: "Cream • Navy • Gold",
-    description: "Premium football club style",
+    description: "FC ARENA's premium default football presentation.",
+    inspiration: "FC ARENA Original",
+    preview: { background: "#f6f4ee", sidebar: "#061e35", accent: "#d9b765", surface: "#fffefa" },
   },
   {
-    preference: "CLASSIC_BLUE" as const,
-    dataTheme: "classic-blue" as const,
+    preference: "CLASSIC_BLUE",
+    dataTheme: "classic-blue",
     name: "Classic Blue",
     palette: "White • Royal Blue • Navy",
-    description: "Clean modern sports style",
+    description: "Clean modern sports styling with a bright blue accent.",
+    inspiration: "FC ARENA Classic",
+    preview: { background: "#f5f8fd", sidebar: "#ffffff", accent: "#1168d0", surface: "#ffffff" },
+  },
+  {
+    preference: "CITY_SKY",
+    dataTheme: "city-sky",
+    name: "City Sky",
+    palette: "Sky Blue • Midnight Navy • White",
+    description: "Cool stadium lighting with an airy sky-blue matchday feel.",
+    inspiration: "Manchester-inspired",
+    preview: { background: "#eef8fc", sidebar: "#071d31", accent: "#63b6dc", surface: "#ffffff" },
+  },
+  {
+    preference: "LONDON_RED",
+    dataTheme: "london-red",
+    name: "London Red",
+    palette: "Red • White • Deep Navy",
+    description: "Crisp red accents, white surfaces and a disciplined London feel.",
+    inspiration: "North London-inspired",
+    preview: { background: "#fbf4f4", sidebar: "#151b2b", accent: "#d71920", surface: "#ffffff" },
+  },
+  {
+    preference: "MERSEY_RED",
+    dataTheme: "mersey-red",
+    name: "Mersey Red",
+    palette: "Deep Red • Cream • Charcoal",
+    description: "Warm red matchday atmosphere with restrained cream highlights.",
+    inspiration: "Merseyside-inspired",
+    preview: { background: "#f8f2ef", sidebar: "#231317", accent: "#c8102e", surface: "#fffaf6" },
+  },
+  {
+    preference: "MADRID_ROYAL",
+    dataTheme: "madrid-royal",
+    name: "Madrid Royal",
+    palette: "White • Royal Blue • Gold",
+    description: "Bright white surfaces, royal-blue structure and subtle gold prestige.",
+    inspiration: "Madrid-inspired",
+    preview: { background: "#f8f8fb", sidebar: "#101b3e", accent: "#2848a9", surface: "#ffffff" },
+  },
+  {
+    preference: "CATALAN_NIGHTS",
+    dataTheme: "catalan-nights",
+    name: "Catalan Nights",
+    palette: "Midnight Blue • Burgundy • Electric Blue",
+    description: "A darker match-night palette with blue and burgundy energy.",
+    inspiration: "Catalonia-inspired",
+    preview: { background: "#0b1020", sidebar: "#080d18", accent: "#2f77ff", surface: "#11182a" },
+  },
+  {
+    preference: "MUNICH_RED",
+    dataTheme: "munich-red",
+    name: "Munich Red",
+    palette: "Red • White • Graphite",
+    description: "High-contrast red styling with precise geometric stadium accents.",
+    inspiration: "Bavaria-inspired",
+    preview: { background: "#faf5f5", sidebar: "#201315", accent: "#d0021b", surface: "#ffffff" },
+  },
+  {
+    preference: "PARIS_NIGHT",
+    dataTheme: "paris-night",
+    name: "Paris Night",
+    palette: "Midnight Navy • Red • Ice White",
+    description: "Night-match navy with sharp red highlights and luminous surfaces.",
+    inspiration: "Paris-inspired",
+    preview: { background: "#081321", sidebar: "#050d18", accent: "#e31b36", surface: "#0f1d2d" },
+  },
+  {
+    preference: "MILAN_BLUE",
+    dataTheme: "milan-blue",
+    name: "Milan Blue",
+    palette: "Black • Royal Blue • Steel",
+    description: "A dramatic black-and-blue matchday palette with cool steel text.",
+    inspiration: "Blue Milan-inspired",
+    preview: { background: "#090d14", sidebar: "#05080d", accent: "#1672d4", surface: "#101722" },
+  },
+  {
+    preference: "MILAN_RED",
+    dataTheme: "milan-red",
+    name: "Milan Red",
+    palette: "Black • Crimson • Smoke",
+    description: "Dark stadium surfaces with controlled crimson highlights.",
+    inspiration: "Red Milan-inspired",
+    preview: { background: "#0d0b0d", sidebar: "#080608", accent: "#d5192d", surface: "#171217" },
+  },
+  {
+    preference: "TURIN_MONO",
+    dataTheme: "turin-mono",
+    name: "Turin Mono",
+    palette: "Black • White • Silver",
+    description: "Minimal monochrome football styling with metallic emphasis.",
+    inspiration: "Turin-inspired",
+    preview: { background: "#f2f3f4", sidebar: "#101214", accent: "#34383d", surface: "#ffffff" },
   },
 ] as const;
+
+const dataThemeByPreference = new Map<ThemePreference, ThemeDataAttribute>(
+  THEME_OPTIONS.map((option) => [option.preference, option.dataTheme]),
+);
 
 export function isThemePreference(
   value: string | null | undefined,
 ): value is ThemePreference {
-  return value === "LUXURY_GOLD" || value === "CLASSIC_BLUE";
+  return Boolean(value && (THEME_PREFERENCES as readonly string[]).includes(value));
 }
 
 export function preferenceToDataTheme(
   preference: ThemePreference,
 ): ThemeDataAttribute {
-  return preference === "LUXURY_GOLD" ? "luxury-gold" : "classic-blue";
+  return dataThemeByPreference.get(preference) ?? "luxury-gold";
 }
 
 export function applyThemePreference(

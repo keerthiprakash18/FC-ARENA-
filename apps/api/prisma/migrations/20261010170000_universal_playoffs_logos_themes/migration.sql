@@ -13,6 +13,7 @@ ALTER TYPE "ThemePreference" ADD VALUE IF NOT EXISTS 'TURIN_MONO';
 CREATE TYPE "PlayoffFormat" AS ENUM ('GLOBAL_SEEDED', 'PROTECTED_SEED', 'DOUBLE_CHANCE');
 CREATE TYPE "PlayoffSource" AS ENUM ('AUTO', 'DIRECT_ENTRIES', 'OVERALL_STANDINGS', 'GROUP_QUALIFIERS');
 CREATE TYPE "PlayoffSeedingBasis" AS ENUM ('AUTO', 'OVERALL_PERFORMANCE', 'GROUP_POSITION', 'MANUAL', 'RANDOM');
+CREATE TYPE "FixturePhase" AS ENUM ('STAGE', 'PLAYOFF');
 
 ALTER TABLE "tournaments"
   ADD COLUMN "playoffFormat" "PlayoffFormat" NOT NULL DEFAULT 'PROTECTED_SEED',
@@ -22,6 +23,7 @@ ALTER TABLE "tournaments"
   ADD COLUMN "avoidSameGroupEarly" BOOLEAN NOT NULL DEFAULT true;
 
 ALTER TABLE "fixtures"
+  ADD COLUMN "phase" "FixturePhase" NOT NULL DEFAULT 'STAGE',
   ADD COLUMN "loserNextFixtureId" UUID,
   ADD COLUMN "loserNextSlot" "FixtureNextSlot";
 
@@ -34,6 +36,21 @@ ALTER TABLE "fixtures"
 
 CREATE INDEX "fixtures_loserNextFixtureId_idx"
   ON "fixtures"("loserNextFixtureId");
+
+CREATE INDEX "fixtures_tournamentId_phase_roundNumber_idx"
+  ON "fixtures"("tournamentId", "phase", "roundNumber");
+
+UPDATE "fixtures" AS f
+SET "phase" = 'PLAYOFF'
+FROM "tournaments" AS t
+WHERE f."tournamentId" = t."id"
+  AND (
+    t."competitionFormat" = 'SINGLE_ELIMINATION'
+    OR (
+      t."competitionFormat" = 'GROUP_STAGE_KNOCKOUT'
+      AND f."groupId" IS NULL
+    )
+  );
 
 UPDATE "tournaments"
 SET

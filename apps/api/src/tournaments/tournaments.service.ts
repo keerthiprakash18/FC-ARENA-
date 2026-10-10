@@ -1180,6 +1180,24 @@ export class TournamentsService {
           maxEntries:
             tournament.maxEntries,
 
+          qualifiersPerGroup:
+            tournament.qualifiersPerGroup,
+
+          playoffFormat:
+            tournament.playoffFormat,
+
+          playoffSource:
+            tournament.playoffSource,
+
+          playoffSeedingBasis:
+            tournament.playoffSeedingBasis,
+
+          playoffQualifiersTotal:
+            tournament.playoffQualifiersTotal,
+
+          avoidSameGroupEarly:
+            tournament.avoidSameGroupEarly,
+
           startAt:
             tournament.startAt,
 
@@ -1532,14 +1550,13 @@ export class TournamentsService {
       );
     }
 
-    steps.push(
-      'FIXTURE_SETTINGS',
-      'FIXTURE_PREVIEW',
-    );
-
     if (
-      tournament.competitionFormat ===
-      'GROUP_STAGE_KNOCKOUT'
+      [
+        'GROUP_STAGE_KNOCKOUT',
+        'SINGLE_ELIMINATION',
+      ].includes(
+        tournament.competitionFormat,
+      )
     ) {
       steps.push(
         'QUALIFICATION',
@@ -1547,6 +1564,8 @@ export class TournamentsService {
     }
 
     steps.push(
+      'FIXTURE_SETTINGS',
+      'FIXTURE_PREVIEW',
       'REVIEW',
     );
 

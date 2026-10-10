@@ -109,7 +109,6 @@ export function EntryLogoUpload({
       <div className="flex items-center gap-3">
         <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)]">
           {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- Cloudinary entry logos are user-controlled remote assets.
             <img
               src={logoUrl}
               alt={`${entryName} logo`}

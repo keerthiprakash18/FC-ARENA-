@@ -22,6 +22,16 @@ enum GlobalRole {
 enum ThemePreference {
   LUXURY_GOLD
   CLASSIC_BLUE
+  CITY_SKY
+  LONDON_RED
+  MERSEY_RED
+  MADRID_ROYAL
+  CATALAN_NIGHTS
+  MUNICH_RED
+  PARIS_NIGHT
+  MILAN_BLUE
+  MILAN_RED
+  TURIN_MONO
 }
 
 enum OtpPurpose {
@@ -98,6 +108,27 @@ enum TournamentPairingMethod {
   SEEDED
   RANDOM
   MANUAL
+}
+
+enum PlayoffFormat {
+  GLOBAL_SEEDED
+  PROTECTED_SEED
+  DOUBLE_CHANCE
+}
+
+enum PlayoffSource {
+  AUTO
+  DIRECT_ENTRIES
+  OVERALL_STANDINGS
+  GROUP_QUALIFIERS
+}
+
+enum PlayoffSeedingBasis {
+  AUTO
+  OVERALL_PERFORMANCE
+  GROUP_POSITION
+  MANUAL
+  RANDOM
 }
 
 enum TournamentWizardStep {
@@ -536,6 +567,11 @@ model Tournament {
   publishedAt                 DateTime?
   qualifiersPerGroup          Int?
   playoffPairingMethod        TournamentPairingMethod     @default(CROSS_GROUP)
+  playoffFormat               PlayoffFormat               @default(PROTECTED_SEED)
+  playoffSource               PlayoffSource               @default(AUTO)
+  playoffSeedingBasis         PlayoffSeedingBasis         @default(AUTO)
+  playoffQualifiersTotal      Int?
+  avoidSameGroupEarly         Boolean                     @default(true)
   fixturesPublishedAt         DateTime?
   registrationOpenedAt        DateTime?
   registrationClosedAt        DateTime?
@@ -644,6 +680,8 @@ model Fixture {
   awayRegistrationId String?          @db.Uuid
   nextFixtureId      String?          @db.Uuid
   nextSlot           FixtureNextSlot?
+  loserNextFixtureId String?          @db.Uuid
+  loserNextSlot      FixtureNextSlot?
   scheduledAt        DateTime?
   venue              String?          @db.VarChar(160)
   publishedAt        DateTime?
@@ -655,9 +693,11 @@ model Fixture {
   group            TournamentGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   homeRegistration TournamentRegistration? @relation("FixtureHomeRegistration", fields: [homeRegistrationId], references: [id], onDelete: SetNull)
   awayRegistration TournamentRegistration? @relation("FixtureAwayRegistration", fields: [awayRegistrationId], references: [id], onDelete: SetNull)
-  nextFixture      Fixture?                @relation("FixtureProgression", fields: [nextFixtureId], references: [id], onDelete: SetNull)
-  previousFixtures Fixture[]               @relation("FixtureProgression")
-  match            Match?
+  nextFixture          Fixture?  @relation("FixtureProgression", fields: [nextFixtureId], references: [id], onDelete: SetNull)
+  previousFixtures     Fixture[] @relation("FixtureProgression")
+  loserNextFixture     Fixture?  @relation("FixtureLoserProgression", fields: [loserNextFixtureId], references: [id], onDelete: SetNull)
+  previousLoserFixtures Fixture[] @relation("FixtureLoserProgression")
+  match                Match?
 
   @@unique([tournamentId, sequence])
   @@index([tournamentId, roundNumber])
@@ -668,6 +708,7 @@ model Fixture {
   @@index([homeRegistrationId])
   @@index([awayRegistrationId])
   @@index([nextFixtureId])
+  @@index([loserNextFixtureId])
   @@map("fixtures")
 }
 

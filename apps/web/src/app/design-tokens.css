@@ -58,6 +58,10 @@
   --theme-card-shadow-hover: 0 3px 12px rgba(15,35,57,.06);
   --theme-overlay: rgba(7,30,53,.55);
   --theme-club-glow: radial-gradient(circle at 84% 10%, rgba(217,183,101,.10), transparent 24rem);
+  --theme-club-pattern: linear-gradient(transparent, transparent);
+  --theme-sidebar-pattern: linear-gradient(transparent, transparent);
+  --theme-club-label: "FC ARENA";
+  --theme-club-mark: "FC";
   --fc-shadow-subtle: var(--theme-card-shadow);
   --fc-shadow-raised: var(--theme-card-shadow-hover);
 
@@ -145,6 +149,16 @@
   --theme-border: #d1e6ef;
   --theme-focus: #2d8fbd;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(99,182,220,.26), transparent 27rem);
+  --theme-club-label: "MANCHESTER";
+  --theme-club-mark: "CITY";
+  --theme-club-pattern:
+    radial-gradient(circle at 82% 13%, rgba(111,196,232,.20), transparent 19rem),
+    linear-gradient(118deg, transparent 0 58%, rgba(255,255,255,.18) 58% 58.35%, transparent 58.35% 100%),
+    repeating-linear-gradient(90deg, rgba(99,182,220,.055) 0 1px, transparent 1px 72px);
+  --theme-sidebar-pattern:
+    radial-gradient(circle at 50% 12%, rgba(111,196,232,.18), transparent 16rem),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 2px, transparent 2px 30px);
+
 }
 
 :root[data-theme="london-red"] {
@@ -171,6 +185,15 @@
   --theme-border: #ecdadd;
   --theme-focus: #c91f2b;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(215,25,32,.18), transparent 26rem);
+  --theme-club-label: "NORTH LONDON";
+  --theme-club-mark: "ARSENAL";
+  --theme-club-pattern:
+    linear-gradient(135deg, rgba(201,31,43,.11) 0 10%, transparent 10% 42%, rgba(21,27,43,.055) 42% 52%, transparent 52% 100%),
+    repeating-linear-gradient(90deg, transparent 0 88px, rgba(201,31,43,.04) 88px 90px);
+  --theme-sidebar-pattern:
+    linear-gradient(155deg, rgba(201,31,43,.26), transparent 35%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 46px);
+
 }
 
 :root[data-theme="mersey-red"] {
@@ -197,6 +220,16 @@
   --theme-border: #ead9d5;
   --theme-focus: #b70f2a;
   --theme-club-glow: radial-gradient(circle at 84% 9%, rgba(200,16,46,.20), transparent 27rem);
+  --theme-club-label: "LIVERPOOL";
+  --theme-club-mark: "LFC";
+  --theme-club-pattern:
+    radial-gradient(ellipse at 82% 6%, rgba(183,15,42,.16), transparent 23rem),
+    repeating-linear-gradient(112deg, rgba(183,15,42,.045) 0 2px, transparent 2px 28px),
+    linear-gradient(180deg, transparent 0 72%, rgba(35,19,23,.035) 72% 100%);
+  --theme-sidebar-pattern:
+    radial-gradient(ellipse at 50% 5%, rgba(217,43,67,.22), transparent 18rem),
+    repeating-linear-gradient(112deg, rgba(255,255,255,.035) 0 2px, transparent 2px 28px);
+
 }
 
 :root[data-theme="madrid-royal"] {
@@ -223,6 +256,16 @@
   --theme-border: #e0e3ed;
   --theme-focus: #2848a9;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(212,171,76,.18), transparent 23rem), radial-gradient(circle at 72% 18%, rgba(40,72,169,.13), transparent 29rem);
+  --theme-club-label: "MADRID";
+  --theme-club-mark: "REAL";
+  --theme-club-pattern:
+    linear-gradient(108deg, transparent 0 62%, rgba(212,171,76,.14) 62% 62.35%, transparent 62.35% 100%),
+    repeating-linear-gradient(90deg, rgba(40,72,169,.035) 0 1px, transparent 1px 84px),
+    radial-gradient(circle at 80% 12%, rgba(40,72,169,.10), transparent 22rem);
+  --theme-sidebar-pattern:
+    linear-gradient(145deg, rgba(212,171,76,.18), transparent 30%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 56px);
+
 }
 
 :root[data-theme="catalan-nights"] {
@@ -251,6 +294,15 @@
   --theme-card-shadow: 0 2px 10px rgba(0,0,0,.24);
   --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.32);
   --theme-club-glow: radial-gradient(circle at 82% 9%, rgba(177,30,84,.18), transparent 24rem), radial-gradient(circle at 70% 20%, rgba(59,121,255,.16), transparent 31rem);
+  --theme-club-label: "BARCELONA";
+  --theme-club-mark: "BARÇA";
+  --theme-club-pattern:
+    repeating-linear-gradient(90deg, rgba(59,121,255,.09) 0 46px, rgba(177,30,84,.10) 46px 92px),
+    radial-gradient(circle at 80% 8%, rgba(177,30,84,.15), transparent 22rem);
+  --theme-sidebar-pattern:
+    repeating-linear-gradient(90deg, rgba(59,121,255,.12) 0 26px, rgba(177,30,84,.14) 26px 52px),
+    linear-gradient(180deg, rgba(8,13,24,.58), rgba(8,13,24,.92));
+
 }
 
 :root[data-theme="munich-red"] {
@@ -277,6 +329,15 @@
   --theme-border: #eadadd;
   --theme-focus: #c70a25;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(208,2,27,.18), transparent 26rem);
+  --theme-club-label: "MUNICH";
+  --theme-club-mark: "BAYERN";
+  --theme-club-pattern:
+    linear-gradient(45deg, rgba(199,10,37,.055) 25%, transparent 25% 75%, rgba(199,10,37,.055) 75%),
+    linear-gradient(-45deg, rgba(199,10,37,.04) 25%, transparent 25% 75%, rgba(199,10,37,.04) 75%);
+  --theme-sidebar-pattern:
+    linear-gradient(45deg, rgba(231,44,69,.10) 25%, transparent 25% 75%, rgba(231,44,69,.10) 75%),
+    linear-gradient(-45deg, rgba(255,255,255,.035) 25%, transparent 25% 75%, rgba(255,255,255,.035) 75%);
+
 }
 
 :root[data-theme="paris-night"] {
@@ -305,6 +366,14 @@
   --theme-card-shadow: 0 2px 10px rgba(0,0,0,.24);
   --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.32);
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(227,27,54,.18), transparent 24rem), radial-gradient(circle at 70% 19%, rgba(44,112,188,.16), transparent 31rem);
+  --theme-club-label: "PARIS";
+  --theme-club-mark: "PSG";
+  --theme-club-pattern:
+    linear-gradient(90deg, transparent 0 46.5%, rgba(255,255,255,.07) 46.5% 48%, rgba(227,27,54,.16) 48% 52%, rgba(255,255,255,.07) 52% 53.5%, transparent 53.5% 100%),
+    radial-gradient(circle at 82% 10%, rgba(90,168,255,.11), transparent 23rem);
+  --theme-sidebar-pattern:
+    linear-gradient(90deg, transparent 0 43%, rgba(255,255,255,.07) 43% 46%, rgba(227,27,54,.24) 46% 54%, rgba(255,255,255,.07) 54% 57%, transparent 57% 100%);
+
 }
 
 :root[data-theme="milan-blue"] {
@@ -333,6 +402,14 @@
   --theme-card-shadow: 0 2px 10px rgba(0,0,0,.25);
   --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.34);
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(22,114,212,.24), transparent 27rem);
+  --theme-club-label: "MILANO";
+  --theme-club-mark: "INTER";
+  --theme-club-pattern:
+    repeating-linear-gradient(90deg, rgba(22,114,212,.10) 0 46px, rgba(5,8,13,.055) 46px 92px),
+    radial-gradient(circle at 82% 10%, rgba(22,114,212,.17), transparent 23rem);
+  --theme-sidebar-pattern:
+    repeating-linear-gradient(90deg, rgba(22,114,212,.16) 0 28px, rgba(0,0,0,.15) 28px 56px);
+
 }
 
 :root[data-theme="milan-red"] {
@@ -361,6 +438,14 @@
   --theme-card-shadow: 0 2px 10px rgba(0,0,0,.25);
   --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.34);
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(213,25,45,.22), transparent 27rem);
+  --theme-club-label: "MILANO";
+  --theme-club-mark: "AC MILAN";
+  --theme-club-pattern:
+    repeating-linear-gradient(90deg, rgba(213,25,45,.095) 0 46px, rgba(8,6,8,.06) 46px 92px),
+    radial-gradient(circle at 82% 10%, rgba(213,25,45,.16), transparent 23rem);
+  --theme-sidebar-pattern:
+    repeating-linear-gradient(90deg, rgba(213,25,45,.15) 0 28px, rgba(0,0,0,.17) 28px 56px);
+
 }
 
 :root[data-theme="turin-mono"] {
@@ -387,6 +472,14 @@
   --theme-border: #d9dcdf;
   --theme-focus: #4b5056;
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(52,56,61,.13), transparent 25rem);
+  --theme-club-label: "TORINO";
+  --theme-club-mark: "JUVE";
+  --theme-club-pattern:
+    repeating-linear-gradient(90deg, rgba(16,18,20,.07) 0 40px, rgba(255,255,255,.10) 40px 80px),
+    radial-gradient(circle at 84% 9%, rgba(52,56,61,.12), transparent 22rem);
+  --theme-sidebar-pattern:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 24px, rgba(0,0,0,.22) 24px 48px);
+
 }
 
 :root[data-mode="dark"] {

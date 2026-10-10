@@ -383,6 +383,14 @@ export class FixturesService {
               nextSlot: true,
             },
           },
+
+          previousLoserFixtures: {
+            select: {
+              id: true,
+              fixtureCode: true,
+              loserNextSlot: true,
+            },
+          },
         },
       });
 
@@ -570,17 +578,13 @@ export class FixturesService {
       fixture.matchday;
 
     const isCanonicalRoundRobin =
+      fixture.phase !==
+        'PLAYOFF' &&
       fixture.tournament.format ===
         'ROUND_ROBIN' &&
       fixture.tournament
         .competitionFormat !==
-        'CUSTOM_MANUAL' &&
-      !(
-        fixture.tournament
-          .competitionFormat ===
-          'GROUP_STAGE_KNOCKOUT' &&
-        !fixture.groupId
-      );
+        'CUSTOM_MANUAL';
 
     if (
       isCanonicalRoundRobin
@@ -1545,6 +1549,20 @@ export class FixturesService {
           'AWAY',
       );
 
+    const homeLoserSource =
+      fixture.previousLoserFixtures?.find(
+        (previous: any) =>
+          previous.loserNextSlot ===
+          'HOME',
+      );
+
+    const awayLoserSource =
+      fixture.previousLoserFixtures?.find(
+        (previous: any) =>
+          previous.loserNextSlot ===
+          'AWAY',
+      );
+
     return {
       id: fixture.id,
       fixtureCode:
@@ -1559,6 +1577,8 @@ export class FixturesService {
         fixture.roundName,
       bracketPosition:
         fixture.bracketPosition,
+      phase:
+        fixture.phase,
       status:
         fixture.status,
       scheduledAt:
@@ -1610,16 +1630,6 @@ export class FixturesService {
           fixture.awayRegistration,
         ),
 
-      homeSource:
-        homeSource
-          ? {
-              id:
-                homeSource.id,
-              fixtureCode:
-                homeSource.fixtureCode,
-            }
-          : null,
-
       awaySource:
         awaySource
           ? {
@@ -1627,8 +1637,40 @@ export class FixturesService {
                 awaySource.id,
               fixtureCode:
                 awaySource.fixtureCode,
+              outcome:
+                'WINNER',
             }
-          : null,
+          : awayLoserSource
+            ? {
+                id:
+                  awayLoserSource.id,
+                fixtureCode:
+                  awayLoserSource.fixtureCode,
+                outcome:
+                  'LOSER',
+              }
+            : null,
+
+      homeSource:
+        homeSource
+          ? {
+              id:
+                homeSource.id,
+              fixtureCode:
+                homeSource.fixtureCode,
+              outcome:
+                'WINNER',
+            }
+          : homeLoserSource
+            ? {
+                id:
+                  homeLoserSource.id,
+                fixtureCode:
+                  homeLoserSource.fixtureCode,
+                outcome:
+                  'LOSER',
+              }
+            : null,
     };
   }
 
@@ -1645,6 +1687,9 @@ export class FixturesService {
 
       entryName:
         registration.entryName,
+
+      entryLogoUrl:
+        registration.entryLogoUrl,
 
       members:
         registration.members.map(

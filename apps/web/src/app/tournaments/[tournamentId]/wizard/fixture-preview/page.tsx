@@ -352,6 +352,10 @@ export default function FixturePreviewPage() {
         {
           method:
             "POST",
+          body:
+            JSON.stringify(
+              {},
+            ),
         },
       );
 

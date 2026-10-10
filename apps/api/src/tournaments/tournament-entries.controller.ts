@@ -7,8 +7,18 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+
+import {
+  FileInterceptor,
+} from '@nestjs/platform-express';
+
+import {
+  memoryStorage,
+} from 'multer';
 
 import type {
   Request,
@@ -42,6 +52,10 @@ import {
   TournamentEntriesService,
 } from './tournament-entries.service.js';
 
+import {
+  TournamentEntryLogoService,
+} from './tournament-entry-logo.service.js';
+
 
 type AuthenticatedRequest =
   Request & {
@@ -58,6 +72,9 @@ export class TournamentEntriesController {
   constructor(
     private readonly tournamentEntriesService:
       TournamentEntriesService,
+
+    private readonly tournamentEntryLogoService:
+      TournamentEntryLogoService,
   ) {}
 
 
@@ -219,4 +236,72 @@ export class TournamentEntriesController {
       registrationId,
     );
   }
+
+
+  @Post(
+    'tournaments/:tournamentId/entries/:registrationId/logo',
+  )
+  @UseInterceptors(
+    FileInterceptor(
+      'logo',
+      {
+        storage:
+          memoryStorage(),
+
+        limits: {
+          fileSize:
+            2 * 1024 * 1024,
+        },
+      },
+    ),
+  )
+  uploadLogo(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId:
+      string,
+
+    @Param('registrationId')
+    registrationId:
+      string,
+
+    @UploadedFile()
+    file:
+      Express.Multer.File,
+  ) {
+    return this.tournamentEntryLogoService.uploadLogo(
+      request.user.sub,
+      tournamentId,
+      registrationId,
+      file,
+    );
+  }
+
+
+  @Delete(
+    'tournaments/:tournamentId/entries/:registrationId/logo',
+  )
+  removeLogo(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId:
+      string,
+
+    @Param('registrationId')
+    registrationId:
+      string,
+  ) {
+    return this.tournamentEntryLogoService.removeLogo(
+      request.user.sub,
+      tournamentId,
+      registrationId,
+    );
+  }
+
 }

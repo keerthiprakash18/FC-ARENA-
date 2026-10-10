@@ -198,6 +198,10 @@ function StandingTable({
                 entry,
               ),
 
+            entryLogoUrl:
+              entry.entryLogoUrl ??
+              null,
+
             played: 0,
             wins: 0,
             draws: 0,

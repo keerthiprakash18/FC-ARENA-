@@ -164,9 +164,33 @@ export class FixturesService {
               where: { tournamentId, status: 'APPROVED' },
               orderBy: [{ reviewedAt: 'asc' }, { createdAt: 'asc' }], select: { id: true },
             });
-            if (current.status !== 'REGISTRATION_CLOSED' || current.format !== tournament.format ||
-              current.competitionFormat !== tournament.competitionFormat || current.legType !== tournament.legType ||
-              JSON.stringify(currentEntries.map((entry) => entry.id)) !== JSON.stringify(registrationIds)) {
+            if (
+              current.status !==
+                'REGISTRATION_CLOSED' ||
+              current.format !==
+                tournament.format ||
+              current.competitionFormat !==
+                tournament.competitionFormat ||
+              current.legType !==
+                tournament.legType ||
+              current.playoffFormat !==
+                tournament.playoffFormat ||
+              current.playoffSource !==
+                tournament.playoffSource ||
+              current.playoffSeedingBasis !==
+                tournament.playoffSeedingBasis ||
+              current.playoffQualifiersTotal !==
+                tournament.playoffQualifiersTotal ||
+              JSON.stringify(
+                currentEntries.map(
+                  (entry) =>
+                    entry.id,
+                ),
+              ) !==
+                JSON.stringify(
+                  registrationIds,
+                )
+            ) {
               throw new ConflictException({ success: false, data: null, error: {
                 code: 'FIXTURE_INPUTS_CHANGED', message: 'Tournament settings or approved entries changed. Generate the fixtures again.',
               } });

@@ -23,97 +23,80 @@ import { getCurrentUser, type CurrentUser } from "@/lib/auth-client";
 import {
   DEFAULT_THEME_PREFERENCE,
   THEME_OPTIONS,
+  type ThemeOption,
   type ThemePreference,
 } from "@/lib/theme";
 
-function ThemePreview({ preference }: { preference: ThemePreference }) {
-  const gold = preference === "LUXURY_GOLD";
-
+function ThemePreview({ option }: { option: ThemeOption }) {
   return (
     <div
-      className={
-        gold
-          ? "overflow-hidden rounded-2xl border border-[#DED8CD] bg-[#F7F3EB]"
-          : "overflow-hidden rounded-2xl border border-[#DCE5F1] bg-[#F5F8FD]"
-      }
+      className="overflow-hidden rounded-2xl border"
+      style={{
+        borderColor: option.preview.accent + "33",
+        background: option.preview.background,
+      }}
     >
       <div className="grid min-h-[180px] grid-cols-[70px_1fr]">
         <div
-          className={
-            gold ? "bg-[#061E35] p-3" : "border-r border-[#DCE5F1] bg-white p-3"
-          }
+          className="p-3"
+          style={{ background: option.preview.sidebar }}
         >
           <div
-            className={
-              gold
-                ? "h-7 w-7 rounded-lg border border-[#D5AE5C]/45 bg-[#0B2545]"
-                : "h-7 w-7 rounded-lg bg-[#E8F2FF]"
-            }
+            className="h-7 w-7 rounded-lg border"
+            style={{
+              borderColor: option.preview.accent + "66",
+              background: option.preview.accent + "22",
+            }}
           />
 
           <div className="mt-5 space-y-2">
             <div
-              className={
-                gold
-                  ? "h-6 rounded-md bg-[#D5AE5C]/20"
-                  : "h-6 rounded-md bg-[#1478F2]"
-              }
+              className="h-6 rounded-md"
+              style={{ background: option.preview.accent }}
             />
-
-            <div
-              className={
-                gold
-                  ? "h-6 rounded-md bg-white/[0.06]"
-                  : "h-6 rounded-md bg-[#F5F8FD]"
-              }
-            />
-
-            <div
-              className={
-                gold
-                  ? "h-6 rounded-md bg-white/[0.06]"
-                  : "h-6 rounded-md bg-[#F5F8FD]"
-              }
-            />
+            <div className="h-6 rounded-md bg-white/10" />
+            <div className="h-6 rounded-md bg-white/10" />
           </div>
         </div>
 
         <div className="p-3">
           <div
-            className={
-              gold
-                ? "h-7 rounded-lg border border-[#DED8CD] bg-[#FFFDF9]"
-                : "h-7 rounded-lg border border-[#DCE5F1] bg-white"
-            }
+            className="h-7 rounded-lg border"
+            style={{
+              borderColor: option.preview.accent + "2b",
+              background: option.preview.surface,
+            }}
           />
 
           <div
-            className={
-              gold
-                ? "mt-3 h-12 rounded-xl border border-[#DED8CD] bg-[#FFFDF9]"
-                : "mt-3 h-12 rounded-xl bg-[linear-gradient(120deg,#E6F2FF,#CFE8FF)]"
-            }
+            className="mt-3 h-12 rounded-xl border"
+            style={{
+              borderColor: option.preview.accent + "33",
+              background:
+                "linear-gradient(120deg, " +
+                option.preview.surface +
+                ", " +
+                option.preview.accent +
+                "22)",
+            }}
           />
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             {[0, 1, 2, 3].map((item) => (
               <div
                 key={item}
-                className={
-                  gold
-                    ? "h-10 rounded-lg border border-[#DED8CD] bg-[#FFFDF9]"
-                    : "h-10 rounded-lg border border-[#DCE5F1] bg-white"
-                }
+                className="h-10 rounded-lg border"
+                style={{
+                  borderColor: option.preview.accent + "22",
+                  background: option.preview.surface,
+                }}
               />
             ))}
           </div>
 
           <div
-            className={
-              gold
-                ? "mt-3 h-8 w-24 rounded-lg bg-[#102D4C]"
-                : "mt-3 h-8 w-24 rounded-lg bg-[#1478F2]"
-            }
+            className="mt-3 h-8 w-24 rounded-lg"
+            style={{ background: option.preview.accent }}
           />
         </div>
       </div>
@@ -168,10 +151,12 @@ export default function AppearancePage() {
           : current,
       );
 
+      const option = THEME_OPTIONS.find(
+        (item) => item.preference === nextTheme,
+      );
+
       setMessage(
-        nextTheme === "LUXURY_GOLD"
-          ? "Luxury Gold is now your saved FC ARENA theme."
-          : "Classic Blue is now your saved FC ARENA theme.",
+        `${option?.name ?? "Selected theme"} is now your saved FC ARENA theme.`,
       );
     } catch (err) {
       setError(
@@ -272,7 +257,7 @@ export default function AppearancePage() {
           </div>
         </FcPanel>
 
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {THEME_OPTIONS.map((option) => {
             const current = themePreference === option.preference;
 
@@ -283,7 +268,7 @@ export default function AppearancePage() {
                   current ? "theme-selected-card p-5 sm:p-6" : "p-5 sm:p-6"
                 }
               >
-                <ThemePreview preference={option.preference} />
+                <ThemePreview option={option} />
 
                 <div className="mt-5 flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -291,6 +276,10 @@ export default function AppearancePage() {
 
                     <p className="mt-1 text-sm font-semibold text-[var(--theme-primary)]">
                       {option.palette}
+                    </p>
+
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--theme-text-muted)]">
+                      {option.inspiration}
                     </p>
 
                     <p className="mt-2 text-sm text-[var(--theme-text-muted)]">

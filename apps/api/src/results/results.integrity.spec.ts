@@ -371,6 +371,53 @@ describe(
 
 
     it(
+      'routes both winners and double-chance losers through explicit playoff progression',
+      () => {
+        const confirmResult =
+          extractMethod(
+            resultsServiceSource,
+            'confirmResult',
+            [
+              'rejectResult',
+              'getStandings',
+              'getMyStatistics',
+            ],
+          );
+
+        expect(
+          confirmResult,
+        ).toContain(
+          'loserRegistrationId',
+        );
+
+        expect(
+          confirmResult,
+        ).toContain(
+          'fixture.loserNextFixtureId',
+        );
+
+        expect(
+          confirmResult,
+        ).toContain(
+          'fixture.loserNextSlot',
+        );
+
+        expect(
+          confirmResult,
+        ).toContain(
+          "'loser'",
+        );
+
+        expect(
+          resultsServiceSource,
+        ).toContain(
+          "fixturePhase ===\n      'PLAYOFF'",
+        );
+      },
+    );
+
+
+    it(
       'confirmation creates an APPLY stat event',
       () => {
         expect(

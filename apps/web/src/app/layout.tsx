@@ -93,9 +93,21 @@ export default async function RootLayout({
       }
       try {
         var value = localStorage.getItem('fc-arena-theme-preference');
-        var theme = value === 'CLASSIC_BLUE'
-          ? 'classic-blue'
-          : 'luxury-gold';
+        var themes = {
+          LUXURY_GOLD: 'luxury-gold',
+          CLASSIC_BLUE: 'classic-blue',
+          CITY_SKY: 'city-sky',
+          LONDON_RED: 'london-red',
+          MERSEY_RED: 'mersey-red',
+          MADRID_ROYAL: 'madrid-royal',
+          CATALAN_NIGHTS: 'catalan-nights',
+          MUNICH_RED: 'munich-red',
+          PARIS_NIGHT: 'paris-night',
+          MILAN_BLUE: 'milan-blue',
+          MILAN_RED: 'milan-red',
+          TURIN_MONO: 'turin-mono'
+        };
+        var theme = themes[value] || 'luxury-gold';
         document.documentElement.dataset.theme = theme;
 
         var modeValue = localStorage.getItem('fc-arena-display-mode');

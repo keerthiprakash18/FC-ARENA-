@@ -1,18 +1,37 @@
 "use client";
 
-/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
+/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by tournament id. */
 
-import { confirmAction } from "@/components/fc/confirmation-provider";
-import { ApiError } from "@/lib/api";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import Link from "next/link";
 
-import { useParams, useRouter } from "next/navigation";
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  AppShell,
+} from "@/components/app/app-shell";
 
-import { AppShell } from "@/components/app/app-shell";
-import { FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
-import { PremiumHero } from "@/components/fc/premium-ui";
+import {
+  confirmAction,
+} from "@/components/fc/confirmation-provider";
+
+import {
+  FcErrorState,
+  FcLoadingScreen,
+  FcNotice,
+} from "@/components/fc/fc-ui";
+
+import {
+  PremiumHero,
+} from "@/components/fc/premium-ui";
 
 import {
   FixtureCard,
@@ -20,479 +39,736 @@ import {
 } from "@/components/tournaments/fixture-card";
 
 import {
+  ApiError,
+} from "@/lib/api";
+
+import {
   authenticatedRequest,
-  type CurrentUser,
   getCurrentUser,
+  type CurrentUser,
 } from "@/lib/auth-client";
+
+
+type PlayoffFormat =
+  | "GLOBAL_SEEDED"
+  | "PROTECTED_SEED"
+  | "DOUBLE_CHANCE";
+
 
 interface Tournament {
   id: string;
   name: string;
   code: string;
+  competitionFormat: string;
+  groupMode: string;
+  playoffFormat: PlayoffFormat;
+  playoffSource:
+    | "AUTO"
+    | "DIRECT_ENTRIES"
+    | "OVERALL_STANDINGS"
+    | "GROUP_QUALIFIERS";
+  playoffSeedingBasis:
+    | "AUTO"
+    | "OVERALL_PERFORMANCE"
+    | "GROUP_POSITION"
+    | "MANUAL"
+    | "RANDOM";
+  qualifiersPerGroup: number | null;
+  playoffQualifiersTotal: number | null;
   isLeagueAdmin: boolean;
 }
 
-interface Standing {
-  registrationId: string;
-  entryName: string;
 
-  played: number;
-  wins: number;
-  draws: number;
-  losses: number;
+type PlayoffFixture =
+  FixtureForUi & {
+    phase?: "STAGE" | "PLAYOFF";
+    group: {
+      id: string;
+      name: string;
+      position: number;
+    } | null;
+  };
 
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
 
-  points: number;
+const formatCopy:
+  Record<
+    PlayoffFormat,
+    {
+      title: string;
+      badge: string;
+      description: string;
+    }
+  > = {
+    GLOBAL_SEEDED: {
+      title:
+        "Global Seeded Knockout",
+      badge:
+        "STANDARD",
+      description:
+        "Qualified entries form one seed list. Highest seeds receive available BYEs.",
+    },
+    PROTECTED_SEED: {
+      title:
+        "Protected Seed Knockout",
+      badge:
+        "RECOMMENDED",
+      description:
+        "Strongest seeds are protected; with multiple groups, leaders are separated across the bracket.",
+    },
+    DOUBLE_CHANCE: {
+      title:
+        "Elite Double-Chance",
+      badge:
+        "PREMIUM",
+      description:
+        "Elite seeds can survive one qualifying-final loss and enter a second-chance path.",
+    },
+  };
+
+
+function displayValue(
+  value:
+    string,
+) {
+  return value
+    .replaceAll(
+      "_",
+      " ",
+    )
+    .toLowerCase()
+    .replace(
+      /\b\w/g,
+      (
+        letter,
+      ) =>
+        letter.toUpperCase(),
+    );
 }
 
-interface GroupEntry {
-  id: string;
-  entryName: string | null;
-
-  members: Array<{
-    fullName: string;
-    inGameName: string | null;
-  }>;
-}
-
-interface TournamentGroup {
-  id: string;
-  name: string;
-  position: number;
-
-  entries: GroupEntry[];
-}
-
-type PlayoffFixture = FixtureForUi & {
-  group: {
-    id: string;
-    name: string;
-    position: number;
-  } | null;
-};
-
-function displayName(entry: GroupEntry) {
-  return (
-    entry.entryName ||
-    entry.members[0]?.inGameName ||
-    entry.members[0]?.fullName ||
-    "Tournament Entry"
-  );
-}
-
-function nextPowerOfTwo(value: number) {
-  if (value <= 1) return 1;
-  return 2 ** Math.ceil(Math.log2(value));
-}
-
-function knockoutStageName(participants: number) {
-  if (participants <= 2) return "Final";
-  if (participants === 4) return "Semi Final";
-  if (participants === 8) return "Quarter Final";
-  if (participants === 16) return "Round of 16";
-  if (participants === 32) return "Round of 32";
-  return `Round of ${participants}`;
-}
 
 export default function PlayoffsPage() {
-  const params = useParams<{
-    tournamentId: string;
-  }>();
+  const {
+    tournamentId,
+  } =
+    useParams<{
+      tournamentId:
+        string;
+    }>();
 
-  const router = useRouter();
-  const [selectedRound, setSelectedRound] = useState("ALL");
+  const router =
+    useRouter();
 
-  const tournamentId = params.tournamentId;
+  const [
+    selectedRound,
+    setSelectedRound,
+  ] =
+    useState(
+      "ALL",
+    );
 
-  const [user, setUser] = useState<CurrentUser | null>(null);
+  const [
+    user,
+    setUser,
+  ] =
+    useState<CurrentUser | null>(
+      null,
+    );
 
-  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [
+    tournament,
+    setTournament,
+  ] =
+    useState<Tournament | null>(
+      null,
+    );
 
-  const [groups, setGroups] = useState<TournamentGroup[]>([]);
+  const [
+    fixtures,
+    setFixtures,
+  ] =
+    useState<PlayoffFixture[]>(
+      [],
+    );
 
-  const [standings, setStandings] = useState<Standing[]>([]);
+  const [
+    groupCount,
+    setGroupCount,
+  ] =
+    useState(0);
 
-  const [fixtures, setFixtures] = useState<PlayoffFixture[]>([]);
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(true);
 
-  const [qualifiersPerGroup, setQualifiersPerGroup] = useState(1);
+  const [
+    busy,
+    setBusy,
+  ] =
+    useState(false);
 
-  const [loading, setLoading] = useState(true);
+  const [
+    message,
+    setMessage,
+  ] =
+    useState("");
 
-  const [busy, setBusy] = useState(false);
+  const [
+    error,
+    setError,
+  ] =
+    useState("");
 
-  const [message, setMessage] = useState("");
-
-  const [error, setError] = useState("");
 
   async function loadFixtures() {
-    const response = await authenticatedRequest<{
-      success: true;
+    const response =
+      await authenticatedRequest<{
+        data: {
+          fixtures:
+            PlayoffFixture[];
+        };
+      }>(
+        `/tournaments/${tournamentId}/fixtures`,
+      );
 
-      data: {
-        fixtures: PlayoffFixture[];
-      };
-
-      error: null;
-    }>(`/tournaments/${tournamentId}/fixtures`);
-
-    setFixtures(response.data.fixtures);
+    setFixtures(
+      response
+        .data
+        .fixtures,
+    );
   }
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const current = await getCurrentUser();
 
-        setUser(current);
+  useEffect(
+    () => {
+      async function load() {
+        try {
+          const current =
+            await getCurrentUser();
 
-        const [tournamentResponse, groupResponse, standingsResponse] =
-          await Promise.all([
-            authenticatedRequest<{
-              success: true;
-
-              data: {
-                tournament: Tournament;
-              };
-
-              error: null;
-            }>(`/tournaments/${tournamentId}`),
-
-            authenticatedRequest<{
-              success: true;
-
-              data: {
-                groups: TournamentGroup[];
-              };
-
-              error: null;
-            }>(`/tournaments/${tournamentId}/groups`),
-
-            authenticatedRequest<{
-              success: true;
-
-              data: {
-                standings: Standing[];
-              };
-
-              error: null;
-            }>(`/tournaments/${tournamentId}/standings`),
-          ]);
-
-        setTournament(tournamentResponse.data.tournament);
-
-        const loadedGroups = groupResponse.data.groups.sort(
-          (a, b) => a.position - b.position,
-        );
-
-        setGroups(loadedGroups);
-
-        setStandings(standingsResponse.data.standings);
-
-        if (loadedGroups.length > 0) {
-          const minimum = Math.min(
-            ...loadedGroups.map((group) => group.entries.length),
+          setUser(
+            current,
           );
 
-          const preferred = Math.min(8, minimum);
+          const [
+            tournamentResponse,
+            groupResponse,
+          ] =
+            await Promise.all([
+              authenticatedRequest<{
+                data: {
+                  tournament:
+                    Tournament;
+                };
+              }>(
+                `/tournaments/${tournamentId}`,
+              ),
 
-          if (preferred >= 1) {
-            setQualifiersPerGroup(preferred);
+              authenticatedRequest<{
+                data: {
+                  groups:
+                    Array<{
+                      id:
+                        string;
+                    }>;
+                };
+              }>(
+                `/tournaments/${tournamentId}/groups`,
+              ).catch(
+                () => ({
+                  data: {
+                    groups: [],
+                  },
+                }),
+              ),
+            ]);
+
+          setTournament(
+            tournamentResponse
+              .data
+              .tournament,
+          );
+
+          setGroupCount(
+            groupResponse
+              .data
+              .groups
+              .length,
+          );
+
+          await loadFixtures();
+        } catch (
+          err
+        ) {
+          if (
+            err instanceof
+              ApiError &&
+            err.status ===
+              401
+          ) {
+            router.replace(
+              "/login",
+            );
+          } else {
+            setError(
+              "Unable to load playoff details. Please retry.",
+            );
           }
+        } finally {
+          setLoading(
+            false,
+          );
         }
-
-        await loadFixtures();
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 401) router.replace("/login");
-        else setError("Unable to load playoff details. Please retry.");
-      } finally {
-        setLoading(false);
       }
-    }
 
-    void load();
-  }, [router, tournamentId]);
-
-  const groupFixtures = useMemo(
-    () => fixtures.filter((fixture) => fixture.group !== null),
-    [fixtures],
+      void load();
+    },
+    [
+      router,
+      tournamentId,
+    ],
   );
 
-  const playoffFixtures = useMemo(
-    () => fixtures.filter((fixture) => fixture.group === null),
-    [fixtures],
-  );
 
-  const incompleteGroupFixtures = groupFixtures.filter(
-    (fixture) => fixture.status !== "COMPLETED",
-  ).length;
-
-  const validQualifierOptions = useMemo(() => {
-    if (groups.length < 2) {
-      return [];
-    }
-
-    const minimum = Math.min(...groups.map((group) => group.entries.length));
-
-    return Array.from(
-      { length: minimum },
-      (_, index) => index + 1,
+  const stageFixtures =
+    useMemo(
+      () =>
+        fixtures.filter(
+          (
+            fixture,
+          ) =>
+            fixture.phase !==
+            "PLAYOFF",
+        ),
+      [
+        fixtures,
+      ],
     );
-  }, [groups]);
 
-  const standingLookup = useMemo(
-    () =>
-      new Map(standings.map((standing) => [standing.registrationId, standing])),
-    [standings],
-  );
 
-  const rankedGroups = useMemo(
-    () =>
-      groups.map((group) => {
-        const ranked = group.entries
-          .map((entry) => {
-            const standing = standingLookup.get(entry.id);
+  const playoffFixtures =
+    useMemo(
+      () =>
+        fixtures.filter(
+          (
+            fixture,
+          ) =>
+            fixture.phase ===
+            "PLAYOFF",
+        ),
+      [
+        fixtures,
+      ],
+    );
 
-            return {
-              registrationId: entry.id,
 
-              entryName: standing?.entryName || displayName(entry),
+  const incompleteStageFixtures =
+    stageFixtures.filter(
+      (
+        fixture,
+      ) =>
+        fixture.status !==
+        "COMPLETED",
+    ).length;
 
-              points: standing?.points ?? 0,
 
-              goalDifference: standing?.goalDifference ?? 0,
+  const playoffRounds =
+    useMemo(
+      () => {
+        const map =
+          new Map<
+            string,
+            PlayoffFixture[]
+          >();
 
-              goalsFor: standing?.goalsFor ?? 0,
+        for (
+          const fixture
+          of playoffFixtures
+        ) {
+          const list =
+            map.get(
+              fixture.roundName,
+            ) ??
+            [];
 
-              wins: standing?.wins ?? 0,
-            };
-          })
-          .sort((a, b) => {
-            if (b.points !== a.points) {
-              return b.points - a.points;
-            }
+          list.push(
+            fixture,
+          );
 
-            if (b.goalDifference !== a.goalDifference) {
-              return b.goalDifference - a.goalDifference;
-            }
-
-            if (b.goalsFor !== a.goalsFor) {
-              return b.goalsFor - a.goalsFor;
-            }
-
-            if (b.wins !== a.wins) {
-              return b.wins - a.wins;
-            }
-
-            return a.entryName.localeCompare(b.entryName);
-          });
-
-        return {
-          ...group,
-
-          ranked,
-
-          qualifiers: ranked.slice(0, qualifiersPerGroup),
-        };
-      }),
-    [groups, standingLookup, qualifiersPerGroup],
-  );
-
-  const totalQualifiers = qualifiersPerGroup * groups.length;
-
-  const bracketSize = totalQualifiers > 0 ? nextPowerOfTwo(totalQualifiers) : 0;
-  const byeCount = bracketSize > 0 ? bracketSize - totalQualifiers : 0;
-  const playInMatches = byeCount > 0 ? (totalQualifiers - byeCount) / 2 : 0;
-  const nextFullStageParticipants =
-    byeCount > 0 ? bracketSize / 2 : totalQualifiers;
-  const nextFullStage =
-    nextFullStageParticipants > 0
-      ? knockoutStageName(nextFullStageParticipants)
-      : "Knockout";
-
-  const seedEntries = useMemo(() => {
-    const entries: Array<{
-      registrationId: string;
-      entryName: string;
-      groupId: string;
-    }> = [];
-
-    for (let rank = 0; rank < qualifiersPerGroup; rank++) {
-      for (const group of rankedGroups) {
-        const entry = group.qualifiers[rank];
-        if (entry) {
-          entries.push({
-            registrationId: entry.registrationId,
-            entryName: entry.entryName,
-            groupId: group.id,
-          });
+          map.set(
+            fixture.roundName,
+            list,
+          );
         }
-      }
+
+        return Array.from(
+          map.entries(),
+        ).sort(
+          (
+            [
+              ,
+              left,
+            ],
+            [
+              ,
+              right,
+            ],
+          ) =>
+            (
+              left[
+                0
+              ]
+                ?.roundNumber ??
+              0
+            ) -
+            (
+              right[
+                0
+              ]
+                ?.roundNumber ??
+              0
+            ),
+        );
+      },
+      [
+        playoffFixtures,
+      ],
+    );
+
+
+  const stageRequired =
+    tournament
+      ?.competitionFormat ===
+    "GROUP_STAGE_KNOCKOUT";
+
+
+  const stageReady =
+    !stageRequired ||
+    (
+      stageFixtures.length >
+        0 &&
+      incompleteStageFixtures ===
+        0
+    );
+
+
+  async function reapplySavedFormat() {
+    if (
+      busy ||
+      !tournament
+    ) {
+      return;
     }
 
-    return entries;
-  }, [rankedGroups, qualifiersPerGroup]);
-
-  const firstRoundPairs = useMemo(() => {
-    const remaining = seedEntries.slice(byeCount);
-    const pairs: Array<{ home: string; away: string }> = [];
-
-    for (let index = 0; index < remaining.length / 2; index++) {
-      const highSeed = remaining[index];
-      const lowSeed = remaining[remaining.length - 1 - index];
-
-      if (!highSeed || !lowSeed) continue;
-
-      pairs.push({
-        home: highSeed.entryName,
-        away: lowSeed.entryName,
+    const confirmed =
+      await confirmAction({
+        title:
+          "Reapply saved playoff format?",
+        description:
+          `Reapply ${formatCopy[tournament.playoffFormat].title} to these existing playoff fixtures. Fixture IDs and Match IDs stay unchanged. Real match activity still blocks a bracket rewrite.`,
+        confirmLabel:
+          "Reapply format",
       });
+
+    if (
+      !confirmed
+    ) {
+      return;
     }
 
-    return pairs;
-  }, [seedEntries, byeCount]);
-
-  const playoffRounds = useMemo(() => {
-    const map = new Map<string, PlayoffFixture[]>();
-
-    for (const fixture of playoffFixtures) {
-      if (!map.has(fixture.roundName)) {
-        map.set(fixture.roundName, []);
-      }
-
-      map.get(fixture.roundName)!.push(fixture);
-    }
-
-    return Array.from(map.entries()).sort(
-      ([, a], [, b]) => (a[0]?.roundNumber ?? 0) - (b[0]?.roundNumber ?? 0),
+    setBusy(
+      true,
     );
-  }, [playoffFixtures]);
+    setError(
+      "",
+    );
+    setMessage(
+      "",
+    );
 
-  async function reseedPlayoffs() {
-    if (busy) return;
-    const confirmed = await confirmAction({
-      title: "Apply protected playoff seeding?",
-      description: "Give the strongest seeds bye priority where the bracket allows it and keep the strongest paths separated across the bracket. Existing fixture IDs, match IDs, group results and qualified teams stay unchanged. Real match activity still blocks reseeding; stale pre-match schedule/readiness metadata on UNSCHEDULED fixtures is safely reset.",
-      confirmLabel: "Apply protected seeding",
-    });
-    if (!confirmed) return;
-    setBusy(true);
-    setError("");
-    setMessage("");
     try {
-      const response = await authenticatedRequest<{ data: { message: string } }>(`/tournaments/${tournamentId}/playoffs/reseed`, { method: "POST" });
+      const response =
+        await authenticatedRequest<{
+          data: {
+            message:
+              string;
+          };
+        }>(
+          `/tournaments/${tournamentId}/playoffs/reseed`,
+          {
+            method:
+              "POST",
+          },
+        );
+
       await loadFixtures();
-      setMessage(response.data.message);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to reseed playoffs.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function generatePlayoffs() {
-    if (incompleteGroupFixtures > 0) {
-      setError(
-        `Complete all group fixtures first. ${incompleteGroupFixtures} match(es) are still incomplete.`,
-      );
-
-      return;
-    }
-
-    const confirmed = await confirmAction(
-      { title: 'Generate knockout stage?', description: `Generate the knockout stage with ${qualifiersPerGroup} qualifier(s) from each group?`, confirmLabel: 'Generate knockout stage' },
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setBusy(true);
-    setMessage("");
-    setError("");
-
-    try {
-      const response = await authenticatedRequest<{
-        success: true;
-
-        data: {
-          message: string;
-          totalQualifiers: number;
-          byes: number;
-          playInMatches: number;
-          bracketSize: number;
-          fixtures: number;
-        };
-
-        error: null;
-      }>(`/tournaments/${tournamentId}/playoffs/generate`, {
-        method: "POST",
-
-        body: JSON.stringify({
-          qualifiersPerGroup,
-        }),
-      });
 
       setMessage(
-        `${response.data.message} ${response.data.totalQualifiers} qualifiers → ${response.data.fixtures} knockout fixtures.`,
+        response
+          .data
+          .message,
       );
-
-      await loadFixtures();
-    } catch (err) {
+    } catch (
+      err
+    ) {
       setError(
-        err instanceof Error ? err.message : "Unable to generate playoffs.",
+        err instanceof Error
+          ? err.message
+          : "Unable to update playoffs.",
       );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
-  if (!loading && (!user || !tournament) && error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
-  if (loading || !user || !tournament) {
+
+  async function generatePlayoffs() {
+    if (
+      !tournament
+    ) {
+      return;
+    }
+
+    if (
+      stageRequired &&
+      !stageReady
+    ) {
+      setError(
+        stageFixtures.length ===
+          0
+          ? "Generate the Tournament stage fixtures first."
+          : `Complete all stage fixtures first. ${incompleteStageFixtures} match(es) are still incomplete.`,
+      );
+
+      return;
+    }
+
+    const confirmed =
+      await confirmAction({
+        title:
+          "Generate playoff stage?",
+        description:
+          `Generate ${formatCopy[tournament.playoffFormat].title} using the Playoff Setup saved for this Tournament?`,
+        confirmLabel:
+          "Generate playoffs",
+      });
+
+    if (
+      !confirmed
+    ) {
+      return;
+    }
+
+    setBusy(
+      true,
+    );
+    setMessage(
+      "",
+    );
+    setError(
+      "",
+    );
+
+    try {
+      const response =
+        await authenticatedRequest<{
+          data: {
+            message:
+              string;
+            totalQualifiers:
+              number;
+            byes:
+              number;
+            playInMatches:
+              number;
+            secondChanceMatches:
+              number;
+            fixtures:
+              number;
+          };
+        }>(
+          `/tournaments/${tournamentId}/playoffs/generate`,
+          {
+            method:
+              "POST",
+            body:
+              JSON.stringify(
+                {},
+              ),
+          },
+        );
+
+      setMessage(
+        `${response.data.message} ${response.data.totalQualifiers} entries · ${response.data.fixtures} fixtures · ${response.data.byes} BYEs${response.data.secondChanceMatches > 0 ? ` · ${response.data.secondChanceMatches} second-chance matches` : ""}.`,
+      );
+
+      await loadFixtures();
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to generate playoffs.",
+      );
+    } finally {
+      setBusy(
+        false,
+      );
+    }
+  }
+
+
+  if (
+    !loading &&
+    (
+      !user ||
+      !tournament
+    ) &&
+    error
+  ) {
+    return (
+      <AppShell>
+        <FcErrorState
+          message={
+            error
+          }
+          onRetry={() =>
+            window.location.reload()
+          }
+        />
+      </AppShell>
+    );
+  }
+
+
+  if (
+    loading ||
+    !user ||
+    !tournament
+  ) {
     return (
       <FcLoadingScreen label="Loading Playoff Center..." />
     );
   }
 
+
+  const format =
+    formatCopy[
+      tournament
+        .playoffFormat
+    ];
+
+
+  const canReapply =
+    tournament.isLeagueAdmin &&
+    playoffFixtures.length >
+      0 &&
+    tournament.playoffSeedingBasis !==
+      "RANDOM" &&
+    playoffFixtures.every(
+      (
+        fixture,
+      ) =>
+        fixture.status ===
+        "UNSCHEDULED",
+    );
+
+
   return (
-    <AppShell playerName={user.player?.identity?.inGameName}>
+    <AppShell
+      playerName={
+        user.player
+          ?.identity
+          ?.inGameName
+      }
+    >
       <div className="premium-page premium-playoffs">
         <button
           type="button"
-          onClick={() => router.back()}
-          className="text-sm font-black text-slate-500 hover:text-white"
+          onClick={() =>
+            router.back()
+          }
+          className="theme-muted text-sm font-black hover:text-[var(--theme-text)]"
         >
           ← Back
         </button>
 
-        <PremiumHero eyebrow={`${tournament.name} · Knockout stage`} title="Playoff Center" description="Every round matters. Follow the road to the final." crest={tournament.name}>
-          <div className="premium-hero-tags"><span>{tournament.code}</span><span>{playoffFixtures.length} knockout fixtures</span><span>{incompleteGroupFixtures} group matches remaining</span></div>
+        <PremiumHero
+          eyebrow={
+            `${tournament.name} · ${format.title}`
+          }
+          title="Playoff Center"
+          description={
+            format.description
+          }
+          crest={
+            tournament.name
+          }
+        >
+          <div className="premium-hero-tags">
+            <span>
+              {
+                tournament.code
+              }
+            </span>
+            <span>
+              {
+                format.badge
+              }
+            </span>
+            <span>
+              {
+                playoffFixtures.length
+              } playoff fixtures
+            </span>
+            {stageRequired ? (
+              <span>
+                {
+                  incompleteStageFixtures
+                } stage matches remaining
+              </span>
+            ) : null}
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Link
-              href={`/tournaments/${tournamentId}/groups`}
-              className="theme-secondary-button premium-button"
-            >
-              Groups
-            </Link>
+            {groupCount >
+            0 ? (
+              <Link
+                href={
+                  `/tournaments/${tournamentId}/groups`
+                }
+                className="theme-secondary-button premium-button"
+              >
+                Groups
+              </Link>
+            ) : null}
 
             <Link
-              href={`/tournaments/${tournamentId}/standings`}
+              href={
+                `/tournaments/${tournamentId}/standings`
+              }
               className="theme-secondary-button premium-button"
             >
               Standings
             </Link>
 
             <Link
-              href={`/tournaments/${tournamentId}/fixtures`}
+              href={
+                `/tournaments/${tournamentId}/fixtures`
+              }
               className="theme-secondary-button premium-button"
             >
               Fixtures
             </Link>
+
             <Link
-              href={`/tournaments/${tournamentId}/achievements`}
+              href={
+                `/tournaments/${tournamentId}/achievements`
+              }
               className="theme-secondary-button premium-button"
             >
               Hall of Champions
@@ -500,288 +776,316 @@ export default function PlayoffsPage() {
           </div>
         </PremiumHero>
 
-        <FcNotice>{message}</FcNotice>
-        <FcNotice tone="error">{error}</FcNotice>
+        <FcNotice>
+          {
+            message
+          }
+        </FcNotice>
+        <FcNotice tone="error">
+          {
+            error
+          }
+        </FcNotice>
 
-        <section className="premium-metrics premium-standing-metrics" aria-label="Playoff progress">
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">Groups</p>
-
-            <p className="mt-2 text-3xl font-black">{groups.length}</p>
-          </article>
-
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">Group Matches</p>
-
-            <p className="mt-2 text-3xl font-black">{groupFixtures.length}</p>
-          </article>
-
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">Remaining</p>
-
-            <p
-              className={`mt-2 text-3xl font-black ${
-                incompleteGroupFixtures === 0
-                  ? "text-emerald-300"
-                  : "text-amber-300"
-              }`}
-            >
-              {incompleteGroupFixtures}
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-            <p className="text-xs text-slate-600">Knockout Fixtures</p>
-
-            <p className="mt-2 text-3xl font-black text-sky-300">
-              {playoffFixtures.length}
-            </p>
-          </article>
+        <section
+          className="premium-metrics premium-standing-metrics"
+          aria-label="Playoff progress"
+        >
+          {[
+            [
+              "Format",
+              format.badge,
+            ],
+            [
+              "Stage Matches",
+              stageFixtures.length,
+            ],
+            [
+              "Remaining",
+              incompleteStageFixtures,
+            ],
+            [
+              "Playoff Fixtures",
+              playoffFixtures.length,
+            ],
+          ].map(
+            ([
+              label,
+              value,
+            ]) => (
+              <article
+                key={
+                  label
+                }
+                className="theme-card rounded-2xl border p-5"
+              >
+                <p className="theme-muted text-xs">
+                  {
+                    label
+                  }
+                </p>
+                <p className="theme-text mt-2 text-2xl font-black">
+                  {
+                    value
+                  }
+                </p>
+              </article>
+            ),
+          )}
         </section>
 
-        {tournament.isLeagueAdmin && playoffFixtures.length > 0 && incompleteGroupFixtures === 0 && playoffFixtures.every((f) => f.status === "UNSCHEDULED") && (
-          <button className="fc-button min-h-11" disabled={busy} onClick={() => void reseedPlayoffs()}>
-            {busy ? "Updating playoffs…" : "Apply protected playoff seeding"}
-          </button>
-        )}
-
-        {playoffFixtures.length === 0 ? (
-          <>
-            <section className="rounded-[26px] border border-white/10 bg-[#0a1018] p-6">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-                Qualification Rules
+        <section className="theme-card rounded-2xl border p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--theme-primary)]">
+                Saved Playoff Setup
               </p>
-
-              <h2 className="mt-2 text-2xl font-black">Qualifiers Per Group</h2>
-
-              <label className="mt-5 block max-w-sm">
-                <span className="fc-field-label">Qualifiers per group</span>
-                <select
-                  value={qualifiersPerGroup}
-                  onChange={(event) => setQualifiersPerGroup(Number(event.target.value))}
-                  className="theme-secondary-button mt-2 w-full rounded-xl p-3"
-                >
-                  {validQualifierOptions.map((value) => (
-                    <option key={value} value={value}>
-                      Top {value}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="mt-6 rounded-2xl bg-white/[0.03] p-5">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <p className="text-sm text-slate-500">Total Qualified</p>
-                    <p className="mt-1 text-4xl font-black">{totalQualifiers}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Byes</p>
-                    <p className="mt-1 text-2xl font-black">{byeCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Play-in Matches</p>
-                    <p className="mt-1 text-2xl font-black">{playInMatches}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500">Next Full Stage</p>
-                    <p className="mt-1 text-lg font-black text-sky-400">{nextFullStage}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-                Qualification Preview
+              <h2 className="theme-text mt-1 text-xl font-black">
+                {
+                  format.title
+                }
+              </h2>
+              <p className="theme-muted mt-2 text-sm">
+                {
+                  displayValue(
+                    tournament.playoffSource,
+                  )
+                } · {
+                  displayValue(
+                    tournament.playoffSeedingBasis,
+                  )
+                }
+                {tournament.qualifiersPerGroup
+                  ? ` · Top ${tournament.qualifiersPerGroup} / group`
+                  : tournament.playoffQualifiersTotal
+                    ? ` · ${tournament.playoffQualifiersTotal} entries`
+                    : ""}
               </p>
+            </div>
 
-              <h2 className="mt-2 text-2xl font-black">Qualified Entries</h2>
-
-              <div className="mt-5 grid gap-5 xl:grid-cols-2">
-                {rankedGroups.map((group) => (
-                  <article
-                    key={group.id}
-                    className="overflow-hidden rounded-[26px] border border-white/10 bg-[#0a1018]"
-                  >
-                    <div className="border-b border-white/10 p-5">
-                      <h3 className="text-2xl font-black">{group.name}</h3>
-
-                      <p className="mt-1 text-xs text-slate-600">
-                        Top {qualifiersPerGroup} qualify
-                      </p>
-                    </div>
-
-                    <div className="divide-y divide-white/5">
-                      {group.ranked.map((entry, index) => {
-                        const qualified = index < qualifiersPerGroup;
-
-                        return (
-                          <div
-                            key={entry.registrationId}
-                            className={`grid grid-cols-[40px_1fr_auto] items-center gap-3 px-5 py-4 ${
-                              qualified ? "bg-emerald-400/[0.025]" : ""
-                            }`}
-                          >
-                            <span
-                              className={`grid h-8 w-8 place-items-center rounded-xl text-xs font-black ${
-                                qualified
-                                  ? "bg-emerald-400/10 text-emerald-300"
-                                  : "bg-white/[0.03] text-slate-600"
-                              }`}
-                            >
-                              {index + 1}
-                            </span>
-
-                            <div className="min-w-0">
-                              <p className="truncate font-black">
-                                {entry.entryName}
-                              </p>
-
-                              <p className="mt-1 text-xs text-slate-600">
-                                GD {entry.goalDifference > 0 ? "+" : ""}
-                                {entry.goalDifference}
-                              </p>
-                            </div>
-
-                            <div className="text-right">
-                              <p className="text-lg font-black">
-                                {entry.points}
-                              </p>
-
-                              <p className="text-[10px] text-slate-600">PTS</p>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            {firstRoundPairs.length > 0 ? (
-              <section className="rounded-[26px] border border-white/10 bg-[#0a1018] p-6">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-                  First Round Preview
-                </p>
-
-                <h2 className="mt-2 text-2xl font-black">
-                  {byeCount > 0 ? "Play-in Seeding" : "Cross-Group Seeding"}
-                </h2>
-
-                <div className="mt-6 grid gap-3 lg:grid-cols-2">
-                  {firstRoundPairs.map((pair, index) => (
-                    <article
-                      key={index}
-                      className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-4"
-                    >
-                      <p className="text-right font-black">{pair.home}</p>
-
-                      <span className="rounded-lg bg-sky-400/10 px-3 py-2 text-xs font-black text-sky-400">
-                        VS
-                      </span>
-
-                      <p className="font-black">{pair.away}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
+            {canReapply ? (
+              <button
+                className="theme-primary-button min-h-11 rounded-xl px-4 font-black"
+                disabled={
+                  busy
+                }
+                onClick={() =>
+                  void reapplySavedFormat()
+                }
+              >
+                {
+                  busy
+                    ? "Updating playoffs…"
+                    : "Reapply Saved Format"
+                }
+              </button>
             ) : null}
+          </div>
+        </section>
+
+        {playoffFixtures.length ===
+        0 ? (
+          <section
+            className={
+              "rounded-2xl border p-6 " +
+              (
+                stageReady
+                  ? "border-emerald-400/20 bg-emerald-400/[0.04]"
+                  : "border-amber-400/20 bg-amber-400/[0.04]"
+              )
+            }
+          >
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--theme-primary)]">
+              Ready Check
+            </p>
+            <h2 className="theme-text mt-2 text-2xl font-black">
+              {
+                stageReady
+                  ? "Ready to Generate Playoffs"
+                  : "Tournament Stage Not Finished"
+              }
+            </h2>
+            <p className="theme-secondary-text mt-3 max-w-2xl text-sm leading-6">
+              {
+                stageReady
+                  ? `${format.title} will use the saved qualification and seeding rules. SOLO, DUO and TEAM entries all use the same universal bracket engine.`
+                  : stageFixtures.length ===
+                      0
+                    ? "Generate the stage schedule first. Playoffs can only be created after a Stage + Playoffs tournament has real stage fixtures."
+                    : `${incompleteStageFixtures} stage fixture(s) must be completed first.`
+              }
+            </p>
 
             {tournament.isLeagueAdmin ? (
-              <section
-                className={`rounded-[26px] border p-6 ${
-                  incompleteGroupFixtures === 0
-                    ? "border-emerald-400/20 bg-emerald-400/[0.04]"
-                    : "border-amber-400/20 bg-amber-400/[0.04]"
-                }`}
+              <button
+                type="button"
+                disabled={
+                  busy ||
+                  !stageReady
+                }
+                onClick={() =>
+                  void generatePlayoffs()
+                }
+                className="theme-primary-button mt-5 rounded-xl px-5 py-3 font-black disabled:opacity-40"
               >
-                <h2 className="text-2xl font-black">
-                  {incompleteGroupFixtures === 0
-                    ? "Ready for Knockout Stage"
-                    : "Group Stage Not Finished"}
-                </h2>
-
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  {incompleteGroupFixtures === 0
-                    ? `Top ${qualifiersPerGroup} from each group will qualify.`
-                    : `${incompleteGroupFixtures} group fixture(s) must be completed before knockout generation.`}
-                </p>
-
-                <button
-                  type="button"
-                  disabled={
-                    busy ||
-                    incompleteGroupFixtures > 0 ||
-                    validQualifierOptions.length === 0
-                  }
-                  onClick={() => void generatePlayoffs()}
-                  className="mt-5 rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] disabled:opacity-40"
-                >
-                  {busy ? "Generating Knockout..." : "Generate Knockout Stage"}
-                </button>
-              </section>
+                {
+                  busy
+                    ? "Generating Playoffs..."
+                    : "Generate Saved Playoff Format"
+                }
+              </button>
             ) : null}
-          </>
+          </section>
         ) : (
           <section className="space-y-8">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
-                Knockout Bracket
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--theme-primary)]">
+                Playoff Bracket
               </p>
-
-              <h2 className="mt-2 text-3xl font-black">Road to the Final</h2>
+              <h2 className="theme-text mt-2 text-3xl font-black">
+                Road to the Final
+              </h2>
+              {tournament.playoffFormat ===
+              "DOUBLE_CHANCE" ? (
+                <p className="theme-muted mt-2 text-sm">
+                  Qualifying-final losers automatically drop into the Second Chance path. Lower-path losses eliminate the entry.
+                </p>
+              ) : null}
             </div>
 
             <div className="premium-bracket-controls">
               <label className="fc-field-label">
-                Knockout round
+                Playoff round
                 <select
-                  value={selectedRound}
-                  onChange={event => setSelectedRound(event.target.value)}
+                  value={
+                    selectedRound
+                  }
+                  onChange={
+                    (
+                      event,
+                    ) =>
+                      setSelectedRound(
+                        event.target.value,
+                      )
+                  }
                   className="theme-secondary-button rounded-xl p-3"
                 >
-                  <option value="ALL">All rounds</option>
-                  {playoffRounds.map(([name]) => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
+                  <option value="ALL">
+                    All rounds
+                  </option>
+                  {playoffRounds.map(
+                    ([
+                      name,
+                    ]) => (
+                      <option
+                        key={
+                          name
+                        }
+                        value={
+                          name
+                        }
+                      >
+                        {
+                          name
+                        }
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
+
               <p className="premium-bracket-hint theme-muted text-xs">
-                Swipe across rounds on mobile. Each match keeps teams, score and status visible.
+                Swipe across rounds on mobile. Winner/loser source labels stay visible for linked Double-Chance fixtures.
               </p>
             </div>
-            <div className="premium-bracket" role="region" aria-label="Knockout bracket" tabIndex={0}>
-            {playoffRounds.filter(([name]) => selectedRound === "ALL" || name === selectedRound).map(([roundName, roundFixtures]) => (
-              <article
-                key={roundName}
-                className="fc-bracket-round rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
-                aria-label={`${roundName} bracket`}
-              >
-                <div className="premium-bracket-round-head flex items-center justify-between">
-                  <h3 className="text-2xl font-black">{roundName}</h3>
 
-                  <span className="rounded-full bg-sky-400/10 px-3 py-2 text-xs font-black text-sky-300">
-                    {roundFixtures.length} Match
-                    {roundFixtures.length === 1 ? "" : "es"}
-                  </span>
-                </div>
+            <div
+              className="premium-bracket"
+              role="region"
+              aria-label="Playoff bracket"
+              tabIndex={
+                0
+              }
+            >
+              {playoffRounds
+                .filter(
+                  ([
+                    name,
+                  ]) =>
+                    selectedRound ===
+                      "ALL" ||
+                    name ===
+                      selectedRound,
+                )
+                .map(
+                  ([
+                    roundName,
+                    roundFixtures,
+                  ]) => (
+                    <article
+                      key={
+                        roundName
+                      }
+                      className="fc-bracket-round theme-card rounded-[26px] border p-5 md:p-6"
+                      aria-label={
+                        `${roundName} bracket`
+                      }
+                    >
+                      <div className="premium-bracket-round-head flex items-center justify-between">
+                        <h3 className="theme-text text-2xl font-black">
+                          {
+                            roundName
+                          }
+                        </h3>
 
-                <div className="premium-bracket-matches mt-5 grid gap-4">
-                  {roundFixtures
-                    .sort((a, b) => a.bracketPosition - b.bracketPosition)
-                    .map((fixture) => (
-                      <FixtureCard
-                        key={fixture.id}
-                        fixture={fixture}
-                        isAdmin={tournament.isLeagueAdmin}
-                        onChanged={loadFixtures}
-                      />
-                    ))}
-                </div>
-              </article>
-            ))}
+                        <span className="rounded-full bg-[var(--theme-primary-soft)] px-3 py-2 text-xs font-black text-[var(--theme-primary)]">
+                          {
+                            roundFixtures.length
+                          } Match{
+                            roundFixtures.length ===
+                            1
+                              ? ""
+                              : "es"
+                          }
+                        </span>
+                      </div>
+
+                      <div className="premium-bracket-matches mt-5 grid gap-4">
+                        {[
+                          ...roundFixtures,
+                        ]
+                          .sort(
+                            (
+                              left,
+                              right,
+                            ) =>
+                              left.bracketPosition -
+                              right.bracketPosition,
+                          )
+                          .map(
+                            (
+                              fixture,
+                            ) => (
+                              <FixtureCard
+                                key={
+                                  fixture.id
+                                }
+                                fixture={
+                                  fixture
+                                }
+                                isAdmin={
+                                  tournament.isLeagueAdmin
+                                }
+                                onChanged={
+                                  loadFixtures
+                                }
+                              />
+                            ),
+                          )}
+                      </div>
+                    </article>
+                  ),
+                )}
             </div>
           </section>
         )}

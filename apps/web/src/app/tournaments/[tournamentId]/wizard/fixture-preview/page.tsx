@@ -1,60 +1,104 @@
-'use client';
+"use client";
 
-/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
-
-import { confirmAction, formAction } from '@/components/fc/confirmation-provider';
-import { FcEmptyState, FcLoadingScreen, FcNotice } from '@/components/fc/fc-ui';
-import {
-  useParams,
-  useRouter,
-} from 'next/navigation';
+/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers. */
 
 import {
   useEffect,
   useMemo,
   useState,
-} from 'react';
+} from "react";
+
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
 
 import {
   AppShell,
-} from '@/components/app/app-shell';
+} from "@/components/app/app-shell";
+
+import {
+  confirmAction,
+  formAction,
+} from "@/components/fc/confirmation-provider";
+
+import {
+  FcCrest,
+  FcEmptyState,
+  FcLoadingScreen,
+  FcNotice,
+} from "@/components/fc/fc-ui";
 
 import {
   TournamentWizardShell,
   type TournamentWizardStep,
-} from '@/components/tournaments/tournament-wizard-shell';
+} from "@/components/tournaments/tournament-wizard-shell";
 
 import {
   authenticatedRequest,
   getCurrentUser,
   type CurrentUser,
-} from '@/lib/auth-client';
+} from "@/lib/auth-client";
 
 
 interface Entry {
   id: string;
   entryName: string | null;
+  entryLogoUrl: string | null;
 }
+
+
+interface FixtureRegistration {
+  id: string;
+  entryName: string | null;
+  entryLogoUrl: string | null;
+}
+
 
 interface Fixture {
   id: string;
   roundNumber: number;
+  roundName: string;
   matchday: number | null;
+  phase: "STAGE" | "PLAYOFF";
 
-  homeRegistration: {
-    id: string;
-    entryName: string | null;
-  } | null;
+  homeRegistration:
+    FixtureRegistration |
+    null;
 
-  awayRegistration: {
-    id: string;
-    entryName: string | null;
-  } | null;
+  awayRegistration:
+    FixtureRegistration |
+    null;
 
   group: {
     id: string;
     name: string;
   } | null;
+}
+
+
+interface PreviewResponse {
+  data: {
+    tournament: {
+      id: string;
+      name: string;
+      competitionFormat: string;
+      fixtureMode: string;
+      legType: string;
+      groupMode: string;
+    };
+
+    fixtures:
+      Fixture[];
+  };
+}
+
+
+interface EntriesResponse {
+  data: {
+    entries:
+      Entry[];
+  };
 }
 
 
@@ -103,6 +147,18 @@ export default function FixturePreviewPage() {
     );
 
   const [
+    competitionFormat,
+    setCompetitionFormat,
+  ] =
+    useState("");
+
+  const [
+    fixtureMode,
+    setFixtureMode,
+  ] =
+    useState("");
+
+  const [
     busy,
     setBusy,
   ] =
@@ -112,13 +168,13 @@ export default function FixturePreviewPage() {
     error,
     setError,
   ] =
-    useState('');
+    useState("");
 
   const [
     message,
     setMessage,
   ] =
-    useState('');
+    useState("");
 
 
   async function loadPreview() {
@@ -127,19 +183,31 @@ export default function FixturePreviewPage() {
       entryResponse,
     ] =
       await Promise.all([
-        authenticatedRequest<any>(
+        authenticatedRequest<PreviewResponse>(
           `/tournaments/${tournamentId}/wizard/fixture-preview`,
         ),
 
-        authenticatedRequest<any>(
+        authenticatedRequest<EntriesResponse>(
           `/tournaments/${tournamentId}/entries`,
         ),
       ]);
 
     setFixtures(
+      preview.data.fixtures,
+    );
+
+    setCompetitionFormat(
       preview
         .data
-        .fixtures,
+        .tournament
+        .competitionFormat,
+    );
+
+    setFixtureMode(
+      preview
+        .data
+        .tournament
+        .fixtureMode,
     );
 
     setEntries(
@@ -150,42 +218,59 @@ export default function FixturePreviewPage() {
   }
 
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [
-          current,
-          wizard,
-        ] =
-          await Promise.all([
-            getCurrentUser(),
+  useEffect(
+    () => {
+      async function load() {
+        try {
+          const [
+            current,
+            wizard,
+          ] =
+            await Promise.all([
+              getCurrentUser(),
 
-            authenticatedRequest<any>(
-              `/tournaments/${tournamentId}/wizard`,
-            ),
-          ]);
+              authenticatedRequest<{
+                data: {
+                  steps:
+                    TournamentWizardStep[];
+                };
+              }>(
+                `/tournaments/${tournamentId}/wizard`,
+              ),
+            ]);
 
-        setUser(
-          current,
-        );
+          setUser(
+            current,
+          );
 
-        setSteps(
-          wizard.data.steps,
-        );
+          setSteps(
+            wizard
+              .data
+              .steps,
+          );
 
-        await loadPreview();
-      } catch {
-        router.replace(
-          '/tournaments',
-        );
+          await loadPreview();
+        } catch {
+          router.replace(
+            "/tournaments",
+          );
+        }
       }
-    }
 
-    void load();
-  }, [
-    router,
-    tournamentId,
-  ]);
+      void load();
+    },
+    [
+      router,
+      tournamentId,
+    ],
+  );
+
+
+  const linkedPlayoffTopology =
+    competitionFormat ===
+      "SINGLE_ELIMINATION" &&
+    fixtureMode !==
+      "MANUAL";
 
 
   const rounds =
@@ -202,7 +287,10 @@ export default function FixturePreviewPage() {
           of fixtures
         ) {
           const key =
-            `${fixture.group?.name ?? 'Tournament'} · Matchday ${fixture.matchday ?? fixture.roundNumber}`;
+            fixture.phase ===
+              "PLAYOFF"
+              ? fixture.roundName
+              : `${fixture.group?.name ?? "Tournament"} · Matchday ${fixture.matchday ?? fixture.roundNumber}`;
 
           const list =
             map.get(
@@ -232,28 +320,49 @@ export default function FixturePreviewPage() {
 
   async function regenerate() {
     if (
-      !(await confirmAction(
-        { title: 'Replace fixture preview?', description: 'Regenerate the fixture preview? Your current draft changes will be replaced.', confirmLabel: 'Regenerate preview', destructive: true },
-      ))
+      !(await confirmAction({
+        title:
+          "Replace fixture preview?",
+        description:
+          linkedPlayoffTopology
+            ? "Regenerate the linked playoff bracket from the saved Playoff Setup? The current draft bracket will be replaced."
+            : "Regenerate the fixture preview? Your current draft changes will be replaced.",
+        confirmLabel:
+          "Regenerate preview",
+        destructive:
+          true,
+      }))
     ) {
       return;
     }
 
-    setBusy(true);
-    setError('');
-    setMessage('');
+    setBusy(
+      true,
+    );
+    setError(
+      "",
+    );
+    setMessage(
+      "",
+    );
 
     try {
       await authenticatedRequest(
         `/tournaments/${tournamentId}/wizard/fixture-preview/generate`,
         {
           method:
-            'POST',
+            "POST",
+          body:
+            JSON.stringify(
+              {},
+            ),
         },
       );
 
       setMessage(
-        'Fixture preview regenerated.',
+        linkedPlayoffTopology
+          ? "Playoff bracket regenerated from the saved format."
+          : "Fixture preview regenerated.",
       );
 
       await loadPreview();
@@ -263,30 +372,42 @@ export default function FixturePreviewPage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Unable to regenerate.',
+          : "Unable to regenerate.",
       );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
 
   async function reset() {
     if (
-      !(await confirmAction(
-        { title: 'Reset draft fixtures?', description: 'Remove all fixtures from this draft preview? You will need to generate or add draft fixtures again.', confirmLabel: 'Reset draft', destructive: true },
-      ))
+      !(await confirmAction({
+        title:
+          "Reset draft fixtures?",
+        description:
+          "Remove all fixtures from this draft preview? You will need to regenerate or add them again.",
+        confirmLabel:
+          "Reset draft",
+        destructive:
+          true,
+      }))
     ) {
       return;
     }
 
-    await updateDraft(() => authenticatedRequest(
-      `/tournaments/${tournamentId}/wizard/fixture-preview`,
-      {
-        method:
-          'DELETE',
-      },
-    ));
+    await updateDraft(
+      () =>
+        authenticatedRequest(
+          `/tournaments/${tournamentId}/wizard/fixture-preview`,
+          {
+            method:
+              "DELETE",
+          },
+        ),
+    );
   }
 
 
@@ -294,13 +415,16 @@ export default function FixturePreviewPage() {
     fixtureId:
       string,
   ) {
-    await updateDraft(() => authenticatedRequest(
-      `/tournaments/${tournamentId}/wizard/fixture-preview/${fixtureId}/swap`,
-      {
-        method:
-          'POST',
-      },
-    ));
+    await updateDraft(
+      () =>
+        authenticatedRequest(
+          `/tournaments/${tournamentId}/wizard/fixture-preview/${fixtureId}/swap`,
+          {
+            method:
+              "POST",
+          },
+        ),
+    );
   }
 
 
@@ -309,20 +433,30 @@ export default function FixturePreviewPage() {
       string,
   ) {
     if (
-      !(await confirmAction(
-        { title: 'Delete draft fixture?', description: 'Remove this fixture from the draft preview?', confirmLabel: 'Delete fixture', destructive: true },
-      ))
+      !(await confirmAction({
+        title:
+          "Delete draft fixture?",
+        description:
+          "Remove this fixture from the draft preview?",
+        confirmLabel:
+          "Delete fixture",
+        destructive:
+          true,
+      }))
     ) {
       return;
     }
 
-    await updateDraft(() => authenticatedRequest(
-      `/tournaments/${tournamentId}/wizard/fixture-preview/${fixtureId}`,
-      {
-        method:
-          'DELETE',
-      },
-    ));
+    await updateDraft(
+      () =>
+        authenticatedRequest(
+          `/tournaments/${tournamentId}/wizard/fixture-preview/${fixtureId}`,
+          {
+            method:
+              "DELETE",
+          },
+        ),
+    );
   }
 
 
@@ -330,11 +464,40 @@ export default function FixturePreviewPage() {
     fixture:
       Fixture,
   ) {
-    const values = await formAction({
-      title: 'Move draft fixture', description: 'Choose the matchday for this fixture.', confirmLabel: 'Move fixture',
-      fields: [{ name: 'matchday', label: 'Matchday', type: 'number', required: true, min: 1, step: 1, defaultValue: String(fixture.matchday ?? fixture.roundNumber) }],
-    });
-    const value = values?.matchday;
+    const values =
+      await formAction({
+        title:
+          "Move draft fixture",
+        description:
+          "Choose the matchday for this fixture.",
+        confirmLabel:
+          "Move fixture",
+        fields: [
+          {
+            name:
+              "matchday",
+            label:
+              "Matchday",
+            type:
+              "number",
+            required:
+              true,
+            min:
+              1,
+            step:
+              1,
+            defaultValue:
+              String(
+                fixture.matchday ??
+                fixture.roundNumber,
+              ),
+          },
+        ],
+      });
+
+    const value =
+      values
+        ?.matchday;
 
     if (!value) {
       return;
@@ -350,26 +513,27 @@ export default function FixturePreviewPage() {
         matchday,
       ) ||
       matchday <
-      1
+        1
     ) {
       return;
     }
 
-    await updateDraft(() => authenticatedRequest(
-      `/tournaments/${tournamentId}/wizard/fixture-preview/${fixture.id}`,
-      {
-        method:
-          'PATCH',
-
-        body:
-          JSON.stringify({
-            roundNumber:
-              matchday,
-
-            matchday,
-          }),
-      },
-    ));
+    await updateDraft(
+      () =>
+        authenticatedRequest(
+          `/tournaments/${tournamentId}/wizard/fixture-preview/${fixture.id}`,
+          {
+            method:
+              "PATCH",
+            body:
+              JSON.stringify({
+                roundNumber:
+                  matchday,
+                matchday,
+              }),
+          },
+        ),
+    );
   }
 
 
@@ -381,70 +545,167 @@ export default function FixturePreviewPage() {
       return;
     }
 
-    const options = entries.map(entry => ({ value: entry.id, label: entry.entryName || entry.id }));
-    const values = await formAction({
-      title: 'Add draft fixture', description: 'Select the home and away teams and choose a matchday.', confirmLabel: 'Add fixture',
-      fields: [
-        { name: 'home', label: 'Home team', type: 'select', required: true, options },
-        { name: 'away', label: 'Away team', type: 'select', required: true, options },
-        { name: 'matchday', label: 'Matchday', type: 'number', required: true, min: 1, step: 1, defaultValue: '1' },
-      ],
-      validate: values => values.home === values.away ? 'Choose two different teams.' : undefined,
-    });
-    if (!values) return;
-    const home = values.home, away = values.away, round = Number(values.matchday);
+    const options =
+      entries.map(
+        (
+          entry,
+        ) => ({
+          value:
+            entry.id,
+          label:
+            entry.entryName ||
+            entry.id,
+        }),
+      );
 
-    await updateDraft(() => authenticatedRequest(
-      `/tournaments/${tournamentId}/wizard/fixture-preview`,
-      {
-        method:
-          'POST',
+    const values =
+      await formAction({
+        title:
+          "Add draft fixture",
+        description:
+          "Select the home and away entries and choose a matchday.",
+        confirmLabel:
+          "Add fixture",
+        fields: [
+          {
+            name:
+              "home",
+            label:
+              "Home entry",
+            type:
+              "select",
+            required:
+              true,
+            options,
+          },
+          {
+            name:
+              "away",
+            label:
+              "Away entry",
+            type:
+              "select",
+            required:
+              true,
+            options,
+          },
+          {
+            name:
+              "matchday",
+            label:
+              "Matchday",
+            type:
+              "number",
+            required:
+              true,
+            min:
+              1,
+            step:
+              1,
+            defaultValue:
+              "1",
+          },
+        ],
+        validate:
+          (
+            values,
+          ) =>
+            values.home ===
+            values.away
+              ? "Choose two different entries."
+              : undefined,
+      });
 
-        body:
-          JSON.stringify({
-            homeRegistrationId:
-              home.trim(),
+    if (!values) {
+      return;
+    }
 
-            awayRegistrationId:
-              away.trim(),
-
-            roundNumber:
-              round,
-
-            matchday:
-              round,
-          }),
-      },
-    ));
+    await updateDraft(
+      () =>
+        authenticatedRequest(
+          `/tournaments/${tournamentId}/wizard/fixture-preview`,
+          {
+            method:
+              "POST",
+            body:
+              JSON.stringify({
+                homeRegistrationId:
+                  values.home.trim(),
+                awayRegistrationId:
+                  values.away.trim(),
+                roundNumber:
+                  Number(
+                    values.matchday,
+                  ),
+                matchday:
+                  Number(
+                    values.matchday,
+                  ),
+              }),
+          },
+        ),
+    );
   }
 
-  async function updateDraft(mutate: () => Promise<unknown>) {
-    setBusy(true);
-    setError('');
-    setMessage('');
+
+  async function updateDraft(
+    mutate:
+      () =>
+        Promise<unknown>,
+  ) {
+    setBusy(
+      true,
+    );
+    setError(
+      "",
+    );
+    setMessage(
+      "",
+    );
+
     try {
       await mutate();
       await loadPreview();
-      setMessage('Fixture preview updated.');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to update the fixture preview.');
+
+      setMessage(
+        "Fixture preview updated.",
+      );
+    } catch (
+      err
+    ) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update the fixture preview.",
+      );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
 
   async function publish() {
-    setBusy(true);
-    setError('');
+    setBusy(
+      true,
+    );
+    setError(
+      "",
+    );
 
     try {
       const response =
-        await authenticatedRequest<any>(
+        await authenticatedRequest<{
+          data: {
+            nextStep:
+              string;
+          };
+        }>(
           `/tournaments/${tournamentId}/wizard/fixture-preview/publish`,
           {
             method:
-              'POST',
+              "POST",
           },
         );
 
@@ -455,9 +716,9 @@ export default function FixturePreviewPage() {
 
       router.push(
         next ===
-        'QUALIFICATION'
-          ? `/tournaments/${tournamentId}/wizard/qualification`
-          : `/tournaments/${tournamentId}/wizard/review`,
+          "REVIEW"
+          ? `/tournaments/${tournamentId}/wizard/review`
+          : `/tournaments/${tournamentId}/wizard/${next.toLowerCase().replaceAll("_", "-")}`,
       );
     } catch (
       err
@@ -465,10 +726,12 @@ export default function FixturePreviewPage() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Unable to publish fixtures.',
+          : "Unable to publish fixtures.",
       );
     } finally {
-      setBusy(false);
+      setBusy(
+        false,
+      );
     }
   }
 
@@ -492,7 +755,6 @@ export default function FixturePreviewPage() {
           ?.inGameName
       }
     >
-
       <TournamentWizardShell
         tournamentId={
           tournamentId
@@ -501,173 +763,232 @@ export default function FixturePreviewPage() {
         steps={
           steps
         }
-        title="Fixture Preview"
-        description="Review and edit fixtures before they become official."
+        title={
+          linkedPlayoffTopology
+            ? "Playoff Bracket Preview"
+            : "Fixture Preview"
+        }
+        description={
+          linkedPlayoffTopology
+            ? "Review the linked winner/loser progression before publishing. Regenerate the bracket rather than editing individual automatic playoff fixtures."
+            : "Review and edit fixtures before they become official."
+        }
       >
+        <FcNotice>
+          {
+            message
+          }
+        </FcNotice>
+        <FcNotice tone="error">
+          {
+            error
+          }
+        </FcNotice>
 
-        <FcNotice>{message}</FcNotice>
-        <FcNotice tone="error">{error}</FcNotice>
-
+        {linkedPlayoffTopology ? (
+          <div className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/[0.05] p-4 text-sm leading-6 text-amber-300">
+            Automatic playoff topology is protected because later rounds contain linked winner/loser paths. Use Regenerate or Reset to change the bracket safely.
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-2">
+          {!linkedPlayoffTopology ? (
+            <button
+              type="button"
+              disabled={
+                busy ||
+                entries.length <
+                  2
+              }
+              onClick={() =>
+                void addMatch()
+              }
+              className="rounded-xl border border-[var(--theme-primary)]/20 px-4 py-3 font-black text-[var(--theme-primary)]"
+            >
+              + Add Match
+            </button>
+          ) : null}
 
           <button
             type="button"
-            disabled={busy || entries.length < 2}
-            onClick={() =>
-              void addMatch()
+            disabled={
+              busy
             }
-            className="rounded-xl border border-sky-400/20 px-4 py-3 font-black text-sky-300"
-          >
-            + Add Match
-          </button>
-
-          <button
-            type="button"
-            disabled={busy}
             onClick={() =>
               void regenerate()
             }
-            className="rounded-xl border border-white/10 px-4 py-3 font-black"
+            className="theme-secondary-button rounded-xl px-4 py-3 font-black"
           >
             Regenerate
           </button>
 
           <button
             type="button"
-            disabled={busy || fixtures.length === 0}
+            disabled={
+              busy ||
+              fixtures.length ===
+                0
+            }
             onClick={() =>
               void reset()
             }
-            className="rounded-xl border border-red-400/20 px-4 py-3 font-black text-red-300"
+            className="rounded-xl border border-red-400/20 px-4 py-3 font-black text-red-300 disabled:opacity-40"
           >
             Reset
           </button>
-
         </div>
 
-
         <div className="mt-7 space-y-7">
-          {fixtures.length === 0 ? <FcEmptyState title="No draft fixtures" description="Add a match or regenerate the preview to start reviewing fixtures." icon="fixtures" /> : null}
+          {fixtures.length ===
+          0 ? (
+            <FcEmptyState
+              title="No draft fixtures"
+              description="Regenerate the preview to create the saved Tournament structure."
+              icon="fixtures"
+            />
+          ) : null}
 
           {rounds.map(
             ([
               title,
               roundFixtures,
             ]) => (
-
               <section
                 key={
                   title
                 }
               >
-
-                <h2 className="text-xl font-black text-sky-300">
+                <h2 className="text-xl font-black text-[var(--theme-primary)]">
                   {
                     title
                   }
                 </h2>
 
-
-                <div className="mt-3 space-y-3">
-
+                <div className="mt-3 grid gap-3 lg:grid-cols-2">
                   {roundFixtures.map(
                     (
                       fixture,
-                    ) => (
+                    ) => {
+                      const home =
+                        fixture
+                          .homeRegistration;
 
-                      <article
-                        key={
-                          fixture.id
-                        }
-                        className="rounded-2xl border border-white/10 bg-black/20 p-4"
-                      >
+                      const away =
+                        fixture
+                          .awayRegistration;
 
-                        <div className="grid items-center gap-3 md:grid-cols-[1fr_auto_1fr_auto]">
+                      return (
+                        <article
+                          key={
+                            fixture.id
+                          }
+                          className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-4"
+                        >
+                          <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                            <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+                              <FcCrest
+                                name={
+                                  home?.entryName ??
+                                  "TBD"
+                                }
+                                imageUrl={
+                                  home?.entryLogoUrl ??
+                                  undefined
+                                }
+                                size="sm"
+                              />
+                              <p className="theme-text break-words font-black">
+                                {
+                                  home?.entryName ??
+                                  "TBD"
+                                }
+                              </p>
+                            </div>
 
-                          <p className="font-black md:text-right">
-                            {
-                              fixture
-                                .homeRegistration
-                                ?.entryName ??
-                              'TBD'
-                            }
-                          </p>
+                            <span className="theme-muted text-xs font-black">
+                              VS
+                            </span>
 
-                          <span className="text-xs font-black text-slate-600">
-                            VS
-                          </span>
-
-                          <p className="font-black">
-                            {
-                              fixture
-                                .awayRegistration
-                                ?.entryName ??
-                              'TBD'
-                            }
-                          </p>
-
-
-                          <div className="flex flex-wrap gap-2">
-
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() =>
-                                void swap(
-                                  fixture.id,
-                                )
-                              }
-                              className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black"
-                            >
-                              Swap
-                            </button>
-
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() =>
-                                void moveRound(
-                                  fixture,
-                                )
-                              }
-                              className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black"
-                            >
-                              Move
-                            </button>
-
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() =>
-                                void remove(
-                                  fixture.id,
-                                )
-                              }
-                              className="rounded-lg border border-red-400/20 px-3 py-2 text-xs font-black text-red-300"
-                            >
-                              Delete
-                            </button>
-
+                            <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+                              <FcCrest
+                                name={
+                                  away?.entryName ??
+                                  "TBD"
+                                }
+                                imageUrl={
+                                  away?.entryLogoUrl ??
+                                  undefined
+                                }
+                                size="sm"
+                              />
+                              <p className="theme-text break-words font-black">
+                                {
+                                  away?.entryName ??
+                                  "TBD"
+                                }
+                              </p>
+                            </div>
                           </div>
 
-                        </div>
+                          {!linkedPlayoffTopology ? (
+                            <div className="mt-4 flex flex-wrap justify-center gap-2 border-t border-[var(--theme-border)] pt-3">
+                              <button
+                                type="button"
+                                disabled={
+                                  busy
+                                }
+                                onClick={() =>
+                                  void swap(
+                                    fixture.id,
+                                  )
+                                }
+                                className="theme-secondary-button rounded-lg px-3 py-2 text-xs font-black"
+                              >
+                                Swap
+                              </button>
 
-                      </article>
-                    ),
+                              <button
+                                type="button"
+                                disabled={
+                                  busy
+                                }
+                                onClick={() =>
+                                  void moveRound(
+                                    fixture,
+                                  )
+                                }
+                                className="theme-secondary-button rounded-lg px-3 py-2 text-xs font-black"
+                              >
+                                Move
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={
+                                  busy
+                                }
+                                onClick={() =>
+                                  void remove(
+                                    fixture.id,
+                                  )
+                                }
+                                className="rounded-lg border border-red-400/20 px-3 py-2 text-xs font-black text-red-300"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          ) : null}
+                        </article>
+                      );
+                    },
                   )}
-
                 </div>
-
               </section>
             ),
           )}
-
         </div>
 
-
-        <div className="fc-workflow-actions mt-8 flex justify-between border-t pt-5">
-
+        <div className="fc-workflow-actions mt-8 flex justify-between border-t border-[var(--theme-border)] pt-5">
           <button
             type="button"
             onClick={() =>
@@ -675,11 +996,10 @@ export default function FixturePreviewPage() {
                 `/tournaments/${tournamentId}/wizard/fixture-settings`,
               )
             }
-            className="rounded-xl border border-white/10 px-5 py-3 font-black text-slate-400"
+            className="theme-secondary-button rounded-xl px-5 py-3 font-black"
           >
             ← Back
           </button>
-
 
           <button
             type="button"
@@ -691,17 +1011,16 @@ export default function FixturePreviewPage() {
             onClick={() =>
               void publish()
             }
-            className="rounded-xl bg-sky-400 px-6 py-3 font-black text-[#041019] disabled:opacity-40"
+            className="theme-primary-button rounded-xl px-6 py-3 font-black disabled:opacity-40"
           >
-            {busy
-              ? 'Validating...'
-              : 'Publish Fixtures & Continue →'}
+            {
+              busy
+                ? "Validating..."
+                : "Publish Fixtures & Continue →"
+            }
           </button>
-
         </div>
-
       </TournamentWizardShell>
-
     </AppShell>
   );
 }

@@ -50,6 +50,24 @@ export class TournamentFixturePreviewService {
       tournament.status,
     );
 
+    if (
+      tournament.competitionFormat ===
+        'SINGLE_ELIMINATION' &&
+      tournament.fixtureMode !==
+        'MANUAL'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'PLAYOFF_PREVIEW_TOPOLOGY_LOCKED',
+          message:
+            'Auto-generated playoff topology is locked. Regenerate the preview or switch to Manual fixture mode before editing matches.',
+        },
+      });
+    }
+
     await this.validateParticipants(
       tournamentId,
       dto.homeRegistrationId,
@@ -110,6 +128,12 @@ export class TournamentFixturePreviewService {
           bracketPosition:
             1,
 
+          phase:
+            tournament.competitionFormat ===
+              'SINGLE_ELIMINATION'
+              ? 'PLAYOFF'
+              : 'STAGE',
+
           homeRegistrationId:
             dto.homeRegistrationId,
 
@@ -168,6 +192,11 @@ export class TournamentFixturePreviewService {
         tournamentId,
         fixtureId,
       );
+
+    this.assertPlayoffPreviewEditable(
+      tournament,
+      fixture,
+    );
 
     const homeId =
       dto.homeRegistrationId ??
@@ -298,6 +327,11 @@ export class TournamentFixturePreviewService {
         fixtureId,
       );
 
+    this.assertPlayoffPreviewEditable(
+      tournament,
+      fixture,
+    );
+
     if (
       !fixture.homeRegistrationId ||
       !fixture.awayRegistrationId
@@ -377,6 +411,11 @@ export class TournamentFixturePreviewService {
         tournamentId,
         fixtureId,
       );
+
+    this.assertPlayoffPreviewEditable(
+      tournament,
+      fixture,
+    );
 
     await this.prisma.fixture.delete({
       where: {
@@ -539,10 +578,22 @@ export class TournamentFixturePreviewService {
           });
         }
 
+        const hasExplicitProgression =
+          fixtures.some(
+            (
+              fixture,
+            ) =>
+              Boolean(
+                fixture.nextFixtureId ||
+                fixture.loserNextFixtureId,
+              ),
+          );
+
         if (
           !dto.groupId &&
           tournament.competitionFormat ===
-          'SINGLE_ELIMINATION'
+            'SINGLE_ELIMINATION' &&
+          !hasExplicitProgression
         ) {
           const byRound =
             new Map<
@@ -665,10 +716,7 @@ export class TournamentFixturePreviewService {
                     publishedAt,
 
                   wizardStep:
-                    tournament.competitionFormat ===
-                    'GROUP_STAGE_KNOCKOUT'
-                      ? 'QUALIFICATION'
-                      : 'REVIEW',
+                    'REVIEW',
                 }),
           },
         });
@@ -695,10 +743,7 @@ export class TournamentFixturePreviewService {
         nextStep:
           dto.groupId
             ? 'FIXTURES'
-            : tournament.competitionFormat ===
-              'GROUP_STAGE_KNOCKOUT'
-              ? 'QUALIFICATION'
-              : 'REVIEW',
+            : 'REVIEW',
       },
 
       error: null,
@@ -1475,6 +1520,37 @@ export class TournamentFixturePreviewService {
 
           message:
             'Selected Group does not belong to this Tournament.',
+        },
+      });
+    }
+  }
+
+
+  private assertPlayoffPreviewEditable(
+    tournament: {
+      competitionFormat: string;
+      fixtureMode: string;
+    },
+    fixture: {
+      phase: string;
+    },
+  ) {
+    if (
+      fixture.phase ===
+        'PLAYOFF' &&
+      tournament.competitionFormat ===
+        'SINGLE_ELIMINATION' &&
+      tournament.fixtureMode !==
+        'MANUAL'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'PLAYOFF_PREVIEW_TOPOLOGY_LOCKED',
+          message:
+            'Auto-generated playoff fixtures cannot be edited individually because winner/loser progression is linked. Regenerate the preview instead.',
         },
       });
     }

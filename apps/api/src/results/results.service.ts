@@ -631,6 +631,7 @@ export class ResultsService {
             submission.match.tournament.format,
             fixture.groupId,
             submission.match.tournament._count.groups,
+            fixture.phase,
           ) &&
           submission.homeScore ===
             submission.awayScore
@@ -803,9 +804,8 @@ export class ResultsService {
             submission.match.tournament.format,
             fixture.groupId,
             submission.match.tournament._count.groups,
-          ) &&
-          fixture.nextFixtureId &&
-          fixture.nextSlot
+            fixture.phase,
+          )
         ) {
           const winnerRegistrationId =
             submission.homeScore >
@@ -813,91 +813,36 @@ export class ResultsService {
               ? home.id
               : away.id;
 
-          const nextFixture =
-            await tx.fixture.findUnique({
-              where: {
-                id:
-                  fixture.nextFixtureId,
-              },
-            });
+          const loserRegistrationId =
+            winnerRegistrationId ===
+            home.id
+              ? away.id
+              : home.id;
 
-          if (!nextFixture) {
-            throw new ConflictException({
-              success: false,
-              data: null,
-              error: {
-                code:
-                  'NEXT_FIXTURE_NOT_FOUND',
-
-                message:
-                  'Knockout progression fixture could not be found.',
-              },
-            });
+          if (
+            fixture.nextFixtureId &&
+            fixture.nextSlot
+          ) {
+            await this.advanceKnockoutParticipant(
+              tx,
+              fixture.nextFixtureId,
+              fixture.nextSlot,
+              winnerRegistrationId,
+              'winner',
+            );
           }
 
           if (
-            fixture.nextSlot ===
-            'HOME'
+            fixture.loserNextFixtureId &&
+            fixture.loserNextSlot
           ) {
-            if (
-              nextFixture.homeRegistrationId &&
-              nextFixture.homeRegistrationId !==
-                winnerRegistrationId
-            ) {
-              throw new ConflictException({
-                success: false,
-                data: null,
-                error: {
-                  code:
-                    'KNOCKOUT_SLOT_ALREADY_FILLED',
-
-                  message:
-                    'The next Knockout fixture already contains another participant.',
-                },
-              });
-            }
-
-            await tx.fixture.update({
-              where: {
-                id:
-                  nextFixture.id,
-              },
-
-              data: {
-                homeRegistrationId:
-                  winnerRegistrationId,
-              },
-            });
-          } else {
-            if (
-              nextFixture.awayRegistrationId &&
-              nextFixture.awayRegistrationId !==
-                winnerRegistrationId
-            ) {
-              throw new ConflictException({
-                success: false,
-                data: null,
-                error: {
-                  code:
-                    'KNOCKOUT_SLOT_ALREADY_FILLED',
-
-                  message:
-                    'The next Knockout fixture already contains another participant.',
-                },
-              });
-            }
-
-            await tx.fixture.update({
-              where: {
-                id:
-                  nextFixture.id,
-              },
-
-              data: {
-                awayRegistrationId:
-                  winnerRegistrationId,
-              },
-            });
+            await this.advanceKnockoutParticipant(
+              tx,
+              fixture.loserNextFixtureId,
+              fixture.loserNextSlot,
+              loserRegistrationId,
+              'loser',
+            );
           }
         }
 
@@ -1156,6 +1101,7 @@ export class ResultsService {
           tournament.format,
           fixture.groupId,
           tournament._count.groups,
+          fixture.phase,
         )
       ) {
         continue;
@@ -1237,6 +1183,9 @@ export class ResultsService {
                     member.user.fullName,
                 )
                 .join(' + '),
+
+            entryLogoUrl:
+              registration.entryLogoUrl,
 
             members:
               registration.members.map(
@@ -1721,6 +1670,7 @@ export class ResultsService {
         select: {
           id: true,
           groupId: true,
+          phase: true,
           sequence: true,
           matchday: true,
           roundNumber: true,
@@ -1810,11 +1760,97 @@ export class ResultsService {
   }
 
 
+  private async advanceKnockoutParticipant(
+    tx: any,
+    targetFixtureId: string,
+    targetSlot: 'HOME' | 'AWAY',
+    registrationId: string,
+    outcomeLabel: 'winner' | 'loser',
+  ) {
+    const target =
+      await tx.fixture.findUnique({
+        where: {
+          id:
+            targetFixtureId,
+        },
+      });
+
+    if (!target) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'NEXT_FIXTURE_NOT_FOUND',
+          message:
+            `Knockout progression fixture for the ${outcomeLabel} could not be found.`,
+        },
+      });
+    }
+
+    const existing =
+      targetSlot ===
+      'HOME'
+        ? target.homeRegistrationId
+        : target.awayRegistrationId;
+
+    if (
+      existing &&
+      existing !==
+      registrationId
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'KNOCKOUT_SLOT_ALREADY_FILLED',
+          message:
+            `The next Knockout fixture already contains another participant in the ${targetSlot.toLowerCase()} slot.`,
+        },
+      });
+    }
+
+    await tx.fixture.update({
+      where: {
+        id:
+          targetFixtureId,
+      },
+      data:
+        targetSlot ===
+        'HOME'
+          ? {
+              homeRegistrationId:
+                registrationId,
+            }
+          : {
+              awayRegistrationId:
+                registrationId,
+            },
+    });
+  }
+
+
   private isKnockoutFixture(
     tournamentFormat: string,
     fixtureGroupId: string | null,
     tournamentGroupCount: number,
+    fixturePhase?: string | null,
   ) {
+    if (
+      fixturePhase ===
+      'PLAYOFF'
+    ) {
+      return true;
+    }
+
+    if (
+      fixturePhase ===
+      'STAGE'
+    ) {
+      return false;
+    }
+
     if (
       tournamentFormat ===
       'KNOCKOUT'

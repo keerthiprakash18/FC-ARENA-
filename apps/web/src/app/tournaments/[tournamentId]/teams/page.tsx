@@ -31,6 +31,10 @@ import {
 import {
   TournamentNavigation,
 } from '@/components/tournaments/tournament-navigation';
+
+import {
+  EntryLogoUpload,
+} from '@/components/tournaments/entry-logo-upload';
 import {
   authenticatedRequest,
   getCurrentUser,
@@ -963,6 +967,45 @@ export default function TournamentTeamsPage() {
                           </p>
                         </div>
                       </div>
+
+                      {tournament.isLeagueAdmin ? (
+                        <div className="mt-4 border-t border-white/[0.06] pt-4">
+                          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
+                            Team Logo
+                          </p>
+
+                          <EntryLogoUpload
+                            tournamentId={
+                              tournamentId
+                            }
+                            registrationId={
+                              entry.id
+                            }
+                            entryName={
+                              entry.entryName ||
+                              'FC Team'
+                            }
+                            logoUrl={
+                              entry.entryLogoUrl
+                            }
+                            compact
+                            locked={
+                              [
+                                'COMPLETED',
+                                'CANCELLED',
+                              ].includes(
+                                tournament.status,
+                              )
+                            }
+                            onChanged={
+                              async () => {
+                                await loadEntries();
+                              }
+                            }
+                          />
+                        </div>
+                      ) : null}
+
 
                       {tournament.isLeagueAdmin ? (
                         <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">

@@ -323,7 +323,7 @@ function StandingTable({
                     </span>
                   </td>
 
-                  <td className="p-4 text-left font-black"><div className="flex items-center gap-3"><FcCrest name={row.entryName} size="sm" />
+                  <td className="p-4 text-left font-black"><div className="flex items-center gap-3"><FcCrest name={row.entryName} imageUrl={row.entryLogoUrl ?? undefined} size="sm" />
                     {
                       row.entryName
                     }

@@ -3,7 +3,10 @@
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
-import { FcNotice } from '@/components/fc/fc-ui';
+import {
+  FcCrest,
+  FcNotice,
+} from '@/components/fc/fc-ui';
 import Link from 'next/link';
 
 import {
@@ -50,6 +53,7 @@ interface GroupMember {
 interface GroupEntry {
   id: string;
   entryName: string | null;
+  entryLogoUrl: string | null;
   groupId: string | null;
   members: GroupMember[];
 }
@@ -1052,11 +1056,25 @@ export default function TournamentGroupsPage() {
                               className="rounded-2xl border border-white/10 bg-black/20 p-4"
                             >
                               <div className="flex items-start gap-3">
-                                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/[0.04] text-xs font-black text-slate-500">
-                                  {
-                                    index +
-                                    1
-                                  }
+                                <div className="relative shrink-0">
+                                  <FcCrest
+                                    name={
+                                      getEntryName(
+                                        entry,
+                                      )
+                                    }
+                                    imageUrl={
+                                      entry.entryLogoUrl ??
+                                      undefined
+                                    }
+                                    size="sm"
+                                  />
+                                  <span className="absolute -bottom-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full border border-white/10 bg-[#080e15] px-1 text-[9px] font-black text-slate-400">
+                                    {
+                                      index +
+                                      1
+                                    }
+                                  </span>
                                 </div>
 
                                 <div className="min-w-0 flex-1">

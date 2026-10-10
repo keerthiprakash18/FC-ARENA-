@@ -1251,26 +1251,6 @@ export class TournamentsService {
       dto.groupMode ??
       tournament.groupMode;
 
-    if (
-      competitionFormat ===
-        'GROUP_STAGE_KNOCKOUT' &&
-      groupMode !==
-        'MULTIPLE_GROUPS'
-    ) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'GROUP_STAGE_REQUIRES_GROUPS',
-
-          message:
-            'Group Stage + Knockout requires Multiple Groups.',
-        },
-      });
-    }
-
     const startAt =
       dto.startAt
         ? new Date(

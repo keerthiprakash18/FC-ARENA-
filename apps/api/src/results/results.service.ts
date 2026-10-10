@@ -1184,6 +1184,9 @@ export class ResultsService {
                 )
                 .join(' + '),
 
+            entryLogoUrl:
+              registration.entryLogoUrl,
+
             members:
               registration.members.map(
                 (member) => ({

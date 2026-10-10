@@ -1666,9 +1666,81 @@ export class PlayoffsService {
     }
 
 
+    if (
+      input.groups.length >
+        1 &&
+      input.seedingBasis ===
+        'GROUP_POSITION'
+    ) {
+      const orderedGroups =
+        [
+          ...input.groups,
+        ].sort(
+          (
+            left,
+            right,
+          ) =>
+            left.position -
+            right.position,
+        );
+
+      const maximumRank =
+        Math.max(
+          ...orderedGroups.map(
+            (
+              group,
+            ) =>
+              group.qualifiers.length,
+          ),
+        );
+
+      const seeded:
+        string[] =
+        [];
+
+      for (
+        let rank =
+          0;
+        rank <
+        maximumRank;
+        rank++
+      ) {
+        for (
+          const group
+          of orderedGroups
+        ) {
+          const entry =
+            group.qualifiers[
+              rank
+            ];
+
+          if (
+            entry
+          ) {
+            seeded.push(
+              entry.id,
+            );
+          }
+        }
+      }
+
+      return seeded;
+    }
+
+
+    const effectiveSeeding =
+      input.seedingBasis ===
+        'AUTO'
+        ? input.source ===
+            'DIRECT_ENTRIES'
+          ? 'MANUAL'
+          : 'OVERALL_PERFORMANCE'
+        : input.seedingBasis;
+
+
     return this.rankEntries(
       input.entries,
-      input.seedingBasis,
+      effectiveSeeding,
     ).map(
       (
         entry,

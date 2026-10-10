@@ -45,7 +45,8 @@ SET "phase" = 'PLAYOFF'
 FROM "tournaments" AS t
 WHERE f."tournamentId" = t."id"
   AND (
-    t."competitionFormat" = 'SINGLE_ELIMINATION'
+    t."format" = 'KNOCKOUT'
+    OR t."competitionFormat" = 'SINGLE_ELIMINATION'
     OR (
       t."competitionFormat" = 'GROUP_STAGE_KNOCKOUT'
       AND f."groupId" IS NULL

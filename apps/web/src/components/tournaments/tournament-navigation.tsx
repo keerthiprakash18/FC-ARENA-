@@ -4,13 +4,13 @@ import {
   usePathname,
 } from 'next/navigation';
 
-import { FcContextNav } from '@/components/fc/fc-context-nav';
-
+import {
+  FcContextNav,
+} from '@/components/fc/fc-context-nav';
 
 interface Props {
   tournamentId: string;
 }
-
 
 const items = [
   ['Overview', ''],
@@ -21,10 +21,10 @@ const items = [
   ['Standings', '/standings'],
   ['Bracket', '/playoffs'],
   ['Stats', '/stats'],
+  ['Summary', '/summary'],
   ['Awards', '/achievements'],
   ['Settings', '/settings'],
 ] as const;
-
 
 export function TournamentNavigation({
   tournamentId,
@@ -39,12 +39,22 @@ export function TournamentNavigation({
     <FcContextNav
       ariaLabel="Tournament sections"
       items={items.map(([label, suffix]) => {
-        const href = `${base}${suffix}`;
-        const active = suffix === ''
-          ? pathname === base
-          : pathname === href || pathname.startsWith(`${href}/`);
+        const href =
+          `${base}${suffix}`;
 
-        return { label, href, active };
+        const active =
+          suffix === ''
+            ? pathname === base
+            : pathname === href ||
+              pathname.startsWith(
+                `${href}/`,
+              );
+
+        return {
+          label,
+          href,
+          active,
+        };
       })}
     />
   );

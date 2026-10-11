@@ -293,14 +293,23 @@ export default function TournamentsPage() {
           title="Tournaments"
           subtitle="Create, follow and manage competitions in your selected League."
           action={
-            selectedMembership?.adminRole ? (
+            <div className="flex flex-wrap gap-2">
               <Link
-                href={`/leagues/${selectedMembership.league.id}/tournaments`}
-                className="inline-flex min-h-11 items-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#0EA5E9]"
+                href="/tournaments/history"
+                className="inline-flex min-h-11 items-center rounded-[10px] border border-white/10 px-4 text-sm font-semibold text-slate-300 transition hover:border-sky-400/25 hover:text-sky-300"
               >
-                + Create Tournament
+                Tournament History
               </Link>
-            ) : null
+
+              {selectedMembership?.adminRole ? (
+                <Link
+                  href={`/leagues/${selectedMembership.league.id}/tournaments`}
+                  className="inline-flex min-h-11 items-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#0EA5E9]"
+                >
+                  + Create Tournament
+                </Link>
+              ) : null}
+            </div>
           }
         />
 

@@ -414,6 +414,30 @@ export default function TournamentsPage() {
               </div>
             </FcPanel>
 
+            {filter === "COMPLETED" ? (
+              <Link
+                href="/tournaments/history"
+                className="group block rounded-2xl border border-amber-300/20 bg-amber-300/[0.035] p-4 transition hover:border-amber-300/35 hover:bg-amber-300/[0.06] sm:p-5"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+                      🏆 Tournament Archive
+                    </p>
+                    <h2 className="mt-1 text-lg font-black text-[#F8FAFC]">
+                      Tournament History & Final Summaries
+                    </h2>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      Open champions, runner-up, third place, Golden Boot, Golden Glove and Player of the Tournament records.
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-black text-amber-200">
+                    Open →
+                  </span>
+                </div>
+              </Link>
+            ) : null}
+
             <section>
               <FcSectionHeading
                 eyebrow={selectedMembership.league.name}
@@ -576,6 +600,15 @@ export default function TournamentsPage() {
                           </p>
 
                           <div className="flex flex-wrap gap-2">
+                            {tournament.status === "COMPLETED" ? (
+                              <Link
+                                href={`/tournaments/${tournament.id}/summary`}
+                                className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-amber-300/30 bg-amber-300/[0.06] px-4 text-sm font-semibold text-amber-200 transition hover:bg-amber-300/[0.1]"
+                              >
+                                🏆 View Summary
+                              </Link>
+                            ) : null}
+
                             <Link
                               href={`/tournaments/${tournament.id}`}
                               className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-semibold text-[#A7B0BE] transition hover:bg-[#151C26]"

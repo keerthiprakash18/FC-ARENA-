@@ -249,7 +249,24 @@ export default function TournamentOverviewPage() {
           crest={tournament.name}
           imageUrl={tournament.logoUrl}
           action={
-            <Link className="theme-primary-button premium-button" href={tournament.status === "DRAFT" && tournament.isLeagueAdmin ? `/tournaments/${tournamentId}/wizard/setup` : `/tournaments/${tournamentId}/fixtures`}>{tournament.status === "DRAFT" && tournament.isLeagueAdmin ? "Continue Setup" : "Open Fixtures"} →</Link>
+            <Link
+              className="theme-primary-button premium-button"
+              href={
+                tournament.status === "COMPLETED"
+                  ? `/tournaments/${tournamentId}/summary`
+                  : tournament.status === "DRAFT" && tournament.isLeagueAdmin
+                    ? `/tournaments/${tournamentId}/wizard/setup`
+                    : `/tournaments/${tournamentId}/fixtures`
+              }
+            >
+              {
+                tournament.status === "COMPLETED"
+                  ? "View Tournament Summary"
+                  : tournament.status === "DRAFT" && tournament.isLeagueAdmin
+                    ? "Continue Setup"
+                    : "Open Fixtures"
+              } →
+            </Link>
           }
         ><div className="premium-hero-tags"><span>{competitionLabel(tournament.status)}</span><span>{competitionLabel(tournament.competitionFormat || tournament.format)}</span><span>{tournament.mode}</span><span>{tournament.approvedEntries} / {tournament.maxEntries} entries</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div></PremiumHero>
 
@@ -418,6 +435,13 @@ export default function TournamentOverviewPage() {
               "Bracket",
               "Knockout qualification and progression",
               `/tournaments/${tournamentId}/playoffs`,
+            ],
+            [
+              "Summary",
+              tournament.status === "COMPLETED"
+                ? "Champion, podium, awards and final tournament statistics"
+                : "Official recap unlocks when the tournament is completed",
+              `/tournaments/${tournamentId}/summary`,
             ],
           ].map(([title, description, href]) => (
             <Link

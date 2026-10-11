@@ -598,12 +598,29 @@ model Tournament {
   playerStatistics    PlayerTournamentStatistic[]
   statEvents          MatchResultStatEvent[]
   achievements        Achievement[]
+  summary             TournamentSummary?
   groups              TournamentGroup[]
 
   @@index([leagueId, status])
   @@index([leagueId, status, createdAt])
   @@index([createdByUserId])
   @@map("tournaments")
+}
+
+model TournamentSummary {
+  id                String   @id @default(uuid()) @db.Uuid
+  tournamentId      String   @unique @db.Uuid
+  snapshot          Json
+  publishedByUserId String   @db.Uuid
+  publishedAt       DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@index([publishedAt])
+  @@index([publishedByUserId, publishedAt])
+  @@map("tournament_summaries")
 }
 
 model TournamentGroup {

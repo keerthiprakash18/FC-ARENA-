@@ -604,6 +604,41 @@ export class AchievementsService {
           );
         }
 
+        const completedAt =
+          new Date();
+
+        const summarySnapshot =
+          await this.buildTournamentSummarySnapshot(
+            tx,
+            tournamentId,
+            currentTournament,
+            placement,
+            completedAt,
+          );
+
+        await tx.tournamentSummary.upsert({
+          where: {
+            tournamentId,
+          },
+          create: {
+            tournamentId,
+            snapshot:
+              summarySnapshot,
+            publishedByUserId:
+              adminUserId,
+            publishedAt:
+              completedAt,
+          },
+          update: {
+            snapshot:
+              summarySnapshot,
+            publishedByUserId:
+              adminUserId,
+            publishedAt:
+              completedAt,
+          },
+        });
+
         await tx.tournament.update({
           where: {
             id: tournamentId,
@@ -613,8 +648,7 @@ export class AchievementsService {
             status:
               'COMPLETED',
 
-            completedAt:
-              new Date(),
+            completedAt,
           },
         });
       },
@@ -1055,6 +1089,248 @@ export class AchievementsService {
     };
   }
 
+  async getTournamentSummary(
+    userId: string,
+    tournamentId: string,
+  ) {
+    const tournament =
+      await this.prisma.tournament.findUnique({
+        where: {
+          id: tournamentId,
+        },
+        include: {
+          summary:
+            true,
+        },
+      });
+
+    if (!tournament) {
+      throw this.tournamentNotFound();
+    }
+
+    await this.assertLeagueMember(
+      userId,
+      tournament.leagueId,
+    );
+
+    if (
+      tournament.status !==
+      'COMPLETED'
+    ) {
+      return {
+        success: true,
+        data: {
+          available:
+            false,
+          tournament: {
+            id:
+              tournament.id,
+            name:
+              tournament.name,
+            code:
+              tournament.code,
+            status:
+              tournament.status,
+            logoUrl:
+              tournament.logoUrl,
+          },
+          summary:
+            null,
+          publishedAt:
+            null,
+          legacyDerived:
+            false,
+        },
+        error: null,
+      };
+    }
+
+    if (
+      tournament.summary
+    ) {
+      return {
+        success: true,
+        data: {
+          available:
+            true,
+          tournament: {
+            id:
+              tournament.id,
+            name:
+              tournament.name,
+            code:
+              tournament.code,
+            status:
+              tournament.status,
+            logoUrl:
+              tournament.logoUrl,
+          },
+          summary:
+            tournament.summary
+              .snapshot,
+          publishedAt:
+            tournament.summary
+              .publishedAt,
+          legacyDerived:
+            false,
+        },
+        error: null,
+      };
+    }
+
+    const groupCount =
+      await this.prisma.tournamentGroup.count({
+        where: {
+          tournamentId,
+        },
+      });
+
+    const playoffFixtureCount =
+      await this.prisma.fixture.count({
+        where: {
+          tournamentId,
+          groupId:
+            null,
+        },
+      });
+
+    const placement =
+      (
+        groupCount >
+          0 &&
+        playoffFixtureCount >
+          0
+      ) ||
+      tournament.format ===
+        'KNOCKOUT'
+        ? await this.getKnockoutPlacement(
+            this.prisma,
+            tournamentId,
+          )
+        : await this.getRoundRobinPlacement(
+            this.prisma,
+            tournamentId,
+          );
+
+    const snapshot =
+      await this.buildTournamentSummarySnapshot(
+        this.prisma,
+        tournamentId,
+        tournament,
+        placement,
+        tournament.completedAt,
+      );
+
+    return {
+      success: true,
+      data: {
+        available:
+          true,
+        tournament: {
+          id:
+            tournament.id,
+          name:
+            tournament.name,
+          code:
+            tournament.code,
+          status:
+            tournament.status,
+          logoUrl:
+            tournament.logoUrl,
+        },
+        summary:
+          snapshot,
+        publishedAt:
+          tournament.completedAt,
+        legacyDerived:
+          true,
+      },
+      error: null,
+    };
+  }
+
+  async getTournamentSummaryHistory(
+    userId: string,
+  ) {
+    const tournaments =
+      await this.prisma.tournament.findMany({
+        where: {
+          status:
+            'COMPLETED',
+          league: {
+            members: {
+              some: {
+                userId,
+              },
+            },
+          },
+        },
+        include: {
+          league: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          summary:
+            true,
+        },
+        orderBy: [
+          {
+            completedAt:
+              'desc',
+          },
+          {
+            updatedAt:
+              'desc',
+          },
+        ],
+        take: 50,
+      });
+
+    return {
+      success: true,
+      data: {
+        summaries:
+          tournaments.map(
+            (
+              tournament,
+            ) => ({
+              tournament: {
+                id:
+                  tournament.id,
+                name:
+                  tournament.name,
+                code:
+                  tournament.code,
+                logoUrl:
+                  tournament.logoUrl,
+                mode:
+                  tournament.mode,
+                competitionFormat:
+                  tournament.competitionFormat,
+                completedAt:
+                  tournament.completedAt,
+                league:
+                  tournament.league,
+              },
+              summary:
+                tournament.summary
+                  ?.snapshot ??
+                null,
+              publishedAt:
+                tournament.summary
+                  ?.publishedAt ??
+                tournament.completedAt,
+              legacyDerived:
+                !tournament.summary,
+            }),
+          ),
+      },
+      error: null,
+    };
+  }
+
   async getMyAchievements(
     userId: string,
   ) {
@@ -1157,6 +1433,14 @@ export class AchievementsService {
       runnerUp:
         standings[1]
           .registration,
+
+      thirdPlace:
+        standings[2]
+          ? [
+              standings[2]
+                .registration,
+            ]
+          : [],
     };
   }
 
@@ -1205,16 +1489,61 @@ export class AchievementsService {
         },
       });
 
+    const isPlacementFinalName = (
+      value: string,
+    ) => {
+      const normalized =
+        value.toLowerCase();
+
+      return (
+        normalized.includes(
+          'third',
+        ) ||
+        normalized.includes(
+          '3rd',
+        ) ||
+        normalized.includes(
+          'bronze',
+        )
+      );
+    };
+
     const finalFixture =
       fixtures.find(
         (fixture: any) =>
-          fixture.roundNumber === fixtures[0]?.roundNumber &&
-          fixture.nextFixtureId === null &&
-          isCanonicalCompletedFixture(fixture) &&
-          fixture
-            .homeRegistration &&
-          fixture
-            .awayRegistration,
+          fixture.roundName
+            ?.toLowerCase()
+            .includes(
+              'final',
+            ) &&
+          !isPlacementFinalName(
+            fixture.roundName ??
+              '',
+          ) &&
+          fixture.nextFixtureId ===
+            null &&
+          isCanonicalCompletedFixture(
+            fixture,
+          ) &&
+          fixture.homeRegistration &&
+          fixture.awayRegistration,
+      ) ??
+      fixtures.find(
+        (fixture: any) =>
+          fixture.roundNumber ===
+            fixtures[0]
+              ?.roundNumber &&
+          fixture.nextFixtureId ===
+            null &&
+          !isPlacementFinalName(
+            fixture.roundName ??
+              '',
+          ) &&
+          isCanonicalCompletedFixture(
+            fixture,
+          ) &&
+          fixture.homeRegistration &&
+          fixture.awayRegistration,
       );
 
     if (
@@ -1260,29 +1589,578 @@ export class AchievementsService {
       });
     }
 
-    if (
+    const champion =
       result.homeScore >
       result.awayScore
-    ) {
-      return {
-        champion:
-          finalFixture
-            .homeRegistration,
+        ? finalFixture
+            .homeRegistration
+        : finalFixture
+            .awayRegistration;
 
-        runnerUp:
-          finalFixture
-            .awayRegistration,
-      };
-    }
+    const runnerUp =
+      result.homeScore >
+      result.awayScore
+        ? finalFixture
+            .awayRegistration
+        : finalFixture
+            .homeRegistration;
+
+    const resolveFixtureWinnerLoser = (
+      fixture: any,
+    ) => {
+      const fixtureResult =
+        fixture.match
+          ?.confirmedResult;
+
+      if (
+        !fixtureResult ||
+        !fixture.homeRegistration ||
+        !fixture.awayRegistration ||
+        fixtureResult.homeScore ===
+          fixtureResult.awayScore
+      ) {
+        return null;
+      }
+
+      return fixtureResult.homeScore >
+        fixtureResult.awayScore
+        ? {
+            winner:
+              fixture.homeRegistration,
+            loser:
+              fixture.awayRegistration,
+          }
+        : {
+            winner:
+              fixture.awayRegistration,
+            loser:
+              fixture.homeRegistration,
+          };
+    };
+
+    const explicitThirdPlace =
+      fixtures.find(
+        (fixture: any) =>
+          fixture.id !==
+            finalFixture.id &&
+          isPlacementFinalName(
+            fixture.roundName ??
+              '',
+          ) &&
+          isCanonicalCompletedFixture(
+            fixture,
+          ),
+      );
+
+    const explicitThirdOutcome =
+      explicitThirdPlace
+        ? resolveFixtureWinnerLoser(
+            explicitThirdPlace,
+          )
+        : null;
+
+    const semifinalLosers =
+      explicitThirdOutcome
+        ? []
+        : fixtures
+            .filter(
+              (fixture: any) =>
+                fixture.nextFixtureId ===
+                  finalFixture.id &&
+                isCanonicalCompletedFixture(
+                  fixture,
+                ),
+            )
+            .map(
+              resolveFixtureWinnerLoser,
+            )
+            .filter(
+              (
+                outcome: any,
+              ) =>
+                Boolean(
+                  outcome?.loser,
+                ),
+            )
+            .map(
+              (
+                outcome: any,
+              ) =>
+                outcome.loser,
+            );
 
     return {
-      champion:
-        finalFixture
-          .awayRegistration,
+      champion,
+      runnerUp,
+      thirdPlace:
+        explicitThirdOutcome
+          ? [
+              explicitThirdOutcome.winner,
+            ]
+          : semifinalLosers.slice(
+              0,
+              2,
+            ),
+    };
+  }
 
-      runnerUp:
-        finalFixture
-          .homeRegistration,
+  private async buildTournamentSummarySnapshot(
+    tx: any,
+    tournamentId: string,
+    tournament: any,
+    placement: {
+      champion?: any | null;
+      runnerUp?: any | null;
+      thirdPlace?: any[];
+    },
+    completedAt:
+      Date | string | null,
+  ) {
+    const registrations =
+      await tx.tournamentRegistration.findMany({
+        where: {
+          tournamentId,
+          status:
+            'APPROVED',
+        },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  player: {
+                    select: {
+                      playerCode:
+                        true,
+                      profileImageUrl:
+                        true,
+                      identity: {
+                        select: {
+                          inGameName:
+                            true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+    const registrationById =
+      new Map(
+        registrations.map(
+          (
+            registration: any,
+          ) => [
+            registration.id,
+            registration,
+          ],
+        ),
+      );
+
+    const entrySnapshot = (
+      registration:
+        any | null | undefined,
+    ) => {
+      if (!registration) {
+        return null;
+      }
+
+      const full =
+        registrationById.get(
+          registration.id,
+        ) ??
+        registration;
+
+      const firstMember =
+        full.members?.[0]
+          ?.user;
+
+      return {
+        registrationId:
+          full.id,
+        name:
+          full.entryName ||
+          firstMember?.player
+            ?.identity
+            ?.inGameName ||
+          firstMember?.fullName ||
+          'Tournament Entry',
+        logoUrl:
+          full.entryLogoUrl ??
+          null,
+        members:
+          (
+            full.members ??
+            []
+          ).map(
+            (
+              member: any,
+            ) => ({
+              userId:
+                member.userId ??
+                member.user?.id,
+              name:
+                member.user?.player
+                  ?.identity
+                  ?.inGameName ||
+                member.user
+                  ?.fullName ||
+                'Player',
+              playerCode:
+                member.user?.player
+                  ?.playerCode ??
+                null,
+              profileImageUrl:
+                member.user?.player
+                  ?.profileImageUrl ??
+                null,
+            }),
+          ),
+      };
+    };
+
+    const achievements =
+      await tx.achievement.findMany({
+        where: {
+          tournamentId,
+          type: {
+            in: [
+              'GOLDEN_BOOT',
+              'GOLDEN_GLOVE',
+              'BEST_PLAYER',
+            ],
+          },
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              player: {
+                select: {
+                  playerCode:
+                    true,
+                  profileImageUrl:
+                    true,
+                  identity: {
+                    select: {
+                      inGameName:
+                        true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          awardedAt:
+            'asc',
+        },
+      });
+
+    const awardWinners = (
+      type: string,
+    ) =>
+      achievements
+        .filter(
+          (
+            achievement: any,
+          ) =>
+            achievement.type ===
+            type,
+        )
+        .map(
+          (
+            achievement: any,
+          ) => ({
+            userId:
+              achievement.user.id,
+            name:
+              achievement.user.player
+                ?.identity
+                ?.inGameName ||
+              achievement.user
+                .fullName,
+            playerCode:
+              achievement.user.player
+                ?.playerCode ??
+              null,
+            profileImageUrl:
+              achievement.user.player
+                ?.profileImageUrl ??
+              null,
+            description:
+              achievement.description ??
+              null,
+            metadata:
+              achievement.metadata ??
+              null,
+          }),
+        );
+
+    const standings =
+      await tx.tournamentStanding.findMany({
+        where: {
+          tournamentId,
+        },
+        include: {
+          registration:
+            true,
+        },
+        orderBy: [
+          {
+            points:
+              'desc',
+          },
+          {
+            goalDifference:
+              'desc',
+          },
+          {
+            goalsFor:
+              'desc',
+          },
+        ],
+      });
+
+    const completedMatches =
+      await tx.match.findMany({
+        where: {
+          tournamentId,
+          status:
+            'COMPLETED',
+          confirmedResultSubmissionId: {
+            not: null,
+          },
+        },
+        include: {
+          confirmedResult:
+            true,
+          fixture: {
+            select: {
+              id: true,
+              roundName:
+                true,
+              homeRegistrationId:
+                true,
+              awayRegistrationId:
+                true,
+            },
+          },
+        },
+      });
+
+    let totalGoals = 0;
+    let biggestWin:
+      any | null = null;
+
+    for (
+      const match
+      of completedMatches
+    ) {
+      const result =
+        match.confirmedResult;
+
+      if (!result) {
+        continue;
+      }
+
+      totalGoals +=
+        result.homeScore +
+        result.awayScore;
+
+      const margin =
+        Math.abs(
+          result.homeScore -
+            result.awayScore,
+        );
+
+      if (
+        !biggestWin ||
+        margin >
+          biggestWin.margin
+      ) {
+        const home =
+          registrationById.get(
+            match.fixture
+              .homeRegistrationId,
+          );
+        const away =
+          registrationById.get(
+            match.fixture
+              .awayRegistrationId,
+          );
+
+        biggestWin = {
+          margin,
+          roundName:
+            match.fixture
+              .roundName,
+          home:
+            entrySnapshot(
+              home,
+            ),
+          away:
+            entrySnapshot(
+              away,
+            ),
+          homeScore:
+            result.homeScore,
+          awayScore:
+            result.awayScore,
+        };
+      }
+    }
+
+    const scoringLeader =
+      [
+        ...standings,
+      ].sort(
+        (
+          first: any,
+          second: any,
+        ) =>
+          second.goalsFor -
+            first.goalsFor ||
+          second.points -
+            first.points,
+      )[0] ??
+      null;
+
+    const defenceLeader =
+      [
+        ...standings,
+      ]
+        .filter(
+          (
+            row: any,
+          ) =>
+            row.played >
+            0,
+        )
+        .sort(
+          (
+            first: any,
+            second: any,
+          ) =>
+            first.goalsAgainst -
+              second.goalsAgainst ||
+            second.points -
+              first.points,
+        )[0] ??
+      null;
+
+    return {
+      version: 1,
+      tournament: {
+        id:
+          tournament.id,
+        name:
+          tournament.name,
+        code:
+          tournament.code,
+        mode:
+          tournament.mode,
+        format:
+          tournament.format,
+        competitionFormat:
+          tournament.competitionFormat,
+        logoUrl:
+          tournament.logoUrl ??
+          null,
+        completedAt:
+          completedAt
+            ? new Date(
+                completedAt,
+              ).toISOString()
+            : null,
+      },
+      placements: {
+        champion:
+          entrySnapshot(
+            placement.champion,
+          ),
+        runnerUp:
+          entrySnapshot(
+            placement.runnerUp,
+          ),
+        thirdPlace:
+          (
+            placement.thirdPlace ??
+            []
+          )
+            .map(
+              entrySnapshot,
+            )
+            .filter(
+              Boolean,
+            ),
+      },
+      awards: {
+        goldenBoot:
+          awardWinners(
+            'GOLDEN_BOOT',
+          ),
+        goldenGlove:
+          awardWinners(
+            'GOLDEN_GLOVE',
+          ),
+        playerOfTournament:
+          awardWinners(
+            'BEST_PLAYER',
+          ),
+      },
+      stats: {
+        entries:
+          registrations.length,
+        completedMatches:
+          completedMatches.length,
+        totalGoals,
+        averageGoalsPerMatch:
+          completedMatches.length >
+          0
+            ? Number(
+                (
+                  totalGoals /
+                  completedMatches.length
+                ).toFixed(2),
+              )
+            : 0,
+        highestScoringTeam:
+          scoringLeader
+            ? {
+                entry:
+                  entrySnapshot(
+                    scoringLeader
+                      .registration,
+                  ),
+                goals:
+                  scoringLeader
+                    .goalsFor,
+              }
+            : null,
+        bestDefence:
+          defenceLeader
+            ? {
+                entry:
+                  entrySnapshot(
+                    defenceLeader
+                      .registration,
+                  ),
+                goalsAgainst:
+                  defenceLeader
+                    .goalsAgainst,
+              }
+            : null,
+        biggestWin,
+      },
     };
   }
 

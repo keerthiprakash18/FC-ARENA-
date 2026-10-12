@@ -214,7 +214,9 @@ html[data-native-app="android"] .fc-activity-panel {
   }
 
   html[data-native-app="android"] .fc-dashboard-page > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 14px !important;
+    /* The dashboard is already a grid. Avoid stacking a legacy sibling margin
+       on top of its row gap, which created a large dead space on mobile. */
+    margin-top: 0 !important;
   }
 
   html[data-native-app="android"] .fc-dashboard-hero {
@@ -445,7 +447,13 @@ html[data-native-app="android"] .fc-activity-panel {
 
   /* Consistent section rhythm. */
   html[data-native-app="android"] .fc-dashboard-page {
-    row-gap: 16px !important;
+    /* Compact native rhythm: one source of vertical spacing only. */
+    row-gap: 10px !important;
+  }
+
+  html[data-native-app="android"] .fc-dashboard-page > .premium-destination {
+    /* Keep the first action row visually attached to the home hero. */
+    padding-block: 12px !important;
   }
 
   html[data-native-app="android"] .fc-dashboard-stats {

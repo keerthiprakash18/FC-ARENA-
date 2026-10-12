@@ -1,12 +1,15 @@
 const PRODUCTION_API_URL =
   'https://api.fcarena.in/api';
 
+const configuredApiUrl =
+  process.env.NEXT_PUBLIC_API_URL?.trim();
+
 export const API_URL =
-  process.env.NODE_ENV ===
+  configuredApiUrl ||
+  (process.env.NODE_ENV ===
   'production'
     ? PRODUCTION_API_URL
-    : process.env.NEXT_PUBLIC_API_URL ??
-      'http://localhost:4000/api';
+    : 'http://localhost:4000/api');
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const SAFE_RETRY_DELAY_MS = 250;

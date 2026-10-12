@@ -80,6 +80,12 @@ interface Tournament {
   startAt: string | null;
 }
 
+interface TournamentTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
 
 export default function LeagueTournamentsPage() {
   const params =
@@ -120,6 +126,16 @@ export default function LeagueTournamentsPage() {
     useState<Tournament[]>(
       [],
     );
+
+  const [
+    templates,
+    setTemplates,
+  ] = useState<TournamentTemplate[]>([]);
+
+  const [
+    templateId,
+    setTemplateId,
+  ] = useState('');
 
   const [
     mode,
@@ -217,6 +233,13 @@ export default function LeagueTournamentsPage() {
             .league,
         );
 
+        if (leagueResult.data.league.adminRole) {
+          const templateResponse = await authenticatedRequest<{
+            data: { templates: TournamentTemplate[] };
+          }>(`/leagues/${leagueId}/tournament-templates`);
+          setTemplates(templateResponse.data.templates);
+        }
+
         await loadTournaments();
       } catch {
         router.replace(
@@ -288,6 +311,7 @@ export default function LeagueTournamentsPage() {
       );
 
     try {
+      const tournamentName = String(form.get('name') ?? '');
       const result =
         await authenticatedRequest<{
           success: true;
@@ -304,20 +328,18 @@ export default function LeagueTournamentsPage() {
 
           error: null;
         }>(
-          `/leagues/${leagueId}/tournaments`,
+          templateId
+            ? `/tournament-templates/${templateId}/create-tournament`
+            : `/leagues/${leagueId}/tournaments`,
           {
             method:
               'POST',
 
             body:
-              JSON.stringify({
-                name:
-                  String(
-                    form.get(
-                      'name',
-                    ) ??
-                    '',
-                  ),
+              JSON.stringify(templateId ? {
+                name: tournamentName,
+              } : {
+                name: tournamentName,
 
                 mode,
 
@@ -573,6 +595,20 @@ export default function LeagueTournamentsPage() {
                     className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
                 </label>
+
+                {templates.length ? (
+                  <label className="grid gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                      Start from Template
+                    </span>
+                    <select value={templateId} onChange={(event) => setTemplateId(event.target.value)} className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+                      <option value="">Use competition settings below</option>
+                      {templates.map((template) => (
+                        <option key={template.id} value={template.id}>{template.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
               </div>
 
 

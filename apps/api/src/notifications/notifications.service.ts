@@ -172,6 +172,13 @@ export class NotificationsService {
     };
   }
 
+  async createForUser(
+    userId: string,
+    input: NotificationInput,
+  ) {
+    await this.ensure(userId, input);
+  }
+
   syncForUser(userId: string): Promise<void> {
     const existing = this.pendingSyncs.get(userId);
     if (existing) return existing;

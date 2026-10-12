@@ -57,6 +57,36 @@ interface Tournament {
   dailyMatchLimit: number;
   matchesPerParticipantPerDay: number;
   matchDurationMinutes: number;
+  resultDeadlineHours: number;
+}
+
+interface SmartScheduleResult {
+  applied: boolean;
+  proposals: Array<{
+    fixtureId: string;
+    fixtureCode: string;
+    scheduledAt: string;
+    resultDeadlineAt: string;
+  }>;
+  conflicts: Array<{
+    fixtureId: string;
+    fixtureCode: string;
+    code: string;
+    message: string;
+  }>;
+}
+
+interface DeadlineCase {
+  id: string;
+  dueAt: string;
+  status: string;
+  resolutionNote: string | null;
+  fixture: {
+    fixtureCode: string;
+    scheduledAt: string | null;
+    homeRegistration: { entryName: string | null } | null;
+    awayRegistration: { entryName: string | null } | null;
+  };
 }
 
 
@@ -138,6 +168,16 @@ export default function TournamentSettingsPage() {
     setError,
   ] =
     useState('');
+
+  const [
+    smartSchedule,
+    setSmartSchedule,
+  ] = useState<SmartScheduleResult | null>(null);
+
+  const [
+    deadlineCases,
+    setDeadlineCases,
+  ] = useState<DeadlineCase[]>([]);
 
 
   async function loadTournament() {
@@ -346,6 +386,13 @@ export default function TournamentSettingsPage() {
                       'matchDurationMinutes',
                     ),
                   ),
+
+                resultDeadlineHours:
+                  Number(
+                    data.get(
+                      'resultDeadlineHours',
+                    ),
+                  ),
               }),
           },
         );
@@ -367,6 +414,99 @@ export default function TournamentSettingsPage() {
       setBusy(
         false,
       );
+    }
+  }
+
+  async function runSmartSchedule(
+    apply: boolean,
+  ) {
+    setBusy(true);
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        data: SmartScheduleResult;
+      }>(
+        `/tournaments/${tournamentId}/fixtures/smart-schedule`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ apply }),
+        },
+      );
+      setSmartSchedule(response.data);
+      setMessage(
+        apply && response.data.applied
+          ? `Applied ${response.data.proposals.length} conflict-aware fixture slots.`
+          : `Previewed ${response.data.proposals.length} fixture slots with ${response.data.conflicts.length} conflicts.`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Smart scheduling failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function loadDeadlineCases() {
+    setBusy(true);
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        data: { cases: DeadlineCase[] };
+      }>(`/tournaments/${tournamentId}/deadline-cases`);
+      setDeadlineCases(response.data.cases);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Deadline cases could not be loaded.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reviewDeadlineCase(caseId: string, status: 'RESOLVED' | 'WAIVED') {
+    setBusy(true);
+    try {
+      await authenticatedRequest(`/deadline-cases/${caseId}/review`, {
+        method: 'POST',
+        body: JSON.stringify({ status }),
+      });
+      await loadDeadlineCases();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Deadline case could not be reviewed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveTemplate() {
+    const name = window.prompt('Template name');
+    if (!name?.trim()) return;
+    setBusy(true);
+    try {
+      await authenticatedRequest(`/tournaments/${tournamentId}/template`, {
+        method: 'POST',
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      setMessage('Tournament template saved for this league.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Template could not be saved.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function exportVerifiedResults() {
+    setBusy(true);
+    try {
+      const response = await authenticatedRequest<{
+        data: { filename: string; csv: string };
+      }>(`/tournaments/${tournamentId}/export`);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([response.data.csv], { type: 'text/csv;charset=utf-8' }));
+      link.download = response.data.filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Export could not be created.');
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -617,13 +757,27 @@ export default function TournamentSettingsPage() {
                     Daily Match Limit
                   </span>
 
-                  <input
+                 <input
                     name="dailyMatchLimit"
                     type="number"
                     min="1"
                     defaultValue={
                       tournament.dailyMatchLimit
                     }
+                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3"
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-black text-slate-500">
+                    Result Deadline Hours
+                  </span>
+
+                  <input
+                    name="resultDeadlineHours"
+                    type="number"
+                    min="1"
+                    defaultValue={tournament.resultDeadlineHours}
                     className="rounded-xl border border-white/10 bg-black/20 px-4 py-3"
                   />
                 </label>
@@ -671,6 +825,74 @@ export default function TournamentSettingsPage() {
                   </button>
                 </div>
               </form>
+            </FcPanel>
+
+            <FcPanel className="p-5 sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+                Organizer Tools
+              </p>
+              <p className="mt-2 text-sm text-slate-400">
+                Preview a schedule before applying it. The planner respects daily capacity, participant limits and result deadlines.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button type="button" disabled={busy} onClick={() => void runSmartSchedule(false)} className="rounded-xl border border-sky-400/30 px-4 py-3 text-sm font-black text-sky-300 disabled:opacity-40">
+                  Preview Smart Schedule
+                </button>
+                <button type="button" disabled={busy} onClick={() => void runSmartSchedule(true)} className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019] disabled:opacity-40">
+                  Apply Schedule
+                </button>
+                <button type="button" disabled={busy} onClick={() => void saveTemplate()} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-200 disabled:opacity-40">
+                  Save as Template
+                </button>
+                <button type="button" disabled={busy} onClick={() => void exportVerifiedResults()} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-200 disabled:opacity-40">
+                  Export Verified CSV
+                </button>
+                <button type="button" disabled={busy} onClick={() => void loadDeadlineCases()} className="rounded-xl border border-amber-400/20 px-4 py-3 text-sm font-black text-amber-300 disabled:opacity-40">
+                  Review Deadlines
+                </button>
+              </div>
+
+              {smartSchedule ? (
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                  <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.04] p-4">
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-300">Proposed slots</p>
+                    <p className="mt-2 text-2xl font-black">{smartSchedule.proposals.length}</p>
+                    <ul className="mt-3 space-y-1 text-xs text-slate-400">
+                      {smartSchedule.proposals.slice(0, 5).map((proposal) => (
+                        <li key={proposal.fixtureId}>{proposal.fixtureCode} · {new Date(proposal.scheduledAt).toLocaleString()}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.04] p-4">
+                    <p className="text-xs font-black uppercase tracking-wider text-amber-300">Conflicts requiring attention</p>
+                    <p className="mt-2 text-2xl font-black">{smartSchedule.conflicts.length}</p>
+                    <ul className="mt-3 space-y-1 text-xs text-slate-400">
+                      {smartSchedule.conflicts.slice(0, 5).map((conflict) => (
+                        <li key={conflict.fixtureId}>{conflict.fixtureCode} · {conflict.message}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ) : null}
+
+              {deadlineCases.length ? (
+                <div className="mt-5 space-y-2">
+                  {deadlineCases.map((deadlineCase) => (
+                    <div key={deadlineCase.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 p-4 text-sm">
+                      <div>
+                        <p className="font-black">{deadlineCase.fixture.fixtureCode} · {deadlineCase.fixture.homeRegistration?.entryName ?? 'TBD'} vs {deadlineCase.fixture.awayRegistration?.entryName ?? 'TBD'}</p>
+                        <p className="mt-1 text-xs text-slate-500">Due {new Date(deadlineCase.dueAt).toLocaleString()} · {deadlineCase.status}</p>
+                      </div>
+                      {deadlineCase.status === 'OPEN' ? (
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => void reviewDeadlineCase(deadlineCase.id, 'RESOLVED')} className="rounded-lg bg-emerald-400 px-3 py-2 text-xs font-black text-[#031019]">Resolve</button>
+                          <button type="button" onClick={() => void reviewDeadlineCase(deadlineCase.id, 'WAIVED')} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black">Waive</button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </FcPanel>
 
 

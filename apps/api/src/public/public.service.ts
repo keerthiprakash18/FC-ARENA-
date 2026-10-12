@@ -581,4 +581,51 @@ export class PublicService {
       error: null,
     };
   }
+
+  async exportTournament(code: string, format = 'csv') {
+    if (format.toLowerCase() !== 'csv') {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+        error: { code: 'EXPORT_FORMAT_NOT_FOUND', message: 'Only CSV exports are currently supported.' },
+      });
+    }
+
+    const response = await this.getTournament(code);
+    const data = response.data;
+    const rows = [
+      ['section', 'fixtureCode', 'round', 'home', 'away', 'homeScore', 'awayScore'],
+      ...data.fixtures.map((fixture) => [
+        'verified-result',
+        fixture.fixtureCode,
+        fixture.roundName,
+        fixture.home,
+        fixture.away,
+        fixture.result?.homeScore?.toString() ?? '',
+        fixture.result?.awayScore?.toString() ?? '',
+      ]),
+      [],
+      ['section', 'position', 'entry', 'played', 'wins', 'draws', 'losses', 'goalDifference', 'points'],
+      ...data.standings.map((standing) => [
+        'standing',
+        standing.position.toString(),
+        standing.name,
+        standing.played.toString(),
+        standing.wins.toString(),
+        standing.draws.toString(),
+        standing.losses.toString(),
+        standing.goalDifference.toString(),
+        standing.points.toString(),
+      ]),
+    ];
+
+    return {
+      success: true,
+      data: {
+        filename: `${data.tournament.code.toLowerCase()}-public-results.csv`,
+        csv: rows.map((row) => row.map((value) => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n'),
+      },
+      error: null,
+    };
+  }
 }

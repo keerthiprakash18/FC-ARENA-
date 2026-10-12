@@ -9,6 +9,7 @@ import {
 import {
   MatchesModule,
 } from '../matches/matches.module.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
 
 import {
   FixturesService,
@@ -73,12 +74,14 @@ import {
 import {
   TournamentWizardFinalizeService,
 } from './tournament-wizard-finalize.service.js';
+import { TournamentToolsService } from './tournament-tools.service.js';
 
 
 @Module({
   imports: [
     AuthModule,
     MatchesModule,
+    NotificationsModule,
   ],
 
   controllers: [
@@ -101,6 +104,7 @@ import {
     TournamentFixtureWizardService,
     TournamentFixturePreviewService,
     TournamentWizardFinalizeService,
+    TournamentToolsService,
   ],
 
   exports: [
@@ -114,6 +118,7 @@ import {
     TournamentFixtureWizardService,
     TournamentFixturePreviewService,
     TournamentWizardFinalizeService,
+    TournamentToolsService,
   ],
 })
 export class TournamentsModule {}

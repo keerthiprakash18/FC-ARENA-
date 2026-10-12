@@ -24,6 +24,31 @@ export class HealthController {
       PrismaService,
   ) {}
 
+  @Get('live')
+  liveness() {
+    return {
+      success: true,
+      data: {
+        status: 'alive',
+        timestamp: new Date().toISOString(),
+        runtime: {
+          node: process.version,
+          release:
+            process.env.FC_ARENA_RELEASE_SHA ??
+            process.env.GIT_COMMIT_SHA ??
+            process.env.SOURCE_VERSION ??
+            'unknown',
+        },
+      },
+      error: null,
+    };
+  }
+
+  @Get('ready')
+  checkReadiness() {
+    return this.checkHealth();
+  }
+
   @Get()
   async checkHealth() {
     const checkedAt =
@@ -149,9 +174,10 @@ export class HealthController {
               ),
           },
           release:
-            process.env
-              .FC_ARENA_RELEASE_SHA ??
-            null,
+            process.env.FC_ARENA_RELEASE_SHA ??
+            process.env.GIT_COMMIT_SHA ??
+            process.env.SOURCE_VERSION ??
+            'unknown',
         },
       },
       error: null,

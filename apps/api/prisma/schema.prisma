@@ -250,6 +250,12 @@ enum BackupRunStatus {
   FAILED
 }
 
+enum DeadlineCaseStatus {
+  OPEN
+  RESOLVED
+  WAIVED
+}
+
 enum FairPlayEventKind {
   COMMENDATION
   WARNING
@@ -340,17 +346,17 @@ enum RoleScopeType {
 }
 
 model User {
-  id              String     @id @default(uuid()) @db.Uuid
-  fullName        String     @db.VarChar(120)
-  email           String     @unique @db.VarChar(255)
-  phoneNumber     String?    @unique @db.VarChar(30)
-  passwordHash    String     @db.VarChar(255)
-  role            GlobalRole @default(USER)
-  status          UserStatus       @default(ACTIVE)
-  themePreference ThemePreference  @default(CLASSIC_BLUE)
+  id              String          @id @default(uuid()) @db.Uuid
+  fullName        String          @db.VarChar(120)
+  email           String          @unique @db.VarChar(255)
+  phoneNumber     String?         @unique @db.VarChar(30)
+  passwordHash    String          @db.VarChar(255)
+  role            GlobalRole      @default(USER)
+  status          UserStatus      @default(ACTIVE)
+  themePreference ThemePreference @default(CLASSIC_BLUE)
   emailVerifiedAt DateTime?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   player                     Player?
   authOtps                   AuthOtp[]
@@ -361,6 +367,7 @@ model User {
   reviewedLeagueApplications LeagueApplication[]            @relation("LeagueApplicationReviewer")
   leagueAdminRoles           LeagueAdmin[]
   createdTournaments         Tournament[]                   @relation("TournamentCreator")
+  createdTournamentTemplates TournamentTemplate[]           @relation("TournamentTemplateCreator")
   tournamentRegistrations    TournamentRegistration[]       @relation("TournamentRegistrant")
   tournamentEntryMemberships TournamentRegistrationMember[] @relation("TournamentRegistrationMemberUser")
   reviewedRegistrations      TournamentRegistration[]       @relation("TournamentRegistrationReviewer")
@@ -369,33 +376,34 @@ model User {
   reviewedResultSubmissions  ResultSubmission[]          @relation("ResultReviewer")
   playerTournamentStatistics PlayerTournamentStatistic[]
 
-  ocrSubmissions  OcrExtraction[]  @relation("OcrSubmitter")
-  ocrHomeMatches  OcrExtraction[]  @relation("OcrHomeMatchedUser")
-  ocrAwayMatches  OcrExtraction[]  @relation("OcrAwayMatchedUser")
-  achievements    Achievement[]
-  notifications   Notification[]
-  pushDevices PushDevice[]
-  roleAssignments RoleAssignment[] @relation("AssignedRoleUser")
-  rolesAssigned   RoleAssignment[] @relation("RoleAssigner")
-  auditLogs       AuditLog[]       @relation("AuditActor")
-  raisedDisputes  MatchDispute[]    @relation("DisputeRaiser")
-  resolvedDisputes MatchDispute[]   @relation("DisputeResolver")
-  createdBallonSeasons BallonSeason[] @relation("BallonSeasonCreator")
-  wonBallonSeasons BallonSeason[] @relation("BallonSeasonWinner")
-  wonRisingStarSeasons BallonSeason[] @relation("BallonSeasonRisingStar")
-  ballonFinalRankings BallonFinalRanking[]
-  seasonalAwards SeasonalAward[]
-  createdLeagueWars LeagueWar[] @relation("LeagueWarCreator")
-  androidReleases AndroidRelease[] @relation("AndroidReleaseCreator")
-  fairPlayEvents FairPlayEvent[] @relation("FairPlayTarget")
-  issuedFairPlayEvents FairPlayEvent[] @relation("FairPlayIssuer")
-  revokedFairPlayEvents FairPlayEvent[] @relation("FairPlayRevoker")
-  fairPlayAppeals FairPlayAppeal[] @relation("FairPlayAppealer")
-  resolvedFairPlayAppeals FairPlayAppeal[] @relation("FairPlayAppealResolver")
-  leagueWarParticipants LeagueWarParticipant[]
-  leagueWarHomeMatches LeagueWarMatch[] @relation("LeagueWarMatchHomePlayer")
-  leagueWarAwayMatches LeagueWarMatch[] @relation("LeagueWarMatchAwayPlayer")
-  leagueWarResultUpdates LeagueWarMatch[] @relation("LeagueWarMatchResultUpdater")
+  ocrSubmissions          OcrExtraction[]        @relation("OcrSubmitter")
+  ocrHomeMatches          OcrExtraction[]        @relation("OcrHomeMatchedUser")
+  ocrAwayMatches          OcrExtraction[]        @relation("OcrAwayMatchedUser")
+  achievements            Achievement[]
+  notifications           Notification[]
+  pushDevices             PushDevice[]
+  roleAssignments         RoleAssignment[]       @relation("AssignedRoleUser")
+  rolesAssigned           RoleAssignment[]       @relation("RoleAssigner")
+  auditLogs               AuditLog[]             @relation("AuditActor")
+  raisedDisputes          MatchDispute[]         @relation("DisputeRaiser")
+  resolvedDisputes        MatchDispute[]         @relation("DisputeResolver")
+  createdBallonSeasons    BallonSeason[]         @relation("BallonSeasonCreator")
+  wonBallonSeasons        BallonSeason[]         @relation("BallonSeasonWinner")
+  wonRisingStarSeasons    BallonSeason[]         @relation("BallonSeasonRisingStar")
+  ballonFinalRankings     BallonFinalRanking[]
+  seasonalAwards          SeasonalAward[]
+  createdLeagueWars       LeagueWar[]            @relation("LeagueWarCreator")
+  androidReleases         AndroidRelease[]       @relation("AndroidReleaseCreator")
+  fairPlayEvents          FairPlayEvent[]        @relation("FairPlayTarget")
+  issuedFairPlayEvents    FairPlayEvent[]        @relation("FairPlayIssuer")
+  revokedFairPlayEvents   FairPlayEvent[]        @relation("FairPlayRevoker")
+  fairPlayAppeals         FairPlayAppeal[]       @relation("FairPlayAppealer")
+  resolvedFairPlayAppeals FairPlayAppeal[]       @relation("FairPlayAppealResolver")
+  leagueWarParticipants   LeagueWarParticipant[]
+  leagueWarHomeMatches    LeagueWarMatch[]       @relation("LeagueWarMatchHomePlayer")
+  leagueWarAwayMatches    LeagueWarMatch[]       @relation("LeagueWarMatchAwayPlayer")
+  leagueWarResultUpdates  LeagueWarMatch[]       @relation("LeagueWarMatchResultUpdater")
+  aiUsageBuckets          AiUsageBucket[]
 
   @@index([status])
   @@map("users")
@@ -452,12 +460,12 @@ model AuthOtp {
 
 model RefreshSession {
   pushDevices PushDevice[]
-  id        String    @id @db.Uuid
-  userId    String    @db.Uuid
-  tokenHash String    @unique @db.VarChar(64)
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime  @default(now())
+  id          String       @id @db.Uuid
+  userId      String       @db.Uuid
+  tokenHash   String       @unique @db.VarChar(64)
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime     @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -467,28 +475,29 @@ model RefreshSession {
 
 model League {
   rankingSnapshots RankingSnapshot[]
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String   @db.VarChar(120)
-  code          String   @unique @db.VarChar(20)
-  logoUrl       String?  @db.Text
-  description   String?  @db.Text
-  region        String?  @db.VarChar(120)
-  rules         String?  @db.Text
-  maxMembers    Int      @default(100)
-  creatorUserId String   @db.Uuid
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String            @id @default(uuid()) @db.Uuid
+  name             String            @db.VarChar(120)
+  code             String            @unique @db.VarChar(20)
+  logoUrl          String?           @db.Text
+  description      String?           @db.Text
+  region           String?           @db.VarChar(120)
+  rules            String?           @db.Text
+  maxMembers       Int               @default(100)
+  creatorUserId    String            @db.Uuid
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
-  creator      User                @relation("LeagueCreator", fields: [creatorUserId], references: [id], onDelete: Restrict)
-  members      LeagueMember[]
-  applications LeagueApplication[]
-  admins       LeagueAdmin[]
-  tournaments  Tournament[]
-  homeLeagueWars LeagueWar[] @relation("LeagueWarHomeLeague")
-  awayLeagueWars LeagueWar[] @relation("LeagueWarAwayLeague")
-  wonLeagueWars LeagueWar[] @relation("LeagueWarWinnerLeague")
+  creator               User                   @relation("LeagueCreator", fields: [creatorUserId], references: [id], onDelete: Restrict)
+  members               LeagueMember[]
+  applications          LeagueApplication[]
+  admins                LeagueAdmin[]
+  tournaments           Tournament[]
+  tournamentTemplates   TournamentTemplate[]
+  homeLeagueWars        LeagueWar[]            @relation("LeagueWarHomeLeague")
+  awayLeagueWars        LeagueWar[]            @relation("LeagueWarAwayLeague")
+  wonLeagueWars         LeagueWar[]            @relation("LeagueWarWinnerLeague")
   leagueWarParticipants LeagueWarParticipant[]
-  fairPlayEvents FairPlayEvent[]
+  fairPlayEvents        FairPlayEvent[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -587,6 +596,7 @@ model Tournament {
   createdAt                   DateTime                    @default(now())
   updatedAt                   DateTime                    @updatedAt
   completedAt                 DateTime?
+  resultDeadlineHours         Int                         @default(48)
 
   league              League                         @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   createdBy           User                           @relation("TournamentCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
@@ -600,6 +610,7 @@ model Tournament {
   achievements        Achievement[]
   summary             TournamentSummary?
   groups              TournamentGroup[]
+  deadlineCases       FixtureDeadlineCase[]
 
   @@index([leagueId, status])
   @@index([leagueId, status, createdAt])
@@ -621,6 +632,25 @@ model TournamentSummary {
   @@index([publishedAt])
   @@index([publishedByUserId, publishedAt])
   @@map("tournament_summaries")
+}
+
+model TournamentTemplate {
+  id              String   @id @default(uuid()) @db.Uuid
+  leagueId        String   @db.Uuid
+  createdByUserId String   @db.Uuid
+  name            String   @db.VarChar(120)
+  description     String?  @db.Text
+  config          Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  createdBy User   @relation("TournamentTemplateCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  @@unique([leagueId, name])
+  @@index([leagueId, updatedAt])
+  @@index([createdByUserId])
+  @@map("tournament_templates")
 }
 
 model TournamentGroup {
@@ -706,21 +736,23 @@ model Fixture {
   loserNextFixtureId String?          @db.Uuid
   loserNextSlot      FixtureNextSlot?
   scheduledAt        DateTime?
+  resultDeadlineAt   DateTime?
   venue              String?          @db.VarChar(160)
   publishedAt        DateTime?
   status             FixtureStatus    @default(UNSCHEDULED)
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
-  tournament       Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  group            TournamentGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  homeRegistration TournamentRegistration? @relation("FixtureHomeRegistration", fields: [homeRegistrationId], references: [id], onDelete: SetNull)
-  awayRegistration TournamentRegistration? @relation("FixtureAwayRegistration", fields: [awayRegistrationId], references: [id], onDelete: SetNull)
-  nextFixture          Fixture?  @relation("FixtureProgression", fields: [nextFixtureId], references: [id], onDelete: SetNull)
-  previousFixtures     Fixture[] @relation("FixtureProgression")
-  loserNextFixture     Fixture?  @relation("FixtureLoserProgression", fields: [loserNextFixtureId], references: [id], onDelete: SetNull)
-  previousLoserFixtures Fixture[] @relation("FixtureLoserProgression")
-  match                Match?
+  tournament            Tournament              @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  group                 TournamentGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  homeRegistration      TournamentRegistration? @relation("FixtureHomeRegistration", fields: [homeRegistrationId], references: [id], onDelete: SetNull)
+  awayRegistration      TournamentRegistration? @relation("FixtureAwayRegistration", fields: [awayRegistrationId], references: [id], onDelete: SetNull)
+  nextFixture           Fixture?                @relation("FixtureProgression", fields: [nextFixtureId], references: [id], onDelete: SetNull)
+  previousFixtures      Fixture[]               @relation("FixtureProgression")
+  loserNextFixture      Fixture?                @relation("FixtureLoserProgression", fields: [loserNextFixtureId], references: [id], onDelete: SetNull)
+  previousLoserFixtures Fixture[]               @relation("FixtureLoserProgression")
+  match                 Match?
+  deadlineCase          FixtureDeadlineCase?
 
   @@unique([tournamentId, sequence])
   @@index([tournamentId, roundNumber])
@@ -734,6 +766,26 @@ model Fixture {
   @@index([nextFixtureId])
   @@index([loserNextFixtureId])
   @@map("fixtures")
+}
+
+model FixtureDeadlineCase {
+  id             String             @id @default(uuid()) @db.Uuid
+  fixtureId      String             @db.Uuid
+  tournamentId   String             @db.Uuid
+  dueAt          DateTime
+  status         DeadlineCaseStatus @default(OPEN)
+  reminderSentAt DateTime?
+  openedAt       DateTime           @default(now())
+  resolvedAt     DateTime?
+  resolutionNote String?            @db.VarChar(1000)
+  updatedAt      DateTime           @updatedAt
+
+  fixture    Fixture    @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([fixtureId])
+  @@index([tournamentId, status, dueAt])
+  @@map("fixture_deadline_cases")
 }
 
 model Match {
@@ -873,19 +925,19 @@ model AuditLog {
 
 model Notification {
   pushDeliveries PushDelivery[]
-  id         String           @id @default(uuid()) @db.Uuid
-  userId     String           @db.Uuid
-  type       NotificationType
-  title      String           @db.VarChar(160)
-  message    String           @db.Text
-  href       String?          @db.Text
-  entityType String?          @db.VarChar(80)
-  entityId   String?          @db.VarChar(120)
-  dedupeKey  String           @unique @db.VarChar(255)
-  eventAt    DateTime
-  readAt     DateTime?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  id             String           @id @default(uuid()) @db.Uuid
+  userId         String           @db.Uuid
+  type           NotificationType
+  title          String           @db.VarChar(160)
+  message        String           @db.Text
+  href           String?          @db.Text
+  entityType     String?          @db.VarChar(80)
+  entityId       String?          @db.VarChar(120)
+  dedupeKey      String           @unique @db.VarChar(255)
+  eventAt        DateTime
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -896,17 +948,17 @@ model Notification {
 }
 
 model MatchDispute {
-  id               String   @id @default(uuid()) @db.Uuid
-  matchId          String   @db.Uuid
-  raisedByUserId   String   @db.Uuid
-  reason           String   @db.VarChar(1000)
-  evidenceUrl      String?  @db.Text
-  status           String   @default("OPEN") @db.VarChar(30)
-  resolutionNote   String?  @db.VarChar(1000)
-  resolvedByUserId String?  @db.Uuid
+  id               String    @id @default(uuid()) @db.Uuid
+  matchId          String    @db.Uuid
+  raisedByUserId   String    @db.Uuid
+  reason           String    @db.VarChar(1000)
+  evidenceUrl      String?   @db.Text
+  status           String    @default("OPEN") @db.VarChar(30)
+  resolutionNote   String?   @db.VarChar(1000)
+  resolvedByUserId String?   @db.Uuid
   resolvedAt       DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   match      Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
   raisedBy   User  @relation("DisputeRaiser", fields: [raisedByUserId], references: [id], onDelete: Cascade)
@@ -1003,7 +1055,6 @@ model MatchResultStatEvent {
   @@map("match_result_stat_events")
 }
 
-
 model AuthRateLimit {
   action          String   @db.VarChar(50)
   keyHash         String   @db.VarChar(64)
@@ -1016,29 +1067,46 @@ model AuthRateLimit {
   @@map("auth_rate_limits")
 }
 
+model AiUsageBucket {
+  userId          String   @db.Uuid
+  day             DateTime @db.Date
+  minuteStartedAt DateTime
+  minuteCount     Int      @default(0)
+  dayCount        Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+  @@index([updatedAt])
+  @@map("ai_usage_buckets")
+}
+
 model RankingSnapshot {
-  id String @id @default(uuid()) @db.Uuid
-  leagueId String @db.Uuid
-  scope String @db.VarChar(8)
-  day DateTime @db.Date
+  id         String   @id @default(uuid()) @db.Uuid
+  leagueId   String   @db.Uuid
+  scope      String   @db.VarChar(8)
+  day        DateTime @db.Date
   capturedAt DateTime @default(now())
-  positions Json
-  league League @relation(fields:[leagueId], references:[id], onDelete:Cascade)
+  positions  Json
+  league     League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
   @@unique([leagueId, scope, day])
   @@map("ranking_snapshots")
 }
 
 model PushDevice {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  sessionId String @db.Uuid
-  token String @unique @db.VarChar(2048)
-  enabledAt DateTime @default(now())
-  lastSyncedAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
-  session RefreshSession @relation(fields:[sessionId], references:[id], onDelete:Cascade)
-  deliveries PushDelivery[]
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String         @db.Uuid
+  sessionId    String         @db.Uuid
+  token        String         @unique @db.VarChar(2048)
+  enabledAt    DateTime       @default(now())
+  lastSyncedAt DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session      RefreshSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  deliveries   PushDelivery[]
+
   @@index([lastSyncedAt])
   @@index([userId])
   @@index([userId, lastSyncedAt])
@@ -1046,35 +1114,35 @@ model PushDevice {
 }
 
 model PushDelivery {
-  id String @id @default(uuid()) @db.Uuid
-  deviceId String @db.Uuid
-  notificationId String @db.Uuid
-  attempts Int @default(0)
-  leaseUntil DateTime @default(now())
-  deliveredAt DateTime?
-  device PushDevice @relation(fields:[deviceId], references:[id], onDelete:Cascade)
-  notification Notification @relation(fields:[notificationId], references:[id], onDelete:Cascade)
+  id             String       @id @default(uuid()) @db.Uuid
+  deviceId       String       @db.Uuid
+  notificationId String       @db.Uuid
+  attempts       Int          @default(0)
+  leaseUntil     DateTime     @default(now())
+  deliveredAt    DateTime?
+  device         PushDevice   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
   @@unique([deviceId, notificationId])
   @@map("push_deliveries")
 }
 
-
 model AndroidRelease {
-  id                          String              @id @default(uuid()) @db.Uuid
-  versionCode                 Int                 @unique
-  versionName                 String              @db.VarChar(40)
+  id                          String               @id @default(uuid()) @db.Uuid
+  versionCode                 Int                  @unique
+  versionName                 String               @db.VarChar(40)
   channel                     MobileReleaseChannel @default(INTERNAL)
-  status                      MobileReleaseStatus @default(DRAFT)
+  status                      MobileReleaseStatus  @default(DRAFT)
   minimumSupportedVersionCode Int?
   forceUpdateBelowVersionCode Int?
-  releaseNotes                String?             @db.Text
-  playStoreUrl                String?             @db.Text
-  sourceCommit                String?             @db.VarChar(40)
-  artifactSha256              String?             @db.VarChar(64)
-  createdByUserId             String              @db.Uuid
+  releaseNotes                String?              @db.Text
+  playStoreUrl                String?              @db.Text
+  sourceCommit                String?              @db.VarChar(40)
+  artifactSha256              String?              @db.VarChar(64)
+  createdByUserId             String               @db.Uuid
   publishedAt                 DateTime?
-  createdAt                   DateTime            @default(now())
-  updatedAt                   DateTime            @updatedAt
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
 
   createdBy User @relation("AndroidReleaseCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
 
@@ -1119,10 +1187,10 @@ model FairPlayEvent {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  user      User  @relation("FairPlayTarget", fields: [userId], references: [id], onDelete: Cascade)
-  league    League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
-  issuedBy  User  @relation("FairPlayIssuer", fields: [issuedByUserId], references: [id], onDelete: Restrict)
-  revokedBy User? @relation("FairPlayRevoker", fields: [revokedByUserId], references: [id], onDelete: SetNull)
+  user      User             @relation("FairPlayTarget", fields: [userId], references: [id], onDelete: Cascade)
+  league    League           @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  issuedBy  User             @relation("FairPlayIssuer", fields: [issuedByUserId], references: [id], onDelete: Restrict)
+  revokedBy User?            @relation("FairPlayRevoker", fields: [revokedByUserId], references: [id], onDelete: SetNull)
   appeals   FairPlayAppeal[]
 
   @@index([userId, issuedAt])
@@ -1153,41 +1221,41 @@ model FairPlayAppeal {
 }
 
 model LeagueWar {
-  id                   String               @id @default(uuid()) @db.Uuid
-  name                 String               @db.VarChar(140)
-  homeLeagueId         String               @db.Uuid
-  awayLeagueId         String               @db.Uuid
-  createdByUserId      String               @db.Uuid
-  winnerLeagueId       String?              @db.Uuid
-  rematchOfWarId       String?              @db.Uuid
-  status               LeagueWarStatus      @default(INVITED)
-  playerCount          Int
-  legType              LeagueWarLegType     @default(SINGLE_LEG)
-  pairingMode          LeagueWarPairingMode @default(SLOT)
-  winPoints            Int                  @default(3)
-  drawPoints           Int                  @default(1)
-  lossPoints           Int                  @default(0)
-  challengeExpiresAt   DateTime?
-  scheduledStartAt     DateTime?
-  deadlineAt           DateTime?
-  acceptedAt           DateTime?
-  homeReadyAt          DateTime?
-  awayReadyAt          DateTime?
-  homeRosterLockedAt   DateTime?
-  awayRosterLockedAt   DateTime?
-  rejectedAt           DateTime?
-  rejectionReason      String?              @db.VarChar(500)
-  cancelledAt          DateTime?
-  cancellationReason   String?              @db.VarChar(500)
-  startedAt            DateTime?
-  completedAt          DateTime?
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  id                 String               @id @default(uuid()) @db.Uuid
+  name               String               @db.VarChar(140)
+  homeLeagueId       String               @db.Uuid
+  awayLeagueId       String               @db.Uuid
+  createdByUserId    String               @db.Uuid
+  winnerLeagueId     String?              @db.Uuid
+  rematchOfWarId     String?              @db.Uuid
+  status             LeagueWarStatus      @default(INVITED)
+  playerCount        Int
+  legType            LeagueWarLegType     @default(SINGLE_LEG)
+  pairingMode        LeagueWarPairingMode @default(SLOT)
+  winPoints          Int                  @default(3)
+  drawPoints         Int                  @default(1)
+  lossPoints         Int                  @default(0)
+  challengeExpiresAt DateTime?
+  scheduledStartAt   DateTime?
+  deadlineAt         DateTime?
+  acceptedAt         DateTime?
+  homeReadyAt        DateTime?
+  awayReadyAt        DateTime?
+  homeRosterLockedAt DateTime?
+  awayRosterLockedAt DateTime?
+  rejectedAt         DateTime?
+  rejectionReason    String?              @db.VarChar(500)
+  cancelledAt        DateTime?
+  cancellationReason String?              @db.VarChar(500)
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 
-  homeLeague   League  @relation("LeagueWarHomeLeague", fields: [homeLeagueId], references: [id], onDelete: Cascade)
-  awayLeague   League  @relation("LeagueWarAwayLeague", fields: [awayLeagueId], references: [id], onDelete: Cascade)
-  winnerLeague League? @relation("LeagueWarWinnerLeague", fields: [winnerLeagueId], references: [id], onDelete: SetNull)
-  createdBy    User    @relation("LeagueWarCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  homeLeague   League                 @relation("LeagueWarHomeLeague", fields: [homeLeagueId], references: [id], onDelete: Cascade)
+  awayLeague   League                 @relation("LeagueWarAwayLeague", fields: [awayLeagueId], references: [id], onDelete: Cascade)
+  winnerLeague League?                @relation("LeagueWarWinnerLeague", fields: [winnerLeagueId], references: [id], onDelete: SetNull)
+  createdBy    User                   @relation("LeagueWarCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
   participants LeagueWarParticipant[]
   matches      LeagueWarMatch[]
 
@@ -1219,29 +1287,29 @@ model LeagueWarParticipant {
 }
 
 model LeagueWarMatch {
-  id                       String                @id @default(uuid()) @db.Uuid
-  warId                    String                @db.Uuid
-  sequence                 Int
-  leg                      Int                   @default(1)
-  homePlayerUserId         String                @db.Uuid
-  awayPlayerUserId         String                @db.Uuid
-  homeScore                Int?
-  awayScore                Int?
-  status                   LeagueWarMatchStatus  @default(SCHEDULED)
-  resultStatus             LeagueWarResultStatus @default(NONE)
-  resultUpdatedByUserId    String?               @db.Uuid
-  resultSubmittedByUserId  String?               @db.Uuid
-  resultSubmittedByLeagueId String?              @db.Uuid
-  resultConfirmedByUserId  String?               @db.Uuid
-  proofUrl                 String?               @db.Text
-  disputeReason            String?               @db.VarChar(1000)
-  walkoverLeagueId         String?               @db.Uuid
-  submittedAt              DateTime?
-  confirmedAt              DateTime?
-  disputedAt               DateTime?
-  completedAt              DateTime?
-  createdAt                DateTime               @default(now())
-  updatedAt                DateTime               @updatedAt
+  id                        String                @id @default(uuid()) @db.Uuid
+  warId                     String                @db.Uuid
+  sequence                  Int
+  leg                       Int                   @default(1)
+  homePlayerUserId          String                @db.Uuid
+  awayPlayerUserId          String                @db.Uuid
+  homeScore                 Int?
+  awayScore                 Int?
+  status                    LeagueWarMatchStatus  @default(SCHEDULED)
+  resultStatus              LeagueWarResultStatus @default(NONE)
+  resultUpdatedByUserId     String?               @db.Uuid
+  resultSubmittedByUserId   String?               @db.Uuid
+  resultSubmittedByLeagueId String?               @db.Uuid
+  resultConfirmedByUserId   String?               @db.Uuid
+  proofUrl                  String?               @db.Text
+  disputeReason             String?               @db.VarChar(1000)
+  walkoverLeagueId          String?               @db.Uuid
+  submittedAt               DateTime?
+  confirmedAt               DateTime?
+  disputedAt                DateTime?
+  completedAt               DateTime?
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
 
   war             LeagueWar @relation(fields: [warId], references: [id], onDelete: Cascade)
   homePlayer      User      @relation("LeagueWarMatchHomePlayer", fields: [homePlayerUserId], references: [id], onDelete: Restrict)

@@ -23,4 +23,10 @@ export class UpdateSchedulingSettingsDto {
   @Min(10)
   @Max(300)
   matchDurationMinutes?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(720)
+  resultDeadlineHours?: number;
 }

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Param,
+  Query,
 } from '@nestjs/common';
 
 import {
@@ -25,5 +26,13 @@ export class PublicController {
     return this.publicService.getTournament(
       code,
     );
+  }
+
+  @Get('tournaments/:code/export')
+  exportTournament(
+    @Param('code') code: string,
+    @Query('format') format?: string,
+  ) {
+    return this.publicService.exportTournament(code, format);
   }
 }

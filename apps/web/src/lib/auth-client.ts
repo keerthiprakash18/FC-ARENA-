@@ -28,10 +28,10 @@ export interface CurrentUser {
 
 const pendingReads = new Map<string, Promise<unknown>>();
 
-let notificationRequest: Promise<unknown> | null = null;
-let notificationCache: { value: unknown; expiresAt: number } | null = null;
+const notificationRequests = new Map<string, Promise<unknown>>();
+const notificationCaches = new Map<string, { value: unknown; expiresAt: number }>();
 let notificationGeneration = 0;
-function clearNotificationCache() { pendingReads.clear(); notificationGeneration++; notificationRequest = null; notificationCache = null; }
+function clearNotificationCache() { pendingReads.clear(); notificationGeneration++; notificationRequests.clear(); notificationCaches.clear(); }
 
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
@@ -222,8 +222,8 @@ export async function authenticatedRequest<T>(
   }
 
   if (
-    path !==
-      '/notifications'
+    path !== '/notifications' &&
+    path !== '/notifications?summary=true'
   ) {
     // Share only simultaneous, default GETs. Never cache resolved private data
     // or merge requests with different headers, signals or freshness options.
@@ -280,6 +280,9 @@ export async function authenticatedRequest<T>(
     return pending;
   }
 
+  const notificationCache = notificationCaches.get(path);
+  const notificationRequest = notificationRequests.get(path);
+
   if (
     notificationCache &&
     notificationCache
@@ -310,12 +313,12 @@ export async function authenticatedRequest<T>(
             generation ===
             notificationGeneration
           ) {
-            notificationCache = {
+            notificationCaches.set(path, {
               value,
               expiresAt:
                 Date.now() +
                 10_000,
-            };
+            });
           }
 
           return value;
@@ -324,17 +327,15 @@ export async function authenticatedRequest<T>(
       .finally(
         () => {
           if (
-            notificationRequest ===
+            notificationRequests.get(path) ===
             pending
           ) {
-            notificationRequest =
-              null;
+            notificationRequests.delete(path);
           }
         },
       );
 
-  notificationRequest =
-    pending;
+  notificationRequests.set(path, pending);
 
   return pending;
 }

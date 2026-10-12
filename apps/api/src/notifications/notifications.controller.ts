@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Param,
+  Query,
   Post,
   Req,
   UseGuards,
@@ -42,9 +43,11 @@ export class NotificationsController {
     @Req()
     request:
       AuthenticatedRequest,
+    @Query('summary') summary?: string,
   ): Promise<unknown> {
     return this.notificationsService.getNotifications(
       request.user.sub,
+      summary === 'true',
     );
   }
 

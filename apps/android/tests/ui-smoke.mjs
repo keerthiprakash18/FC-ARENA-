@@ -82,7 +82,7 @@ try {
       assert(metrics.scrollWidth<=width+1,`${path} ${width}: horizontal overflow ${metrics.scrollWidth}`);
       assert.equal(metrics.animations,0,`${path}: idle continuous animation`);
       if(path.includes('standings')) {
-        assert.equal(await page.locator('.fc-mobile-standings').isVisible(),width<640);
+        assert.equal(await page.locator('.fc-compact-standings-table').isVisible(),width<640);
         assert(await page.getByText('Manchester Champions With A Very Long Name',{exact:true}).count()>0);
       }
       if(width===390||width===1440) await page.screenshot({path:output+'/'+path.replaceAll('/','_')+'-'+width+'.png',fullPage:true,animations:'disabled'});

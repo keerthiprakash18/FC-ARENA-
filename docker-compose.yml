@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: fcarena
       POSTGRES_PASSWORD: fcarena_dev_password
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U fcarena -d fcarena"]
       interval: 5s
@@ -22,7 +22,7 @@ services:
     container_name: fc-arena-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

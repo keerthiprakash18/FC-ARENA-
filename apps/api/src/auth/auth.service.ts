@@ -1,3 +1,4 @@
+import { normalizeLoginIdentifier } from './login-identifier.js';
 import {
   BadRequestException,
   ConflictException,
@@ -26,7 +27,6 @@ import type {
   RefreshTokenPayload,
 } from './auth.types.js';
 import { OtpMailService } from './mail.service.js';
-import { normalizeLoginIdentifier } from './login-identifier.js';
 import type { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import type { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';

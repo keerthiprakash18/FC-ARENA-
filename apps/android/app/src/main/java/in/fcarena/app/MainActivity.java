@@ -768,6 +768,9 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (webView != null) {
+            webView.onResume();
+        }
         // FCM may rotate its token while the app is backgrounded or updated.
         // Publish the current token using the existing authenticated web bridge.
         if (webView != null && webView.getUrl() != null
@@ -778,6 +781,17 @@ public final class MainActivity extends Activity {
                 // Push refresh is optional and must not interrupt app resume.
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        if (webView != null) {
+            // Pause this view's animations/location work while another app or
+            // the photo picker is foregrounded. Do not pause global JS timers:
+            // uploads/auth callbacks must still be allowed to complete.
+            webView.onPause();
+        }
+        super.onPause();
     }
 
     @Override

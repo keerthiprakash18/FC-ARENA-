@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/android/**"
+      - "tests/emulator-services.test.cjs"
       - "apps/web/**"
       - "package-lock.json"
       - ".github/workflows/android-ci.yml"
@@ -14,6 +15,7 @@ on:
       - main
     paths:
       - "apps/android/**"
+      - "tests/emulator-services.test.cjs"
       - "apps/web/**"
       - "package-lock.json"
       - ".github/workflows/android-ci.yml"
@@ -45,6 +47,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+
+      - name: Verify emulator boot readiness gate
+        run: node --test tests/emulator-services.test.cjs
 
       - name: Verify Android version source
         run: node apps/android/verify-version.mjs
@@ -148,6 +153,7 @@ jobs:
           profile: pixel_2
           disable-animations: false
           script: |
+            bash apps/android/tests/wait-for-emulator-services.sh
             adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am start -W -n in.fcarena.app.debug/in.fcarena.app.MainActivity

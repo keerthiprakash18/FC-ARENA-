@@ -36,14 +36,14 @@ export function CompactStandingsTable({
     <div className="fc-compact-standings sm:hidden">
       <div className="fc-compact-standings-scroll" role="region" aria-label={label} tabIndex={0}>
         <table className="fc-compact-standings-table">
-          <caption className="sr-only">{label} — rank, team, played, goals for, goals against, goal difference and points. Tap a team for wins, draws, losses and recent form.</caption>
+          <caption className="sr-only">{label} — rank, team, played, wins, draws, losses and points. Tap a team for goals for, goals against, goal difference and recent form.</caption>
           <colgroup>
             <col className="fc-compact-rank-column" />
             <col />
             <col className="fc-compact-played-column" />
-            <col className="fc-compact-goals-column" />
-            <col className="fc-compact-goals-column" />
-            <col className="fc-compact-difference-column" />
+            <col className="fc-compact-stat-column" />
+            <col className="fc-compact-stat-column" />
+            <col className="fc-compact-last-stat-column" />
             <col className="fc-compact-points-column" />
           </colgroup>
           <thead>
@@ -51,9 +51,9 @@ export function CompactStandingsTable({
               <th scope="col" aria-label="Rank">#</th>
               <th scope="col" className="fc-compact-team-heading">Team / Duo</th>
               <th scope="col" aria-label="Played">P</th>
-              <th scope="col" aria-label="Goals for">GF</th>
-              <th scope="col" aria-label="Goals against">GA</th>
-              <th scope="col" aria-label="Goal difference">GD</th>
+              <th scope="col" aria-label="Won">W</th>
+              <th scope="col" aria-label="Drawn">D</th>
+              <th scope="col" aria-label="Lost">L</th>
               <th scope="col" className="fc-compact-points" aria-label="Points">Pts</th>
             </tr>
           </thead>
@@ -72,18 +72,18 @@ export function CompactStandingsTable({
                       </button>
                     </th>
                     <td>{row.played}</td>
-                    <td>{row.goalsFor}</td>
-                    <td>{row.goalsAgainst}</td>
-                    <td className="fc-compact-difference">{row.goalDifference > 0 ? '+' : ''}{row.goalDifference}</td>
+                    <td>{row.wins}</td>
+                    <td>{row.draws}</td>
+                    <td className="fc-compact-last-stat">{row.losses}</td>
                     <td className="fc-compact-points">{row.points}</td>
                   </tr>
                   <tr id={detailId} className="fc-compact-detail-row" hidden={!expanded}>
                     <td colSpan={7}>
                       <strong>{row.entryName}</strong>
                       <dl>
-                        <div><dt>Won</dt><dd>{row.wins}</dd></div>
-                        <div><dt>Drawn</dt><dd>{row.draws}</dd></div>
-                        <div><dt>Lost</dt><dd>{row.losses}</dd></div>
+                        <div><dt>GF</dt><dd>{row.goalsFor}</dd></div>
+                        <div><dt>GA</dt><dd>{row.goalsAgainst}</dd></div>
+                        <div><dt>GD</dt><dd>{row.goalDifference > 0 ? '+' : ''}{row.goalDifference}</dd></div>
                         <div><dt>Form</dt><dd>{row.form || '—'}</dd></div>
                       </dl>
                     </td>
@@ -94,7 +94,7 @@ export function CompactStandingsTable({
           </tbody>
         </table>
       </div>
-      <p className="fc-compact-standings-hint">Tap a team for W / D / L &amp; form</p>
+      <p className="fc-compact-standings-hint">Tap a team for GF / GA / GD &amp; form</p>
     </div>
   );
 }

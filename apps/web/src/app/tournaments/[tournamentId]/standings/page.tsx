@@ -58,6 +58,14 @@ interface Statistic {
 }
 
 
+
+interface TournamentSummary {
+  name: string;
+  status: string;
+  competitionFormat: string;
+  legType: string;
+}
+
 interface GroupEntry {
   id: string;
   entryName: string | null;
@@ -121,6 +129,16 @@ function compareRows(
     );
   }
 
+  if (
+    b.wins !==
+    a.wins
+  ) {
+    return (
+      b.wins -
+      a.wins
+    );
+  }
+
   return a.entryName.localeCompare(
     b.entryName,
   );
@@ -131,10 +149,12 @@ function StandingTable({
   title,
   entries,
   standings,
+  eyebrow = 'Group Standings',
 }: {
   title: string;
   entries: GroupEntry[];
   standings: Standing[];
+  eyebrow?: string;
 }) {
   const lookup =
     new Map(
@@ -210,7 +230,7 @@ function StandingTable({
       <div className="premium-standings-group-header flex items-center justify-between border-b border-white/10 px-5 py-5">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
-            Group Standings
+            {eyebrow}
           </p>
 
           <h2 className="mt-1 text-2xl font-black">
@@ -395,10 +415,17 @@ export default function StandingsPage() {
     );
 
   const [
-    name,
-    setName,
+    tournament,
+    setTournament,
   ] =
-    useState('');
+    useState<TournamentSummary>({
+      name: '',
+      status: '',
+      competitionFormat:
+        'LEAGUE_ROUND_ROBIN',
+      legType:
+        'SINGLE_LEG',
+    });
 
   const [
     standings,
@@ -452,9 +479,8 @@ export default function StandingsPage() {
               success: true;
 
               data: {
-                tournament: {
-                  name: string;
-                };
+                tournament:
+                  TournamentSummary;
 
                 standings:
                   Standing[];
@@ -492,10 +518,9 @@ export default function StandingsPage() {
             ),
           ]);
 
-        setName(
+        setTournament(
           table.data
-            .tournament
-            .name,
+            .tournament,
         );
 
         setStandings(
@@ -529,6 +554,28 @@ export default function StandingsPage() {
   ]);
 
 
+  const isLeagueTable =
+    tournament.competitionFormat ===
+      'LEAGUE_ROUND_ROBIN' ||
+    tournament.competitionFormat ===
+      'DOUBLE_ROUND_ROBIN';
+
+  const isDoubleLeg =
+    tournament.competitionFormat ===
+      'DOUBLE_ROUND_ROBIN' ||
+    tournament.legType ===
+      'HOME_AWAY';
+
+  const leader =
+    standings[0] ??
+    null;
+
+  const competitionLabel =
+    isDoubleLeg
+      ? 'Double Leg · Home & Away'
+      : 'Single Leg';
+
+
   if(loadError) return <AppShell><FcErrorState message={loadError} onRetry={() => window.location.reload()} /></AppShell>;
   if (
     !user ||
@@ -558,7 +605,63 @@ export default function StandingsPage() {
           Tournament
         </Link>
 
-        <PremiumHero eyebrow={name} title="Standings" description="The competition, at a glance. Tables update from confirmed match results." />
+        <PremiumHero eyebrow={tournament.name} title="Standings" description="The competition, at a glance. Tables update from confirmed match results." />
+
+        {isLeagueTable ? (
+          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-5" aria-label="League format and leader">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3 py-2 text-xs font-black text-sky-300">
+                    {
+                      competitionLabel
+                    }
+                  </span>
+
+                  {isDoubleLeg ? (
+                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-400">
+                      Leg 1 + Leg 2 combined
+                    </span>
+                  ) : null}
+                </div>
+
+                <p className="mt-3 text-sm leading-6 text-slate-500">
+                  Confirmed results update the same overall table. Win = 3 points, draw = 1 point, loss = 0 points. Ranking uses points, goal difference, goals scored and wins.
+                </p>
+              </div>
+
+              {leader ? (
+                <div className="rounded-2xl border border-amber-400/15 bg-amber-400/[0.04] px-5 py-4 text-right">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+                    {
+                      tournament.status ===
+                      'COMPLETED'
+                        ? 'Champion'
+                        : 'Current Leader'
+                    }
+                  </p>
+                  <p className="mt-1 max-w-[240px] truncate text-lg font-black">
+                    {
+                      leader.entryName
+                    }
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-slate-500">
+                    {
+                      leader.points
+                    } PTS · GD {
+                      leader.goalDifference >
+                      0
+                        ? '+'
+                        : ''
+                    }{
+                      leader.goalDifference
+                    }
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
 
         {statistic ? (
@@ -650,26 +753,34 @@ export default function StandingsPage() {
                 ),
               )}
           </div>
+        ) : standings.length > 0 ? (
+          <StandingTable
+            title="Overall Standings"
+            eyebrow="Competition Standings"
+            entries={
+              standings.map(
+                (standing) => ({
+                  id:
+                    standing.registrationId,
+                  entryName:
+                    standing.entryName,
+                  members: [],
+                }),
+              )
+            }
+            standings={
+              standings
+            }
+          />
         ) : (
           <section className="rounded-[24px] border border-dashed border-white/10 p-10 text-center">
             <p className="font-black text-slate-300">
-              Groups have not
-              been configured.
+              Standings will appear after confirmed results.
             </p>
 
             <p className="mt-2 text-sm text-slate-600">
-              Create tournament
-              groups before using
-              group standings.
+              Play and confirm tournament fixtures to populate the overall table.
             </p>
-
-            <Link
-              href={`/tournaments/${params.tournamentId}/groups`}
-              scroll
-              className="mt-5 inline-flex rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#041019]"
-            >
-              Open Groups
-            </Link>
           </section>
         )}
       </div>

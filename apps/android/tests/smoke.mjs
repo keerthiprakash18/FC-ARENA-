@@ -206,13 +206,24 @@ try {
     await checkScroll(page, `dashboard-${width || 'emulator'}`, true);
     await page.screenshot({ path: `${output}/dashboard-${width || 'emulator'}.png` });
     await page.evaluate(() => { window.__smokeDocument = 'same-document'; });
-    for (const path of ['/leagues','/tournaments','/fixtures','/awards','/league-war','/more','/dashboard']) {
+    for (const path of ['/leagues','/tournaments','/fixtures','/more','/dashboard']) {
       await page.locator(`.theme-bottom-nav a[href="${path}"]`).click();
       await page.waitForURL(`**${path}`);
       await page.locator('.fc-main').waitFor();
       assert.equal(await page.evaluate(() => window.__smokeDocument), 'same-document', 'SPA tab caused full document reload');
       await checkScroll(page, `${path}-${width || 'emulator'}`);
     }
+
+    await page.locator('.theme-bottom-nav a[href="/more"]').click();
+    await page.waitForURL('**/more');
+    assert(
+      (await page.locator('a[href="/awards"]').count()) >= 1,
+      'Awards must remain accessible from More',
+    );
+    assert(
+      (await page.locator('a[href="/league-war"]').count()) >= 1,
+      'League War must remain accessible from More',
+    );
     for (const path of ['/profile','/career']) {
       await page.goto(`https://fcarena.in${path}`);
       await page.locator('.fc-main').waitFor();

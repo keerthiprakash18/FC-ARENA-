@@ -7,8 +7,12 @@ import {
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import type { Request } from 'express';
 import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -16,6 +20,7 @@ import { CreateLeagueDto } from './dto/create-league.dto.js';
 import { DeleteLeagueDto } from './dto/delete-league.dto.js';
 import { JoinLeagueDto } from './dto/join-league.dto.js';
 import { LeagueManagementService } from './league-management.service.js';
+import { LeagueLogoService } from './league-logo.service.js';
 import { LeaguesService } from './leagues.service.js';
 
 type AuthenticatedRequest = Request & {
@@ -28,6 +33,7 @@ export class LeaguesController {
   constructor(
     private readonly leaguesService: LeaguesService,
     private readonly managementService: LeagueManagementService,
+    private readonly leagueLogoService: LeagueLogoService,
   ) {}
 
   @Post()
@@ -78,6 +84,38 @@ export class LeaguesController {
     @Param('leagueId') leagueId: string,
   ) {
     return this.managementService.getLeagueHome(
+      request.user.sub,
+      leagueId,
+    );
+  }
+
+  @Post(':leagueId/logo')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    }),
+  )
+  uploadLeagueLogo(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.leagueLogoService.uploadLogo(
+      request.user.sub,
+      leagueId,
+      file,
+    );
+  }
+
+  @Delete(':leagueId/logo')
+  removeLeagueLogo(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+  ) {
+    return this.leagueLogoService.removeLogo(
       request.user.sub,
       leagueId,
     );

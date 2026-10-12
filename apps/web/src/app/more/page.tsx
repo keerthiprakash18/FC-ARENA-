@@ -194,6 +194,22 @@ export default function MorePage() {
             />
 
             <FcMenuRow
+              href="/awards"
+              icon="🏆"
+              title="Awards"
+              description="Ballon, Golden Boot, Golden Glove and competition honours"
+              tone="amber"
+            />
+
+            <FcMenuRow
+              href="/league-war"
+              icon="⚔"
+              title="League War"
+              description="League-vs-League battles, pairings and results"
+              tone="cyan"
+            />
+
+            <FcMenuRow
               href="/fair-play"
               icon="◉"
               title="Fair Play"

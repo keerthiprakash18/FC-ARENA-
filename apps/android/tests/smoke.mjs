@@ -216,8 +216,8 @@ try {
 
     await page.locator('.theme-bottom-nav a[href="/more"]').click();
     await page.waitForURL('**/more');
-    await page.locator('a[href="/awards"]').waitFor();
-    await page.locator('a[href="/league-war"]').waitFor();
+    await page.locator('a[href="/awards"]').waitFor({ state: 'attached' });
+    await page.locator('a[href="/league-war"]').waitFor({ state: 'attached' });
     for (const path of ['/profile','/career']) {
       await page.goto(`https://fcarena.in${path}`);
       await page.locator('.fc-main').waitFor();

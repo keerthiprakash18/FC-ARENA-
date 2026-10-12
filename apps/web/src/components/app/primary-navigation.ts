@@ -36,18 +36,6 @@ export const primaryNavigation:
       icon: 'fixtures',
     },
     {
-      label: 'AWARDS',
-      shortLabel: 'Awards',
-      href: '/awards',
-      icon: 'award',
-    },
-    {
-      label: 'LEAGUE WAR',
-      shortLabel: 'War',
-      href: '/league-war',
-      icon: 'war',
-    },
-    {
       label: 'MORE',
       shortLabel: 'More',
       href: '/more',
@@ -73,19 +61,11 @@ export function getActivePrimarySection(
     return '/tournaments';
   }
 
-  if (pathname.startsWith('/league-war')) {
-    return '/league-war';
-  }
-
   if (
     pathname.startsWith('/fixtures') ||
     pathname.startsWith('/matches')
   ) {
     return '/fixtures';
-  }
-
-  if (pathname.startsWith('/awards')) {
-    return '/awards';
   }
 
   return '/more';

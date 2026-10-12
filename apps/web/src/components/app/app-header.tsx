@@ -28,6 +28,10 @@ import {
   NotificationBell,
 } from './notification-bell';
 
+import {
+  ThemeQuickPicker,
+} from './theme-quick-picker';
+
 
 const quickSearchItems = [
   {
@@ -485,6 +489,8 @@ export function AppHeader({
               }
             </span>
           </button>
+
+          <ThemeQuickPicker />
 
           <NotificationBell />
 

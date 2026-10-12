@@ -1,6 +1,7 @@
 export interface CanonicalFixtureLike {
   id: string;
   groupId?: string | null;
+  phase?: string | null;
   sequence?: number | null;
   matchday?: number | null;
   roundNumber?: number | null;
@@ -140,6 +141,10 @@ export function fixturePairKey(
     fixture.groupId ||
     'NO_GROUP';
 
+  const phase =
+    fixture.phase ||
+    'LEGACY';
+
   /*
    * Double Round Robin legitimately
    * contains two meetings between the
@@ -155,6 +160,7 @@ export function fixturePairKey(
       'HOME_AWAY'
   ) {
     return [
+      phase,
       group,
       home,
       away,
@@ -167,6 +173,7 @@ export function fixturePairKey(
   ].sort();
 
   return [
+    phase,
     group,
     ...pair,
   ].join(':');
@@ -408,8 +415,12 @@ export function deduplicateVisibleFixtureRecords<
     }
 
     const scope =
-      fixture.groupId ||
-      'NO_GROUP';
+      [
+        fixture.phase ||
+          'LEGACY',
+        fixture.groupId ||
+          'NO_GROUP',
+      ].join(':');
 
     const values =
       matchdaysByScope.get(
@@ -518,8 +529,12 @@ export function deduplicateVisibleFixtureRecords<
       );
 
     const scope =
-      fixture.groupId ||
-      'NO_GROUP';
+      [
+        fixture.phase ||
+          'LEGACY',
+        fixture.groupId ||
+          'NO_GROUP',
+      ].join(':');
 
     const roundsPerLeg =
       roundsPerLegByScope.get(

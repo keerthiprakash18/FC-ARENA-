@@ -198,6 +198,7 @@ export function generateDoubleRoundRobinFixtures(
 
 export function generateKnockoutFixtures(
   registrationIds: string[],
+  bracketSlots?: Array<string | null>,
 ): FixtureBlueprint[] {
   if (registrationIds.length < 2) {
     throw new Error(
@@ -213,74 +214,49 @@ export function generateKnockoutFixtures(
 
   const fixtures: FixtureBlueprint[] = [];
 
-  let entryIndex = 0;
-  let firstRoundFixturePosition = 1;
+  // Other knockout callers retain their existing entry order. Playoffs pass
+  // explicit slots so byes stay in the protected seed's bracket branch.
+  const slots: Array<string | null> = bracketSlots ?? [
+    ...registrationIds.slice(0, byeCount).flatMap((id) => [id, null]),
+    ...registrationIds.slice(byeCount),
+  ];
+  const entrants = slots.filter((id): id is string => id !== null);
+  const expected = new Set(registrationIds);
+  if (
+    slots.length !== bracketSize ||
+    expected.size !== registrationIds.length ||
+    entrants.length !== registrationIds.length ||
+    new Set(entrants).size !== entrants.length ||
+    entrants.some((id) => !expected.has(id))
+  ) {
+    throw new Error('Invalid Knockout bracket slots.');
+  }
 
   const advancers: KnockoutSlot[] = [];
-
-  for (
-    let branchIndex = 0;
-    branchIndex < bracketSize / 2;
-    branchIndex++
-  ) {
-    if (branchIndex < byeCount) {
-      const registrationId =
-        registrationIds[entryIndex];
-
-      if (!registrationId) {
-        throw new Error(
-          'Invalid Knockout bracket state.',
-        );
-      }
-
-      advancers.push({
-        type: 'registration',
-        id: registrationId,
-      });
-
-      entryIndex++;
-
+  for (let branchIndex = 0; branchIndex < bracketSize / 2; branchIndex++) {
+    const home = slots[branchIndex * 2];
+    const away = slots[branchIndex * 2 + 1];
+    if (home === null || away === null) {
+      const id = home ?? away;
+      if (!id) throw new Error('Empty Knockout bracket branch.');
+      advancers.push({ type: 'registration', id });
       continue;
     }
 
-    const homeRegistrationId =
-      registrationIds[entryIndex];
-
-    const awayRegistrationId =
-      registrationIds[entryIndex + 1];
-
-    if (
-      !homeRegistrationId ||
-      !awayRegistrationId
-    ) {
-      throw new Error(
-        'Invalid Knockout bracket pairing.',
-      );
-    }
-
-    const key = `ko-r1-f${firstRoundFixturePosition}`;
-
+    const position = bracketSlots ? branchIndex + 1 : fixtures.length + 1;
+    const key = `ko-r1-f${position}`;
     fixtures.push({
       key,
       roundNumber: 1,
-      roundName:
-        getKnockoutRoundName(bracketSize),
+      roundName: getKnockoutRoundName(bracketSize),
       matchday: null,
-      bracketPosition:
-        firstRoundFixturePosition,
-      homeRegistrationId,
-      awayRegistrationId,
+      bracketPosition: position,
+      homeRegistrationId: home,
+      awayRegistrationId: away,
       homeSourceKey: null,
       awaySourceKey: null,
     });
-
-    advancers.push({
-      type: 'fixture',
-      key,
-    });
-
-    entryIndex += 2;
-    firstRoundFixturePosition++;
+    advancers.push({ type: 'fixture', key });
   }
 
   let currentAdvancers = advancers;

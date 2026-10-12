@@ -35,105 +35,303 @@ export class TournamentWizardFinalizeService {
       );
 
     if (
-      tournament.competitionFormat !==
-      'GROUP_STAGE_KNOCKOUT'
+      ![
+        'DRAFT',
+        'REGISTRATION_CLOSED',
+      ].includes(
+        tournament.status,
+      )
     ) {
       throw new ConflictException({
         success: false,
         data: null,
-
         error: {
           code:
-            'QUALIFICATION_NOT_REQUIRED',
-
+            'PLAYOFF_SETUP_LOCKED',
           message:
-            'Qualification settings only apply to Group Stage + Knockout tournaments.',
+            'Playoff setup can only be changed before the Tournament becomes active.',
         },
       });
     }
 
-    const groups =
-      await this.prisma.tournamentGroup.findMany({
+    const existingPlayoffs =
+      await this.prisma.fixture.count({
         where: {
           tournamentId,
+          phase:
+            'PLAYOFF',
         },
+      });
 
-        include: {
-          _count: {
-            select: {
-              registrations: {
-                where: {
-                  status:
-                    'APPROVED',
+    if (
+      existingPlayoffs >
+      0
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'PLAYOFF_SETUP_LOCKED',
+          message:
+            'Reset the existing playoff fixture preview before changing the playoff format or seeding rules.',
+        },
+      });
+    }
+
+    if (
+      ![
+        'GROUP_STAGE_KNOCKOUT',
+        'SINGLE_ELIMINATION',
+      ].includes(
+        tournament.competitionFormat,
+      )
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'PLAYOFF_SETUP_NOT_REQUIRED',
+          message:
+            'This Tournament format does not include a playoff stage.',
+        },
+      });
+    }
+
+    const [
+      groups,
+      approvedEntries,
+    ] =
+      await Promise.all([
+        this.prisma.tournamentGroup.findMany({
+          where: {
+            tournamentId,
+          },
+          orderBy: {
+            position:
+              'asc',
+          },
+          include: {
+            _count: {
+              select: {
+                registrations: {
+                  where: {
+                    status:
+                      'APPROVED',
+                  },
                 },
               },
             },
           },
-        },
-      });
+        }),
+
+        this.prisma.tournamentRegistration.count({
+          where: {
+            tournamentId,
+            status:
+              'APPROVED',
+          },
+        }),
+      ]);
 
     if (
-      groups.length <
+      approvedEntries <
       2
     ) {
       throw new ConflictException({
         success: false,
         data: null,
-
         error: {
           code:
-            'GROUPS_REQUIRED',
-
+            'NOT_ENOUGH_PLAYOFF_ENTRIES',
           message:
-            'Configure at least two groups first.',
+            'At least two approved entries are required before configuring playoffs.',
+        },
+      });
+    }
+
+    const resolvedSource =
+      dto.playoffSource !==
+      'AUTO'
+        ? dto.playoffSource
+        : tournament.competitionFormat ===
+            'SINGLE_ELIMINATION'
+          ? 'DIRECT_ENTRIES'
+          : tournament.groupMode ===
+                'MULTIPLE_GROUPS' &&
+              groups.length >
+                1
+            ? 'GROUP_QUALIFIERS'
+            : 'OVERALL_STANDINGS';
+
+    let qualifiersPerGroup:
+      number |
+      null =
+      null;
+
+    let playoffQualifiersTotal:
+      number |
+      null =
+      null;
+
+    let totalQualifiers =
+      approvedEntries;
+
+    if (
+      resolvedSource ===
+      'GROUP_QUALIFIERS'
+    ) {
+      if (
+        groups.length <
+        2
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'GROUP_QUALIFIERS_REQUIRE_GROUPS',
+            message:
+              'Group Qualifiers requires at least two configured groups. Use Overall Standings for a single-group Tournament.',
+          },
+        });
+      }
+
+      qualifiersPerGroup =
+        dto.qualifiersPerGroup ??
+        tournament.qualifiersPerGroup ??
+        1;
+
+      if (
+        !Number.isInteger(
+          qualifiersPerGroup,
+        ) ||
+        qualifiersPerGroup <
+          1
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'INVALID_QUALIFIER_COUNT',
+            message:
+              'Choose at least one qualifier per group.',
+          },
+        });
+      }
+
+      const tooSmall =
+        groups.find(
+          (
+            group,
+          ) =>
+            group._count.registrations <
+            qualifiersPerGroup!,
+        );
+
+      if (
+        tooSmall
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'TOO_MANY_QUALIFIERS',
+            message:
+              `${tooSmall.name} contains only ${tooSmall._count.registrations} approved entries.`,
+          },
+        });
+      }
+
+      totalQualifiers =
+        groups.length *
+        qualifiersPerGroup;
+    } else {
+      playoffQualifiersTotal =
+        dto.playoffQualifiersTotal ??
+        tournament.playoffQualifiersTotal ??
+        approvedEntries;
+
+      if (
+        !Number.isInteger(
+          playoffQualifiersTotal,
+        ) ||
+        playoffQualifiersTotal <
+          2 ||
+        playoffQualifiersTotal >
+          approvedEntries
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'INVALID_PLAYOFF_QUALIFIER_TOTAL',
+            message:
+              `Choose between 2 and ${approvedEntries} playoff entries.`,
+          },
+        });
+      }
+
+      totalQualifiers =
+        playoffQualifiersTotal;
+    }
+
+    if (
+      dto.playoffFormat ===
+        'DOUBLE_CHANCE' &&
+      totalQualifiers <
+        3
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'DOUBLE_CHANCE_REQUIRES_THREE',
+          message:
+            'Elite Double-Chance requires at least three qualified entries.',
         },
       });
     }
 
     if (
-      groups.some(
-        (
-          group,
-        ) =>
-          group._count.registrations <
-          dto.qualifiersPerGroup,
-      )
+      dto.playoffSeedingBasis ===
+        'GROUP_POSITION' &&
+      groups.length <
+        2
     ) {
       throw new BadRequestException({
         success: false,
         data: null,
-
         error: {
           code:
-            'TOO_MANY_QUALIFIERS',
-
+            'GROUP_SEEDING_REQUIRES_GROUPS',
           message:
-            'Qualifiers per group cannot exceed the number of teams in a group.',
+            'Group Position seeding requires multiple groups. Use Overall Performance or Manual seeding instead.',
         },
       });
     }
 
-    const total =
-      groups.length *
-      dto.qualifiersPerGroup;
-
-    if (
-      total <
-      2
-    ) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'INVALID_QUALIFIER_COUNT',
-
-          message:
-            'At least two teams must qualify for the knockout stage.',
-        },
-      });
-    }
+    const legacyPairingMethod =
+      dto.playoffPairingMethod ??
+      (
+        dto.playoffSeedingBasis ===
+          'RANDOM'
+          ? 'RANDOM'
+          : dto.playoffSeedingBasis ===
+              'MANUAL'
+            ? 'MANUAL'
+            : resolvedSource ===
+                  'GROUP_QUALIFIERS' &&
+                dto.playoffFormat ===
+                  'PROTECTED_SEED'
+              ? 'CROSS_GROUP'
+              : 'SEEDED'
+      );
 
     const updated =
       await this.prisma.tournament.update({
@@ -141,40 +339,40 @@ export class TournamentWizardFinalizeService {
           id:
             tournamentId,
         },
-
         data: {
-          qualifiersPerGroup:
-            dto.qualifiersPerGroup,
-
+          qualifiersPerGroup,
+          playoffQualifiersTotal,
           playoffPairingMethod:
-            dto.playoffPairingMethod,
-
+            legacyPairingMethod,
+          playoffFormat:
+            dto.playoffFormat,
+          playoffSource:
+            dto.playoffSource,
+          playoffSeedingBasis:
+            dto.playoffSeedingBasis,
+          avoidSameGroupEarly:
+            dto.avoidSameGroupEarly ??
+            true,
           wizardStep:
-            'REVIEW',
+            'FIXTURE_SETTINGS',
         },
       });
 
     return {
       success: true,
-
       data: {
         message:
-          'Qualification settings saved.',
-
+          'Playoff setup saved.',
         tournament:
           updated,
-
-        totalQualifiers:
-          total,
-
+        totalQualifiers,
+        resolvedSource,
         nextStep:
-          'REVIEW',
+          'FIXTURE_SETTINGS',
       },
-
       error: null,
     };
   }
-
 
   async getReview(
     userId: string,
@@ -293,6 +491,21 @@ export class TournamentWizardFinalizeService {
 
           playoffPairingMethod:
             tournament.playoffPairingMethod,
+
+          playoffFormat:
+            tournament.playoffFormat,
+
+          playoffSource:
+            tournament.playoffSource,
+
+          playoffSeedingBasis:
+            tournament.playoffSeedingBasis,
+
+          playoffQualifiersTotal:
+            tournament.playoffQualifiersTotal,
+
+          avoidSameGroupEarly:
+            tournament.avoidSameGroupEarly,
 
           status:
             tournament.status,
@@ -455,22 +668,67 @@ export class TournamentWizardFinalizeService {
     }
 
     if (
-      tournament.competitionFormat ===
-        'GROUP_STAGE_KNOCKOUT' &&
-      !tournament.qualifiersPerGroup
+      [
+        'GROUP_STAGE_KNOCKOUT',
+        'SINGLE_ELIMINATION',
+      ].includes(
+        tournament.competitionFormat,
+      )
     ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
+      const groups =
+        await this.prisma.tournamentGroup.count({
+          where: {
+            tournamentId,
+          },
+        });
 
-        error: {
-          code:
-            'QUALIFICATION_NOT_CONFIGURED',
+      const resolvedSource =
+        tournament.playoffSource !==
+        'AUTO'
+          ? tournament.playoffSource
+          : tournament.competitionFormat ===
+              'SINGLE_ELIMINATION'
+            ? 'DIRECT_ENTRIES'
+            : tournament.groupMode ===
+                  'MULTIPLE_GROUPS' &&
+                groups >
+                  1
+              ? 'GROUP_QUALIFIERS'
+              : 'OVERALL_STANDINGS';
 
-          message:
-            'Configure qualification rules before publishing.',
-        },
-      });
+      if (
+        resolvedSource ===
+          'GROUP_QUALIFIERS' &&
+        !tournament.qualifiersPerGroup
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'PLAYOFF_SETUP_NOT_CONFIGURED',
+            message:
+              'Configure qualifiers per group before publishing.',
+          },
+        });
+      }
+
+      if (
+        resolvedSource !==
+          'GROUP_QUALIFIERS' &&
+        !tournament.playoffQualifiersTotal
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code:
+              'PLAYOFF_SETUP_NOT_CONFIGURED',
+            message:
+              'Configure the playoff qualifier total before publishing.',
+          },
+        });
+      }
     }
 
     const now =

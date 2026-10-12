@@ -411,11 +411,7 @@ export default function TournamentSetupPage() {
 
               competitionFormat,
 
-              groupMode:
-                competitionFormat ===
-                'GROUP_STAGE_KNOCKOUT'
-                  ? 'MULTIPLE_GROUPS'
-                  : groupMode,
+              groupMode,
 
               legType,
 
@@ -655,11 +651,11 @@ export default function TournamentSetupPage() {
                 ],
                 [
                   'SINGLE_ELIMINATION',
-                  'Single Elimination',
+                  'Direct Playoffs / Knockout',
                 ],
                 [
                   'GROUP_STAGE_KNOCKOUT',
-                  'Group Stage + Knockout',
+                  'Stage + Playoffs',
                 ],
                 [
                   'CUSTOM_MANUAL',
@@ -683,15 +679,6 @@ export default function TournamentSetupPage() {
                       setCompetitionFormat(
                         format,
                       );
-
-                      if (
-                        format ===
-                        'GROUP_STAGE_KNOCKOUT'
-                      ) {
-                        setGroupMode(
-                          'MULTIPLE_GROUPS',
-                        );
-                      }
 
                       if (
                         format ===
@@ -736,6 +723,9 @@ export default function TournamentSetupPage() {
             <p className="mb-3 text-sm font-black text-slate-300">
               Group Mode
             </p>
+            <p className="theme-muted mb-3 text-xs leading-5">
+              Playoffs are entry-based, so SOLO, DUO and TEAM tournaments can use either one table or multiple groups. Stage + Playoffs works with both.
+            </p>
 
             <div className="grid gap-3 sm:grid-cols-2">
 
@@ -751,12 +741,6 @@ export default function TournamentSetupPage() {
                       value
                     }
                     type="button"
-                    disabled={
-                      competitionFormat ===
-                        'GROUP_STAGE_KNOCKOUT' &&
-                      value ===
-                        'SINGLE_GROUP'
-                    }
                     onClick={() =>
                       setGroupMode(
                         value,
@@ -773,7 +757,7 @@ export default function TournamentSetupPage() {
                     <p className="font-black">
                       {value ===
                       'SINGLE_GROUP'
-                        ? 'Single Group'
+                        ? 'Single Group / One Table'
                         : 'Multiple Groups'}
                     </p>
                   </button>

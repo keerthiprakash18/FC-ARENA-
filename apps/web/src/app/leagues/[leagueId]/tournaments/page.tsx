@@ -1,4 +1,6 @@
 'use client';
+
+/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 import { confirmNamedDeletion } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
 

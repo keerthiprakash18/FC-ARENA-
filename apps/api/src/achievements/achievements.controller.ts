@@ -87,6 +87,36 @@ export class AchievementsController {
   }
 
   @Get(
+    'tournaments/:tournamentId/summary',
+  )
+  tournamentSummary(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('tournamentId')
+    tournamentId: string,
+  ): Promise<unknown> {
+    return this.achievementsService.getTournamentSummary(
+      request.user.sub,
+      tournamentId,
+    );
+  }
+
+  @Get(
+    'tournament-summaries',
+  )
+  tournamentSummaryHistory(
+    @Req()
+    request:
+      AuthenticatedRequest,
+  ): Promise<unknown> {
+    return this.achievementsService.getTournamentSummaryHistory(
+      request.user.sub,
+    );
+  }
+
+  @Get(
     'players/me/achievements',
   )
   myAchievements(

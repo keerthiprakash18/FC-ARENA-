@@ -562,6 +562,7 @@ export default function FixtureParticipantsPage() {
     })();
   }, [
     draft.leagueId,
+    draft.participants.length,
     draft.tournamentId,
     router,
   ]);

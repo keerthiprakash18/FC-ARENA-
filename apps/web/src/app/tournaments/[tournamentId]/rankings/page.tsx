@@ -5,7 +5,6 @@ import { CompactStandingsTable } from '@/components/tournaments/compact-standing
 import Link from 'next/link';
 import {
   useParams,
-  useRouter,
 } from 'next/navigation';
 import {
   useEffect,
@@ -142,9 +141,6 @@ export default function RankingsPage() {
     useParams<{
       tournamentId: string;
     }>();
-
-  const router =
-    useRouter();
 
   const [user, setUser] =
     useState<CurrentUser | null>(

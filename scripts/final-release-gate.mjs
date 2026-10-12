@@ -61,6 +61,8 @@ const compileSdk = Number(gradle.match(/compileSdk\s+(\d+)/)?.[1]);
 requireMatch(targetSdk >= 36, `Final Google Play gate requires targetSdk 36+; found ${targetSdk}.`);
 requireMatch(compileSdk >= 36, `compileSdk 36+ required; found ${compileSdk}.`);
 requireMatch(gradle.includes("applicationId 'in.fcarena.app'"), 'Android package ID changed.');
+requireMatch(/release\s*\{[\s\S]*?minifyEnabled\s+true/.test(gradle), 'Release R8 minification must remain enabled.');
+requireMatch(/release\s*\{[\s\S]*?shrinkResources\s+true/.test(gradle), 'Release resource shrinking must remain enabled.');
 requireMatch(manifest.includes('android:usesCleartextTraffic="false"'), 'Cleartext traffic must remain disabled.');
 requireMatch(!manifest.includes('android.permission.AD_ID'), 'Unexpected Advertising ID permission.');
 

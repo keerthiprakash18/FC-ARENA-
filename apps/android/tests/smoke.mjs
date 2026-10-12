@@ -297,6 +297,28 @@ try {
         results.push({ name: `resume-cycle-${cycle}`, before: beforeBg, after: afterResume, note: 'real background/resume lifecycle' });
         console.log(`PASS resume-cycle-${cycle}`);
       }
+
+      // Exercise the same HTTPS deep-link shape used by notification PendingIntents.
+      // This validates host allowlisting and confirms the app lands inside the
+      // Notifications screen instead of opening an unsafe/external destination.
+      adb(
+        'shell',
+        'am',
+        'start',
+        '-W',
+        '-a',
+        'android.intent.action.VIEW',
+        '-d',
+        'https://fcarena.in/notifications',
+        '-n',
+        'in.fcarena.app.debug/in.fcarena.app.MainActivity',
+      );
+      page = await waitForResumedMain(page);
+      await page.waitForURL('**/notifications');
+      await page.locator('.fc-main').waitFor();
+      assert.equal(new URL(page.url()).hostname, 'fcarena.in', 'notification deep link escaped allowed host');
+      results.push({ name: 'notification-deep-link', url: page.url(), note: 'real Android VIEW intent' });
+      console.log('PASS notification-deep-link');
     } else await context.close();
   }
   if (android) {

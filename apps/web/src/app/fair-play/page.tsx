@@ -7,7 +7,6 @@ import {
 } from 'react';
 
 import {
-  FcEmptyState,
   FcPanel,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';

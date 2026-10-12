@@ -123,6 +123,61 @@ describe(
     );
 
     it(
+      'never counts PLAYOFF fixtures in a one-table standings scope',
+      () => {
+        const noGroupRegistrations = [
+          { id: 'A', groupId: null },
+          { id: 'B', groupId: null },
+          { id: 'C', groupId: null },
+        ];
+
+        const result =
+          canonicalizeRoundRobinStandingsFixtures(
+            [
+              {
+                id: 'stage',
+                phase: 'STAGE',
+                sequence: 1,
+                matchday: 1,
+                roundNumber: 1,
+                homeRegistrationId: 'A',
+                awayRegistrationId: 'B',
+              },
+              {
+                id: 'playoff-rematch',
+                phase: 'PLAYOFF',
+                sequence: 10,
+                matchday: null,
+                roundNumber: 1,
+                homeRegistrationId: 'A',
+                awayRegistrationId: 'B',
+              },
+            ],
+            noGroupRegistrations,
+            {
+              competitionFormat:
+                'GROUP_STAGE_KNOCKOUT',
+              legType:
+                'SINGLE_LEG',
+              tournamentFormat:
+                'ROUND_ROBIN',
+              hasGroups: false,
+            },
+          );
+
+        expect(
+          result.map(
+            (fixture) =>
+              fixture.id,
+          ),
+        ).toEqual([
+          'stage',
+        ]);
+      },
+    );
+
+
+    it(
       'keeps Home/Away return fixture only in the second leg',
       () => {
         const result =

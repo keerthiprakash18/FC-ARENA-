@@ -6,6 +6,7 @@ export interface StandingsRegistrationScope {
 export interface StandingsFixtureLike {
   id: string;
   groupId?: string | null;
+  phase?: string | null;
   sequence?: number | null;
   matchday?: number | null;
   roundNumber?: number | null;
@@ -138,6 +139,13 @@ export function canonicalizeRoundRobinStandingsFixtures<
     const fixture
     of ordered
   ) {
+    if (
+      fixture.phase ===
+      'PLAYOFF'
+    ) {
+      continue;
+    }
+
     const home =
       fixture.homeRegistrationId;
     const away =

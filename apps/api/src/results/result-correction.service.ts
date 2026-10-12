@@ -116,6 +116,12 @@ export class ResultCorrectionService {
                       match: true,
                     },
                   },
+
+                  loserNextFixture: {
+                    include: {
+                      match: true,
+                    },
+                  },
                 },
               },
             },
@@ -164,6 +170,7 @@ export class ResultCorrectionService {
             match.tournament.format,
             match.fixture.groupId,
             match.tournament._count.groups,
+            match.fixture.phase,
           ) &&
           dto.homeScore ===
             dto.awayScore
@@ -205,6 +212,7 @@ export class ResultCorrectionService {
             match.tournament.format,
             match.fixture.groupId,
             match.tournament._count.groups,
+            match.fixture.phase,
           ) &&
           oldWinner !== newWinner
         ) {
@@ -562,6 +570,12 @@ export class ResultCorrectionService {
                       match: true,
                     },
                   },
+
+                  loserNextFixture: {
+                    include: {
+                      match: true,
+                    },
+                  },
                 },
               },
             },
@@ -623,6 +637,7 @@ export class ResultCorrectionService {
             match.tournament.format,
             match.fixture.groupId,
             match.tournament._count.groups,
+            match.fixture.phase,
           ) &&
           oldWinner
         ) {
@@ -1055,36 +1070,97 @@ export class ResultCorrectionService {
     newWinnerRegistrationId:
       string | null,
   ) {
+    const homeId =
+      fixture.homeRegistrationId;
+    const awayId =
+      fixture.awayRegistrationId;
+
+    const oldLoserRegistrationId =
+      oldWinnerRegistrationId &&
+      homeId &&
+      awayId
+        ? oldWinnerRegistrationId ===
+            homeId
+          ? awayId
+          : homeId
+        : null;
+
+    const newLoserRegistrationId =
+      newWinnerRegistrationId &&
+      homeId &&
+      awayId
+        ? newWinnerRegistrationId ===
+            homeId
+          ? awayId
+          : homeId
+        : null;
+
+    await this.updateProgressionTarget(
+      tx,
+      fixture.nextFixtureId,
+      fixture.nextSlot,
+      fixture.nextFixture,
+      oldWinnerRegistrationId,
+      newWinnerRegistrationId,
+      'winner',
+    );
+
+    await this.updateProgressionTarget(
+      tx,
+      fixture.loserNextFixtureId,
+      fixture.loserNextSlot,
+      fixture.loserNextFixture,
+      oldLoserRegistrationId,
+      newLoserRegistrationId,
+      'loser',
+    );
+  }
+
+
+  private async updateProgressionTarget(
+    tx: any,
+    targetFixtureId:
+      string | null,
+    targetSlot:
+      'HOME' |
+      'AWAY' |
+      null,
+    targetFixture:
+      any,
+    oldRegistrationId:
+      string | null,
+    newRegistrationId:
+      string | null,
+    outcomeLabel:
+      'winner' |
+      'loser',
+  ) {
     if (
-      !fixture.nextFixtureId ||
-      !fixture.nextSlot
+      !targetFixtureId ||
+      !targetSlot
     ) {
       return;
     }
 
-    const nextFixture =
-      fixture.nextFixture;
-
-    if (!nextFixture) {
+    if (!targetFixture) {
       throw new ConflictException({
         success: false,
         data: null,
         error: {
           code:
             'NEXT_FIXTURE_NOT_FOUND',
-
           message:
-            'Knockout progression fixture could not be found.',
+            `Knockout progression fixture for the ${outcomeLabel} could not be found.`,
         },
       });
     }
 
     if (
-      nextFixture.status ===
+      targetFixture.status ===
         'LIVE' ||
-      nextFixture.status ===
+      targetFixture.status ===
         'COMPLETED' ||
-      nextFixture.match
+      targetFixture.match
         ?.confirmedResultSubmissionId
     ) {
       throw new ConflictException({
@@ -1093,56 +1169,25 @@ export class ResultCorrectionService {
         error: {
           code:
             'DOWNSTREAM_MATCH_LOCKED',
-
           message:
-            'This result cannot be changed because the next Knockout match has already started or been completed.',
+            `This result cannot be changed because the downstream ${outcomeLabel} path has already started or been completed.`,
         },
       });
     }
 
-    if (
-      fixture.nextSlot ===
-      'HOME'
-    ) {
-      if (
-        oldWinnerRegistrationId &&
-        nextFixture.homeRegistrationId &&
-        nextFixture.homeRegistrationId !==
-          oldWinnerRegistrationId
-      ) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-          error: {
-            code:
-              'KNOCKOUT_SLOT_MISMATCH',
-
-            message:
-              'The next Knockout HOME slot no longer matches the previous winner.',
-          },
-        });
-      }
-
-      await tx.fixture.update({
-        where: {
-          id:
-            nextFixture.id,
-        },
-
-        data: {
-          homeRegistrationId:
-            newWinnerRegistrationId,
-        },
-      });
-
-      return;
-    }
+    const existing =
+      targetSlot ===
+        'HOME'
+        ? targetFixture
+            .homeRegistrationId
+        : targetFixture
+            .awayRegistrationId;
 
     if (
-      oldWinnerRegistrationId &&
-      nextFixture.awayRegistrationId &&
-      nextFixture.awayRegistrationId !==
-        oldWinnerRegistrationId
+      oldRegistrationId &&
+      existing &&
+      existing !==
+        oldRegistrationId
     ) {
       throw new ConflictException({
         success: false,
@@ -1150,9 +1195,8 @@ export class ResultCorrectionService {
         error: {
           code:
             'KNOCKOUT_SLOT_MISMATCH',
-
-        message:
-            'The next Knockout AWAY slot no longer matches the previous winner.',
+          message:
+            `The downstream ${targetSlot} slot no longer matches the previous ${outcomeLabel}.`,
         },
       });
     }
@@ -1160,21 +1204,43 @@ export class ResultCorrectionService {
     await tx.fixture.update({
       where: {
         id:
-          nextFixture.id,
+          targetFixtureId,
       },
-
-      data: {
-        awayRegistrationId:
-          newWinnerRegistrationId,
-      },
+      data:
+        targetSlot ===
+        'HOME'
+          ? {
+              homeRegistrationId:
+                newRegistrationId,
+            }
+          : {
+              awayRegistrationId:
+                newRegistrationId,
+            },
     });
   }
+
 
   private isKnockoutFixture(
     tournamentFormat: string,
     fixtureGroupId: string | null,
     tournamentGroupCount: number,
+    fixturePhase?: string | null,
   ) {
+    if (
+      fixturePhase ===
+      'PLAYOFF'
+    ) {
+      return true;
+    }
+
+    if (
+      fixturePhase ===
+      'STAGE'
+    ) {
+      return false;
+    }
+
     if (
       tournamentFormat ===
       'KNOCKOUT'

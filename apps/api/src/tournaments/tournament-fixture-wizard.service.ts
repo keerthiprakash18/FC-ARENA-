@@ -30,6 +30,11 @@ import {
   type FixtureBlueprint,
 } from './fixture-engine.js';
 
+import {
+  buildUniversalPlayoffPlan,
+  type PlayoffSourceRef,
+} from './universal-playoff-engine.js';
+
 
 @Injectable()
 export class TournamentFixtureWizardService {
@@ -267,6 +272,18 @@ export class TournamentFixtureWizardService {
             dto.groupId,
           )
         : null;
+
+    if (
+      tournament.competitionFormat ===
+      'SINGLE_ELIMINATION'
+    ) {
+      return this.generateDirectPlayoffPreview(
+        tournament,
+        tournamentId,
+        dto,
+        selectedIds,
+      );
+    }
 
     const plans:
       Array<{
@@ -618,6 +635,9 @@ export class TournamentFixtureWizardService {
                 bracketPosition:
                   blueprint.bracketPosition,
 
+                phase:
+                  'STAGE',
+
                 homeRegistrationId:
                   blueprint.homeRegistrationId,
 
@@ -827,6 +847,267 @@ export class TournamentFixtureWizardService {
 
       error: null,
     };
+  }
+
+
+  private async generateDirectPlayoffPreview(
+    tournament: any,
+    tournamentId: string,
+    dto: GenerateFixturePreviewDto,
+    selectedIds: string[] | null,
+  ) {
+    let registrationIds =
+      selectedIds ??
+      await this.getApprovedRegistrationIds(
+        tournamentId,
+      );
+
+    const configuredTotal =
+      tournament.playoffQualifiersTotal ??
+      registrationIds.length;
+
+    if (
+      !selectedIds &&
+      configuredTotal <
+        registrationIds.length
+    ) {
+      registrationIds =
+        registrationIds.slice(
+          0,
+          configuredTotal,
+        );
+    }
+
+    this.assertEnoughParticipants(
+      registrationIds,
+      'Tournament',
+    );
+
+    if (
+      tournament.playoffFormat ===
+        'DOUBLE_CHANCE' &&
+      registrationIds.length <
+        3
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'DOUBLE_CHANCE_REQUIRES_THREE',
+          message:
+            'Elite Double-Chance requires at least three entries.',
+        },
+      });
+    }
+
+    const randomize =
+      tournament.playoffSeedingBasis ===
+        'RANDOM' ||
+      tournament.fixtureMode ===
+        'RANDOMIZED';
+
+    const seedOrder =
+      randomize
+        ? this.maybeShuffle(
+            registrationIds,
+            'RANDOMIZED',
+          )
+        : registrationIds;
+
+    const plan =
+      buildUniversalPlayoffPlan(
+        tournament.playoffFormat,
+        seedOrder,
+      );
+
+    const blueprints =
+      plan.fixtures.map(
+        (
+          blueprint,
+        ) => ({
+          ...blueprint,
+          roundName:
+            plan.byeCount >
+              0 &&
+            blueprint.roundNumber ===
+              1 &&
+            tournament.playoffFormat !==
+              'DOUBLE_CHANCE'
+              ? 'PLAY-IN'
+              : blueprint.roundName,
+        }),
+      );
+
+    let sequence =
+      (
+        await this.prisma.fixture.findFirst({
+          where: {
+            tournamentId,
+          },
+          orderBy: {
+            sequence:
+              'desc',
+          },
+          select: {
+            sequence:
+              true,
+          },
+        })
+      )?.sequence ??
+      0;
+
+    await this.prisma.$transaction(
+      async (
+        tx,
+      ) => {
+        const ids =
+          new Map<
+            string,
+            string
+          >();
+
+        for (
+          const blueprint
+          of blueprints
+        ) {
+          sequence++;
+
+          const fixture =
+            await tx.fixture.create({
+              data: {
+                fixtureCode:
+                  this.fixtureCode(),
+                tournamentId,
+                groupId:
+                  null,
+                sequence,
+                matchday:
+                  null,
+                roundNumber:
+                  blueprint.roundNumber,
+                roundName:
+                  blueprint.roundName,
+                bracketPosition:
+                  blueprint.bracketPosition,
+                phase:
+                  'PLAYOFF',
+                homeRegistrationId:
+                  blueprint.homeRegistrationId,
+                awayRegistrationId:
+                  blueprint.awayRegistrationId,
+                scheduledAt:
+                  this.buildScheduledAt(
+                    dto,
+                    blueprint.roundNumber,
+                  ),
+                publishedAt:
+                  null,
+              },
+            });
+
+          ids.set(
+            blueprint.key,
+            fixture.id,
+          );
+
+          await this.connectUniversalSource(
+            tx,
+            blueprint.homeSource,
+            fixture.id,
+            'HOME',
+            ids,
+          );
+
+          await this.connectUniversalSource(
+            tx,
+            blueprint.awaySource,
+            fixture.id,
+            'AWAY',
+            ids,
+          );
+        }
+      },
+      {
+        isolationLevel:
+          'Serializable',
+      },
+    );
+
+    return {
+      success: true,
+      data: {
+        message:
+          'Playoff fixture preview generated successfully.',
+        fixtures:
+          blueprints.length,
+        playoffFormat:
+          tournament.playoffFormat,
+        byes:
+          plan.byeCount,
+        secondChanceMatches:
+          plan.secondChanceMatches,
+        groups: [
+          {
+            groupId:
+              null,
+            groupName:
+              null,
+            participants:
+              seedOrder.length,
+            fixtures:
+              blueprints.length,
+          },
+        ],
+      },
+      error: null,
+    };
+  }
+
+
+  private async connectUniversalSource(
+    tx: any,
+    source: PlayoffSourceRef | null,
+    targetFixtureId: string,
+    targetSlot: 'HOME' | 'AWAY',
+    fixtureIds: Map<string, string>,
+  ) {
+    if (!source) {
+      return;
+    }
+
+    const sourceFixtureId =
+      fixtureIds.get(
+        source.key,
+      );
+
+    if (!sourceFixtureId) {
+      throw new Error(
+        `Missing playoff source fixture: ${source.key}`,
+      );
+    }
+
+    await tx.fixture.update({
+      where: {
+        id:
+          sourceFixtureId,
+      },
+      data:
+        source.outcome ===
+        'WINNER'
+          ? {
+              nextFixtureId:
+                targetFixtureId,
+              nextSlot:
+                targetSlot,
+            }
+          : {
+              loserNextFixtureId:
+                targetFixtureId,
+              loserNextSlot:
+                targetSlot,
+            },
+    });
   }
 
 

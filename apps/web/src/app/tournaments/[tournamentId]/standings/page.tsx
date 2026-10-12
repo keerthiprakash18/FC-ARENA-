@@ -29,6 +29,7 @@ interface Standing {
   position: number;
   registrationId: string;
   entryName: string;
+  entryLogoUrl: string | null;
 
   played: number;
   wins: number;
@@ -197,6 +198,10 @@ function StandingTable({
                 entry,
               ),
 
+            entryLogoUrl:
+              entry.entryLogoUrl ??
+              null,
+
             played: 0,
             wins: 0,
             draws: 0,
@@ -323,7 +328,7 @@ function StandingTable({
                     </span>
                   </td>
 
-                  <td className="p-4 text-left font-black"><div className="flex items-center gap-3"><FcCrest name={row.entryName} size="sm" />
+                  <td className="p-4 text-left font-black"><div className="flex items-center gap-3"><FcCrest name={row.entryName} imageUrl={row.entryLogoUrl ?? undefined} size="sm" />
                     {
                       row.entryName
                     }

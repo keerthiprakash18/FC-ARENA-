@@ -5,7 +5,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import {
+  randomInt,
+  randomUUID,
+} from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
@@ -17,6 +20,11 @@ import {
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
 import type { FixtureBlueprint } from './fixture-engine.js';
+import {
+  buildUniversalPlayoffPlan,
+  type PlayoffSourceRef,
+  type UniversalPlayoffBlueprint,
+} from './universal-playoff-engine.js';
 import {
   deduplicateVisibleFixtureRecords,
 } from './fixture-deduplication.js';
@@ -111,19 +119,41 @@ export class FixturesService {
       tournament.legType ===
         'HOME_AWAY';
 
-    const blueprints =
+    const orderedPlayoffIds =
+      tournament.playoffSeedingBasis ===
+        'RANDOM'
+        ? this.shuffle(
+            registrationIds,
+          )
+        : registrationIds.slice(
+            0,
+            tournament.playoffQualifiersTotal ??
+              registrationIds.length,
+          );
+
+    const universalPlan =
       tournament.format ===
-      'ROUND_ROBIN'
-        ? isDoubleRoundRobin
+        'KNOCKOUT'
+        ? buildUniversalPlayoffPlan(
+            tournament.playoffFormat,
+            orderedPlayoffIds,
+          )
+        : null;
+
+    const blueprints:
+      Array<
+        FixtureBlueprint |
+        UniversalPlayoffBlueprint
+      > =
+      universalPlan
+        ? universalPlan.fixtures
+        : isDoubleRoundRobin
           ? generateDoubleRoundRobinFixtures(
               registrationIds,
             )
           : generateRoundRobinFixtures(
               registrationIds,
-            )
-        : generateKnockoutFixtures(
-            registrationIds,
-          );
+            );
 
     try {
       const fixtureCount =
@@ -134,9 +164,33 @@ export class FixturesService {
               where: { tournamentId, status: 'APPROVED' },
               orderBy: [{ reviewedAt: 'asc' }, { createdAt: 'asc' }], select: { id: true },
             });
-            if (current.status !== 'REGISTRATION_CLOSED' || current.format !== tournament.format ||
-              current.competitionFormat !== tournament.competitionFormat || current.legType !== tournament.legType ||
-              JSON.stringify(currentEntries.map((entry) => entry.id)) !== JSON.stringify(registrationIds)) {
+            if (
+              current.status !==
+                'REGISTRATION_CLOSED' ||
+              current.format !==
+                tournament.format ||
+              current.competitionFormat !==
+                tournament.competitionFormat ||
+              current.legType !==
+                tournament.legType ||
+              current.playoffFormat !==
+                tournament.playoffFormat ||
+              current.playoffSource !==
+                tournament.playoffSource ||
+              current.playoffSeedingBasis !==
+                tournament.playoffSeedingBasis ||
+              current.playoffQualifiersTotal !==
+                tournament.playoffQualifiersTotal ||
+              JSON.stringify(
+                currentEntries.map(
+                  (entry) =>
+                    entry.id,
+                ),
+              ) !==
+                JSON.stringify(
+                  registrationIds,
+                )
+            ) {
               throw new ConflictException({ success: false, data: null, error: {
                 code: 'FIXTURE_INPUTS_CHANGED', message: 'Tournament settings or approved entries changed. Generate the fixtures again.',
               } });
@@ -171,16 +225,32 @@ export class FixturesService {
                     sequence,
 
                     matchday:
-                      blueprint.matchday,
+                      'matchday' in
+                        blueprint
+                        ? blueprint.matchday
+                        : null,
 
                     roundNumber:
                       blueprint.roundNumber,
 
                     roundName:
-                      blueprint.roundName,
+                      universalPlan &&
+                      universalPlan.byeCount >
+                        0 &&
+                      blueprint.roundNumber ===
+                        1 &&
+                      tournament.playoffFormat !==
+                        'DOUBLE_CHANCE'
+                        ? 'PLAY-IN'
+                        : blueprint.roundName,
 
                     bracketPosition:
                       blueprint.bracketPosition,
+
+                    phase:
+                      universalPlan
+                        ? 'PLAYOFF'
+                        : 'STAGE',
 
                     homeRegistrationId:
                       blueprint.homeRegistrationId,
@@ -201,12 +271,33 @@ export class FixturesService {
                 fixture.id,
               );
 
-              await this.connectPreviousFixtures(
-                tx,
-                blueprint,
-                fixture.id,
-                createdFixtureIds,
-              );
+              if (
+                'homeSource' in
+                blueprint
+              ) {
+                await this.connectUniversalSource(
+                  tx,
+                  blueprint.homeSource,
+                  fixture.id,
+                  'HOME',
+                  createdFixtureIds,
+                );
+
+                await this.connectUniversalSource(
+                  tx,
+                  blueprint.awaySource,
+                  fixture.id,
+                  'AWAY',
+                  createdFixtureIds,
+                );
+              } else {
+                await this.connectPreviousFixtures(
+                  tx,
+                  blueprint,
+                  fixture.id,
+                  createdFixtureIds,
+                );
+              }
 
               sequence++;
             }
@@ -381,6 +472,14 @@ export class FixturesService {
               id: true,
               fixtureCode: true,
               nextSlot: true,
+            },
+          },
+
+          previousLoserFixtures: {
+            select: {
+              id: true,
+              fixtureCode: true,
+              loserNextSlot: true,
             },
           },
         },
@@ -570,17 +669,13 @@ export class FixturesService {
       fixture.matchday;
 
     const isCanonicalRoundRobin =
+      fixture.phase !==
+        'PLAYOFF' &&
       fixture.tournament.format ===
         'ROUND_ROBIN' &&
       fixture.tournament
         .competitionFormat !==
-        'CUSTOM_MANUAL' &&
-      !(
-        fixture.tournament
-          .competitionFormat ===
-          'GROUP_STAGE_KNOCKOUT' &&
-        !fixture.groupId
-      );
+        'CUSTOM_MANUAL';
 
     if (
       isCanonicalRoundRobin
@@ -1468,6 +1563,105 @@ export class FixturesService {
     });
   }
 
+  private async connectUniversalSource(
+    tx: any,
+    source:
+      PlayoffSourceRef |
+      null,
+    targetFixtureId:
+      string,
+    targetSlot:
+      'HOME' |
+      'AWAY',
+    fixtureIds:
+      Map<
+        string,
+        string
+      >,
+  ) {
+    if (!source) {
+      return;
+    }
+
+    const sourceFixtureId =
+      fixtureIds.get(
+        source.key,
+      );
+
+    if (!sourceFixtureId) {
+      throw new Error(
+        `Missing playoff source fixture: ${source.key}`,
+      );
+    }
+
+    await tx.fixture.update({
+      where: {
+        id:
+          sourceFixtureId,
+      },
+      data:
+        source.outcome ===
+        'WINNER'
+          ? {
+              nextFixtureId:
+                targetFixtureId,
+              nextSlot:
+                targetSlot,
+            }
+          : {
+              loserNextFixtureId:
+                targetFixtureId,
+              loserNextSlot:
+                targetSlot,
+            },
+    });
+  }
+
+
+  private shuffle<T>(
+    values:
+      T[],
+  ) {
+    const shuffled = [
+      ...values,
+    ];
+
+    for (
+      let index =
+        shuffled.length -
+        1;
+      index >
+        0;
+      index--
+    ) {
+      const other =
+        randomInt(
+          0,
+          index +
+            1,
+        );
+
+      [
+        shuffled[
+          index
+        ],
+        shuffled[
+          other
+        ],
+      ] = [
+        shuffled[
+          other
+        ]!,
+        shuffled[
+          index
+        ]!,
+      ];
+    }
+
+    return shuffled;
+  }
+
+
   private async connectPreviousFixtures(
     tx: any,
     blueprint: FixtureBlueprint,
@@ -1545,6 +1739,20 @@ export class FixturesService {
           'AWAY',
       );
 
+    const homeLoserSource =
+      fixture.previousLoserFixtures?.find(
+        (previous: any) =>
+          previous.loserNextSlot ===
+          'HOME',
+      );
+
+    const awayLoserSource =
+      fixture.previousLoserFixtures?.find(
+        (previous: any) =>
+          previous.loserNextSlot ===
+          'AWAY',
+      );
+
     return {
       id: fixture.id,
       fixtureCode:
@@ -1559,6 +1767,8 @@ export class FixturesService {
         fixture.roundName,
       bracketPosition:
         fixture.bracketPosition,
+      phase:
+        fixture.phase,
       status:
         fixture.status,
       scheduledAt:
@@ -1610,16 +1820,6 @@ export class FixturesService {
           fixture.awayRegistration,
         ),
 
-      homeSource:
-        homeSource
-          ? {
-              id:
-                homeSource.id,
-              fixtureCode:
-                homeSource.fixtureCode,
-            }
-          : null,
-
       awaySource:
         awaySource
           ? {
@@ -1627,8 +1827,40 @@ export class FixturesService {
                 awaySource.id,
               fixtureCode:
                 awaySource.fixtureCode,
+              outcome:
+                'WINNER',
             }
-          : null,
+          : awayLoserSource
+            ? {
+                id:
+                  awayLoserSource.id,
+                fixtureCode:
+                  awayLoserSource.fixtureCode,
+                outcome:
+                  'LOSER',
+              }
+            : null,
+
+      homeSource:
+        homeSource
+          ? {
+              id:
+                homeSource.id,
+              fixtureCode:
+                homeSource.fixtureCode,
+              outcome:
+                'WINNER',
+            }
+          : homeLoserSource
+            ? {
+                id:
+                  homeLoserSource.id,
+                fixtureCode:
+                  homeLoserSource.fixtureCode,
+                outcome:
+                  'LOSER',
+              }
+            : null,
     };
   }
 
@@ -1645,6 +1877,9 @@ export class FixturesService {
 
       entryName:
         registration.entryName,
+
+      entryLogoUrl:
+        registration.entryLogoUrl,
 
       members:
         registration.members.map(

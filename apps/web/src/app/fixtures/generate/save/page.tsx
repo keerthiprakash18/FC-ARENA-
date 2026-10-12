@@ -158,6 +158,7 @@ export default function FixtureSavePage() {
   }, [
     draft.groupId,
     draft.scope,
+    draft.selectedRegistrationIds.length,
     draft.tournamentId,
     router,
   ]);

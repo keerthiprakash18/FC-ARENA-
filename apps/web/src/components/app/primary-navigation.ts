@@ -25,13 +25,13 @@ export const primaryNavigation:
     },
     {
       label: 'TOURNAMENT',
-      shortLabel: 'Tournament',
+      shortLabel: 'Cup',
       href: '/tournaments',
       icon: 'tournament',
     },
     {
       label: 'FIXTURES',
-      shortLabel: 'Fixtures',
+      shortLabel: 'Matches',
       href: '/fixtures',
       icon: 'fixtures',
     },
@@ -43,7 +43,7 @@ export const primaryNavigation:
     },
     {
       label: 'LEAGUE WAR',
-      shortLabel: 'League War',
+      shortLabel: 'War',
       href: '/league-war',
       icon: 'war',
     },

@@ -2,7 +2,7 @@
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import Link from 'next/link';
-import { FcStatusBadge, legFormatLabel } from '@/components/fc/fc-ui';
+import { FcCrest, FcStatusBadge, legFormatLabel } from '@/components/fc/fc-ui';
 import {
   useEffect,
   useState,
@@ -17,6 +17,7 @@ import {
 export interface FixtureEntryForUi {
   id: string;
   entryName: string | null;
+  entryLogoUrl: string | null;
 
   members: Array<{
     id: string;
@@ -34,6 +35,7 @@ export interface FixtureForUi {
   roundNumber: number;
   roundName: string;
   bracketPosition: number;
+  phase?: 'STAGE' | 'PLAYOFF';
   status: string;
   scheduledAt: string | null;
   venue: string | null;
@@ -68,11 +70,13 @@ export interface FixtureForUi {
   homeSource: {
     id: string;
     fixtureCode: string;
+    outcome?: 'WINNER' | 'LOSER';
   } | null;
 
   awaySource: {
     id: string;
     fixtureCode: string;
+    outcome?: 'WINNER' | 'LOSER';
   } | null;
 }
 
@@ -90,6 +94,7 @@ function entryName(
   source:
     | {
         fixtureCode: string;
+        outcome?: 'WINNER' | 'LOSER';
       }
     | null,
 ) {
@@ -113,7 +118,7 @@ function entryName(
   }
 
   if (source) {
-    return `Winner of ${source.fixtureCode}`;
+    return `${source.outcome === 'LOSER' ? 'Loser' : 'Winner'} of ${source.fixtureCode}`;
   }
 
   return 'TBD';
@@ -373,17 +378,31 @@ export function FixtureCard({
       <p className="fc-fixture-meta mt-3">{legFormatLabel(fixture.legType, fixture.competitionFormat)} · {fixture.roundName}</p>
 
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
-        <p className="break-words text-center text-base font-semibold">
-          {home}
-        </p>
+        <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+          <FcCrest
+            name={home}
+            imageUrl={fixture.home?.entryLogoUrl ?? undefined}
+            size="sm"
+          />
+          <p className="break-words text-center text-base font-semibold">
+            {home}
+          </p>
+        </div>
 
         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-slate-500">
           VS
         </span>
 
-        <p className="break-words text-center text-base font-semibold">
-          {away}
-        </p>
+        <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+          <FcCrest
+            name={away}
+            imageUrl={fixture.away?.entryLogoUrl ?? undefined}
+            size="sm"
+          />
+          <p className="break-words text-center text-base font-semibold">
+            {away}
+          </p>
+        </div>
       </div>
 
       <div className="fc-fixture-score mt-5" data-incomplete={!fixture.match?.confirmedResult ? 'true' : 'false'}>

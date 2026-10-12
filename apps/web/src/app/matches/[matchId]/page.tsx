@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
+
 import { ApiError } from "@/lib/api";
 import { confirmAction, promptAction } from "@/components/fc/confirmation-provider";
 import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
@@ -1255,7 +1257,7 @@ export default function MatchRoomPage() {
               Upload the FC Mobile result screenshot. FC ARENA scans the score
               and in-game names, matches them only against the players
               registered in this Match, and prepares the result for
-              verification. Once confirmed, standings and each matched player's
+              verification. Once confirmed, standings and each matched player&apos;s
               career statistics update automatically.
             </p>
 

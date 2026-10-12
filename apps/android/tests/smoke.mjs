@@ -216,8 +216,14 @@ try {
 
     await page.locator('.theme-bottom-nav a[href="/more"]').click();
     await page.waitForURL('**/more');
-    await page.locator('a[href="/awards"]').waitFor({ state: 'attached' });
-    await page.locator('a[href="/league-war"]').waitFor({ state: 'attached' });
+    assert(
+      (await page.locator('a[href="/awards"]').count()) >= 1,
+      'Awards must remain accessible from More',
+    );
+    assert(
+      (await page.locator('a[href="/league-war"]').count()) >= 1,
+      'League War must remain accessible from More',
+    );
     for (const path of ['/profile','/career']) {
       await page.goto(`https://fcarena.in${path}`);
       await page.locator('.fc-main').waitFor();

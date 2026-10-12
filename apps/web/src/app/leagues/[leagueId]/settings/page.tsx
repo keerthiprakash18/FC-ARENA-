@@ -9,6 +9,7 @@ import {
 } from 'next/navigation';
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -21,6 +22,7 @@ import {
 } from '@/components/app/back-header';
 
 import {
+  FcCrest,
   FcLoadingScreen,
   FcNotice,
   FcPanel,
@@ -33,6 +35,7 @@ import {
 
 import {
   authenticatedRequest,
+  authenticatedUpload,
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
@@ -42,6 +45,7 @@ interface LeagueHome {
   id: string;
   name: string;
   code: string;
+  logoUrl: string | null;
   description: string | null;
   region: string | null;
   rules: string | null;
@@ -108,6 +112,23 @@ export default function LeagueSettingsPage() {
     useState<Application[]>(
       [],
     );
+
+  const logoInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    );
+
+  const [
+    logoBusy,
+    setLogoBusy,
+  ] =
+    useState(false);
+
+  const [
+    logoProgress,
+    setLogoProgress,
+  ] =
+    useState(0);
 
   const [
     busy,
@@ -182,6 +203,172 @@ export default function LeagueSettingsPage() {
     leagueId,
     router,
   ]);
+
+
+  async function uploadLeagueLogo(
+    file: File,
+  ) {
+    if (!league?.adminRole) {
+      return;
+    }
+
+    if (
+      ![
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+      ].includes(file.type)
+    ) {
+      setError(
+        'Choose a PNG, JPG or WEBP image.',
+      );
+      return;
+    }
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      setError(
+        'League logo must be 5 MB or smaller.',
+      );
+      return;
+    }
+
+    setLogoBusy(true);
+    setLogoProgress(0);
+    setError('');
+    setMessage('');
+
+    const body =
+      new FormData();
+
+    body.append(
+      'image',
+      file,
+    );
+
+    try {
+      const response =
+        await authenticatedUpload<{
+          success: true;
+          data: {
+            message: string;
+            logoUrl: string;
+          };
+          error: null;
+        }>(
+          `/leagues/${leagueId}/logo`,
+          body,
+          progress =>
+            setLogoProgress(
+              progress,
+            ),
+        );
+
+      setLeague(
+        current =>
+          current
+            ? {
+                ...current,
+                logoUrl:
+                  response
+                    .data
+                    .logoUrl,
+              }
+            : current,
+      );
+
+      setMessage(
+        response.data.message,
+      );
+
+      setLogoProgress(100);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to upload League logo.',
+      );
+    } finally {
+      setLogoBusy(false);
+    }
+  }
+
+
+  async function removeLeagueLogo() {
+    if (
+      !league?.adminRole ||
+      !league.logoUrl ||
+      logoBusy
+    ) {
+      return;
+    }
+
+    if (
+      !(await confirmAction({
+        title:
+          'Remove League logo?',
+        description:
+          'Remove the current League logo? You can upload a new one later.',
+        confirmLabel:
+          'Remove logo',
+        destructive:
+          true,
+      }))
+    ) {
+      return;
+    }
+
+    setLogoBusy(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response =
+        await authenticatedRequest<{
+          success: true;
+          data: {
+            message: string;
+            logoUrl: null;
+          };
+          error: null;
+        }>(
+          `/leagues/${leagueId}/logo`,
+          {
+            method:
+              'DELETE',
+          },
+        );
+
+      setLeague(
+        current =>
+          current
+            ? {
+                ...current,
+                logoUrl:
+                  response
+                    .data
+                    .logoUrl,
+              }
+            : current,
+      );
+
+      setMessage(
+        response.data.message,
+      );
+
+      setLogoProgress(0);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to remove League logo.',
+      );
+    } finally {
+      setLogoBusy(false);
+    }
+  }
 
 
   async function copyCode() {
@@ -457,6 +644,105 @@ export default function LeagueSettingsPage() {
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
+
+
+        <FcPanel className="p-5 sm:p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <FcCrest
+                name={
+                  league.name
+                }
+                imageUrl={
+                  league.logoUrl
+                }
+                size="lg"
+              />
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+                  League Logo
+                </p>
+
+                <h2 className="mt-1 text-lg font-black">
+                  {
+                    league.name
+                  }
+                </h2>
+
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  {league.adminRole
+                    ? 'Choose a PNG, JPG or WEBP logo from your device.'
+                    : 'Your League identity.'}
+                </p>
+              </div>
+            </div>
+
+            {league.adminRole ? (
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={
+                    logoInputRef
+                  }
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
+                  className="hidden"
+                  onChange={
+                    event => {
+                      const file =
+                        event
+                          .target
+                          .files?.[0];
+
+                      event.target.value =
+                        '';
+
+                      if (file) {
+                        void uploadLeagueLogo(
+                          file,
+                        );
+                      }
+                    }
+                  }
+                />
+
+                <button
+                  type="button"
+                  disabled={
+                    logoBusy
+                  }
+                  onClick={() =>
+                    logoInputRef
+                      .current
+                      ?.click()
+                  }
+                  className="min-h-11 rounded-xl border border-sky-400/20 px-4 text-sm font-black text-sky-300 disabled:opacity-40"
+                >
+                  {logoBusy
+                    ? `Uploading ${logoProgress}%`
+                    : league.logoUrl
+                      ? 'Change Logo'
+                      : 'Upload Logo'}
+                </button>
+
+                {league.logoUrl ? (
+                  <button
+                    type="button"
+                    disabled={
+                      logoBusy
+                    }
+                    onClick={() =>
+                      void removeLeagueLogo()
+                    }
+                    className="min-h-11 rounded-xl border border-red-400/20 px-4 text-sm font-black text-red-300 disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </FcPanel>
 
 
         <FcPanel className="p-5 sm:p-6">

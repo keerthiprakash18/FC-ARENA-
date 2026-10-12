@@ -125,4 +125,38 @@ export class CreateTournamentDto {
   @IsOptional()
   @IsISO8601()
   endAt?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  dailyMatchLimit?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  matchesPerParticipantPerDay?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(5)
+  @Max(240)
+  matchDurationMinutes?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(720)
+  resultDeadlineHours?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(128)
+  qualifiersPerGroup?: number;
+
+  @IsOptional()
+  @IsIn(['CROSS_GROUP', 'SEEDED', 'RANDOM', 'MANUAL'])
+  playoffPairingMethod?: 'CROSS_GROUP' | 'SEEDED' | 'RANDOM' | 'MANUAL';
 }

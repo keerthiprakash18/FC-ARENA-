@@ -14,6 +14,7 @@ import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import type { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
+import type { SmartScheduleDto } from './dto/smart-schedule.dto.js';
 import {
   generateDoubleRoundRobinFixtures,
   generateKnockoutFixtures,
@@ -538,6 +539,8 @@ export class FixturesService {
       dto.matchesPerParticipantPerDay ===
         undefined &&
       dto.matchDurationMinutes ===
+        undefined &&
+      dto.resultDeadlineHours ===
         undefined
     ) {
       throw new BadRequestException({
@@ -565,6 +568,9 @@ export class FixturesService {
 
           matchDurationMinutes:
             dto.matchDurationMinutes,
+
+          resultDeadlineHours:
+            dto.resultDeadlineHours,
         },
       });
 
@@ -582,7 +588,141 @@ export class FixturesService {
 
           matchDurationMinutes:
             updated.matchDurationMinutes,
+
+          resultDeadlineHours:
+            updated.resultDeadlineHours,
         },
+      },
+      error: null,
+    };
+  }
+
+  async smartSchedule(
+    userId: string,
+    tournamentId: string,
+    dto: SmartScheduleDto,
+  ) {
+    const tournament = await this.prisma.tournament.findUnique({ where: { id: tournamentId } });
+    if (!tournament) throw this.tournamentNotFound();
+    await this.authorization.assertCanManageFixtures(userId, tournamentId);
+
+    const slotMinutes = dto.slotMinutes ?? tournament.matchDurationMinutes;
+    const horizonDays = dto.horizonDays ?? 30;
+    const requestedStart = dto.startAt ? new Date(dto.startAt) : new Date(Date.now() + 15 * 60_000);
+    if (Number.isNaN(requestedStart.getTime()) || requestedStart.getTime() < Date.now() - 60_000) {
+      throw new BadRequestException('Smart schedule start time is invalid or in the past.');
+    }
+
+    const [scheduled, unscheduled] = await Promise.all([
+      this.prisma.fixture.findMany({
+        where: { tournamentId, scheduledAt: { not: null }, status: { not: 'CANCELLED' } },
+        select: { scheduledAt: true, homeRegistrationId: true, awayRegistrationId: true },
+      }),
+      this.prisma.fixture.findMany({
+        where: { tournamentId, scheduledAt: null, status: 'UNSCHEDULED' },
+        orderBy: { sequence: 'asc' },
+        select: {
+          id: true,
+          fixtureCode: true,
+          homeRegistrationId: true,
+          awayRegistrationId: true,
+        },
+      }),
+    ]);
+
+    const dailyTotals = new Map<string, number>();
+    const participantDaily = new Map<string, number>();
+    const dayKey = (date: Date) => date.toISOString().slice(0, 10);
+    const participantsFor = (fixture: { homeRegistrationId: string | null; awayRegistrationId: string | null }) =>
+      [fixture.homeRegistrationId, fixture.awayRegistrationId].filter((id): id is string => Boolean(id));
+
+    for (const fixture of scheduled) {
+      if (!fixture.scheduledAt) continue;
+      const key = dayKey(fixture.scheduledAt);
+      dailyTotals.set(key, (dailyTotals.get(key) ?? 0) + 1);
+      for (const participant of participantsFor(fixture)) {
+        const participantKey = `${participant}:${key}`;
+        participantDaily.set(participantKey, (participantDaily.get(participantKey) ?? 0) + 1);
+      }
+    }
+
+    const proposals: Array<{ fixtureId: string; fixtureCode: string; scheduledAt: string; resultDeadlineAt: string; }> = [];
+    const conflicts: Array<{ fixtureId: string; fixtureCode: string; code: string; message: string; }> = [];
+    let cursor = new Date(requestedStart);
+    const horizon = new Date(requestedStart.getTime() + horizonDays * 24 * 60 * 60_000);
+
+    for (const fixture of unscheduled) {
+      const participants = participantsFor(fixture);
+      let placed = false;
+      let attempts = 0;
+      while (cursor < horizon && attempts < horizonDays * 24 * 12) {
+        attempts += 1;
+        const key = dayKey(cursor);
+        const dayTotal = dailyTotals.get(key) ?? 0;
+        const participantBlocked = participants.some((participant) =>
+          (participantDaily.get(`${participant}:${key}`) ?? 0) >= tournament.matchesPerParticipantPerDay,
+        );
+        if (dayTotal >= tournament.dailyMatchLimit || participantBlocked) {
+          const nextDay = new Date(cursor);
+          nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+          nextDay.setUTCHours(9, 0, 0, 0);
+          cursor = nextDay;
+          continue;
+        }
+
+        const scheduledAt = new Date(cursor);
+        const resultDeadlineAt = new Date(scheduledAt.getTime() + tournament.resultDeadlineHours * 60 * 60_000);
+        proposals.push({ fixtureId: fixture.id, fixtureCode: fixture.fixtureCode, scheduledAt: scheduledAt.toISOString(), resultDeadlineAt: resultDeadlineAt.toISOString() });
+        dailyTotals.set(key, dayTotal + 1);
+        for (const participant of participants) {
+          const participantKey = `${participant}:${key}`;
+          participantDaily.set(participantKey, (participantDaily.get(participantKey) ?? 0) + 1);
+        }
+        cursor = new Date(cursor.getTime() + slotMinutes * 60_000);
+        placed = true;
+        break;
+      }
+
+      if (!placed) {
+        const hasGlobalCapacity = [...dailyTotals.values()].some((total) => total < tournament.dailyMatchLimit);
+        conflicts.push({
+          fixtureId: fixture.id,
+          fixtureCode: fixture.fixtureCode,
+          code: hasGlobalCapacity ? 'PARTICIPANT_CAPACITY' : 'HORIZON_EXCEEDED',
+          message: hasGlobalCapacity
+            ? 'The participants have reached their daily match limit across the selected horizon.'
+            : 'No slot satisfies the tournament daily match limit within the selected horizon.',
+        });
+      }
+    }
+
+    const shouldApply = dto.apply === true;
+    if (shouldApply && conflicts.length === 0 && proposals.length > 0) {
+      await this.prisma.$transactionWithRetry(async (tx) => {
+        for (const proposal of proposals) {
+          const updated = await tx.fixture.updateMany({
+            where: { id: proposal.fixtureId, tournamentId, scheduledAt: null, status: 'UNSCHEDULED' },
+            data: {
+              scheduledAt: new Date(proposal.scheduledAt),
+              resultDeadlineAt: new Date(proposal.resultDeadlineAt),
+              status: 'SCHEDULED',
+            },
+          });
+          if (updated.count !== 1) {
+            throw new ConflictException({ success: false, data: null, error: { code: 'SCHEDULE_INPUTS_CHANGED', message: 'A fixture changed while the schedule was being applied. Preview again.' } });
+          }
+          await tx.match.updateMany({ where: { fixtureId: proposal.fixtureId }, data: { status: 'SCHEDULED', homeReadyAt: null, awayReadyAt: null } });
+        }
+      }, { isolationLevel: 'Serializable' });
+    }
+
+    return {
+      success: true,
+      data: {
+        applied: shouldApply && conflicts.length === 0,
+        settings: { slotMinutes, horizonDays, dailyMatchLimit: tournament.dailyMatchLimit, matchesPerParticipantPerDay: tournament.matchesPerParticipantPerDay },
+        proposals,
+        conflicts,
       },
       error: null,
     };
@@ -907,6 +1047,13 @@ export class FixturesService {
 
           data: {
             scheduledAt,
+
+            resultDeadlineAt: new Date(
+              scheduledAt.getTime() +
+                fixture.tournament.resultDeadlineHours *
+                60 *
+                60_000,
+            ),
 
             venue:
               dto.venue?.trim() ||

@@ -169,6 +169,12 @@ export default function LeagueOverviewPage() {
               "★",
             ],
             [
+              "Analytics",
+              "Season completion and verified-result metrics",
+              `/leagues/${leagueId}/analytics`,
+              "▦",
+            ],
+            [
               "Standings",
               "Tournament-by-Tournament standings tables",
               `/leagues/${leagueId}/standings`,

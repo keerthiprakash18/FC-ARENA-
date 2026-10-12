@@ -128,6 +128,24 @@ export class TournamentsService {
           dto.endAt
             ? new Date(dto.endAt)
             : null,
+
+        dailyMatchLimit:
+          dto.dailyMatchLimit,
+
+        matchesPerParticipantPerDay:
+          dto.matchesPerParticipantPerDay,
+
+        matchDurationMinutes:
+          dto.matchDurationMinutes,
+
+        resultDeadlineHours:
+          dto.resultDeadlineHours,
+
+        qualifiersPerGroup:
+          dto.qualifiersPerGroup,
+
+        playoffPairingMethod:
+          dto.playoffPairingMethod,
       },
     });
 

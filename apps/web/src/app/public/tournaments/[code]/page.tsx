@@ -140,6 +140,12 @@ export default function PublicTournamentPage() {
   ] =
     useState(false);
 
+  const [
+    exporting,
+    setExporting,
+  ] =
+    useState(false);
+
   useEffect(() => {
     void apiRequest<any>(
       '/public/tournaments/' +
@@ -235,6 +241,26 @@ export default function PublicTournamentPage() {
     }
   }
 
+  async function exportResults() {
+    setExporting(true);
+    try {
+      const response = await apiRequest<{
+        data: { filename: string; csv: string };
+      }>(
+        `/public/tournaments/${encodeURIComponent(params.code)}/export?format=csv`,
+      );
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([response.data.csv], { type: 'text/csv;charset=utf-8' }));
+      link.download = response.data.filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Export could not be created.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   if (
     !data &&
     !error
@@ -298,17 +324,23 @@ export default function PublicTournamentPage() {
             </span>
           </Link>
 
-          <button
-            type="button"
-            onClick={() =>
-              void share()
-            }
-            className="theme-secondary-button rounded-xl border px-4 py-2 text-sm font-semibold transition"
-          >
-            {copied
-              ? 'Link copied ✓'
-              : 'Share Tournament'}
-          </button>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => void exportResults()}
+              disabled={exporting}
+              className="theme-secondary-button rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:opacity-60"
+            >
+              {exporting ? 'Preparing…' : 'Export results'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void share()}
+              className="theme-secondary-button rounded-xl border px-4 py-2 text-sm font-semibold transition"
+            >
+              {copied ? 'Link copied ✓' : 'Share Tournament'}
+            </button>
+          </div>
         </div>
       </header>
 

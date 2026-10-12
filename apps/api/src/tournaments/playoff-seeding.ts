@@ -57,12 +57,10 @@ export function buildPlayoffSeedPlan(
   if (totalQualifiers < 2) {
     throw new Error('At least two playoff qualifiers are required.');
   }
-
   const bracketSize = nextPowerOfTwo(totalQualifiers);
   const byeCount = bracketSize - totalQualifiers;
   const byeSeeds = rankedSeeds.slice(0, byeCount);
   const remaining = rankedSeeds.slice(byeCount);
-
   if (remaining.length % 2 !== 0) {
     throw new Error('Invalid playoff play-in participant count.');
   }

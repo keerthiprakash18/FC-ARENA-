@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -30,12 +31,20 @@ import { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
 import { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
+import {
+  CloneTournamentDto,
+  CreateTournamentFromTemplateDto,
+  CreateTournamentTemplateDto,
+} from './dto/create-tournament-template.dto.js';
+import { ReviewDeadlineCaseDto } from './dto/review-deadline-case.dto.js';
+import { SmartScheduleDto } from './dto/smart-schedule.dto.js';
 import { FixturesService } from './fixtures.service.js';
 import { GroupFixturesService } from './group-fixtures.service.js';
 import { PlayoffsService } from './playoffs.service.js';
 import { TournamentsService } from './tournaments.service.js';
 import { TournamentGroupsService } from './tournament-groups.service.js';
 import { TournamentLogoService } from './tournament-logo.service.js';
+import { TournamentToolsService } from './tournament-tools.service.js';
 
 type AuthenticatedRequest = Request & {
   user: AccessTokenPayload;
@@ -62,7 +71,89 @@ export class TournamentsController {
 
     private readonly tournamentLogoService:
       TournamentLogoService,
+
+    private readonly tournamentToolsService:
+      TournamentToolsService,
   ) {}
+
+  @Get('leagues/:leagueId/tournament-templates')
+  listTemplates(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+  ) {
+    return this.tournamentToolsService.listTemplates(request.user.sub, leagueId);
+  }
+
+  @Post('leagues/:leagueId/tournament-templates')
+  createTemplate(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+    @Body() dto: CreateTournamentTemplateDto,
+  ) {
+    return this.tournamentToolsService.createTemplate(request.user.sub, leagueId, dto);
+  }
+
+  @Post('tournament-templates/:templateId/create-tournament')
+  createFromTemplate(
+    @Req() request: AuthenticatedRequest,
+    @Param('templateId') templateId: string,
+    @Body() dto: CreateTournamentFromTemplateDto,
+  ) {
+    return this.tournamentToolsService.createFromTemplate(request.user.sub, templateId, dto);
+  }
+
+  @Post('tournaments/:tournamentId/template')
+  saveAsTemplate(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: CreateTournamentTemplateDto,
+  ) {
+    return this.tournamentToolsService.saveTournamentAsTemplate(request.user.sub, tournamentId, dto);
+  }
+
+  @Post('tournaments/:tournamentId/clone')
+  cloneTournament(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: CloneTournamentDto,
+  ) {
+    return this.tournamentToolsService.cloneTournament(request.user.sub, tournamentId, dto);
+  }
+
+  @Get('tournaments/:tournamentId/export')
+  exportTournament(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.tournamentToolsService.exportTournament(request.user.sub, tournamentId);
+  }
+
+  @Get('tournaments/:tournamentId/deadline-cases')
+  listDeadlineCases(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.tournamentToolsService.listDeadlineCases(request.user.sub, tournamentId);
+  }
+
+  @Post('deadline-cases/:caseId/review')
+  reviewDeadlineCase(
+    @Req() request: AuthenticatedRequest,
+    @Param('caseId') caseId: string,
+    @Body() dto: ReviewDeadlineCaseDto,
+  ) {
+    return this.tournamentToolsService.reviewDeadlineCase(request.user.sub, caseId, dto);
+  }
+
+  @Get('leagues/:leagueId/analytics/season')
+  seasonAnalytics(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.tournamentToolsService.getSeasonAnalytics(request.user.sub, leagueId, from, to);
+  }
 
   @Post('leagues/:leagueId/tournaments')
   createTournament(
@@ -483,6 +574,15 @@ export class TournamentsController {
       request.user.sub,
       tournamentId,
     );
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/smart-schedule')
+  smartSchedule(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: SmartScheduleDto,
+  ) {
+    return this.fixturesService.smartSchedule(request.user.sub, tournamentId, dto);
   }
 
   @Get(

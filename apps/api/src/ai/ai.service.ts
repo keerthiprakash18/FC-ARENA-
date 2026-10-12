@@ -17,13 +17,6 @@ const MINUTE_LIMIT = 10;
 const DAILY_LIMIT = 30;
 const REQUEST_TIMEOUT_MS = 10_000;
 
-interface UsageBucket {
-  minuteStartedAt: number;
-  minuteCount: number;
-  dayKey: string;
-  dayCount: number;
-}
-
 interface ProviderChatResponse {
   choices?: Array<{
     message?: {
@@ -34,9 +27,6 @@ interface ProviderChatResponse {
 
 @Injectable()
 export class AiService {
-  private readonly usage =
-    new Map<string, UsageBucket>();
-
   constructor(
     private readonly prisma:
       PrismaService,
@@ -75,7 +65,7 @@ export class AiService {
     userId: string,
     dto: AiChatDto,
   ) {
-    this.consumeLimit(
+    await this.consumeLimit(
       userId,
     );
 
@@ -156,97 +146,48 @@ export class AiService {
     );
   }
 
-  private consumeLimit(
+  private async consumeLimit(
     userId: string,
-  ): void {
+  ): Promise<void> {
     const now =
       Date.now();
 
-    const dayKey =
-      new Date(now)
-        .toISOString()
-        .slice(
-          0,
-          10,
-        );
+    const today = new Date(now);
+    today.setUTCHours(0, 0, 0, 0);
 
-    const existing =
-      this.usage.get(
-        userId,
-      );
+    await this.prisma.$transactionWithRetry(async (tx) => {
+      const bucket = await tx.aiUsageBucket.upsert({
+        where: { userId_day: { userId, day: today } },
+        create: { userId, day: today, minuteStartedAt: new Date(now) },
+        update: {},
+      });
 
-    const bucket:
-      UsageBucket =
-      existing ?? {
-        minuteStartedAt:
-          now,
-        minuteCount:
-          0,
-        dayKey,
-        dayCount:
-          0,
-      };
+      const minuteExpired = now - bucket.minuteStartedAt.getTime() >= 60_000;
+      const minuteCount = minuteExpired ? 0 : bucket.minuteCount;
+      if (minuteCount >= MINUTE_LIMIT) {
+        throw new HttpException({
+          success: false,
+          data: null,
+          error: { code: 'AI_RATE_LIMIT_MINUTE', message: 'Too many AI questions. Try again in a minute.' },
+        }, HttpStatus.TOO_MANY_REQUESTS);
+      }
+      if (bucket.dayCount >= DAILY_LIMIT) {
+        throw new HttpException({
+          success: false,
+          data: null,
+          error: { code: 'AI_RATE_LIMIT_DAILY', message: 'Your FC ARENA AI daily limit has been reached.' },
+        }, HttpStatus.TOO_MANY_REQUESTS);
+      }
 
-    if (
-      now -
-        bucket.minuteStartedAt >=
-      60_000
-    ) {
-      bucket.minuteStartedAt =
-        now;
-      bucket.minuteCount =
-        0;
-    }
-
-    if (
-      bucket.dayKey !==
-      dayKey
-    ) {
-      bucket.dayKey =
-        dayKey;
-      bucket.dayCount =
-        0;
-    }
-
-    if (
-      bucket.minuteCount >=
-      MINUTE_LIMIT
-    ) {
-      throw new HttpException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'AI_RATE_LIMIT_MINUTE',
-          message:
-            'Too many AI questions. Try again in a minute.',
+      await tx.aiUsageBucket.update({
+        where: { userId_day: { userId, day: today } },
+        data: {
+          minuteStartedAt: minuteExpired ? new Date(now) : undefined,
+          minuteCount: minuteCount + 1,
+          dayCount: { increment: 1 },
         },
-      }, HttpStatus.TOO_MANY_REQUESTS);
-    }
-
-    if (
-      bucket.dayCount >=
-      DAILY_LIMIT
-    ) {
-      throw new HttpException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'AI_RATE_LIMIT_DAILY',
-          message:
-            'Your FC ARENA AI daily limit has been reached.',
-        },
-      }, HttpStatus.TOO_MANY_REQUESTS);
-    }
-
-    bucket.minuteCount += 1;
-    bucket.dayCount += 1;
-
-    this.usage.set(
-      userId,
-      bucket,
-    );
+      });
+    }, { isolationLevel: 'Serializable' });
   }
 
   private async buildContext(

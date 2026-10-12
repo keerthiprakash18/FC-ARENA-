@@ -78,6 +78,23 @@ describe(
       },
     );
 
+    it('/api/health/live does not require dependencies', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/health/live')
+        .expect(200);
+
+      expect(response.body.data.status).toBe('alive');
+      expect(response.body.data.runtime.release).toBeDefined();
+    });
+
+    it('/api/health/ready exposes dependency readiness', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/health/ready')
+        .expect(200);
+
+      expect(response.body.data.checks.database.status).toBe('connected');
+    });
+
     it(
       '/api/notifications rejects anonymous users',
       async () => {

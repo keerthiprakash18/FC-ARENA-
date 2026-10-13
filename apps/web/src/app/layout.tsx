@@ -13,6 +13,7 @@ import {
 } from '@/components/theme/theme-provider';
 
 import { ConfirmationProvider } from '@/components/fc/confirmation-provider';
+import { WebVitalsReporter } from '@/components/telemetry/web-vitals-reporter';
 import './globals.css';
 import './design-tokens.css';
 import './modernization.css';
@@ -141,10 +142,16 @@ export default async function RootLayout({
         />
       </head>
 
-      <body className="fc-premium" data-ui-build="premium-redesign">
+      <body
+        className="fc-premium"
+        data-ui-build="premium-redesign"
+        data-app-version={process.env.NEXT_PUBLIC_FC_ARENA_VERSION ?? 'unknown'}
+        data-web-release={process.env.NEXT_PUBLIC_FC_ARENA_RELEASE_SHA ?? 'unknown'}
+      >
         <ThemeProvider>
           <ConfirmationProvider />
           <ServiceWorkerRegister />
+          <WebVitalsReporter />
           {children}
         </ThemeProvider>
       </body>

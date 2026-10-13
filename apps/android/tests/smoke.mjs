@@ -206,12 +206,24 @@ try {
     await checkScroll(page, `dashboard-${width || 'emulator'}`, true);
     await page.screenshot({ path: `${output}/dashboard-${width || 'emulator'}.png` });
     await page.evaluate(() => { window.__smokeDocument = 'same-document'; });
-    for (const path of ['/leagues','/tournaments','/fixtures','/awards','/league-war','/more','/dashboard']) {
+    assert.equal(await page.locator('.theme-bottom-nav a').count(), 5, 'Mobile navigation must have five tabs');
+    for (const path of ['/leagues','/tournaments','/fixtures','/more','/dashboard']) {
       await page.locator(`.theme-bottom-nav a[href="${path}"]`).click();
       await page.waitForURL(`**${path}`);
       await page.locator('.fc-main').waitFor();
       assert.equal(await page.evaluate(() => window.__smokeDocument), 'same-document', 'SPA tab caused full document reload');
       await checkScroll(page, `${path}-${width || 'emulator'}`);
+    }
+    // Awards and League War are dashboard destinations, not bottom tabs.
+    for (const path of ['/awards','/league-war']) {
+      await page.locator(`.fc-main a[href="${path}"]`).click();
+      await page.waitForURL(`**${path}`);
+      await page.locator('.fc-main').waitFor();
+      assert.equal(await page.evaluate(() => window.__smokeDocument), 'same-document', 'Dashboard destination caused full document reload');
+      await checkScroll(page, `${path}-${width || 'emulator'}`);
+      await page.locator('.theme-bottom-nav a[href="/dashboard"]').click();
+      await page.waitForURL('**/dashboard');
+      await page.locator('.premium-home-hero').waitFor();
     }
     for (const path of ['/profile','/career']) {
       await page.goto(`https://fcarena.in${path}`);

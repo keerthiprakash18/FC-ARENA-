@@ -53,3 +53,38 @@ test('mobile visual smoke covers target production widths', () => {
     assert.ok(smoke.includes(String(width)), `Missing mobile smoke width: ${width}`);
   }
 });
+
+
+test('native Android inherits the same mobile hero and five-column navigation layout as web', () => {
+  const nativeCss = read('apps/web/src/app/native-android.css');
+
+  assert.doesNotMatch(
+    nativeCss,
+    /grid-template-columns\s*:\s*repeat\(7\s*,/i,
+    'Native Android must not override the five-column mobile navigation with seven columns',
+  );
+
+  assert.doesNotMatch(
+    nativeCss,
+    /\.fc-dashboard-hero\s*\{[^}]*min-height\s*:/s,
+    'Native Android must inherit the web dashboard hero height',
+  );
+
+  assert.doesNotMatch(
+    nativeCss,
+    /\.fc-dashboard-hero\s*>\s*\.relative[^\{]*\{[^}]*padding\s*:/s,
+    'Native Android must inherit the web dashboard hero padding',
+  );
+
+  assert.doesNotMatch(
+    nativeCss,
+    /\.fc-dashboard-page\s*\{[^}]*row-gap\s*:/s,
+    'Native Android must inherit the web dashboard section rhythm',
+  );
+
+  assert.doesNotMatch(
+    nativeCss,
+    /\.premium-primary-grid[^\{]*\{[^}]*grid-template-columns\s*:/s,
+    'Native Android must inherit the canonical five-column primary grid',
+  );
+});

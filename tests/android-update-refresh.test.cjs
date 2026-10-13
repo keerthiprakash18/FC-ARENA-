@@ -28,15 +28,15 @@ test('Android update performs one fresh document load without clearing user stat
     'Fresh-update path must run before WebView state restoration',
   );
 
-  for (const forbidden of [
-    'clearCache(true)',
-    'removeAllCookies',
-    'deleteAllData',
+  for (const [label, pattern] of [
+    ['clearCache(true)', /\.\s*clearCache\s*\(\s*true\s*\)/],
+    ['removeAllCookies', /\.\s*removeAllCookies\s*\(/],
+    ['deleteAllData', /\.\s*deleteAllData\s*\(/],
   ]) {
     assert.equal(
-      mainActivity.includes(forbidden),
+      pattern.test(mainActivity),
       false,
-      `Update refresh must not destroy login/settings via ${forbidden}`,
+      `Update refresh must not destroy login/settings via ${label}`,
     );
   }
 });

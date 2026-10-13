@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fc-arena-v8';
+const CACHE_NAME = 'fc-arena-v9';
 
 const PRECACHE = [
   '/icons/icon-192-v3.png',
@@ -41,8 +41,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Application code is intentionally left to the browser/CDN. Next.js
+  // static assets are content-hashed, and keeping them out of the service
+  // worker prevents an older worker from pinning a previous application build.
   const cacheable =
-    url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/brand/');
 

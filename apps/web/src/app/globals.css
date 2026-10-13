@@ -1924,6 +1924,36 @@ body {
   background: var(--theme-primary-soft);
 }
 
+
+/* Dashboard compatibility: preserve the classic dashboard composition while
+   allowing every club/display theme to provide readable surface colors. */
+.fc-dashboard-classic [class~="text-[#0B2545]"] {
+  color: var(--theme-text) !important;
+}
+
+.fc-dashboard-classic [class~="text-[#54657A]"],
+.fc-dashboard-classic [class~="text-[#536273]"] {
+  color: var(--theme-text-secondary) !important;
+}
+
+.fc-dashboard-classic [class~="text-[#8792A1]"] {
+  color: var(--theme-text-muted) !important;
+}
+
+.fc-dashboard-classic [class~="bg-[#FBF8F2]"],
+.fc-dashboard-classic [class~="bg-[#FAF7F0]"] {
+  background: var(--theme-secondary-background) !important;
+}
+
+.fc-dashboard-classic [class~="border-[#DED8CD]"],
+.fc-dashboard-classic [class~="border-[#E3DCCF]"] {
+  border-color: var(--theme-border) !important;
+}
+
+.fc-dashboard-classic [class~="divide-[#203141]"] > :not(:last-child) {
+  border-color: var(--theme-border) !important;
+}
+
 .theme-progress-bar {
   background:
     linear-gradient(

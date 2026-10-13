@@ -11,7 +11,11 @@ const code = ts.transpileModule(source, {
 
 function deploymentId(env) {
   const exports = {};
-  vm.runInNewContext(code, { exports, process: { env } });
+  vm.runInNewContext(code, {
+    exports,
+    process: { env, cwd: () => process.cwd() },
+    require,
+  });
   return exports.default.deploymentId;
 }
 

@@ -18,6 +18,23 @@ on:
       - ".github/workflows/codeql-security.yml"
       - ".github/workflows/backend-deploy.yml"
       - ".github/workflows/frontend-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "tests/**"
+      - "scripts/security-*.mjs"
+      - "scripts/check-security-env.mjs"
+      - "docker-compose.yml"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/security-hardening-ci.yml"
+      - ".github/workflows/codeql-security.yml"
+      - ".github/workflows/backend-deploy.yml"
+      - ".github/workflows/frontend-ci.yml"
   schedule:
     - cron: "41 4 * * 1"
   workflow_dispatch:

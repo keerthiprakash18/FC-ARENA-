@@ -37,10 +37,19 @@ const signingPath =
     'build-signed-release.ps1',
   );
 
+const rootPackagePath =
+  resolve(
+    here,
+    '..',
+    '..',
+    'package.json',
+  );
+
 const [
   propertiesText,
   gradleText,
   signingText,
+  rootPackageText,
 ] =
   await Promise.all([
     readFile(
@@ -53,6 +62,10 @@ const [
     ),
     readFile(
       signingPath,
+      'utf8',
+    ),
+    readFile(
+      rootPackagePath,
       'utf8',
     ),
   ]);
@@ -180,6 +193,20 @@ if (
 ) {
   throw new Error(
     'Signed release helper must read version.properties.',
+  );
+}
+
+const rootPackage =
+  JSON.parse(
+    rootPackageText,
+  );
+
+if (
+  rootPackage.version !==
+  versionName
+) {
+  throw new Error(
+    `Root package version ${rootPackage.version ?? 'missing'} must match Android VERSION_NAME ${versionName}.`,
   );
 }
 

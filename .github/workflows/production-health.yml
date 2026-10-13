@@ -53,5 +53,8 @@ jobs:
             uptimeSeconds: data?.runtime?.uptimeSeconds ?? null,
             rssMb: data?.runtime?.memory?.rssMb ?? null,
             release: data?.runtime?.release ?? null,
+            apiP95Ms: data?.telemetry?.api?.p95 ?? null,
+            apiSamples: data?.telemetry?.api?.samples ?? 0,
+            webVitals: data?.telemetry?.webVitals ?? null,
           }));
           NODE

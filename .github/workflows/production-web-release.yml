@@ -1,0 +1,62 @@
+name: Production Web Release Verification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/production-web-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcarena-production-web-release
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Wait for fcarena.in to serve this Git commit
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 30); do
+            html_file="$(mktemp)"
+            if curl --fail --silent --show-error --location \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --retry 2 \
+              --retry-delay 2 \
+              --output "$html_file" \
+              "https://fcarena.in/"; then
+              actual_sha="$(grep -o 'data-web-release="[^"]*"' "$html_file" | head -n 1 | cut -d'"' -f2 || true)"
+              rm -f "$html_file"
+
+              if [[ "$actual_sha" == "$EXPECTED_SHA" ]]; then
+                echo "FC Arena web production release verified: $actual_sha"
+                exit 0
+              fi
+
+              echo "Attempt $attempt/30: production release is ${actual_sha:-missing}; waiting for $EXPECTED_SHA"
+            else
+              rm -f "$html_file"
+              echo "Attempt $attempt/30: fcarena.in not ready yet"
+            fi
+
+            sleep 20
+          done
+
+          echo "Production web did not converge to Git commit $EXPECTED_SHA within 10 minutes." >&2
+          exit 1

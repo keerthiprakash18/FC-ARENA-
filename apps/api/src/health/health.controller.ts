@@ -208,6 +208,8 @@ export class HealthController {
           release:
             RUNTIME_RELEASE,
         },
+        telemetry:
+          this.telemetry.snapshot(),
       },
       error: null,
     };

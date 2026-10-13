@@ -1,6 +1,6 @@
 {
   "name": "fc-arena",
-  "version": "0.1.0",
+  "version": "1.0.10",
   "private": true,
   "description": "FC ARENA football and esports tournament management platform",
   "packageManager": "npm@12.0.2",

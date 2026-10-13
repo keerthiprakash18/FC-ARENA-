@@ -4,10 +4,41 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { execFileSync } from 'node:child_process';
 
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import {
+  TelemetryService,
+} from '../telemetry/telemetry.service.js';
+
+function resolveRuntimeRelease(): string {
+  const configured =
+    process.env.FC_ARENA_RELEASE_SHA ??
+    process.env.GIT_COMMIT_SHA ??
+    process.env.SOURCE_VERSION;
+
+  if (configured?.trim()) {
+    return configured.trim();
+  }
+
+  try {
+    return execFileSync(
+      'git',
+      ['rev-parse', 'HEAD'],
+      {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      },
+    ).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+const RUNTIME_RELEASE =
+  resolveRuntimeRelease();
 
 type RedisHealth = {
   configured: boolean;
@@ -22,6 +53,8 @@ export class HealthController {
   constructor(
     private readonly prisma:
       PrismaService,
+    private readonly telemetry:
+      TelemetryService,
   ) {}
 
   @Get('live')
@@ -34,11 +67,10 @@ export class HealthController {
         runtime: {
           node: process.version,
           release:
-            process.env.FC_ARENA_RELEASE_SHA ??
-            process.env.GIT_COMMIT_SHA ??
-            process.env.SOURCE_VERSION ??
-            'unknown',
+            RUNTIME_RELEASE,
         },
+        telemetry:
+          this.telemetry.snapshot(),
       },
       error: null,
     };
@@ -174,10 +206,7 @@ export class HealthController {
               ),
           },
           release:
-            process.env.FC_ARENA_RELEASE_SHA ??
-            process.env.GIT_COMMIT_SHA ??
-            process.env.SOURCE_VERSION ??
-            'unknown',
+            RUNTIME_RELEASE,
         },
       },
       error: null,

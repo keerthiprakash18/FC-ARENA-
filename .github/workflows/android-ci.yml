@@ -51,6 +51,9 @@ jobs:
       - name: Verify emulator boot readiness gate
         run: node --test tests/emulator-services.test.cjs
 
+      - name: Verify fresh web update behavior
+        run: node --test tests/android-update-refresh.test.cjs
+
       - name: Verify Android version source
         run: node apps/android/verify-version.mjs
 

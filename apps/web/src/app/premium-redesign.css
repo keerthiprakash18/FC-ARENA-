@@ -24,7 +24,7 @@
 .fc-premium .theme-top-header { box-shadow: none; }
 .fc-premium .theme-bottom-nav { background: var(--theme-surface); box-shadow: 0 -4px 24px rgb(13 38 61 / 6%); }
 .premium-primary-rail { display: flex; position: relative; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: var(--premium-gold) transparent; scroll-padding-inline: 12px; }
-.premium-primary-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); position: relative; width: 100%; }
+.premium-primary-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); position: relative; width: 100%; }
 .fc-premium .premium-primary-grid .theme-bottom-item { min-width: 0; }
 @media (max-width: 430px) {
   .fc-premium .premium-primary-grid .theme-bottom-item { padding-inline: 2px; }

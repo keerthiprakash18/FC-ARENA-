@@ -53,9 +53,10 @@ export function ServiceWorkerRegister() {
     };
     if (document.readyState === 'complete') {
       register();
-      return;
+    } else {
+      window.addEventListener('load', register, { once: true });
     }
-    window.addEventListener('load', register, { once: true });
+
     return () => {
       window.removeEventListener('load', register);
       navigator.serviceWorker.removeEventListener(

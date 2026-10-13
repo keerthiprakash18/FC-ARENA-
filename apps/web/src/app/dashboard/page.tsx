@@ -467,7 +467,7 @@ export default function DashboardPage() {
           <PremiumPitch />
           <div className="premium-hero-copy">
             <p className="premium-eyebrow">FC ARENA · Your competition home</p>
-            <h1>More than<br />a game.</h1>
+            <h1>More than<br /> a game.</h1>
             <p className="premium-hero-description">Welcome back, {inGameName}. Your next match is where the story continues.</p>
             <div className="premium-home-context">
               <FcCrest name={primaryMembership?.league.name || inGameName} imageUrl={leagueLogo || career.profile.profileImageUrl} size="md" />

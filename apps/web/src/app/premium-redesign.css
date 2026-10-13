@@ -344,9 +344,26 @@
   .premium-war-board .fc-league-war-scoreboard [class*="text-5xl"] { font-size: 52px; }
   .premium-fixture-sides > div { flex-direction: column; }
   .premium-queue > a { grid-template-columns: 40px minmax(0,1fr) auto; gap: 12px; }
-  .premium-home-hero h1 { font-size: 38px !important; }
+  /* Keep the dashboard welcome and next action together on small screens.
+     Scope this to the home hero so tournament and match headers keep their layout. */
+  .premium-dashboard { gap: 16px; }
+  .premium-home-hero { padding: 18px 16px; gap: 16px; }
+  .premium-home-hero .premium-eyebrow { font-size: 11px; line-height: 1.4; letter-spacing: .06em; }
+  .premium-home-hero h1 { font-size: clamp(28px, 7vw, 32px) !important; }
+  .premium-home-hero h1 br { display: none; }
+  .premium-home-hero .premium-hero-description { margin-top: 10px; font-size: 14px; line-height: 1.5; }
+  .premium-home-hero .premium-hero-tags { margin-top: 12px; gap: 6px 10px; font-size: 11px; }
+  .premium-home-hero .premium-hero-tags > span:last-child { border-right: 0; padding-inline-end: 0; }
   .premium-home-next { width: 100%; }
-  .premium-home-context { margin-top: 22px; }
+  .premium-home-context { margin-top: 14px; gap: 10px; }
+  .premium-home-context p { font-size: 12px; line-height: 1.4; }
+  .premium-home-empty { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px 10px; align-items: center; padding: 16px; }
+  .premium-home-empty > svg { width: 26px; height: 26px; margin: 0; }
+  .fc-premium .premium-home-empty h2 { font-size: 19px !important; line-height: 1.25; }
+  .premium-home-empty p { grid-column: 1 / -1; margin: 0; font-size: 13px; line-height: 1.5; }
+  .premium-home-empty > a { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
+  .premium-home-next .premium-match { padding: 16px; }
+  .premium-home-next .premium-match-sides { margin-block: 14px; }
   .premium-dashboard .fc-tournament-panel { grid-template-columns: 1fr; }
   .premium-prestige-gateway, .premium-rivalry-gateway { padding: 22px; gap: 18px; }
   .premium-prestige-gateway > .premium-award-emblem { width: 58px; height: 70px; }

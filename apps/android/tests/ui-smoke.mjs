@@ -33,6 +33,7 @@ async function prepare(page) {
         case '/api/matches/result-test/results': data={isLeagueAdmin:false,canVerifyResult:false,confirmedResultSubmissionId:null,submissions:[]}; break;
         case '/api/matches/result-test/ocr/latest': data={extraction:null}; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
+        case '/api/telemetry/web-vitals': data = { accepted: true }; break;
         default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();
       }
       return route.fulfill({ json: { success: true, data, error: null }, headers: { 'access-control-allow-origin': 'https://fcarena.in', 'access-control-allow-credentials': 'true' } });
@@ -62,6 +63,12 @@ try {
     for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/career','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
+      if (path === '/dashboard' && width < 1024) {
+        const tabs = page.locator('.theme-bottom-nav a');
+        assert.equal(await tabs.count(), 5, 'Dashboard mobile navigation must have five tabs');
+        const widths = await tabs.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().width));
+        assert(Math.max(...widths) - Math.min(...widths) <= 1.5, `Dashboard ${width}: mobile tabs are uneven ${JSON.stringify(widths)}`);
+      }
       if(['/login','/register','/forgot-password','/reset-password'].includes(path)) assert.equal(await page.locator('.field label').evaluateAll(labels=>labels.filter(label=>!label.control).length),0,'Every auth field label must target an input');
       if(path.includes('standings')) await page.getByText('Group A',{exact:true}).waitFor();
       if(path === '/leagues/invite-test') {

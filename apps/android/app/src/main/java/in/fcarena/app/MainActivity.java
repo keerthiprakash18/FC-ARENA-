@@ -419,9 +419,19 @@ public final class MainActivity extends Activity {
             }
 
             @Override
+            public void onPageCommitVisible(WebView view, String url) {
+                Uri uri = Uri.parse(url);
+                if (isAllowedUrl(uri)) {
+                    enforceCanonicalWebLayout(view);
+                }
+                super.onPageCommitVisible(view, url);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 Uri uri = Uri.parse(url);
                 if (isAllowedUrl(uri)) {
+                    enforceCanonicalWebLayout(view);
                     lastAllowedUrl = url;
                     if (shouldForceFreshWeb()) {
                         preferences.edit()
@@ -635,6 +645,27 @@ public final class MainActivity extends Activity {
                 )
                 .build()
                 .toString();
+    }
+
+    private void enforceCanonicalWebLayout(WebView view) {
+        if (view == null) {
+            return;
+        }
+
+        // The website is the visual source of truth. Older production web
+        // releases contained Android-only CSS that changed hero height,
+        // spacing and the five-item navigation grid. Removing this marker
+        // makes the native WebView use the exact same responsive layout as
+        // the normal mobile website while the Android UA still keeps native
+        // service-worker retirement and push bridges intact.
+        try {
+            view.evaluateJavascript(
+                    "(function(){document.documentElement.removeAttribute('data-native-app');})();",
+                    null
+            );
+        } catch (RuntimeException ignored) {
+            // Layout parity is visual-only and must never break navigation.
+        }
     }
 
     private boolean isAllowedUrl(Uri uri) {

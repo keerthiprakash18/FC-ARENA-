@@ -2,8 +2,8 @@
   "packageName": "in.fcarena.app",
   "highestKnownUploadedVersionCode": 11,
   "highestKnownUploadedVersionName": "1.0.9",
-  "nextCandidateVersionCode": 13,
-  "nextCandidateVersionName": "1.0.11",
+  "nextCandidateVersionCode": 14,
+  "nextCandidateVersionName": "1.0.12",
   "lastReviewed": "2026-10-13",
-  "note": "Version code 11 is the highest Play upload verified in repository evidence. Build 12 was built successfully, but its Play upload is not asserted here. Build 13 is the current candidate and must not be marked uploaded until Play Console confirms it."
+  "note": "Version code 11 is the highest Play upload verified in repository evidence. Builds 12 and 13 were built locally/CI but are not marked as Play-uploaded without Play Console evidence. Build 14 is the current parity-fix candidate."
 }

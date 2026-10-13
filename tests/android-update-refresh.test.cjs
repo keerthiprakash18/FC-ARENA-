@@ -40,3 +40,23 @@ test('Android update performs one fresh document load without clearing user stat
     );
   }
 });
+
+
+test('Android WebView renders the canonical mobile web layout', () => {
+  for (const signature of [
+    'enforceCanonicalWebLayout(view)',
+    "removeAttribute('data-native-app')",
+    'public void onPageCommitVisible(WebView view, String url)',
+  ]) {
+    assert.ok(
+      mainActivity.includes(signature),
+      `Missing Android/web layout parity contract: ${signature}`,
+    );
+  }
+
+  assert.ok(
+    mainActivity.indexOf('enforceCanonicalWebLayout(view)') <
+      mainActivity.lastIndexOf('enforceCanonicalWebLayout(view)'),
+    'Layout parity must be enforced both when content becomes visible and after page load',
+  );
+});

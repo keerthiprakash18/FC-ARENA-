@@ -1,0 +1,96 @@
+name: Play Production Evidence Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      physical_device_passed:
+        description: "Current main passed physical-device install/update, auth, core flows, resume, uploads and push tests"
+        required: true
+        type: choice
+        options: ["NO", "YES"]
+        default: "NO"
+      closed_test_eligible:
+        description: "Play Console shows production-access closed-test eligibility"
+        required: true
+        type: choice
+        options: ["NO", "YES"]
+        default: "NO"
+      data_safety_confirmed:
+        description: "Data Safety matches this exact build"
+        required: true
+        type: choice
+        options: ["NO", "YES"]
+        default: "NO"
+      reviewer_access_confirmed:
+        description: "App Access reviewer credentials and navigation steps work"
+        required: true
+        type: choice
+        options: ["NO", "YES"]
+        default: "NO"
+      prelaunch_report_clean:
+        description: "Google Play pre-launch report has no unresolved release blocker"
+        required: true
+        type: choice
+        options: ["NO", "YES"]
+        default: "NO"
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Require explicit external release evidence
+        shell: bash
+        env:
+          PHYSICAL: ${{ inputs.physical_device_passed }}
+          CLOSED_TEST: ${{ inputs.closed_test_eligible }}
+          DATA_SAFETY: ${{ inputs.data_safety_confirmed }}
+          REVIEWER_ACCESS: ${{ inputs.reviewer_access_confirmed }}
+          PRELAUNCH: ${{ inputs.prelaunch_report_clean }}
+        run: |
+          set -euo pipefail
+          for item in PHYSICAL CLOSED_TEST DATA_SAFETY REVIEWER_ACCESS PRELAUNCH; do
+            if [[ "${!item}" != "YES" ]]; then
+              echo "Release blocked: $item is not explicitly confirmed." >&2
+              exit 1
+            fi
+          done
+
+      - name: Checkout frozen main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify unified app version
+        run: node apps/android/verify-version.mjs
+
+      - name: Run final source release gate
+        env:
+          FC_ARENA_ENFORCE_CLEAN_MAIN: "true"
+        run: npm run check:final-release
+
+      - name: Verify security dependency gate
+        run: node scripts/security-audit-gate.mjs
+
+      - name: Record frozen source evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "FC_ARENA_PLAY_SOURCE_SHA=$(git rev-parse HEAD)"
+          grep '^VERSION_CODE=' apps/android/version.properties
+          grep '^VERSION_NAME=' apps/android/version.properties
+          echo "PLAY_PRODUCTION_EVIDENCE_GATE=PASS"

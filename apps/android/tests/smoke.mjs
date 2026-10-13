@@ -202,7 +202,7 @@ try {
     let page = android ? androidPage : await context.newPage();
     await prepare(page);
     await page.goto('https://fcarena.in/dashboard');
-    await page.locator('.premium-home-hero').waitFor();
+    await page.locator('.fc-dashboard-hero').waitFor();
     await checkScroll(page, `dashboard-${width || 'emulator'}`, true);
     await page.screenshot({ path: `${output}/dashboard-${width || 'emulator'}.png` });
     await page.evaluate(() => { window.__smokeDocument = 'same-document'; });
@@ -223,7 +223,7 @@ try {
       await checkScroll(page, `${path}-${width || 'emulator'}`);
       await page.locator('.theme-bottom-nav a[href="/dashboard"]').click();
       await page.waitForURL('**/dashboard');
-      await page.locator('.premium-home-hero').waitFor();
+      await page.locator('.fc-dashboard-hero').waitFor();
     }
     for (const path of ['/profile','/career']) {
       await page.goto(`https://fcarena.in${path}`);

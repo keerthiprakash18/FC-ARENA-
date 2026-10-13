@@ -66,6 +66,14 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Pin workspace to current origin/main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --quiet
+          git checkout -B main origin/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+
       - name: Setup Node 24
         uses: actions/setup-node@v7
         with:

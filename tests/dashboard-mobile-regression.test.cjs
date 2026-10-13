@@ -53,3 +53,36 @@ test('mobile visual smoke covers target production widths', () => {
     assert.ok(smoke.includes(String(width)), `Missing mobile smoke width: ${width}`);
   }
 });
+
+
+test('native Android dashboard matches mobile web geometry', () => {
+  const nativeCss = read('apps/web/src/app/native-android.css');
+
+  for (const signature of [
+    'padding-top: 20px !important;',
+    'padding-left: 16px !important;',
+    'padding-right: 16px !important;',
+    'min-height: 220px !important;',
+    'padding: 20px !important;',
+    'gap: 16px !important;',
+    'font-size: clamp(28px, 5vw, 42px) !important;',
+    'line-height: 1.1 !important;',
+    'margin-top: 12px !important;',
+    'font-size: 14px !important;',
+    'line-height: 24px !important;',
+    'row-gap: 16px !important;',
+    'gap: 18px !important;',
+    'grid-template-columns: repeat(5, minmax(0, 1fr)) !important;',
+  ]) {
+    assert.ok(
+      nativeCss.includes(signature),
+      `Native Android mobile parity signature changed: ${signature}`,
+    );
+  }
+
+  assert.doesNotMatch(
+    nativeCss,
+    /\.fc-premium\s+\.theme-bottom-nav\s*>\s*\.premium-primary-grid\s*\{[^}]*repeat\(7,/s,
+    'Native bottom navigation must not reserve seven columns for five tabs',
+  );
+});

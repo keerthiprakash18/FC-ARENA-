@@ -2,16 +2,43 @@ import type { NextConfig } from 'next';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const rootPackage = JSON.parse(
-  readFileSync(
-    new URL('../../package.json', import.meta.url),
-    'utf8',
-  ),
-) as { version?: string };
+function resolveAppVersion(): string {
+  for (
+    const candidate
+    of [
+      '../../package.json',
+      'package.json',
+    ]
+  ) {
+    try {
+      const rootPackage =
+        JSON.parse(
+          readFileSync(
+            candidate,
+            'utf8',
+          ),
+        ) as {
+          name?: string;
+          version?: string;
+        };
+
+      if (
+        rootPackage.name ===
+          'fc-arena' &&
+        rootPackage.version
+      ) {
+        return rootPackage.version;
+      }
+    } catch {
+      // Try the next supported build working directory.
+    }
+  }
+
+  return 'unknown';
+}
 
 const appVersion =
-  rootPackage.version ??
-  'unknown';
+  resolveAppVersion();
 
 function resolveWebReleaseSha(): string {
   const configured =

@@ -1,4 +1,44 @@
 import type { NextConfig } from 'next';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+const rootPackage = JSON.parse(
+  readFileSync(
+    new URL('../../package.json', import.meta.url),
+    'utf8',
+  ),
+) as { version?: string };
+
+const appVersion =
+  rootPackage.version ??
+  'unknown';
+
+function resolveWebReleaseSha(): string {
+  const configured =
+    process.env.VERCEL_GIT_COMMIT_SHA ??
+    process.env.GITHUB_SHA ??
+    process.env.FC_ARENA_RELEASE_SHA;
+
+  if (configured?.trim()) {
+    return configured.trim();
+  }
+
+  try {
+    return execFileSync(
+      'git',
+      ['rev-parse', 'HEAD'],
+      {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      },
+    ).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+const webReleaseSha =
+  resolveWebReleaseSha();
 
 const configuredApiTarget =
   process.env.NODE_ENV ===
@@ -55,6 +95,13 @@ const deploymentId = (
 )?.slice(0, 32);
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_FC_ARENA_VERSION:
+      appVersion,
+    NEXT_PUBLIC_FC_ARENA_RELEASE_SHA:
+      webReleaseSha,
+  },
+
   // One stable build identifier, shared by all instances of this deployment.
   // Does not touch Android versions, cookies or local settings.
   deploymentId,
@@ -79,6 +126,13 @@ const nextConfig: NextConfig = {
 
         destination:
           `${apiProxyTarget}/auth/:path*`,
+      },
+      {
+        source:
+          '/api/telemetry/:path*',
+
+        destination:
+          `${apiProxyTarget}/telemetry/:path*`,
       },
     ];
   },

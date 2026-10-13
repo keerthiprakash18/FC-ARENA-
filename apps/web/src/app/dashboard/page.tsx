@@ -453,6 +453,7 @@ export default function DashboardPage() {
 
   return (
     <AppShell
+      currentUser={user}
       playerName={inGameName}
       playerRole={primaryMembership?.adminRole || "Player"}
     >

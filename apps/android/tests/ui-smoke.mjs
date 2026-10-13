@@ -102,7 +102,7 @@ try {
     assert.equal(await page.locator('html').getAttribute('data-mode'),'dark');
     if(width===390||width===1440)await page.screenshot({path:output+'/dark-'+width+'.png',fullPage:true,animations:'disabled'});
     if(width<1024){
-      await page.getByRole('navigation',{name:'Primary navigation'}).getByRole('link',{name:'Fixtures',exact:true}).click();
+      await page.getByRole('navigation',{name:'Primary navigation'}).locator('a[href="/fixtures"]').click();
       await page.waitForURL('**/fixtures');
       await page.goBack(); await page.waitForURL('**/dashboard');
     }

@@ -855,7 +855,7 @@ export function AppShell({
           <div className="mt-4 flex items-end justify-between gap-3 px-1">
             <div>
               <p className="theme-sidebar-muted text-[10px] font-medium">
-                FC ARENA v1.0.0
+                FC ARENA v{process.env.NEXT_PUBLIC_FC_ARENA_VERSION ?? 'unknown'}{process.env.NEXT_PUBLIC_FC_ARENA_RELEASE_SHA && process.env.NEXT_PUBLIC_FC_ARENA_RELEASE_SHA !== 'unknown' ? ` · ${process.env.NEXT_PUBLIC_FC_ARENA_RELEASE_SHA.slice(0, 7)}` : ''}
               </p>
 
               <p className="theme-sidebar-muted mt-1 text-[10px] font-medium tracking-[0.06em]">

@@ -43,6 +43,8 @@ public final class MainActivity extends Activity {
     private static final String PREFS_NAME = "fc_arena_android";
     private static final String STARTUP_GUARD_KEY = "startup_guard";
     private static final String VERSION_CHECK_AT_KEY = "version_check_at";
+    private static final String FORCE_FRESH_WEB_KEY = "force_fresh_web_after_update";
+    private static final String FRESH_WEB_QUERY_KEY = "fc_native_refresh";
     private static final String VERSION_CHECK_URL =
             "https://api.fcarena.in/api/mobile/android/version?versionCode=";
     private static final long VERSION_CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
@@ -90,6 +92,7 @@ public final class MainActivity extends Activity {
         if (preferences.getInt("installed_version_code", -1) != BuildConfig.VERSION_CODE) {
             preferences.edit()
                     .putInt("installed_version_code", BuildConfig.VERSION_CODE)
+                    .putBoolean(FORCE_FRESH_WEB_KEY, true)
                     .remove(STARTUP_GUARD_KEY)
                     .remove(VERSION_CHECK_AT_KEY)
                     .commit();
@@ -115,7 +118,13 @@ public final class MainActivity extends Activity {
 
         try {
             createWebView();
-            if (savedInstanceState == null) {
+            if (shouldForceFreshWeb()) {
+                // After an install/update, never restore an old WebView document.
+                // Fetch the current production page once without the HTTP cache.
+                // Cookies, DOM storage, push consent and user settings are preserved.
+                webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+                webView.loadUrl(withFreshWebToken(initialUrl));
+            } else if (savedInstanceState == null) {
                 webView.loadUrl(initialUrl);
             } else if (webView.restoreState(savedInstanceState) == null) {
                 webView.loadUrl(initialUrl);
@@ -414,6 +423,12 @@ public final class MainActivity extends Activity {
                 Uri uri = Uri.parse(url);
                 if (isAllowedUrl(uri)) {
                     lastAllowedUrl = url;
+                    if (shouldForceFreshWeb()) {
+                        preferences.edit()
+                                .putBoolean(FORCE_FRESH_WEB_KEY, false)
+                                .apply();
+                        view.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+                    }
                 }
                 if (progressBar != null) {
                     progressBar.setVisibility(View.GONE);
@@ -599,6 +614,27 @@ public final class MainActivity extends Activity {
             if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) PushSupport.enable(this,webView);
             else PushSupport.emit(webView,false,"","Notifications were not allowed. You can enable them in Android Settings.");
         }
+    }
+
+    private boolean shouldForceFreshWeb() {
+        return preferences != null
+                && preferences.getBoolean(FORCE_FRESH_WEB_KEY, false);
+    }
+
+    private String withFreshWebToken(String url) {
+        Uri uri = Uri.parse(url);
+
+        if (!isAllowedUrl(uri)) {
+            return START_URL;
+        }
+
+        return uri.buildUpon()
+                .appendQueryParameter(
+                        FRESH_WEB_QUERY_KEY,
+                        String.valueOf(BuildConfig.VERSION_CODE)
+                )
+                .build()
+                .toString();
     }
 
     private boolean isAllowedUrl(Uri uri) {

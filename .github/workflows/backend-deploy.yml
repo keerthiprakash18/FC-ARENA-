@@ -138,9 +138,31 @@ jobs:
           set -euo pipefail
           ssh             -i ~/.ssh/id_ed25519             -o BatchMode=yes             -o ConnectTimeout=15             fcarena-deploy@162.35.111.245             'sudo /usr/local/sbin/fcarena-deploy'
 
-      - name: Verify public API
+      - name: Verify public API release identity
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error             --retry 5             --retry-delay 3             https://api.fcarena.in/api/health
-          echo
-          echo "Production API health check passed."
+          body_file="$(mktemp)"
+          trap 'rm -f "$body_file"' EXIT
+
+          curl --fail --silent --show-error \
+            --retry 5 \
+            --retry-delay 3 \
+            --output "$body_file" \
+            https://api.fcarena.in/api/health
+
+          node - "$body_file" "$EXPECTED_SHA" <<'NODE'
+          const fs = require('fs');
+          const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          const expected = process.argv[3];
+          const actual = payload?.data?.runtime?.release;
+          if (payload?.success !== true || payload?.data?.status === 'unhealthy') {
+            throw new Error('Production API health is not healthy.');
+          }
+          if (actual !== expected) {
+            throw new Error(`Production API release mismatch: expected ${expected}, received ${actual ?? 'missing'}`);
+          }
+          console.log(`Production API release verified: ${actual}`);
+          NODE

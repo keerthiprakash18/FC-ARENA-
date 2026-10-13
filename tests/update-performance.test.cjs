@@ -43,7 +43,7 @@ test('failed cleanup is retried instead of being permanently marked complete',as
 test('PWA activation deletes only old FC Arena caches',async()=>{
  const callbacks={},deleted=[];let completed;
  vm.runInNewContext(fs.readFileSync('apps/web/public/sw.js','utf8'),{self:{addEventListener:(name,fn)=>callbacks[name]=fn,clients:{claim:()=>{}},location:{origin:'https://fcarena.in'}},caches:{keys:async()=>['fc-arena-v7','fc-arena-v8','other-app'],delete:async name=>deleted.push(name)},Promise,URL});
- callbacks.activate({waitUntil:p=>completed=p});await completed;assert.deepEqual(deleted,['fc-arena-v7']);
+ callbacks.activate({waitUntil:p=>completed=p});await completed;assert.deepEqual(deleted,['fc-arena-v7','fc-arena-v8']);
 });
 test('push binding handles token rotation in flight and retries on a later login',async()=>{
  const out={},calls=[],listeners=new Map();

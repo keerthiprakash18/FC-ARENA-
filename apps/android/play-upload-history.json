@@ -2,8 +2,8 @@
   "packageName": "in.fcarena.app",
   "highestKnownUploadedVersionCode": 11,
   "highestKnownUploadedVersionName": "1.0.9",
-  "nextCandidateVersionCode": 13,
-  "nextCandidateVersionName": "1.0.11",
-  "lastReviewed": "2026-10-13",
-  "note": "Version code 11 is the highest Play upload verified in repository evidence. Build 12 was built successfully, but its Play upload is not asserted here. Build 13 is the current candidate and must not be marked uploaded until Play Console confirms it."
+  "nextCandidateVersionCode": 14,
+  "nextCandidateVersionName": "1.0.12",
+  "lastReviewed": "2026-10-17",
+  "note": "Build 14 is the current release candidate. The repository records version code 11 as the highest upload verified in repository evidence; the project handover reports that version code 13 has already been used in Play Console. Confirm the Play Console state before upload and never mark a version as uploaded without direct Play Console evidence."
 }

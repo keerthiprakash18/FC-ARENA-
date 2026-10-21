@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -58,6 +59,13 @@ public final class MainActivity extends Activity {
     private int rendererCrashCount = 0;
     private boolean softwareRendering = false;
     private String lastAllowedUrl = START_URL;
+
+    private final class AuthPersistenceBridge {
+        @JavascriptInterface
+        public void flushCookies() {
+            runOnUiThread(() -> CookieManager.getInstance().flush());
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -369,6 +377,11 @@ public final class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
         }
+
+        webView.addJavascriptInterface(
+                new AuthPersistenceBridge(),
+                "FC_ARENA_ANDROID_AUTH"
+        );
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);

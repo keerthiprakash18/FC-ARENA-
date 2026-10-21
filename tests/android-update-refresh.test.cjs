@@ -55,3 +55,10 @@ test('Android persists the refresh cookie before the app is backgrounded', () =>
     'Refresh cookies must be flushed before Android can kill the process',
   );
 });
+
+test('Android exposes a narrow auth cookie flush bridge for SPA login and refresh', () => {
+  assert.match(mainActivity, /import android\.webkit\.JavascriptInterface;/);
+  assert.match(mainActivity, /@JavascriptInterface\s+public void flushCookies\(\)/);
+  assert.match(mainActivity, /"FC_ARENA_ANDROID_AUTH"/);
+  assert.match(mainActivity, /CookieManager\.getInstance\(\)\.flush\(\)/);
+});

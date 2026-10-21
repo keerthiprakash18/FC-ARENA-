@@ -36,6 +36,14 @@ export interface CurrentUser {
   } | null;
 }
 
+declare global {
+  interface Window {
+    FC_ARENA_ANDROID_AUTH?: {
+      flushCookies?: () => void;
+    };
+  }
+}
+
 const pendingReads = new Map<string, Promise<unknown>>();
 
 const notificationRequests = new Map<string, Promise<unknown>>();
@@ -49,6 +57,17 @@ let accessTokenExpiresAt = 0;
 let refreshPromise:
   Promise<string> | null = null;
 
+function flushNativeAuthCookie(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.FC_ARENA_ANDROID_AUTH?.flushCookies?.();
+  } catch {
+    // The native bridge is optional in normal browsers and must never block auth.
+  }
+}
 
 export function establishLoginSession(
   token: string,
@@ -63,6 +82,7 @@ export function establishLoginSession(
       1000;
 
   refreshPromise = null;
+  flushNativeAuthCookie();
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('fc-arena:signed-in'));
 }
 
@@ -115,6 +135,8 @@ export async function refreshAccessToken(
         Date.now() +
         refresh.data.expiresIn *
           1000;
+
+      flushNativeAuthCookie();
 
       return newAccessToken;
     })();

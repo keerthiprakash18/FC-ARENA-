@@ -40,3 +40,18 @@ test('Android update performs one fresh document load without clearing user stat
     );
   }
 });
+
+test('Android persists the refresh cookie before the app is backgrounded', () => {
+  const onPauseStart = mainActivity.indexOf('protected void onPause()');
+  const onPauseEnd = mainActivity.indexOf('protected void onSaveInstanceState', onPauseStart);
+
+  assert.ok(onPauseStart >= 0, 'Missing Activity onPause lifecycle hook');
+  assert.ok(onPauseEnd > onPauseStart, 'Could not isolate the onPause lifecycle hook');
+
+  const onPauseBody = mainActivity.slice(onPauseStart, onPauseEnd);
+  assert.match(
+    onPauseBody,
+    /CookieManager\.getInstance\(\)\.flush\(\)/,
+    'Refresh cookies must be flushed before Android can kill the process',
+  );
+});

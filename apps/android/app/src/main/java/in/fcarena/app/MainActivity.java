@@ -827,6 +827,10 @@ public final class MainActivity extends Activity {
             // uploads/auth callbacks must still be allowed to complete.
             webView.onPause();
         }
+        // Login uses an HttpOnly refresh cookie set by the SPA's fetch request.
+        // Flush WebView cookies before Android backgrounds or kills the process
+        // so the refresh session is available on the next cold launch.
+        CookieManager.getInstance().flush();
         super.onPause();
     }
 

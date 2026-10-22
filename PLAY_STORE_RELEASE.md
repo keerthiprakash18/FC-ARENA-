@@ -18,7 +18,7 @@ Google Play production confirms versionCode 16 / versionName 1.0.14 is available
    `apps/android/build-signed-release.ps1`
 7. The signing helper verifies the expected upload-certificate SHA-256 before and after the build and writes artifact metadata.
 8. Expected artifact:
-   `FC_ARENA_v1.0.14_build16_signed.aab`
+   `FC_ARENA_v1.0.15_build17_signed.aab`
 9. Record the exact source SHA and AAB SHA-256.
 10. Upload that exact AAB to the required Google Play testing track.
 11. Install/update through Google Play and perform final physical-device acceptance.

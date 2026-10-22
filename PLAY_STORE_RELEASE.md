@@ -1,9 +1,10 @@
 # FC ARENA — Final Android Play Release Runbook
 
-Current final candidate: **versionCode 16 / versionName 1.0.14**
+Latest uploaded release: **versionCode 16 / versionName 1.0.14**
+Next unused candidate: **versionCode 17 / versionName 1.0.15**
 Package: `in.fcarena.app`
 
-The highest versionCode currently recorded as uploaded to Google Play is 15. Build 16 is the next candidate until a Play upload occurs. After any upload, update `apps/android/play-upload-history.json` immediately.
+Google Play production confirms versionCode 16 / versionName 1.0.14 is available to users. After any future upload, update `apps/android/play-upload-history.json` immediately.
 
 ## Final order
 

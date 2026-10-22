@@ -1,9 +1,9 @@
 {
   "packageName": "in.fcarena.app",
-  "highestKnownUploadedVersionCode": 15,
-  "highestKnownUploadedVersionName": "1.0.13",
-  "nextCandidateVersionCode": 16,
-  "nextCandidateVersionName": "1.0.14",
+  "highestKnownUploadedVersionCode": 16,
+  "highestKnownUploadedVersionName": "1.0.14",
+  "nextCandidateVersionCode": 17,
+  "nextCandidateVersionName": "1.0.15",
   "lastReviewed": "2026-10-22",
-  "note": "Google Play production shows version code 15 / version 1.0.13 as active. Build 16 is the next candidate for the startup-session fix. Confirm the Play Console state before upload and never mark a version as uploaded without direct Play Console evidence."
+  "note": "Google Play production confirms version code 16 / version 1.0.14 is available on Google Play, released on 2026-10-22. Version code 17 / version 1.0.15 is the next unused candidate."
 }

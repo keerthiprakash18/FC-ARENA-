@@ -20,6 +20,7 @@ async function prepare(page) {
       switch (url.pathname) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
+        case '/api/auth/preferences/dashboard': data = { preferences: { hiddenSections: [] } }; break;
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;

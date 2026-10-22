@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
+import { execFileSync } from 'node:child_process';
 
 import {
   PrismaService,
@@ -16,6 +17,38 @@ type RedisHealth = {
     | 'not_configured';
   latencyMs: number | null;
 };
+
+const RELEASE_SHA_PATTERN = /^[0-9a-f]{40}$/i;
+
+function resolveReleaseSha(): string | undefined {
+  const configured = process.env.FC_ARENA_RELEASE_SHA?.trim();
+
+  if (configured && RELEASE_SHA_PATTERN.test(configured)) {
+    return configured;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return undefined;
+  }
+
+  try {
+    const checkoutSha = execFileSync(
+      'git',
+      ['rev-parse', 'HEAD'],
+      {
+        encoding: 'utf8',
+        timeout: 250,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      },
+    ).trim();
+
+    return RELEASE_SHA_PATTERN.test(checkoutSha)
+      ? checkoutSha
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 @Controller('health')
 export class HealthController {
@@ -115,6 +148,8 @@ export class HealthController {
       });
     }
 
+    const release = resolveReleaseSha();
+
     return {
       success: true,
       data: {
@@ -141,6 +176,13 @@ export class HealthController {
           },
           redis,
         },
+        ...(release
+          ? {
+              runtime: {
+                release,
+              },
+            }
+          : {}),
       },
       error: null,
     };

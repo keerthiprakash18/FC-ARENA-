@@ -30,6 +30,7 @@ import {
   getCurrentUser,
   type CurrentUser,
 } from "@/lib/auth-client";
+import { getEliteCupPlayoffQualifierCount } from "@/lib/elite-cup-format";
 
 
 type PlayoffFormat =
@@ -452,6 +453,10 @@ export default function QualificationPage() {
   const resolvedSource =
     useMemo<Exclude<PlayoffSource, "AUTO">>(
       () => {
+        if (competitionFormat === "ELITE_CUP") {
+          return "OVERALL_STANDINGS";
+        }
+
         if (
           source !==
           "AUTO"
@@ -487,7 +492,9 @@ export default function QualificationPage() {
 
 
   const totalQualifiers =
-    resolvedSource ===
+    competitionFormat === "ELITE_CUP"
+      ? getEliteCupPlayoffQualifierCount(approvedEntries)
+      : resolvedSource ===
     "GROUP_QUALIFIERS"
       ? groupCount *
         qualifiersPerGroup
@@ -519,19 +526,19 @@ export default function QualificationPage() {
         value: "GROUP_QUALIFIERS" as const,
         label: "Group Qualifiers",
         description: "Take Top N entries from each group.",
-        disabled: groupCount < 2,
+         disabled: competitionFormat === "ELITE_CUP" || groupCount < 2,
       },
       {
         value: "OVERALL_STANDINGS" as const,
         label: "Overall Standings",
         description: "Choose the best entries from one combined stage table.",
-        disabled: competitionFormat === "SINGLE_ELIMINATION",
+         disabled: competitionFormat === "SINGLE_ELIMINATION",
       },
       {
         value: "DIRECT_ENTRIES" as const,
         label: "Direct Entries",
         description: "Seed approved entries directly without a stage table.",
-        disabled: competitionFormat !== "SINGLE_ELIMINATION",
+         disabled: competitionFormat !== "SINGLE_ELIMINATION",
       },
     ];
 
@@ -567,8 +574,10 @@ export default function QualificationPage() {
                   ? qualifiersPerGroup
                   : undefined,
               playoffQualifiersTotal:
-                resolvedSource !==
-                "GROUP_QUALIFIERS"
+                competitionFormat === "ELITE_CUP"
+                  ? undefined
+                  : resolvedSource !==
+                    "GROUP_QUALIFIERS"
                   ? qualifierTotal
                   : undefined,
               avoidSameGroupEarly:
@@ -812,7 +821,17 @@ export default function QualificationPage() {
                   }
                 />
               </label>
-            ) : (
+             ) : competitionFormat === "ELITE_CUP" ? (
+               <div className="field">
+                 <span>Total Playoff Entries</span>
+                 <div className="rounded-xl border border-sky-400/20 bg-sky-400/5 px-4 py-3 text-sm font-black text-sky-200">
+                   Automatic · {totalQualifiers} entries
+                 </div>
+                 <p className="theme-muted mt-2 text-xs leading-5">
+                   Elite Cup calculates the playoff field from the approved team count.
+                 </p>
+               </div>
+             ) : (
               <label className="field">
                 <span>
                   Total Playoff Entries

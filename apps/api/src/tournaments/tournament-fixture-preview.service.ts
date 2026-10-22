@@ -50,6 +50,18 @@ export class TournamentFixturePreviewService {
       tournament.status,
     );
 
+    if (tournament.competitionFormat === 'ELITE_CUP') {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code: 'ELITE_CUP_PREVIEW_TOPOLOGY_LOCKED',
+          message:
+            'Elite Cup fixtures are generated from the approved team count. Regenerate the preview instead of adding individual fixtures.',
+        },
+      });
+    }
+
     if (
       tournament.competitionFormat ===
         'SINGLE_ELIMINATION' &&
@@ -1535,6 +1547,22 @@ export class TournamentFixturePreviewService {
       phase: string;
     },
   ) {
+    if (
+      tournament.competitionFormat ===
+      'ELITE_CUP'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code:
+            'ELITE_CUP_PREVIEW_TOPOLOGY_LOCKED',
+          message:
+            'Elite Cup fixtures are generated from the approved team count. Regenerate the preview instead of editing individual fixtures.',
+        },
+      });
+    }
+
     if (
       fixture.phase ===
         'PLAYOFF' &&

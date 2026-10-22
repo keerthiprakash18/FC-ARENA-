@@ -440,7 +440,10 @@ export default function PlayoffsPage() {
   const stageRequired =
     tournament
       ?.competitionFormat ===
-    "GROUP_STAGE_KNOCKOUT";
+    "GROUP_STAGE_KNOCKOUT" ||
+    tournament
+      ?.competitionFormat ===
+    "ELITE_CUP";
 
 
   const stageReady =

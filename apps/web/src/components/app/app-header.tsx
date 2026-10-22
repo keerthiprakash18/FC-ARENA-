@@ -49,6 +49,11 @@ const quickSearchItems = [
     href: '/tournaments',
   },
   {
+    label: 'Elite Cup',
+    keywords: 'elite cup ucl league phase playoffs rankings',
+    href: '/elite-cup',
+  },
+  {
     label: 'Fixtures',
     keywords: 'fixtures matches schedule results',
     href: '/fixtures',

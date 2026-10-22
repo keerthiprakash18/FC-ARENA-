@@ -31,6 +31,7 @@ import {
   type PlayoffSourceRef,
   type UniversalPlayoffBlueprint,
 } from './universal-playoff-engine.js';
+import { resolveEliteCupPlayoffQualifierCount } from './elite-cup-engine.js';
 
 
 interface RankedEntry {
@@ -125,6 +126,7 @@ export class PlayoffsService {
       ![
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
+        'ELITE_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -161,8 +163,8 @@ export class PlayoffsService {
 
 
     if (
-      tournament.competitionFormat ===
-      'GROUP_STAGE_KNOCKOUT'
+      tournament.competitionFormat === 'GROUP_STAGE_KNOCKOUT' ||
+      tournament.competitionFormat === 'ELITE_CUP'
     ) {
       await this.assertStageComplete(
         tournamentId,
@@ -250,11 +252,22 @@ export class PlayoffsService {
       );
 
 
+    const qualificationTournament =
+      tournament.competitionFormat === 'ELITE_CUP' &&
+      tournament.playoffQualifiersTotal === null
+        ? {
+            ...tournament,
+            playoffQualifiersTotal: resolveEliteCupPlayoffQualifierCount(
+              approvedEntries.length,
+            ),
+          }
+        : tournament;
+
     const qualification =
       this.buildQualification(
         {
           source,
-          tournament,
+          tournament: qualificationTournament,
           groups,
           entries:
             approvedEntries,
@@ -271,7 +284,7 @@ export class PlayoffsService {
           groups:
             qualification.groups,
           seedingBasis:
-            tournament.playoffSeedingBasis,
+            qualificationTournament.playoffSeedingBasis,
           format:
             tournament.playoffFormat,
           source,
@@ -396,7 +409,9 @@ export class PlayoffsService {
 
           if (
             tournament.competitionFormat ===
-            'GROUP_STAGE_KNOCKOUT'
+            'GROUP_STAGE_KNOCKOUT' ||
+            tournament.competitionFormat ===
+            'ELITE_CUP'
           ) {
             const incomplete =
               await tx.fixture.count({

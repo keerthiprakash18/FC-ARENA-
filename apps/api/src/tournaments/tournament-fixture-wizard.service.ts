@@ -34,6 +34,7 @@ import {
   buildUniversalPlayoffPlan,
   type PlayoffSourceRef,
 } from './universal-playoff-engine.js';
+import { generateEliteCupSchedule } from './elite-cup-engine.js';
 
 
 @Injectable()
@@ -109,10 +110,16 @@ export class TournamentFixtureWizardService {
 
         data: {
           fixtureMode:
-            dto.fixtureMode,
+            tournament.competitionFormat === 'ELITE_CUP'
+              ? dto.fixtureMode === 'RANDOMIZED'
+                ? 'RANDOMIZED'
+                : 'AUTOMATIC'
+              : dto.fixtureMode,
 
           legType:
-            dto.legType,
+            tournament.competitionFormat === 'ELITE_CUP'
+              ? 'SINGLE_LEG'
+              : dto.legType,
 
           dailyMatchLimit:
             dto.dailyMatchLimit,
@@ -1121,6 +1128,25 @@ export class TournamentFixtureWizardService {
     registrationIds:
       string[],
   ) {
+    if (competitionFormat === 'ELITE_CUP') {
+      const schedule = generateEliteCupSchedule(
+        registrationIds,
+        Math.min(8, Math.max(1, registrationIds.length - 1)),
+      );
+
+      return schedule.fixtures.map((fixture) => ({
+        key: fixture.key,
+        roundNumber: fixture.roundNumber,
+        roundName: fixture.roundName,
+        matchday: fixture.matchday,
+        bracketPosition: fixture.bracketPosition,
+        homeRegistrationId: fixture.homeRegistrationId,
+        awayRegistrationId: fixture.awayRegistrationId,
+        homeSourceKey: null,
+        awaySourceKey: null,
+      }));
+    }
+
     if (
       competitionFormat ===
       'SINGLE_ELIMINATION'

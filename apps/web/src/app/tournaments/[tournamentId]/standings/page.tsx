@@ -563,7 +563,9 @@ export default function StandingsPage() {
     tournament.competitionFormat ===
       'LEAGUE_ROUND_ROBIN' ||
     tournament.competitionFormat ===
-      'DOUBLE_ROUND_ROBIN';
+      'DOUBLE_ROUND_ROBIN' ||
+    tournament.competitionFormat ===
+      'ELITE_CUP';
 
   const isDoubleLeg =
     tournament.competitionFormat ===
@@ -576,7 +578,9 @@ export default function StandingsPage() {
     null;
 
   const competitionLabel =
-    isDoubleLeg
+    tournament.competitionFormat === 'ELITE_CUP'
+      ? 'Elite Cup · League Phase'
+      : isDoubleLeg
       ? 'Double Leg · Home & Away'
       : 'Single Leg';
 

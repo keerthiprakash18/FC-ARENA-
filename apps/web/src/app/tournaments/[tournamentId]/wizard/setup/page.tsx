@@ -40,6 +40,7 @@ type CompetitionFormat =
   | 'DOUBLE_ROUND_ROBIN'
   | 'SINGLE_ELIMINATION'
   | 'GROUP_STAGE_KNOCKOUT'
+  | 'ELITE_CUP'
   | 'CUSTOM_MANUAL';
 
 type GroupMode =
@@ -411,15 +412,27 @@ export default function TournamentSetupPage() {
 
               competitionFormat,
 
-              groupMode,
+              groupMode:
+                competitionFormat === 'ELITE_CUP'
+                  ? 'SINGLE_GROUP'
+                  : groupMode,
 
-              legType,
+              legType:
+                competitionFormat === 'ELITE_CUP'
+                  ? 'SINGLE_LEG'
+                  : legType,
 
-              fixtureMode,
+              fixtureMode:
+                competitionFormat === 'ELITE_CUP'
+                  ? 'AUTOMATIC'
+                  : fixtureMode,
 
               visibility,
 
-              registrationMode,
+              registrationMode:
+                competitionFormat === 'ELITE_CUP'
+                  ? 'ADMIN_ONLY'
+                  : registrationMode,
 
               maxEntries:
                 Number(
@@ -658,6 +671,10 @@ export default function TournamentSetupPage() {
                   'Stage + Playoffs',
                 ],
                 [
+                  'ELITE_CUP',
+                  'Elite Cup',
+                ],
+                [
                   'CUSTOM_MANUAL',
                   'Custom / Manual',
                 ],
@@ -689,6 +706,13 @@ export default function TournamentSetupPage() {
                         );
                       }
 
+                      if (format === 'ELITE_CUP') {
+                        setGroupMode('SINGLE_GROUP');
+                        setLegType('SINGLE_LEG');
+                        setFixtureMode('AUTOMATIC');
+                        setRegistrationMode('ADMIN_ONLY');
+                      }
+
                       if (
                         format ===
                         'CUSTOM_MANUAL'
@@ -699,7 +723,7 @@ export default function TournamentSetupPage() {
                       }
                     }}
                     aria-pressed={competitionFormat === value}
-                    className={`rounded-2xl border p-4 text-left ${
+                     className={`rounded-2xl border p-4 text-left ${
                       competitionFormat ===
                       value
                         ? 'border-sky-400/40 bg-sky-400/10'
@@ -736,7 +760,7 @@ export default function TournamentSetupPage() {
                 (
                   value,
                 ) => (
-                  <button
+                   <button
                     key={
                       value
                     }
@@ -746,7 +770,8 @@ export default function TournamentSetupPage() {
                         value,
                       )
                     }
-                    aria-pressed={groupMode === value}
+                     aria-pressed={groupMode === value}
+                     disabled={competitionFormat === 'ELITE_CUP'}
                     className={`rounded-2xl border p-4 text-left disabled:opacity-30 ${
                       groupMode ===
                       value
@@ -775,11 +800,12 @@ export default function TournamentSetupPage() {
                 Match Leg
               </label>
 
-              <select
+                 <select
                 id="tournament-leg"
-                value={
-                  legType
-                }
+                  value={
+                    legType
+                  }
+                  disabled={competitionFormat === 'ELITE_CUP'}
                 onChange={
                   (
                     event,
@@ -809,11 +835,12 @@ export default function TournamentSetupPage() {
                 Fixture Mode
               </label>
 
-              <select
+               <select
                 id="tournament-fixture-mode"
                 value={
                   fixtureMode
                 }
+                disabled={competitionFormat === 'ELITE_CUP'}
                 onChange={
                   (
                     event,

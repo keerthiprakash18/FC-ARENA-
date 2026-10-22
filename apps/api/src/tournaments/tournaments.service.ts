@@ -73,33 +73,39 @@ export class TournamentsService {
           ),
 
         groupMode:
-          dto.groupMode ??
-          (dto.competitionFormat ===
-          'GROUP_STAGE_KNOCKOUT'
-            ? 'MULTIPLE_GROUPS'
-            : 'SINGLE_GROUP'),
+          dto.competitionFormat === 'ELITE_CUP'
+            ? 'SINGLE_GROUP'
+            : dto.groupMode ??
+              (dto.competitionFormat ===
+              'GROUP_STAGE_KNOCKOUT'
+                ? 'MULTIPLE_GROUPS'
+                : 'SINGLE_GROUP'),
 
         legType:
-          dto.competitionFormat ===
-          'DOUBLE_ROUND_ROBIN'
-            ? 'HOME_AWAY'
-            : dto.legType ??
-              'SINGLE_LEG',
+          dto.competitionFormat === 'ELITE_CUP' ||
+          dto.competitionFormat === 'DOUBLE_ROUND_ROBIN'
+            ? dto.competitionFormat === 'ELITE_CUP'
+              ? 'SINGLE_LEG'
+              : 'HOME_AWAY'
+            : dto.legType ?? 'SINGLE_LEG',
 
         fixtureMode:
-          dto.competitionFormat ===
-          'CUSTOM_MANUAL'
+          dto.competitionFormat === 'CUSTOM_MANUAL'
             ? 'MANUAL'
-            : dto.fixtureMode ??
-              'AUTOMATIC',
+            : dto.competitionFormat === 'ELITE_CUP'
+              ? dto.fixtureMode === 'RANDOMIZED'
+                ? 'RANDOMIZED'
+                : 'AUTOMATIC'
+              : dto.fixtureMode ?? 'AUTOMATIC',
 
         visibility:
           dto.visibility ??
           'LEAGUE',
 
         registrationMode:
-          dto.registrationMode ??
-          'APPROVAL',
+          dto.competitionFormat === 'ELITE_CUP'
+            ? 'ADMIN_ONLY'
+            : dto.registrationMode ?? 'APPROVAL',
 
         wizardStep:
           'SETUP',
@@ -1384,22 +1390,28 @@ export class TournamentsService {
           groupMode,
 
           legType:
-            competitionFormat ===
-            'DOUBLE_ROUND_ROBIN'
-              ? 'HOME_AWAY'
-              : dto.legType,
+            competitionFormat === 'ELITE_CUP'
+              ? 'SINGLE_LEG'
+              : competitionFormat === 'DOUBLE_ROUND_ROBIN'
+                ? 'HOME_AWAY'
+                : dto.legType,
 
           fixtureMode:
-            competitionFormat ===
-            'CUSTOM_MANUAL'
+            competitionFormat === 'CUSTOM_MANUAL'
               ? 'MANUAL'
-              : dto.fixtureMode,
+              : competitionFormat === 'ELITE_CUP'
+                ? dto.fixtureMode === 'RANDOMIZED'
+                  ? 'RANDOMIZED'
+                  : 'AUTOMATIC'
+                : dto.fixtureMode,
 
           visibility:
             dto.visibility,
 
           registrationMode:
-            dto.registrationMode,
+            competitionFormat === 'ELITE_CUP'
+              ? 'ADMIN_ONLY'
+              : dto.registrationMode,
 
           maxEntries:
             dto.maxEntries,
@@ -1552,6 +1564,7 @@ export class TournamentsService {
       [
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
+        'ELITE_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -1590,6 +1603,7 @@ export class TournamentsService {
       | 'DOUBLE_ROUND_ROBIN'
       | 'SINGLE_ELIMINATION'
       | 'GROUP_STAGE_KNOCKOUT'
+      | 'ELITE_CUP'
       | 'CUSTOM_MANUAL'
       | undefined,
 

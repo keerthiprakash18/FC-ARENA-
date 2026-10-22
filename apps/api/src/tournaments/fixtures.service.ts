@@ -32,6 +32,7 @@ import {
 import {
   roundRobinRoundsPerLeg,
 } from '../results/standings-integrity.js';
+import { generateEliteCupSchedule } from './elite-cup-engine.js';
 
 @Injectable()
 export class FixturesService {
@@ -141,6 +142,14 @@ export class FixturesService {
           )
         : null;
 
+    const eliteCupSchedule =
+      tournament.competitionFormat === 'ELITE_CUP'
+        ? generateEliteCupSchedule(
+            registrationIds,
+            Math.min(8, Math.max(1, registrationIds.length - 1)),
+          )
+        : null;
+
     const blueprints:
       Array<
         FixtureBlueprint |
@@ -148,6 +157,18 @@ export class FixturesService {
       > =
       universalPlan
         ? universalPlan.fixtures
+        : eliteCupSchedule
+          ? eliteCupSchedule.fixtures.map((fixture) => ({
+              key: fixture.key,
+              roundNumber: fixture.roundNumber,
+              roundName: fixture.roundName,
+              matchday: fixture.matchday,
+              bracketPosition: fixture.bracketPosition,
+              homeRegistrationId: fixture.homeRegistrationId,
+              awayRegistrationId: fixture.awayRegistrationId,
+              homeSourceKey: null,
+              awaySourceKey: null,
+            }))
         : isDoubleRoundRobin
           ? generateDoubleRoundRobinFixtures(
               registrationIds,

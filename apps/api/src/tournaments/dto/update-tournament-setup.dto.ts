@@ -48,6 +48,7 @@ export class UpdateTournamentSetupDto {
     'DOUBLE_ROUND_ROBIN',
     'SINGLE_ELIMINATION',
     'GROUP_STAGE_KNOCKOUT',
+    'ELITE_CUP',
     'CUSTOM_MANUAL',
   ])
   competitionFormat?:
@@ -55,6 +56,7 @@ export class UpdateTournamentSetupDto {
     | 'DOUBLE_ROUND_ROBIN'
     | 'SINGLE_ELIMINATION'
     | 'GROUP_STAGE_KNOCKOUT'
+    | 'ELITE_CUP'
     | 'CUSTOM_MANUAL';
 
   @IsOptional()

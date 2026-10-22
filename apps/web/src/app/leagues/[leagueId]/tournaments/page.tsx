@@ -49,7 +49,8 @@ type CompetitionFormat =
   | 'LEAGUE_ROUND_ROBIN'
   | 'DOUBLE_ROUND_ROBIN'
   | 'SINGLE_ELIMINATION'
-  | 'GROUP_STAGE_KNOCKOUT';
+  | 'GROUP_STAGE_KNOCKOUT'
+  | 'ELITE_CUP';
 
 
 interface LeagueInfo {
@@ -271,7 +272,9 @@ export default function LeagueTournamentsPage() {
       requestedFormat ===
         'SINGLE_ELIMINATION' ||
       requestedFormat ===
-        'GROUP_STAGE_KNOCKOUT'
+        'GROUP_STAGE_KNOCKOUT' ||
+      requestedFormat ===
+        'ELITE_CUP'
     ) {
       setCompetitionFormat(
         requestedFormat,
@@ -348,19 +351,28 @@ export default function LeagueTournamentsPage() {
                 competitionFormat,
 
                 groupMode:
-                  competitionFormat ===
-                  'GROUP_STAGE_KNOCKOUT'
-                    ? 'MULTIPLE_GROUPS'
-                    : 'SINGLE_GROUP',
+                  competitionFormat === 'ELITE_CUP'
+                    ? 'SINGLE_GROUP'
+                    : competitionFormat ===
+                      'GROUP_STAGE_KNOCKOUT'
+                      ? 'MULTIPLE_GROUPS'
+                      : 'SINGLE_GROUP',
 
                 legType:
-                  competitionFormat ===
-                  'DOUBLE_ROUND_ROBIN'
-                    ? 'HOME_AWAY'
-                    : 'SINGLE_LEG',
+                  competitionFormat === 'ELITE_CUP'
+                    ? 'SINGLE_LEG'
+                    : competitionFormat ===
+                      'DOUBLE_ROUND_ROBIN'
+                      ? 'HOME_AWAY'
+                      : 'SINGLE_LEG',
 
                 fixtureMode:
                   'AUTOMATIC',
+
+                registrationMode:
+                  competitionFormat === 'ELITE_CUP'
+                    ? 'ADMIN_ONLY'
+                    : 'APPROVAL',
 
                 maxEntries:
                   Number(
@@ -644,7 +656,7 @@ export default function LeagueTournamentsPage() {
                   </span>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                   {([
                     [
                       'LEAGUE_ROUND_ROBIN',
@@ -665,6 +677,11 @@ export default function LeagueTournamentsPage() {
                       'GROUP_STAGE_KNOCKOUT',
                       'Group + Knockout',
                       'Groups, qualifiers and playoffs.',
+                    ],
+                    [
+                      'ELITE_CUP',
+                      'Elite Cup',
+                      'Admin-managed teams, dynamic league phase and playoffs.',
                     ],
                   ] as Array<
                     [

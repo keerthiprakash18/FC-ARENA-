@@ -13,6 +13,7 @@ import {
 import type {
   UpdateQualificationSettingsDto,
 } from './dto/update-qualification-settings.dto.js';
+import { resolveEliteCupPlayoffQualifierCount } from './elite-cup-engine.js';
 
 
 @Injectable()
@@ -83,6 +84,7 @@ export class TournamentWizardFinalizeService {
       ![
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
+        'ELITE_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -151,11 +153,13 @@ export class TournamentWizardFinalizeService {
       });
     }
 
-    const resolvedSource =
+      const resolvedSource =
       dto.playoffSource !==
       'AUTO'
         ? dto.playoffSource
-        : tournament.competitionFormat ===
+        : tournament.competitionFormat === 'ELITE_CUP'
+          ? 'OVERALL_STANDINGS'
+          : tournament.competitionFormat ===
             'SINGLE_ELIMINATION'
           ? 'DIRECT_ENTRIES'
           : tournament.groupMode ===
@@ -251,18 +255,19 @@ export class TournamentWizardFinalizeService {
         qualifiersPerGroup;
     } else {
       playoffQualifiersTotal =
-        dto.playoffQualifiersTotal ??
-        tournament.playoffQualifiersTotal ??
-        approvedEntries;
+        tournament.competitionFormat === 'ELITE_CUP' &&
+        dto.playoffQualifiersTotal === undefined &&
+        tournament.playoffQualifiersTotal === null
+          ? null
+          : dto.playoffQualifiersTotal ??
+            tournament.playoffQualifiersTotal ??
+            approvedEntries;
 
       if (
-        !Number.isInteger(
-          playoffQualifiersTotal,
-        ) ||
-        playoffQualifiersTotal <
-          2 ||
-        playoffQualifiersTotal >
-          approvedEntries
+        playoffQualifiersTotal !== null &&
+        (!Number.isInteger(playoffQualifiersTotal) ||
+          playoffQualifiersTotal < 2 ||
+          playoffQualifiersTotal > approvedEntries)
       ) {
         throw new BadRequestException({
           success: false,
@@ -276,8 +281,9 @@ export class TournamentWizardFinalizeService {
         });
       }
 
-      totalQualifiers =
-        playoffQualifiersTotal;
+      totalQualifiers = playoffQualifiersTotal === null
+        ? resolveEliteCupPlayoffQualifierCount(approvedEntries)
+        : playoffQualifiersTotal;
     }
 
     if (
@@ -347,7 +353,7 @@ export class TournamentWizardFinalizeService {
           playoffFormat:
             dto.playoffFormat,
           playoffSource:
-            dto.playoffSource,
+            resolvedSource,
           playoffSeedingBasis:
             dto.playoffSeedingBasis,
           avoidSameGroupEarly:
@@ -671,6 +677,7 @@ export class TournamentWizardFinalizeService {
       [
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
+        'ELITE_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -713,9 +720,10 @@ export class TournamentWizardFinalizeService {
         });
       }
 
-      if (
-        resolvedSource !==
-          'GROUP_QUALIFIERS' &&
+        if (
+          tournament.competitionFormat !== 'ELITE_CUP' &&
+          resolvedSource !==
+            'GROUP_QUALIFIERS' &&
         !tournament.playoffQualifiersTotal
       ) {
         throw new ConflictException({

@@ -9,6 +9,7 @@ import {
 import {
   SecurityModule,
 } from '../security/security.module.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
 
 import {
   FairPlayAdminController,
@@ -23,6 +24,7 @@ import {
   imports: [
     AuthModule,
     SecurityModule,
+    NotificationsModule,
   ],
 
   controllers: [

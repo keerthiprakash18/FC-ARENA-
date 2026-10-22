@@ -181,6 +181,8 @@ export default function LeagueTournamentsPage() {
       null,
     );
 
+  const [cloningTournamentId, setCloningTournamentId] = useState<string | null>(null);
+
 
   async function loadTournaments() {
     const result =
@@ -467,6 +469,25 @@ export default function LeagueTournamentsPage() {
       setDeletingTournamentId(
         null,
       );
+    }
+  }
+
+  async function cloneTournament(tournament: Tournament) {
+    if (!isAdmin) return;
+    const name = window.prompt('Name for the cloned tournament', `${tournament.name} Copy`);
+    if (!name?.trim()) return;
+    setCloningTournamentId(tournament.id);
+    setError('');
+    try {
+      const result = await authenticatedRequest<{ data: { tournament: { id: string } } }>(
+        `/tournaments/${tournament.id}/clone`,
+        { method: 'POST', body: JSON.stringify({ name: name.trim() }) },
+      );
+      router.push(`/tournaments/${result.data.tournament.id}/wizard/setup`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to clone Tournament.');
+    } finally {
+      setCloningTournamentId(null);
     }
   }
 
@@ -991,6 +1012,17 @@ export default function LeagueTournamentsPage() {
                         >
                           Fixtures
                         </Link>
+
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            disabled={cloningTournamentId === tournament.id}
+                            onClick={() => void cloneTournament(tournament)}
+                            className="rounded-xl border border-amber-400/30 bg-amber-400/[0.04] px-4 py-3 text-sm font-black text-amber-200 transition hover:bg-amber-400/[0.08] disabled:opacity-40"
+                          >
+                            {cloningTournamentId === tournament.id ? 'Cloning...' : 'Clone Tournament'}
+                          </button>
+                        ) : null}
 
                         {isAdmin ? (
                           <button

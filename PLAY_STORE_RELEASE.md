@@ -1,9 +1,9 @@
 # FC ARENA — Final Android Play Release Runbook
 
-Current final candidate: **versionCode 12 / versionName 1.0.10**
+Current final candidate: **versionCode 16 / versionName 1.0.14**
 Package: `in.fcarena.app`
 
-The highest versionCode currently recorded as uploaded to Google Play is 11. Build 12 was prepared previously but was not uploaded, so versionCode 12 remains the final candidate until a Play upload occurs. After any upload, update `apps/android/play-upload-history.json` immediately.
+The highest versionCode currently recorded as uploaded to Google Play is 15. Build 16 is the next candidate until a Play upload occurs. After any upload, update `apps/android/play-upload-history.json` immediately.
 
 ## Final order
 
@@ -17,7 +17,7 @@ The highest versionCode currently recorded as uploaded to Google Play is 11. Bui
    `apps/android/build-signed-release.ps1`
 7. The signing helper verifies the expected upload-certificate SHA-256 before and after the build and writes artifact metadata.
 8. Expected artifact:
-   `FC_ARENA_v1.0.10_build12_signed.aab`
+   `FC_ARENA_v1.0.14_build16_signed.aab`
 9. Record the exact source SHA and AAB SHA-256.
 10. Upload that exact AAB to the required Google Play testing track.
 11. Install/update through Google Play and perform final physical-device acceptance.

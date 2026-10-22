@@ -4,7 +4,10 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
+  OnModuleDestroy,
+  OnModuleInit,
 } from '@nestjs/common';
 import {
   InjectQueue,
@@ -15,10 +18,13 @@ import type {
 import {
   mkdir,
   readFile,
+  unlink,
   writeFile,
 } from 'node:fs/promises';
 import {
+  relative,
   resolve,
+  sep,
 } from 'node:path';
 import {
   randomUUID,
@@ -40,7 +46,11 @@ import type {
 import { TesseractOcrProvider } from './providers/tesseract-ocr.provider.js';
 
 @Injectable()
-export class OcrService {
+export class OcrService
+  implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(OcrService.name);
+  private cleanupTimer?: ReturnType<typeof setInterval>;
+
   constructor(
     private readonly prisma:
       PrismaService,
@@ -56,6 +66,90 @@ export class OcrService {
       TesseractOcrProvider,
     private readonly results: ResultsService,
   ) {}
+
+  onModuleInit(): void {
+    if (process.env.OCR_RETENTION_CLEANUP_ENABLED === 'false') {
+      return;
+    }
+
+    this.cleanupTimer = setInterval(() => {
+      void this.cleanupExpiredArtifacts().catch(() => {
+        this.logger.warn('OCR artifact cleanup failed.');
+      });
+    }, 6 * 60 * 60 * 1000);
+    this.cleanupTimer.unref();
+  }
+
+  onModuleDestroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+  }
+
+  async cleanupExpiredArtifacts(
+    retentionMs = this.retentionMs(),
+  ): Promise<number> {
+    const cutoff = new Date(Date.now() - Math.max(retentionMs, 60_000));
+    const extractions = await this.prisma.ocrExtraction.findMany({
+      where: {
+        createdAt: {
+          lt: cutoff,
+        },
+        status: {
+          in: ['COMPLETED', 'FAILED'],
+        },
+        resultSubmission: {
+          is: null,
+        },
+      },
+      select: {
+        id: true,
+        imagePath: true,
+      },
+      take: 500,
+    });
+
+    const root = resolve(
+      process.cwd(),
+      process.env.OCR_UPLOAD_DIR ?? 'storage/match-results',
+    );
+    let removed = 0;
+
+    for (const extraction of extractions) {
+      const imagePath = resolve(extraction.imagePath);
+      const pathFromRoot = relative(root, imagePath);
+
+      if (
+        pathFromRoot === '' ||
+        pathFromRoot.startsWith(`..${sep}`) ||
+        pathFromRoot === '..' ||
+        pathFromRoot.startsWith(sep)
+      ) {
+        this.logger.warn(`Skipped OCR artifact outside configured storage: ${extraction.id}`);
+        continue;
+      }
+
+      try {
+        await unlink(imagePath);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          continue;
+        }
+      }
+
+      const result = await this.prisma.ocrExtraction.deleteMany({
+        where: {
+          id: extraction.id,
+          resultSubmission: {
+            is: null,
+          },
+        },
+      });
+      removed += result.count;
+    }
+
+    return removed;
+  }
 
   async uploadScreenshot(
     userId: string,
@@ -1194,6 +1288,18 @@ export class OcrService {
     }
 
     return '.jpg';
+  }
+
+  private retentionMs(): number {
+    const configuredDays = Number.parseInt(
+      process.env.OCR_RETENTION_DAYS ?? '30',
+      10,
+    );
+    const days = Number.isFinite(configuredDays)
+      ? Math.min(3650, Math.max(1, configuredDays))
+      : 30;
+
+    return days * 24 * 60 * 60 * 1000;
   }
 
   private ocrNotFound() {

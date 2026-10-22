@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
+  Patch,
   Query,
   Post,
   Req,
@@ -23,6 +25,7 @@ import {
 import {
   NotificationsService,
 } from './notifications.service.js';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto.js';
 
 type AuthenticatedRequest =
   Request & {
@@ -60,6 +63,19 @@ export class NotificationsController {
     return this.notificationsService.markAllAsRead(
       request.user.sub,
     );
+  }
+
+  @Get('preferences')
+  getPreferences(@Req() request: AuthenticatedRequest): Promise<unknown> {
+    return this.notificationsService.getPreferences(request.user.sub);
+  }
+
+  @Patch('preferences')
+  updatePreferences(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: UpdateNotificationPreferencesDto,
+  ): Promise<unknown> {
+    return this.notificationsService.updatePreferences(request.user.sub, dto);
   }
 
   @Post(':notificationId/read')

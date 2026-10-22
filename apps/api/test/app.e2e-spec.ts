@@ -1,7 +1,4 @@
-import {
-  ValidationPipe,
-  type INestApplication,
-} from '@nestjs/common';
+import { type INestApplication } from '@nestjs/common';
 
 import {
   Test,
@@ -13,6 +10,7 @@ import request from 'supertest';
 import {
   AppModule,
 } from '../src/app.module.js';
+import { configureHttpSecurity } from '../src/security/http-security.js';
 
 describe(
   'FC ARENA API (e2e)',
@@ -33,18 +31,7 @@ describe(
         app =
           moduleFixture.createNestApplication();
 
-        app.setGlobalPrefix(
-          'api',
-        );
-
-        app.useGlobalPipes(
-          new ValidationPipe({
-            whitelist: true,
-            transform: true,
-            forbidNonWhitelisted:
-              true,
-          }),
-        );
+        configureHttpSecurity(app);
 
         await app.init();
       },
@@ -81,10 +68,13 @@ describe(
     it('/api/health/live does not require dependencies', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/health/live')
+        .set('X-Request-Id', 'health-live-test')
         .expect(200);
 
       expect(response.body.data.status).toBe('alive');
-      expect(response.body.data.runtime.release).toBeDefined();
+      expect(response.body.data.runtime).toBeUndefined();
+      expect(response.body.data.telemetry).toBeUndefined();
+      expect(response.headers['x-request-id']).toBe('health-live-test');
     });
 
     it('/api/health/ready exposes dependency readiness', async () => {

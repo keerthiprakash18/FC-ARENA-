@@ -4,41 +4,10 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { execFileSync } from 'node:child_process';
 
 import {
   PrismaService,
 } from '../database/prisma.service.js';
-import {
-  TelemetryService,
-} from '../telemetry/telemetry.service.js';
-
-function resolveRuntimeRelease(): string {
-  const configured =
-    process.env.FC_ARENA_RELEASE_SHA ??
-    process.env.GIT_COMMIT_SHA ??
-    process.env.SOURCE_VERSION;
-
-  if (configured?.trim()) {
-    return configured.trim();
-  }
-
-  try {
-    return execFileSync(
-      'git',
-      ['rev-parse', 'HEAD'],
-      {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'ignore'],
-      },
-    ).trim();
-  } catch {
-    return 'unknown';
-  }
-}
-
-const RUNTIME_RELEASE =
-  resolveRuntimeRelease();
 
 type RedisHealth = {
   configured: boolean;
@@ -53,8 +22,6 @@ export class HealthController {
   constructor(
     private readonly prisma:
       PrismaService,
-    private readonly telemetry:
-      TelemetryService,
   ) {}
 
   @Get('live')
@@ -64,13 +31,6 @@ export class HealthController {
       data: {
         status: 'alive',
         timestamp: new Date().toISOString(),
-        runtime: {
-          node: process.version,
-          release:
-            RUNTIME_RELEASE,
-        },
-        telemetry:
-          this.telemetry.snapshot(),
       },
       error: null,
     };
@@ -155,9 +115,6 @@ export class HealthController {
       });
     }
 
-    const memory =
-      process.memoryUsage();
-
     return {
       success: true,
       data: {
@@ -184,32 +141,6 @@ export class HealthController {
           },
           redis,
         },
-        runtime: {
-          node:
-            process.version,
-          uptimeSeconds:
-            Math.floor(
-              process.uptime(),
-            ),
-          memory: {
-            rssMb:
-              this.toMb(
-                memory.rss,
-              ),
-            heapUsedMb:
-              this.toMb(
-                memory.heapUsed,
-              ),
-            heapTotalMb:
-              this.toMb(
-                memory.heapTotal,
-              ),
-          },
-          release:
-            RUNTIME_RELEASE,
-        },
-        telemetry:
-          this.telemetry.snapshot(),
       },
       error: null,
     };
@@ -357,17 +288,4 @@ export class HealthController {
     }
   }
 
-  private toMb(
-    bytes: number,
-  ): number {
-    return Number(
-      (
-        bytes /
-        1024 /
-        1024
-      ).toFixed(
-        1,
-      ),
-    );
-  }
 }

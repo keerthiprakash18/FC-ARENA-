@@ -20,6 +20,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { fetchWithTimeout } from '../security/external-request.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import type {
   AccessTokenPayload,
@@ -36,6 +37,7 @@ import type { ResendVerificationDto } from './dto/resend-verification.dto.js';
 import type { ResetPasswordDto } from './dto/reset-password.dto.js';
 import type { VerifyEmailDto } from './dto/verify-email.dto.js';
 import type { ThemePreferenceValue } from './dto/update-theme-preference.dto.js';
+import type { DashboardSection, UpdateDashboardPreferencesDto } from './dto/update-dashboard-preferences.dto.js';
 
 const ACCESS_TOKEN_SECONDS = 15 * 60;
 const REFRESH_TOKEN_SECONDS = 7 * 24 * 60 * 60;
@@ -1556,6 +1558,55 @@ export class AuthService {
     };
   }
 
+  async getDashboardPreferences(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { dashboardPreferences: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Account could not be found.');
+    }
+
+    return {
+      success: true,
+      data: { preferences: this.normalizedDashboardPreferences(user.dashboardPreferences) },
+      error: null,
+    };
+  }
+
+  async updateDashboardPreferences(userId: string, dto: UpdateDashboardPreferencesDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { dashboardPreferences: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Account could not be found.');
+    }
+
+    const preferences = {
+      ...this.normalizedDashboardPreferences(user.dashboardPreferences),
+      ...(dto.hiddenSections ? { hiddenSections: dto.hiddenSections } : {}),
+    };
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { dashboardPreferences: preferences },
+    });
+
+    return { success: true, data: { preferences }, error: null };
+  }
+
+  private normalizedDashboardPreferences(value: unknown): { hiddenSections: DashboardSection[] } {
+    const sections = value && typeof value === 'object' && Array.isArray((value as { hiddenSections?: unknown }).hiddenSections)
+      ? (value as { hiddenSections: unknown[] }).hiddenSections
+      : [];
+    const allowed = new Set<DashboardSection>([
+      'nextMatch', 'league', 'activeTournament', 'stats', 'quickActions', 'activity',
+    ]);
+    return {
+      hiddenSections: [...new Set(sections.filter((section): section is DashboardSection => typeof section === 'string' && allowed.has(section as DashboardSection)))],
+    };
+  }
+
   private async getThemePreference(
     userId: string,
   ): Promise<ThemePreferenceValue> {
@@ -2051,7 +2102,7 @@ export class AuthService {
 
     try {
       const response =
-        await fetch(
+        await fetchWithTimeout(
           `https://api.cloudinary.com/v1_1/${encodeURIComponent(
             cloudName,
           )}/image/destroy`,

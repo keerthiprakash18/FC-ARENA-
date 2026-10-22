@@ -4,6 +4,7 @@ import {
   PublicInfoCard,
   PublicInfoPage,
 } from '@/components/fc/public-info-page';
+import { SupportTicketPanel } from './support-ticket-panel';
 
 export default function HelpPage() {
   return (
@@ -46,14 +47,7 @@ export default function HelpPage() {
         </p>
       </PublicInfoCard>
 
-      <PublicInfoCard
-        title="Support availability"
-        icon="help"
-      >
-        <p>
-          FC ARENA does not currently expose a dedicated support-ticket backend. This page therefore avoids a fake contact form and routes users through the working product flows.
-        </p>
-      </PublicInfoCard>
+       <SupportTicketPanel />
     </PublicInfoPage>
   );
 }

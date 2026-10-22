@@ -3,6 +3,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  NOTIFICATION_PREFERENCE_KEYS,
+  type NotificationPreferenceKey,
+  type NotificationPreferences,
+  type UpdateNotificationPreferencesDto,
+} from './dto/update-notification-preferences.dto.js';
 
 type NotificationType =
   | 'LEAGUE_JOIN_REQUESTED'
@@ -23,7 +30,8 @@ type NotificationType =
   | 'DISPUTE_RESOLVED'
   | 'STATISTICS_UPDATED'
   | 'TOURNAMENT_COMPLETED'
-  | 'ACHIEVEMENT_RECEIVED';
+  | 'ACHIEVEMENT_RECEIVED'
+  | 'FAIR_PLAY_UPDATED';
 
 interface NotificationInput {
   type: NotificationType;
@@ -177,6 +185,49 @@ export class NotificationsService {
     input: NotificationInput,
   ) {
     await this.ensure(userId, input);
+  }
+
+  async getPreferences(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationPreferences: true },
+    });
+
+    return {
+      success: true,
+      data: { preferences: this.normalizedPreferences(user?.notificationPreferences) },
+      error: null,
+    };
+  }
+
+  async updatePreferences(userId: string, dto: UpdateNotificationPreferencesDto) {
+    const current = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationPreferences: true },
+    });
+    if (!current) {
+      throw new NotFoundException('Account could not be found.');
+    }
+
+    const updates = Object.fromEntries(
+      NOTIFICATION_PREFERENCE_KEYS
+        .filter((key) => typeof dto[key] === 'boolean')
+        .map((key) => [key, dto[key] as boolean]),
+    );
+    const preferences = {
+      ...this.normalizedPreferences(current.notificationPreferences),
+      ...updates,
+    };
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { notificationPreferences: preferences },
+    });
+
+    return {
+      success: true,
+      data: { preferences },
+      error: null,
+    };
   }
 
   syncForUser(userId: string): Promise<void> {
@@ -1685,6 +1736,14 @@ export class NotificationsService {
     input:
       NotificationInput,
   ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { notificationPreferences: true },
+    });
+    if (!this.isEnabled(user?.notificationPreferences, input.type)) {
+      return;
+    }
+
     await this.prisma.notification.upsert({
       where: {
         dedupeKey:
@@ -1745,6 +1804,33 @@ export class NotificationsService {
           input.eventAt,
       },
     });
+  }
+
+  private normalizedPreferences(value: unknown): NotificationPreferences {
+    const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    return Object.fromEntries(
+      Object.entries(DEFAULT_NOTIFICATION_PREFERENCES).map(([key, fallback]) => [
+        key,
+        typeof source[key] === 'boolean' ? source[key] : fallback,
+      ]),
+    ) as NotificationPreferences;
+  }
+
+  private isEnabled(value: unknown, type: NotificationType): boolean {
+    const key = this.preferenceKeyForType(type);
+    return this.normalizedPreferences(value)[key];
+  }
+
+  private preferenceKeyForType(type: NotificationType): NotificationPreferenceKey {
+    if (type.startsWith('LEAGUE_')) return 'leagueActivity';
+    if (type.startsWith('TOURNAMENT_') || type === 'FIXTURE_CREATED' || type === 'FIXTURE_CHANGED') {
+      return 'tournamentActivity';
+    }
+    if (type === 'MATCH_REMINDER' || type === 'MATCH_READY') return 'matchReminders';
+    if (type.startsWith('RESULT_') || type === 'STATISTICS_UPDATED') return 'resultUpdates';
+    if (type.startsWith('DISPUTE_')) return 'disputeUpdates';
+    if (type === 'ACHIEVEMENT_RECEIVED') return 'achievements';
+    return 'fairPlayUpdates';
   }
 
   private notificationNotFound() {

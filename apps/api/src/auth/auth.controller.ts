@@ -26,6 +26,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { ResendVerificationDto } from './dto/resend-verification.dto.js';
 import { VerifyEmailDto } from './dto/verify-email.dto.js';
 import { UpdateThemePreferenceDto } from './dto/update-theme-preference.dto.js';
+import { UpdateDashboardPreferencesDto } from './dto/update-dashboard-preferences.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 
 const REFRESH_COOKIE_NAME = 'fc_arena_refresh_token';
@@ -383,6 +384,23 @@ export class AuthController {
     },
   ) {
     return this.authService.getMe(request.user.sub);
+  }
+
+  @Get('preferences/dashboard')
+  @UseGuards(JwtAuthGuard)
+  async getDashboardPreferences(
+    @Req() request: Request & { user: AccessTokenPayload },
+  ) {
+    return this.authService.getDashboardPreferences(request.user.sub);
+  }
+
+  @Patch('preferences/dashboard')
+  @UseGuards(JwtAuthGuard)
+  async updateDashboardPreferences(
+    @Req() request: Request & { user: AccessTokenPayload },
+    @Body() dto: UpdateDashboardPreferencesDto,
+  ) {
+    return this.authService.updateDashboardPreferences(request.user.sub, dto);
   }
 
   private setRefreshCookie(response: Response, token: string): void {

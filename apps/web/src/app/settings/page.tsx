@@ -105,11 +105,19 @@ export default function SettingsPage() {
             />
 
             <FcMenuRow
-              href="/notifications"
+              href="/settings/notifications"
               icon="●"
               title="Notifications"
               description="Review competition and system notifications"
               tone="slate"
+            />
+
+            <FcMenuRow
+              href="/settings/dashboard"
+              icon="▦"
+              title="Dashboard"
+              description="Choose which home sections are visible"
+              tone="cyan"
             />
 
             <FcMenuRow

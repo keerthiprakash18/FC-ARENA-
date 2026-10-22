@@ -12,10 +12,11 @@ import {
 import type {
   AiChatDto,
 } from './dto/chat.dto.js';
+import { fetchWithTimeout } from '../security/external-request.js';
 
 const MINUTE_LIMIT = 10;
 const DAILY_LIMIT = 30;
-const REQUEST_TIMEOUT_MS = 10_000;
+const AI_REQUEST_TIMEOUT_MS = 10_000;
 
 interface ProviderChatResponse {
   choices?: Array<{
@@ -874,16 +875,6 @@ export class AiService {
       process.env.AI_PROVIDER_MODEL!
         .trim();
 
-    const controller =
-      new AbortController();
-
-    const timeout =
-      setTimeout(
-        () =>
-          controller.abort(),
-        REQUEST_TIMEOUT_MS,
-      );
-
     const systemPrompt =
       [
         'You are FC ARENA AI Assistant.',
@@ -903,7 +894,7 @@ export class AiService {
 
     try {
       const response =
-        await fetch(
+        await fetchWithTimeout(
           `${baseUrl}/chat/completions`,
           {
             method:
@@ -952,9 +943,8 @@ export class AiService {
                   450,
               }),
 
-            signal:
-              controller.signal,
           },
+          AI_REQUEST_TIMEOUT_MS,
         );
 
       if (!response.ok) {
@@ -990,10 +980,6 @@ export class AiService {
             'FC ARENA AI is temporarily unavailable. Please try again later.',
         },
       });
-    } finally {
-      clearTimeout(
-        timeout,
-      );
     }
   }
 }

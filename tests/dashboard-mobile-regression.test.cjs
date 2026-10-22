@@ -25,6 +25,26 @@ test('classic dashboard hero contract stays intact', () => {
   }
 });
 
+test('dashboard exposes and applies an explicit multi-league context', () => {
+  const dashboard = read('apps/web/src/app/dashboard/page.tsx');
+
+  assert.match(dashboard, /const \[selectedLeagueId, setSelectedLeagueId\] = useState\(""\)/);
+  assert.match(dashboard, /aria-label="Dashboard league context"/);
+  assert.match(dashboard, /Match and tournament cards use the selected League\./);
+  assert.match(
+    dashboard,
+    /tournaments\.filter\(\s*\(tournament\) => tournament\.leagueId === selectedMembership\.league\.id/s,
+  );
+  assert.match(
+    dashboard,
+    /fixtures\.filter\(\(fixture\) => scopedTournamentIds\.has\(fixture\.tournamentId\)\)/s,
+  );
+  assert.match(
+    dashboard,
+    /scopedTournaments\.find\(\s*\(tournament\)/s,
+  );
+});
+
 test('mobile bottom navigation remains five equal columns', () => {
   const premiumCss = read('apps/web/src/app/premium-redesign.css');
   const navigation = read('apps/web/src/components/app/primary-navigation.ts');

@@ -11,6 +11,7 @@ import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 
 import { PrismaService } from '../database/prisma.service.js';
+import { fetchWithTimeout } from '../security/external-request.js';
 
 interface CloudinaryUploadResponse {
   secure_url?: string;
@@ -145,7 +146,7 @@ export class TournamentEntryLogoService {
     formData.append('invalidate', 'true');
     formData.append('signature', signature);
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`,
       { method: 'POST', body: formData },
     );
@@ -228,7 +229,7 @@ export class TournamentEntryLogoService {
       formData.append('invalidate', 'true');
       formData.append('signature', signature);
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/destroy`,
         { method: 'POST', body: formData },
       );

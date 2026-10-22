@@ -172,6 +172,8 @@ interface DashboardFixture extends Fixture {
   leagueName: string;
 }
 
+type DashboardSection = "nextMatch" | "league" | "activeTournament" | "stats" | "quickActions" | "activity";
+
 function entryName(entry: FixtureEntry | null) {
   if (!entry) {
     return "TBD";
@@ -300,9 +302,13 @@ export default function DashboardPage() {
 
   const [memberships, setMemberships] = useState<Membership[]>([]);
 
+  const [selectedLeagueId, setSelectedLeagueId] = useState("");
+
   const [tournaments, setTournaments] = useState<DashboardTournament[]>([]);
 
   const [fixtures, setFixtures] = useState<DashboardFixture[]>([]);
+
+  const [hiddenSections, setHiddenSections] = useState<DashboardSection[]>([]);
 
   const [error, setError] = useState("");
 
@@ -315,7 +321,7 @@ export default function DashboardPage() {
       setLoading(true);
       setError("");
       try {
-        const [currentUser, summary] = await Promise.all([
+        const [currentUser, summary, dashboardPreferences] = await Promise.all([
           getCurrentUser(),
           authenticatedRequest<{ data: {
             career: CareerData;
@@ -323,13 +329,31 @@ export default function DashboardPage() {
             tournaments: DashboardTournament[];
             fixtures: DashboardFixture[];
           } }>("/players/me/dashboard"),
+          authenticatedRequest<{ data: { preferences: { hiddenSections: DashboardSection[] } } }>("/auth/preferences/dashboard").catch(() => ({ data: { preferences: { hiddenSections: [] as DashboardSection[] } } })),
         ]);
         if (cancelled) return;
         setUser(currentUser);
         setCareer(summary.data.career);
         setMemberships(summary.data.memberships);
+        setSelectedLeagueId((currentLeagueId) => {
+          if (
+            currentLeagueId &&
+            summary.data.memberships.some(
+              (membership) => membership.league.id === currentLeagueId,
+            )
+          ) {
+            return currentLeagueId;
+          }
+
+          return (
+            summary.data.memberships.find(
+              (membership) => membership.membershipType === "PRIMARY",
+            ) ?? summary.data.memberships[0]
+          )?.league.id ?? "";
+        });
         setTournaments(summary.data.tournaments);
         setFixtures(summary.data.fixtures);
+        setHiddenSections(dashboardPreferences.data.preferences.hiddenSections ?? []);
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 401) {
@@ -355,12 +379,43 @@ export default function DashboardPage() {
     [memberships],
   );
 
+  const selectedMembership = useMemo(
+    () =>
+      memberships.find(
+        (membership) => membership.league.id === selectedLeagueId,
+      ) ?? primaryMembership,
+    [memberships, primaryMembership, selectedLeagueId],
+  );
+
+  const scopedTournaments = useMemo(
+    () =>
+      selectedMembership
+        ? tournaments.filter(
+            (tournament) => tournament.leagueId === selectedMembership.league.id,
+          )
+        : tournaments,
+    [selectedMembership, tournaments],
+  );
+
+  const scopedTournamentIds = useMemo(
+    () => new Set(scopedTournaments.map((tournament) => tournament.id)),
+    [scopedTournaments],
+  );
+
+  const scopedFixtures = useMemo(
+    () =>
+      selectedMembership
+        ? fixtures.filter((fixture) => scopedTournamentIds.has(fixture.tournamentId))
+        : fixtures,
+    [fixtures, scopedTournamentIds, selectedMembership],
+  );
+
   const activeTournament = useMemo(
     () =>
-      tournaments.find(
+      scopedTournaments.find(
         (tournament) => !["COMPLETED", "CANCELLED"].includes(tournament.status),
       ) ?? null,
-    [tournaments],
+    [scopedTournaments],
   );
 
   const registrationIdsByTournament = useMemo(
@@ -380,7 +435,7 @@ export default function DashboardPage() {
       return [];
     }
 
-    return fixtures
+    return scopedFixtures
       .filter(
         (fixture) =>
           fixtureIsOpen(fixture) &&
@@ -391,7 +446,7 @@ export default function DashboardPage() {
           ),
       )
       .sort(sortUpcoming);
-  }, [fixtures, registrationIdsByTournament, user]);
+  }, [registrationIdsByTournament, scopedFixtures, user]);
 
   const nextFixture = personalOpenFixtures[0] ?? null;
 
@@ -429,15 +484,19 @@ export default function DashboardPage() {
 
   const stats = career.lifetimeStatistics;
 
-  const isLeagueAdmin = Boolean(primaryMembership?.adminRole);
+  const isLeagueAdmin = Boolean(selectedMembership?.adminRole);
 
   const leagueLogo =
-    primaryMembership?.league.logoUrl ||
-    career.profile.primaryLeague?.league.logoUrl ||
+    selectedMembership?.league.logoUrl ||
+    (selectedMembership?.league.id === career.profile.primaryLeague?.league.id
+      ? career.profile.primaryLeague.league.logoUrl
+      : selectedMembership?.league.id === career.profile.secondaryLeague?.league.id
+        ? career.profile.secondaryLeague.league.logoUrl
+        : null) ||
     null;
 
-  const createTournamentHref = primaryMembership
-    ? `/leagues/${primaryMembership.league.id}/tournaments`
+  const createTournamentHref = selectedMembership
+    ? `/leagues/${selectedMembership.league.id}/tournaments`
     : "/leagues";
 
   const progress =
@@ -450,12 +509,13 @@ export default function DashboardPage() {
       : 0;
 
   const recentActivity = career.matchHistory.slice(0, 3);
+  const isVisible = (section: DashboardSection) => !hiddenSections.includes(section);
 
   return (
     <AppShell
       currentUser={user}
       playerName={inGameName}
-      playerRole={primaryMembership?.adminRole || "Player"}
+      playerRole={selectedMembership?.adminRole || "Player"}
     >
       <div className="fc-dashboard-page fc-dashboard-classic relative grid gap-4 sm:gap-6">
         <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
@@ -532,8 +592,8 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr]">
-          <FcPanel className="fc-next-match-panel relative overflow-hidden p-5 sm:p-6">
+        <section className={`fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr] ${!isVisible("nextMatch") && !isVisible("league") ? "hidden" : ""}`}>
+          <FcPanel className={`fc-next-match-panel relative overflow-hidden p-5 sm:p-6 ${!isVisible("nextMatch") ? "hidden" : ""}`}>
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
             <div className="relative">
@@ -624,7 +684,7 @@ export default function DashboardPage() {
             </div>
           </FcPanel>
 
-          <FcPanel className="fc-league-panel p-5 sm:p-6">
+          <FcPanel className={`fc-league-panel p-5 sm:p-6 ${!isVisible("league") ? "hidden" : ""}`}>
             <SectionTitle
               icon="league"
               title="My League"
@@ -632,27 +692,56 @@ export default function DashboardPage() {
               linkLabel="All Leagues →"
             />
 
-            {primaryMembership ? (
+            {selectedMembership ? (
               <>
+                {memberships.length > 1 ? (
+                  <div className="theme-soft-accent mt-5 rounded-xl border p-4">
+                    <label
+                      htmlFor="dashboard-league-context"
+                      className="theme-text block text-xs font-semibold uppercase tracking-[0.12em]"
+                    >
+                      Dashboard league context
+                    </label>
+
+                    <select
+                      id="dashboard-league-context"
+                      aria-label="Dashboard league context"
+                      value={selectedMembership.league.id}
+                      onChange={(event) => setSelectedLeagueId(event.target.value)}
+                      className="theme-input mt-2 min-h-11 w-full rounded-lg border px-3 text-sm font-semibold"
+                    >
+                      {memberships.map((membership) => (
+                        <option key={membership.league.id} value={membership.league.id}>
+                          {membership.league.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <p className="theme-muted mt-2 text-xs">
+                      Match and tournament cards use the selected League.
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="mt-6 flex items-center gap-4">
                   <FcCrest
-                    name={primaryMembership.league.name}
+                    name={selectedMembership.league.name}
                     imageUrl={leagueLogo}
                     size="lg"
                   />
 
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-lg font-semibold text-[#0B2545]">
-                      {primaryMembership.league.name}
+                      {selectedMembership.league.name}
                     </h3>
 
                     <p className="mt-1 font-mono text-xs font-semibold text-[#A06B13]">
-                      {primaryMembership.league.code}
+                      {selectedMembership.league.code}
                     </p>
 
                     <div className="mt-2">
                       <FcStatusBadge
-                        label={primaryMembership.membershipType}
+                        label={selectedMembership.membershipType}
                         tone="cyan"
                       />
                     </div>
@@ -664,7 +753,7 @@ export default function DashboardPage() {
                     <p className="text-xs text-[#8792A1]">Region</p>
 
                     <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
-                      {primaryMembership.league.region || "Global"}
+                      {selectedMembership.league.region || "Global"}
                     </p>
                   </div>
 
@@ -672,7 +761,7 @@ export default function DashboardPage() {
                     <p className="text-xs text-[#8792A1]">Members</p>
 
                     <p className="mt-1 text-sm font-medium text-[#0B2545]">
-                      {primaryMembership.league.members}
+                      {selectedMembership.league.members}
                     </p>
                   </div>
 
@@ -680,13 +769,13 @@ export default function DashboardPage() {
                     <p className="text-xs text-[#8792A1]">Role</p>
 
                     <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
-                      {primaryMembership.adminRole || "Player"}
+                      {selectedMembership.adminRole || "Player"}
                     </p>
                   </div>
                 </div>
 
                 <Link
-                  href={`/leagues/${primaryMembership.league.id}`}
+                  href={`/leagues/${selectedMembership.league.id}`}
                   className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
                 >
                   Open League →
@@ -713,7 +802,7 @@ export default function DashboardPage() {
           </FcPanel>
         </section>
 
-        <section className="fc-dashboard-section grid gap-5">
+        <section className={`fc-dashboard-section grid gap-5 ${!isVisible("activeTournament") ? "hidden" : ""}`}>
           <FcPanel className="fc-tournament-panel p-5 sm:p-6">
             <SectionTitle
               icon="tournament"
@@ -816,7 +905,7 @@ export default function DashboardPage() {
           </FcPanel>
         </section>
 
-        <section className="fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <section className={`fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4 ${!isVisible("stats") ? "hidden" : ""}`}>
           <Link href="/career">
             <FcStatCard
               label="Matches"
@@ -856,7 +945,7 @@ export default function DashboardPage() {
           </Link>
         </section>
 
-        <div className="fc-quick-actions-panel">
+        <div className={`fc-quick-actions-panel ${!isVisible("quickActions") ? "hidden" : ""}`}>
           <SectionTitle icon="activity" title="Quick Actions" />
 
           <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -892,8 +981,8 @@ export default function DashboardPage() {
 
             <FcQuickActionTile
               href={
-                primaryMembership
-                  ? `/leaderboards?league=${primaryMembership.league.id}`
+                selectedMembership
+                  ? `/leaderboards?league=${selectedMembership.league.id}`
                   : "/leaderboards"
               }
               icon="activity"
@@ -911,7 +1000,7 @@ export default function DashboardPage() {
             />
           </div>
         </div>
-        <FcPanel className="fc-activity-panel p-5 sm:p-6">
+        <FcPanel className={`fc-activity-panel p-5 sm:p-6 ${!isVisible("activity") ? "hidden" : ""}`}>
           <SectionTitle
             icon="history"
             title="Latest Activity"

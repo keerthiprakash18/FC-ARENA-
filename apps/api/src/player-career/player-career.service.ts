@@ -1,14 +1,242 @@
 import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import type { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 @Injectable()
 export class PlayerCareerService {
   constructor(
     private readonly prisma: PrismaService,
   ) {}
+
+  async updateMyProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ) {
+    const suppliedFields = [
+      'fullName',
+      'phoneNumber',
+      'inGameName',
+      'gameUid',
+    ].filter((field) =>
+      Object.prototype.hasOwnProperty.call(dto, field),
+    );
+
+    if (suppliedFields.length === 0) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'PROFILE_UPDATE_EMPTY',
+          message: 'At least one profile field is required.',
+        },
+      });
+    }
+
+    const fullName = this.normalizeRequired(
+      dto.fullName,
+      'Full name',
+      2,
+      120,
+    );
+    const phoneNumber = this.normalizeNullable(
+      dto.phoneNumber,
+      'Phone number',
+      30,
+    );
+    const inGameName = this.normalizeRequired(
+      dto.inGameName,
+      'In-game name',
+      2,
+      80,
+    );
+    const gameUid = this.normalizeNullable(
+      dto.gameUid,
+      'Game UID',
+      100,
+    );
+    const identityUpdateRequested =
+      inGameName !== undefined || gameUid !== undefined;
+
+    try {
+      const profile = await this.prisma.$transaction(async (tx) => {
+        const current = await tx.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phoneNumber: true,
+            createdAt: true,
+            player: {
+              select: {
+                id: true,
+                playerCode: true,
+                profileImageUrl: true,
+                identity: {
+                  select: {
+                    inGameName: true,
+                    gameUid: true,
+                    isVerified: true,
+                    lockedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (!current) {
+          throw new NotFoundException({
+            success: false,
+            data: null,
+            error: {
+              code: 'PLAYER_NOT_FOUND',
+              message: 'Player could not be found.',
+            },
+          });
+        }
+
+        const userData: {
+          fullName?: string;
+          phoneNumber?: string | null;
+        } = {};
+
+        if (fullName !== undefined) {
+          userData.fullName = fullName;
+        }
+
+        if (phoneNumber !== undefined) {
+          userData.phoneNumber = phoneNumber;
+        }
+
+        if (Object.keys(userData).length > 0) {
+          await tx.user.update({
+            where: { id: userId },
+            data: userData,
+          });
+        }
+
+        let identity = current.player?.identity ?? null;
+
+        if (identityUpdateRequested) {
+          if (!current.player || !identity) {
+            throw new BadRequestException({
+              success: false,
+              data: null,
+              error: {
+                code: 'PLAYER_IDENTITY_NOT_FOUND',
+                message: 'Player identity could not be found.',
+              },
+            });
+          }
+
+          if (identity.isVerified || identity.lockedAt) {
+            throw new ForbiddenException({
+              success: false,
+              data: null,
+              error: {
+                code: 'PLAYER_IDENTITY_LOCKED',
+                message:
+                  'Verified player identity fields are locked and cannot be changed.',
+              },
+            });
+          }
+
+          const identityData: {
+            inGameName?: string;
+            inGameNameNormalized?: string;
+            gameUid?: string | null;
+          } = {};
+
+          if (inGameName !== undefined) {
+            identityData.inGameName = inGameName;
+            identityData.inGameNameNormalized = inGameName.toLowerCase();
+          }
+
+          if (gameUid !== undefined) {
+            identityData.gameUid = gameUid;
+          }
+
+          const updatedIdentity = await tx.playerIdentity.updateMany({
+            where: {
+              playerId: current.player.id,
+              isVerified: false,
+              lockedAt: null,
+            },
+            data: identityData,
+          });
+
+          if (updatedIdentity.count !== 1) {
+            throw new ForbiddenException({
+              success: false,
+              data: null,
+              error: {
+                code: 'PLAYER_IDENTITY_LOCKED',
+                message:
+                  'Verified player identity fields are locked and cannot be changed.',
+              },
+            });
+          }
+
+          identity = {
+            ...identity,
+            ...(inGameName !== undefined
+              ? { inGameName }
+              : {}),
+            ...(gameUid !== undefined ? { gameUid } : {}),
+          };
+        }
+
+        return {
+          id: current.id,
+          fullName: fullName ?? current.fullName,
+          email: current.email,
+          phoneNumber:
+            phoneNumber !== undefined
+              ? phoneNumber
+              : current.phoneNumber,
+          joinedAt: current.createdAt,
+          playerCode: current.player?.playerCode ?? null,
+          profileImageUrl: current.player?.profileImageUrl ?? null,
+          identity,
+        };
+      });
+
+      return {
+        success: true,
+        data: {
+          message: 'Profile updated successfully.',
+          profile,
+        },
+        error: null,
+      };
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code: 'PROFILE_VALUE_TAKEN',
+            message:
+              'One of the supplied phone, in-game name or game UID values is already in use.',
+          },
+        });
+      }
+
+      throw error;
+    }
+  }
 
   async getMyCareer(
     userId: string,
@@ -33,12 +261,13 @@ export class PlayerCareerService {
               profileImageUrl: true,
 
               identity: {
-                select: {
-                  inGameName: true,
-                  gameUid: true,
-                  isVerified: true,
-                  verifiedAt: true,
-                },
+                  select: {
+                    inGameName: true,
+                    gameUid: true,
+                    isVerified: true,
+                    verifiedAt: true,
+                    lockedAt: true,
+                  },
               },
             },
           },
@@ -731,5 +960,76 @@ export class PlayerCareerService {
       names.join(' + ') ||
       'TBD'
     );
+  }
+
+  private normalizeRequired(
+    value: string | null | undefined,
+    label: string,
+    minLength: number,
+    maxLength: number,
+  ): string | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    if (value === null) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: `${label} is required when supplied.`,
+        },
+      });
+    }
+
+    const normalized = value.normalize('NFKC').trim();
+    if (
+      normalized.length < minLength ||
+      normalized.length > maxLength
+    ) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: `${label} must be between ${minLength} and ${maxLength} characters.`,
+        },
+      });
+    }
+
+    return normalized;
+  }
+
+  private normalizeNullable(
+    value: string | null | undefined,
+    label: string,
+    maxLength: number,
+  ): string | null | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    if (value === null) {
+      return null;
+    }
+
+    const normalized = value.normalize('NFKC').trim();
+    if (normalized.length === 0) {
+      return null;
+    }
+
+    if (normalized.length > maxLength) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: `${label} must be at most ${maxLength} characters.`,
+        },
+      });
+    }
+
+    return normalized;
   }
 }

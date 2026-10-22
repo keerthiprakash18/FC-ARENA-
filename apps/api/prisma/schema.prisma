@@ -330,6 +330,17 @@ enum NotificationType {
   FAIR_PLAY_UPDATED
 }
 
+enum AnnouncementStatus {
+  PUBLISHED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
 enum ScopedRole {
   TOURNAMENT_ADMIN
   TEAM_MANAGER
@@ -354,6 +365,8 @@ model User {
   role            GlobalRole      @default(USER)
   status          UserStatus      @default(ACTIVE)
   themePreference ThemePreference @default(CLASSIC_BLUE)
+  notificationPreferences Json?
+  dashboardPreferences    Json?
   emailVerifiedAt DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -404,6 +417,10 @@ model User {
   leagueWarAwayMatches    LeagueWarMatch[]       @relation("LeagueWarMatchAwayPlayer")
   leagueWarResultUpdates  LeagueWarMatch[]       @relation("LeagueWarMatchResultUpdater")
   aiUsageBuckets          AiUsageBucket[]
+  announcementsCreated   Announcement[]           @relation("AnnouncementCreator")
+  supportTicketsCreated  SupportTicket[]          @relation("SupportTicketCreator")
+  supportTicketsAssigned SupportTicket[]          @relation("SupportTicketAssignee")
+  supportTicketMessages   SupportTicketMessage[]
 
   @@index([status])
   @@map("users")
@@ -945,6 +962,57 @@ model Notification {
   @@index([userId, eventAt])
   @@index([userId, readAt, eventAt])
   @@map("notifications")
+}
+
+model Announcement {
+  id              String             @id @default(uuid()) @db.Uuid
+  title           String             @db.VarChar(180)
+  body            String             @db.Text
+  status          AnnouncementStatus @default(PUBLISHED)
+  publishedAt     DateTime           @default(now())
+  createdByUserId String             @db.Uuid
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  createdBy User @relation("AnnouncementCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([status, publishedAt])
+  @@index([createdByUserId, createdAt])
+  @@map("announcements")
+}
+
+model SupportTicket {
+  id              String             @id @default(uuid()) @db.Uuid
+  createdByUserId String             @db.Uuid
+  assignedToUserId String?           @db.Uuid
+  subject         String             @db.VarChar(180)
+  status          SupportTicketStatus @default(OPEN)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  createdBy User                  @relation("SupportTicketCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  assignedTo User?               @relation("SupportTicketAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  messages   SupportTicketMessage[]
+
+  @@index([createdByUserId, updatedAt])
+  @@index([status, updatedAt])
+  @@index([assignedToUserId, status])
+  @@map("support_tickets")
+}
+
+model SupportTicketMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  ticketId  String   @db.Uuid
+  authorUserId String @db.Uuid
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User          @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@index([authorUserId, createdAt])
+  @@map("support_ticket_messages")
 }
 
 model MatchDispute {

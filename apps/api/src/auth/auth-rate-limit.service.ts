@@ -2,6 +2,9 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
@@ -23,11 +26,34 @@ type RateLimitAction =
   | 'ACCOUNT_DELETE_USER';
 
 @Injectable()
-export class AuthRateLimitService {
+export class AuthRateLimitService
+  implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(AuthRateLimitService.name);
+  private cleanupTimer?: ReturnType<typeof setInterval>;
+
   constructor(
     private readonly prisma:
       PrismaService,
   ) {}
+
+  onModuleInit(): void {
+    if (process.env.AUTH_RATE_LIMIT_CLEANUP_ENABLED === 'false') {
+      return;
+    }
+
+    this.cleanupTimer = setInterval(() => {
+      void this.cleanupExpiredBuckets().catch(() => {
+        this.logger.warn('Auth rate-limit bucket cleanup failed.');
+      });
+    }, 6 * 60 * 60 * 1000);
+    this.cleanupTimer.unref();
+  }
+
+  onModuleDestroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+  }
 
   async consume(
     action: RateLimitAction,
@@ -75,6 +101,21 @@ export class AuthRateLimitService {
           "action" = ${action}
           AND "keyHash" = ${keyHash}
       `;
+  }
+
+  async cleanupExpiredBuckets(
+    retentionMs = 24 * 60 * 60 * 1000,
+  ): Promise<number> {
+    const cutoff = new Date(Date.now() - Math.max(retentionMs, 60_000));
+    const result = await this.prisma.authRateLimit.deleteMany({
+      where: {
+        updatedAt: {
+          lt: cutoff,
+        },
+      },
+    });
+
+    return result.count;
   }
 
   private hashKey(

@@ -5,8 +5,8 @@ FC Arena is packaged as a small native Android WebView shell that loads the prod
 ## Release identity
 
 - Package / application ID: `in.fcarena.app`
-- Version name: `1.0.7`
-- Version code: `9`
+- Version name: `1.0.14`
+- Version code: `16`
 - Minimum SDK: 24
 - Compile SDK: 36
 - Target SDK: 36
@@ -63,13 +63,13 @@ powershell -ExecutionPolicy Bypass -File .\apps\android\build-signed-release.ps1
 
 The script:
 - requires `main` to match the latest `origin/main`;
-- verifies Build 9 / version `1.0.7`;
+- verifies the version from `version.properties` (currently Build 16 / version `1.0.14`);
 - prompts locally for the existing upload keystore path, alias, and passwords;
 - never writes passwords to the repository;
 - verifies the upload certificate SHA-256 before and after signing;
 - downloads and SHA-256-verifies official Gradle 8.13 only if Gradle is not installed;
 - builds the signed release AAB;
-- writes the final artifact to `apps/android/release/FC_ARENA_v1.0.7_build9_signed.aab`;
+- writes the final artifact to `apps/android/release/FC_ARENA_v1.0.14_build16_signed.aab`;
 - writes a companion SHA-256/source-commit metadata file.
 
 The `apps/android/release/` directory and private keystores are git-ignored.

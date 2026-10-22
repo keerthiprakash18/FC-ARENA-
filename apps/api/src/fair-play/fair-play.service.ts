@@ -12,6 +12,7 @@ import {
 import {
   AuthorizationService,
 } from '../security/authorization.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 
 import type {
   CreateFairPlayAppealDto,
@@ -105,6 +106,9 @@ export class FairPlayService {
 
     private readonly authorization:
       AuthorizationService,
+
+    private readonly notifications:
+      NotificationsService,
   ) {}
 
   async getMyFairPlay(
@@ -1845,42 +1849,15 @@ export class FairPlayService {
       dedupeKey: string;
     },
   ) {
-    await this.prisma.notification.upsert({
-      where: {
-        dedupeKey:
-          input.dedupeKey,
-      },
-
-      create: {
-        userId,
-        type:
-          'FAIR_PLAY_UPDATED',
-        title:
-          input.title,
-        message:
-          input.message,
-        href:
-          input.href,
-        entityType:
-          'FairPlay',
-        entityId:
-          input.entityId,
-        dedupeKey:
-          input.dedupeKey,
-        eventAt:
-          new Date(),
-      },
-
-      update: {
-        title:
-          input.title,
-        message:
-          input.message,
-        href:
-          input.href,
-        eventAt:
-          new Date(),
-      },
+    await this.notifications.createForUser(userId, {
+      type: 'FAIR_PLAY_UPDATED',
+      title: input.title,
+      message: input.message,
+      href: input.href,
+      entityType: 'FairPlay',
+      entityId: input.entityId,
+      dedupeKey: input.dedupeKey,
+      eventAt: new Date(),
     });
   }
 }

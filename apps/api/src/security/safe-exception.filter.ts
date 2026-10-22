@@ -1,5 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import { REQUEST_ID_HEADER } from './request-correlation.js';
 
 @Catch()
 export class SafeExceptionFilter implements ExceptionFilter {
@@ -7,11 +8,21 @@ export class SafeExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const response = host.switchToHttp().getResponse<Response>();
+    const request = host.switchToHttp().getRequest<Request | undefined>();
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     if (status >= 500) {
       // Provider/database errors may include credentials, SQL or request bodies.
       // Never serialize the exception or its cause/stack to logs or responses.
-      this.logger.error(`API request failed with status ${status}`);
+      const requestId = response.locals?.requestId
+        ?? request?.get?.(REQUEST_ID_HEADER)
+        ?? 'unknown';
+      this.logger.error(JSON.stringify({
+        event: 'api_request_failed',
+        requestId,
+        method: request?.method,
+        path: request?.originalUrl ?? request?.url,
+        status,
+      }));
       response.status(status).json({
         success: false, data: null,
         error: { code: 'SERVICE_UNAVAILABLE', message: 'Unable to complete this request right now. Please try again.' },

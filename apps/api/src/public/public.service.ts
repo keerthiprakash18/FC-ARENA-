@@ -623,9 +623,20 @@ export class PublicService {
       success: true,
       data: {
         filename: `${data.tournament.code.toLowerCase()}-public-results.csv`,
-        csv: rows.map((row) => row.map((value) => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')).join('\n'),
+        csv: rows.map((row) => row.map((value) => this.csv(value)).join(',')).join('\n'),
       },
       error: null,
     };
+  }
+
+  private csv(value: string | number | null | undefined) {
+    const text = String(value ?? '');
+    const isNumericCell = /^-?\d+(?:\.\d+)?$/.test(text);
+    const safeText =
+      !isNumericCell && /^[\t\r\n ]*[=+\-@]/.test(text)
+        ? `'${text}`
+        : text;
+
+    return `"${safeText.replaceAll('"', '""')}"`;
   }
 }

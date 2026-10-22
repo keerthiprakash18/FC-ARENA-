@@ -14,6 +14,7 @@ import sharp from 'sharp';
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import { fetchWithTimeout } from '../security/external-request.js';
 
 interface CloudinaryUploadResponse {
   secure_url?: string;
@@ -346,7 +347,7 @@ export class LeagueWarProofService {
     );
 
     const response =
-      await fetch(
+      await fetchWithTimeout(
         `https://api.cloudinary.com/v1_1/${encodeURIComponent(
           cloudName,
         )}/image/upload`,

@@ -15,6 +15,20 @@ describe('Auth rate-limit enforcement', () => {
     await expect(limiter.consume('LOGIN_IP', '127.0.0.1', 5, 60000)).rejects.toThrow('unavailable');
   });
 
+  it('cleans only stale rate-limit buckets', async () => {
+    const deleteMany = vi.fn().mockResolvedValue({ count: 3 });
+    const limiter = new AuthRateLimitService({ authRateLimit: { deleteMany } } as never);
+
+    await expect(limiter.cleanupExpiredBuckets(120_000)).resolves.toBe(3);
+    expect(deleteMany).toHaveBeenCalledWith({
+      where: {
+        updatedAt: {
+          lt: expect.any(Date),
+        },
+      },
+    });
+  });
+
   it('never attempts password verification when the IP or identifier is limited', async () => {
     for (const blockedCall of [1, 2]) {
       let calls = 0;

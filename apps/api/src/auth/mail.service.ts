@@ -2,9 +2,7 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
-
-const MAIL_TIMEOUT_MS =
-  15_000;
+import { fetchWithTimeout } from '../security/external-request.js';
 
 const MAIL_MAX_ATTEMPTS =
   3;
@@ -96,26 +94,13 @@ export class OtpMailService {
       MAIL_MAX_ATTEMPTS;
       attempt += 1
     ) {
-      const controller =
-        new AbortController();
-
-      const timeout =
-        setTimeout(
-          () =>
-            controller.abort(),
-          MAIL_TIMEOUT_MS,
-        );
-
       try {
         const response =
-          await fetch(
+          await fetchWithTimeout(
             'https://api.brevo.com/v3/smtp/email',
             {
               method:
                 'POST',
-
-              signal:
-                controller.signal,
 
               headers: {
                 accept:
@@ -232,10 +217,6 @@ export class OtpMailService {
             attempt,
             reason: 'Provider request failed',
           },
-        );
-      } finally {
-        clearTimeout(
-          timeout,
         );
       }
 

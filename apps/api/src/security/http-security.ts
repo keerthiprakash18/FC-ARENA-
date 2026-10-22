@@ -1,12 +1,14 @@
 import { BadRequestException, ForbiddenException, ValidationPipe, type INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import type { NextFunction, Request, Response } from 'express';
+import { requestCorrelationMiddleware } from './request-correlation.js';
 
 // Shared by production bootstrap and database-backed HTTP tests, so tests
 // exercise the same validation, cookie parser, CORS and response headers.
 export function configureHttpSecurity(app: INestApplication): void {
   app.setGlobalPrefix('api');
   app.use(cookieParser());
+  app.use(requestCorrelationMiddleware);
   const express = app.getHttpAdapter().getInstance();
   express.disable('x-powered-by');
   const production = process.env.NODE_ENV === 'production';

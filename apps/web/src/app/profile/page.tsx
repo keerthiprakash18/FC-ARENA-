@@ -39,6 +39,7 @@ interface CareerData {
       gameUid: string | null;
       isVerified: boolean;
       verifiedAt: string | null;
+      lockedAt: string | null;
     } | null;
 
     primaryLeague: {
@@ -116,6 +117,19 @@ export default function ProfilePage() {
   const [imageMessage, setImageMessage] = useState("");
 
   const [imageError, setImageError] = useState("");
+
+  const [profileForm, setProfileForm] = useState({
+    fullName: "",
+    phoneNumber: "",
+    inGameName: "",
+    gameUid: "",
+  });
+
+  const [profileBusy, setProfileBusy] = useState(false);
+
+  const [profileMessage, setProfileMessage] = useState("");
+
+  const [profileError, setProfileError] = useState("");
 
   function applyProfileImage(profileImageUrl: string | null) {
     setCareer((current) =>
@@ -249,6 +263,13 @@ export default function ProfilePage() {
         setUser(current);
 
         setCareer(response.data);
+
+        setProfileForm({
+          fullName: response.data.profile.fullName,
+          phoneNumber: response.data.profile.phoneNumber || "",
+          inGameName: response.data.profile.identity?.inGameName || "",
+          gameUid: response.data.profile.identity?.gameUid || "",
+        });
       } catch {
         router.replace("/login");
       }
@@ -261,9 +282,104 @@ export default function ProfilePage() {
 
   const identity = career.profile.identity;
 
+  const identityLocked = Boolean(identity?.isVerified || identity?.lockedAt);
+
   const playerName = identity?.inGameName || career.profile.fullName;
 
   const stats = career.lifetimeStatistics;
+
+  async function saveProfile() {
+    const fullName = profileForm.fullName.trim();
+    const phoneNumber = profileForm.phoneNumber.trim();
+    const inGameName = profileForm.inGameName.trim();
+    const gameUid = profileForm.gameUid.trim();
+
+    if (fullName.length < 2 || fullName.length > 120) {
+      setProfileError("Full name must be between 2 and 120 characters.");
+      return;
+    }
+
+    if (phoneNumber.length > 30) {
+      setProfileError("Phone number must be at most 30 characters.");
+      return;
+    }
+
+    if (!identityLocked && (inGameName.length < 2 || inGameName.length > 80)) {
+      setProfileError("In-game name must be between 2 and 80 characters.");
+      return;
+    }
+
+    if (!identityLocked && gameUid.length > 100) {
+      setProfileError("Game UID must be at most 100 characters.");
+      return;
+    }
+
+    setProfileBusy(true);
+    setProfileError("");
+    setProfileMessage("");
+
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: {
+          message: string;
+          profile: CareerData["profile"];
+        };
+        error: null;
+      }>("/players/me/profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName,
+          phoneNumber: phoneNumber || null,
+          ...(identityLocked
+            ? {}
+            : {
+                inGameName,
+                gameUid: gameUid || null,
+              }),
+        }),
+      });
+
+      setCareer((current) =>
+        current
+          ? { ...current, profile: { ...current.profile, ...response.data.profile } }
+          : current,
+      );
+      setUser((current) =>
+        current
+          ? {
+              ...current,
+              fullName: response.data.profile.fullName,
+              phoneNumber: response.data.profile.phoneNumber,
+              player: current.player
+                ? {
+                    ...current.player,
+                    identity: response.data.profile.identity
+                      ? {
+                          ...current.player.identity,
+                          ...response.data.profile.identity,
+                        }
+                      : current.player.identity,
+                  }
+                : current.player,
+            }
+          : current,
+      );
+      setProfileForm({
+        fullName: response.data.profile.fullName,
+        phoneNumber: response.data.profile.phoneNumber || "",
+        inGameName: response.data.profile.identity?.inGameName || "",
+        gameUid: response.data.profile.identity?.gameUid || "",
+      });
+      setProfileMessage(response.data.message);
+    } catch (err) {
+      setProfileError(
+        err instanceof Error ? err.message : "Unable to update your profile.",
+      );
+    } finally {
+      setProfileBusy(false);
+    }
+  }
 
   return (
     <AppShell playerName={playerName}>
@@ -547,23 +663,103 @@ export default function ProfilePage() {
             </Link>
           </div>
 
-          <div className="mt-4 grid gap-x-8 sm:grid-cols-2">
-            <div>
-              <Detail label="Full Name" value={career.profile.fullName} />
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <label className="theme-text text-sm font-semibold">
+                Full Name
+                <input
+                  name="fullName"
+                  value={profileForm.fullName}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, fullName: event.target.value }))}
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal"
+                  maxLength={120}
+                  disabled={profileBusy}
+                />
+              </label>
 
-              <Detail label="Email" value={career.profile.email} />
+              <label className="theme-text text-sm font-semibold">
+                Email
+                <input
+                  name="email"
+                  value={career.profile.email}
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal opacity-70"
+                  readOnly
+                  aria-readonly="true"
+                />
+                <span className="theme-muted mt-1 block text-xs font-normal">Email is read-only.</span>
+              </label>
+
+              <label className="theme-text text-sm font-semibold">
+                Phone
+                <input
+                  name="phoneNumber"
+                  value={profileForm.phoneNumber}
+                  onChange={(event) => setProfileForm((current) => ({ ...current, phoneNumber: event.target.value }))}
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal"
+                  maxLength={30}
+                  disabled={profileBusy}
+                />
+              </label>
+
+              <label className="theme-text text-sm font-semibold">
+                Member Since
+                <input
+                  value={new Date(career.profile.joinedAt).toLocaleDateString()}
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal opacity-70"
+                  readOnly
+                />
+              </label>
             </div>
 
-            <div>
-              <Detail label="Phone" value={career.profile.phoneNumber} />
+            <div className="mt-5 border-t border-black/5 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="theme-text text-sm font-semibold">Player identity</p>
+                  <p className="theme-muted mt-1 text-xs">
+                    {identityLocked
+                      ? "Verified identity is locked and cannot be edited."
+                      : "Use the identity shown in your FC ARENA competitions."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void saveProfile()}
+                  disabled={profileBusy}
+                  className="theme-primary-button min-h-10 rounded-[10px] px-4 text-xs font-semibold disabled:opacity-50"
+                >
+                  {profileBusy ? "Saving…" : "Save profile"}
+                </button>
+              </div>
 
-              <Detail
-                label="Member Since"
-                value={new Date(career.profile.joinedAt).toLocaleDateString()}
-              />
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="theme-text text-sm font-semibold">
+                  In-Game Name
+                  <input
+                    name="inGameName"
+                    value={profileForm.inGameName}
+                    onChange={(event) => setProfileForm((current) => ({ ...current, inGameName: event.target.value }))}
+                    className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal disabled:opacity-60"
+                    maxLength={80}
+                    disabled={profileBusy || identityLocked}
+                  />
+                </label>
+
+                <label className="theme-text text-sm font-semibold">
+                  Game UID
+                  <input
+                    name="gameUid"
+                    value={profileForm.gameUid}
+                    onChange={(event) => setProfileForm((current) => ({ ...current, gameUid: event.target.value }))}
+                    className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal disabled:opacity-60"
+                    maxLength={100}
+                    disabled={profileBusy || identityLocked}
+                  />
+                </label>
+              </div>
+
+              {profileMessage ? <div className="mt-4"><FcNotice>{profileMessage}</FcNotice></div> : null}
+              {profileError ? <div className="mt-4"><FcNotice tone="error">{profileError}</FcNotice></div> : null}
             </div>
-          </div>
-        </FcPanel>
+          </FcPanel>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[

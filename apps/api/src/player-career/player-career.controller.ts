@@ -1,9 +1,11 @@
 import { PlayerDashboardService } from './player-dashboard.service.js';
 
 import {
+  Body,
   Controller,
   Delete,
   Get,
+  Patch,
   Post,
   Req,
   UploadedFile,
@@ -39,6 +41,10 @@ import {
   PlayerProfileImageService,
 } from './player-profile-image.service.js';
 
+import {
+  UpdateProfileDto,
+} from './dto/update-profile.dto.js';
+
 type AuthenticatedRequest =
   Request & {
     user: AccessTokenPayload;
@@ -69,6 +75,18 @@ export class PlayerCareerController {
   ): Promise<unknown> {
     return this.playerCareerService.getMyCareer(
       request.user.sub,
+    );
+  }
+
+  @Patch('me/profile')
+  updateMyProfile(
+    @Req()
+    request: AuthenticatedRequest,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.playerCareerService.updateMyProfile(
+      request.user.sub,
+      dto,
     );
   }
 

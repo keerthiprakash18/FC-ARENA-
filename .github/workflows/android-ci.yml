@@ -141,6 +141,8 @@ jobs:
           cache: npm
 
       - name: Build current web checkout and install smoke harness
+        env:
+          NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
         run: |
           npm ci
           npm run build:web

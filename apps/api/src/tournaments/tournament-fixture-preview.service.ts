@@ -50,14 +50,14 @@ export class TournamentFixturePreviewService {
       tournament.status,
     );
 
-    if (tournament.competitionFormat === 'ELITE_CUP') {
+    if (tournament.competitionFormat === 'ELITE_CUP' || tournament.competitionFormat === 'UCL_CUP') {
       throw new ConflictException({
         success: false,
         data: null,
         error: {
           code: 'ELITE_CUP_PREVIEW_TOPOLOGY_LOCKED',
           message:
-            'Elite Cup fixtures are generated from the approved team count. Regenerate the preview instead of adding individual fixtures.',
+            'Elite Cup and UCL Cup fixtures are generated from the approved team count. Regenerate the preview instead of adding individual fixtures.',
         },
       });
     }
@@ -972,10 +972,8 @@ export class TournamentFixturePreviewService {
     }
 
     if (
-      competitionFormat ===
-      'SINGLE_ELIMINATION' ||
-      competitionFormat ===
-      'CUSTOM_MANUAL'
+      competitionFormat === 'SINGLE_ELIMINATION' ||
+      competitionFormat === 'CUSTOM_MANUAL'
     ) {
       return;
     }
@@ -1018,6 +1016,28 @@ export class TournamentFixturePreviewService {
           ),
         selectedGroupId,
       );
+
+    if (competitionFormat === 'UCL_CUP') {
+      const expectedParticipantIds = new Set(
+        Array.from(expectedParticipants.values()).flat(),
+      );
+
+      for (const participantId of expectedParticipantIds) {
+        if (!participantIds.has(participantId)) {
+          throw new ConflictException({
+            success: false,
+            data: null,
+            error: {
+              code: 'INCOMPLETE_UCL_LEAGUE_PHASE',
+              message:
+                'Every approved participant must appear in the UCL Cup league phase.',
+            },
+          });
+        }
+      }
+
+      return;
+    }
 
     for (
       const [
@@ -1548,8 +1568,8 @@ export class TournamentFixturePreviewService {
     },
   ) {
     if (
-      tournament.competitionFormat ===
-      'ELITE_CUP'
+      tournament.competitionFormat === 'ELITE_CUP' ||
+      tournament.competitionFormat === 'UCL_CUP'
     ) {
       throw new ConflictException({
         success: false,
@@ -1558,7 +1578,7 @@ export class TournamentFixturePreviewService {
           code:
             'ELITE_CUP_PREVIEW_TOPOLOGY_LOCKED',
           message:
-            'Elite Cup fixtures are generated from the approved team count. Regenerate the preview instead of editing individual fixtures.',
+            'Elite Cup and UCL Cup fixtures are generated from the approved team count. Regenerate the preview instead of editing individual fixtures.',
         },
       });
     }

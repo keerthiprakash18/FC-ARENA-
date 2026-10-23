@@ -11,6 +11,31 @@ export function assertRoundRobinComplete(
   } | null }>,
 ): void {
   if (tournament.format === 'KNOCKOUT' || tournament.competitionFormat === 'CUSTOM_MANUAL') return;
+
+  if (tournament.competitionFormat === 'UCL_CUP') {
+    const stageFixtures = fixtures.filter(
+      (fixture) => fixture.phase !== 'PLAYOFF',
+    );
+
+    if (
+      stageFixtures.some(
+        (fixture) => !isCanonicalCompletedFixture(fixture),
+      )
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code: 'TOURNAMENT_MATCHES_INCOMPLETE',
+          message:
+            'Every UCL Cup league-phase fixture must have a confirmed result before completion.',
+        },
+      });
+    }
+
+    return;
+  }
+
   const hasGroups = registrations.some((row) => row.groupId !== null);
   const counts = new Map<string, number>();
   for (const registration of registrations) {

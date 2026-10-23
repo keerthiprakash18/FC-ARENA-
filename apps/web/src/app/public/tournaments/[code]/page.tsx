@@ -99,6 +99,10 @@ interface PublicTournamentData {
 function formatCompetition(
   value: string,
 ) {
+  if (value === 'UCL_CUP') {
+    return 'UCL Cup';
+  }
+
   return value
     .replaceAll(
       '_',

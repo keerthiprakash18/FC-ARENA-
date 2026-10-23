@@ -17,6 +17,7 @@ interface EliteCupFormatCardProps {
   approvedTeams: number;
   savedFormat?: string | null;
   title?: string;
+  competitionName?: string;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ export function EliteCupFormatCard({
   approvedTeams,
   savedFormat,
   title = 'Recommended competition format',
+  competitionName = 'Elite Cup',
   className = '',
 }: EliteCupFormatCardProps) {
   const recommendedFormat = getEliteCupRecommendedFormat(approvedTeams);
@@ -41,11 +43,11 @@ export function EliteCupFormatCard({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400">
-              Elite Cup format guide
+              {competitionName} format guide
             </p>
             <h2 className="mt-2 text-xl font-black text-white">{title}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              {getEliteCupRecommendationMessage(approvedTeams)}
+              {getEliteCupRecommendationMessage(approvedTeams).replaceAll('Elite Cup', competitionName)}
             </p>
           </div>
 

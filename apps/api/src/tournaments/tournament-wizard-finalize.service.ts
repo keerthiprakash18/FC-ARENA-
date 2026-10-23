@@ -85,6 +85,7 @@ export class TournamentWizardFinalizeService {
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
         'ELITE_CUP',
+        'UCL_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -157,7 +158,7 @@ export class TournamentWizardFinalizeService {
       dto.playoffSource !==
       'AUTO'
         ? dto.playoffSource
-        : tournament.competitionFormat === 'ELITE_CUP'
+        : ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat)
           ? 'OVERALL_STANDINGS'
           : tournament.competitionFormat ===
             'SINGLE_ELIMINATION'
@@ -255,7 +256,7 @@ export class TournamentWizardFinalizeService {
         qualifiersPerGroup;
     } else {
       playoffQualifiersTotal =
-        tournament.competitionFormat === 'ELITE_CUP' &&
+        ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat) &&
         dto.playoffQualifiersTotal === undefined &&
         tournament.playoffQualifiersTotal === null
           ? null
@@ -678,6 +679,7 @@ export class TournamentWizardFinalizeService {
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
         'ELITE_CUP',
+        'UCL_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -721,7 +723,7 @@ export class TournamentWizardFinalizeService {
       }
 
         if (
-          tournament.competitionFormat !== 'ELITE_CUP' &&
+          !['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat) &&
           resolvedSource !==
             'GROUP_QUALIFIERS' &&
         !tournament.playoffQualifiersTotal

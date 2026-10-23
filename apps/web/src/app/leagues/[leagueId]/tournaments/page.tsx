@@ -50,7 +50,8 @@ type CompetitionFormat =
   | 'DOUBLE_ROUND_ROBIN'
   | 'SINGLE_ELIMINATION'
   | 'GROUP_STAGE_KNOCKOUT'
-  | 'ELITE_CUP';
+  | 'ELITE_CUP'
+  | 'UCL_CUP';
 
 
 interface LeagueInfo {
@@ -275,6 +276,8 @@ export default function LeagueTournamentsPage() {
         'GROUP_STAGE_KNOCKOUT' ||
       requestedFormat ===
         'ELITE_CUP'
+      || requestedFormat ===
+        'UCL_CUP'
     ) {
       setCompetitionFormat(
         requestedFormat,
@@ -351,7 +354,7 @@ export default function LeagueTournamentsPage() {
                 competitionFormat,
 
                 groupMode:
-                  competitionFormat === 'ELITE_CUP'
+                  ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                     ? 'SINGLE_GROUP'
                     : competitionFormat ===
                       'GROUP_STAGE_KNOCKOUT'
@@ -359,7 +362,7 @@ export default function LeagueTournamentsPage() {
                       : 'SINGLE_GROUP',
 
                 legType:
-                  competitionFormat === 'ELITE_CUP'
+                  ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                     ? 'SINGLE_LEG'
                     : competitionFormat ===
                       'DOUBLE_ROUND_ROBIN'
@@ -370,7 +373,7 @@ export default function LeagueTournamentsPage() {
                   'AUTOMATIC',
 
                 registrationMode:
-                  competitionFormat === 'ELITE_CUP'
+                  ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                     ? 'ADMIN_ONLY'
                     : 'APPROVAL',
 
@@ -656,7 +659,7 @@ export default function LeagueTournamentsPage() {
                   </span>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
                   {([
                     [
                       'LEAGUE_ROUND_ROBIN',
@@ -682,6 +685,11 @@ export default function LeagueTournamentsPage() {
                       'ELITE_CUP',
                       'Elite Cup',
                       'Admin-managed teams, dynamic league phase and playoffs.',
+                    ],
+                    [
+                      'UCL_CUP',
+                      'UCL Cup',
+                      'Champions League-style league phase, qualification and final.',
                     ],
                   ] as Array<
                     [

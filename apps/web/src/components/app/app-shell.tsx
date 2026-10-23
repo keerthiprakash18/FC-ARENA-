@@ -441,6 +441,10 @@ function mainIconForHref(
     return 'tournament';
   }
 
+  if (href === '/elite-cup' || href === '/ucl-cup') {
+    return 'tournament';
+  }
+
   if (
     href ===
     '/league-war'

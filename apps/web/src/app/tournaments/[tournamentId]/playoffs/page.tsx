@@ -443,7 +443,10 @@ export default function PlayoffsPage() {
     "GROUP_STAGE_KNOCKOUT" ||
     tournament
       ?.competitionFormat ===
-    "ELITE_CUP";
+    "ELITE_CUP" ||
+    tournament
+      ?.competitionFormat ===
+    "UCL_CUP";
 
 
   const stageReady =

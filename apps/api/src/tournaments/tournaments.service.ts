@@ -73,7 +73,7 @@ export class TournamentsService {
           ),
 
         groupMode:
-          dto.competitionFormat === 'ELITE_CUP'
+          ['ELITE_CUP', 'UCL_CUP'].includes(dto.competitionFormat ?? '')
             ? 'SINGLE_GROUP'
             : dto.groupMode ??
               (dto.competitionFormat ===
@@ -82,9 +82,9 @@ export class TournamentsService {
                 : 'SINGLE_GROUP'),
 
         legType:
-          dto.competitionFormat === 'ELITE_CUP' ||
+          ['ELITE_CUP', 'UCL_CUP'].includes(dto.competitionFormat ?? '') ||
           dto.competitionFormat === 'DOUBLE_ROUND_ROBIN'
-            ? dto.competitionFormat === 'ELITE_CUP'
+            ? ['ELITE_CUP', 'UCL_CUP'].includes(dto.competitionFormat ?? '')
               ? 'SINGLE_LEG'
               : 'HOME_AWAY'
             : dto.legType ?? 'SINGLE_LEG',
@@ -92,7 +92,7 @@ export class TournamentsService {
         fixtureMode:
           dto.competitionFormat === 'CUSTOM_MANUAL'
             ? 'MANUAL'
-            : dto.competitionFormat === 'ELITE_CUP'
+            : ['ELITE_CUP', 'UCL_CUP'].includes(dto.competitionFormat ?? '')
               ? dto.fixtureMode === 'RANDOMIZED'
                 ? 'RANDOMIZED'
                 : 'AUTOMATIC'
@@ -103,7 +103,7 @@ export class TournamentsService {
           'LEAGUE',
 
         registrationMode:
-          dto.competitionFormat === 'ELITE_CUP'
+          ['ELITE_CUP', 'UCL_CUP'].includes(dto.competitionFormat ?? '')
             ? 'ADMIN_ONLY'
             : dto.registrationMode ?? 'APPROVAL',
 
@@ -123,7 +123,9 @@ export class TournamentsService {
 
         logoUrl:
           dto.logoUrl?.trim() ||
-          null,
+          (dto.competitionFormat === 'UCL_CUP'
+            ? '/branding/ucl-cup.svg'
+            : null),
 
         startAt:
           dto.startAt
@@ -1372,7 +1374,9 @@ export class TournamentsService {
           logoUrl:
             dto.logoUrl ===
             undefined
-              ? undefined
+              ? competitionFormat === 'UCL_CUP' && !tournament.logoUrl
+                ? '/branding/ucl-cup.svg'
+                : undefined
               : dto.logoUrl.trim() ||
                 null,
 
@@ -1390,7 +1394,7 @@ export class TournamentsService {
           groupMode,
 
           legType:
-            competitionFormat === 'ELITE_CUP'
+            ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
               ? 'SINGLE_LEG'
               : competitionFormat === 'DOUBLE_ROUND_ROBIN'
                 ? 'HOME_AWAY'
@@ -1399,7 +1403,7 @@ export class TournamentsService {
           fixtureMode:
             competitionFormat === 'CUSTOM_MANUAL'
               ? 'MANUAL'
-              : competitionFormat === 'ELITE_CUP'
+              : ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                 ? dto.fixtureMode === 'RANDOMIZED'
                   ? 'RANDOMIZED'
                   : 'AUTOMATIC'
@@ -1409,7 +1413,7 @@ export class TournamentsService {
             dto.visibility,
 
           registrationMode:
-            competitionFormat === 'ELITE_CUP'
+            ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
               ? 'ADMIN_ONLY'
               : dto.registrationMode,
 
@@ -1565,6 +1569,7 @@ export class TournamentsService {
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
         'ELITE_CUP',
+        'UCL_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -1604,6 +1609,7 @@ export class TournamentsService {
       | 'SINGLE_ELIMINATION'
       | 'GROUP_STAGE_KNOCKOUT'
       | 'ELITE_CUP'
+      | 'UCL_CUP'
       | 'CUSTOM_MANUAL'
       | undefined,
 

@@ -1,0 +1,18 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="24" y1="20" x2="232" y2="236" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06172B"/>
+      <stop offset="1" stop-color="#102C55"/>
+    </linearGradient>
+    <linearGradient id="star" x1="128" y1="28" x2="128" y2="223" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8BE8FF"/>
+      <stop offset="1" stop-color="#1A9DFF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="118" fill="url(#bg)" stroke="#2BBAFF" stroke-width="5"/>
+  <circle cx="128" cy="128" r="96" stroke="#2BBAFF" stroke-opacity="0.28" stroke-width="2"/>
+  <path d="M128 35L142 77L186 77L150 103L164 146L128 120L92 146L106 103L70 77L114 77L128 35Z" fill="url(#star)"/>
+  <path d="M128 118L139 151L174 151L146 171L157 205L128 184L99 205L110 171L82 151L117 151L128 118Z" fill="#E9FBFF" fill-opacity="0.92"/>
+  <path d="M61 190C80 211 102 221 128 221C154 221 176 211 195 190" stroke="#2BBAFF" stroke-width="4" stroke-linecap="round"/>
+  <text x="128" y="246" text-anchor="middle" fill="#BFEFFF" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="3">UCL CUP</text>
+</svg>

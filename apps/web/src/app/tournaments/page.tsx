@@ -63,7 +63,8 @@ type CompetitionFormat =
   | "DOUBLE_ROUND_ROBIN"
   | "SINGLE_ELIMINATION"
   | "GROUP_STAGE_KNOCKOUT"
-  | "ELITE_CUP";
+  | "ELITE_CUP"
+  | "UCL_CUP";
 
 function tournamentFilter(tournament: Tournament): Filter {
   if (["COMPLETED", "CANCELLED"].includes(tournament.status)) {
@@ -662,7 +663,7 @@ export default function TournamentsPage() {
                 format already configured.
               </p>
 
-               <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+               <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
                 {(
                   [
                     {
@@ -702,6 +703,14 @@ export default function TournamentsPage() {
                         "Admin-managed teams with a dynamic league phase and playoffs.",
                       icon: "★",
                       meta: "Dynamic teams · Shared rankings",
+                    },
+                    {
+                      value: "UCL_CUP",
+                      title: "UCL Cup",
+                      description:
+                        "Champions League-style league phase with qualification and playoffs.",
+                      icon: "✦",
+                      meta: "League phase · Qualification · Final",
                     },
                   ] as Array<{
                     value: CompetitionFormat;

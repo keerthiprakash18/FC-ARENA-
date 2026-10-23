@@ -453,7 +453,7 @@ export default function QualificationPage() {
   const resolvedSource =
     useMemo<Exclude<PlayoffSource, "AUTO">>(
       () => {
-        if (competitionFormat === "ELITE_CUP") {
+        if (competitionFormat === "ELITE_CUP" || competitionFormat === "UCL_CUP") {
           return "OVERALL_STANDINGS";
         }
 
@@ -492,7 +492,7 @@ export default function QualificationPage() {
 
 
   const totalQualifiers =
-    competitionFormat === "ELITE_CUP"
+    competitionFormat === "ELITE_CUP" || competitionFormat === "UCL_CUP"
       ? getEliteCupPlayoffQualifierCount(approvedEntries)
       : resolvedSource ===
     "GROUP_QUALIFIERS"
@@ -526,7 +526,7 @@ export default function QualificationPage() {
         value: "GROUP_QUALIFIERS" as const,
         label: "Group Qualifiers",
         description: "Take Top N entries from each group.",
-         disabled: competitionFormat === "ELITE_CUP" || groupCount < 2,
+          disabled: competitionFormat === "ELITE_CUP" || competitionFormat === "UCL_CUP" || groupCount < 2,
       },
       {
         value: "OVERALL_STANDINGS" as const,
@@ -574,7 +574,7 @@ export default function QualificationPage() {
                   ? qualifiersPerGroup
                   : undefined,
               playoffQualifiersTotal:
-                competitionFormat === "ELITE_CUP"
+                competitionFormat === "ELITE_CUP" || competitionFormat === "UCL_CUP"
                   ? undefined
                   : resolvedSource !==
                     "GROUP_QUALIFIERS"
@@ -821,14 +821,14 @@ export default function QualificationPage() {
                   }
                 />
               </label>
-             ) : competitionFormat === "ELITE_CUP" ? (
+             ) : competitionFormat === "ELITE_CUP" || competitionFormat === "UCL_CUP" ? (
                <div className="field">
                  <span>Total Playoff Entries</span>
                  <div className="rounded-xl border border-sky-400/20 bg-sky-400/5 px-4 py-3 text-sm font-black text-sky-200">
                    Automatic · {totalQualifiers} entries
                  </div>
                  <p className="theme-muted mt-2 text-xs leading-5">
-                   Elite Cup calculates the playoff field from the approved team count.
+                    UCL Cup / Elite Cup calculates the playoff field from the approved team count.
                  </p>
                </div>
              ) : (

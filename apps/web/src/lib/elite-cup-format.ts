@@ -1,4 +1,8 @@
-export type EliteCupFormat = 'KNOCKOUT' | 'ROUND_ROBIN' | 'ELITE_CUP';
+export type EliteCupFormat =
+  | 'KNOCKOUT'
+  | 'ROUND_ROBIN'
+  | 'ELITE_CUP'
+  | 'UCL_CUP';
 
 export interface EliteCupFormatDefinition {
   label: string;
@@ -30,6 +34,12 @@ export const ELITE_CUP_FORMATS: Record<
     shortLabel: 'Elite Cup',
     description: 'The approved team count controls the league-phase schedule and playoff field.',
     rangeLabel: 'Saved Elite Cup configuration',
+  },
+  UCL_CUP: {
+    label: 'UCL Cup League Phase + Playoff',
+    shortLabel: 'UCL Cup',
+    description: 'The approved field plays a partial league phase before the top-ranked teams enter the UCL Cup playoff bracket.',
+    rangeLabel: 'Saved UCL Cup configuration',
   },
 };
 
@@ -75,6 +85,10 @@ export function normalizeEliteCupFormat(
     return 'ELITE_CUP';
   }
 
+  if (normalized === 'UCL_CUP') {
+    return 'UCL_CUP';
+  }
+
   if (normalized === 'KNOCKOUT' || normalized === 'SINGLE_ELIMINATION') {
     return 'KNOCKOUT';
   }
@@ -95,6 +109,7 @@ export function savedEliteCupFormatMatchesRecommendation(
   return (
     normalized !== null &&
     (normalized === 'ELITE_CUP' ||
+      normalized === 'UCL_CUP' ||
       normalized === getEliteCupRecommendedFormat(approvedTeams))
   );
 }

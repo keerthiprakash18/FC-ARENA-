@@ -110,14 +110,14 @@ export class TournamentFixtureWizardService {
 
         data: {
           fixtureMode:
-            tournament.competitionFormat === 'ELITE_CUP'
+            ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat)
               ? dto.fixtureMode === 'RANDOMIZED'
                 ? 'RANDOMIZED'
                 : 'AUTOMATIC'
               : dto.fixtureMode,
 
           legType:
-            tournament.competitionFormat === 'ELITE_CUP'
+            ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat)
               ? 'SINGLE_LEG'
               : dto.legType,
 
@@ -1128,7 +1128,7 @@ export class TournamentFixtureWizardService {
     registrationIds:
       string[],
   ) {
-    if (competitionFormat === 'ELITE_CUP') {
+    if (competitionFormat === 'ELITE_CUP' || competitionFormat === 'UCL_CUP') {
       const schedule = generateEliteCupSchedule(
         registrationIds,
         Math.min(8, Math.max(1, registrationIds.length - 1)),

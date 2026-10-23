@@ -143,7 +143,7 @@ export class FixturesService {
         : null;
 
     const eliteCupSchedule =
-      tournament.competitionFormat === 'ELITE_CUP'
+      ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat)
         ? generateEliteCupSchedule(
             registrationIds,
             Math.min(8, Math.max(1, registrationIds.length - 1)),

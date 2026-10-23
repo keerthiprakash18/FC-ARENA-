@@ -49,6 +49,7 @@ export class UpdateTournamentSetupDto {
     'SINGLE_ELIMINATION',
     'GROUP_STAGE_KNOCKOUT',
     'ELITE_CUP',
+    'UCL_CUP',
     'CUSTOM_MANUAL',
   ])
   competitionFormat?:
@@ -57,6 +58,7 @@ export class UpdateTournamentSetupDto {
     | 'SINGLE_ELIMINATION'
     | 'GROUP_STAGE_KNOCKOUT'
     | 'ELITE_CUP'
+    | 'UCL_CUP'
     | 'CUSTOM_MANUAL';
 
   @IsOptional()

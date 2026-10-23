@@ -41,6 +41,7 @@ type CompetitionFormat =
   | 'SINGLE_ELIMINATION'
   | 'GROUP_STAGE_KNOCKOUT'
   | 'ELITE_CUP'
+  | 'UCL_CUP'
   | 'CUSTOM_MANUAL';
 
 type GroupMode =
@@ -413,24 +414,24 @@ export default function TournamentSetupPage() {
               competitionFormat,
 
               groupMode:
-                competitionFormat === 'ELITE_CUP'
+                ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                   ? 'SINGLE_GROUP'
                   : groupMode,
 
               legType:
-                competitionFormat === 'ELITE_CUP'
+                ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                   ? 'SINGLE_LEG'
                   : legType,
 
               fixtureMode:
-                competitionFormat === 'ELITE_CUP'
+                ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                   ? 'AUTOMATIC'
                   : fixtureMode,
 
               visibility,
 
               registrationMode:
-                competitionFormat === 'ELITE_CUP'
+                ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
                   ? 'ADMIN_ONLY'
                   : registrationMode,
 
@@ -675,6 +676,10 @@ export default function TournamentSetupPage() {
                   'Elite Cup',
                 ],
                 [
+                  'UCL_CUP',
+                  'UCL Cup',
+                ],
+                [
                   'CUSTOM_MANUAL',
                   'Custom / Manual',
                 ],
@@ -706,7 +711,7 @@ export default function TournamentSetupPage() {
                         );
                       }
 
-                      if (format === 'ELITE_CUP') {
+                       if (format === 'ELITE_CUP' || format === 'UCL_CUP') {
                         setGroupMode('SINGLE_GROUP');
                         setLegType('SINGLE_LEG');
                         setFixtureMode('AUTOMATIC');
@@ -771,7 +776,7 @@ export default function TournamentSetupPage() {
                       )
                     }
                      aria-pressed={groupMode === value}
-                     disabled={competitionFormat === 'ELITE_CUP'}
+                     disabled={['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)}
                     className={`rounded-2xl border p-4 text-left disabled:opacity-30 ${
                       groupMode ===
                       value
@@ -805,7 +810,7 @@ export default function TournamentSetupPage() {
                   value={
                     legType
                   }
-                  disabled={competitionFormat === 'ELITE_CUP'}
+                   disabled={['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)}
                 onChange={
                   (
                     event,
@@ -840,7 +845,7 @@ export default function TournamentSetupPage() {
                 value={
                   fixtureMode
                 }
-                disabled={competitionFormat === 'ELITE_CUP'}
+                 disabled={['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)}
                 onChange={
                   (
                     event,

@@ -539,6 +539,10 @@ export function competitionLabel(
     return 'Tournament';
   }
 
+  if (value === 'UCL_CUP') {
+    return 'UCL Cup';
+  }
+
   return value
     .replaceAll(
       '_',

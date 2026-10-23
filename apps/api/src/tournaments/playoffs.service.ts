@@ -127,6 +127,7 @@ export class PlayoffsService {
         'GROUP_STAGE_KNOCKOUT',
         'SINGLE_ELIMINATION',
         'ELITE_CUP',
+        'UCL_CUP',
       ].includes(
         tournament.competitionFormat,
       )
@@ -164,7 +165,8 @@ export class PlayoffsService {
 
     if (
       tournament.competitionFormat === 'GROUP_STAGE_KNOCKOUT' ||
-      tournament.competitionFormat === 'ELITE_CUP'
+      tournament.competitionFormat === 'ELITE_CUP' ||
+      tournament.competitionFormat === 'UCL_CUP'
     ) {
       await this.assertStageComplete(
         tournamentId,
@@ -253,7 +255,8 @@ export class PlayoffsService {
 
 
     const qualificationTournament =
-      tournament.competitionFormat === 'ELITE_CUP' &&
+      (tournament.competitionFormat === 'ELITE_CUP' ||
+        tournament.competitionFormat === 'UCL_CUP') &&
       tournament.playoffQualifiersTotal === null
         ? {
             ...tournament,
@@ -411,7 +414,9 @@ export class PlayoffsService {
             tournament.competitionFormat ===
             'GROUP_STAGE_KNOCKOUT' ||
             tournament.competitionFormat ===
-            'ELITE_CUP'
+            'ELITE_CUP' ||
+            tournament.competitionFormat ===
+            'UCL_CUP'
           ) {
             const incomplete =
               await tx.fixture.count({

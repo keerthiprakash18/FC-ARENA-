@@ -141,6 +141,28 @@ export default function MorePage() {
           </div>
         </FcPanel>
 
+        <details className="theme-panel rounded-2xl p-4" open>
+          <summary className="min-h-11 cursor-pointer font-semibold">Competition Hubs</summary>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <FcMenuRow
+              href="/elite-cup"
+              icon="★"
+              title="Elite Cup"
+              description="Open Elite Cup competitions and league-phase playoffs"
+              tone="amber"
+            />
+
+            <FcMenuRow
+              href="/ucl-cup"
+              icon="✦"
+              title="UCL Cup"
+              description="Open Champions League-style league phases and knockout finals"
+              tone="cyan"
+            />
+          </div>
+        </details>
+
         <details className="theme-panel rounded-2xl p-4"><summary className="min-h-11 cursor-pointer font-semibold">Career & Identity</summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">

@@ -30,6 +30,18 @@ export const primaryNavigation:
       icon: 'tournament',
     },
     {
+      label: 'ELITE CUP',
+      shortLabel: 'Elite',
+      href: '/elite-cup',
+      icon: 'tournament',
+    },
+    {
+      label: 'UCL CUP',
+      shortLabel: 'UCL',
+      href: '/ucl-cup',
+      icon: 'tournament',
+    },
+    {
       label: 'FIXTURES',
       shortLabel: 'Matches',
       href: '/fixtures',
@@ -43,8 +55,12 @@ export const primaryNavigation:
     },
   ];
 
-// The product destinations have the same direct access on every screen size.
-export const mobilePrimaryNavigation = primaryNavigation;
+// Keep the mobile rail focused. Competition hubs remain directly available in
+// the desktop sidebar and from the More page without collapsing the five-slot
+// mobile layout that is used by the Android shell.
+export const mobilePrimaryNavigation = primaryNavigation.filter(
+  (item) => item.href !== '/elite-cup' && item.href !== '/ucl-cup',
+);
 
 export function getActivePrimarySection(
   pathname: string,
@@ -59,6 +75,14 @@ export function getActivePrimarySection(
 
   if (pathname.startsWith('/tournaments')) {
     return '/tournaments';
+  }
+
+  if (pathname.startsWith('/elite-cup')) {
+    return '/elite-cup';
+  }
+
+  if (pathname.startsWith('/ucl-cup')) {
+    return '/ucl-cup';
   }
 
   if (

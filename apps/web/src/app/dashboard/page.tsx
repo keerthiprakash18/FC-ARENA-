@@ -487,13 +487,14 @@ export default function DashboardPage() {
   const isLeagueAdmin = Boolean(selectedMembership?.adminRole);
 
   const leagueLogo =
-    selectedMembership?.league.logoUrl ||
-    (selectedMembership?.league.id === career.profile.primaryLeague?.league.id
+    selectedMembership?.league.logoUrl ??
+    (selectedMembership &&
+    career.profile.primaryLeague?.league.id === selectedMembership.league.id
       ? career.profile.primaryLeague.league.logoUrl
-      : selectedMembership?.league.id === career.profile.secondaryLeague?.league.id
+      : selectedMembership &&
+          career.profile.secondaryLeague?.league.id === selectedMembership.league.id
         ? career.profile.secondaryLeague.league.logoUrl
-        : null) ||
-    null;
+        : null);
 
   const createTournamentHref = selectedMembership
     ? `/leagues/${selectedMembership.league.id}/tournaments`

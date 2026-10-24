@@ -1,9 +1,9 @@
 {
   "packageName": "in.fcarena.app",
-  "highestKnownUploadedVersionCode": 16,
-  "highestKnownUploadedVersionName": "1.0.14",
-  "nextCandidateVersionCode": 17,
-  "nextCandidateVersionName": "1.0.15",
-  "lastReviewed": "2026-10-22",
-  "note": "Google Play production confirms version code 16 / version 1.0.14 is available on Google Play, released on 2026-10-22. Version code 17 / version 1.0.15 is the next unused candidate."
+  "highestKnownUploadedVersionCode": 17,
+  "highestKnownUploadedVersionName": "1.0.15",
+  "nextCandidateVersionCode": 18,
+  "nextCandidateVersionName": "1.0.16",
+  "lastReviewed": "2026-10-24",
+  "note": "Google Play Closed testing confirms version code 17 / version 1.0.15 is available to selected testers. Version code 18 / version 1.0.16 is the next unused candidate."
 }

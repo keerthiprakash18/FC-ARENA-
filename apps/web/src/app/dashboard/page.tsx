@@ -748,7 +748,7 @@ export default function DashboardPage() {
                               : "cyan"
                       }
                     />
-                    <p className="text-xs font-medium text-[#8792A1]">
+                    <p className="theme-muted text-xs font-medium">
                       {nextFixture.tournamentName} · {nextFixture.roundName}
                     </p>
                   </div>
@@ -757,7 +757,7 @@ export default function DashboardPage() {
                     <div className="flex min-w-0 flex-col items-center text-center">
                       <FcCrest name={entryName(nextFixture.home)} imageUrl={nextFixture.home?.entryLogoUrl} size="lg" />
 
-                      <p className="mt-3 w-full break-words text-sm font-semibold text-[#0B2545]">
+                      <p className="theme-text mt-3 w-full break-words text-sm font-semibold">
                         {entryName(nextFixture.home)}
                       </p>
                     </div>
@@ -769,26 +769,26 @@ export default function DashboardPage() {
                     <div className="flex min-w-0 flex-col items-center text-center">
                       <FcCrest name={entryName(nextFixture.away)} imageUrl={nextFixture.away?.entryLogoUrl} size="lg" />
 
-                      <p className="mt-3 w-full break-words text-sm font-semibold text-[#0B2545]">
+                      <p className="theme-text mt-3 w-full break-words text-sm font-semibold">
                         {entryName(nextFixture.away)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="premium-match-footer mt-6 flex flex-col gap-3 border-t border-[#DED8CD] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="premium-match-footer mt-6 flex flex-col gap-3 border-t border-[var(--theme-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-[#8792A1]">
+                      <p className="theme-muted text-xs font-semibold">
                         {nextFixture.leagueName} · {nextFixture.matchday ? `Matchday ${nextFixture.matchday}` : nextFixture.roundName}
                       </p>
 
-                      <p className="mt-1 text-sm font-medium text-[#54657A]">
+                      <p className="theme-secondary-text mt-1 text-sm font-medium">
                         {nextFixtureKind === "POSTPONED"
                           ? "Awaiting a new kickoff time"
                           : formatFixtureDateTime(nextFixture.scheduledAt)}
                       </p>
 
                       {nextFixtureKind === "UPCOMING" || nextFixtureKind === "TODAY" ? (
-                        <p className="mt-1 text-xs font-semibold text-[#A06B13]">
+                        <p className="theme-warning-text mt-1 text-xs font-semibold">
                           {formatCountdown(nextFixture.scheduledAt, nowMs)}
                         </p>
                       ) : null}
@@ -807,16 +807,16 @@ export default function DashboardPage() {
                   </div>
                 </>
               ) : (
-                <div className="premium-home-empty mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
+                <div className="premium-home-empty mt-6 rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-6 text-center sm:p-8">
                   <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
                     ◷
                   </div>
 
-                  <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
+                  <h3 className="theme-text mt-4 text-base font-semibold">
                     No upcoming matches scheduled
                   </h3>
 
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">
+                  <p className="theme-muted mx-auto mt-2 max-w-md text-sm leading-6">
                     Your next scheduled fixture will appear here when a
                     competition schedule is ready.
                   </p>
@@ -879,11 +879,11 @@ export default function DashboardPage() {
                   />
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-semibold text-[#0B2545]">
+                    <h3 className="theme-text truncate text-lg font-semibold">
                       {selectedMembership.league.name}
                     </h3>
 
-                    <p className="mt-1 font-mono text-xs font-semibold text-[#A06B13]">
+                    <p className="theme-warning-text mt-1 font-mono text-xs font-semibold">
                       {selectedMembership.league.code}
                     </p>
 
@@ -898,25 +898,25 @@ export default function DashboardPage() {
 
                 <div className="mt-5 grid grid-cols-3 gap-2">
                   <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="text-xs text-[#8792A1]">Region</p>
+                    <p className="theme-muted text-xs">Region</p>
 
-                    <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
+                    <p className="theme-text mt-1 truncate text-sm font-medium">
                       {selectedMembership.league.region || "Global"}
                     </p>
                   </div>
 
                   <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="text-xs text-[#8792A1]">Members</p>
+                    <p className="theme-muted text-xs">Members</p>
 
-                    <p className="mt-1 text-sm font-medium text-[#0B2545]">
+                    <p className="theme-text mt-1 text-sm font-medium">
                       {selectedMembership.league.members}
                     </p>
                   </div>
 
                   <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="text-xs text-[#8792A1]">Role</p>
+                    <p className="theme-muted text-xs">Role</p>
 
-                    <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
+                    <p className="theme-text mt-1 truncate text-sm font-medium">
                       {selectedMembership.adminRole || "Player"}
                     </p>
                   </div>
@@ -930,12 +930,12 @@ export default function DashboardPage() {
                 </Link>
               </>
             ) : (
-              <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center">
-                <p className="text-base font-semibold text-[#0B2545]">
+              <div className="mt-6 rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-6 text-center">
+                <p className="theme-text text-base font-semibold">
                   No active League
                 </p>
 
-                <p className="mt-2 text-sm leading-6 text-[#8792A1]">
+                <p className="theme-muted mt-2 text-sm leading-6">
                   Join with an invite code or create your own FC ARENA League.
                 </p>
 
@@ -968,11 +968,11 @@ export default function DashboardPage() {
                   />
 
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-semibold text-[#0B2545]">
+                    <h3 className="theme-text truncate text-lg font-semibold">
                       {activeTournament.name}
                     </h3>
 
-                    <p className="mt-1 text-xs text-[#8792A1]">
+                    <p className="theme-muted mt-1 text-xs">
                       {(
                         activeTournament.competitionFormat ||
                         activeTournament.format
@@ -990,9 +990,9 @@ export default function DashboardPage() {
 
                 <div className="mt-5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8792A1]">Competition progress</span>
+                    <span className="theme-muted">Competition progress</span>
 
-                    <span className="font-medium text-[#54657A]">
+                    <span className="theme-secondary-text font-medium">
                       {activeTournament.approvedEntries}/
                       {activeTournament.maxEntries} entries
                     </span>
@@ -1009,10 +1009,10 @@ export default function DashboardPage() {
                 </div>
 
                 {activeTournamentNextFixture ? (
-                  <div className="mt-5 rounded-xl border border-[#E3DCCF] bg-[#FAF7F0] p-4">
-                    <p className="text-xs text-[#8792A1]">Next fixture</p>
+                  <div className="mt-5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-4">
+                    <p className="theme-muted text-xs">Next fixture</p>
 
-                    <p className="mt-1 truncate text-sm font-medium text-[#0B2545]">
+                        <p className="theme-text mt-1 truncate text-sm font-medium">
                       {entryName(activeTournamentNextFixture.home)}
                       {"  vs  "}
                       {entryName(activeTournamentNextFixture.away)}
@@ -1028,16 +1028,16 @@ export default function DashboardPage() {
                 </Link>
               </>
             ) : (
-              <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
+              <div className="mt-6 rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-6 text-center sm:p-8">
                 <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
                   <FcIcon name="trophy" size={22} />
                 </div>
 
-                <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
+                <h3 className="theme-text mt-4 text-base font-semibold">
                   No Active Tournament
                 </h3>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">
+                <p className="theme-muted mx-auto mt-2 max-w-md text-sm leading-6">
                   Browse your League competitions or start a new Tournament when
                   you have admin access.
                 </p>
@@ -1178,26 +1178,26 @@ export default function DashboardPage() {
                     </span>
 
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-[#0B2545]">
+                      <p className="theme-text truncate text-sm font-medium">
                         {activity.tournament.name}
                       </p>
 
-                      <p className="mt-1 truncate text-xs text-[#8792A1]">
+                      <p className="theme-muted mt-1 truncate text-xs">
                         {activity.tournament.league.name}
                       </p>
                     </div>
                   </div>
 
                   <div className="sm:text-right">
-                    <p className="text-sm font-semibold text-[#54657A]">
+                    <p className="theme-secondary-text text-sm font-semibold">
                       {activity.home.name}{" "}
-                      <span className="text-[#0B2545]">
+                      <span className="theme-text">
                         {activity.home.score}-{activity.away.score}
                       </span>{" "}
                       {activity.away.name}
                     </p>
 
-                    <p className="mt-1 text-xs text-[#536273]">
+                    <p className="theme-muted mt-1 text-xs">
                       {new Date(activity.confirmedAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -1205,13 +1205,13 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-5 flex flex-col gap-4 rounded-xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-5 flex flex-col gap-4 rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#0B2545]">
+                <p className="theme-text text-sm font-semibold">
                   No recent activity
                 </p>
 
-                <p className="mt-1 text-sm text-[#8792A1]">
+                <p className="theme-muted mt-1 text-sm">
                   Verified match results will appear here.
                 </p>
               </div>

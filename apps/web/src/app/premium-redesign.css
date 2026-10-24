@@ -468,6 +468,9 @@
 .fc-premium .fc-main {
   color: var(--theme-text);
 }
+.fc-premium .theme-warning-text {
+  color: var(--theme-warning);
+}
 .fc-premium .fc-main .fc-panel,
 .fc-premium .fc-main .theme-panel,
 .fc-premium .fc-main .theme-stat-card,

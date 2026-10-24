@@ -15,8 +15,8 @@ test('classic dashboard hero contract stays intact', () => {
   for (const signature of [
     'fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border',
     'relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px]',
-    'WELCOME BACK',
-    'Your next match. Your club. Your season.',
+    'FC ARENA MATCHDAY',
+    'Your next opponent, your competition, and your season — all in one place.',
   ]) {
     assert.ok(
       dashboard.includes(signature),

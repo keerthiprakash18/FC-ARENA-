@@ -501,6 +501,11 @@ export default function DashboardPage() {
     [selectedMembership, tournaments],
   );
 
+  const scopedTournamentIds = useMemo(
+    () => new Set(scopedTournaments.map((tournament) => tournament.id)),
+    [scopedTournaments],
+  );
+
   const activeTournament = useMemo(
     () =>
       scopedTournaments.find(
@@ -526,7 +531,9 @@ export default function DashboardPage() {
       return [];
     }
 
-    return fixtures
+    const scopedFixtures = fixtures.filter((fixture) => scopedTournamentIds.has(fixture.tournamentId));
+
+    return scopedFixtures
       .filter(
         (fixture) =>
           fixtureIsRelevant(fixture) &&
@@ -537,7 +544,7 @@ export default function DashboardPage() {
           ),
       )
       .sort(sortByFixtureTime);
-  }, [fixtures, registrationIdsByTournament, user]);
+  }, [fixtures, registrationIdsByTournament, scopedTournamentIds, user]);
 
   const liveFixture = personalRelevantFixtures.find(isLiveFixture) ?? null;
 
@@ -633,10 +640,10 @@ export default function DashboardPage() {
           </div>
         ) : null}
 
-        <section className="fc-dashboard-hero premium-home-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
+        <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border premium-home-hero">
           <div className="fc-hero-right hidden lg:block" />
 
-          <div className="relative z-10 grid min-h-[220px] gap-5 px-5 py-5 sm:px-7 sm:py-6 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
+          <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] sm:py-6 lg:items-center lg:px-8">
             <div>
               <div className="theme-hero-avatar-ring grid h-[68px] w-[68px] place-items-center rounded-full border-[3px] sm:h-[82px] sm:w-[82px] lg:h-[86px] lg:w-[86px]">
                 <FcCrest

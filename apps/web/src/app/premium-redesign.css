@@ -185,6 +185,8 @@
 .premium-home-empty p { max-width: 520px; color: #c4d0dd; font-size: 14px; line-height: 1.65; margin-block: 12px 22px; }
 .premium-home-empty > a { flex-shrink: 0; }
 .fc-dashboard-page .premium-home-hero {
+  /* The inner grid owns padding; do not add a second inset around it. */
+  padding: 0;
   border-color: #294357;
   background:
     linear-gradient(110deg, rgba(7, 24, 42, 0.98), rgba(13, 38, 61, 0.9)),
@@ -203,8 +205,8 @@
   box-shadow: 0 0 0 24px rgb(229 199 127 / 5%), 0 0 0 56px rgb(229 199 127 / 3%);
   transform: perspective(700px) rotateX(62deg);
 }
-.fc-dashboard-page .premium-home-hero .theme-text { color: #fffefa; }
-.fc-dashboard-page .premium-home-hero .theme-secondary-text { color: #c4d0dd; }
+.fc-dashboard-page .premium-home-hero .theme-text { color: var(--theme-text); }
+.fc-dashboard-page .premium-home-hero .theme-secondary-text { color: var(--theme-text-secondary); }
 .fc-dashboard-page .premium-home-hero .theme-soft-accent {
   border-color: #456074;
   background: #18364e;
@@ -215,6 +217,9 @@
   color: #0d263d !important;
 }
 .fc-dashboard-page .premium-home-next {
+  /* This is a grid card, not the half-width inset used on the landing page. */
+  width: 100%;
+  align-self: start;
   border-top: 3px solid var(--premium-gold);
   background: var(--theme-surface);
 }
@@ -238,6 +243,13 @@
 .fc-dashboard-page .premium-home-next .premium-home-empty p {
   color: var(--theme-text-secondary);
 }
+.fc-dashboard-page .fc-next-match-empty > :is(h3, p) {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+}
 @media (max-width: 639px) {
   .fc-dashboard-page .premium-home-hero {
     min-height: 0;
@@ -246,7 +258,7 @@
     inset: auto -30% -46% 18%;
   }
   .fc-dashboard-page .premium-home-next {
-    padding: 16px;
+    padding: 20px;
   }
   .fc-dashboard-page .premium-home-next .premium-match-sides {
     gap: 8px;

@@ -45,6 +45,19 @@ test('dashboard exposes and applies an explicit multi-league context', () => {
   );
 });
 
+test('dashboard removes the duplicate inbox strip but preserves the header notification bell', () => {
+  const dashboard = read('apps/web/src/app/dashboard/page.tsx');
+  assert.doesNotMatch(dashboard, /Your action inbox|Reminders & approvals/);
+  assert.match(read('apps/web/src/components/app/app-header.tsx'), /<NotificationBell\s*\/>/);
+});
+
+test('Next Match has a single-column empty state and only shares columns with a visible league card', () => {
+  const dashboard = read('apps/web/src/app/dashboard/page.tsx');
+  assert.match(dashboard, /fc-next-match-empty[^"\n]*grid-cols-\[minmax\(0,1fr\)\]/);
+  assert.match(dashboard, /isVisible\("nextMatch"\) && isVisible\("league"\) \? "xl:grid-cols-/);
+  assert.match(dashboard, /No upcoming matches scheduled/);
+});
+
 test('mobile bottom navigation remains five equal columns', () => {
   const premiumCss = read('apps/web/src/app/premium-redesign.css');
   const navigation = read('apps/web/src/components/app/primary-navigation.ts');

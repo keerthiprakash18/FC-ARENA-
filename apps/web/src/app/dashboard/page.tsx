@@ -633,7 +633,6 @@ export default function DashboardPage() {
     >
       <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-6">
         <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
-        <Link href="/notifications" className="theme-action-row flex items-center justify-between rounded-xl border p-4 font-semibold"><span>Your action inbox</span><span className="text-sm">Reminders & approvals →</span></Link>
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {error}
@@ -713,7 +712,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className={`fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr] ${!isVisible("nextMatch") && !isVisible("league") ? "hidden" : ""}`}>
+        <section className={`fc-dashboard-section grid items-start gap-4 sm:gap-6 ${isVisible("nextMatch") && isVisible("league") ? "xl:grid-cols-[minmax(0,1.75fr)_minmax(0,0.95fr)]" : ""} ${!isVisible("nextMatch") && !isVisible("league") ? "hidden" : ""}`}>
           <FcPanel className={`fc-next-match-panel premium-home-next relative overflow-hidden p-5 sm:p-6 ${!isVisible("nextMatch") ? "hidden" : ""}`}>
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
@@ -814,23 +813,19 @@ export default function DashboardPage() {
                   </div>
                 </>
               ) : (
-                <div className="premium-home-empty mt-6 rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-6 text-center sm:p-8">
-                  <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
-                    ◷
-                  </div>
-
-                  <h3 className="theme-text mt-4 text-base font-semibold">
+                <div className="fc-next-match-empty mt-4 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-4 text-left sm:p-5">
+                  <h3 className="theme-text text-lg font-semibold leading-snug">
                     No upcoming matches scheduled
                   </h3>
 
-                  <p className="theme-muted mx-auto mt-2 max-w-md text-sm leading-6">
+                  <p className="theme-muted text-sm leading-6">
                     Your next scheduled fixture will appear here when a
                     competition schedule is ready.
                   </p>
 
                   <Link
                     href="/fixtures"
-                    className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
+                    className="theme-primary-button mt-1 inline-flex min-h-11 justify-self-start items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                   >
                     View Fixtures →
                   </Link>

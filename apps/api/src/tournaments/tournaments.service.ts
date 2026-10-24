@@ -13,6 +13,7 @@ import type { DeleteTournamentDto } from './dto/delete-tournament.dto.js';
 import type { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
 import type { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import type { RegisterTournamentDto } from './dto/register-tournament.dto.js';
+import { assertUniqueEntryName } from './entry-name.js';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -712,9 +713,13 @@ export class TournamentsService {
       tournament.registrationMode ===
       'OPEN';
 
+    const entryName = dto.entryName?.trim() ||
+      (isIndividualEntry ? currentPlayer.identity?.inGameName ?? currentPlayer.user.fullName : null);
+
     const registration =
-      await this.prisma.$transaction(
+      await this.prisma.$transactionWithRetry(
         async (tx) => {
+          await assertUniqueEntryName(tx, tournamentId, entryName);
           if (autoApprove) {
             const approvedCount =
               await tx.tournamentRegistration.count({
@@ -750,19 +755,7 @@ export class TournamentsService {
                 registeredByUserId:
                   userId,
 
-                entryName:
-                  dto.entryName
-                    ?.trim() ||
-                  (
-                    isIndividualEntry
-                      ? currentPlayer
-                          .identity
-                          ?.inGameName ??
-                        currentPlayer
-                          .user
-                          .fullName
-                      : null
-                  ),
+                entryName,
 
                 status:
                   autoApprove
@@ -1033,6 +1026,8 @@ export class TournamentsService {
             },
           });
         }
+
+        await assertUniqueEntryName(tx, tournamentId, registration.entryName, registration.id);
 
         const tournament =
           await tx.tournament.findUniqueOrThrow({

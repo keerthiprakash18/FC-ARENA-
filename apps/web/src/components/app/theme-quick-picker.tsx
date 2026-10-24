@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import {
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
@@ -21,6 +22,8 @@ import {
 } from '@/lib/theme';
 
 export function ThemeQuickPicker() {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const dialogId = useId();
   const {
     themePreference,
     setThemePreference,
@@ -67,52 +70,15 @@ export function ThemeQuickPicker() {
         return;
       }
 
-      function onPointerDown(
-        event:
-          MouseEvent,
-      ) {
-        if (
-          rootRef.current &&
-          !rootRef.current.contains(
-            event.target as Node,
-          )
-        ) {
-          setOpen(false);
-        }
-      }
-
-      function onKeyDown(
-        event:
-          KeyboardEvent,
-      ) {
-        if (
-          event.key ===
-          'Escape'
-        ) {
-          setOpen(false);
-        }
-      }
-
-      document.addEventListener(
-        'mousedown',
-        onPointerDown,
-      );
-
-      window.addEventListener(
-        'keydown',
-        onKeyDown,
-      );
+      const dialog = dialogRef.current;
+      const trigger = rootRef.current?.querySelector('button');
+      // The top layer escapes the header's containment and stacking context.
+      dialog?.showModal();
+      dialog?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
 
       return () => {
-        document.removeEventListener(
-          'mousedown',
-          onPointerDown,
-        );
-
-        window.removeEventListener(
-          'keydown',
-          onKeyDown,
-        );
+        dialog?.close();
+        trigger?.focus();
       };
     },
     [
@@ -182,6 +148,7 @@ export function ThemeQuickPicker() {
         aria-label="Choose club theme"
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-controls={open ? dialogId : undefined}
         title="Club Themes"
         onClick={() => {
           setError('');
@@ -211,10 +178,19 @@ export function ThemeQuickPicker() {
       </button>
 
       {open ? (
-        <div
-          role="dialog"
+        <dialog
+          ref={dialogRef}
+          id={dialogId}
+          aria-modal="true"
           aria-label="Choose FC Arena club theme"
-          className="theme-elevated fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[80] max-h-[calc(100dvh-7rem)] overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text)] shadow-[0_22px_64px_rgba(0,0,0,0.24)] sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-12 sm:w-[390px]"
+          aria-busy={saving !== null}
+          onCancel={(event) => { event.preventDefault(); setOpen(false); }}
+          onClick={(event) => {
+            if (event.target !== event.currentTarget) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) setOpen(false);
+          }}
+          className="theme-dialog club-theme-picker"
         >
           <div className="flex items-start justify-between gap-4 border-b border-[var(--theme-border)] p-4">
             <div>
@@ -245,7 +221,7 @@ export function ThemeQuickPicker() {
             </button>
           </div>
 
-          <div className="max-h-[56vh] overflow-y-auto p-3 sm:max-h-[430px]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
             <div className="grid grid-cols-2 gap-2">
               {THEME_OPTIONS.map(
                 (
@@ -282,6 +258,11 @@ export function ThemeQuickPicker() {
                         )
                       }
                     >
+                      <span
+                        aria-hidden="true"
+                        className="mb-3 block h-10 rounded-lg"
+                        style={{ background: `linear-gradient(125deg, ${option.preview.sidebar}, ${option.preview.accent})` }}
+                      />
                       <span className="flex items-center justify-between gap-2">
                         <span
                           aria-hidden="true"
@@ -373,7 +354,7 @@ export function ThemeQuickPicker() {
               Full Appearance Settings
             </Link>
           </div>
-        </div>
+        </dialog>
       ) : null}
     </div>
   );

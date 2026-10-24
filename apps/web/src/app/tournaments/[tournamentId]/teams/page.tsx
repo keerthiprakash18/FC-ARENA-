@@ -1,4 +1,5 @@
 'use client';
+import { normalizeTeamName } from '@/lib/entry-name';
 
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
@@ -517,6 +518,12 @@ export default function TournamentTeamsPage() {
   async function saveEdit(
     entryId: string,
   ) {
+    if (busy) return;
+    if (entries.some((entry) => entry.id !== entryId && normalizeTeamName(entry.entryName ?? '') === normalizeTeamName(editName))) {
+      setMessage('');
+      setError(`“${editName.trim()}” already exists in this Tournament. Choose a different team name.`);
+      return;
+    }
     if (
       !canManageEntries
     ) {

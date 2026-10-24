@@ -1429,6 +1429,7 @@ export default function TournamentRegistrationPage() {
               )}
 
 
+              {error ? <p role="alert" className="fc-notice" data-tone="error">{error}</p> : null}
               <button
                 disabled={
                   busy

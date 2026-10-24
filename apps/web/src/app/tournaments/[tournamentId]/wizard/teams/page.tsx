@@ -12,6 +12,7 @@ import {
 
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -34,6 +35,7 @@ import {
   getCurrentUser,
   type CurrentUser,
 } from '@/lib/auth-client';
+import { normalizeTeamName } from '@/lib/entry-name';
 
 
 interface Tournament {
@@ -93,8 +95,13 @@ const routeMap:
       'review',
   };
 
+function uniqueNames(values: string[]) {
+  return [...new Map(values.map((value) => [normalizeTeamName(value), value])).values()];
+}
+
 
 export default function TeamsWizardPage() {
+  const noticeRef = useRef<HTMLDivElement>(null);
   const params =
     useParams<{
       tournamentId:
@@ -217,6 +224,10 @@ export default function TeamsWizardPage() {
     );
   }
 
+  useEffect(() => {
+    if (error) noticeRef.current?.scrollIntoView({ block: 'center' });
+  }, [error]);
+
 
   useEffect(() => {
     async function load() {
@@ -316,6 +327,22 @@ export default function TeamsWizardPage() {
           ) ?? '',
         );
 
+      const normalizedName = normalizeTeamName(name);
+
+      if (!normalizedName) {
+        setError('Team name is required.');
+        return;
+      }
+
+      const existingEntry = entries.find(
+        (entry) => normalizeTeamName(entry.entryName ?? '') === normalizedName,
+      );
+
+      if (existingEntry) {
+        setError(`“${name.trim()}” already exists in this Tournament. Choose a different team name.`);
+        return;
+      }
+
       await authenticatedRequest(
         `/tournaments/${tournamentId}/entries`,
         {
@@ -359,6 +386,9 @@ export default function TeamsWizardPage() {
 
 
   async function bulkAdd() {
+    if (busy) return;
+    setMessage('');
+    setError('');
     const names =
       bulkText
         .split(
@@ -374,6 +404,32 @@ export default function TeamsWizardPage() {
       names.length ===
       0
     ) {
+      return;
+    }
+
+    const inputDuplicates = uniqueNames(
+      names.filter(
+        (name, index) =>
+          names.findIndex(
+            (candidate) => normalizeTeamName(candidate) === normalizeTeamName(name),
+          ) !== index,
+      ),
+    );
+
+    if (inputDuplicates.length > 0) {
+      setError(`Duplicate team name(s) in this list: ${inputDuplicates.join(', ')}.`);
+      return;
+    }
+
+    const existingNames = new Set(
+      entries.map((entry) => normalizeTeamName(entry.entryName ?? '')).filter(Boolean),
+    );
+    const alreadyAdded = uniqueNames(
+      names.filter((name) => existingNames.has(normalizeTeamName(name))),
+    );
+
+    if (alreadyAdded.length > 0) {
+      setError(`These team(s) already exist in this Tournament: ${alreadyAdded.join(', ')}.`);
       return;
     }
 
@@ -477,6 +533,24 @@ export default function TeamsWizardPage() {
   async function saveEdit(
     entryId: string,
   ) {
+    if (busy) return;
+    setMessage('');
+    if (!editName.trim()) {
+      setError('Team name is required.');
+      return;
+    }
+    const normalizedEditName = normalizeTeamName(editName);
+    const duplicateEntry = entries.find(
+      (entry) =>
+        entry.id !== entryId &&
+        normalizeTeamName(entry.entryName ?? '') === normalizedEditName,
+    );
+
+    if (duplicateEntry) {
+      setError(`“${editName.trim()}” already exists in this Tournament. Choose a different team name.`);
+      return;
+    }
+
     setBusy(true);
     setError('');
     setMessage('');
@@ -836,7 +910,7 @@ export default function TeamsWizardPage() {
       >
 
         <FcNotice>{message}</FcNotice>
-        <FcNotice tone="error">{error}</FcNotice>
+        <div ref={noticeRef} className="scroll-mt-24"><FcNotice tone="error">{error}</FcNotice></div>
 
 
         <section className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-5 sm:p-6">

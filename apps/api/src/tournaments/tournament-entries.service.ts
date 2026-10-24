@@ -29,6 +29,7 @@ import type {
 import {
   deduplicateFixtureRecords,
 } from './fixture-deduplication.js';
+import { assertUniqueEntryName, normalizeEntryName } from './entry-name.js';
 
 
 @Injectable()
@@ -248,61 +249,30 @@ export class TournamentEntriesService {
       });
     }
 
-    await this.assertUniqueEntryName(
-      tournamentId,
-      entryName,
-    );
+    const entry = await this.prisma.$transactionWithRetry(async (tx) => {
+      await assertUniqueEntryName(tx, tournamentId, entryName);
+      const currentCount = await tx.tournamentRegistration.count({
+        where: { tournamentId, status: { in: ['APPROVED', 'PENDING'] } },
+      });
 
-    const currentCount =
-      await this.prisma.tournamentRegistration.count({
-        where: {
-          tournamentId,
-
-          status: {
-            in: [
-              'APPROVED',
-              'PENDING',
-            ],
+      if (currentCount >= tournament.maxEntries) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code: 'TOURNAMENT_ENTRY_LIMIT_REACHED',
+            message: `This Tournament allows a maximum of ${tournament.maxEntries} entries.`,
           },
-        },
+        });
+      }
+
+      const latest = await tx.tournamentRegistration.findFirst({
+        where: { tournamentId },
+        orderBy: { sortOrder: 'desc' },
+        select: { sortOrder: true },
       });
 
-    if (
-      currentCount >=
-      tournament.maxEntries
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'TOURNAMENT_ENTRY_LIMIT_REACHED',
-
-          message:
-            `This Tournament allows a maximum of ${tournament.maxEntries} entries.`,
-        },
-      });
-    }
-
-    const latest =
-      await this.prisma.tournamentRegistration.findFirst({
-        where: {
-          tournamentId,
-        },
-
-        orderBy: {
-          sortOrder:
-            'desc',
-        },
-
-        select: {
-          sortOrder: true,
-        },
-      });
-
-    const entry =
-      await this.prisma.tournamentRegistration.create({
+      return tx.tournamentRegistration.create({
         data: {
           tournamentId,
 
@@ -329,6 +299,7 @@ export class TournamentEntriesService {
             new Date(),
         },
       });
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,
@@ -372,7 +343,7 @@ export class TournamentEntriesService {
     const normalized =
       names.map(
         (name) =>
-          name.toLocaleLowerCase(),
+          normalizeEntryName(name),
       );
 
     if (
@@ -395,114 +366,47 @@ export class TournamentEntriesService {
       });
     }
 
-    const existing =
-      await this.prisma.tournamentRegistration.findMany({
-        where: {
-          tournamentId,
+    await this.prisma.$transactionWithRetry(async (tx) => {
+      const existing = await tx.tournamentRegistration.findMany({
+        where: { tournamentId, status: { in: ['APPROVED', 'PENDING'] } },
+        select: { entryName: true },
+      });
 
-          status: {
-            in: [
-              'APPROVED',
-              'PENDING',
-            ],
+      const existingNames = new Set(
+        existing.map((entry) => entry.entryName ? normalizeEntryName(entry.entryName) : '').filter(Boolean),
+      );
+      const duplicates = names.filter((name) => existingNames.has(normalizeEntryName(name)));
+      if (duplicates.length > 0) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code: 'ENTRY_NAME_ALREADY_EXISTS',
+            message: `These team(s) already exist in this Tournament: ${duplicates.join(', ')}.`,
           },
-        },
+        });
+      }
 
-        select: {
-          entryName: true,
-        },
+      if (existing.length + names.length > tournament.maxEntries) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code: 'TOURNAMENT_ENTRY_LIMIT_REACHED',
+            message: `Only ${Math.max(0, tournament.maxEntries - existing.length)} more team(s) can be added.`,
+          },
+        });
+      }
+
+      const latest = await tx.tournamentRegistration.findFirst({
+        where: { tournamentId },
+        orderBy: { sortOrder: 'desc' },
+        select: { sortOrder: true },
       });
-
-    const existingNames =
-      new Set(
-        existing
-          .map(
-            (entry) =>
-              entry.entryName
-                ?.trim()
-                .toLocaleLowerCase(),
-          )
-          .filter(
-            (
-              value,
-            ): value is string =>
-              Boolean(value),
-          ),
-      );
-
-    const duplicate =
-      names.find(
-        (name) =>
-          existingNames.has(
-            name.toLocaleLowerCase(),
-          ),
-      );
-
-    if (duplicate) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'ENTRY_NAME_ALREADY_EXISTS',
-
-          message:
-            `${duplicate} already exists in this Tournament.`,
-        },
-      });
-    }
-
-    if (
-      existing.length +
-        names.length >
-      tournament.maxEntries
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'TOURNAMENT_ENTRY_LIMIT_REACHED',
-
-          message:
-            `Only ${Math.max(
-              0,
-              tournament.maxEntries -
-                existing.length,
-            )} more team(s) can be added.`,
-        },
-      });
-    }
-
-    const latest =
-      await this.prisma.tournamentRegistration.findFirst({
-        where: {
-          tournamentId,
-        },
-
-        orderBy: {
-          sortOrder:
-            'desc',
-        },
-
-        select: {
-          sortOrder: true,
-        },
-      });
-
-    const startOrder =
-      (latest?.sortOrder ??
-        -1) + 1;
-
-    await this.prisma.$transaction(
-      names.map(
-        (
-          entryName,
-          index,
-        ) =>
-          this.prisma.tournamentRegistration.create({
+      const startOrder = (latest?.sortOrder ?? -1) + 1;
+      await Promise.all(
+        names.map((entryName, index) =>
+          tx.tournamentRegistration.create({
             data: {
               tournamentId,
 
@@ -525,8 +429,9 @@ export class TournamentEntriesService {
                 new Date(),
             },
           }),
-      ),
-    );
+        ),
+      );
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,
@@ -567,37 +472,23 @@ export class TournamentEntriesService {
         registrationId,
       );
 
-    if (
-      dto.entryName !==
-      undefined
-    ) {
-      const name =
-        dto.entryName.trim();
-
-      if (!name) {
-        throw new BadRequestException({
-          success: false,
-          data: null,
-
-          error: {
-            code:
-              'ENTRY_NAME_REQUIRED',
-
-            message:
-              'Team name cannot be empty.',
-          },
-        });
+    const updated = await this.prisma.$transactionWithRetry(async (tx) => {
+      if (dto.entryName !== undefined) {
+        const name = dto.entryName.trim();
+        if (!name) {
+          throw new BadRequestException({
+            success: false,
+            data: null,
+            error: {
+              code: 'ENTRY_NAME_REQUIRED',
+              message: 'Team name cannot be empty.',
+            },
+          });
+        }
+        await assertUniqueEntryName(tx, tournamentId, name, entry.id);
       }
 
-      await this.assertUniqueEntryName(
-        tournamentId,
-        name,
-        entry.id,
-      );
-    }
-
-    const updated =
-      await this.prisma.tournamentRegistration.update({
+      return tx.tournamentRegistration.update({
         where: {
           id:
             registrationId,
@@ -618,6 +509,7 @@ export class TournamentEntriesService {
                 null,
         },
       });
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,
@@ -847,61 +739,6 @@ export class TournamentEntriesService {
     }
 
     return entry;
-  }
-
-
-  private async assertUniqueEntryName(
-    tournamentId: string,
-    entryName: string,
-    ignoreRegistrationId?: string,
-  ) {
-    const existing =
-      await this.prisma.tournamentRegistration.findMany({
-        where: {
-          tournamentId,
-
-          ...(ignoreRegistrationId
-            ? {
-                id: {
-                  not:
-                    ignoreRegistrationId,
-                },
-              }
-            : {}),
-        },
-
-        select: {
-          entryName: true,
-        },
-      });
-
-    const normalized =
-      entryName
-        .trim()
-        .toLocaleLowerCase();
-
-    if (
-      existing.some(
-        (entry) =>
-          entry.entryName
-            ?.trim()
-            .toLocaleLowerCase() ===
-          normalized,
-      )
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'ENTRY_NAME_ALREADY_EXISTS',
-
-          message:
-            'A team with this name already exists in this Tournament.',
-        },
-      });
-    }
   }
 
 

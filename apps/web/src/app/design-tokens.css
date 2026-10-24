@@ -138,14 +138,14 @@
   --theme-sidebar-icon: #a7cce0;
   --theme-header: #ffffff;
   --theme-header-alpha: #ffffff;
-  --theme-primary: #2d8fbd;
-  --theme-primary-hover: #2279a3;
+  --theme-primary: #1b7198;
+  --theme-primary-hover: #155c7d;
   --theme-primary-bright: #6fc4e8;
   --theme-primary-soft: #dff2f9;
   --theme-primary-soft-strong: #c9e9f5;
   --theme-text: #0a2740;
   --theme-text-secondary: #486779;
-  --theme-text-muted: #6d8796;
+  --theme-text-muted: #526d7d;
   --theme-border: #d1e6ef;
   --theme-focus: #2d8fbd;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(99,182,220,.26), transparent 27rem);
@@ -216,7 +216,7 @@
   --theme-primary-soft-strong: #f0c8d0;
   --theme-text: #2a151a;
   --theme-text-secondary: #6f555b;
-  --theme-text-muted: #897077;
+  --theme-text-muted: #7a6067;
   --theme-border: #ead9d5;
   --theme-focus: #b70f2a;
   --theme-club-glow: radial-gradient(circle at 84% 9%, rgba(200,16,46,.20), transparent 27rem);
@@ -281,8 +281,9 @@
   --theme-sidebar-icon: #a7b2cf;
   --theme-header: #10172a;
   --theme-header-alpha: #10172a;
-  --theme-primary: #3b79ff;
-  --theme-primary-hover: #5a91ff;
+  --theme-primary: #5b8fff;
+  --theme-primary-hover: #78a2ff;
+  --theme-on-primary: #071321;
   --theme-primary-bright: #b11e54;
   --theme-primary-soft: #182c55;
   --theme-primary-soft-strong: #213b70;
@@ -353,8 +354,9 @@
   --theme-sidebar-icon: #9fb4c8;
   --theme-header: #0b1929;
   --theme-header-alpha: #0b1929;
-  --theme-primary: #e31b36;
-  --theme-primary-hover: #f13b53;
+  --theme-primary: #ff6174;
+  --theme-primary-hover: #ff8290;
+  --theme-on-primary: #071321;
   --theme-primary-bright: #5aa8ff;
   --theme-primary-soft: #351622;
   --theme-primary-soft-strong: #4b1c2b;
@@ -389,8 +391,9 @@
   --theme-sidebar-icon: #9eabba;
   --theme-header: #0d131d;
   --theme-header-alpha: #0d131d;
-  --theme-primary: #1672d4;
-  --theme-primary-hover: #3a8be1;
+  --theme-primary: #4a9af0;
+  --theme-primary-hover: #75b7fb;
+  --theme-on-primary: #071321;
   --theme-primary-bright: #65a9ef;
   --theme-primary-soft: #102746;
   --theme-primary-soft-strong: #18365e;
@@ -425,8 +428,9 @@
   --theme-sidebar-icon: #b09fa7;
   --theme-header: #120f12;
   --theme-header-alpha: #120f12;
-  --theme-primary: #d5192d;
-  --theme-primary-hover: #eb3c4e;
+  --theme-primary: #f65365;
+  --theme-primary-hover: #ff7b88;
+  --theme-on-primary: #071321;
   --theme-primary-bright: #f06a77;
   --theme-primary-soft: #35141b;
   --theme-primary-soft-strong: #4a1b25;
@@ -549,7 +553,7 @@
   --theme-primary: #3b91ed; --theme-primary-hover: #5ba5f3; --theme-primary-bright: #75b7fb; --theme-primary-soft: #102b4b; --theme-primary-soft-strong: #173a64;
 }
 :root[data-mode="dark"][data-theme="milan-red"] {
-  --theme-primary: #ed4052; --theme-primary-hover: #ff6170; --theme-primary-bright: #ff7b88; --theme-primary-soft: #3d1720; --theme-primary-soft-strong: #54202b;
+  --theme-primary: #f65365; --theme-primary-hover: #ff6170; --theme-primary-bright: #ff7b88; --theme-primary-soft: #3d1720; --theme-primary-soft-strong: #54202b;
 }
 :root[data-mode="dark"][data-theme="turin-mono"] {
   --theme-primary: #d8dde2; --theme-primary-hover: #ffffff; --theme-primary-bright: #ffffff; --theme-primary-soft: #262b30; --theme-primary-soft-strong: #343a40; --theme-on-primary: #101214;

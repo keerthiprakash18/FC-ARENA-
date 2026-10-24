@@ -563,6 +563,49 @@
   backdrop-filter: blur(18px);
 }
 
+/* Club selections must survive the premium layer, not just change swatches. */
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium {
+  --premium-gold: var(--theme-primary-bright);
+  --club-matchday-start: color-mix(in srgb, var(--theme-primary) 24%, #071321);
+  --club-matchday-end: color-mix(in srgb, var(--theme-primary) 40%, #071321);
+  --club-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 40%, #ffffff);
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-app-shell {
+  background: var(--theme-club-glow), var(--theme-background) !important;
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar {
+  background: var(--theme-sidebar-pattern), linear-gradient(165deg, var(--theme-sidebar), var(--theme-sidebar-secondary)) !important;
+  color: var(--theme-sidebar-text);
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar :is(.theme-sidebar-user-name, .theme-brand-title) { color: var(--theme-sidebar-text); }
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar :is(.theme-sidebar-label, .theme-sidebar-muted, .theme-quick-action, .theme-nav-item) { color: var(--theme-sidebar-muted); }
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar .theme-user-card { background: var(--theme-sidebar-secondary); border-color: var(--theme-sidebar-border); }
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .premium-hero {
+  background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--theme-primary-bright) 18%, transparent), transparent 65%), linear-gradient(120deg, var(--club-matchday-start), var(--club-matchday-end)) !important;
+  border-color: color-mix(in srgb, var(--theme-primary-bright) 35%, var(--club-matchday-start));
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .premium-hero .premium-eyebrow { color: var(--club-matchday-accent) !important; }
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .premium-hero :is(.theme-primary-button, .premium-primary) {
+  background: var(--club-matchday-accent) !important;
+  color: #071321 !important;
+  border-color: var(--club-matchday-accent) !important;
+}
+
+/* Native modal top layer: no header clipping, and a scrollable mobile grid. */
+.theme-dialog.club-theme-picker {
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 20px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  overflow: hidden;
+  box-shadow: 0 22px 64px rgb(0 0 0 / 24%);
+}
+.club-theme-picker[open] { display: flex; flex-direction: column; }
+.club-theme-picker > :first-child, .club-theme-picker > :last-child { flex-shrink: 0; }
+.club-theme-picker button:focus-visible { outline: 2px solid var(--theme-primary); outline-offset: 2px; }
+.club-theme-picker button[aria-pressed="true"] { border-color: var(--theme-primary); background: var(--theme-primary-soft); }
+
 /* Public landing page uses the same brand language without the signed-in shell. */
 .fc-public-home {
   position: relative;

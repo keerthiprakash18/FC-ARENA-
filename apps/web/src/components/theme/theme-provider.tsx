@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { usePathname } from "next/navigation";
@@ -63,6 +64,7 @@ function isPublicPath(pathname: string) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const themeRevision = useRef(0);
   const pathname = usePathname();
   const [systemDark, setSystemDark] = useState(false);
   useEffect(() => { const query = window.matchMedia("(prefers-color-scheme: dark)"); const sync = () => setSystemDark(query.matches); sync(); query.addEventListener("change", sync); return () => query.removeEventListener("change", sync); }, []);
@@ -107,6 +109,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
 
     let cancelled = false;
+    const revision = themeRevision.current;
 
     void (async () => {
       try {
@@ -116,9 +119,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        setThemeState(user.themePreference);
-
-        applyThemePreference(user.themePreference);
+        if (revision === themeRevision.current) {
+          setThemeState(user.themePreference);
+          applyThemePreference(user.themePreference);
+        }
 
         setSyncedAuthenticatedUser(true);
       } catch {
@@ -144,6 +148,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setThemePreference = useCallback(
     async (nextTheme: ThemePreference, persist = true) => {
       const previous = themePreference;
+      const revision = ++themeRevision.current;
 
       setThemeState(nextTheme);
 
@@ -162,9 +167,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           }),
         });
       } catch (error) {
-        setThemeState(previous);
-
-        applyThemePreference(previous);
+        if (revision === themeRevision.current) {
+          setThemeState(previous);
+          applyThemePreference(previous);
+        }
 
         throw error;
       }

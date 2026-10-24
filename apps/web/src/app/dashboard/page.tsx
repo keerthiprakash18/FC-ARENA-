@@ -137,6 +137,7 @@ interface Tournament {
 interface FixtureEntry {
   id: string;
   entryName: string | null;
+  entryLogoUrl?: string | null;
 
   members: Array<{
     id: string;
@@ -174,6 +175,30 @@ interface DashboardFixture extends Fixture {
 
 type DashboardSection = "nextMatch" | "league" | "activeTournament" | "stats" | "quickActions" | "activity";
 
+type NextFixtureKind = "LIVE" | "TODAY" | "UPCOMING" | "POSTPONED";
+
+const TERMINAL_FIXTURE_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
+const LIVE_FIXTURE_STATUSES = new Set(["LIVE", "IN_PROGRESS"]);
+
+function fixtureStatus(fixture: DashboardFixture) {
+  const matchStatus = fixture.match?.status?.toUpperCase();
+  const fixtureStatusValue = fixture.status.toUpperCase();
+
+  if (matchStatus && LIVE_FIXTURE_STATUSES.has(matchStatus)) {
+    return matchStatus;
+  }
+
+  if (LIVE_FIXTURE_STATUSES.has(fixtureStatusValue)) {
+    return fixtureStatusValue;
+  }
+
+  if (matchStatus && matchStatus !== "UNSCHEDULED") {
+    return matchStatus;
+  }
+
+  return fixtureStatusValue;
+}
+
 function entryName(entry: FixtureEntry | null) {
   if (!entry) {
     return "TBD";
@@ -187,53 +212,126 @@ function entryName(entry: FixtureEntry | null) {
   );
 }
 
-function fixtureIsOpen(fixture: DashboardFixture) {
-  return (
-    !["COMPLETED", "CANCELLED"].includes(fixture.status) &&
-    !["COMPLETED", "CANCELLED"].includes(fixture.match?.status ?? "")
-  );
+function fixtureIsRelevant(fixture: DashboardFixture) {
+  return !TERMINAL_FIXTURE_STATUSES.has(fixtureStatus(fixture));
 }
 
-function sortUpcoming(first: DashboardFixture, second: DashboardFixture) {
-  const now = Date.now();
-
-  const firstTime = first.scheduledAt
-    ? new Date(first.scheduledAt).getTime()
-    : null;
-
-  const secondTime = second.scheduledAt
-    ? new Date(second.scheduledAt).getTime()
-    : null;
-
-  const firstFuture = firstTime !== null && firstTime >= now;
-
-  const secondFuture = secondTime !== null && secondTime >= now;
-
-  if (firstFuture && secondFuture) {
-    return firstTime! - secondTime!;
+function fixtureTime(fixture: DashboardFixture) {
+  if (!fixture.scheduledAt) {
+    return null;
   }
 
-  if (firstFuture) {
-    return -1;
-  }
+  const timestamp = new Date(fixture.scheduledAt).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
 
-  if (secondFuture) {
-    return 1;
-  }
+function sortByFixtureTime(first: DashboardFixture, second: DashboardFixture) {
+  const firstTime = fixtureTime(first);
+  const secondTime = fixtureTime(second);
 
   if (firstTime === null && secondTime === null) {
     return first.sequence - second.sequence;
   }
 
   if (firstTime === null) {
-    return -1;
-  }
-
-  if (secondTime === null) {
     return 1;
   }
 
-  return first.sequence - second.sequence;
+  if (secondTime === null) {
+    return -1;
+  }
+
+  return firstTime! - secondTime! || first.sequence - second.sequence;
+}
+
+function isLiveFixture(fixture: DashboardFixture) {
+  return LIVE_FIXTURE_STATUSES.has(fixtureStatus(fixture));
+}
+
+function isPostponedFixture(fixture: DashboardFixture) {
+  return fixtureStatus(fixture) === "POSTPONED";
+}
+
+function isFutureScheduledFixture(fixture: DashboardFixture, nowMs: number) {
+  const scheduledAt = fixtureTime(fixture);
+
+  return (
+    scheduledAt !== null &&
+    scheduledAt >= nowMs &&
+    fixtureStatus(fixture) === "SCHEDULED"
+  );
+}
+
+function localDateKey(value: Date) {
+  return `${value.getFullYear()}-${value.getMonth()}-${value.getDate()}`;
+}
+
+function isToday(value: string | null, nowMs: number) {
+  if (!value) {
+    return false;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  return localDateKey(date) === localDateKey(new Date(nowMs));
+}
+
+function fixtureKind(fixture: DashboardFixture, nowMs: number): NextFixtureKind {
+  if (isLiveFixture(fixture)) {
+    return "LIVE";
+  }
+
+  if (isPostponedFixture(fixture)) {
+    return "POSTPONED";
+  }
+
+  return isToday(fixture.scheduledAt, nowMs) ? "TODAY" : "UPCOMING";
+}
+
+function formatFixtureDateTime(value: string | null) {
+  if (!value) {
+    return "Schedule pending";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Schedule pending";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatCountdown(value: string | null, nowMs: number) {
+  const scheduledAt = value ? new Date(value).getTime() : Number.NaN;
+  const remainingMs = scheduledAt - nowMs;
+
+  if (!Number.isFinite(remainingMs) || remainingMs <= 0) {
+    return "Starting now";
+  }
+
+  const totalMinutes = Math.floor(remainingMs / 60_000);
+  const days = Math.floor(totalMinutes / 1_440);
+  const hours = Math.floor((totalMinutes % 1_440) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    return `Starts in ${days}d ${hours}h`;
+  }
+
+  if (hours > 0) {
+    return `Starts in ${hours}h ${minutes}m`;
+  }
+
+  return `Starts in ${Math.max(1, minutes)}m`;
 }
 
 function fixtureBelongsToUser(
@@ -314,6 +412,12 @@ export default function DashboardPage() {
 
   const [retryCount, setRetryCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -397,19 +501,6 @@ export default function DashboardPage() {
     [selectedMembership, tournaments],
   );
 
-  const scopedTournamentIds = useMemo(
-    () => new Set(scopedTournaments.map((tournament) => tournament.id)),
-    [scopedTournaments],
-  );
-
-  const scopedFixtures = useMemo(
-    () =>
-      selectedMembership
-        ? fixtures.filter((fixture) => scopedTournamentIds.has(fixture.tournamentId))
-        : fixtures,
-    [fixtures, scopedTournamentIds, selectedMembership],
-  );
-
   const activeTournament = useMemo(
     () =>
       scopedTournaments.find(
@@ -430,25 +521,38 @@ export default function DashboardPage() {
     [career],
   );
 
-  const personalOpenFixtures = useMemo(() => {
+  const personalRelevantFixtures = useMemo(() => {
     if (!user) {
       return [];
     }
 
-    return scopedFixtures
+    return fixtures
       .filter(
         (fixture) =>
-          fixtureIsOpen(fixture) &&
+          fixtureIsRelevant(fixture) &&
           fixtureBelongsToUser(
             fixture,
             user.id,
             registrationIdsByTournament.get(fixture.tournamentId) ?? null,
           ),
       )
-      .sort(sortUpcoming);
-  }, [registrationIdsByTournament, scopedFixtures, user]);
+      .sort(sortByFixtureTime);
+  }, [fixtures, registrationIdsByTournament, user]);
 
-  const nextFixture = personalOpenFixtures[0] ?? null;
+  const liveFixture = personalRelevantFixtures.find(isLiveFixture) ?? null;
+
+  const scheduledFixture =
+    personalRelevantFixtures.find((fixture) =>
+      isFutureScheduledFixture(fixture, nowMs),
+    ) ?? null;
+
+  const postponedFixture =
+    personalRelevantFixtures.find(isPostponedFixture) ?? null;
+
+  const nextFixture = liveFixture ?? scheduledFixture ?? postponedFixture;
+  const nextFixtureKind = nextFixture
+    ? fixtureKind(nextFixture, nowMs)
+    : null;
 
   const activeTournamentNextFixture = useMemo(() => {
     if (!activeTournament) {
@@ -456,11 +560,13 @@ export default function DashboardPage() {
     }
 
     return (
-      personalOpenFixtures.find(
-        (fixture) => fixture.tournamentId === activeTournament.id,
+      personalRelevantFixtures.find(
+        (fixture) =>
+          fixture.tournamentId === activeTournament.id &&
+          (isLiveFixture(fixture) || isFutureScheduledFixture(fixture, nowMs)),
       ) ?? null
     );
-  }, [activeTournament, personalOpenFixtures]);
+  }, [activeTournament, nowMs, personalRelevantFixtures]);
 
   if (error) return (
     <AppShell><FcPanel className="p-6">
@@ -518,7 +624,7 @@ export default function DashboardPage() {
       playerName={inGameName}
       playerRole={selectedMembership?.adminRole || "Player"}
     >
-      <div className="fc-dashboard-page fc-dashboard-classic relative grid gap-4 sm:gap-6">
+      <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-6">
         <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
         <Link href="/notifications" className="theme-action-row flex items-center justify-between rounded-xl border p-4 font-semibold"><span>Your action inbox</span><span className="text-sm">Reminders & approvals →</span></Link>
         {error ? (
@@ -527,12 +633,12 @@ export default function DashboardPage() {
           </div>
         ) : null}
 
-        <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
+        <section className="fc-dashboard-hero premium-home-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border">
           <div className="fc-hero-right hidden lg:block" />
 
-          <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
-            <div className="hidden lg:block">
-              <div className="theme-hero-avatar-ring grid h-[86px] w-[86px] place-items-center rounded-full border-[3px]">
+          <div className="relative z-10 grid min-h-[220px] gap-5 px-5 py-5 sm:px-7 sm:py-6 lg:grid-cols-[auto_minmax(0,1fr)_300px] lg:items-center lg:px-8">
+            <div>
+              <div className="theme-hero-avatar-ring grid h-[68px] w-[68px] place-items-center rounded-full border-[3px] sm:h-[82px] sm:w-[82px] lg:h-[86px] lg:w-[86px]">
                 <FcCrest
                   name={inGameName}
                   imageUrl={career.profile.profileImageUrl}
@@ -544,15 +650,15 @@ export default function DashboardPage() {
             <div className="min-w-0 lg:pr-5">
               <p className="theme-hero-kicker fc-dashboard-kicker text-[12px] font-bold tracking-[0.16em]">
                 <span className="fc-dashboard-live-dot" aria-hidden="true" />
-                WELCOME BACK
+                FC ARENA MATCHDAY
               </p>
 
-              <h1 className="theme-text mt-2 truncate text-[38px] font-bold leading-[0.98] tracking-[-0.035em] sm:text-[44px] lg:text-[48px]">
-                {inGameName}
+              <h1 className="theme-text mt-2 break-words text-[30px] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[42px] lg:text-[48px]">
+                Welcome back, {inGameName}
               </h1>
 
               <p className="theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
-                Your next match. Your club. Your season.
+                Your next opponent, your competition, and your season — all in one place.
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -565,6 +671,13 @@ export default function DashboardPage() {
                 {career.profile.identity?.isVerified ? (
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
+
+                <Link
+                  href={nextFixture?.match?.id ? `/matches/${nextFixture.match.id}` : "/fixtures"}
+                  className="theme-primary-button inline-flex min-h-11 items-center justify-center rounded-[10px] px-4 text-xs font-semibold"
+                >
+                  {nextFixture?.match?.id ? "Open Match Centre →" : "Explore Fixtures →"}
+                </Link>
               </div>
             </div>
 
@@ -594,57 +707,91 @@ export default function DashboardPage() {
         </section>
 
         <section className={`fc-dashboard-section grid gap-[18px] xl:grid-cols-[1.75fr_0.95fr] ${!isVisible("nextMatch") && !isVisible("league") ? "hidden" : ""}`}>
-          <FcPanel className={`fc-next-match-panel relative overflow-hidden p-5 sm:p-6 ${!isVisible("nextMatch") ? "hidden" : ""}`}>
+          <FcPanel className={`fc-next-match-panel premium-home-next relative overflow-hidden p-5 sm:p-6 ${!isVisible("nextMatch") ? "hidden" : ""}`}>
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
             <div className="relative">
               <SectionTitle
                 icon="fixtures"
-                title="Next Match"
+                title={
+                  nextFixtureKind === "LIVE"
+                    ? "Live Match"
+                    : nextFixtureKind === "TODAY"
+                      ? "Today's Match"
+                      : nextFixtureKind === "POSTPONED"
+                        ? "Match Status"
+                        : "Next Match"
+                }
                 href="/fixtures"
               />
 
               {nextFixture ? (
                 <>
-                  <p className="mt-4 text-xs font-medium text-[#8792A1]">
-                    {nextFixture.tournamentName}
-                    {" • "}
-                    {nextFixture.roundName}
-                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <FcStatusBadge
+                      label={
+                        nextFixtureKind === "LIVE"
+                          ? "LIVE NOW"
+                          : nextFixtureKind === "TODAY"
+                            ? "TODAY"
+                            : nextFixtureKind === "POSTPONED"
+                              ? "POSTPONED"
+                              : "UPCOMING"
+                      }
+                      tone={
+                        nextFixtureKind === "LIVE"
+                          ? "red"
+                          : nextFixtureKind === "POSTPONED"
+                            ? "amber"
+                            : nextFixtureKind === "TODAY"
+                              ? "amber"
+                              : "cyan"
+                      }
+                    />
+                    <p className="text-xs font-medium text-[#8792A1]">
+                      {nextFixture.tournamentName} · {nextFixture.roundName}
+                    </p>
+                  </div>
 
-                  <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
+                  <div className="premium-match-sides mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
                     <div className="flex min-w-0 flex-col items-center text-center">
-                      <FcCrest name={entryName(nextFixture.home)} size="lg" />
+                      <FcCrest name={entryName(nextFixture.home)} imageUrl={nextFixture.home?.entryLogoUrl} size="lg" />
 
-                      <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
+                      <p className="mt-3 w-full break-words text-sm font-semibold text-[#0B2545]">
                         {entryName(nextFixture.home)}
                       </p>
                     </div>
 
-                    <div className="theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold">
-                      VS
+                    <div className={`theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold ${nextFixtureKind === "LIVE" ? "border-red-400/30 text-red-500" : ""}`}>
+                      {nextFixtureKind === "LIVE" ? "LIVE" : "VS"}
                     </div>
 
                     <div className="flex min-w-0 flex-col items-center text-center">
-                      <FcCrest name={entryName(nextFixture.away)} size="lg" />
+                      <FcCrest name={entryName(nextFixture.away)} imageUrl={nextFixture.away?.entryLogoUrl} size="lg" />
 
-                      <p className="mt-3 w-full truncate text-sm font-semibold text-[#0B2545]">
+                      <p className="mt-3 w-full break-words text-sm font-semibold text-[#0B2545]">
                         {entryName(nextFixture.away)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex flex-col gap-3 border-t border-[#DED8CD] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="premium-match-footer mt-6 flex flex-col gap-3 border-t border-[#DED8CD] pt-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-xs text-[#8792A1]">
-                        {nextFixture.leagueName}
+                      <p className="text-xs font-semibold text-[#8792A1]">
+                        {nextFixture.leagueName} · {nextFixture.matchday ? `Matchday ${nextFixture.matchday}` : nextFixture.roundName}
                       </p>
 
                       <p className="mt-1 text-sm font-medium text-[#54657A]">
-                        {nextFixture.scheduledAt
-                          ? new Date(nextFixture.scheduledAt).toLocaleString()
-                          : "Schedule pending"}
+                        {nextFixtureKind === "POSTPONED"
+                          ? "Awaiting a new kickoff time"
+                          : formatFixtureDateTime(nextFixture.scheduledAt)}
                       </p>
+
+                      {nextFixtureKind === "UPCOMING" || nextFixtureKind === "TODAY" ? (
+                        <p className="mt-1 text-xs font-semibold text-[#A06B13]">
+                          {formatCountdown(nextFixture.scheduledAt, nowMs)}
+                        </p>
+                      ) : null}
                     </div>
 
                     <Link
@@ -655,18 +802,18 @@ export default function DashboardPage() {
                       }
                       className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
                     >
-                      View Match →
+                      {nextFixtureKind === "LIVE" ? "Open Live Match →" : "View Match →"}
                     </Link>
                   </div>
                 </>
               ) : (
-                <div className="mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
+                <div className="premium-home-empty mt-6 rounded-2xl border border-dashed border-[#DED8CD] bg-[#FBF8F2] p-6 text-center sm:p-8">
                   <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
                     ◷
                   </div>
 
                   <h3 className="mt-4 text-base font-semibold text-[#0B2545]">
-                    No upcoming match
+                    No upcoming matches scheduled
                   </h3>
 
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#8792A1]">

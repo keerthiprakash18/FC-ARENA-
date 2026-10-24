@@ -181,6 +181,88 @@
 .premium-home-empty > svg { color: #e5c77f; margin-bottom: 18px; }
 .premium-home-empty h2 { font-size: 24px !important; }
 .premium-home-empty p { color: #c4d0dd; font-size: 14px; line-height: 1.65; margin-block: 12px 22px; }
+.fc-dashboard-page .premium-home-hero {
+  border-color: #294357;
+  background:
+    linear-gradient(110deg, rgba(7, 24, 42, 0.98), rgba(13, 38, 61, 0.9)),
+    radial-gradient(circle at 86% 22%, rgba(229, 199, 127, 0.24), transparent 30%),
+    #0d263d;
+  box-shadow: 0 14px 30px rgb(13 38 61 / 10%);
+}
+.fc-dashboard-page .premium-home-hero::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: auto -8% -44% 42%;
+  height: 80%;
+  border: 1px solid rgb(229 199 127 / 24%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgb(229 199 127 / 5%), 0 0 0 56px rgb(229 199 127 / 3%);
+  transform: perspective(700px) rotateX(62deg);
+}
+.fc-dashboard-page .premium-home-hero .theme-text { color: #fffefa; }
+.fc-dashboard-page .premium-home-hero .theme-secondary-text { color: #c4d0dd; }
+.fc-dashboard-page .premium-home-hero .theme-soft-accent {
+  border-color: #456074;
+  background: #18364e;
+  color: #e5c77f;
+}
+.fc-dashboard-page .premium-home-hero .theme-primary-button {
+  background: #d9b765 !important;
+  color: #0d263d !important;
+}
+.fc-dashboard-page .premium-home-next {
+  border-top: 3px solid var(--premium-gold);
+  background: var(--theme-surface);
+}
+.fc-dashboard-page .premium-home-next .premium-match-sides {
+  margin-block: 22px;
+}
+.fc-dashboard-page .premium-home-next .premium-match-sides > div {
+  min-width: 0;
+}
+.fc-dashboard-page .premium-home-next .premium-crest {
+  width: 68px;
+  height: 76px;
+}
+.fc-dashboard-page .premium-home-next .premium-home-empty {
+  background: var(--theme-secondary-background);
+  border-color: var(--theme-border);
+}
+.fc-dashboard-page .premium-home-next .premium-home-empty h3 {
+  color: var(--theme-text);
+}
+.fc-dashboard-page .premium-home-next .premium-home-empty p {
+  color: var(--theme-text-secondary);
+}
+@media (max-width: 639px) {
+  .fc-dashboard-page .premium-home-hero {
+    min-height: 0;
+  }
+  .fc-dashboard-page .premium-home-hero::after {
+    inset: auto -30% -46% 18%;
+  }
+  .fc-dashboard-page .premium-home-next {
+    padding: 16px;
+  }
+  .fc-dashboard-page .premium-home-next .premium-match-sides {
+    gap: 8px;
+  }
+  .fc-dashboard-page .premium-home-next .premium-crest {
+    width: 56px;
+    height: 64px;
+  }
+  .fc-dashboard-page .premium-home-next .premium-match-sides p {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .fc-dashboard-page .premium-home-next .premium-match-footer {
+    align-items: stretch;
+  }
+  .fc-dashboard-page .premium-home-next .premium-match-footer a {
+    width: 100%;
+  }
+}
 .premium-dashboard .fc-tournament-panel { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); column-gap: 32px; }
 .premium-dashboard .fc-tournament-panel > * { min-width: 0; }
 .premium-dashboard .fc-tournament-panel > :first-child, .premium-dashboard .fc-tournament-panel > [class*="border-dashed"] { grid-column: 1 / -1; }
@@ -375,4 +457,251 @@
 @media (prefers-reduced-motion:reduce) {
   .fc-premium .premium-primary-rail { scroll-behavior: auto; }
   .fc-premium :is(.premium-hero,.premium-match,.premium-destination,.premium-crest) { transition: none; animation: none; }
+}
+
+/* Shared product-wide finish: every authenticated route uses the same
+   matchday surface, controls, cards, tables and responsive rhythm. */
+.fc-premium .fc-main {
+  color: var(--theme-text);
+}
+.fc-premium .fc-main .fc-panel,
+.fc-premium .fc-main .theme-panel,
+.fc-premium .fc-main .theme-stat-card,
+.fc-premium .fc-main .theme-action-row {
+  border-color: var(--theme-border);
+  border-radius: var(--fc-card-radius);
+  background: var(--theme-surface);
+  box-shadow: var(--theme-card-shadow);
+}
+.fc-premium .fc-main .fc-panel,
+.fc-premium .fc-main .theme-panel {
+  overflow: hidden;
+}
+.fc-premium .fc-main .fc-panel > :where(h1,h2,h3),
+.fc-premium .fc-main .theme-panel > :where(h1,h2,h3) {
+  overflow-wrap: anywhere;
+}
+.fc-premium .fc-main .fc-page-heading,
+.fc-premium .fc-main .fc-section-heading {
+  min-width: 0;
+}
+.fc-premium .fc-main .fc-page-heading h1 {
+  color: var(--theme-text);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -.045em;
+}
+.fc-premium .fc-main .fc-page-heading::before {
+  content: '';
+  display: block;
+  width: 42px;
+  height: 3px;
+  margin-bottom: -4px;
+  border-radius: 999px;
+  background: var(--premium-gold);
+}
+.fc-premium .fc-main :where(input, select, textarea) {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  box-shadow: none;
+}
+.fc-premium .fc-main :where(input, select, textarea)::placeholder {
+  color: var(--theme-text-muted);
+}
+.fc-premium .fc-main :where(input, select, textarea):focus {
+  border-color: color-mix(in srgb, var(--theme-primary) 58%, var(--theme-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 10%, transparent);
+}
+.fc-premium .fc-main .theme-primary-button,
+.fc-premium .fc-main .theme-secondary-button,
+.fc-premium .fc-main .theme-danger-button {
+  border-radius: var(--fc-control-radius);
+  font-weight: 650;
+  letter-spacing: -.01em;
+}
+.fc-premium .fc-main .theme-secondary-button {
+  border-color: var(--theme-border);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+.fc-premium .fc-main .theme-secondary-button:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 38%, var(--theme-border));
+  background: var(--theme-secondary-background);
+}
+.fc-premium .fc-main table {
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+.fc-premium .fc-main table thead th {
+  color: var(--theme-text-secondary);
+  background: var(--theme-secondary-background);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.fc-premium .fc-main table tbody tr {
+  border-color: var(--theme-border);
+}
+.fc-premium .fc-main :where(.fc-empty-state, .fc-state-screen) {
+  border-color: var(--theme-border);
+  border-radius: var(--fc-card-radius);
+}
+.fc-premium .fc-main .fc-notice {
+  border-radius: var(--fc-control-radius);
+}
+.fc-premium .theme-top-header {
+  background: color-mix(in srgb, var(--theme-surface) 92%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+/* Public landing page uses the same brand language without the signed-in shell. */
+.fc-public-home {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 86% 8%, rgb(217 183 101 / 18%), transparent 24rem),
+    radial-gradient(circle at 8% 54%, rgb(38 92 130 / 22%), transparent 28rem),
+    #091f34;
+}
+.fc-public-home::before {
+  content: '';
+  position: absolute;
+  inset: 22% -18% auto 42%;
+  z-index: -1;
+  height: 52%;
+  border: 1px solid rgb(229 199 127 / 18%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 26px rgb(229 199 127 / 4%), 0 0 0 58px rgb(229 199 127 / 3%);
+  transform: perspective(700px) rotateX(64deg);
+}
+.fc-public-home-header,
+.fc-public-home > section,
+.fc-public-home > footer {
+  position: relative;
+  z-index: 1;
+}
+.fc-public-home-header {
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+}
+.fc-public-home-header .theme-secondary-button {
+  border-color: #456074;
+  background: transparent;
+  color: #fffefa;
+}
+.fc-public-home-header .theme-secondary-button:hover {
+  border-color: #d9b765;
+  background: #18364e;
+}
+.fc-public-home-header .theme-primary-button,
+.fc-public-home-copy .theme-primary-button {
+  background: #d9b765 !important;
+  color: #0d263d !important;
+}
+.fc-public-home-header .theme-primary-button:hover,
+.fc-public-home-copy .theme-primary-button:hover {
+  background: #e5c77f !important;
+}
+.fc-public-home-feature {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #294357;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #102f4a, #0d263d 64%, #091f34);
+  box-shadow: 0 18px 38px rgb(0 0 0 / 16%);
+}
+.premium-home-feature-art {
+  position: absolute;
+  inset: auto -14% -28% 32%;
+  z-index: -1;
+  height: 72%;
+  border: 1px solid rgb(229 199 127 / 22%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 22px rgb(229 199 127 / 5%), 0 0 0 52px rgb(229 199 127 / 3%);
+  transform: perspective(700px) rotateX(66deg);
+}
+.fc-public-home-feature-row {
+  display: flex;
+  min-width: 0;
+  gap: 12px;
+  align-items: start;
+  padding-block: 14px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+.fc-public-home-feature-row > span {
+  flex-shrink: 0;
+  color: #e5c77f;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+.fc-public-home-feature-row strong,
+.fc-public-home-feature-row small {
+  display: block;
+}
+.fc-public-home-feature-row strong {
+  color: #fffefa;
+  font-size: 14px;
+}
+.fc-public-home-feature-row small {
+  margin-top: 3px;
+  color: #9fb1c2;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.fc-public-home-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #294357;
+  border-radius: 14px;
+  background: rgb(13 38 61 / 82%);
+}
+.fc-public-home-card .premium-eyebrow {
+  color: #e5c77f;
+  font-size: 10px;
+}
+.fc-public-home-card h2 {
+  margin-top: 8px;
+  color: #fffefa;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -.035em;
+}
+.fc-public-home-card > p:last-child {
+  margin-top: 8px;
+  color: #9fb1c2;
+  font-size: 13px;
+  line-height: 1.6;
+}
+@media (max-width: 639px) {
+  .fc-premium .fc-main {
+    padding-inline: 12px;
+  }
+  .fc-premium .fc-main .fc-page-heading::before {
+    margin-bottom: -2px;
+  }
+  .fc-premium .fc-main .fc-page-heading > div:last-child {
+    width: 100%;
+  }
+  .fc-premium .fc-main .fc-page-heading > div:last-child :where(a, button) {
+    width: 100%;
+  }
+  .fc-public-home-header {
+    padding-block: 14px;
+  }
+  .fc-public-home-header nav a:first-child {
+    display: none;
+  }
+  .fc-public-home-feature {
+    padding: 22px 18px;
+    border-radius: 16px;
+  }
+  .fc-public-home-card {
+    padding: 18px;
+  }
 }

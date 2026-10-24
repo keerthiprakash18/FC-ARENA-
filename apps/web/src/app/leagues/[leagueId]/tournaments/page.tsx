@@ -373,7 +373,7 @@ export default function LeagueTournamentsPage() {
                   'AUTOMATIC',
 
                 registrationMode:
-                  ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
+                  competitionFormat === 'ELITE_CUP'
                     ? 'ADMIN_ONLY'
                     : 'APPROVAL',
 

@@ -430,10 +430,10 @@ export default function TournamentSetupPage() {
 
               visibility,
 
-              registrationMode:
-                ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
-                  ? 'ADMIN_ONLY'
-                  : registrationMode,
+               registrationMode:
+                 competitionFormat === 'ELITE_CUP'
+                   ? 'ADMIN_ONLY'
+                   : registrationMode,
 
               maxEntries:
                 Number(
@@ -712,10 +712,12 @@ export default function TournamentSetupPage() {
                       }
 
                        if (format === 'ELITE_CUP' || format === 'UCL_CUP') {
-                        setGroupMode('SINGLE_GROUP');
-                        setLegType('SINGLE_LEG');
-                        setFixtureMode('AUTOMATIC');
-                        setRegistrationMode('ADMIN_ONLY');
+                         setGroupMode('SINGLE_GROUP');
+                         setLegType('SINGLE_LEG');
+                         setFixtureMode('AUTOMATIC');
+                         if (format === 'ELITE_CUP') {
+                           setRegistrationMode('ADMIN_ONLY');
+                         }
                       }
 
                       if (
@@ -922,12 +924,13 @@ export default function TournamentSetupPage() {
                 Registration Mode
               </label>
 
-              <select
-                id="tournament-registration"
-                value={
-                  registrationMode
-                }
-                onChange={
+               <select
+                 id="tournament-registration"
+                 value={
+                   registrationMode
+                 }
+                 disabled={competitionFormat === 'ELITE_CUP'}
+                 onChange={
                   (
                     event,
                   ) =>
@@ -948,10 +951,15 @@ export default function TournamentSetupPage() {
                   Approval Required
                 </option>
 
-                <option value="ADMIN_ONLY">
+               <option value="ADMIN_ONLY">
                   Admin Only
                 </option>
-              </select>
+               </select>
+               {competitionFormat === 'ELITE_CUP' ? (
+                 <p className="theme-muted mt-2 text-xs leading-5">
+                   Elite Cup is managed by admins. UCL Cup supports Open, Approval Required and Admin Only registration.
+                 </p>
+               ) : null}
             </div>
 
           </div>

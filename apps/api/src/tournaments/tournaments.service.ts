@@ -103,7 +103,7 @@ export class TournamentsService {
           'LEAGUE',
 
         registrationMode:
-          ['ELITE_CUP', 'UCL_CUP'].includes(dto.competitionFormat ?? '')
+          dto.competitionFormat === 'ELITE_CUP'
             ? 'ADMIN_ONLY'
             : dto.registrationMode ?? 'APPROVAL',
 
@@ -1413,7 +1413,7 @@ export class TournamentsService {
             dto.visibility,
 
           registrationMode:
-            ['ELITE_CUP', 'UCL_CUP'].includes(competitionFormat)
+            competitionFormat === 'ELITE_CUP'
               ? 'ADMIN_ONLY'
               : dto.registrationMode,
 

@@ -192,7 +192,7 @@ export function ThemeQuickPicker() {
               !current,
           );
         }}
-        className="theme-profile-chip theme-text relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent transition duration-200"
+        className="theme-profile-chip theme-text relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] shadow-[0_4px_14px_rgba(11,37,69,0.08)] transition duration-200 hover:border-[var(--theme-primary)] hover:bg-[var(--theme-primary-soft)]"
       >
         <FcIcon
           name="football"
@@ -214,7 +214,7 @@ export function ThemeQuickPicker() {
         <div
           role="dialog"
           aria-label="Choose FC Arena club theme"
-          className="theme-elevated fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[80] overflow-hidden rounded-2xl border border-[var(--theme-border)] shadow-[0_22px_64px_rgba(0,0,0,0.24)] sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-12 sm:w-[390px]"
+          className="theme-elevated fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[80] max-h-[calc(100dvh-7rem)] overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text)] shadow-[0_22px_64px_rgba(0,0,0,0.24)] sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-12 sm:w-[390px]"
         >
           <div className="flex items-start justify-between gap-4 border-b border-[var(--theme-border)] p-4">
             <div>

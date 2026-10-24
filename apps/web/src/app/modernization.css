@@ -335,8 +335,10 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .fc-main [class~="bg-[#0a1520]"],
 .fc-main [class~="bg-[#0B1118]"],
 .fc-main [class~="bg-[#101923]"],
-.fc-main [class~="bg-[#121821]"] {
+.fc-main [class~="bg-[#121821]"],
+.fc-main [class~="bg-[#080e15]"] {
   background: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
 }
 
 .fc-main [class~="border-white/10"],
@@ -390,6 +392,11 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .fc-main [class~="text-slate-600"],
 .fc-main [class~="text-slate-700"] {
   color: var(--theme-text-muted) !important;
+}
+
+.fc-main select option {
+  background: var(--theme-surface);
+  color: var(--theme-text);
 }
 
 .fc-main [class~="text-sky-300"],

@@ -30,7 +30,7 @@ export class TournamentsService {
     leagueId: string,
     dto: CreateTournamentDto,
   ) {
-    await this.assertLeagueAdmin(userId, leagueId);
+    await this.authorizationService.assertLeaguePermission(userId, leagueId, 'MANAGE_TOURNAMENTS');
 
     const teamSize =
       dto.mode === 'SOLO'
@@ -53,8 +53,9 @@ export class TournamentsService {
 
     const code = await this.generateTournamentCode();
 
-    const tournament = await this.prisma.tournament.create({
-      data: {
+    const tournament = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.tournament.create({
+        data: {
         leagueId,
         createdByUserId: userId,
         name: dto.name.trim(),
@@ -155,7 +156,26 @@ export class TournamentsService {
 
         playoffPairingMethod:
           dto.playoffPairingMethod,
-      },
+        },
+      });
+
+      await tx.tournamentAdmin.create({
+        data: {
+          tournamentId: created.id,
+          userId,
+          role: 'OWNER',
+          permissions: [
+            'MANAGE_FIXTURES',
+            'MANAGE_RESULTS',
+            'VERIFY_SCORES',
+            'MANAGE_PARTICIPANTS',
+            'MANAGE_SETTINGS',
+            'VIEW_REPORTS',
+          ],
+        },
+      });
+
+      return created;
     });
 
     return {
@@ -174,10 +194,7 @@ export class TournamentsService {
     dto: DeleteTournamentDto,
   ) {
     const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+      await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
 
     if (
       dto.confirmName.trim().toLocaleLowerCase() !==
@@ -247,7 +264,13 @@ export class TournamentsService {
     userId: string,
     leagueId: string,
   ) {
-    await this.assertLeagueMember(userId, leagueId);
+    const membership = await this.prisma.leagueMember.findUnique({
+      where: { leagueId_userId: { leagueId, userId } },
+      select: { id: true },
+    });
+    if (!membership && !(await this.authorizationService.isLeagueAdmin(userId, leagueId))) {
+      await this.assertLeagueMember(userId, leagueId);
+    }
 
     const tournaments = await this.prisma.tournament.findMany({
       where: {
@@ -329,19 +352,36 @@ export class TournamentsService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueMember(
-      userId,
-      tournament.leagueId,
-    );
-
     const canManageTournament =
       await this.authorizationService.canManageTournament(
         userId,
         tournamentId,
       );
 
+    const membership = await this.prisma.leagueMember.findUnique({
+      where: { leagueId_userId: { leagueId: tournament.leagueId, userId } },
+      select: { id: true },
+    });
+
+    if (!membership && !canManageTournament) {
+      throw new ForbiddenException({
+        success: false,
+        data: null,
+        error: {
+          code: 'LEAGUE_MEMBERSHIP_REQUIRED',
+          message: 'You must be a League member to access this Tournament.',
+        },
+      });
+    }
+
     const canManageFixtures =
       await this.authorizationService.canManageFixtures(
+        userId,
+        tournamentId,
+      );
+
+    const canManageAdmins =
+      await this.authorizationService.canManageTournamentAdmins(
         userId,
         tournamentId,
       );
@@ -357,6 +397,7 @@ export class TournamentsService {
             canManageTournament,
           canManageTournament,
           canManageFixtures,
+          canManageAdmins,
           _count: undefined,
         },
       },
@@ -369,10 +410,7 @@ export class TournamentsService {
     tournamentId: string,
   ) {
     const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+      await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_PARTICIPANTS');
 
     if (
       tournament.status !== 'DRAFT' &&
@@ -415,10 +453,7 @@ export class TournamentsService {
     tournamentId: string,
   ) {
     const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+      await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_PARTICIPANTS');
 
     if (tournament.status !== 'REGISTRATION_OPEN') {
       throw new ConflictException({
@@ -917,10 +952,7 @@ export class TournamentsService {
     userId: string,
     tournamentId: string,
   ) {
-    await this.getTournamentForAdmin(
-      userId,
-      tournamentId,
-    );
+    await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_PARTICIPANTS');
 
     const registrations =
       await this.prisma.tournamentRegistration.findMany({
@@ -986,10 +1018,7 @@ export class TournamentsService {
     tournamentId: string,
     registrationId: string,
   ) {
-    await this.getTournamentForAdmin(
-      adminUserId,
-      tournamentId,
-    );
+    await this.getTournamentForAdmin(adminUserId, tournamentId, 'MANAGE_PARTICIPANTS');
 
     const result = await this.prisma.$transaction(
       async (tx) => {
@@ -1087,10 +1116,7 @@ export class TournamentsService {
     tournamentId: string,
     registrationId: string,
   ) {
-    await this.getTournamentForAdmin(
-      adminUserId,
-      tournamentId,
-    );
+    await this.getTournamentForAdmin(adminUserId, tournamentId, 'MANAGE_PARTICIPANTS');
 
     const registration =
       await this.prisma.tournamentRegistration.findUnique({
@@ -1159,10 +1185,7 @@ export class TournamentsService {
     tournamentId: string,
   ) {
     const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+      await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
 
     return {
       success: true,
@@ -1241,10 +1264,7 @@ export class TournamentsService {
     dto: UpdateTournamentSetupDto,
   ) {
     const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+      await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
 
     if (
       tournament.status !==
@@ -1451,10 +1471,7 @@ export class TournamentsService {
     dto: UpdateTournamentWizardStepDto,
   ) {
     const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+      await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
 
     if (
       ![
@@ -1632,6 +1649,7 @@ export class TournamentsService {
   private async getTournamentForAdmin(
     userId: string,
     tournamentId: string,
+    permission: 'MANAGE_SETTINGS' | 'MANAGE_PARTICIPANTS' = 'MANAGE_SETTINGS',
   ) {
     const tournament =
       await this.prisma.tournament.findUnique({
@@ -1644,10 +1662,7 @@ export class TournamentsService {
       throw this.tournamentNotFound();
     }
 
-    await this.authorizationService.assertCanManageTournament(
-      userId,
-      tournamentId,
-    );
+    await this.authorizationService.assertCanManageTournamentPermission(userId, tournamentId, permission);
 
     return tournament;
   }
@@ -1674,33 +1689,6 @@ export class TournamentsService {
           code: 'LEAGUE_MEMBERSHIP_REQUIRED',
           message:
             'You must be a League member to access this tournament.',
-        },
-      });
-    }
-  }
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code: 'LEAGUE_ADMIN_REQUIRED',
-          message:
-            'League admin permission is required.',
         },
       });
     }

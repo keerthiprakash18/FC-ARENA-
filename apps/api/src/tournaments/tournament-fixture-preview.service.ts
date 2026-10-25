@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +12,7 @@ import {
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 
 import type {
   CreatePreviewFixtureDto,
@@ -32,6 +32,8 @@ export class TournamentFixturePreviewService {
   constructor(
     private readonly prisma:
       PrismaService,
+    private readonly authorization:
+      AuthorizationService,
   ) {}
 
 
@@ -1674,32 +1676,7 @@ export class TournamentFixturePreviewService {
       });
     }
 
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId:
-              tournament.leagueId,
-
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required.',
-        },
-      });
-    }
+    await this.authorization.assertCanManageTournamentPermission(userId, tournament.id, 'MANAGE_FIXTURES');
 
     return tournament;
   }

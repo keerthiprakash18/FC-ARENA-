@@ -51,11 +51,13 @@ interface LeagueHome {
   rules: string | null;
   membershipType:
     | 'PRIMARY'
-    | 'SECONDARY';
+    | 'SECONDARY'
+    | null;
   adminRole:
     | 'OWNER'
     | 'ADMIN'
     | null;
+  isSuperAdmin?: boolean;
   pendingApplications: number;
 }
 
@@ -668,7 +670,7 @@ export default function LeagueSettingsPage() {
                   }}
                 />
 
-                <button
+               <button
                   type="button"
                   disabled={logoBusy}
                   onClick={() =>
@@ -877,10 +879,23 @@ export default function LeagueSettingsPage() {
                   )
                 }
                 className="min-h-11 shrink-0 rounded-xl border border-sky-400/20 px-4 text-sm font-black text-sky-300"
-              >
-                Manage Roles
-              </button>
-            </div>
+               >
+                 Manage Roles
+               </button>
+               {league.adminRole === 'OWNER' || league.isSuperAdmin ? (
+                 <button
+                   type="button"
+                   onClick={() =>
+                     router.push(
+                       `/leagues/${leagueId}/admins`,
+                     )
+                   }
+                   className="min-h-11 shrink-0 rounded-xl border border-amber-300/20 px-4 text-sm font-black text-amber-200"
+                 >
+                   Manage Admins
+                 </button>
+               ) : null}
+             </div>
           </FcPanel>
         ) : null}
 

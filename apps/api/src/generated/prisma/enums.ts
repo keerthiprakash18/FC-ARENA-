@@ -79,6 +79,38 @@ export const LeagueAdminRole = {
 export type LeagueAdminRole = (typeof LeagueAdminRole)[keyof typeof LeagueAdminRole]
 
 
+export const LeagueAdminPermission = {
+  MANAGE_SETTINGS: 'MANAGE_SETTINGS',
+  MANAGE_MEMBERS: 'MANAGE_MEMBERS',
+  MANAGE_FIXTURES: 'MANAGE_FIXTURES',
+  MANAGE_STANDINGS: 'MANAGE_STANDINGS',
+  MANAGE_TOURNAMENTS: 'MANAGE_TOURNAMENTS',
+  VIEW_REPORTS: 'VIEW_REPORTS'
+} as const
+
+export type LeagueAdminPermission = (typeof LeagueAdminPermission)[keyof typeof LeagueAdminPermission]
+
+
+export const TournamentAdminRole = {
+  OWNER: 'OWNER',
+  ADMIN: 'ADMIN'
+} as const
+
+export type TournamentAdminRole = (typeof TournamentAdminRole)[keyof typeof TournamentAdminRole]
+
+
+export const TournamentAdminPermission = {
+  MANAGE_FIXTURES: 'MANAGE_FIXTURES',
+  MANAGE_RESULTS: 'MANAGE_RESULTS',
+  VERIFY_SCORES: 'VERIFY_SCORES',
+  MANAGE_PARTICIPANTS: 'MANAGE_PARTICIPANTS',
+  MANAGE_SETTINGS: 'MANAGE_SETTINGS',
+  VIEW_REPORTS: 'VIEW_REPORTS'
+} as const
+
+export type TournamentAdminPermission = (typeof TournamentAdminPermission)[keyof typeof TournamentAdminPermission]
+
+
 export const TournamentMode = {
   SOLO: 'SOLO',
   DUO: 'DUO',

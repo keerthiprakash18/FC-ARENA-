@@ -2,7 +2,6 @@ import { assertImageFormat } from '../security/image-format.js';
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -15,6 +14,7 @@ import {
   PrismaService,
 } from '../database/prisma.service.js';
 import { fetchWithTimeout } from '../security/external-request.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 
 
 interface CloudinaryUploadResponse {
@@ -39,6 +39,8 @@ export class TournamentLogoService {
   constructor(
     private readonly prisma:
       PrismaService,
+    private readonly authorization:
+      AuthorizationService,
   ) {}
 
 
@@ -498,31 +500,7 @@ export class TournamentLogoService {
       });
     }
 
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId:
-              tournament.leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (
-      !admin
-    ) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-          message:
-            'Only a League Admin can manage the Tournament logo.',
-        },
-      });
-    }
+    await this.authorization.assertCanManageTournamentPermission(userId, tournament.id, 'MANAGE_SETTINGS');
 
     if (
       tournament.status !==

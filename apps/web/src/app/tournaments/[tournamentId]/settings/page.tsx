@@ -46,6 +46,7 @@ interface Tournament {
   name: string;
   status: string;
   isLeagueAdmin: boolean;
+  canManageAdmins: boolean;
   competitionFormat?: string;
   format: string;
   groupMode?: string;
@@ -627,7 +628,7 @@ export default function TournamentSettingsPage() {
         ) : null}
 
 
-        <FcPanel className="p-5 sm:p-6">
+         <FcPanel className="p-5 sm:p-6">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
             Configuration
           </p>
@@ -667,8 +668,8 @@ export default function TournamentSettingsPage() {
             )}
           </div>
 
-          {tournament.status ===
-            'DRAFT' &&
+           {tournament.status ===
+             'DRAFT' &&
           tournament.isLeagueAdmin ? (
             <Link
               href={
@@ -678,8 +679,17 @@ export default function TournamentSettingsPage() {
             >
               Continue Setup Wizard
             </Link>
+           ) : null}
+
+          {tournament.canManageAdmins ? (
+            <Link
+              href={`/tournaments/${tournamentId}/admins`}
+              className="mt-3 inline-flex rounded-xl border border-amber-300/20 px-4 py-3 text-sm font-black text-amber-200"
+            >
+              Manage Admins
+            </Link>
           ) : null}
-        </FcPanel>
+         </FcPanel>
 
 
         {tournament.isLeagueAdmin ? (

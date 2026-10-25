@@ -38,6 +38,11 @@ describe(
             vi.fn(),
         },
 
+        tournamentAdmin: {
+          findUnique:
+            vi.fn().mockResolvedValue(null),
+        },
+
         tournament: {
           findUnique:
             vi.fn(),
@@ -269,9 +274,6 @@ describe(
           .mockResolvedValueOnce(
             null,
           )
-          .mockResolvedValueOnce(
-            null,
-          )
           .mockResolvedValueOnce({
             id:
               'official-role',
@@ -322,9 +324,6 @@ describe(
         );
 
         prisma.roleAssignment.findUnique
-          .mockResolvedValueOnce(
-            null,
-          )
           .mockResolvedValueOnce(
             null,
           )

@@ -9,6 +9,7 @@ import {
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 
 import type {
   BulkCreateTournamentEntriesDto,
@@ -37,6 +38,8 @@ export class TournamentEntriesService {
   constructor(
     private readonly prisma:
       PrismaService,
+    private readonly authorization:
+      AuthorizationService,
   ) {}
 
 
@@ -765,10 +768,7 @@ export class TournamentEntriesService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueAdmin(
-      userId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageTournamentPermission(userId, tournament.id, 'MANAGE_PARTICIPANTS');
 
     return tournament;
   }
@@ -858,36 +858,6 @@ export class TournamentEntriesService {
     }
   }
 
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required to manage Tournament teams.',
-        },
-      });
-    }
-  }
 
 
   private tournamentNotFound() {

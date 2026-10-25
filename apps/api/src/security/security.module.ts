@@ -11,6 +11,9 @@ import {
   AuditService,
 } from './audit.service.js';
 
+import { AdminManagementController } from './admin-management.controller.js';
+import { AdminManagementService } from './admin-management.service.js';
+
 import {
   AuthorizationService,
 } from './authorization.service.js';
@@ -40,6 +43,7 @@ import {
   controllers: [
     SecurityController,
     SafetyController,
+    AdminManagementController,
   ],
 
   providers: [
@@ -47,6 +51,7 @@ import {
     AuditService,
     RoleManagementService,
     SafetyService,
+    AdminManagementService,
   ],
 
   exports: [
@@ -54,6 +59,7 @@ import {
     AuditService,
     RoleManagementService,
     SafetyService,
+    AdminManagementService,
   ],
 })
 export class SecurityModule {}

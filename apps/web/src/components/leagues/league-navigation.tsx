@@ -14,6 +14,7 @@ const items = [
   ['Members', '/members'],
   ['Teams', '/teams'],
   ['Settings', '/settings'],
+  ['Manage Admins', '/admins'],
 ] as const;
 
 export function LeagueNavigation({

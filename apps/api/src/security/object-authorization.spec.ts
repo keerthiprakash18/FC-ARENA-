@@ -6,6 +6,7 @@ describe('Cross-object authorization', () => {
     const prisma = {
       user: { findUnique: vi.fn().mockResolvedValue({ role: 'PLAYER' }) },
       leagueAdmin: { findUnique: vi.fn(async ({ where }) => where.leagueId_userId.leagueId === 'own-league' ? { id: 'assignment' } : null) },
+      tournamentAdmin: { findUnique: vi.fn().mockResolvedValue(null) },
       roleAssignment: { findUnique: vi.fn().mockResolvedValue(null) },
       tournament: { findUnique: vi.fn().mockResolvedValue({ id: 'other-tournament', leagueId: 'other-league', createdByUserId: 'other-user' }) },
     };
@@ -14,7 +15,7 @@ describe('Cross-object authorization', () => {
   it('does not let an admin of one league manage another league tournament', async () => {
     const f = fixture();
     await expect(f.service.assertCanManageTournament('league-admin', 'other-tournament')).rejects.toMatchObject({ status: 403 });
-    expect(f.prisma.leagueAdmin.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { leagueId_userId: { userId: 'league-admin', leagueId: 'other-league' } } }));
+    expect(f.prisma.tournamentAdmin.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { tournamentId_userId: { userId: 'league-admin', tournamentId: 'other-tournament' } } }));
   });
   it('does not promote team-manager access to tournament-admin access', async () => {
     const f = fixture();

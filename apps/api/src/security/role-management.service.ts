@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -42,6 +43,17 @@ export class RoleManagementService {
       dto.scopeType,
       dto.scopeId,
     );
+
+    if (dto.role === 'TOURNAMENT_ADMIN') {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'TOURNAMENT_ADMIN_MANAGED_SEPARATELY',
+          message: 'Use the Tournament Admin Management feature for Tournament Admin assignments.',
+        },
+      });
+    }
 
     const targetUser =
       await this.prisma.user.findUnique({

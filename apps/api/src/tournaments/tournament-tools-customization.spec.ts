@@ -28,7 +28,7 @@ describe('tournament organizer customization', () => {
       data: { tournament: { id: 'cloned-tournament' } },
       error: null,
     });
-    const authorization = { assertCanManageTournament: vi.fn().mockResolvedValue(undefined) };
+    const authorization = { assertCanManageTournament: vi.fn().mockResolvedValue(undefined), assertCanManageTournamentPermission: vi.fn().mockResolvedValue(undefined) };
     const service = new TournamentToolsService(
       { tournament: { findUnique: vi.fn().mockResolvedValue(source) } } as never,
       authorization as never,
@@ -38,7 +38,7 @@ describe('tournament organizer customization', () => {
 
     const result = await service.cloneTournament('user-1', 'tournament-1', { name: 'Spring Cup Copy' });
 
-    expect(authorization.assertCanManageTournament).toHaveBeenCalledWith('user-1', 'tournament-1');
+    expect(authorization.assertCanManageTournamentPermission).toHaveBeenCalledWith('user-1', 'tournament-1', 'MANAGE_SETTINGS');
     expect(createTournament).toHaveBeenCalledWith('user-1', 'league-1', expect.objectContaining({
       name: 'Spring Cup Copy',
       mode: 'SOLO',

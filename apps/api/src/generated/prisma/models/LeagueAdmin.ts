@@ -45,6 +45,7 @@ export type LeagueAdminCountAggregateOutputType = {
   leagueId: number
   userId: number
   role: number
+  permissions: number
   createdAt: number
   _all: number
 }
@@ -71,6 +72,7 @@ export type LeagueAdminCountAggregateInputType = {
   leagueId?: true
   userId?: true
   role?: true
+  permissions?: true
   createdAt?: true
   _all?: true
 }
@@ -152,6 +154,7 @@ export type LeagueAdminGroupByOutputType = {
   leagueId: string
   userId: string
   role: $Enums.LeagueAdminRole
+  permissions: $Enums.LeagueAdminPermission[]
   createdAt: Date
   _count: LeagueAdminCountAggregateOutputType | null
   _min: LeagueAdminMinAggregateOutputType | null
@@ -181,6 +184,7 @@ export type LeagueAdminWhereInput = {
   leagueId?: Prisma.UuidFilter<"LeagueAdmin"> | string
   userId?: Prisma.UuidFilter<"LeagueAdmin"> | string
   role?: Prisma.EnumLeagueAdminRoleFilter<"LeagueAdmin"> | $Enums.LeagueAdminRole
+  permissions?: Prisma.EnumLeagueAdminPermissionNullableListFilter<"LeagueAdmin">
   createdAt?: Prisma.DateTimeFilter<"LeagueAdmin"> | Date | string
   league?: Prisma.XOR<Prisma.LeagueScalarRelationFilter, Prisma.LeagueWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -191,6 +195,7 @@ export type LeagueAdminOrderByWithRelationInput = {
   leagueId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   league?: Prisma.LeagueOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
@@ -205,6 +210,7 @@ export type LeagueAdminWhereUniqueInput = Prisma.AtLeast<{
   leagueId?: Prisma.UuidFilter<"LeagueAdmin"> | string
   userId?: Prisma.UuidFilter<"LeagueAdmin"> | string
   role?: Prisma.EnumLeagueAdminRoleFilter<"LeagueAdmin"> | $Enums.LeagueAdminRole
+  permissions?: Prisma.EnumLeagueAdminPermissionNullableListFilter<"LeagueAdmin">
   createdAt?: Prisma.DateTimeFilter<"LeagueAdmin"> | Date | string
   league?: Prisma.XOR<Prisma.LeagueScalarRelationFilter, Prisma.LeagueWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -215,6 +221,7 @@ export type LeagueAdminOrderByWithAggregationInput = {
   leagueId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.LeagueAdminCountOrderByAggregateInput
   _max?: Prisma.LeagueAdminMaxOrderByAggregateInput
@@ -229,12 +236,14 @@ export type LeagueAdminScalarWhereWithAggregatesInput = {
   leagueId?: Prisma.UuidWithAggregatesFilter<"LeagueAdmin"> | string
   userId?: Prisma.UuidWithAggregatesFilter<"LeagueAdmin"> | string
   role?: Prisma.EnumLeagueAdminRoleWithAggregatesFilter<"LeagueAdmin"> | $Enums.LeagueAdminRole
+  permissions?: Prisma.EnumLeagueAdminPermissionNullableListFilter<"LeagueAdmin">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LeagueAdmin"> | Date | string
 }
 
 export type LeagueAdminCreateInput = {
   id?: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
   league: Prisma.LeagueCreateNestedOneWithoutAdminsInput
   user: Prisma.UserCreateNestedOneWithoutLeagueAdminRolesInput
@@ -245,12 +254,14 @@ export type LeagueAdminUncheckedCreateInput = {
   leagueId: string
   userId: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
 }
 
 export type LeagueAdminUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   league?: Prisma.LeagueUpdateOneRequiredWithoutAdminsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutLeagueAdminRolesNestedInput
@@ -261,6 +272,7 @@ export type LeagueAdminUncheckedUpdateInput = {
   leagueId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -269,12 +281,14 @@ export type LeagueAdminCreateManyInput = {
   leagueId: string
   userId: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
 }
 
 export type LeagueAdminUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -283,6 +297,7 @@ export type LeagueAdminUncheckedUpdateManyInput = {
   leagueId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -296,6 +311,14 @@ export type LeagueAdminOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type EnumLeagueAdminPermissionNullableListFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeagueAdminPermission[] | Prisma.ListEnumLeagueAdminPermissionFieldRefInput<$PrismaModel> | null
+  has?: $Enums.LeagueAdminPermission | Prisma.EnumLeagueAdminPermissionFieldRefInput<$PrismaModel> | null
+  hasEvery?: $Enums.LeagueAdminPermission[] | Prisma.ListEnumLeagueAdminPermissionFieldRefInput<$PrismaModel>
+  hasSome?: $Enums.LeagueAdminPermission[] | Prisma.ListEnumLeagueAdminPermissionFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type LeagueAdminLeagueIdUserIdCompoundUniqueInput = {
   leagueId: string
   userId: string
@@ -306,6 +329,7 @@ export type LeagueAdminCountOrderByAggregateInput = {
   leagueId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -409,13 +433,23 @@ export type LeagueAdminUncheckedUpdateManyWithoutLeagueNestedInput = {
   deleteMany?: Prisma.LeagueAdminScalarWhereInput | Prisma.LeagueAdminScalarWhereInput[]
 }
 
+export type LeagueAdminCreatepermissionsInput = {
+  set: $Enums.LeagueAdminPermission[]
+}
+
 export type EnumLeagueAdminRoleFieldUpdateOperationsInput = {
   set?: $Enums.LeagueAdminRole
+}
+
+export type LeagueAdminUpdatepermissionsInput = {
+  set?: $Enums.LeagueAdminPermission[]
+  push?: $Enums.LeagueAdminPermission | $Enums.LeagueAdminPermission[]
 }
 
 export type LeagueAdminCreateWithoutUserInput = {
   id?: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
   league: Prisma.LeagueCreateNestedOneWithoutAdminsInput
 }
@@ -424,6 +458,7 @@ export type LeagueAdminUncheckedCreateWithoutUserInput = {
   id?: string
   leagueId: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
 }
 
@@ -461,12 +496,14 @@ export type LeagueAdminScalarWhereInput = {
   leagueId?: Prisma.UuidFilter<"LeagueAdmin"> | string
   userId?: Prisma.UuidFilter<"LeagueAdmin"> | string
   role?: Prisma.EnumLeagueAdminRoleFilter<"LeagueAdmin"> | $Enums.LeagueAdminRole
+  permissions?: Prisma.EnumLeagueAdminPermissionNullableListFilter<"LeagueAdmin">
   createdAt?: Prisma.DateTimeFilter<"LeagueAdmin"> | Date | string
 }
 
 export type LeagueAdminCreateWithoutLeagueInput = {
   id?: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutLeagueAdminRolesInput
 }
@@ -475,6 +512,7 @@ export type LeagueAdminUncheckedCreateWithoutLeagueInput = {
   id?: string
   userId: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
 }
 
@@ -508,12 +546,14 @@ export type LeagueAdminCreateManyUserInput = {
   id?: string
   leagueId: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
 }
 
 export type LeagueAdminUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   league?: Prisma.LeagueUpdateOneRequiredWithoutAdminsNestedInput
 }
@@ -522,6 +562,7 @@ export type LeagueAdminUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   leagueId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -529,6 +570,7 @@ export type LeagueAdminUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   leagueId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -536,12 +578,14 @@ export type LeagueAdminCreateManyLeagueInput = {
   id?: string
   userId: string
   role?: $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminCreatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Date | string
 }
 
 export type LeagueAdminUpdateWithoutLeagueInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutLeagueAdminRolesNestedInput
 }
@@ -550,6 +594,7 @@ export type LeagueAdminUncheckedUpdateWithoutLeagueInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -557,6 +602,7 @@ export type LeagueAdminUncheckedUpdateManyWithoutLeagueInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumLeagueAdminRoleFieldUpdateOperationsInput | $Enums.LeagueAdminRole
+  permissions?: Prisma.LeagueAdminUpdatepermissionsInput | $Enums.LeagueAdminPermission[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -567,6 +613,7 @@ export type LeagueAdminSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   leagueId?: boolean
   userId?: boolean
   role?: boolean
+  permissions?: boolean
   createdAt?: boolean
   league?: boolean | Prisma.LeagueDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -577,6 +624,7 @@ export type LeagueAdminSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   leagueId?: boolean
   userId?: boolean
   role?: boolean
+  permissions?: boolean
   createdAt?: boolean
   league?: boolean | Prisma.LeagueDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -587,6 +635,7 @@ export type LeagueAdminSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   leagueId?: boolean
   userId?: boolean
   role?: boolean
+  permissions?: boolean
   createdAt?: boolean
   league?: boolean | Prisma.LeagueDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -597,10 +646,11 @@ export type LeagueAdminSelectScalar = {
   leagueId?: boolean
   userId?: boolean
   role?: boolean
+  permissions?: boolean
   createdAt?: boolean
 }
 
-export type LeagueAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "leagueId" | "userId" | "role" | "createdAt", ExtArgs["result"]["leagueAdmin"]>
+export type LeagueAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "leagueId" | "userId" | "role" | "permissions" | "createdAt", ExtArgs["result"]["leagueAdmin"]>
 export type LeagueAdminInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   league?: boolean | Prisma.LeagueDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -625,6 +675,7 @@ export type $LeagueAdminPayload<ExtArgs extends runtime.Types.Extensions.Interna
     leagueId: string
     userId: string
     role: $Enums.LeagueAdminRole
+    permissions: $Enums.LeagueAdminPermission[]
     createdAt: Date
   }, ExtArgs["result"]["leagueAdmin"]>
   composites: {}
@@ -1055,6 +1106,7 @@ export interface LeagueAdminFieldRefs {
   readonly leagueId: Prisma.FieldRef<"LeagueAdmin", 'String'>
   readonly userId: Prisma.FieldRef<"LeagueAdmin", 'String'>
   readonly role: Prisma.FieldRef<"LeagueAdmin", 'LeagueAdminRole'>
+  readonly permissions: Prisma.FieldRef<"LeagueAdmin", 'LeagueAdminPermission[]'>
   readonly createdAt: Prisma.FieldRef<"LeagueAdmin", 'DateTime'>
 }
 

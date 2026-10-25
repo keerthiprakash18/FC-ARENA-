@@ -92,6 +92,11 @@ export type LeagueAdmin = Prisma.LeagueAdminModel
  */
 export type Tournament = Prisma.TournamentModel
 /**
+ * Model TournamentAdmin
+ *
+ */
+export type TournamentAdmin = Prisma.TournamentAdminModel
+/**
  * Model TournamentSummary
  *
  */

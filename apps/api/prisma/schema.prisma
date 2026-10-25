@@ -56,6 +56,29 @@ enum LeagueAdminRole {
   ADMIN
 }
 
+enum LeagueAdminPermission {
+  MANAGE_SETTINGS
+  MANAGE_MEMBERS
+  MANAGE_FIXTURES
+  MANAGE_STANDINGS
+  MANAGE_TOURNAMENTS
+  VIEW_REPORTS
+}
+
+enum TournamentAdminRole {
+  OWNER
+  ADMIN
+}
+
+enum TournamentAdminPermission {
+  MANAGE_FIXTURES
+  MANAGE_RESULTS
+  VERIFY_SCORES
+  MANAGE_PARTICIPANTS
+  MANAGE_SETTINGS
+  VIEW_REPORTS
+}
+
 enum TournamentMode {
   SOLO
   DUO
@@ -382,6 +405,7 @@ model User {
   reviewedLeagueApplications LeagueApplication[]            @relation("LeagueApplicationReviewer")
   leagueAdminRoles           LeagueAdmin[]
   createdTournaments         Tournament[]                   @relation("TournamentCreator")
+  tournamentAdminRoles       TournamentAdmin[]
   createdTournamentTemplates TournamentTemplate[]           @relation("TournamentTemplateCreator")
   tournamentRegistrations    TournamentRegistration[]       @relation("TournamentRegistrant")
   tournamentEntryMemberships TournamentRegistrationMember[] @relation("TournamentRegistrationMemberUser")
@@ -502,6 +526,7 @@ model League {
   region           String?           @db.VarChar(120)
   rules            String?           @db.Text
   maxMembers       Int               @default(100)
+  maxAdmins        Int?
   creatorUserId    String            @db.Uuid
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -560,11 +585,12 @@ model LeagueApplication {
 }
 
 model LeagueAdmin {
-  id        String          @id @default(uuid()) @db.Uuid
-  leagueId  String          @db.Uuid
-  userId    String          @db.Uuid
-  role      LeagueAdminRole @default(ADMIN)
-  createdAt DateTime        @default(now())
+  id          String                @id @default(uuid()) @db.Uuid
+  leagueId    String                @db.Uuid
+  userId      String                @db.Uuid
+  role        LeagueAdminRole       @default(ADMIN)
+  permissions LeagueAdminPermission[] @default([])
+  createdAt   DateTime              @default(now())
 
   league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -616,9 +642,11 @@ model Tournament {
   updatedAt                   DateTime                    @updatedAt
   completedAt                 DateTime?
   resultDeadlineHours         Int                         @default(48)
+  maxAdmins                   Int?
 
   league              League                         @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   createdBy           User                           @relation("TournamentCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  admins              TournamentAdmin[]
   registrations       TournamentRegistration[]
   registrationMembers TournamentRegistrationMember[]
   fixtures            Fixture[]
@@ -635,6 +663,23 @@ model Tournament {
   @@index([leagueId, status, createdAt])
   @@index([createdByUserId])
   @@map("tournaments")
+}
+
+model TournamentAdmin {
+  id          String                   @id @default(uuid()) @db.Uuid
+  tournamentId String                  @db.Uuid
+  userId      String                   @db.Uuid
+  role        TournamentAdminRole      @default(ADMIN)
+  permissions TournamentAdminPermission[] @default([])
+  createdAt   DateTime                 @default(now())
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, userId])
+  @@index([userId])
+  @@index([tournamentId, role])
+  @@map("tournament_admins")
 }
 
 model TournamentSummary {

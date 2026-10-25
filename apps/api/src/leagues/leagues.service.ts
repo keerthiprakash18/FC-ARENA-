@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 import { SafetyService } from '../security/safety.service.js';
 import type { CreateLeagueDto } from './dto/create-league.dto.js';
 import type { DeleteLeagueDto } from './dto/delete-league.dto.js';
@@ -20,6 +21,7 @@ export class LeaguesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly safetyService: SafetyService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   async createLeague(userId: string, dto: CreateLeagueDto) {
@@ -375,7 +377,7 @@ export class LeaguesService {
   }
 
   async getApplications(adminUserId: string, leagueId: string) {
-    await this.assertLeagueAdmin(adminUserId, leagueId);
+    await this.authorization.assertLeaguePermission(adminUserId, leagueId, 'MANAGE_MEMBERS');
 
     const applications =
       await this.prisma.leagueApplication.findMany({
@@ -422,21 +424,9 @@ export class LeaguesService {
     leagueId: string,
     applicationId: string,
   ) {
+    await this.authorization.assertLeaguePermission(adminUserId, leagueId, 'MANAGE_MEMBERS');
     const result = await this.prisma.$transaction(
       async (tx) => {
-        const admin = await tx.leagueAdmin.findUnique({
-          where: {
-            leagueId_userId: {
-              leagueId,
-              userId: adminUserId,
-            },
-          },
-        });
-
-        if (!admin) {
-          throw this.adminRequired();
-        }
-
         const application =
           await tx.leagueApplication.findUnique({
             where: { id: applicationId },
@@ -538,7 +528,7 @@ export class LeaguesService {
     leagueId: string,
     applicationId: string,
   ) {
-    await this.assertLeagueAdmin(adminUserId, leagueId);
+    await this.authorization.assertLeaguePermission(adminUserId, leagueId, 'MANAGE_MEMBERS');
 
     const application =
       await this.prisma.leagueApplication.findUnique({
@@ -851,16 +841,7 @@ export class LeaguesService {
     userId: string,
     leagueId: string,
   ): Promise<void> {
-    const admin = await this.prisma.leagueAdmin.findUnique({
-      where: {
-        leagueId_userId: {
-          leagueId,
-          userId,
-        },
-      },
-    });
-
-    if (!admin) {
+    if (!(await this.authorization.isLeagueAdmin(userId, leagueId))) {
       throw this.adminRequired();
     }
   }

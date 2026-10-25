@@ -24,6 +24,7 @@ const items = [
   ['Summary', '/summary'],
   ['Awards', '/achievements'],
   ['Settings', '/settings'],
+  ['Manage Admins', '/admins'],
 ] as const;
 
 export function TournamentNavigation({

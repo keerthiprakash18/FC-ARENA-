@@ -12,6 +12,7 @@ import sharp from 'sharp';
 
 import { PrismaService } from '../database/prisma.service.js';
 import { fetchWithTimeout } from '../security/external-request.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 
 interface CloudinaryUploadResponse {
   secure_url?: string;
@@ -27,6 +28,7 @@ interface CloudinaryDestroyResponse {
 export class TournamentEntryLogoService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly authorization: AuthorizationService,
   ) {}
 
   async uploadLogo(
@@ -313,32 +315,24 @@ export class TournamentEntryLogoService {
       });
     }
 
-    const admin = await this.prisma.leagueAdmin.findUnique({
-      where: {
-        leagueId_userId: {
-          leagueId: entry.tournament.leagueId,
-          userId,
-        },
-      },
-    });
-
     const ownsEntry =
       entry.registeredByUserId === userId ||
       entry.members.length > 0;
+    const canManageTournament = await this.authorization.canManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
 
-    if (!admin && !ownsEntry) {
+    if (!canManageTournament && !ownsEntry) {
       throw new ForbiddenException({
         success: false,
         data: null,
         error: {
           code: 'ENTRY_LOGO_PERMISSION_REQUIRED',
-          message: 'Only this entry’s players or a League Admin can manage its logo.',
+          message: 'Only this entry’s players or an authorized Tournament Admin can manage its logo.',
         },
       });
     }
 
     if (
-      !admin &&
+      !canManageTournament &&
       !['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(
         entry.tournament.status,
       )
@@ -354,7 +348,7 @@ export class TournamentEntryLogoService {
     }
 
     if (
-      admin &&
+      canManageTournament &&
       ['COMPLETED', 'CANCELLED'].includes(entry.tournament.status)
     ) {
       throw new ConflictException({
@@ -369,7 +363,7 @@ export class TournamentEntryLogoService {
 
     return {
       entry,
-      isAdmin: Boolean(admin),
+      isAdmin: canManageTournament,
     };
   }
 

@@ -17,7 +17,6 @@ import type { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settin
 import type { SmartScheduleDto } from './dto/smart-schedule.dto.js';
 import {
   generateDoubleRoundRobinFixtures,
-  generateKnockoutFixtures,
   generateRoundRobinFixtures,
 } from './fixture-engine.js';
 import type { FixtureBlueprint } from './fixture-engine.js';
@@ -549,10 +548,7 @@ export class FixturesService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueAdmin(
-      userId,
-      tournament.leagueId,
-    );
+    await this.authorization.assertCanManageTournament(userId, tournamentId);
 
     if (
       dto.dailyMatchLimit ===
@@ -2097,35 +2093,6 @@ export class FixturesService {
 
           message:
             'You must be a member of this League.',
-        },
-      });
-    }
-  }
-
-  private async assertLeagueAdmin(
-    userId: string,
-    leagueId: string,
-  ) {
-    const admin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-      });
-
-    if (!admin) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'LEAGUE_ADMIN_REQUIRED',
-
-          message:
-            'League Admin permission is required.',
         },
       });
     }

@@ -13,6 +13,22 @@ type ScopedRoleName =
   | 'MATCH_OFFICIAL'
   | 'VIEWER';
 
+type LeagueAdminPermissionName =
+  | 'MANAGE_SETTINGS'
+  | 'MANAGE_MEMBERS'
+  | 'MANAGE_FIXTURES'
+  | 'MANAGE_STANDINGS'
+  | 'MANAGE_TOURNAMENTS'
+  | 'VIEW_REPORTS';
+
+type TournamentAdminPermissionName =
+  | 'MANAGE_FIXTURES'
+  | 'MANAGE_RESULTS'
+  | 'VERIFY_SCORES'
+  | 'MANAGE_PARTICIPANTS'
+  | 'MANAGE_SETTINGS'
+  | 'VIEW_REPORTS';
+
 @Injectable()
 export class AuthorizationService {
   constructor(
@@ -69,6 +85,70 @@ export class AuthorizationService {
     return Boolean(
       leagueAdmin,
     );
+  }
+
+  async isLeagueOwner(userId: string, leagueId: string) {
+    if (await this.isSuperAdmin(userId)) return true;
+    const owner = await this.prisma.leagueAdmin.findUnique({
+      where: { leagueId_userId: { leagueId, userId } },
+      select: { role: true },
+    });
+    return owner?.role === 'OWNER';
+  }
+
+  async canManageLeagueAdmins(userId: string, leagueId: string) {
+    return this.isLeagueOwner(userId, leagueId);
+  }
+
+  async canManageTournamentAdmins(userId: string, tournamentId: string) {
+    if (await this.isSuperAdmin(userId)) return true;
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      select: { createdByUserId: true },
+    });
+    return Boolean(tournament && tournament.createdByUserId === userId);
+  }
+
+  async hasLeaguePermission(userId: string, leagueId: string, permission: LeagueAdminPermissionName) {
+    if (await this.isSuperAdmin(userId)) return true;
+    const admin = await this.prisma.leagueAdmin.findUnique({
+      where: { leagueId_userId: { leagueId, userId } },
+      select: { role: true, permissions: true },
+    });
+    if (!admin) return false;
+    return admin.role === 'OWNER' || (admin.permissions as string[]).includes(permission);
+  }
+
+  async assertLeaguePermission(userId: string, leagueId: string, permission: LeagueAdminPermissionName) {
+    if (!(await this.hasLeaguePermission(userId, leagueId, permission))) {
+      throw this.permissionDenied(`${permission.replaceAll('_', ' ')} permission is required.`);
+    }
+  }
+
+  async hasTournamentPermission(userId: string, tournamentId: string, permission: TournamentAdminPermissionName) {
+    if (await this.isSuperAdmin(userId)) return true;
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      select: { createdByUserId: true },
+    });
+    if (tournament?.createdByUserId === userId) return true;
+    const admin = await this.prisma.tournamentAdmin.findUnique({
+      where: { tournamentId_userId: { tournamentId, userId } },
+      select: { role: true, permissions: true },
+    });
+    if (admin && (admin.role === 'OWNER' || (admin.permissions as string[]).includes(permission))) return true;
+
+    return this.hasLegacyTournamentAdmin(userId, tournamentId);
+  }
+
+  async canManageTournamentPermission(userId: string, tournamentId: string, permission: TournamentAdminPermissionName) {
+    return this.hasTournamentPermission(userId, tournamentId, permission);
+  }
+
+  async assertCanManageTournamentPermission(userId: string, tournamentId: string, permission: TournamentAdminPermissionName) {
+    if (!(await this.canManageTournamentPermission(userId, tournamentId, permission))) {
+      throw this.permissionDenied(`${permission.replaceAll('_', ' ')} permission is required.`);
+    }
   }
 
   async hasScopedRole(
@@ -131,15 +211,6 @@ export class AuthorizationService {
     }
 
     if (
-      await this.isLeagueAdmin(
-        userId,
-        tournament.leagueId,
-      )
-    ) {
-      return true;
-    }
-
-    if (
       tournament.createdByUserId ===
       userId
     ) {
@@ -157,6 +228,20 @@ export class AuthorizationService {
       return true;
     }
 
+    const tournamentAdmin = await this.prisma.tournamentAdmin.findUnique({
+      where: { tournamentId_userId: { tournamentId: tournament.id, userId } },
+      select: { role: true, permissions: true },
+    });
+    if (tournamentAdmin && (tournamentAdmin.role === 'OWNER' || (tournamentAdmin.permissions as string[]).some((permission) => [
+      'MANAGE_FIXTURES',
+      'MANAGE_RESULTS',
+      'VERIFY_SCORES',
+      'MANAGE_PARTICIPANTS',
+      'MANAGE_SETTINGS',
+    ].includes(permission)))) {
+      return true;
+    }
+
     return this.hasScopedRole(
       userId,
       'TOURNAMENT_ADMIN',
@@ -169,15 +254,6 @@ export class AuthorizationService {
     userId: string,
     tournamentId: string,
   ) {
-    if (
-      await this.canManageTournament(
-        userId,
-        tournamentId,
-      )
-    ) {
-      return true;
-    }
-
     const tournament =
       await this.prisma.tournament.findUnique({
         where: {
@@ -192,6 +268,8 @@ export class AuthorizationService {
     if (!tournament) {
       throw this.tournamentNotFound();
     }
+
+    if (await this.hasTournamentPermission(userId, tournamentId, 'MANAGE_FIXTURES')) return true;
 
     if (
       await this.hasScopedRole(
@@ -248,14 +326,7 @@ export class AuthorizationService {
       });
     }
 
-    if (
-      await this.canManageTournament(
-        userId,
-        match.tournamentId,
-      )
-    ) {
-      return true;
-    }
+    if (await this.hasTournamentPermission(userId, match.tournamentId, 'VERIFY_SCORES')) return true;
 
     if (
       await this.hasScopedRole(
@@ -361,6 +432,15 @@ export class AuthorizationService {
             select: {
               leagueId: true,
               role: true,
+              permissions: true,
+            },
+          },
+
+          tournamentAdminRoles: {
+            select: {
+              tournamentId: true,
+              role: true,
+              permissions: true,
             },
           },
 
@@ -403,6 +483,9 @@ export class AuthorizationService {
       leagueRoles:
         user.leagueAdminRoles,
 
+      tournamentRoles:
+        user.tournamentAdminRoles,
+
       scopedRoles:
         user.roleAssignments,
     };
@@ -421,6 +504,12 @@ export class AuthorizationService {
           'Tournament could not be found.',
       },
     });
+  }
+
+  private async hasLegacyTournamentAdmin(userId: string, tournamentId: string) {
+    if (await this.hasScopedRole(userId, 'TOURNAMENT_ADMIN', 'TOURNAMENT', tournamentId)) return true;
+    const tournament = await this.prisma.tournament.findUnique({ where: { id: tournamentId }, select: { leagueId: true } });
+    return Boolean(tournament && await this.hasScopedRole(userId, 'TOURNAMENT_ADMIN', 'LEAGUE', tournament.leagueId));
   }
 
   private permissionDenied(

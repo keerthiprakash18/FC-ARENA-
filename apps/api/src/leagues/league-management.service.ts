@@ -5,10 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { AuthorizationService } from '../security/authorization.service.js';
 
 @Injectable()
 export class LeagueManagementService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authorization: AuthorizationService,
+  ) {}
 
   async getLeagueHome(userId: string, leagueId: string) {
     const membership = await this.prisma.leagueMember.findUnique({
@@ -19,8 +23,10 @@ export class LeagueManagementService {
         },
       },
     });
+    const requesterIsSuperAdmin = await this.authorization.isSuperAdmin(userId);
+    const requesterIsLeagueAdmin = requesterIsSuperAdmin || await this.authorization.isLeagueAdmin(userId, leagueId);
 
-    if (!membership) {
+    if (!membership && !requesterIsLeagueAdmin) {
       throw new ForbiddenException({
         success: false,
         data: null,
@@ -98,8 +104,9 @@ export class LeagueManagementService {
           members: league._count.members,
           maxMembers: league.maxMembers,
           pendingApplications: league._count.applications,
-          membershipType: membership.type,
-          adminRole: league.admins[0]?.role ?? null,
+           membershipType: membership?.type ?? null,
+           adminRole: league.admins[0]?.role ?? null,
+           isSuperAdmin: requesterIsSuperAdmin,
           creator: {
             id: league.creator.id,
             fullName: league.creator.fullName,
@@ -121,21 +128,7 @@ export class LeagueManagementService {
   ) {
     await this.assertMember(userId, leagueId);
 
-    const requesterAdmin =
-      await this.prisma.leagueAdmin.findUnique({
-        where: {
-          leagueId_userId: {
-            leagueId,
-            userId,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-    const canViewPrivateIdentity =
-      Boolean(requesterAdmin);
+    const canViewPrivateIdentity = await this.authorization.isLeagueAdmin(userId, leagueId);
 
     const normalizedSearch = search?.trim();
 
@@ -367,7 +360,7 @@ export class LeagueManagementService {
       },
     });
 
-    if (!membership) {
+    if (!membership && !(await this.authorization.isLeagueAdmin(userId, leagueId))) {
       throw new ForbiddenException({
         success: false,
         data: null,
@@ -383,16 +376,7 @@ export class LeagueManagementService {
     userId: string,
     leagueId: string,
   ): Promise<void> {
-    const admin = await this.prisma.leagueAdmin.findUnique({
-      where: {
-        leagueId_userId: {
-          leagueId,
-          userId,
-        },
-      },
-    });
-
-    if (!admin) {
+    if (!(await this.authorization.hasLeaguePermission(userId, leagueId, 'MANAGE_MEMBERS'))) {
       throw new ForbiddenException({
         success: false,
         data: null,

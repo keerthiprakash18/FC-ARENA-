@@ -27,10 +27,11 @@ function setup(mode = 'OPEN', rows: Entry[] = []) {
   };
   db.$transactionWithRetry.mockImplementation(async work => work(db));
   db.$transaction.mockImplementation(async work => work(db));
+  const authorization = { assertCanManageTournament: vi.fn(), assertCanManageTournamentPermission: vi.fn() };
   return {
     db,
-    admin: new TournamentEntriesService(db as never),
-    players: new TournamentsService(db as never, { assertCanManageTournament: vi.fn() } as never),
+    admin: new TournamentEntriesService(db as never, authorization as never),
+    players: new TournamentsService(db as never, { assertCanManageTournament: vi.fn(), assertCanManageTournamentPermission: vi.fn() } as never),
   };
 }
 const city = { id: 'city', tournamentId: 'cup', entryName: 'Manchester City', status: 'APPROVED' };

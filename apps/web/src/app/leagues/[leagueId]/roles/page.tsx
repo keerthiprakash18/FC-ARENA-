@@ -56,6 +56,7 @@ interface LeagueHome {
     | 'OWNER'
     | 'ADMIN'
     | null;
+  isSuperAdmin?: boolean;
 }
 
 interface LeagueMember {
@@ -125,16 +126,6 @@ const roles: Array<{
   description: string;
   grantsAdminPower: boolean;
 }> = [
-  {
-    value:
-      'TOURNAMENT_ADMIN',
-    label:
-      'Tournament Admin',
-    description:
-      'Can manage Tournaments across this League where the existing authorization layer permits it.',
-    grantsAdminPower:
-      true,
-  },
   {
     value:
       'MATCH_OFFICIAL',
@@ -318,7 +309,7 @@ export default function LeagueRolesPage() {
     setSelectedRole,
   ] =
     useState<ScopedRole>(
-      'TOURNAMENT_ADMIN',
+      'MATCH_OFFICIAL',
     );
 
   const [
@@ -427,10 +418,7 @@ export default function LeagueRolesPage() {
           leagueResponse.data
             .league;
 
-        if (
-          !currentLeague
-            .adminRole
-        ) {
+         if (!currentLeague.adminRole && !currentLeague.isSuperAdmin) {
           router.replace(
             '/leagues/' +
               leagueId,

@@ -44,7 +44,7 @@ export class TournamentToolsService {
   ) {}
 
   async listTemplates(userId: string, leagueId: string) {
-    await this.authorization.assertLeagueAdmin(userId, leagueId);
+    await this.authorization.assertLeaguePermission(userId, leagueId, 'MANAGE_TOURNAMENTS');
 
     const templates = await this.prisma.tournamentTemplate.findMany({
       where: { leagueId },
@@ -59,7 +59,7 @@ export class TournamentToolsService {
     leagueId: string,
     dto: CreateTournamentTemplateDto,
   ) {
-    await this.authorization.assertLeagueAdmin(userId, leagueId);
+    await this.authorization.assertLeaguePermission(userId, leagueId, 'MANAGE_TOURNAMENTS');
 
     let config = dto.config as TemplateConfig | undefined;
     if (dto.sourceTournamentId) {
@@ -104,7 +104,7 @@ export class TournamentToolsService {
     });
     if (!template) throw this.notFound('Tournament template could not be found.');
 
-    await this.authorization.assertLeagueAdmin(userId, template.leagueId);
+    await this.authorization.assertLeaguePermission(userId, template.leagueId, 'MANAGE_TOURNAMENTS');
     const config = template.config as unknown as TemplateConfig;
     return this.createTournamentFromConfig(userId, template.leagueId, config, dto.name, dto);
   }
@@ -116,7 +116,7 @@ export class TournamentToolsService {
   ) {
     const tournament = await this.prisma.tournament.findUnique({ where: { id: tournamentId } });
     if (!tournament) throw this.notFound('Tournament could not be found.');
-    await this.authorization.assertCanManageTournament(userId, tournamentId);
+    await this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
 
     return this.createTemplate(userId, tournament.leagueId, {
       name: dto.name,
@@ -129,7 +129,7 @@ export class TournamentToolsService {
   async cloneTournament(userId: string, tournamentId: string, dto: CloneTournamentDto) {
     const tournament = await this.prisma.tournament.findUnique({ where: { id: tournamentId } });
     if (!tournament) throw this.notFound('Tournament could not be found.');
-    await this.authorization.assertCanManageTournament(userId, tournamentId);
+    await this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
     return this.createTournamentFromConfig(
       userId,
       tournament.leagueId,
@@ -145,7 +145,7 @@ export class TournamentToolsService {
     from?: string,
     to?: string,
   ) {
-    await this.authorization.assertLeagueAdmin(userId, leagueId);
+    await this.authorization.assertLeaguePermission(userId, leagueId, 'VIEW_REPORTS');
     const fromDate = from ? new Date(from) : new Date('1970-01-01T00:00:00.000Z');
     const toDate = to ? new Date(to) : new Date('2999-12-31T23:59:59.999Z');
     if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime()) || fromDate > toDate) {
@@ -222,7 +222,7 @@ export class TournamentToolsService {
       },
     });
     if (!tournament) throw this.notFound('Tournament could not be found.');
-    await this.authorization.assertCanManageTournament(userId, tournamentId);
+    await this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'VIEW_REPORTS');
 
     const rows = [
       ['section', 'fixtureCode', 'round', 'home', 'away', 'homeScore', 'awayScore', 'verifiedAt'],
@@ -249,7 +249,7 @@ export class TournamentToolsService {
   }
 
   async listDeadlineCases(userId: string, tournamentId: string) {
-    await this.authorization.assertCanManageTournament(userId, tournamentId);
+    await this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'VIEW_REPORTS');
     await this.syncDeadlineCases(tournamentId);
     const cases = await this.prisma.fixtureDeadlineCase.findMany({
       where: { tournamentId },
@@ -273,7 +273,7 @@ export class TournamentToolsService {
   async reviewDeadlineCase(userId: string, caseId: string, dto: ReviewDeadlineCaseDto) {
     const deadlineCase = await this.prisma.fixtureDeadlineCase.findUnique({ where: { id: caseId } });
     if (!deadlineCase) throw this.notFound('Deadline case could not be found.');
-    await this.authorization.assertCanManageTournament(userId, deadlineCase.tournamentId);
+    await this.authorization.assertCanManageTournamentPermission(userId, deadlineCase.tournamentId, 'MANAGE_RESULTS');
     const updated = await this.prisma.fixtureDeadlineCase.update({
       where: { id: caseId },
       data: { status: dto.status, resolutionNote: dto.resolutionNote?.trim() || null, resolvedAt: new Date() },

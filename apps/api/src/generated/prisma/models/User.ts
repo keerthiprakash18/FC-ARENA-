@@ -247,6 +247,7 @@ export type UserWhereInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationListRelationFilter
   leagueAdminRoles?: Prisma.LeagueAdminListRelationFilter
   createdTournaments?: Prisma.TournamentListRelationFilter
+  tournamentAdminRoles?: Prisma.TournamentAdminListRelationFilter
   createdTournamentTemplates?: Prisma.TournamentTemplateListRelationFilter
   tournamentRegistrations?: Prisma.TournamentRegistrationListRelationFilter
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberListRelationFilter
@@ -311,6 +312,7 @@ export type UserOrderByWithRelationInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationOrderByRelationAggregateInput
   leagueAdminRoles?: Prisma.LeagueAdminOrderByRelationAggregateInput
   createdTournaments?: Prisma.TournamentOrderByRelationAggregateInput
+  tournamentAdminRoles?: Prisma.TournamentAdminOrderByRelationAggregateInput
   createdTournamentTemplates?: Prisma.TournamentTemplateOrderByRelationAggregateInput
   tournamentRegistrations?: Prisma.TournamentRegistrationOrderByRelationAggregateInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberOrderByRelationAggregateInput
@@ -378,6 +380,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   reviewedLeagueApplications?: Prisma.LeagueApplicationListRelationFilter
   leagueAdminRoles?: Prisma.LeagueAdminListRelationFilter
   createdTournaments?: Prisma.TournamentListRelationFilter
+  tournamentAdminRoles?: Prisma.TournamentAdminListRelationFilter
   createdTournamentTemplates?: Prisma.TournamentTemplateListRelationFilter
   tournamentRegistrations?: Prisma.TournamentRegistrationListRelationFilter
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberListRelationFilter
@@ -480,6 +483,7 @@ export type UserCreateInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -544,6 +548,7 @@ export type UserUncheckedCreateInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -608,6 +613,7 @@ export type UserUpdateInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -672,6 +678,7 @@ export type UserUncheckedUpdateInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -969,6 +976,20 @@ export type UserUpdateOneRequiredWithoutCreatedTournamentsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutCreatedTournamentsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedTournamentsInput, Prisma.UserUpdateWithoutCreatedTournamentsInput>, Prisma.UserUncheckedUpdateWithoutCreatedTournamentsInput>
+}
+
+export type UserCreateNestedOneWithoutTournamentAdminRolesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTournamentAdminRolesInput, Prisma.UserUncheckedCreateWithoutTournamentAdminRolesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTournamentAdminRolesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTournamentAdminRolesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTournamentAdminRolesInput, Prisma.UserUncheckedCreateWithoutTournamentAdminRolesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTournamentAdminRolesInput
+  upsert?: Prisma.UserUpsertWithoutTournamentAdminRolesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTournamentAdminRolesInput, Prisma.UserUpdateWithoutTournamentAdminRolesInput>, Prisma.UserUncheckedUpdateWithoutTournamentAdminRolesInput>
 }
 
 export type UserCreateNestedOneWithoutCreatedTournamentTemplatesInput = {
@@ -1565,6 +1586,7 @@ export type UserCreateWithoutPlayerInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -1628,6 +1650,7 @@ export type UserUncheckedCreateWithoutPlayerInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1707,6 +1730,7 @@ export type UserUpdateWithoutPlayerInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -1770,6 +1794,7 @@ export type UserUncheckedUpdateWithoutPlayerInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1833,6 +1858,7 @@ export type UserCreateWithoutAuthOtpsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -1896,6 +1922,7 @@ export type UserUncheckedCreateWithoutAuthOtpsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1975,6 +2002,7 @@ export type UserUpdateWithoutAuthOtpsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -2038,6 +2066,7 @@ export type UserUncheckedUpdateWithoutAuthOtpsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -2101,6 +2130,7 @@ export type UserCreateWithoutRefreshSessionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -2164,6 +2194,7 @@ export type UserUncheckedCreateWithoutRefreshSessionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -2243,6 +2274,7 @@ export type UserUpdateWithoutRefreshSessionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -2306,6 +2338,7 @@ export type UserUncheckedUpdateWithoutRefreshSessionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -2369,6 +2402,7 @@ export type UserCreateWithoutCreatedLeaguesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -2432,6 +2466,7 @@ export type UserUncheckedCreateWithoutCreatedLeaguesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -2511,6 +2546,7 @@ export type UserUpdateWithoutCreatedLeaguesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -2574,6 +2610,7 @@ export type UserUncheckedUpdateWithoutCreatedLeaguesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -2637,6 +2674,7 @@ export type UserCreateWithoutLeagueMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -2700,6 +2738,7 @@ export type UserUncheckedCreateWithoutLeagueMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -2779,6 +2818,7 @@ export type UserUpdateWithoutLeagueMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -2842,6 +2882,7 @@ export type UserUncheckedUpdateWithoutLeagueMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -2905,6 +2946,7 @@ export type UserCreateWithoutLeagueApplicationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -2968,6 +3010,7 @@ export type UserUncheckedCreateWithoutLeagueApplicationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -3036,6 +3079,7 @@ export type UserCreateWithoutReviewedLeagueApplicationsInput = {
   leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -3099,6 +3143,7 @@ export type UserUncheckedCreateWithoutReviewedLeagueApplicationsInput = {
   leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -3178,6 +3223,7 @@ export type UserUpdateWithoutLeagueApplicationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -3241,6 +3287,7 @@ export type UserUncheckedUpdateWithoutLeagueApplicationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -3315,6 +3362,7 @@ export type UserUpdateWithoutReviewedLeagueApplicationsInput = {
   leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -3378,6 +3426,7 @@ export type UserUncheckedUpdateWithoutReviewedLeagueApplicationsInput = {
   leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -3441,6 +3490,7 @@ export type UserCreateWithoutLeagueAdminRolesInput = {
   leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -3504,6 +3554,7 @@ export type UserUncheckedCreateWithoutLeagueAdminRolesInput = {
   leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -3583,6 +3634,7 @@ export type UserUpdateWithoutLeagueAdminRolesInput = {
   leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -3646,6 +3698,7 @@ export type UserUncheckedUpdateWithoutLeagueAdminRolesInput = {
   leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -3709,6 +3762,7 @@ export type UserCreateWithoutCreatedTournamentsInput = {
   leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -3772,6 +3826,7 @@ export type UserUncheckedCreateWithoutCreatedTournamentsInput = {
   leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -3851,6 +3906,7 @@ export type UserUpdateWithoutCreatedTournamentsInput = {
   leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -3914,6 +3970,279 @@ export type UserUncheckedUpdateWithoutCreatedTournamentsInput = {
   leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutTournamentAdminRolesInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+}
+
+export type UserUncheckedCreateWithoutTournamentAdminRolesInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+}
+
+export type UserCreateOrConnectWithoutTournamentAdminRolesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTournamentAdminRolesInput, Prisma.UserUncheckedCreateWithoutTournamentAdminRolesInput>
+}
+
+export type UserUpsertWithoutTournamentAdminRolesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTournamentAdminRolesInput, Prisma.UserUncheckedUpdateWithoutTournamentAdminRolesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTournamentAdminRolesInput, Prisma.UserUncheckedCreateWithoutTournamentAdminRolesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTournamentAdminRolesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTournamentAdminRolesInput, Prisma.UserUncheckedUpdateWithoutTournamentAdminRolesInput>
+}
+
+export type UserUpdateWithoutTournamentAdminRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTournamentAdminRolesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -3978,6 +4307,7 @@ export type UserCreateWithoutCreatedTournamentTemplatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
   reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
@@ -4041,6 +4371,7 @@ export type UserUncheckedCreateWithoutCreatedTournamentTemplatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
@@ -4120,6 +4451,7 @@ export type UserUpdateWithoutCreatedTournamentTemplatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
@@ -4183,6 +4515,7 @@ export type UserUncheckedUpdateWithoutCreatedTournamentTemplatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
@@ -4246,6 +4579,7 @@ export type UserCreateWithoutTournamentRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
   reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
@@ -4309,6 +4643,7 @@ export type UserUncheckedCreateWithoutTournamentRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
@@ -4377,6 +4712,7 @@ export type UserCreateWithoutReviewedRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -4440,6 +4776,7 @@ export type UserUncheckedCreateWithoutReviewedRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -4519,6 +4856,7 @@ export type UserUpdateWithoutTournamentRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
@@ -4582,6 +4920,7 @@ export type UserUncheckedUpdateWithoutTournamentRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
@@ -4656,6 +4995,7 @@ export type UserUpdateWithoutReviewedRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -4719,6 +5059,7 @@ export type UserUncheckedUpdateWithoutReviewedRegistrationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -4782,6 +5123,7 @@ export type UserCreateWithoutTournamentEntryMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
@@ -4845,6 +5187,7 @@ export type UserUncheckedCreateWithoutTournamentEntryMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
@@ -4924,6 +5267,7 @@ export type UserUpdateWithoutTournamentEntryMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
@@ -4987,6 +5331,7 @@ export type UserUncheckedUpdateWithoutTournamentEntryMembershipsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
@@ -5050,6 +5395,7 @@ export type UserCreateWithoutSubmittedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -5113,6 +5459,7 @@ export type UserUncheckedCreateWithoutSubmittedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -5181,6 +5528,7 @@ export type UserCreateWithoutReviewedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -5244,6 +5592,7 @@ export type UserUncheckedCreateWithoutReviewedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -5323,6 +5672,7 @@ export type UserUpdateWithoutSubmittedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -5386,6 +5736,7 @@ export type UserUncheckedUpdateWithoutSubmittedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -5460,6 +5811,7 @@ export type UserUpdateWithoutReviewedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -5523,6 +5875,7 @@ export type UserUncheckedUpdateWithoutReviewedResultSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -5586,6 +5939,7 @@ export type UserCreateWithoutOcrSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -5649,6 +6003,7 @@ export type UserUncheckedCreateWithoutOcrSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -5717,6 +6072,7 @@ export type UserCreateWithoutOcrHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -5780,6 +6136,7 @@ export type UserUncheckedCreateWithoutOcrHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -5848,6 +6205,7 @@ export type UserCreateWithoutOcrAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -5911,6 +6269,7 @@ export type UserUncheckedCreateWithoutOcrAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -5990,6 +6349,7 @@ export type UserUpdateWithoutOcrSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -6053,6 +6413,7 @@ export type UserUncheckedUpdateWithoutOcrSubmissionsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -6127,6 +6488,7 @@ export type UserUpdateWithoutOcrHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -6190,6 +6552,7 @@ export type UserUncheckedUpdateWithoutOcrHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -6264,6 +6627,7 @@ export type UserUpdateWithoutOcrAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -6327,6 +6691,7 @@ export type UserUncheckedUpdateWithoutOcrAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -6390,6 +6755,7 @@ export type UserCreateWithoutRoleAssignmentsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -6453,6 +6819,7 @@ export type UserUncheckedCreateWithoutRoleAssignmentsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -6521,6 +6888,7 @@ export type UserCreateWithoutRolesAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -6584,6 +6952,7 @@ export type UserUncheckedCreateWithoutRolesAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -6663,6 +7032,7 @@ export type UserUpdateWithoutRoleAssignmentsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -6726,6 +7096,7 @@ export type UserUncheckedUpdateWithoutRoleAssignmentsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -6800,6 +7171,7 @@ export type UserUpdateWithoutRolesAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -6863,6 +7235,7 @@ export type UserUncheckedUpdateWithoutRolesAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -6926,6 +7299,7 @@ export type UserCreateWithoutAuditLogsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -6989,6 +7363,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -7068,6 +7443,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -7131,6 +7507,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -7194,6 +7571,7 @@ export type UserCreateWithoutNotificationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -7257,6 +7635,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -7336,6 +7715,7 @@ export type UserUpdateWithoutNotificationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -7399,6 +7779,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -7462,6 +7843,7 @@ export type UserCreateWithoutAnnouncementsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -7525,6 +7907,7 @@ export type UserUncheckedCreateWithoutAnnouncementsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -7604,6 +7987,7 @@ export type UserUpdateWithoutAnnouncementsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -7667,6 +8051,7 @@ export type UserUncheckedUpdateWithoutAnnouncementsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -7730,6 +8115,7 @@ export type UserCreateWithoutSupportTicketsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -7793,6 +8179,7 @@ export type UserUncheckedCreateWithoutSupportTicketsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -7861,6 +8248,7 @@ export type UserCreateWithoutSupportTicketsAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -7924,6 +8312,7 @@ export type UserUncheckedCreateWithoutSupportTicketsAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -8003,6 +8392,7 @@ export type UserUpdateWithoutSupportTicketsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -8066,6 +8456,7 @@ export type UserUncheckedUpdateWithoutSupportTicketsCreatedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -8140,6 +8531,7 @@ export type UserUpdateWithoutSupportTicketsAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -8203,6 +8595,7 @@ export type UserUncheckedUpdateWithoutSupportTicketsAssignedInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -8266,6 +8659,7 @@ export type UserCreateWithoutSupportTicketMessagesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -8329,6 +8723,7 @@ export type UserUncheckedCreateWithoutSupportTicketMessagesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -8408,6 +8803,7 @@ export type UserUpdateWithoutSupportTicketMessagesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -8471,6 +8867,7 @@ export type UserUncheckedUpdateWithoutSupportTicketMessagesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -8534,6 +8931,7 @@ export type UserCreateWithoutRaisedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -8597,6 +8995,7 @@ export type UserUncheckedCreateWithoutRaisedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -8665,6 +9064,7 @@ export type UserCreateWithoutResolvedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -8728,6 +9128,7 @@ export type UserUncheckedCreateWithoutResolvedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -8807,6 +9208,7 @@ export type UserUpdateWithoutRaisedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -8870,6 +9272,7 @@ export type UserUncheckedUpdateWithoutRaisedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -8944,6 +9347,7 @@ export type UserUpdateWithoutResolvedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -9007,6 +9411,7 @@ export type UserUncheckedUpdateWithoutResolvedDisputesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -9070,6 +9475,7 @@ export type UserCreateWithoutAchievementsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -9133,6 +9539,7 @@ export type UserUncheckedCreateWithoutAchievementsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -9212,6 +9619,7 @@ export type UserUpdateWithoutAchievementsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -9275,6 +9683,7 @@ export type UserUncheckedUpdateWithoutAchievementsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -9338,6 +9747,7 @@ export type UserCreateWithoutPlayerTournamentStatisticsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -9401,6 +9811,7 @@ export type UserUncheckedCreateWithoutPlayerTournamentStatisticsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -9480,6 +9891,7 @@ export type UserUpdateWithoutPlayerTournamentStatisticsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -9543,6 +9955,7 @@ export type UserUncheckedUpdateWithoutPlayerTournamentStatisticsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -9606,6 +10019,7 @@ export type UserCreateWithoutAiUsageBucketsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -9669,6 +10083,7 @@ export type UserUncheckedCreateWithoutAiUsageBucketsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -9748,6 +10163,7 @@ export type UserUpdateWithoutAiUsageBucketsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -9811,6 +10227,7 @@ export type UserUncheckedUpdateWithoutAiUsageBucketsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -9874,6 +10291,7 @@ export type UserCreateWithoutPushDevicesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -9937,6 +10355,7 @@ export type UserUncheckedCreateWithoutPushDevicesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -10016,6 +10435,7 @@ export type UserUpdateWithoutPushDevicesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -10079,6 +10499,7 @@ export type UserUncheckedUpdateWithoutPushDevicesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -10142,6 +10563,7 @@ export type UserCreateWithoutAndroidReleasesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -10205,6 +10627,7 @@ export type UserUncheckedCreateWithoutAndroidReleasesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -10284,6 +10707,7 @@ export type UserUpdateWithoutAndroidReleasesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -10347,6 +10771,7 @@ export type UserUncheckedUpdateWithoutAndroidReleasesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -10410,6 +10835,7 @@ export type UserCreateWithoutFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -10473,6 +10899,7 @@ export type UserUncheckedCreateWithoutFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -10541,6 +10968,7 @@ export type UserCreateWithoutIssuedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -10604,6 +11032,7 @@ export type UserUncheckedCreateWithoutIssuedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -10672,6 +11101,7 @@ export type UserCreateWithoutRevokedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -10735,6 +11165,7 @@ export type UserUncheckedCreateWithoutRevokedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -10814,6 +11245,7 @@ export type UserUpdateWithoutFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -10877,6 +11309,7 @@ export type UserUncheckedUpdateWithoutFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -10951,6 +11384,7 @@ export type UserUpdateWithoutIssuedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -11014,6 +11448,7 @@ export type UserUncheckedUpdateWithoutIssuedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -11088,6 +11523,7 @@ export type UserUpdateWithoutRevokedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -11151,6 +11587,7 @@ export type UserUncheckedUpdateWithoutRevokedFairPlayEventsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -11214,6 +11651,7 @@ export type UserCreateWithoutFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -11277,6 +11715,7 @@ export type UserUncheckedCreateWithoutFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -11345,6 +11784,7 @@ export type UserCreateWithoutResolvedFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -11408,6 +11848,7 @@ export type UserUncheckedCreateWithoutResolvedFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -11487,6 +11928,7 @@ export type UserUpdateWithoutFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -11550,6 +11992,7 @@ export type UserUncheckedUpdateWithoutFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -11624,6 +12067,7 @@ export type UserUpdateWithoutResolvedFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -11687,6 +12131,7 @@ export type UserUncheckedUpdateWithoutResolvedFairPlayAppealsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -11750,6 +12195,7 @@ export type UserCreateWithoutCreatedLeagueWarsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -11813,6 +12259,7 @@ export type UserUncheckedCreateWithoutCreatedLeagueWarsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -11892,6 +12339,7 @@ export type UserUpdateWithoutCreatedLeagueWarsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -11955,6 +12403,7 @@ export type UserUncheckedUpdateWithoutCreatedLeagueWarsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -12018,6 +12467,7 @@ export type UserCreateWithoutLeagueWarParticipantsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -12081,6 +12531,7 @@ export type UserUncheckedCreateWithoutLeagueWarParticipantsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -12160,6 +12611,7 @@ export type UserUpdateWithoutLeagueWarParticipantsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -12223,6 +12675,7 @@ export type UserUncheckedUpdateWithoutLeagueWarParticipantsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -12286,6 +12739,7 @@ export type UserCreateWithoutLeagueWarHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -12349,6 +12803,7 @@ export type UserUncheckedCreateWithoutLeagueWarHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -12417,6 +12872,7 @@ export type UserCreateWithoutLeagueWarAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -12480,6 +12936,7 @@ export type UserUncheckedCreateWithoutLeagueWarAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -12548,6 +13005,7 @@ export type UserCreateWithoutLeagueWarResultUpdatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -12611,6 +13069,7 @@ export type UserUncheckedCreateWithoutLeagueWarResultUpdatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -12690,6 +13149,7 @@ export type UserUpdateWithoutLeagueWarHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -12753,6 +13213,7 @@ export type UserUncheckedUpdateWithoutLeagueWarHomeMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -12827,6 +13288,7 @@ export type UserUpdateWithoutLeagueWarAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -12890,6 +13352,7 @@ export type UserUncheckedUpdateWithoutLeagueWarAwayMatchesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -12964,6 +13427,7 @@ export type UserUpdateWithoutLeagueWarResultUpdatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -13027,6 +13491,7 @@ export type UserUncheckedUpdateWithoutLeagueWarResultUpdatesInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -13090,6 +13555,7 @@ export type UserCreateWithoutCreatedBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -13153,6 +13619,7 @@ export type UserUncheckedCreateWithoutCreatedBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -13221,6 +13688,7 @@ export type UserCreateWithoutWonBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -13284,6 +13752,7 @@ export type UserUncheckedCreateWithoutWonBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -13352,6 +13821,7 @@ export type UserCreateWithoutWonRisingStarSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -13415,6 +13885,7 @@ export type UserUncheckedCreateWithoutWonRisingStarSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -13494,6 +13965,7 @@ export type UserUpdateWithoutCreatedBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -13557,6 +14029,7 @@ export type UserUncheckedUpdateWithoutCreatedBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -13631,6 +14104,7 @@ export type UserUpdateWithoutWonBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -13694,6 +14168,7 @@ export type UserUncheckedUpdateWithoutWonBallonSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -13768,6 +14243,7 @@ export type UserUpdateWithoutWonRisingStarSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -13831,6 +14307,7 @@ export type UserUncheckedUpdateWithoutWonRisingStarSeasonsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -13894,6 +14371,7 @@ export type UserCreateWithoutBallonFinalRankingsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -13957,6 +14435,7 @@ export type UserUncheckedCreateWithoutBallonFinalRankingsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -14036,6 +14515,7 @@ export type UserUpdateWithoutBallonFinalRankingsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -14099,6 +14579,7 @@ export type UserUncheckedUpdateWithoutBallonFinalRankingsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -14162,6 +14643,7 @@ export type UserCreateWithoutSeasonalAwardsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
@@ -14225,6 +14707,7 @@ export type UserUncheckedCreateWithoutSeasonalAwardsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
@@ -14304,6 +14787,7 @@ export type UserUpdateWithoutSeasonalAwardsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
@@ -14367,6 +14851,7 @@ export type UserUncheckedUpdateWithoutSeasonalAwardsInput = {
   reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
   leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
   createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
   tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
   tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -14421,6 +14906,7 @@ export type UserCountOutputType = {
   reviewedLeagueApplications: number
   leagueAdminRoles: number
   createdTournaments: number
+  tournamentAdminRoles: number
   createdTournamentTemplates: number
   tournamentRegistrations: number
   tournamentEntryMemberships: number
@@ -14471,6 +14957,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reviewedLeagueApplications?: boolean | UserCountOutputTypeCountReviewedLeagueApplicationsArgs
   leagueAdminRoles?: boolean | UserCountOutputTypeCountLeagueAdminRolesArgs
   createdTournaments?: boolean | UserCountOutputTypeCountCreatedTournamentsArgs
+  tournamentAdminRoles?: boolean | UserCountOutputTypeCountTournamentAdminRolesArgs
   createdTournamentTemplates?: boolean | UserCountOutputTypeCountCreatedTournamentTemplatesArgs
   tournamentRegistrations?: boolean | UserCountOutputTypeCountTournamentRegistrationsArgs
   tournamentEntryMemberships?: boolean | UserCountOutputTypeCountTournamentEntryMembershipsArgs
@@ -14576,6 +15063,13 @@ export type UserCountOutputTypeCountLeagueAdminRolesArgs<ExtArgs extends runtime
  */
 export type UserCountOutputTypeCountCreatedTournamentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TournamentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTournamentAdminRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TournamentAdminWhereInput
 }
 
 /**
@@ -14875,6 +15369,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reviewedLeagueApplications?: boolean | Prisma.User$reviewedLeagueApplicationsArgs<ExtArgs>
   leagueAdminRoles?: boolean | Prisma.User$leagueAdminRolesArgs<ExtArgs>
   createdTournaments?: boolean | Prisma.User$createdTournamentsArgs<ExtArgs>
+  tournamentAdminRoles?: boolean | Prisma.User$tournamentAdminRolesArgs<ExtArgs>
   createdTournamentTemplates?: boolean | Prisma.User$createdTournamentTemplatesArgs<ExtArgs>
   tournamentRegistrations?: boolean | Prisma.User$tournamentRegistrationsArgs<ExtArgs>
   tournamentEntryMemberships?: boolean | Prisma.User$tournamentEntryMembershipsArgs<ExtArgs>
@@ -14976,6 +15471,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reviewedLeagueApplications?: boolean | Prisma.User$reviewedLeagueApplicationsArgs<ExtArgs>
   leagueAdminRoles?: boolean | Prisma.User$leagueAdminRolesArgs<ExtArgs>
   createdTournaments?: boolean | Prisma.User$createdTournamentsArgs<ExtArgs>
+  tournamentAdminRoles?: boolean | Prisma.User$tournamentAdminRolesArgs<ExtArgs>
   createdTournamentTemplates?: boolean | Prisma.User$createdTournamentTemplatesArgs<ExtArgs>
   tournamentRegistrations?: boolean | Prisma.User$tournamentRegistrationsArgs<ExtArgs>
   tournamentEntryMemberships?: boolean | Prisma.User$tournamentEntryMembershipsArgs<ExtArgs>
@@ -15032,6 +15528,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reviewedLeagueApplications: Prisma.$LeagueApplicationPayload<ExtArgs>[]
     leagueAdminRoles: Prisma.$LeagueAdminPayload<ExtArgs>[]
     createdTournaments: Prisma.$TournamentPayload<ExtArgs>[]
+    tournamentAdminRoles: Prisma.$TournamentAdminPayload<ExtArgs>[]
     createdTournamentTemplates: Prisma.$TournamentTemplatePayload<ExtArgs>[]
     tournamentRegistrations: Prisma.$TournamentRegistrationPayload<ExtArgs>[]
     tournamentEntryMemberships: Prisma.$TournamentRegistrationMemberPayload<ExtArgs>[]
@@ -15489,6 +15986,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   reviewedLeagueApplications<T extends Prisma.User$reviewedLeagueApplicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewedLeagueApplicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeagueApplicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leagueAdminRoles<T extends Prisma.User$leagueAdminRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leagueAdminRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeagueAdminPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdTournaments<T extends Prisma.User$createdTournamentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdTournamentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TournamentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  tournamentAdminRoles<T extends Prisma.User$tournamentAdminRolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tournamentAdminRolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TournamentAdminPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdTournamentTemplates<T extends Prisma.User$createdTournamentTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdTournamentTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TournamentTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tournamentRegistrations<T extends Prisma.User$tournamentRegistrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tournamentRegistrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TournamentRegistrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tournamentEntryMemberships<T extends Prisma.User$tournamentEntryMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tournamentEntryMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TournamentRegistrationMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -16171,6 +16669,30 @@ export type User$createdTournamentsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.TournamentScalarFieldEnum | Prisma.TournamentScalarFieldEnum[]
+}
+
+/**
+ * User.tournamentAdminRoles
+ */
+export type User$tournamentAdminRolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TournamentAdmin
+   */
+  select?: Prisma.TournamentAdminSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TournamentAdmin
+   */
+  omit?: Prisma.TournamentAdminOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TournamentAdminInclude<ExtArgs> | null
+  where?: Prisma.TournamentAdminWhereInput
+  orderBy?: Prisma.TournamentAdminOrderByWithRelationInput | Prisma.TournamentAdminOrderByWithRelationInput[]
+  cursor?: Prisma.TournamentAdminWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TournamentAdminScalarFieldEnum | Prisma.TournamentAdminScalarFieldEnum[]
 }
 
 /**

@@ -407,6 +407,7 @@ export const ModelName = {
   LeagueApplication: 'LeagueApplication',
   LeagueAdmin: 'LeagueAdmin',
   Tournament: 'Tournament',
+  TournamentAdmin: 'TournamentAdmin',
   TournamentSummary: 'TournamentSummary',
   TournamentTemplate: 'TournamentTemplate',
   TournamentGroup: 'TournamentGroup',
@@ -459,7 +460,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "player" | "playerIdentity" | "authOtp" | "refreshSession" | "league" | "leagueMember" | "leagueApplication" | "leagueAdmin" | "tournament" | "tournamentSummary" | "tournamentTemplate" | "tournamentGroup" | "tournamentRegistration" | "tournamentRegistrationMember" | "fixture" | "fixtureDeadlineCase" | "match" | "resultSubmission" | "ocrExtraction" | "roleAssignment" | "auditLog" | "notification" | "announcement" | "supportTicket" | "supportTicketMessage" | "matchDispute" | "achievement" | "tournamentStanding" | "playerTournamentStatistic" | "matchResultStatEvent" | "authRateLimit" | "aiUsageBucket" | "rankingSnapshot" | "pushDevice" | "pushDelivery" | "androidRelease" | "systemBackupRun" | "fairPlayEvent" | "fairPlayAppeal" | "leagueWar" | "leagueWarParticipant" | "leagueWarMatch" | "ballonSeason" | "ballonRankingSnapshot" | "ballonFinalRanking" | "seasonalAward"
+    modelProps: "user" | "player" | "playerIdentity" | "authOtp" | "refreshSession" | "league" | "leagueMember" | "leagueApplication" | "leagueAdmin" | "tournament" | "tournamentAdmin" | "tournamentSummary" | "tournamentTemplate" | "tournamentGroup" | "tournamentRegistration" | "tournamentRegistrationMember" | "fixture" | "fixtureDeadlineCase" | "match" | "resultSubmission" | "ocrExtraction" | "roleAssignment" | "auditLog" | "notification" | "announcement" | "supportTicket" | "supportTicketMessage" | "matchDispute" | "achievement" | "tournamentStanding" | "playerTournamentStatistic" | "matchResultStatEvent" | "authRateLimit" | "aiUsageBucket" | "rankingSnapshot" | "pushDevice" | "pushDelivery" | "androidRelease" | "systemBackupRun" | "fairPlayEvent" | "fairPlayAppeal" | "leagueWar" | "leagueWarParticipant" | "leagueWarMatch" | "ballonSeason" | "ballonRankingSnapshot" | "ballonFinalRanking" | "seasonalAward"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1200,6 +1201,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TournamentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TournamentCountAggregateOutputType> | number
+        }
+      }
+    }
+    TournamentAdmin: {
+      payload: Prisma.$TournamentAdminPayload<ExtArgs>
+      fields: Prisma.TournamentAdminFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TournamentAdminFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TournamentAdminFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>
+        }
+        findFirst: {
+          args: Prisma.TournamentAdminFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TournamentAdminFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>
+        }
+        findMany: {
+          args: Prisma.TournamentAdminFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>[]
+        }
+        create: {
+          args: Prisma.TournamentAdminCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>
+        }
+        createMany: {
+          args: Prisma.TournamentAdminCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TournamentAdminCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>[]
+        }
+        delete: {
+          args: Prisma.TournamentAdminDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>
+        }
+        update: {
+          args: Prisma.TournamentAdminUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>
+        }
+        deleteMany: {
+          args: Prisma.TournamentAdminDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TournamentAdminUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TournamentAdminUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>[]
+        }
+        upsert: {
+          args: Prisma.TournamentAdminUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TournamentAdminPayload>
+        }
+        aggregate: {
+          args: Prisma.TournamentAdminAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTournamentAdmin>
+        }
+        groupBy: {
+          args: Prisma.TournamentAdminGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TournamentAdminGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TournamentAdminCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TournamentAdminCountAggregateOutputType> | number
         }
       }
     }
@@ -4063,6 +4138,7 @@ export const LeagueScalarFieldEnum = {
   region: 'region',
   rules: 'rules',
   maxMembers: 'maxMembers',
+  maxAdmins: 'maxAdmins',
   creatorUserId: 'creatorUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -4101,6 +4177,7 @@ export const LeagueAdminScalarFieldEnum = {
   leagueId: 'leagueId',
   userId: 'userId',
   role: 'role',
+  permissions: 'permissions',
   createdAt: 'createdAt'
 } as const
 
@@ -4148,10 +4225,23 @@ export const TournamentScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   completedAt: 'completedAt',
-  resultDeadlineHours: 'resultDeadlineHours'
+  resultDeadlineHours: 'resultDeadlineHours',
+  maxAdmins: 'maxAdmins'
 } as const
 
 export type TournamentScalarFieldEnum = (typeof TournamentScalarFieldEnum)[keyof typeof TournamentScalarFieldEnum]
+
+
+export const TournamentAdminScalarFieldEnum = {
+  id: 'id',
+  tournamentId: 'tournamentId',
+  userId: 'userId',
+  role: 'role',
+  permissions: 'permissions',
+  createdAt: 'createdAt'
+} as const
+
+export type TournamentAdminScalarFieldEnum = (typeof TournamentAdminScalarFieldEnum)[keyof typeof TournamentAdminScalarFieldEnum]
 
 
 export const TournamentSummaryScalarFieldEnum = {
@@ -4998,6 +5088,20 @@ export type ListEnumLeagueAdminRoleFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
+ * Reference to a field of type 'LeagueAdminPermission[]'
+ */
+export type ListEnumLeagueAdminPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeagueAdminPermission[]'>
+
+
+
+/**
+ * Reference to a field of type 'LeagueAdminPermission'
+ */
+export type EnumLeagueAdminPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeagueAdminPermission'>
+
+
+
+/**
  * Reference to a field of type 'TournamentMode'
  */
 export type EnumTournamentModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentMode'>
@@ -5190,6 +5294,34 @@ export type EnumPlayoffSeedingBasisFieldRefInput<$PrismaModel> = FieldRefInputTy
  * Reference to a field of type 'PlayoffSeedingBasis[]'
  */
 export type ListEnumPlayoffSeedingBasisFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PlayoffSeedingBasis[]'>
+
+
+
+/**
+ * Reference to a field of type 'TournamentAdminRole'
+ */
+export type EnumTournamentAdminRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentAdminRole'>
+
+
+
+/**
+ * Reference to a field of type 'TournamentAdminRole[]'
+ */
+export type ListEnumTournamentAdminRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentAdminRole[]'>
+
+
+
+/**
+ * Reference to a field of type 'TournamentAdminPermission[]'
+ */
+export type ListEnumTournamentAdminPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentAdminPermission[]'>
+
+
+
+/**
+ * Reference to a field of type 'TournamentAdminPermission'
+ */
+export type EnumTournamentAdminPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TournamentAdminPermission'>
 
 
 
@@ -5759,6 +5891,7 @@ export type GlobalOmitConfig = {
   leagueApplication?: Prisma.LeagueApplicationOmit
   leagueAdmin?: Prisma.LeagueAdminOmit
   tournament?: Prisma.TournamentOmit
+  tournamentAdmin?: Prisma.TournamentAdminOmit
   tournamentSummary?: Prisma.TournamentSummaryOmit
   tournamentTemplate?: Prisma.TournamentTemplateOmit
   tournamentGroup?: Prisma.TournamentGroupOmit

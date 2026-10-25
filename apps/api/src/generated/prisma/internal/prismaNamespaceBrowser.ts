@@ -61,6 +61,7 @@ export const ModelName = {
   LeagueApplication: 'LeagueApplication',
   LeagueAdmin: 'LeagueAdmin',
   Tournament: 'Tournament',
+  TournamentAdmin: 'TournamentAdmin',
   TournamentSummary: 'TournamentSummary',
   TournamentTemplate: 'TournamentTemplate',
   TournamentGroup: 'TournamentGroup',
@@ -199,6 +200,7 @@ export const LeagueScalarFieldEnum = {
   region: 'region',
   rules: 'rules',
   maxMembers: 'maxMembers',
+  maxAdmins: 'maxAdmins',
   creatorUserId: 'creatorUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -237,6 +239,7 @@ export const LeagueAdminScalarFieldEnum = {
   leagueId: 'leagueId',
   userId: 'userId',
   role: 'role',
+  permissions: 'permissions',
   createdAt: 'createdAt'
 } as const
 
@@ -284,10 +287,23 @@ export const TournamentScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   completedAt: 'completedAt',
-  resultDeadlineHours: 'resultDeadlineHours'
+  resultDeadlineHours: 'resultDeadlineHours',
+  maxAdmins: 'maxAdmins'
 } as const
 
 export type TournamentScalarFieldEnum = (typeof TournamentScalarFieldEnum)[keyof typeof TournamentScalarFieldEnum]
+
+
+export const TournamentAdminScalarFieldEnum = {
+  id: 'id',
+  tournamentId: 'tournamentId',
+  userId: 'userId',
+  role: 'role',
+  permissions: 'permissions',
+  createdAt: 'createdAt'
+} as const
+
+export type TournamentAdminScalarFieldEnum = (typeof TournamentAdminScalarFieldEnum)[keyof typeof TournamentAdminScalarFieldEnum]
 
 
 export const TournamentSummaryScalarFieldEnum = {

@@ -6,6 +6,7 @@ import {
 } from 'vitest';
 
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -71,6 +72,9 @@ function basePrisma() {
       update:
         vi.fn(),
 
+      delete:
+        vi.fn(),
+
       findMany:
         vi.fn().mockResolvedValue(
           [],
@@ -119,20 +123,20 @@ describe('BallonService rules', () => {
     [
       '2026-10-01T00:00:00.000Z',
       '2026-10-31T23:59:59.000Z',
-      6,
+       10,
     ],
     [
       '2026-10-01T00:00:00.000Z',
       '2026-11-30T23:59:59.000Z',
-      10,
+       10,
     ],
     [
       '2026-10-01T00:00:00.000Z',
       '2026-12-31T23:59:59.000Z',
-      15,
+       10,
     ],
   ])(
-    'uses duration-aware minimum matches',
+    'uses safe live-ranking defaults',
     async (
       startAt,
       endAt,
@@ -162,8 +166,54 @@ describe('BallonService rules', () => {
       ).toBe(
         expectedMinimum,
       );
+
+      expect(
+        response.data.season.maximumMatches,
+      ).toBe(40);
+
+      expect(
+        response.data.season.tournamentRequirements,
+      ).toEqual({
+        SOLO: 2,
+        DUO: 2,
+        TEAM: 1,
+      });
     },
   );
+
+  it('rejects a maximum match cap below the minimum', async () => {
+    const prisma = basePrisma();
+    const service = new BallonService(prisma as any);
+
+    await expect(
+      service.createSeason('admin', {
+        ...dto(
+          '2026-10-01T00:00:00.000Z',
+          '2026-12-31T23:59:59.000Z',
+        ),
+        minimumMatches: 10,
+        maximumMatches: 5,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('deletes editable seasons so an administrator can restart cleanly', async () => {
+    const prisma = basePrisma();
+    prisma.ballonSeason.findUnique.mockResolvedValue({
+      id: 'season-1',
+      status: 'LIVE',
+      eligibleLeagueIds: [],
+      eligibleTournamentIds: [],
+    });
+    const service = new BallonService(prisma as any);
+
+    const response = await service.deleteSeason('admin', 'season-1');
+
+    expect(response.data.deleted).toBe(true);
+    expect(prisma.ballonSeason.delete).toHaveBeenCalledWith({
+      where: { id: 'season-1' },
+    });
+  });
 
   it('rejects invalid scoring totals', async () => {
     const prisma =

@@ -39,10 +39,16 @@ interface Season {
   startAt: string;
   endAt: string;
   minimumMatches: number;
+  maximumMatches: number;
   rankingLimit: number;
   status: string;
   eligibleLeagueIds:
     string[];
+  tournamentRequirements?: {
+    SOLO?: number;
+    DUO?: number;
+    TEAM?: number;
+  };
   scoringConfig:
     Record<string, number>;
   finalWinnerUserId:
@@ -144,7 +150,22 @@ export default function AdminBallonPage() {
     minimumMatches,
     setMinimumMatches,
   ] =
-    useState(15);
+    useState(10);
+
+  const [
+    maximumMatches,
+    setMaximumMatches,
+  ] =
+    useState(40);
+
+  const [
+    tournamentRequirements,
+    setTournamentRequirements,
+  ] = useState({
+    SOLO: 2,
+    DUO: 2,
+    TEAM: 1,
+  });
 
   function applyPeriodPreset(
     months: 1 | 2 | 3,
@@ -179,13 +200,8 @@ export default function AdminBallonPage() {
         ),
     );
 
-    setMinimumMatches(
-      months === 1
-        ? 6
-        : months === 2
-          ? 10
-          : 15,
-    );
+    setMinimumMatches(10);
+    setMaximumMatches(40);
   }
 
   const [
@@ -369,7 +385,9 @@ export default function AdminBallonPage() {
                     'T23:59:59',
                 ).toISOString(),
               minimumMatches,
+              maximumMatches,
               rankingLimit,
+              tournamentRequirements,
               eligibleLeagueIds:
                 selectedLeagueIds,
               eligibleTournamentIds:
@@ -443,6 +461,45 @@ export default function AdminBallonPage() {
       setBusy(
         '',
       );
+    }
+  }
+
+  async function deleteSeason(
+    seasonId: string,
+  ) {
+    if (
+      !window.confirm(
+        'Delete this editable Ballon season and all of its live snapshots? This cannot delete locked history.',
+      )
+    ) {
+      return;
+    }
+
+    setBusy(
+      seasonId + 'delete',
+    );
+    setMessage('');
+    setError('');
+
+    try {
+      await authenticatedRequest(
+        `/admin/ballon/seasons/${seasonId}`,
+        {
+          method: 'DELETE',
+        },
+      );
+      setMessage(
+        'Ballon season deleted. You can create a fresh season now.',
+      );
+      await load();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to delete Ballon season.',
+      );
+    } finally {
+      setBusy('');
     }
   }
 
@@ -618,7 +675,7 @@ export default function AdminBallonPage() {
           </label>
 
           <label className="text-sm font-bold text-slate-300">
-            Minimum Matches
+            Minimum Matches for Eligibility
             <input
               type="number"
               min={1}
@@ -645,6 +702,54 @@ export default function AdminBallonPage() {
               className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none"
             />
           </label>
+
+          <label className="text-sm font-bold text-slate-300">
+            Maximum Matches Counted
+            <input
+              type="number"
+              min={minimumMatches}
+              max={200}
+              value={maximumMatches}
+              onChange={(event) =>
+                setMaximumMatches(
+                  Math.max(
+                    minimumMatches,
+                    Number(event.target.value) || minimumMatches,
+                  ),
+                )
+              }
+              className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none"
+            />
+          </label>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[0.04] p-4">
+          <p className="text-sm font-black text-amber-200">
+            Tournament eligibility mix
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            A player must complete this many tournaments of each mode, in addition to the match requirement. Set any value to 0 to disable that mode requirement.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {(['SOLO', 'DUO', 'TEAM'] as const).map((mode) => (
+              <label key={mode} className="text-xs font-black uppercase tracking-wider text-slate-400">
+                {mode} tournaments
+                <input
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={tournamentRequirements[mode]}
+                  onChange={(event) =>
+                    setTournamentRequirements((current) => ({
+                      ...current,
+                      [mode]: Math.max(0, Number(event.target.value) || 0),
+                    }))
+                  }
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm outline-none"
+                />
+              </label>
+            ))}
+          </div>
         </div>
 
         <div className="mt-5">
@@ -761,11 +866,13 @@ export default function AdminBallonPage() {
                     </p>
 
                     <p className="mt-2 text-xs text-slate-600">
-                      Minimum{' '}
-                      {
-                        season.minimumMatches
-                      }{' '}
-                      matches · Top{' '}
+                       Minimum{' '}
+                       {
+                         season.minimumMatches
+                       }{' '}
+                       matches · max{' '}
+                       {season.maximumMatches ?? 40}{' '}
+                       counted · Top{' '}
                       {
                         season.rankingLimit
                       }
@@ -789,6 +896,10 @@ export default function AdminBallonPage() {
                     }
                   />
                 </div>
+
+                <p className="mt-2 text-xs text-slate-500">
+                  Tournament mix: {season.tournamentRequirements?.SOLO ?? 0} SOLO · {season.tournamentRequirements?.DUO ?? 0} DUO · {season.tournamentRequirements?.TEAM ?? 0} TEAM
+                </p>
 
                 <div className="mt-5 flex flex-wrap gap-2">
                   {season.status ===
@@ -872,6 +983,18 @@ export default function AdminBallonPage() {
                       className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black text-slate-300"
                     >
                       Archive
+                    </button>
+                  ) : null}
+
+                  {season.status !== 'LOCKED' &&
+                  season.status !== 'ARCHIVED' ? (
+                    <button
+                      type="button"
+                      disabled={Boolean(busy)}
+                      onClick={() => void deleteSeason(season.id)}
+                      className="rounded-xl border border-red-400/25 bg-red-400/[0.06] px-4 py-2.5 text-xs font-black text-red-300"
+                    >
+                      {busy === season.id + 'delete' ? 'Deleting...' : 'Delete & Restart'}
                     </button>
                   ) : null}
                 </div>

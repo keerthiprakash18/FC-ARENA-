@@ -131,9 +131,9 @@ describe(
             inGameName:
               'TESTPLAYER',
             password:
-              'password1',
+              'Password1',
             confirmPassword:
-              'password1',
+              'Password1',
           });
 
         expect(

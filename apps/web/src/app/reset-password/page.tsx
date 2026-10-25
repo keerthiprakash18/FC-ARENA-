@@ -108,6 +108,9 @@ export default function ResetPasswordPage() {
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
               required
+              minLength={8}
+              pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}"
+              title="Use at least 8 characters with uppercase, lowercase and a number."
               style={{ paddingRight: '5rem' }}
             />
             <button
@@ -120,6 +123,9 @@ export default function ResetPasswordPage() {
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            Must be at least 8 characters with one uppercase letter, one lowercase letter and one number. Maximum 72 UTF-8 bytes.
+          </p>
         </div>
 
         <div className="field">

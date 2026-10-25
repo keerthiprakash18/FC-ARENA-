@@ -35,6 +35,12 @@ export class UpdateBallonSeasonDto {
   minimumMatches?: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(200)
+  maximumMatches?: number;
+
+  @IsOptional()
   @IsIn([10, 20, 50])
   rankingLimit?: 10 | 20 | 50;
 
@@ -58,4 +64,12 @@ export class UpdateBallonSeasonDto {
     string,
     number
   >;
+
+  @IsOptional()
+  @IsObject()
+  tournamentRequirements?: {
+    SOLO?: number;
+    DUO?: number;
+    TEAM?: number;
+  };
 }

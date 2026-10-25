@@ -1445,11 +1445,13 @@ model BallonSeason {
   name                  String             @db.VarChar(120)
   startAt               DateTime
   endAt                 DateTime
-  minimumMatches        Int                @default(6)
+  minimumMatches        Int                @default(10)
+  maximumMatches        Int                @default(40)
   rankingLimit          Int                @default(20)
   status                BallonSeasonStatus @default(DRAFT)
   eligibleLeagueIds     Json
   eligibleTournamentIds Json
+  tournamentRequirements Json               @default("{\"SOLO\":2,\"DUO\":2,\"TEAM\":1}")
   scoringConfig         Json
   createdByUserId       String             @db.Uuid
   finalWinnerUserId     String?            @db.Uuid

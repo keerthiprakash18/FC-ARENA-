@@ -108,7 +108,7 @@ describe(
                 'player@example.com',
 
               password:
-                'password1',
+                'Password1',
             },
 
             {

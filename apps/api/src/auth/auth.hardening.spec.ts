@@ -32,13 +32,13 @@ describe('Login quota identity', () => {
 });
 
 describe('New password byte limits', () => {
-  for (const password of ['a'.repeat(71) + '1', 'é'.repeat(35) + 'a1']) {
+  for (const password of ['A' + 'a'.repeat(70) + '1', 'é'.repeat(34) + 'aA11']) {
     it(`accepts exactly 72 UTF-8 bytes (${password.length} characters)`, async () => {
       const dto = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.test', inGameName: 'Tester', password, confirmPassword: password });
       expect(await validate(dto)).toHaveLength(0);
     });
   }
-  for (const password of ['a'.repeat(72) + '1', 'é'.repeat(36) + 'a1']) {
+  for (const password of ['A' + 'a'.repeat(71) + '1', 'é'.repeat(35) + 'aA1']) {
     it(`rejects new passwords bcrypt would truncate (${Buffer.byteLength(password)} bytes)`, async () => {
       const register = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.test', inGameName: 'Tester', password, confirmPassword: password });
       const reset = Object.assign(new ResetPasswordDto(), { email: 'test@example.test', otp: '123456', newPassword: password, confirmPassword: password });

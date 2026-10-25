@@ -17,9 +17,9 @@ export class ResetPasswordDto {
 
   @IsString()
   @MaxLength(256)
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d).{8,}$/, {
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/, {
     message:
-      'Password must be at least 8 characters and contain at least one letter and one number.',
+      'Password must be at least 8 characters and contain an uppercase letter, a lowercase letter and a number.',
   })
   @IsByteLength(0, 72, { message: 'Password must be at most 72 UTF-8 bytes.' })
   newPassword!: string;

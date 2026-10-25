@@ -33,10 +33,19 @@ import type {
 interface SeasonStats
   extends AwardMetricRow {
   tournamentsPlayed: number;
+  soloTournamentsPlayed: number;
+  duoTournamentsPlayed: number;
+  teamTournamentsPlayed: number;
   tournamentTitles: number;
   firstCompetitiveAt:
     string | null;
 }
+
+type TournamentRequirements = {
+  SOLO: number;
+  DUO: number;
+  TEAM: number;
+};
 
 interface PlayerIdentity {
   fullName: string;
@@ -60,6 +69,7 @@ interface LiveRankingRow
       string,
       number
     >;
+  eligibilityReasons: string[];
 }
 
 @Injectable()
@@ -117,9 +127,24 @@ export class BallonService {
 
     const minimumMatches =
       dto.minimumMatches ??
-      this.defaultMinimumMatches(
-        startAt,
-        endAt,
+      10;
+
+    const maximumMatches =
+      dto.maximumMatches ??
+      40;
+
+    this.assertMatchBounds(
+      minimumMatches,
+      maximumMatches,
+    );
+
+    const tournamentRequirements =
+      this.normalizeTournamentRequirements(
+        dto.tournamentRequirements ?? {
+          SOLO: 2,
+          DUO: 2,
+          TEAM: 1,
+        },
       );
 
     const season =
@@ -130,11 +155,14 @@ export class BallonService {
           startAt,
           endAt,
           minimumMatches,
+          maximumMatches,
           rankingLimit:
             dto.rankingLimit ??
             20,
           eligibleLeagueIds,
           eligibleTournamentIds,
+          tournamentRequirements:
+            tournamentRequirements as any,
           scoringConfig:
             scoringConfig as any,
           createdByUserId:
@@ -241,6 +269,29 @@ export class BallonService {
               Record<string, number>,
           );
 
+    const minimumMatches =
+      dto.minimumMatches ??
+      season.minimumMatches;
+
+    const maximumMatches =
+      dto.maximumMatches ??
+      season.maximumMatches;
+
+    this.assertMatchBounds(
+      minimumMatches,
+      maximumMatches,
+    );
+
+    const tournamentRequirements =
+      dto.tournamentRequirements
+        ? this.normalizeTournamentRequirements(
+            dto.tournamentRequirements,
+          )
+        : this.normalizeTournamentRequirements(
+            season.tournamentRequirements as
+              Record<string, number>,
+          );
+
     const updated =
       await this.prisma.ballonSeason.update({
         where: {
@@ -252,12 +303,14 @@ export class BallonService {
             dto.name?.trim(),
           startAt,
           endAt,
-          minimumMatches:
-            dto.minimumMatches,
+          minimumMatches,
+          maximumMatches,
           rankingLimit:
             dto.rankingLimit,
           eligibleLeagueIds,
           eligibleTournamentIds,
+          tournamentRequirements:
+            tournamentRequirements as any,
           scoringConfig:
             scoringConfig as any,
         },
@@ -734,6 +787,51 @@ export class BallonService {
       data: {
         season:
           updated,
+      },
+      error: null,
+    };
+  }
+
+  async deleteSeason(
+    userId: string,
+    seasonId: string,
+  ) {
+    const season =
+      await this.requireSeason(
+        seasonId,
+      );
+
+    await this.assertCanManageSeason(
+      userId,
+      season,
+    );
+
+    if (
+      season.status === 'LOCKED' ||
+      season.status === 'ARCHIVED'
+    ) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: {
+          code: 'BALLON_SEASON_DELETE_LOCKED',
+          message:
+            'Locked or archived Ballon seasons are immutable. Create a new season instead.',
+        },
+      });
+    }
+
+    await this.prisma.ballonSeason.delete({
+      where: {
+        id: season.id,
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        seasonId: season.id,
+        deleted: true,
       },
       error: null,
     };
@@ -1420,8 +1518,13 @@ export class BallonService {
                   memberLeagueIds,
               },
 
-              mode:
-                'SOLO',
+              mode: {
+                in: [
+                  'SOLO',
+                  'DUO',
+                  'TEAM',
+                ],
+              },
 
               status: {
                 in: [
@@ -1435,6 +1538,7 @@ export class BallonService {
               id: true,
               name: true,
               code: true,
+              mode: true,
               status: true,
               startAt: true,
 
@@ -1687,8 +1791,13 @@ export class BallonService {
     const tournaments =
       await this.prisma.tournament.findMany({
         where: {
-          mode:
-            'SOLO',
+          mode: {
+            in: [
+              'SOLO',
+              'DUO',
+              'TEAM',
+            ],
+          },
 
           status: {
             not:
@@ -1704,11 +1813,12 @@ export class BallonService {
             : {}),
         },
 
-        select: {
-          id: true,
-          name: true,
-          leagueId: true,
-          competitionFormat:
+           select: {
+             id: true,
+             name: true,
+             leagueId: true,
+             mode: true,
+             competitionFormat:
             true,
           legType: true,
         },
@@ -1994,6 +2104,15 @@ export class BallonService {
         Set<string>
       >();
 
+    const tournamentModeSets =
+      new Map<
+        string,
+        Record<
+          'SOLO' | 'DUO' | 'TEAM',
+          Set<string>
+        >
+      >();
+
     const currentStreak =
       new Map<
         string,
@@ -2026,6 +2145,9 @@ export class BallonService {
             bigMatchPoints: 0,
             longestWinStreak: 0,
             tournamentsPlayed: 0,
+            soloTournamentsPlayed: 0,
+            duoTournamentsPlayed: 0,
+            teamTournamentsPlayed: 0,
             tournamentTitles: 0,
             firstCompetitiveAt:
               null,
@@ -2069,6 +2191,21 @@ export class BallonService {
         );
       }
 
+      if (
+        !tournamentModeSets.has(
+          userId,
+        )
+      ) {
+        tournamentModeSets.set(
+          userId,
+          {
+            SOLO: new Set(),
+            DUO: new Set(),
+            TEAM: new Set(),
+          },
+        );
+      }
+
       return aggregates.get(
         userId,
       )!;
@@ -2083,6 +2220,7 @@ export class BallonService {
       draw: boolean,
       roundName: string,
       eventAt: Date,
+      mode: 'SOLO' | 'DUO' | 'TEAM',
     ) => {
       const aggregate =
         ensure(
@@ -2192,6 +2330,45 @@ export class BallonService {
         ?.add(
           tournamentId,
         );
+
+      tournamentModeSets
+        .get(
+          aggregate.userId,
+        )?.[mode].add(
+          tournamentId,
+        );
+    };
+
+    type MatchEvent = {
+      member: any;
+      tournamentId: string;
+      mode: 'SOLO' | 'DUO' | 'TEAM';
+      goalsFor: number;
+      goalsAgainst: number;
+      won: boolean;
+      draw: boolean;
+      roundName: string;
+      eventAt: Date;
+    };
+
+    const eventsByUser =
+      new Map<string, MatchEvent[]>();
+
+    const queue = (
+      member: any,
+      event: Omit<MatchEvent, 'member'>,
+    ) => {
+      ensure(member);
+      const events =
+        eventsByUser.get(member.userId) ?? [];
+      events.push({
+        member,
+        ...event,
+      });
+      eventsByUser.set(
+        member.userId,
+        events,
+      );
     };
 
     for (
@@ -2213,19 +2390,20 @@ export class BallonService {
           ?.members ??
         [];
 
-      /*
-       * V1 individual Ballon metrics
-       * are SOLO-only. Skip malformed
-       * entries rather than attributing
-       * a team score to every member.
-       */
       if (
         !result ||
-        homeMembers.length !==
-          1 ||
-        awayMembers.length !==
-          1
+        homeMembers.length === 0 ||
+        awayMembers.length === 0
       ) {
+        continue;
+      }
+
+      const tournament =
+        tournamentMap.get(
+          match.tournamentId,
+        );
+
+      if (!tournament) {
         continue;
       }
 
@@ -2245,31 +2423,51 @@ export class BallonService {
         result.reviewedAt ??
         result.updatedAt;
 
-      apply(
-        homeMembers[0],
-        match.tournamentId,
-        result.homeScore,
-        result.awayScore,
-        homeWon,
-        draw,
-        match.fixture
-          .roundName ??
-          '',
+      const baseEvent = {
+        tournamentId: match.tournamentId,
+        mode: tournament.mode as 'SOLO' | 'DUO' | 'TEAM',
+        roundName: match.fixture.roundName ?? '',
         eventAt,
-      );
+      } as const;
 
-      apply(
-        awayMembers[0],
-        match.tournamentId,
-        result.awayScore,
-        result.homeScore,
-        awayWon,
-        draw,
-        match.fixture
-          .roundName ??
-          '',
-        eventAt,
-      );
+      for (const member of homeMembers) {
+        queue(member, {
+          ...baseEvent,
+          goalsFor: result.homeScore,
+          goalsAgainst: result.awayScore,
+          won: homeWon,
+          draw,
+        });
+      }
+
+      for (const member of awayMembers) {
+        queue(member, {
+          ...baseEvent,
+          goalsFor: result.awayScore,
+          goalsAgainst: result.homeScore,
+          won: awayWon,
+          draw,
+        });
+      }
+    }
+
+    const maximumMatches =
+      Number(season.maximumMatches) || 40;
+
+    for (const events of eventsByUser.values()) {
+      for (const event of events.slice(-maximumMatches)) {
+        apply(
+          event.member,
+          event.tournamentId,
+          event.goalsFor,
+          event.goalsAgainst,
+          event.won,
+          event.draw,
+          event.roundName,
+          event.eventAt,
+          event.mode,
+        );
+      }
     }
 
     for (
@@ -2286,6 +2484,18 @@ export class BallonService {
       if (aggregate) {
         aggregate.tournamentsPlayed =
           set.size;
+
+        const modeSets =
+          tournamentModeSets.get(
+            userId,
+          );
+
+        aggregate.soloTournamentsPlayed =
+          modeSets?.SOLO.size ?? 0;
+        aggregate.duoTournamentsPlayed =
+          modeSets?.DUO.size ?? 0;
+        aggregate.teamTournamentsPlayed =
+          modeSets?.TEAM.size ?? 0;
       }
     }
 
@@ -2490,6 +2700,11 @@ export class BallonService {
         ),
       );
 
+    const tournamentRequirements =
+      this.normalizeTournamentRequirements(
+        season.tournamentRequirements,
+      );
+
     const provisional =
       rated.map(
         (
@@ -2525,9 +2740,88 @@ export class BallonService {
               row.rating,
             ratingBreakdown:
               row.ratingBreakdown,
-            eligible:
-              row.matches >=
-              season.minimumMatches,
+            eligible: (() => {
+              const reasons: string[] = [];
+
+              if (
+                row.matches <
+                season.minimumMatches
+              ) {
+                reasons.push(
+                  `${row.matches}/${season.minimumMatches} matches`,
+                );
+              }
+
+              if (
+                stats.soloTournamentsPlayed <
+                tournamentRequirements.SOLO
+              ) {
+                reasons.push(
+                  `${stats.soloTournamentsPlayed}/${tournamentRequirements.SOLO} SOLO tournaments`,
+                );
+              }
+
+              if (
+                stats.duoTournamentsPlayed <
+                tournamentRequirements.DUO
+              ) {
+                reasons.push(
+                  `${stats.duoTournamentsPlayed}/${tournamentRequirements.DUO} DUO tournaments`,
+                );
+              }
+
+              if (
+                stats.teamTournamentsPlayed <
+                tournamentRequirements.TEAM
+              ) {
+                reasons.push(
+                  `${stats.teamTournamentsPlayed}/${tournamentRequirements.TEAM} TEAM tournaments`,
+                );
+              }
+
+              return reasons.length === 0;
+            })(),
+            eligibilityReasons: (() => {
+              const reasons: string[] = [];
+
+              if (
+                row.matches <
+                season.minimumMatches
+              ) {
+                reasons.push(
+                  `${row.matches}/${season.minimumMatches} matches`,
+                );
+              }
+
+              if (
+                stats.soloTournamentsPlayed <
+                tournamentRequirements.SOLO
+              ) {
+                reasons.push(
+                  `${stats.soloTournamentsPlayed}/${tournamentRequirements.SOLO} SOLO tournaments`,
+                );
+              }
+
+              if (
+                stats.duoTournamentsPlayed <
+                tournamentRequirements.DUO
+              ) {
+                reasons.push(
+                  `${stats.duoTournamentsPlayed}/${tournamentRequirements.DUO} DUO tournaments`,
+                );
+              }
+
+              if (
+                stats.teamTournamentsPlayed <
+                tournamentRequirements.TEAM
+              ) {
+                reasons.push(
+                  `${stats.teamTournamentsPlayed}/${tournamentRequirements.TEAM} TEAM tournaments`,
+                );
+              }
+
+              return reasons;
+            })(),
             previousBallonWinner:
               previousBallonWinners.has(
                 row.userId,
@@ -2858,6 +3152,12 @@ export class BallonService {
         row.cleanSheets,
       tournamentsPlayed:
         row.tournamentsPlayed,
+      soloTournamentsPlayed:
+        row.soloTournamentsPlayed,
+      duoTournamentsPlayed:
+        row.duoTournamentsPlayed,
+      teamTournamentsPlayed:
+        row.teamTournamentsPlayed,
       tournamentTitles:
         row.tournamentTitles,
       longestWinStreak:
@@ -2868,24 +3168,11 @@ export class BallonService {
   }
 
   private async findCurrentSeason() {
-    const now =
-      new Date();
-
     const live =
       await this.prisma.ballonSeason.findFirst({
         where: {
           status:
             'LIVE',
-
-          startAt: {
-            lte:
-              now,
-          },
-
-          endAt: {
-            gte:
-              now,
-          },
         },
 
         orderBy: {
@@ -3230,24 +3517,6 @@ export class BallonService {
       });
     }
 
-    if (
-      tournaments.some(
-        (tournament) =>
-          tournament.mode !==
-          'SOLO',
-      )
-    ) {
-      throw new BadRequestException({
-        success: false,
-        data: null,
-        error: {
-          code:
-            'BALLON_SOLO_ONLY_V1',
-          message:
-            'FC Arena Ballon V1 only accepts SOLO tournaments because team-level scores cannot be safely assigned to individual players.',
-        },
-      });
-    }
   }
 
   private normalizeScoringConfig(
@@ -3270,8 +3539,7 @@ export class BallonService {
     const merged:
       RatingWeights = {
         ...DEFAULT_RATING_WEIGHTS,
-        ...(input ??
-          {}),
+        ...input,
       };
 
     for (
@@ -3336,35 +3604,69 @@ export class BallonService {
     return merged;
   }
 
-  private defaultMinimumMatches(
-    startAt: Date,
-    endAt: Date,
+  private normalizeTournamentRequirements(
+    input?:
+      Partial<TournamentRequirements> | null,
+  ): TournamentRequirements {
+    const value = (
+      key: keyof TournamentRequirements,
+    ) => {
+      const raw =
+        input &&
+        typeof input === 'object'
+          ? input[key]
+          : undefined;
+
+      if (
+        raw === undefined
+      ) {
+        return 0;
+      }
+
+      if (
+        typeof raw !== 'number' ||
+        !Number.isInteger(raw) ||
+        raw < 0 ||
+        raw > 50
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code: 'BALLON_TOURNAMENT_REQUIREMENTS_INVALID',
+            message:
+              'Ballon tournament requirements must be whole numbers between 0 and 50.',
+          },
+        });
+      }
+
+      return raw;
+    };
+
+    return {
+      SOLO: value('SOLO'),
+      DUO: value('DUO'),
+      TEAM: value('TEAM'),
+    };
+  }
+
+  private assertMatchBounds(
+    minimumMatches: number,
+    maximumMatches: number,
   ) {
-    const days =
-      (
-        endAt.getTime() -
-        startAt.getTime()
-      ) /
-      (
-        24 *
-        60 *
-        60 *
-        1000
-      );
-
     if (
-      days <= 35
+      maximumMatches < minimumMatches
     ) {
-      return 6;
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'BALLON_MATCH_BOUNDS_INVALID',
+          message:
+            'Ballon maximum matches must be greater than or equal to minimum matches.',
+        },
+      });
     }
-
-    if (
-      days <= 65
-    ) {
-      return 10;
-    }
-
-    return 15;
   }
 
   private assertValidPeriod(

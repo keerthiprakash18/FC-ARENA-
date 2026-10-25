@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -261,6 +262,23 @@ export class BallonController {
     seasonId: string,
   ) {
     return this.ballonService.archiveSeason(
+      request.user.sub,
+      seasonId,
+    );
+  }
+
+  @Delete(
+    'admin/ballon/seasons/:seasonId',
+  )
+  delete(
+    @Req()
+    request:
+      AuthenticatedRequest,
+
+    @Param('seasonId')
+    seasonId: string,
+  ) {
+    return this.ballonService.deleteSeason(
       request.user.sub,
       seasonId,
     );

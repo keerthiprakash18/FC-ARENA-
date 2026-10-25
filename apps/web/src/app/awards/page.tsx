@@ -28,8 +28,14 @@ interface BallonSeason {
   startAt: string;
   endAt: string;
   minimumMatches: number;
+  maximumMatches: number;
   rankingLimit: number;
   status: string;
+  tournamentRequirements?: {
+    SOLO?: number;
+    DUO?: number;
+    TEAM?: number;
+  };
 }
 
 interface BallonRow {
@@ -46,6 +52,10 @@ interface BallonRow {
   matches?: number;
   wins?: number;
   goalsFor?: number;
+  soloTournamentsPlayed?: number;
+  duoTournamentsPlayed?: number;
+  teamTournamentsPlayed?: number;
+  eligibilityReasons?: string[];
   statistics?: {
     matches?: number;
     wins?: number;
@@ -85,6 +95,7 @@ interface AwardTournament {
   id: string;
   name: string;
   code: string;
+  mode: 'SOLO' | 'DUO' | 'TEAM';
   status: string;
   league: {
     id: string;
@@ -695,9 +706,16 @@ export default function AwardsPage() {
                 endAt:
                   end.toISOString(),
                 minimumMatches:
-                  15,
+                  10,
+                maximumMatches:
+                  40,
                 rankingLimit:
                   20,
+                tournamentRequirements: {
+                  SOLO: 2,
+                  DUO: 2,
+                  TEAM: 1,
+                },
                 eligibleLeagueIds:
                   [
                     selectedAdminLeague
@@ -992,7 +1010,7 @@ export default function AwardsPage() {
               <p className="mt-2 text-sm leading-6 text-slate-500">
                 {data
                   ?.currentBallon
-                  ? 'A Ballon season is already active. Live rankings will update automatically from verified SOLO results.'
+                   ? 'A Ballon season is already active. Live rankings update automatically from verified SOLO, DUO and TEAM results.'
                   : draftSeason
                     ? `Draft ready: ${draftSeason.name}. Start it here without leaving Awards.`
                     : 'No live season yet. Quick Start creates a 3-month Ballon season for the selected League and immediately turns live rankings on.'}
@@ -1129,7 +1147,7 @@ export default function AwardsPage() {
                 ?.currentBallon &&
               !draftSeason ? (
                 <p className="text-[11px] leading-5 text-slate-600">
-                  Quick Start: 3 months · minimum 15 matches · Top 20 overview · verified SOLO results only. You can customize everything first through Advanced Settings.
+                   Quick Start: 3 months · minimum 10 matches · max 40 counted · 2 SOLO + 2 DUO + 1 TEAM tournaments · Top 20 overview. You can customize everything first through Advanced Settings.
                 </p>
               ) : null}
             </div>
@@ -1238,7 +1256,7 @@ export default function AwardsPage() {
           </p>
 
           <h2 className="mt-1 text-xl font-black">
-            Active SOLO Tournaments
+             Active Tournaments · SOLO / DUO / TEAM
           </h2>
 
           <div className="mt-5 space-y-2">
@@ -1265,13 +1283,15 @@ export default function AwardsPage() {
                       </p>
 
                       <p className="mt-1 truncate text-xs text-slate-500">
-                        {
-                          tournament
-                            .league.name
-                        }{' '}
-                        ·{' '}
-                        {
-                          tournament.status
+                         {
+                           tournament
+                             .league.name
+                         }{' '}
+                         ·{' '}
+                         {tournament.mode}{' '}
+                         ·{' '}
+                         {
+                           tournament.status
                         }
                       </p>
                     </div>
@@ -1289,7 +1309,7 @@ export default function AwardsPage() {
               .length ===
               0 ? (
               <p className="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-500">
-                No active SOLO tournament award races are available in your leagues.
+                 No active tournament award races are available in your leagues.
               </p>
             ) : null}
           </div>

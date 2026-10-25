@@ -33,8 +33,14 @@ interface Season {
   startAt: string;
   endAt: string;
   minimumMatches: number;
+  maximumMatches: number;
   rankingLimit: number;
   status: string;
+  tournamentRequirements?: {
+    SOLO?: number;
+    DUO?: number;
+    TEAM?: number;
+  };
   finalWinnerUserId: string | null;
   risingStarUserId: string | null;
   winner: SeasonWinner | null;
@@ -321,15 +327,21 @@ export default function BallonSeasonsPage() {
                 </div>
 
                 <p className="mt-4 text-xs text-slate-600">
-                  Minimum{' '}
-                  {
-                    season.minimumMatches
-                  }{' '}
-                  matches · Top{' '}
-                  {
-                    season.rankingLimit
-                  }
-                </p>
+                   Minimum{' '}
+                   {
+                     season.minimumMatches
+                   }{' '}
+                   matches · max{' '}
+                   {season.maximumMatches ?? 40}{' '}
+                   counted · Top{' '}
+                   {
+                     season.rankingLimit
+                   }
+                 </p>
+
+                 <p className="mt-2 text-xs text-slate-600">
+                   Mix: {season.tournamentRequirements?.SOLO ?? 0} SOLO · {season.tournamentRequirements?.DUO ?? 0} DUO · {season.tournamentRequirements?.TEAM ?? 0} TEAM
+                 </p>
               </FcPanel>
             </Link>
           ),

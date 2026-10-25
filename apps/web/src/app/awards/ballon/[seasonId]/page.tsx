@@ -29,8 +29,14 @@ interface Season {
   startAt: string;
   endAt: string;
   minimumMatches: number;
+  maximumMatches: number;
   rankingLimit: number;
   status: string;
+  tournamentRequirements?: {
+    SOLO?: number;
+    DUO?: number;
+    TEAM?: number;
+  };
   scoringConfig?: {
     matchPerformance?: number;
     attack?: number;
@@ -60,6 +66,10 @@ interface RankingRow {
   goalsAgainst?: number;
   goalDifference?: number;
   cleanSheets?: number;
+  soloTournamentsPlayed?: number;
+  duoTournamentsPlayed?: number;
+  teamTournamentsPlayed?: number;
+  eligibilityReasons?: string[];
   statistics?: {
     matches?: number;
     wins?: number;
@@ -69,6 +79,9 @@ interface RankingRow {
     goalsAgainst?: number;
     goalDifference?: number;
     cleanSheets?: number;
+    soloTournamentsPlayed?: number;
+    duoTournamentsPlayed?: number;
+    teamTournamentsPlayed?: number;
   };
 }
 
@@ -343,14 +356,14 @@ export default function BallonRankingsPage() {
       }
       subtitle={
         season
-          ? `${new Date(
-              season.startAt,
-            ).toLocaleDateString()} – ${new Date(
-              season.endAt,
-            ).toLocaleDateString()} · Minimum ${season.minimumMatches} matches · ${season.status}`
+           ? `${new Date(
+               season.startAt,
+             ).toLocaleDateString()} – ${new Date(
+               season.endAt,
+             ).toLocaleDateString()} · ${season.minimumMatches}–${season.maximumMatches} matches counted · ${season.status}`
           : 'Loading seasonal ranking...'
       }
-      header={<PremiumHero eyebrow="FC Arena · Ballon d’Or" title={season?.name ?? 'Season Rankings'} description={season ? `${new Date(season.startAt).toLocaleDateString()} – ${new Date(season.endAt).toLocaleDateString()} · Minimum ${season.minimumMatches} matches · ${season.status}` : 'Loading seasonal ranking...'} />}
+       header={<PremiumHero eyebrow="FC Arena · Ballon d’Or" title={season?.name ?? 'Season Rankings'} description={season ? `${new Date(season.startAt).toLocaleDateString()} – ${new Date(season.endAt).toLocaleDateString()} · ${season.minimumMatches}–${season.maximumMatches} matches counted · ${season.status}` : 'Loading seasonal ranking...'} />}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
@@ -486,7 +499,7 @@ export default function BallonRankingsPage() {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
-            Only canonical confirmed SOLO results inside this season&apos;s eligible scope and date window count. Players must complete at least <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> to become eligible. Eligible players rank first; ties are then resolved by rating, wins, goal difference and goals scored.
+             Canonical confirmed SOLO, DUO and TEAM results inside this season&apos;s eligible scope and date window count. The live calculation uses the latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player; eligibility starts at <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> plus the configured tournament mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>. Eligible players rank first; ties are then resolved by rating, wins, goal difference and goals scored.
           </p>
         </div>
       </details>
@@ -505,7 +518,7 @@ export default function BallonRankingsPage() {
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-              Only canonical confirmed SOLO results inside the selected season scope are counted.
+               Canonical confirmed SOLO, DUO and TEAM results are counted. Live ranking refreshes every 10 seconds.
             </p>
           </div>
 
@@ -588,16 +601,15 @@ export default function BallonRankingsPage() {
                         }
                       </span>
 
-                      {!row.eligible ? (
-                        <span className="mt-1 block text-[9px] font-black uppercase tracking-wider text-amber-500">
-                          Not Yet Eligible · {
-                            metric(
-                              row,
-                              'matches',
-                            )
-                          }/{season?.minimumMatches ?? '—'}
-                        </span>
-                      ) : null}
+                       {!row.eligible ? (
+                         <span className="mt-1 block text-[9px] font-black uppercase tracking-wider text-amber-500">
+                           Not Yet Eligible · {row.eligibilityReasons?.join(' · ') || `${metric(row, 'matches')}/${season?.minimumMatches ?? '—'} matches`}
+                         </span>
+                       ) : null}
+
+                       <span className="mt-1 block text-[9px] font-bold text-slate-600">
+                         {row.soloTournamentsPlayed ?? row.statistics?.soloTournamentsPlayed ?? 0} SOLO · {row.duoTournamentsPlayed ?? row.statistics?.duoTournamentsPlayed ?? 0} DUO · {row.teamTournamentsPlayed ?? row.statistics?.teamTournamentsPlayed ?? 0} TEAM
+                       </span>
                     </span>
                   </span>
 

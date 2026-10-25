@@ -11,6 +11,7 @@ import { AuthorizationService } from '../security/authorization.service.js';
 import { SafetyService } from '../security/safety.service.js';
 import type { CreateLeagueDto } from './dto/create-league.dto.js';
 import type { DeleteLeagueDto } from './dto/delete-league.dto.js';
+import type { DiscoverLeaguesDto } from './dto/discover-leagues.dto.js';
 
 const LEAGUE_MEMBER_LIMIT = 100;
 const PLAYER_LEAGUE_LIMIT = 2;
@@ -175,6 +176,162 @@ export class LeaguesService {
             creatorUserId: membership.league.creatorUserId,
           },
         })),
+      },
+      error: null,
+    };
+  }
+
+  async discoverLeagues(userId: string, dto: DiscoverLeaguesDto) {
+    const page = Math.max(1, dto.page ?? 1);
+    const pageSize = Math.min(50, Math.max(1, dto.pageSize ?? 10));
+    const search = dto.search?.trim();
+    const region = dto.region?.trim();
+    const sort = dto.sort ?? 'POPULAR';
+
+    const where = {
+      discoverable: true,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' as const } },
+              { description: { contains: search, mode: 'insensitive' as const } },
+              {
+                creator: {
+                  OR: [
+                    { fullName: { contains: search, mode: 'insensitive' as const } },
+                    {
+                      player: {
+                        is: {
+                          identity: {
+                            is: { inGameName: { contains: search, mode: 'insensitive' as const } },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }
+        : {}),
+      ...(region ? { region: { contains: region, mode: 'insensitive' as const } } : {}),
+    };
+
+    const orderBy = sort === 'POPULAR'
+      ? { members: { _count: 'desc' as const } }
+      : sort === 'ACTIVE'
+        ? { updatedAt: 'desc' as const }
+        : { createdAt: 'desc' as const };
+
+    const [total, leagues] = await Promise.all([
+      this.prisma.league.count({ where }),
+      this.prisma.league.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          creator: {
+            select: {
+              id: true,
+              fullName: true,
+              player: { select: { profileImageUrl: true, identity: { select: { inGameName: true } } } },
+            },
+          },
+          members: { where: { userId }, select: { id: true } },
+          applications: { where: { userId }, select: { status: true } },
+          _count: {
+            select: {
+              members: true,
+              tournaments: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        leagues: leagues.map((league) => ({
+          id: league.id,
+          name: league.name,
+          logoUrl: league.logoUrl,
+          description: league.description,
+          region: league.region,
+          members: league._count.members,
+          maxMembers: league.maxMembers,
+          tournamentCount: league._count.tournaments,
+          isFull: league._count.members >= league.maxMembers,
+          alreadyMember: league.members.length > 0,
+          applicationStatus: league.applications[0]?.status ?? null,
+          creator: {
+            id: league.creator.id,
+            username: league.creator.player?.identity?.inGameName ?? league.creator.fullName,
+            fullName: league.creator.fullName,
+            profileImageUrl: league.creator.player?.profileImageUrl ?? null,
+          },
+          createdAt: league.createdAt,
+          updatedAt: league.updatedAt,
+        })),
+        pagination: {
+          page,
+          pageSize,
+          total,
+          totalPages: Math.ceil(total / pageSize),
+        },
+      },
+      error: null,
+    };
+  }
+
+  async getDiscoverableLeague(userId: string, leagueId: string) {
+    const league = await this.prisma.league.findFirst({
+      where: { id: leagueId, discoverable: true },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            fullName: true,
+            player: { select: { profileImageUrl: true, identity: { select: { inGameName: true } } } },
+          },
+        },
+        members: { where: { userId }, select: { id: true } },
+        applications: { where: { userId }, select: { status: true } },
+        _count: { select: { members: true, tournaments: true } },
+      },
+    });
+
+    if (!league) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+        error: { code: 'LEAGUE_NOT_FOUND', message: 'League could not be found.' },
+      });
+    }
+
+    return {
+      success: true,
+      data: {
+        league: {
+          id: league.id,
+          name: league.name,
+          logoUrl: league.logoUrl,
+          description: league.description,
+          region: league.region,
+          rules: league.rules,
+          members: league._count.members,
+          maxMembers: league.maxMembers,
+          tournamentCount: league._count.tournaments,
+          alreadyMember: league.members.length > 0,
+          applicationStatus: league.applications[0]?.status ?? null,
+          creator: {
+            username: league.creator.player?.identity?.inGameName ?? league.creator.fullName,
+            fullName: league.creator.fullName,
+            profileImageUrl: league.creator.player?.profileImageUrl ?? null,
+          },
+          createdAt: league.createdAt,
+        },
       },
       error: null,
     };
@@ -374,6 +531,23 @@ export class LeaguesService {
       },
       error: null,
     };
+  }
+
+  async requestToJoinById(userId: string, leagueId: string) {
+    const league = await this.prisma.league.findUnique({
+      where: { id: leagueId },
+      select: { code: true },
+    });
+
+    if (!league) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+        error: { code: 'LEAGUE_NOT_FOUND', message: 'League could not be found.' },
+      });
+    }
+
+    return this.requestToJoin(userId, league.code);
   }
 
   async getApplications(adminUserId: string, leagueId: string) {

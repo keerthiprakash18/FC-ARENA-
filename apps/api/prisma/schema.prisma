@@ -527,6 +527,7 @@ model League {
   rules            String?           @db.Text
   maxMembers       Int               @default(100)
   maxAdmins        Int?
+  discoverable      Boolean           @default(true)
   creatorUserId    String            @db.Uuid
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt

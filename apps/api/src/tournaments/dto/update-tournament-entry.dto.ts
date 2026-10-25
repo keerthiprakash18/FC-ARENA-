@@ -1,4 +1,8 @@
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  ArrayUnique,
+  IsArray,
   IsOptional,
   IsString,
   Matches,
@@ -27,4 +31,12 @@ export class UpdateTournamentEntryDto {
     },
   )
   entryLogoUrl?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(11)
+  @ArrayUnique()
+  @IsString({ each: true })
+  playerCodes?: string[];
 }

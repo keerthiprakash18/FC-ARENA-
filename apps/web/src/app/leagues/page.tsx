@@ -289,14 +289,19 @@ export default function LeaguesPage() {
           title="Leagues"
           subtitle="Manage your League memberships and join or create a competition."
           action={
-            <button
-              type="button"
-              disabled={atLimit}
-              onClick={() => setShowCreate((value) => !value)}
-              className="min-h-11 rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              + Add League
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/leagues/explore" className="inline-flex min-h-11 items-center rounded-[10px] border border-sky-400/25 px-4 text-sm font-semibold text-sky-300">
+                Explore Leagues
+              </Link>
+              <button
+                type="button"
+                disabled={atLimit}
+                onClick={() => setShowCreate((value) => !value)}
+                className="min-h-11 rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                + Add League
+              </button>
+            </div>
           }
         />
 

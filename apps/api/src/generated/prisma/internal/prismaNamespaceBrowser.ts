@@ -201,6 +201,7 @@ export const LeagueScalarFieldEnum = {
   rules: 'rules',
   maxMembers: 'maxMembers',
   maxAdmins: 'maxAdmins',
+  discoverable: 'discoverable',
   creatorUserId: 'creatorUserId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

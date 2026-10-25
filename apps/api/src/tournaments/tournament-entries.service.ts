@@ -458,24 +458,120 @@ export class TournamentEntriesService {
     registrationId: string,
     dto: UpdateTournamentEntryDto,
   ) {
-    const tournament =
-      await this.getTournamentForAdmin(
-        userId,
-        tournamentId,
-      );
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      select: { id: true, leagueId: true, status: true, teamSize: true },
+    });
+
+    if (!tournament) throw this.tournamentNotFound();
+
+    const entry = await this.prisma.tournamentRegistration.findUnique({
+      where: { id: registrationId },
+      select: {
+        id: true,
+        tournamentId: true,
+        registeredByUserId: true,
+        status: true,
+        members: { select: { userId: true } },
+      },
+    });
+
+    if (!entry || entry.tournamentId !== tournamentId) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+        error: { code: 'TOURNAMENT_ENTRY_NOT_FOUND', message: 'Tournament team could not be found.' },
+      });
+    }
+
+    const isCaptain = entry.registeredByUserId === userId;
+    if (!isCaptain) {
+      await this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_PARTICIPANTS');
+    } else if (!['PENDING', 'APPROVED'].includes(entry.status)) {
+      throw new ConflictException({
+        success: false,
+        data: null,
+        error: { code: 'ENTRY_STATUS_NOT_EDITABLE', message: 'This registration cannot be edited in its current status.' },
+      });
+    }
 
     await this.assertEntriesEditable(
       tournamentId,
       tournament.status,
     );
 
-    const entry =
-      await this.getEntry(
-        tournamentId,
-        registrationId,
-      );
-
     const updated = await this.prisma.$transactionWithRetry(async (tx) => {
+      let nextUserIds: string[] | undefined;
+
+      if (dto.playerCodes !== undefined) {
+        const playerCodes = [...new Set(dto.playerCodes.map((code) => code.trim().toUpperCase()).filter(Boolean))];
+
+        if (tournament.teamSize === 1) {
+          throw new BadRequestException({
+            success: false,
+            data: null,
+            error: { code: 'SOLO_ROSTER_LOCKED', message: 'Solo Tournament entries use the registered player automatically.' },
+          });
+        }
+
+        if (playerCodes.length !== tournament.teamSize) {
+          throw new BadRequestException({
+            success: false,
+            data: null,
+            error: { code: 'INVALID_ENTRY_SIZE', message: `This Tournament requires exactly ${tournament.teamSize} Player IDs.` },
+          });
+        }
+
+        const players = await tx.player.findMany({
+          where: { playerCode: { in: playerCodes } },
+          select: { playerCode: true, userId: true },
+        });
+
+        if (players.length !== playerCodes.length) {
+          throw new BadRequestException({
+            success: false,
+            data: null,
+            error: { code: 'PLAYER_NOT_FOUND', message: 'One or more FC ARENA Player IDs could not be found.' },
+          });
+        }
+
+        nextUserIds = players.map((player) => player.userId);
+        if (!nextUserIds.includes(entry.registeredByUserId)) {
+          throw new ForbiddenException({
+            success: false,
+            data: null,
+            error: { code: 'CAPTAIN_MUST_PARTICIPATE', message: 'The registering player must remain part of the team.' },
+          });
+        }
+
+        const leagueMemberships = await tx.leagueMember.count({
+          where: { leagueId: tournament.leagueId, userId: { in: nextUserIds } },
+        });
+        if (leagueMemberships !== nextUserIds.length) {
+          throw new ForbiddenException({
+            success: false,
+            data: null,
+            error: { code: 'PLAYER_NOT_IN_LEAGUE', message: 'Every team player must be a member of this League.' },
+          });
+        }
+
+        const alreadyRegistered = await tx.tournamentRegistrationMember.findMany({
+          where: {
+            tournamentId,
+            registrationId: { not: registrationId },
+            userId: { in: nextUserIds },
+          },
+          select: { userId: true },
+        });
+        if (alreadyRegistered.length > 0) {
+          throw new ConflictException({
+            success: false,
+            data: null,
+            error: { code: 'PLAYER_ALREADY_REGISTERED', message: 'One or more players already belong to another entry in this Tournament.' },
+          });
+        }
+      }
+
       if (dto.entryName !== undefined) {
         const name = dto.entryName.trim();
         if (!name) {
@@ -491,7 +587,7 @@ export class TournamentEntriesService {
         await assertUniqueEntryName(tx, tournamentId, name, entry.id);
       }
 
-      return tx.tournamentRegistration.update({
+      const updatedEntry = await tx.tournamentRegistration.update({
         where: {
           id:
             registrationId,
@@ -512,6 +608,15 @@ export class TournamentEntriesService {
                 null,
         },
       });
+
+      if (nextUserIds) {
+        await tx.tournamentRegistrationMember.deleteMany({ where: { registrationId } });
+        await tx.tournamentRegistrationMember.createMany({
+          data: nextUserIds.map((nextUserId) => ({ tournamentId, registrationId, userId: nextUserId })),
+        });
+      }
+
+      return updatedEntry;
     }, { isolationLevel: 'Serializable' });
 
     return {

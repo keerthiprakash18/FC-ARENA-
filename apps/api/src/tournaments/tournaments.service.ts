@@ -850,6 +850,7 @@ export class TournamentsService {
         select: {
           leagueId:
             true,
+          status: true,
         },
       });
 
@@ -936,11 +937,32 @@ export class TournamentsService {
         },
       });
 
+    const fixtureCount = registration
+      ? await this.prisma.fixture.count({ where: { tournamentId } })
+      : 0;
+    const canEdit = Boolean(
+      registration &&
+      ['PENDING', 'APPROVED'].includes(registration.status) &&
+      ['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(tournament.status) &&
+      fixtureCount === 0,
+    );
+    const editLockReason = registration
+      ? registration.status === 'REJECTED'
+        ? 'Rejected registrations must be submitted again.'
+        : fixtureCount > 0
+          ? 'Team editing is locked after fixtures are generated.'
+          : !['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(tournament.status)
+            ? 'Team editing is locked after the Tournament becomes active.'
+            : null
+      : null;
+
     return {
       success: true,
 
       data: {
         registration,
+        canEdit,
+        editLockReason,
       },
 
       error: null,

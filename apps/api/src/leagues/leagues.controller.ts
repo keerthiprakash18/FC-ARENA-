@@ -18,6 +18,7 @@ import type { AccessTokenPayload } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CreateLeagueDto } from './dto/create-league.dto.js';
 import { DeleteLeagueDto } from './dto/delete-league.dto.js';
+import { DiscoverLeaguesDto } from './dto/discover-leagues.dto.js';
 import { JoinLeagueDto } from './dto/join-league.dto.js';
 import { LeagueLogoService } from './league-logo.service.js';
 import { LeagueManagementService } from './league-management.service.js';
@@ -56,6 +57,22 @@ export class LeaguesController {
     );
   }
 
+  @Get('discover')
+  discover(
+    @Req() request: AuthenticatedRequest,
+    @Query() dto: DiscoverLeaguesDto,
+  ) {
+    return this.leaguesService.discoverLeagues(request.user.sub, dto);
+  }
+
+  @Get('discover/:leagueId')
+  discoverOne(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+  ) {
+    return this.leaguesService.getDiscoverableLeague(request.user.sub, leagueId);
+  }
+
   @Get('code/:code')
   preview(
     @Req() request: AuthenticatedRequest,
@@ -76,6 +93,14 @@ export class LeaguesController {
       request.user.sub,
       dto.code,
     );
+  }
+
+  @Post(':leagueId/join-request')
+  requestJoinById(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+  ) {
+    return this.leaguesService.requestToJoinById(request.user.sub, leagueId);
   }
 
   @Get(':leagueId')

@@ -46,6 +46,7 @@ export type LeagueMinAggregateOutputType = {
   rules: string | null
   maxMembers: number | null
   maxAdmins: number | null
+  discoverable: boolean | null
   creatorUserId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -61,6 +62,7 @@ export type LeagueMaxAggregateOutputType = {
   rules: string | null
   maxMembers: number | null
   maxAdmins: number | null
+  discoverable: boolean | null
   creatorUserId: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -76,6 +78,7 @@ export type LeagueCountAggregateOutputType = {
   rules: number
   maxMembers: number
   maxAdmins: number
+  discoverable: number
   creatorUserId: number
   createdAt: number
   updatedAt: number
@@ -103,6 +106,7 @@ export type LeagueMinAggregateInputType = {
   rules?: true
   maxMembers?: true
   maxAdmins?: true
+  discoverable?: true
   creatorUserId?: true
   createdAt?: true
   updatedAt?: true
@@ -118,6 +122,7 @@ export type LeagueMaxAggregateInputType = {
   rules?: true
   maxMembers?: true
   maxAdmins?: true
+  discoverable?: true
   creatorUserId?: true
   createdAt?: true
   updatedAt?: true
@@ -133,6 +138,7 @@ export type LeagueCountAggregateInputType = {
   rules?: true
   maxMembers?: true
   maxAdmins?: true
+  discoverable?: true
   creatorUserId?: true
   createdAt?: true
   updatedAt?: true
@@ -235,6 +241,7 @@ export type LeagueGroupByOutputType = {
   rules: string | null
   maxMembers: number
   maxAdmins: number | null
+  discoverable: boolean
   creatorUserId: string
   createdAt: Date
   updatedAt: Date
@@ -273,6 +280,7 @@ export type LeagueWhereInput = {
   rules?: Prisma.StringNullableFilter<"League"> | string | null
   maxMembers?: Prisma.IntFilter<"League"> | number
   maxAdmins?: Prisma.IntNullableFilter<"League"> | number | null
+  discoverable?: Prisma.BoolFilter<"League"> | boolean
   creatorUserId?: Prisma.UuidFilter<"League"> | string
   createdAt?: Prisma.DateTimeFilter<"League"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"League"> | Date | string
@@ -300,6 +308,7 @@ export type LeagueOrderByWithRelationInput = {
   rules?: Prisma.SortOrderInput | Prisma.SortOrder
   maxMembers?: Prisma.SortOrder
   maxAdmins?: Prisma.SortOrderInput | Prisma.SortOrder
+  discoverable?: Prisma.SortOrder
   creatorUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -330,6 +339,7 @@ export type LeagueWhereUniqueInput = Prisma.AtLeast<{
   rules?: Prisma.StringNullableFilter<"League"> | string | null
   maxMembers?: Prisma.IntFilter<"League"> | number
   maxAdmins?: Prisma.IntNullableFilter<"League"> | number | null
+  discoverable?: Prisma.BoolFilter<"League"> | boolean
   creatorUserId?: Prisma.UuidFilter<"League"> | string
   createdAt?: Prisma.DateTimeFilter<"League"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"League"> | Date | string
@@ -357,6 +367,7 @@ export type LeagueOrderByWithAggregationInput = {
   rules?: Prisma.SortOrderInput | Prisma.SortOrder
   maxMembers?: Prisma.SortOrder
   maxAdmins?: Prisma.SortOrderInput | Prisma.SortOrder
+  discoverable?: Prisma.SortOrder
   creatorUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -380,6 +391,7 @@ export type LeagueScalarWhereWithAggregatesInput = {
   rules?: Prisma.StringNullableWithAggregatesFilter<"League"> | string | null
   maxMembers?: Prisma.IntWithAggregatesFilter<"League"> | number
   maxAdmins?: Prisma.IntNullableWithAggregatesFilter<"League"> | number | null
+  discoverable?: Prisma.BoolWithAggregatesFilter<"League"> | boolean
   creatorUserId?: Prisma.UuidWithAggregatesFilter<"League"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"League"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"League"> | Date | string
@@ -395,6 +407,7 @@ export type LeagueCreateInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -421,6 +434,7 @@ export type LeagueUncheckedCreateInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -447,6 +461,7 @@ export type LeagueUpdateInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -473,6 +488,7 @@ export type LeagueUncheckedUpdateInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -499,6 +515,7 @@ export type LeagueCreateManyInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -514,6 +531,7 @@ export type LeagueUpdateManyMutationInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -528,6 +546,7 @@ export type LeagueUncheckedUpdateManyInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -553,6 +572,7 @@ export type LeagueCountOrderByAggregateInput = {
   rules?: Prisma.SortOrder
   maxMembers?: Prisma.SortOrder
   maxAdmins?: Prisma.SortOrder
+  discoverable?: Prisma.SortOrder
   creatorUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -573,6 +593,7 @@ export type LeagueMaxOrderByAggregateInput = {
   rules?: Prisma.SortOrder
   maxMembers?: Prisma.SortOrder
   maxAdmins?: Prisma.SortOrder
+  discoverable?: Prisma.SortOrder
   creatorUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -588,6 +609,7 @@ export type LeagueMinOrderByAggregateInput = {
   rules?: Prisma.SortOrder
   maxMembers?: Prisma.SortOrder
   maxAdmins?: Prisma.SortOrder
+  discoverable?: Prisma.SortOrder
   creatorUserId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -824,6 +846,7 @@ export type LeagueCreateWithoutCreatorInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -849,6 +872,7 @@ export type LeagueUncheckedCreateWithoutCreatorInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUncheckedCreateNestedManyWithoutLeagueInput
@@ -903,6 +927,7 @@ export type LeagueScalarWhereInput = {
   rules?: Prisma.StringNullableFilter<"League"> | string | null
   maxMembers?: Prisma.IntFilter<"League"> | number
   maxAdmins?: Prisma.IntNullableFilter<"League"> | number | null
+  discoverable?: Prisma.BoolFilter<"League"> | boolean
   creatorUserId?: Prisma.UuidFilter<"League"> | string
   createdAt?: Prisma.DateTimeFilter<"League"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"League"> | Date | string
@@ -918,6 +943,7 @@ export type LeagueCreateWithoutMembersInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -943,6 +969,7 @@ export type LeagueUncheckedCreateWithoutMembersInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -984,6 +1011,7 @@ export type LeagueUpdateWithoutMembersInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1009,6 +1037,7 @@ export type LeagueUncheckedUpdateWithoutMembersInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1034,6 +1063,7 @@ export type LeagueCreateWithoutApplicationsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1059,6 +1089,7 @@ export type LeagueUncheckedCreateWithoutApplicationsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1100,6 +1131,7 @@ export type LeagueUpdateWithoutApplicationsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1125,6 +1157,7 @@ export type LeagueUncheckedUpdateWithoutApplicationsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1150,6 +1183,7 @@ export type LeagueCreateWithoutAdminsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1175,6 +1209,7 @@ export type LeagueUncheckedCreateWithoutAdminsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1216,6 +1251,7 @@ export type LeagueUpdateWithoutAdminsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1241,6 +1277,7 @@ export type LeagueUncheckedUpdateWithoutAdminsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1266,6 +1303,7 @@ export type LeagueCreateWithoutTournamentsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1291,6 +1329,7 @@ export type LeagueUncheckedCreateWithoutTournamentsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1332,6 +1371,7 @@ export type LeagueUpdateWithoutTournamentsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1357,6 +1397,7 @@ export type LeagueUncheckedUpdateWithoutTournamentsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1382,6 +1423,7 @@ export type LeagueCreateWithoutTournamentTemplatesInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1407,6 +1449,7 @@ export type LeagueUncheckedCreateWithoutTournamentTemplatesInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1448,6 +1491,7 @@ export type LeagueUpdateWithoutTournamentTemplatesInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1473,6 +1517,7 @@ export type LeagueUncheckedUpdateWithoutTournamentTemplatesInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1498,6 +1543,7 @@ export type LeagueCreateWithoutRankingSnapshotsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   creator: Prisma.UserCreateNestedOneWithoutCreatedLeaguesInput
@@ -1523,6 +1569,7 @@ export type LeagueUncheckedCreateWithoutRankingSnapshotsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1564,6 +1611,7 @@ export type LeagueUpdateWithoutRankingSnapshotsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   creator?: Prisma.UserUpdateOneRequiredWithoutCreatedLeaguesNestedInput
@@ -1589,6 +1637,7 @@ export type LeagueUncheckedUpdateWithoutRankingSnapshotsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1614,6 +1663,7 @@ export type LeagueCreateWithoutFairPlayEventsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1639,6 +1689,7 @@ export type LeagueUncheckedCreateWithoutFairPlayEventsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1680,6 +1731,7 @@ export type LeagueUpdateWithoutFairPlayEventsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1705,6 +1757,7 @@ export type LeagueUncheckedUpdateWithoutFairPlayEventsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1730,6 +1783,7 @@ export type LeagueCreateWithoutHomeLeagueWarsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1755,6 +1809,7 @@ export type LeagueUncheckedCreateWithoutHomeLeagueWarsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1785,6 +1840,7 @@ export type LeagueCreateWithoutAwayLeagueWarsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1810,6 +1866,7 @@ export type LeagueUncheckedCreateWithoutAwayLeagueWarsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1840,6 +1897,7 @@ export type LeagueCreateWithoutWonLeagueWarsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -1865,6 +1923,7 @@ export type LeagueUncheckedCreateWithoutWonLeagueWarsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1906,6 +1965,7 @@ export type LeagueUpdateWithoutHomeLeagueWarsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1931,6 +1991,7 @@ export type LeagueUncheckedUpdateWithoutHomeLeagueWarsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1967,6 +2028,7 @@ export type LeagueUpdateWithoutAwayLeagueWarsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -1992,6 +2054,7 @@ export type LeagueUncheckedUpdateWithoutAwayLeagueWarsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2028,6 +2091,7 @@ export type LeagueUpdateWithoutWonLeagueWarsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -2053,6 +2117,7 @@ export type LeagueUncheckedUpdateWithoutWonLeagueWarsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2078,6 +2143,7 @@ export type LeagueCreateWithoutLeagueWarParticipantsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
@@ -2103,6 +2169,7 @@ export type LeagueUncheckedCreateWithoutLeagueWarParticipantsInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   creatorUserId: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2144,6 +2211,7 @@ export type LeagueUpdateWithoutLeagueWarParticipantsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -2169,6 +2237,7 @@ export type LeagueUncheckedUpdateWithoutLeagueWarParticipantsInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2194,6 +2263,7 @@ export type LeagueCreateManyCreatorInput = {
   rules?: string | null
   maxMembers?: number
   maxAdmins?: number | null
+  discoverable?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2208,6 +2278,7 @@ export type LeagueUpdateWithoutCreatorInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
@@ -2233,6 +2304,7 @@ export type LeagueUncheckedUpdateWithoutCreatorInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   rankingSnapshots?: Prisma.RankingSnapshotUncheckedUpdateManyWithoutLeagueNestedInput
@@ -2258,6 +2330,7 @@ export type LeagueUncheckedUpdateManyWithoutCreatorInput = {
   rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
   maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2393,6 +2466,7 @@ export type LeagueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   rules?: boolean
   maxMembers?: boolean
   maxAdmins?: boolean
+  discoverable?: boolean
   creatorUserId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2421,6 +2495,7 @@ export type LeagueSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   rules?: boolean
   maxMembers?: boolean
   maxAdmins?: boolean
+  discoverable?: boolean
   creatorUserId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2437,6 +2512,7 @@ export type LeagueSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   rules?: boolean
   maxMembers?: boolean
   maxAdmins?: boolean
+  discoverable?: boolean
   creatorUserId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2453,12 +2529,13 @@ export type LeagueSelectScalar = {
   rules?: boolean
   maxMembers?: boolean
   maxAdmins?: boolean
+  discoverable?: boolean
   creatorUserId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type LeagueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "logoUrl" | "description" | "region" | "rules" | "maxMembers" | "maxAdmins" | "creatorUserId" | "createdAt" | "updatedAt", ExtArgs["result"]["league"]>
+export type LeagueOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "code" | "logoUrl" | "description" | "region" | "rules" | "maxMembers" | "maxAdmins" | "discoverable" | "creatorUserId" | "createdAt" | "updatedAt", ExtArgs["result"]["league"]>
 export type LeagueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   rankingSnapshots?: boolean | Prisma.League$rankingSnapshotsArgs<ExtArgs>
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -2507,6 +2584,7 @@ export type $LeaguePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     rules: string | null
     maxMembers: number
     maxAdmins: number | null
+    discoverable: boolean
     creatorUserId: string
     createdAt: Date
     updatedAt: Date
@@ -2954,6 +3032,7 @@ export interface LeagueFieldRefs {
   readonly rules: Prisma.FieldRef<"League", 'String'>
   readonly maxMembers: Prisma.FieldRef<"League", 'Int'>
   readonly maxAdmins: Prisma.FieldRef<"League", 'Int'>
+  readonly discoverable: Prisma.FieldRef<"League", 'Boolean'>
   readonly creatorUserId: Prisma.FieldRef<"League", 'String'>
   readonly createdAt: Prisma.FieldRef<"League", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"League", 'DateTime'>

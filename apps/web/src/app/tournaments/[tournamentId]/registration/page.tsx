@@ -109,6 +109,8 @@ interface TournamentResponse {
 interface MyRegistrationResponse {
   data: {
     registration: Registration | null;
+    canEdit?: boolean;
+    editLockReason?: string | null;
   };
 }
 
@@ -255,6 +257,9 @@ export default function TournamentRegistrationPage() {
       null,
     );
 
+  const [canEditMyRegistration, setCanEditMyRegistration] = useState(false);
+  const [editLockReason, setEditLockReason] = useState<string | null>(null);
+
   const [
     registrations,
     setRegistrations,
@@ -289,6 +294,26 @@ export default function TournamentRegistrationPage() {
   ] =
     useState('');
 
+  const [
+    editingMyRegistration,
+    setEditingMyRegistration,
+  ] = useState(false);
+
+  const [
+    editEntryName,
+    setEditEntryName,
+  ] = useState('');
+
+  const [
+    editPlayerCodes,
+    setEditPlayerCodes,
+  ] = useState('');
+
+  const [
+    editBusy,
+    setEditBusy,
+  ] = useState(false);
+
 
   async function refreshTournament() {
     const response =
@@ -322,6 +347,8 @@ export default function TournamentRegistrationPage() {
         .data
         .registration,
     );
+    setCanEditMyRegistration(Boolean(myResponse.data.canEdit));
+    setEditLockReason(myResponse.data.editLockReason ?? null);
 
     if (
       nextTournament
@@ -533,6 +560,40 @@ export default function TournamentRegistrationPage() {
       setBusy(
         false,
       );
+    }
+  }
+
+  function beginEditMyRegistration() {
+    if (!myRegistration) return;
+    setEditEntryName(myRegistration.entryName ?? '');
+    setEditPlayerCodes(myRegistration.members.map((member) => member.user.player?.playerCode ?? '').filter(Boolean).join('\n'));
+    setEditingMyRegistration(true);
+    setError('');
+    setMessage('');
+  }
+
+  async function saveMyRegistration() {
+    if (!myRegistration || !tournament || editBusy) return;
+    setEditBusy(true);
+    setError('');
+    setMessage('');
+    const playerCodes = editPlayerCodes.split(/[\n,]+/).map((value) => value.trim().toUpperCase()).filter(Boolean);
+    try {
+      const response = await authenticatedRequest<MutationResponse>(`/tournaments/${tournamentId}/entries/${myRegistration.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          entryName: editEntryName.trim(),
+          ...(tournament.teamSize > 1 ? { playerCodes } : {}),
+        }),
+      });
+      setMessage(response.data.message);
+      setEditingMyRegistration(false);
+      const updatedTournament = await refreshTournament();
+      await refreshRegistrationState(updatedTournament);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update your registration.');
+    } finally {
+      setEditBusy(false);
     }
   }
 
@@ -1216,6 +1277,30 @@ export default function TournamentRegistrationPage() {
               <p className="mt-4 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.04] p-4 text-sm leading-6 text-emerald-300">
                 Approved. Your entry is now eligible for Tournament groups, fixtures, standings and verified match statistics.
               </p>
+            ) : null}
+
+            {editingMyRegistration ? (
+              <div className="mt-5 space-y-4 rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">Edit Your Team</p>
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">Team Name</span>
+                  <input value={editEntryName} onChange={(event) => setEditEntryName(event.target.value)} maxLength={120} className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50" />
+                </label>
+                {tournament.teamSize > 1 ? (
+                  <label className="grid gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-500">FC ARENA Player IDs</span>
+                    <textarea value={editPlayerCodes} onChange={(event) => setEditPlayerCodes(event.target.value)} rows={Math.max(3, tournament.teamSize)} placeholder="One Player ID per line" className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 font-mono outline-none focus:border-sky-400/50" />
+                  </label>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" disabled={editBusy} onClick={() => void saveMyRegistration()} className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019] disabled:opacity-40">{editBusy ? 'Saving...' : 'Save Team Changes'}</button>
+                  <button type="button" disabled={editBusy} onClick={() => setEditingMyRegistration(false)} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400 disabled:opacity-40">Cancel</button>
+                </div>
+              </div>
+            ) : canEditMyRegistration ? (
+              <button type="button" onClick={beginEditMyRegistration} className="mt-5 rounded-xl border border-sky-400/25 px-4 py-3 text-sm font-black text-sky-300">Edit Your Team</button>
+            ) : editLockReason ? (
+              <p className="mt-4 rounded-xl border border-amber-400/15 bg-amber-400/[0.04] p-4 text-sm leading-6 text-amber-300">{editLockReason}</p>
             ) : null}
 
             {myRegistration.status !==

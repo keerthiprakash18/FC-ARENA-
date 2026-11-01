@@ -54,4 +54,7 @@ jobs:
           for directory in ['/opt','/var/www','/srv']:
               try: print('DIRECTORIES',directory,[p.name for p in pathlib.Path(directory).iterdir() if p.is_dir()])
               except Exception: pass
+          print('DEPLOYMENT_TOOLS',[p.name for p in pathlib.Path('/usr/local/sbin').glob('*fcarena*')])
+          for args in [['sudo','-n','-l'],['systemctl','show','fcarena-api.service','fcarena-web.service','--property=WorkingDirectory,MainPID,FragmentPath','--no-pager']]:
+              result=subprocess.run(args,capture_output=True,text=True); print('INSPECTION',args); print(result.stdout.strip() or result.stderr.strip())
           PY

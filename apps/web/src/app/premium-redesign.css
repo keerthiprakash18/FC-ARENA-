@@ -330,27 +330,30 @@
 /* Mobile points tables retain native table semantics and shared column tracks. */
 .fc-compact-standings { min-width: 0; background: #0d263d; color: #fffefa; }
 .fc-compact-standings-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: #d9b765 #0d263d; }
-.fc-compact-standings-table { width: 100%; min-width: 320px; table-layout: fixed; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.fc-compact-standings-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 .fc-compact-rank-column { width: 28px; }
-.fc-compact-played-column { width: 30px; }
-.fc-compact-stat-column { width: 32px; }
-.fc-compact-last-stat-column { width: 38px; }
-.fc-compact-points-column { width: 36px; }
+.fc-compact-played-column { width: 26px; }
+.fc-compact-stat-column { width: 24px; }
+.fc-compact-last-stat-column { width: 26px; }
+.fc-compact-points-column { width: 42px; }
 .fc-compact-standings-table :is(th,td) { padding: 6px 2px; text-align: center; vertical-align: middle; white-space: nowrap; border-bottom: 1px solid #294357; }
 .fc-premium .fc-compact-standings-table thead th { height: 36px; color: #c4d0dd; background: #091f34; font-size: 11px; font-weight: 600; }
+.fc-premium .fc-main .fc-compact-standings-table thead th { color: #c4d0dd; background: #091f34; }
 .fc-compact-standings-table .fc-compact-team-heading { text-align: left; padding-left: 4px; }
 .fc-premium .fc-compact-standings-table tbody .fc-compact-team-row { border-left: 0; background: #0d263d; }
+.fc-premium .fc-main .fc-compact-standings-table tbody tr { color: #fffefa; }
 .fc-premium .fc-compact-standings-table .fc-compact-team-row[data-highlighted="true"] { background: #18364e; }
 .fc-compact-team-row[data-highlighted="true"] .fc-compact-rank { color: #e5c77f; box-shadow: inset 3px 0 #d9b765; }
 .fc-compact-rank, .fc-compact-last-stat { font-weight: 600; }
 .fc-compact-standings-table .fc-compact-team-cell { padding: 0 4px; text-align: left; white-space: normal; }
-.fc-compact-team-button { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 6px; padding: 6px 0; text-align: left; color: #fffefa; background: transparent; cursor: pointer; }
+.fc-compact-team-button { width: 100%; min-width: 0; min-height: 54px; display: flex; align-items: center; gap: 6px; padding: 8px 0; text-align: left; color: #fffefa; background: transparent; cursor: pointer; }
 .fc-compact-team-button > span:first-child { flex-shrink: 0; }
 .fc-compact-team-button .premium-crest { width: 24px; height: 28px; border-radius: 5px 5px 9px 9px !important; background: #294357 !important; color: #e5c77f !important; border-color: #607489; font-size: 10px !important; }
 .fc-compact-team-button .premium-crest::after { bottom: 4px; }
 .fc-compact-team-name { min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; line-height: 18px; font-size: 13px; font-weight: 600; }
 .fc-premium .fc-compact-standings-table .fc-compact-points { background: rgb(217 183 101 / 8%); color: #e5c77f; font-weight: 750; }
 .fc-compact-standings-table td.fc-compact-points { font-size: 15px; }
+.fc-compact-points-value { display: inline-grid; min-width: 30px; min-height: 30px; padding: 3px; place-items: center; border-radius: 8px; background: rgb(217 183 101 / 12%); }
 .fc-compact-team-button:focus-visible, .fc-compact-standings-scroll:focus-visible { outline-color: #e5c77f !important; outline-offset: -3px !important; }
 .fc-compact-team-button[aria-expanded="true"] .fc-compact-team-name { color: #e5c77f; }
 .fc-compact-detail-row td { padding: 12px 16px; text-align: left; white-space: normal; background: #091f34; }
@@ -359,6 +362,13 @@
 .fc-compact-detail-row dl div { display: flex; gap: 6px; }
 .fc-compact-detail-row dt { color: #c4d0dd; }
 .fc-compact-detail-row dd { margin: 0; font-weight: 650; }
+.fc-compact-detail-row dl { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.fc-compact-detail-row dl div { flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.fc-compact-detail-row .fc-compact-form { display: flex; gap: 3px; }
+.fc-compact-form span { display: grid; width: 20px; height: 24px; place-items: center; border-radius: 4px; font-size: 11px; }
+.fc-compact-form [data-result="W"] { background: #173e35; color: #9ce8bd; }
+.fc-compact-form [data-result="D"] { background: #39434d; color: #e2e8f0; }
+.fc-compact-form [data-result="L"] { background: #4c2935; color: #ffb7be; }
 .fc-compact-standings-hint { padding: 10px 12px; color: #c4d0dd; font-size: 11px; border-top: 1px solid #294357; }
 @media (max-width:639px) {
   .premium-standings-table { border-radius: 14px; }

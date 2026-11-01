@@ -43,6 +43,7 @@ export class OcrProcessor
     return this.ocrService.processExtraction(
       job.data
         .ocrExtractionId,
+      job.attemptsMade + 1 >= (job.opts.attempts ?? 1),
     );
   }
 }

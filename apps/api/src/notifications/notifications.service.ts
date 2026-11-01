@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -44,6 +45,10 @@ interface NotificationInput {
   eventAt: Date;
 }
 
+const RESULT_TYPES: NotificationType[] = ['RESULT_SUBMITTED', 'RESULT_REJECTED', 'RESULT_CONFIRMED', 'STATISTICS_UPDATED'];
+const ACTION_TYPES: NotificationType[] = ['MATCH_REMINDER', 'MATCH_READY', 'RESULT_SUBMITTED', 'RESULT_REJECTED',
+  'DISPUTE_OPENED', 'DISPUTE_RESOLVED', 'LEAGUE_JOIN_REQUESTED', 'FAIR_PLAY_UPDATED'];
+
 @Injectable()
 export class NotificationsService {
   private readonly pendingSyncs = new Map<string, Promise<void>>();
@@ -54,7 +59,11 @@ export class NotificationsService {
   async getNotifications(
     userId: string,
     summaryOnly = false,
+    view = 'all',
   ) {
+    if (!['all', 'inbox', 'results', 'actions', 'history'].includes(view)) {
+      throw new BadRequestException('Unknown notification view.');
+    }
     await this.syncForUser(
       userId,
     );
@@ -75,6 +84,9 @@ export class NotificationsService {
         this.prisma.notification.findMany({
           where: {
             userId,
+            ...(view === 'all' ? {} : { readAt: view === 'history' ? { not: null } : null }),
+            ...(view === 'results' ? { type: { in: RESULT_TYPES } } : {}),
+            ...(view === 'actions' ? { type: { in: ACTION_TYPES } } : {}),
           },
 
           orderBy: {
@@ -152,6 +164,9 @@ export class NotificationsService {
   async markAllAsRead(
     userId: string,
   ) {
+    // Finish synchronization before clearing, so older events cannot appear as
+    // new immediately after the user clears their inbox.
+    await this.syncForUser(userId);
     const now =
       new Date();
 

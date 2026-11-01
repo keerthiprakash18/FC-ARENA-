@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
@@ -38,7 +38,24 @@ interface NotificationData {
   notifications: NotificationItem[];
 }
 
-type NotificationFilter = "all" | "unread" | "actions";
+type NotificationFilter = "inbox" | "results" | "actions" | "history";
+
+const resultTypes = [
+  "RESULT_SUBMITTED",
+  "RESULT_REJECTED",
+  "RESULT_CONFIRMED",
+  "STATISTICS_UPDATED",
+];
+const actionTypes = [
+  "MATCH_REMINDER",
+  "MATCH_READY",
+  "RESULT_SUBMITTED",
+  "RESULT_REJECTED",
+  "DISPUTE_OPENED",
+  "DISPUTE_RESOLVED",
+  "LEAGUE_JOIN_REQUESTED",
+  "FAIR_PLAY_UPDATED",
+];
 
 function notificationIcon(type: string) {
   switch (type) {
@@ -133,7 +150,7 @@ export default function NotificationsPage() {
     notifications: [],
   });
 
-  const [filter, setFilter] = useState<NotificationFilter>("all");
+  const [filter, setFilter] = useState<NotificationFilter>("inbox");
 
   const [loading, setLoading] = useState(true);
 
@@ -143,33 +160,63 @@ export default function NotificationsPage() {
 
   const [error, setError] = useState("");
 
-  async function loadNotifications(silent = false) {
-    if (silent && document.visibilityState === "hidden") return;
-    try {
-      if (silent) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
+  const requestVersion = useRef(0);
+  const mutationPending = useRef(false);
+  const invalidateRequests = useCallback(() => {
+    requestVersion.current++;
+  }, []);
+
+  const loadNotifications = useCallback(
+    async (silent = false) => {
+      if (
+        mutationPending.current ||
+        (silent && document.visibilityState === "hidden")
+      )
+        return;
+      const version = ++requestVersion.current;
+      try {
+        if (silent) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+
+        const response = await authenticatedRequest<{
+          success: true;
+          data: NotificationData;
+          error: null;
+        }>(`/notifications?view=${filter}`);
+
+        if (version !== requestVersion.current) return;
+        // Keep tabs correct while the web and API releases roll out separately.
+        setData({
+          ...response.data,
+          notifications: response.data.notifications.filter((notification) => {
+            if (filter === "history") return Boolean(notification.readAt);
+            if (notification.readAt) return false;
+            if (filter === "results")
+              return resultTypes.includes(notification.type);
+            if (filter === "actions")
+              return actionTypes.includes(notification.type);
+            return true;
+          }),
+        });
+
+        setError("");
+      } catch (err) {
+        if (version !== requestVersion.current) return;
+        setError(
+          err instanceof Error ? err.message : "Unable to load notifications.",
+        );
+      } finally {
+        if (version === requestVersion.current) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
-
-      const response = await authenticatedRequest<{
-        success: true;
-        data: NotificationData;
-        error: null;
-      }>("/notifications");
-
-      setData(response.data);
-
-      setError("");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to load notifications.",
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }
+    },
+    [filter],
+  );
 
   useEffect(() => {
     void (async () => {
@@ -177,8 +224,6 @@ export default function NotificationsPage() {
         const current = await getCurrentUser();
 
         setUser(current);
-
-        await loadNotifications();
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Unable to load notifications.",
@@ -194,47 +239,35 @@ export default function NotificationsPage() {
       return;
     }
 
-    const timer = window.setInterval(() => {
-      void loadNotifications(true);
-    }, 30_000);
-
+    void loadNotifications();
+    const timer = window.setInterval(
+      () => void loadNotifications(true),
+      30_000,
+    );
     return () => {
       window.clearInterval(timer);
+      invalidateRequests();
     };
-  }, [user]);
+  }, [user, loadNotifications, invalidateRequests]);
 
-  const visibleNotifications = useMemo(
-    () =>
-      filter === "actions"
-        ? data.notifications.filter(
-            (notification) =>
-              !notification.readAt &&
-              [
-                "MATCH_REMINDER",
-                "MATCH_READY",
-                "RESULT_SUBMITTED",
-                "RESULT_REJECTED",
-                "DISPUTE_OPENED",
-                "DISPUTE_RESOLVED",
-                "LEAGUE_JOIN_REQUESTED",
-                "FAIR_PLAY_UPDATED",
-              ].includes(notification.type),
-          )
-        : filter === "unread"
-        ? data.notifications.filter((notification) => !notification.readAt)
-        : data.notifications,
-    [data.notifications, filter],
-  );
+  const visibleNotifications = data.notifications;
 
   async function markAsRead(notificationId: string) {
     const currentNotification = data.notifications.find(
       (notification) => notification.id === notificationId,
     );
 
-    if (!currentNotification || currentNotification.readAt) {
+    if (
+      mutationPending.current ||
+      !currentNotification ||
+      currentNotification.readAt
+    ) {
       return;
     }
 
+    mutationPending.current = true;
+    requestVersion.current++;
+    setBusy(true);
     try {
       await authenticatedRequest(`/notifications/${notificationId}/read`, {
         method: "POST",
@@ -243,31 +276,31 @@ export default function NotificationsPage() {
       setData((current) => ({
         unreadCount: Math.max(0, current.unreadCount - 1),
 
-        notifications: current.notifications.map((notification) =>
-          notification.id === notificationId
-            ? {
-                ...notification,
-                readAt: new Date().toISOString(),
-              }
-            : notification,
+        notifications: current.notifications.filter(
+          (notification) => notification.id !== notificationId,
         ),
       }));
 
       notifyBellChanged();
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to mark notification as read.",
+        err instanceof Error ? err.message : "Unable to clear notification.",
       );
+    } finally {
+      requestVersion.current++;
+      mutationPending.current = false;
+      setBusy(false);
+      setRefreshing(false);
     }
   }
 
   async function markAllAsRead() {
-    if (busy || data.unreadCount === 0) {
+    if (mutationPending.current || data.unreadCount === 0) {
       return;
     }
 
+    mutationPending.current = true;
+    requestVersion.current++;
     setBusy(true);
 
     try {
@@ -275,15 +308,9 @@ export default function NotificationsPage() {
         method: "POST",
       });
 
-      const now = new Date().toISOString();
-
       setData((current) => ({
         unreadCount: 0,
-
-        notifications: current.notifications.map((notification) => ({
-          ...notification,
-          readAt: notification.readAt ?? now,
-        })),
+        notifications: filter === "history" ? current.notifications : [],
       }));
 
       notifyBellChanged();
@@ -294,15 +321,19 @@ export default function NotificationsPage() {
           : "Unable to mark all notifications as read.",
       );
     } finally {
+      requestVersion.current++;
+      mutationPending.current = false;
       setBusy(false);
+      setRefreshing(false);
     }
   }
 
-  if (loading || !user) {
+  if (loading || (!user && !error)) {
     return <FcLoadingScreen label="Loading Notifications..." />;
   }
 
-  const playerName = user.player?.identity?.inGameName || user.fullName;
+  const playerName =
+    user?.player?.identity?.inGameName || user?.fullName || "Player";
 
   return (
     <AppShell playerName={playerName}>
@@ -310,7 +341,7 @@ export default function NotificationsPage() {
         <FcPageHeader
           eyebrow="FC ARENA Activity"
           title="Notifications"
-          subtitle="Match reminders, Fair Play reviews, disputes, league activity and achievements in one place."
+          subtitle="Results, reminders and league activity. Cleared notifications stay in History."
           action={
             data.unreadCount > 0 ? (
               <button
@@ -319,7 +350,7 @@ export default function NotificationsPage() {
                 onClick={() => void markAllAsRead()}
                 className="theme-primary-button min-h-11 rounded-[10px] px-4 text-sm font-semibold transition disabled:opacity-50"
               >
-                {busy ? "Updating..." : "Mark all read"}
+                {busy ? "Updating..." : "Clear all"}
               </button>
             ) : (
               <FcStatusBadge label="All caught up" tone="emerald" />
@@ -331,42 +362,40 @@ export default function NotificationsPage() {
           <FcErrorState
             message={error}
             busy={refreshing}
-            onRetry={() => void loadNotifications(true)}
+            onRetry={() => {
+              if (!user) window.location.reload();
+              else void loadNotifications(true);
+            }}
           />
         ) : null}
 
         <FcPanel className="p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <button aria-pressed={filter === "actions"} onClick={() => setFilter("actions")} className={`${filter === "actions" ? "theme-primary-button" : "theme-secondary-button"} rounded-lg px-4 text-sm`}>Needs attention</button>
-              <button
-                type="button"
-                onClick={() => setFilter("all")}
-                className={
-                  filter === "all"
-                    ? "theme-primary-button min-h-10 rounded-[10px] px-4 text-sm font-semibold"
-                    : "theme-secondary-button min-h-10 rounded-[10px] border px-4 text-sm font-medium"
-                }
-              >
-                All ({data.notifications.length})
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFilter("unread")}
-                className={
-                  filter === "unread"
-                    ? "theme-primary-button min-h-10 rounded-[10px] px-4 text-sm font-semibold"
-                    : "theme-secondary-button min-h-10 rounded-[10px] border px-4 text-sm font-medium"
-                }
-              >
-                Unread ({data.unreadCount})
-              </button>
+              {(
+                [
+                  ["inbox", `Inbox (${data.unreadCount})`],
+                  ["results", "Results"],
+                  ["actions", "Needs attention"],
+                  ["history", "History"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={filter === value}
+                  disabled={busy}
+                  onClick={() => setFilter(value)}
+                  className={`${filter === value ? "theme-primary-button" : "theme-secondary-button"} min-h-11 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
             <button
               type="button"
-              disabled={refreshing}
+              disabled={refreshing || busy}
               onClick={() => void loadNotifications(true)}
               className="theme-secondary-button min-h-10 rounded-[10px] border px-4 text-sm font-medium disabled:opacity-50"
             >
@@ -375,7 +404,18 @@ export default function NotificationsPage() {
           </div>
         </FcPanel>
 
-        <section className="space-y-3">
+        <p className="theme-muted text-sm" role="status">
+          {filter === "results"
+            ? "Uploaded, confirmed and rejected results, plus standings updates."
+            : filter === "history"
+              ? "Previously opened or cleared notifications. Your match results remain available."
+              : "Open a notification or clear it to move it to History."}
+        </p>
+        <section
+          className="space-y-3"
+          aria-label={`${filter} notifications`}
+          aria-busy={refreshing}
+        >
           {visibleNotifications.map((notification) => {
             const unread = !notification.readAt;
 
@@ -395,7 +435,19 @@ export default function NotificationsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="theme-text fc-display text-[15px] font-semibold sm:text-base">
-                        {notification.title}
+                        {notification.href ? (
+                          <Link
+                            href={notification.href}
+                            onClick={() => {
+                              if (unread) void markAsRead(notification.id);
+                            }}
+                            className="hover:underline focus-visible:underline"
+                          >
+                            {notification.title}
+                          </Link>
+                        ) : (
+                          notification.title
+                        )}
                       </h2>
 
                       {unread ? (
@@ -412,50 +464,35 @@ export default function NotificationsPage() {
                     <div className="theme-muted mt-3 flex flex-wrap items-center gap-2 text-xs">
                       <span>{formatEventTime(notification.eventAt)}</span>
 
-                      {notification.entityType ? (
-                        <>
-                          <span>•</span>
-
-                          <span>{notification.entityType}</span>
-                        </>
-                      ) : null}
+                      <span>•</span>
+                      <span>
+                        {notification.type.startsWith("RESULT_") ||
+                        notification.type === "STATISTICS_UPDATED"
+                          ? "Results"
+                          : "Activity"}
+                      </span>
                     </div>
                   </div>
 
                   {unread ? (
                     <button
                       type="button"
+                      disabled={busy}
+                      aria-label={`Clear ${notification.title}`}
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
 
                         void markAsRead(notification.id);
                       }}
-                      className="theme-secondary-button shrink-0 rounded-[9px] border px-3 py-2 text-xs font-semibold"
+                      className="theme-secondary-button min-h-11 shrink-0 rounded-[9px] border px-3 py-2 text-xs font-semibold disabled:opacity-50"
                     >
-                      Read
+                      Clear
                     </button>
                   ) : null}
                 </div>
               </article>
             );
-
-            if (notification.href) {
-              return (
-                <Link
-                  key={notification.id}
-                  href={notification.href}
-                  onClick={() => {
-                    if (unread) {
-                      void markAsRead(notification.id);
-                    }
-                  }}
-                  className="block"
-                >
-                  {content}
-                </Link>
-              );
-            }
 
             return <div key={notification.id}>{content}</div>;
           })}
@@ -463,14 +500,18 @@ export default function NotificationsPage() {
           {visibleNotifications.length === 0 ? (
             <FcEmptyState
               title={
-                filter === "unread"
-                  ? "No unread notifications"
-                  : "No notifications yet"
+                filter === "history"
+                  ? "No notification history"
+                  : filter === "results"
+                    ? "No new result updates"
+                    : filter === "actions"
+                      ? "Nothing needs attention"
+                      : "All caught up"
               }
               description={
-                filter === "unread"
-                  ? "You are fully caught up. New FC ARENA activity will appear here."
-                  : "League, tournament, fixture, match result and achievement activity will appear here."
+                filter === "history"
+                  ? "Notifications you open or clear will appear here."
+                  : "New activity will appear here. Cleared notifications are in History."
               }
             />
           ) : null}

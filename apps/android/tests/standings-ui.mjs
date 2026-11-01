@@ -112,12 +112,12 @@ async function auditMobileTable(table, expected) {
   const detail = table.locator('.fc-compact-detail-row:visible');
   assert.equal(await detail.count(), 1);
   assert.equal(await detail.locator('strong').textContent(), expected[0].entryName);
-  assert.deepEqual(await detail.locator('dt').allTextContents(), ['GF', 'GA', 'GD', 'Form']);
+  assert.deepEqual(await detail.locator('dt').allTextContents(), ['Goals for', 'Goals against', 'Goal difference', 'Recent form']);
   assert.deepEqual(await detail.locator('dd').allTextContents(), [String(expected[0].goalsFor), String(expected[0].goalsAgainst), `${expected[0].goalDifference > 0 ? '+' : ''}${expected[0].goalDifference}`, expected[0].form]);
   assert(await detail.evaluate(element => {
     const stats = [...element.querySelectorAll('dl > div')].map(stat => stat.getBoundingClientRect().top);
-    return Math.max(...stats) - Math.min(...stats) <= 1 && element.getBoundingClientRect().height <= 80;
-  }), 'GF/GA/GD/form fit together in a compact secondary row');
+    return new Set(stats.map(top => Math.round(top))).size <= 2 && element.getBoundingClientRect().height <= 160;
+  }), 'goals and labelled form fit in two readable rows');
   const longNameButton = table.locator('.fc-compact-team-row').nth(4).getByRole('button');
   await longNameButton.click();
   assert.equal(await detail.count(), 1, 'details remain secondary and only one is open');
@@ -130,7 +130,12 @@ async function auditMobileTable(table, expected) {
 }
 
 async function audit(options) {
-  const { context, page, errors, mutations } = await createUiContext(browser, { ...options, overrides });
+  const { context, page, errors, mutations } = await createUiContext(browser, { ...options, overrides,
+    onMutation: (route, headers) => {
+      assert.equal(new URL(route.request().url()).pathname, '/api/telemetry/web-vitals');
+      return route.fulfill({ status: 204, headers });
+    },
+  });
   try {
     for (const route of routes) {
       await page.goto(`https://fcarena.in${route.url}`);
@@ -178,7 +183,7 @@ async function audit(options) {
       checks++;
     }
     assert.deepEqual(errors, []);
-    assert.deepEqual(mutations, [], 'UI inspection and row expansion cause no API mutations');
+    assert(mutations.every(mutation => mutation.path === '/api/telemetry/web-vitals'), 'UI inspection and row expansion cause no business data mutations');
     console.log(`PASS standings ${options.width}/${options.theme}/${options.mode}/${options.native ? 'Android-UA' : 'browser'}`);
   } finally { await context.close(); }
 }

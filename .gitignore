@@ -33,6 +33,7 @@ desktop.ini
 
 uploads/
 apps/api/uploads/
+apps/api/storage/ocr-cache/
 
 docker/data/
 

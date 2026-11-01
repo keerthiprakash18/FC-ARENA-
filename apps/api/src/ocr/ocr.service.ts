@@ -8,6 +8,7 @@ import {
   NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import {
   InjectQueue,
@@ -44,6 +45,7 @@ import type {
   OcrProvider,
 } from './ocr.types.js';
 import { TesseractOcrProvider } from './providers/tesseract-ocr.provider.js';
+import { parseOcrResult, normalizedConfidence } from './ocr-parser.js';
 
 @Injectable()
 export class OcrService
@@ -359,27 +361,26 @@ export class OcrService
         },
       });
 
-    await this.ocrQueue.add(
-      OCR_JOB_PROCESS_MATCH_RESULT,
-      {
-        ocrExtractionId:
-          extraction.id,
-      },
-      {
-        jobId:
-          `ocr-${extraction.id}`,
-
-        attempts: 2,
-
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
+    try {
+      await this.ocrQueue.add(
+        OCR_JOB_PROCESS_MATCH_RESULT,
+        { ocrExtractionId: extraction.id },
+        {
+          jobId: `ocr-${extraction.id}`,
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: 50,
+          removeOnFail: 100,
         },
-
-        removeOnComplete: 50,
-        removeOnFail: 100,
-      },
-    );
+      );
+    } catch {
+      const message = 'Screenshot processing is temporarily unavailable. Please retry or enter the result manually.';
+      await this.prisma.ocrExtraction.update({
+        where: { id: extraction.id },
+        data: { status: 'FAILED', failureReason: message, processedAt: new Date() },
+      });
+      throw new ServiceUnavailableException(message);
+    }
 
     return {
       success: true,
@@ -640,6 +641,7 @@ export class OcrService
 
   async processExtraction(
     ocrExtractionId: string,
+    finalAttempt = true,
   ) {
     const extraction =
       await this.prisma.ocrExtraction.findUnique({
@@ -756,34 +758,10 @@ export class OcrService
             [],
         );
 
-      const lines =
-        raw.text
-          .split(/\r?\n/)
-          .map(
-            (line) =>
-              line.trim(),
-          )
-          .filter(Boolean);
-
-      const homeMatch =
-        this.findBestParticipantMatch(
-          lines,
-          homeCandidates,
-          raw.confidence,
-        );
-
-      const awayMatch =
-        this.findBestParticipantMatch(
-          lines,
-          awayCandidates,
-          raw.confidence,
-        );
-
-      const score =
-        this.detectScore(
-          lines,
-          raw.confidence,
-        );
+      const parsed = parseOcrResult(raw, homeCandidates, awayCandidates);
+      const homeMatch = parsed.home;
+      const awayMatch = parsed.away;
+      const score = parsed.score;
 
       return await this.prisma.ocrExtraction.update({
         where: {
@@ -796,10 +774,10 @@ export class OcrService
             'COMPLETED',
 
           rawText:
-            raw.text,
+            parsed.raw.text,
 
           ocrConfidence:
-            raw.confidence,
+            normalizedConfidence(parsed.raw.confidence),
 
           detectedHomeName:
             homeMatch.detectedText,
@@ -847,13 +825,13 @@ export class OcrService
 
         data: {
           status:
-            'FAILED',
+            finalAttempt ? 'FAILED' : 'QUEUED',
 
           failureReason:
-            message,
+            finalAttempt ? message : null,
 
           processedAt:
-            new Date(),
+            finalAttempt ? new Date() : null,
         },
       });
 
@@ -985,289 +963,6 @@ export class OcrService
           null,
       }),
     );
-  }
-
-  private findBestParticipantMatch(
-    lines: string[],
-    candidates:
-      OcrParticipantCandidate[],
-    ocrConfidence: number,
-  ) {
-    let best = {
-      userId:
-        null as string | null,
-
-      detectedText:
-        null as string | null,
-
-      confidence: 0,
-    };
-
-    for (
-      const candidate
-      of candidates
-    ) {
-      const target =
-        candidate.inGameName ||
-        candidate.fullName;
-
-      for (
-        const line
-        of lines
-      ) {
-        const similarity =
-          this.similarity(
-            target,
-            line,
-          );
-
-        const confidence =
-          Math.max(
-            0,
-            Math.min(
-              1,
-              similarity *
-                Math.max(
-                  0.5,
-                  ocrConfidence,
-                ),
-            ),
-          );
-
-        if (
-          confidence >
-          best.confidence
-        ) {
-          best = {
-            userId:
-              candidate.userId,
-
-            detectedText:
-              line,
-
-            confidence:
-              Number(
-                confidence.toFixed(
-                  4,
-                ),
-              ),
-          };
-        }
-      }
-    }
-
-    if (
-      best.confidence <
-      0.5
-    ) {
-      return {
-        userId: null,
-        detectedText:
-          best.detectedText,
-        confidence:
-          best.confidence,
-      };
-    }
-
-    return best;
-  }
-
-  private detectScore(
-    lines: string[],
-    ocrConfidence: number,
-  ) {
-    for (
-      const line of lines
-    ) {
-      const match =
-        line.match(
-          /\b(\d{1,2})\s*[-:]\s*(\d{1,2})\b/,
-        );
-
-      if (!match) {
-        continue;
-      }
-
-      const homeScore =
-        Number(match[1]);
-
-      const awayScore =
-        Number(match[2]);
-
-      if (
-        homeScore > 30 ||
-        awayScore > 30
-      ) {
-        continue;
-      }
-
-      const compactLine =
-        line.length <= 24;
-
-      const confidence =
-        Math.max(
-          0,
-          Math.min(
-            1,
-            ocrConfidence *
-              (compactLine
-                ? 1
-                : 0.75),
-          ),
-        );
-
-      return {
-        homeScore,
-        awayScore,
-
-        confidence:
-          Number(
-            confidence.toFixed(
-              4,
-            ),
-          ),
-      };
-    }
-
-    return {
-      homeScore:
-        null as number | null,
-
-      awayScore:
-        null as number | null,
-
-      confidence: 0,
-    };
-  }
-
-  private similarity(
-    left: string,
-    right: string,
-  ) {
-    const a =
-      this.normalizeName(left);
-
-    const b =
-      this.normalizeName(right);
-
-    if (!a || !b) {
-      return 0;
-    }
-
-    if (
-      a.includes(b) ||
-      b.includes(a)
-    ) {
-      const ratio =
-        Math.min(
-          a.length,
-          b.length,
-        ) /
-        Math.max(
-          a.length,
-          b.length,
-        );
-
-      return Math.max(
-        ratio,
-        0.9,
-      );
-    }
-
-    const distance =
-      this.levenshtein(
-        a,
-        b,
-      );
-
-    return Math.max(
-      0,
-      1 -
-        distance /
-          Math.max(
-            a.length,
-            b.length,
-          ),
-    );
-  }
-
-  private normalizeName(
-    value: string,
-  ) {
-    return value
-      .toUpperCase()
-      .replace(
-        /[^A-Z0-9]/g,
-        '',
-      );
-  }
-
-  private levenshtein(
-    a: string,
-    b: string,
-  ) {
-    const matrix:
-      number[][] =
-      Array.from(
-        {
-          length:
-            a.length + 1,
-        },
-        () =>
-          Array(
-            b.length + 1,
-          ).fill(0),
-      );
-
-    for (
-      let i = 0;
-      i <= a.length;
-      i++
-    ) {
-      matrix[i][0] = i;
-    }
-
-    for (
-      let j = 0;
-      j <= b.length;
-      j++
-    ) {
-      matrix[0][j] = j;
-    }
-
-    for (
-      let i = 1;
-      i <= a.length;
-      i++
-    ) {
-      for (
-        let j = 1;
-        j <= b.length;
-        j++
-      ) {
-        const cost =
-          a[i - 1] ===
-          b[j - 1]
-            ? 0
-            : 1;
-
-        matrix[i][j] =
-          Math.min(
-            matrix[i - 1][j] +
-              1,
-
-            matrix[i][j - 1] +
-              1,
-
-            matrix[i - 1][j - 1] +
-              cost,
-          );
-      }
-    }
-
-    return matrix[
-      a.length
-    ][b.length];
   }
 
   private extensionForMimeType(

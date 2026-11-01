@@ -1,6 +1,14 @@
 export interface OcrRawExtraction {
   text: string;
   confidence: number;
+  lines?: OcrTextLine[];
+  alternatives?: OcrRawExtraction[];
+}
+
+export interface OcrTextLine {
+  text: string;
+  confidence?: number;
+  bbox?: { x0: number; y0: number; x1: number; y1: number };
 }
 
 export interface OcrProvider {

@@ -736,7 +736,7 @@ export default function MatchRoomPage() {
         });
 
         setMessage(
-          `${confirmedResponse.data.message} OCR matched the Match participants and the confirmed data is now reflected in standings and player career statistics.`,
+          `${confirmedResponse.data.message} The reviewed scores are now reflected in standings and player career statistics.`,
         );
 
         await refreshMatchCenter();
@@ -1416,10 +1416,9 @@ export default function MatchRoomPage() {
                 </div>
 
                 {(latestOcr.scoreConfidence ?? 0) < 0.5 ? (
-                  <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4 text-sm text-red-300">
-                    Score confidence is below 50%. FC ARENA did not trust the
-                    detected score automatically. Enter the score manually
-                    before submission.
+                  <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm text-amber-300">
+                    The score or home/away order could not be verified reliably.
+                    Check the screenshot and enter each team&apos;s score below.
                   </div>
                 ) : (latestOcr.scoreConfidence ?? 0) < 0.85 ? (
                   <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm text-amber-300">
@@ -1442,9 +1441,9 @@ export default function MatchRoomPage() {
                       Verify Detected Result
                     </p>
 
-                    <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-end gap-4">
-                      <label className="grid gap-2 text-sm font-bold">
-                        {home}
+                    <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3">
+                      <label className="grid min-w-0 gap-2 break-words text-sm font-bold">
+                        <span><span className="block text-xs text-slate-500">Home</span>{home}</span>
 
                         <input
                           value={ocrHomeScore}
@@ -1455,14 +1454,15 @@ export default function MatchRoomPage() {
                           min="0"
                           max="99"
                           required
-                          className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                          inputMode="numeric"
+                          className="min-w-0 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-center text-2xl font-black"
                         />
                       </label>
 
                       <span className="pb-4 font-black text-slate-600">-</span>
 
-                      <label className="grid gap-2 text-sm font-bold">
-                        {away}
+                      <label className="grid min-w-0 gap-2 break-words text-sm font-bold">
+                        <span><span className="block text-xs text-slate-500">Away</span>{away}</span>
 
                         <input
                           value={ocrAwayScore}
@@ -1473,7 +1473,8 @@ export default function MatchRoomPage() {
                           min="0"
                           max="99"
                           required
-                          className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                          inputMode="numeric"
+                          className="min-w-0 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-center text-2xl font-black"
                         />
                       </label>
                     </div>

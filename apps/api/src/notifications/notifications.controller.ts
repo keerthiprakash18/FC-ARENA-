@@ -47,10 +47,12 @@ export class NotificationsController {
     request:
       AuthenticatedRequest,
     @Query('summary') summary?: string,
+    @Query('view') view?: string,
   ): Promise<unknown> {
     return this.notificationsService.getNotifications(
       request.user.sub,
       summary === 'true',
+      view,
     );
   }
 

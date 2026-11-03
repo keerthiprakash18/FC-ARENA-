@@ -60,7 +60,9 @@ def background(day):
         y1=round((row+1)*ph/2)-(9 if not row else 0)
         cropped=src.crop((x0,y0,x1,y1))
         image=ImageOps.fit(cropped,(W,H),method=Image.Resampling.LANCZOS,centering=(0.42+0.08*(day.toordinal()%3),0.40+0.10*(day.toordinal()%3)))
-        if day.toordinal() % 3 == 0:\n            image=ImageOps.mirror(image)\n        image=ImageEnhance.Color(image).enhance(1.04+(day.toordinal()%7)*0.027)
+        if day.toordinal() % 3 == 0:
+            image=ImageOps.mirror(image)
+        image=ImageEnhance.Color(image).enhance(1.04+(day.toordinal()%7)*0.027)
         image=ImageEnhance.Contrast(image).enhance(1.06)
         return image.convert("RGBA")
 

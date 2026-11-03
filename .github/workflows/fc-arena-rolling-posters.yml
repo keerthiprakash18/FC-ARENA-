@@ -1,0 +1,49 @@
+name: FC ARENA Rolling Instagram Posters
+on:
+  workflow_dispatch:
+  schedule:
+    # Monday 08:00 Asia/Kolkata, UTC fixed year-round
+    - cron: '30 2 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - 'marketing/automation/**'
+      - '.github/workflows/fc-arena-rolling-posters.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fc-arena-public-poster-queue
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.repository == 'keerthiprakash18/FC-ARENA-'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install image renderer
+        run: python -m pip install "Pillow>=11,<13"
+      - name: Test cinematic poster renderer
+        run: python -m unittest discover -s marketing/automation/tests -v
+      - name: Render missing premium posters for the next 60 days
+        run: python marketing/automation/fill_queue.py --days 60 --max-new 70
+      - name: Commit only newly generated marketing imagery
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add marketing/instagram/
+          if git diff --cached --quiet; then
+            echo "FC ARENA poster queue already up to date."
+          else
+            git commit -m "Prepare rolling FC ARENA Instagram poster library"
+            git push origin HEAD:main
+          fi

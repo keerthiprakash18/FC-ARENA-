@@ -1,0 +1,29 @@
+name: Playoff production connection check
+on:
+  push:
+    branches: ["codex/playoff-deploy-20261106"]
+    paths: [".github/workflows/playoff-connection.yml"]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check current production SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$VPS_SSH_KEY" ]; then
+            echo "Existing VPS_SSH_KEY secret is unavailable"
+            exit 1
+          fi
+          mkdir -m 700 -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/fcarena
+          chmod 600 ~/.ssh/fcarena
+          cat > ~/.ssh/known_hosts <<'HOSTKEY'
+          45.129.87.8 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDsvZ8L4MA+y9+xEX27cJEu5v2p+cCk9D3ZR/XdoiP1z+EjfEdBpuPylr4Hayw/QbgH5eQGQWvtfEvdkbEh5LpA+QqII0/qEFutTAq6Qs8IivdZzFPUw1sFsmBJ63GpHmjR2gRzmaClYKXDwdrgbPLGL1SLeCJjd4sSXEFTl8vj3GGYRMkmOA9EXepxPhBCFGyZjTVIkimaBqSj/UqutoHXWhZhwEmdkx7dHpakTebbR51FiuuqkgJquQGQTwpTskg2gh+fTT5JzofOMZZfX10q1NIzMSxJdzaTCxOpZWSNRkK4WN+vya+HLzMDnZqkbIe2o8ITzWs7JeSz1G0UpnoJ
+          HOSTKEY
+          ssh -i ~/.ssh/fcarena -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 -o ConnectionAttempts=1 root@45.129.87.8 'hostname; systemctl is-active fcarena-api fcarena-web nginx'

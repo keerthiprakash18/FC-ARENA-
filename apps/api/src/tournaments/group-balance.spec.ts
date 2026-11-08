@@ -30,7 +30,7 @@ describe('group draw balance', () => {
   it('handles non-divisible team counts (43 / 7)', () => {
     const groups = make([8,6,6,5,6,6,6]);
     const changes = planGroupRebalance(groups, []);
-    expect(changes).toHaveLength(2);
+    expect(changes).toHaveLength(1);
     const sizes = groups.map((group) => group.registrations.length);
     for (const change of changes) {
       sizes[Number(change.fromGroupId!.slice(6))]--;

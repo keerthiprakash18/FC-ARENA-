@@ -40,6 +40,7 @@ import { ReviewDeadlineCaseDto } from './dto/review-deadline-case.dto.js';
 import { SmartScheduleDto } from './dto/smart-schedule.dto.js';
 import { FixturesService } from './fixtures.service.js';
 import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
+import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 import { GroupFixturesService } from './group-fixtures.service.js';
 import { PlayoffsService } from './playoffs.service.js';
 import { TournamentsService } from './tournaments.service.js';
@@ -63,6 +64,8 @@ export class TournamentsController {
 
     private readonly fixtureResetService:
       TournamentFixtureResetService,
+    private readonly drawRestartService:
+      TournamentDrawRestartService,
 
     private readonly tournamentGroupsService:
       TournamentGroupsService,
@@ -578,6 +581,23 @@ export class TournamentsController {
       request.user.sub,
       tournamentId,
     );
+  }
+
+  @Get('tournaments/:tournamentId/fixtures/restart-with-teams-preview')
+  previewDrawRestart(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.drawRestartService.preview(request.user.sub, tournamentId);
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/restart-with-teams')
+  restartDrawWithTeams(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() body: { confirmation?: string },
+  ) {
+    return this.drawRestartService.restart(request.user.sub, tournamentId, body?.confirmation);
   }
 
   @Get('tournaments/:tournamentId/fixtures/full-reset-preview')

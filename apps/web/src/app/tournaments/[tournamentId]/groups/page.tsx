@@ -159,6 +159,8 @@ export default function TournamentGroupsPage() {
 
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [swapFirst, setSwapFirst] = useState('');
+  const [swapSecond, setSwapSecond] = useState('');
 
   const [
     groupNames,
@@ -556,6 +558,41 @@ export default function TournamentGroupsPage() {
     }
   }
 
+  async function swapGroupTeams() {
+    if (!swapFirst || !swapSecond || swapFirst === swapSecond) {
+      setError('Choose two different teams from different groups.');
+      return;
+    }
+    const confirmed = await confirmAction({
+      title: 'Swap teams between groups?',
+      description: 'Both team assignments change together. If fixtures exist, only untouched fixtures from those two groups will be regenerated. Existing played, scheduled or reported matches are protected.',
+      confirmLabel: 'Swap teams',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/swap`, {
+        method: 'POST',
+        body: JSON.stringify({ registrationId: swapFirst, otherRegistrationId: swapSecond }),
+      });
+      setMessage(response.data.message);
+      setSwapFirst('');
+      setSwapSecond('');
+      await loadGroups();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to swap teams.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function rebalanceGroups() {
     const confirmed = await confirmAction({
       title: 'Rebalance tournament groups?',
@@ -688,6 +725,15 @@ export default function TournamentGroupsPage() {
   const canManage =
     canEdit &&
     !['COMPLETED', 'CANCELLED'].includes(tournament.status);
+
+  const allGroupTeams = groups.flatMap((group) =>
+    group.entries.map((entry) => ({
+      id: entry.id,
+      groupId: group.id,
+      label: `${getEntryName(entry)} — ${group.name}`,
+    })),
+  );
+  const selectedSwapGroup = allGroupTeams.find((entry) => entry.id === swapFirst)?.groupId;
 
   const groupCounts =
     groups.map(
@@ -1080,6 +1126,56 @@ export default function TournamentGroupsPage() {
                 >
                   Rebalance Groups (minimum moves)
                 </button>
+              ) : null}
+
+              {canManage && allGroupTeams.length > 1 ? (
+                <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-4">
+                  <p className="text-sm font-black text-sky-300">Swap two teams between groups</p>
+                  <p className="mt-1 text-xs text-slate-400">Use this to edit an already-balanced draw without creating uneven groups.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="text-xs text-slate-400">
+                      Team 1
+                      <select
+                        aria-label="First team to swap"
+                        value={swapFirst}
+                        disabled={busy}
+                        onChange={(event) => {
+                          setSwapFirst(event.target.value);
+                          setSwapSecond('');
+                        }}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-sm text-white"
+                      >
+                        <option value="">Select first team</option>
+                        {allGroupTeams.map((team) => (
+                          <option key={team.id} value={team.id}>{team.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-slate-400">
+                      Team 2 (different group)
+                      <select
+                        aria-label="Second team to swap"
+                        value={swapSecond}
+                        disabled={busy || !swapFirst}
+                        onChange={(event) => setSwapSecond(event.target.value)}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-sm text-white disabled:opacity-40"
+                      >
+                        <option value="">Select second team</option>
+                        {allGroupTeams.filter((team) => team.groupId !== selectedSwapGroup).map((team) => (
+                          <option key={team.id} value={team.id}>{team.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy || !swapFirst || !swapSecond}
+                    onClick={() => void swapGroupTeams()}
+                    className="mt-3 rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#041019] disabled:opacity-40"
+                  >
+                    Confirm Team Swap
+                  </button>
+                </div>
               ) : null}
 
               <div className="mt-5 grid gap-5 xl:grid-cols-2">

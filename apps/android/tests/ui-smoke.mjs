@@ -3,6 +3,8 @@
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
+const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
 const output = process.env.SMOKE_OUTPUT || '/tmp/fcarena-ui';
 mkdirSync(output, {recursive:true});
 const errors = [], results = [];
@@ -21,6 +23,8 @@ async function prepare(page) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
         case '/api/auth/preferences/dashboard': data = { preferences: { hiddenSections: [] } }; break;
+        case '/api/experience/me/check-in': data = collectedDailyFixture(); break;
+        case '/api/experience/me': data = emptyExperience; break;
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
@@ -41,7 +45,7 @@ async function prepare(page) {
     }
     if (url.hostname === 'fcarena.in') {
       try {
-        const response = await fetch(`http://127.0.0.1:3000${url.pathname}${url.search}`, { headers: { ...route.request().headers(), host: 'localhost:3000' } });
+        const response = await fetch(`${origin}${url.pathname}${url.search}`, { headers: { ...route.request().headers(), host: new URL(origin).host } });
         const headers = Object.fromEntries(response.headers);
         delete headers['content-encoding']; delete headers['transfer-encoding']; delete headers['content-length'];
         return route.fulfill({ status: response.status, headers, body: Buffer.from(await response.arrayBuffer()) });
@@ -64,6 +68,9 @@ try {
     for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/career','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
+      // The shell mounts before authenticated reads finish. Measure the loaded
+      // content after skeletons settle, while still failing a stalled loader.
+      await page.waitForFunction(() => !document.querySelector('.fc-skeleton'));
       if (path === '/dashboard' && width < 1024) {
         const tabs = page.locator('.theme-bottom-nav a');
         assert.equal(await tabs.count(), 5, 'Dashboard mobile navigation must have five tabs');

@@ -511,13 +511,13 @@ export default function TournamentSettingsPage() {
       const message = [
         `Old tournament: ${preview.data.tournamentName}`,
         `Approved teams transferred: ${preview.data.approvedTeamsToCarry}`,
-        `New empty groups: ${preview.data.groupsToSetUp}`,
+        `New balanced groups: ${preview.data.groupsToSetUp}`,
         '',
         `Old fixtures and results preserved: ${preview.data.historicalFixturesKept} fixtures`,
         '',
         'A NEW tournament will be created with a NEW link and code.',
         'The original tournament, matches, scores, disputes and awards will stay unchanged.',
-        'Team assignments and fixtures start fresh. Share the NEW tournament link with players.',
+        'Teams are evenly distributed and can be edited before fixtures are generated. Share the NEW tournament link with players.',
       ].join('\n');
       if (!window.confirm(`START A NEW DRAW WITH EXISTING TEAMS?\n\n${message}`)) return;
       const confirmation = window.prompt(
@@ -876,7 +876,7 @@ export default function TournamentSettingsPage() {
             <h2 className="mt-2 text-xl font-black">Start Fresh With Existing Teams</h2>
             <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
               Wrong groups, fixtures or tournament draw? Create a new tournament
-              with the same approved teams and empty groups, ready for a fresh
+              with the same approved teams evenly distributed into editable groups, ready for a fresh
               balanced draw. Works even if the previous tournament has played
               matches, submitted results, disputes or statistics.
             </p>

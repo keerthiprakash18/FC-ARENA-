@@ -12,6 +12,8 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
+import { assertBalancedGroups } from './group-balance.js';
+
 import {
   generateDoubleRoundRobinFixtures,
   generateRoundRobinFixtures,
@@ -198,6 +200,8 @@ export class GroupFixturesService {
         });
       }
     }
+
+    assertBalancedGroups(groups, approvedEntries);
 
     const plans =
       groups.map(

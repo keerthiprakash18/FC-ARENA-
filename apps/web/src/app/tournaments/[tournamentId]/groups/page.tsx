@@ -157,6 +157,9 @@ export default function TournamentGroupsPage() {
 
   const [canEdit, setCanEdit] = useState(false);
 
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
   const [
     groupNames,
     setGroupNames,
@@ -520,6 +523,34 @@ export default function TournamentGroupsPage() {
           ? err.message
           : 'Unable to unassign entry.',
       );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function renameGroup(group: TournamentGroup) {
+    const name = editingName.trim();
+    if (!name || name === group.name) {
+      setEditingGroupId(null);
+      return;
+    }
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/${group.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
+      });
+      setMessage(response.data.message);
+      setEditingGroupId(null);
+      await loadGroups(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to rename group.');
     } finally {
       setBusy(false);
     }
@@ -1069,10 +1100,48 @@ export default function TournamentGroupsPage() {
                           </p>
 
                           <h3 className="mt-1 text-2xl font-black">
-                            {
-                              group.name
-                            }
+                            {group.name}
                           </h3>
+                          {canManage ? (
+                            editingGroupId === group.id ? (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <input
+                                  aria-label={`Rename ${group.name}`}
+                                  value={editingName}
+                                  maxLength={40}
+                                  onChange={(event) => setEditingName(event.target.value)}
+                                  className="min-w-0 max-w-[180px] rounded-lg border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={busy || !editingName.trim()}
+                                  onClick={() => void renameGroup(group)}
+                                  className="rounded-lg bg-emerald-400 px-3 py-2 text-xs font-black text-black disabled:opacity-40"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingGroupId(null)}
+                                  className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => {
+                                  setEditingGroupId(group.id);
+                                  setEditingName(group.name);
+                                }}
+                                className="mt-2 rounded-lg border border-sky-400/20 px-3 py-2 text-xs font-black text-sky-300 disabled:opacity-40"
+                              >
+                                Rename group
+                              </button>
+                            )
+                          ) : null}
                         </div>
 
                         <div className="grid h-12 min-w-12 place-items-center rounded-2xl bg-sky-400/10 px-3 font-black text-sky-400">

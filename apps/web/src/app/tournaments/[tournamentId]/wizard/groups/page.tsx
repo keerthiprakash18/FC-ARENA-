@@ -539,6 +539,31 @@ export default function GroupsWizardPage() {
   }
 
 
+  async function rebalanceGroups() {
+    if (!(await confirmAction({
+      title: 'Rebalance groups?',
+      description: 'Move the fewest teams necessary to make group sizes even. If fixtures exist, only untouched and unscheduled affected fixtures can be regenerated.',
+      confirmLabel: 'Rebalance groups',
+      destructive: true,
+    }))) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/rebalance`, { method: 'POST' });
+      setMessage(response.data.message);
+      await loadGroups();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to rebalance groups.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function continueWizard() {
     if (
       !wizard ||
@@ -580,6 +605,12 @@ export default function GroupsWizardPage() {
         'Every group must contain at least two teams.',
       );
 
+      return;
+    }
+
+    const sizes = data.groups.map((group) => group.entries.length);
+    if (Math.max(...sizes) - Math.min(...sizes) > 1) {
+      setError('Group sizes are uneven. Rebalance Groups before continuing.');
       return;
     }
 
@@ -691,6 +722,15 @@ export default function GroupsWizardPage() {
 
 
           <div className="flex flex-wrap gap-2">
+
+            <button
+              type="button"
+              disabled={busy || data.groups.length < 2}
+              onClick={() => void rebalanceGroups()}
+              className="rounded-xl border border-emerald-400/20 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+            >
+              Rebalance (keep existing draw)
+            </button>
 
             <button
               type="button"

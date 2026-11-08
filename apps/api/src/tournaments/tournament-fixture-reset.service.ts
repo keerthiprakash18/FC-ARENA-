@@ -153,7 +153,7 @@ export class TournamentFixtureResetService {
         data: {
           fixturesGeneratedAt: null,
           fixturesPublishedAt: null,
-          status: impact.status === 'ACTIVE' ? 'REGISTRATION_CLOSED' : impact.status,
+          ...(impact.status === 'ACTIVE' ? { status: 'REGISTRATION_CLOSED' as const } : {}),
           wizardStep: impact.groupMode === 'MULTIPLE_GROUPS' ? 'GROUPS' : 'FIXTURE_SETTINGS',
         },
       });

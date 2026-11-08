@@ -493,6 +493,73 @@ export default function TournamentSettingsPage() {
     }
   }
 
+  async function resetCompleteGroupDraw() {
+    if (busy || !tournament) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const preview = await authenticatedRequest<{
+        data: {
+          tournamentName: string;
+          allowed: boolean;
+          blocker: string | null;
+          groupCount: number;
+          assignedTeams: number;
+          approvedTeams: number;
+          fixtureCount: number;
+          matchCount: number;
+          scheduledCount: number;
+        };
+      }>(`/tournaments/${tournamentId}/fixtures/full-reset-preview`);
+
+      if (!preview.data.allowed) {
+        setError(preview.data.blocker ||
+          'A full reset is blocked because the tournament has results or match activity.');
+        return;
+      }
+
+      const summary = [
+        `Tournament: ${preview.data.tournamentName}`,
+        `Groups to remove: ${preview.data.groupCount}`,
+        `Assigned teams to unassign: ${preview.data.assignedTeams}`,
+        `Existing fixtures to delete: ${preview.data.fixtureCount}`,
+        `Schedules to clear: ${preview.data.scheduledCount}`,
+        '',
+        `Approved teams kept: ${preview.data.approvedTeams}`,
+        '',
+        'This PERMANENTLY deletes the group draw, fixtures and schedules.',
+        'It does NOT delete the tournament or registered teams.',
+        'You will start again at Group Setup.',
+      ].join('\n');
+
+      if (!window.confirm(`RESET ALL GROUPS AND FIXTURES?\n\n${summary}`)) return;
+
+      const confirmation = window.prompt(
+        `FINAL CONFIRMATION: type the exact tournament name to start over:\n${preview.data.tournamentName}`,
+      );
+      if (confirmation !== preview.data.tournamentName) {
+        setError('Full reset cancelled: the tournament name did not match.');
+        return;
+      }
+
+      const response = await authenticatedRequest<{
+        data: { message: string; keptApprovedTeams: number };
+      }>(`/tournaments/${tournamentId}/fixtures/full-reset`, {
+        method: 'POST',
+        body: JSON.stringify({ confirmation }),
+      });
+      setMessage(response.data.message);
+      await loadTournament();
+      router.push(`/tournaments/${tournamentId}/wizard/groups`);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to reset groups and fixtures.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function resetFixtureDraw() {
     if (busy || !tournament) return;
     setBusy(true);
@@ -752,6 +819,36 @@ export default function TournamentSettingsPage() {
           ) : null}
          </FcPanel>
 
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="border border-rose-400 bg-rose-50 p-5 text-slate-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-slate-100">
+            <p className="text-xs font-black uppercase tracking-wider text-rose-800 dark:text-rose-200">
+              Full Tournament Draw Reset
+            </p>
+            <h2 className="mt-2 text-xl font-black">Start Group Draw From Scratch</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+              Wrong groups and fixtures? Remove the entire existing group
+              draw and schedule in one action, then create a new group setup
+              and generate fresh matches.
+            </p>
+            <p className="mt-3 rounded-xl bg-white p-3 text-sm font-semibold leading-6 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
+              Keeps the tournament, all registered players and approved teams.
+              Clears group names, team assignments, fixtures, schedules and draw progress.
+            </p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-rose-800 dark:text-rose-200">
+              If scores, match results, disputes or recorded statistics exist,
+              reset is blocked to protect player history. This action is irreversible.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void resetCompleteGroupDraw()}
+              className="mt-4 min-h-12 w-full rounded-xl bg-rose-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50 sm:w-auto"
+            >
+              {busy ? 'Checking Tournament...' : 'Reset All Groups & Fixtures'}
+            </button>
+          </FcPanel>
+        ) : null}
 
         {tournament.isLeagueAdmin ? (
           <FcPanel className="border border-rose-300 bg-rose-50 p-5 text-slate-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-slate-100">

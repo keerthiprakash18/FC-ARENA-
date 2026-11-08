@@ -650,6 +650,11 @@ export class TournamentGroupsService {
       tournament.leagueId,
     );
 
+    const canEdit = await Promise.all([
+      this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_PARTICIPANTS'),
+      this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_FIXTURES'),
+    ]).then(() => true).catch(() => false);
+
     const groups =
       await this.prisma.tournamentGroup.findMany({
         where: {
@@ -770,6 +775,8 @@ export class TournamentGroupsService {
           groupMode:
             tournament.groupMode,
         },
+
+        canEdit,
 
         groups:
           groups.map(

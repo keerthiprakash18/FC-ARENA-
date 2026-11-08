@@ -14,6 +14,7 @@ import {
   PrismaService,
 } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
+import { SafeGroupEditorService } from './safe-group-editor.service.js';
 
 import type {
   AssignTournamentGroupDto,
@@ -43,6 +44,7 @@ export class TournamentGroupsService {
       PrismaService,
     private readonly authorization:
       AuthorizationService,
+    private readonly safeGroupEditor: SafeGroupEditorService,
   ) {}
 
 
@@ -282,10 +284,6 @@ export class TournamentGroupsService {
       tournamentId,
     );
 
-    await this.assertGroupsUnlocked(
-      tournamentId,
-    );
-
     const group =
       await this.getGroup(
         tournamentId,
@@ -301,17 +299,26 @@ export class TournamentGroupsService {
       group.id,
     );
 
-    const updated =
-      await this.prisma.tournamentGroup.update({
-        where: {
-          id:
-            group.id,
-        },
-
-        data: {
-          name,
-        },
+    // Cosmetic rename is safe after fixtures exist; update their visible labels too.
+    const updated = await this.prisma.$transactionWithRetry(async (tx) => {
+      const saved = await tx.tournamentGroup.update({
+        where: { id: group.id }, data: { name },
       });
+      const fixtures = await tx.fixture.findMany({
+        where: { tournamentId, groupId: group.id },
+        select: { id: true, roundName: true },
+      });
+      for (const fixture of fixtures) {
+        const prefix = `${group.name} - `;
+        if (fixture.roundName.startsWith(prefix)) {
+          await tx.fixture.update({
+            where: { id: fixture.id },
+            data: { roundName: `${name} - ${fixture.roundName.slice(prefix.length)}` },
+          });
+        }
+      }
+      return saved;
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,
@@ -812,154 +819,19 @@ export class TournamentGroupsService {
     registrationId: string,
     dto: AssignTournamentGroupDto,
   ) {
-    await this.getTournamentForAdmin(
-      userId,
-      tournamentId,
-    );
-
-    await this.assertGroupsUnlocked(
-      tournamentId,
-    );
-
-    const group =
-      await this.getGroup(
-        tournamentId,
-        dto.groupId,
-      );
-
-    const registration =
-      await this.prisma.tournamentRegistration.findUnique({
-        where: {
-          id:
-            registrationId,
-        },
-      });
-
-    if (
-      !registration ||
-      registration.tournamentId !==
-        tournamentId
-    ) {
-      throw new NotFoundException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'REGISTRATION_NOT_FOUND',
-
-          message:
-            'Tournament team could not be found.',
-        },
-      });
-    }
-
-    if (
-      registration.status !==
-      'APPROVED'
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'REGISTRATION_NOT_APPROVED',
-
-          message:
-            'Only approved Tournament teams can be assigned to groups.',
-        },
-      });
-    }
-
-    await this.prisma.tournamentRegistration.update({
-      where: {
-        id:
-          registration.id,
-      },
-
-      data: {
-        groupId:
-          group.id,
-      },
-    });
-
-    return {
-      success: true,
-
-      data: {
-        message:
-          `Team moved to ${group.name}.`,
-      },
-
-      error: null,
-    };
+    return this.safeGroupEditor.move(userId, tournamentId, registrationId, dto.groupId);
   }
-
 
   async unassignRegistration(
     userId: string,
     tournamentId: string,
     registrationId: string,
   ) {
-    await this.getTournamentForAdmin(
-      userId,
-      tournamentId,
-    );
+    return this.safeGroupEditor.move(userId, tournamentId, registrationId, null);
+  }
 
-    await this.assertGroupsUnlocked(
-      tournamentId,
-    );
-
-    const registration =
-      await this.prisma.tournamentRegistration.findUnique({
-        where: {
-          id:
-            registrationId,
-        },
-      });
-
-    if (
-      !registration ||
-      registration.tournamentId !==
-        tournamentId
-    ) {
-      throw new NotFoundException({
-        success: false,
-        data: null,
-
-        error: {
-          code:
-            'REGISTRATION_NOT_FOUND',
-
-          message:
-            'Tournament team could not be found.',
-        },
-      });
-    }
-
-    await this.prisma.tournamentRegistration.update({
-      where: {
-        id:
-          registration.id,
-      },
-
-      data: {
-        groupId:
-          null,
-      },
-    });
-
-    return {
-      success: true,
-
-      data: {
-        message:
-          'Team returned to Unassigned.',
-      },
-
-      error: null,
-    };
+  async rebalanceGroups(userId: string, tournamentId: string) {
+    return this.safeGroupEditor.rebalance(userId, tournamentId);
   }
 
 

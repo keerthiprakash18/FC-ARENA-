@@ -99,4 +99,14 @@ describe('safe group editor', () => {
     });
     expect(tx.tournamentRegistration.update).not.toHaveBeenCalled();
   });
+
+  it('preserves an unplayed fixture linked to an Arena Talk post', async () => {
+    const { service, tx } = makeHarness(1, [{ status: 'UNSCHEDULED', match: {
+      status: 'UNSCHEDULED', arenaPost: { id: 'post' },
+      _count: { resultSubmissions: 0, ocrExtractions: 0, statEvents: 0, disputes: 0 },
+    } }]);
+    await expect(service.swap('admin', 'tournament-id', 'A0', 'B0')).rejects.toMatchObject({ response: { error: { code: 'GROUP_FIXTURES_HAVE_ACTIVITY' } } });
+    expect(tx.fixture.deleteMany).not.toHaveBeenCalled();
+    expect(tx.tournamentRegistration.update).not.toHaveBeenCalled();
+  });
 });

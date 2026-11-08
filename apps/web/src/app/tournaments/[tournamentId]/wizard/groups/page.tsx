@@ -729,7 +729,7 @@ export default function GroupsWizardPage() {
               type="button"
               disabled={busy || data.groups.length < 2}
               onClick={() => void rebalanceGroups()}
-              className="rounded-xl border border-emerald-400/20 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+              className="theme-secondary-button min-h-11 rounded-xl border px-4 py-3 text-sm font-black disabled:opacity-40"
             >
               Rebalance (keep existing draw)
             </button>
@@ -746,7 +746,7 @@ export default function GroupsWizardPage() {
                   'AUTO_DISTRIBUTE',
                 )
               }
-              className="rounded-xl border border-emerald-400/20 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+              className="theme-secondary-button min-h-11 rounded-xl border px-4 py-3 text-sm font-black disabled:opacity-40"
             >
               Auto Distribute
             </button>
@@ -764,7 +764,7 @@ export default function GroupsWizardPage() {
                   'RANDOM_DRAW',
                 )
               }
-              className="rounded-xl border border-amber-400/20 px-4 py-3 text-sm font-black text-amber-300 disabled:opacity-40"
+              className="theme-secondary-button min-h-11 rounded-xl border px-4 py-3 text-sm font-black disabled:opacity-40"
             >
               Random Draw
             </button>
@@ -789,7 +789,7 @@ export default function GroupsWizardPage() {
               40
             }
             placeholder="Example: North Zone"
-            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#080e15] px-4 py-3"
+            className="theme-input min-h-11 w-full min-w-0 flex-1 rounded-xl border px-4 py-3"
           />
           </label>
 
@@ -886,7 +886,7 @@ export default function GroupsWizardPage() {
                               .value,
                           )
                       }
-                      className="rounded-xl border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
+                      className="theme-input min-h-11 max-w-full rounded-xl border px-3 py-2 text-sm"
                     >
                       <option value="UNASSIGNED">
                         Select Group
@@ -958,7 +958,7 @@ export default function GroupsWizardPage() {
                                 .value,
                             )
                         }
-                        className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#080e15] px-4 py-2"
+                        className="theme-input min-h-11 min-w-0 flex-1 rounded-xl border px-4 py-2"
                       />
 
                       <button

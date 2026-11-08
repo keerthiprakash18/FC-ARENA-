@@ -163,6 +163,7 @@ export class SafeGroupEditorService {
             deadlineCase: { select: { id: true } },
             match: {
               include: {
+                arenaPost: { select: { id: true } },
                 _count: { select: {
                   resultSubmissions: true, ocrExtractions: true,
                   statEvents: true, disputes: true,
@@ -179,6 +180,7 @@ export class SafeGroupEditorService {
             f.match.status !== 'UNSCHEDULED' ||
             !!f.match.confirmedResultSubmissionId ||
             !!f.match.homeReadyAt || !!f.match.awayReadyAt ||
+            !!f.match.arenaPost ||
             Object.values(f.match._count).some((n) => n > 0)
           )),
         );

@@ -127,6 +127,12 @@ def activate(release):
     with (rollback / 'database.dump').open('wb') as dump:
         subprocess.run(['docker', 'exec', 'fc-arena-postgres', 'pg_dump', '-U', postgres(), '-Fc', db_name], stdout=dump, check=True)
     command(['docker', 'exec', '-i', 'fc-arena-postgres', 'pg_restore', '-l'], input=(rollback / 'database.dump').read_bytes())
+    (rollback / 'database.dump.sha256').write_text(hashlib.sha256((rollback / 'database.dump').read_bytes()).hexdigest() + '\n')
+    # Exercise a complete restore in an isolated database before service promotion.
+    restore_db = 'fcarena_tournament_rollback_test'
+    sql('CREATE DATABASE ' + restore_db + ' OWNER fcarena_tournament_test;')
+    command(['docker', 'exec', '-i', 'fc-arena-postgres', 'pg_restore', '-U', postgres(), '-d', restore_db, '--no-owner', '--no-privileges'], input=(rollback / 'database.dump').read_bytes())
+    save(rollback / 'restore-verification.json', {'database': restore_db, 'restored': True, 'productionDatabaseChanged': False})
     save(rollback / 'previous-health.json', health('https://api.fcarena.in/api/health'))
     for service in ['api', 'web']:
         command(['systemctl', 'is-active', '--quiet', 'fcarena-' + service])
@@ -144,7 +150,12 @@ def activate(release):
     try:
         for app, artifact in [('api', 'dist'), ('web', '.next')]:
             shutil.move(LIVE / 'apps' / app / artifact, rollback / (app + '-build'))
-            shutil.copytree(SOURCE / 'apps' / app / artifact, LIVE / 'apps' / app / artifact)
+            owner = (rollback / (app + '-build')).stat()
+            target = LIVE / 'apps' / app / artifact
+            shutil.move(SOURCE / 'apps' / app / artifact, target)
+            for directory, _, files in os.walk(target):
+                os.chown(directory, owner.st_uid, owner.st_gid)
+                for filename in files: os.chown(Path(directory) / filename, owner.st_uid, owner.st_gid)
         for name in changed:
             target = LIVE / name
             target.parent.mkdir(parents=True, exist_ok=True)

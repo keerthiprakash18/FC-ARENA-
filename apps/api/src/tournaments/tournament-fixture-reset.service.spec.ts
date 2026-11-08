@@ -1,0 +1,94 @@
+import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
+
+function harness(options: { played?: boolean; score?: boolean; fixtures?: number } = {}) {
+  const fixtureCount = options.fixtures ?? 2;
+  const fixture = {
+    id: 'fixture-1',
+    status: options.played ? 'COMPLETED' : 'SCHEDULED',
+    scheduledAt: new Date(),
+    publishedAt: new Date(),
+    deadlineCase: null,
+    match: {
+      id: 'match-1', status: options.played ? 'COMPLETED' : 'SCHEDULED',
+      homeReadyAt: null, awayReadyAt: null,
+      confirmedResultSubmissionId: options.score ? 'score-1' : null,
+      _count: {
+        resultSubmissions: options.score ? 1 : 0,
+        ocrExtractions: 0, statEvents: 0, disputes: 0,
+      },
+    },
+  };
+  const tx = {
+    tournament: {
+      findUnique: vi.fn().mockResolvedValue({
+        id: 't-1', name: 'INTERNATIONAL FRIENDLIES',
+        status: 'REGISTRATION_CLOSED', wizardStep: 'PUBLISHED',
+        fixturesGeneratedAt: new Date(), fixturesPublishedAt: new Date(),
+      }),
+      update: vi.fn().mockResolvedValue({}),
+    },
+    fixture: {
+      findMany: vi.fn().mockResolvedValue(Array.from({ length: fixtureCount }, (_, i) => ({ ...fixture, id: `fixture-${i}` }))),
+      updateMany: vi.fn().mockResolvedValue({ count: fixtureCount }),
+      deleteMany: vi.fn().mockResolvedValue({ count: fixtureCount }),
+    },
+    playerTournamentStatistic: { count: vi.fn().mockResolvedValue(0) },
+    tournamentStanding: { count: vi.fn().mockResolvedValue(0) },
+    achievement: { count: vi.fn().mockResolvedValue(0) },
+    tournamentSummary: { count: vi.fn().mockResolvedValue(0) },
+    matchResultStatEvent: { count: vi.fn().mockResolvedValue(0) },
+    auditLog: { create: vi.fn().mockResolvedValue({}) },
+  };
+  const prisma = {
+    $transaction: vi.fn().mockImplementation((work: (db: typeof tx) => Promise<unknown>) => work(tx)),
+  };
+  const auth = { assertCanManageFixtures: vi.fn().mockResolvedValue(undefined) };
+  const service = new TournamentFixtureResetService(prisma as never, auth as never);
+  return { tx, auth, service };
+}
+
+describe('tournament fixture reset safety', () => {
+  it('previews scheduled-only fixtures without modifying live records', async () => {
+    const { service, tx } = harness();
+    const response = await service.preview('admin', 't-1');
+    expect(response.data.allowed).toBe(true);
+    expect(response.data.scheduledCount).toBe(2);
+    expect(tx.fixture.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('requires the exact tournament name before deleting anything', async () => {
+    const { service, tx } = harness();
+    await expect(service.reset('admin', 't-1', 'WRONG NAME')).rejects.toThrow();
+    expect(tx.fixture.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('atomically resets scheduled-only fixtures and preserves groups and entries', async () => {
+    const { service, tx, auth } = harness();
+    const result = await service.reset('admin', 't-1', 'INTERNATIONAL FRIENDLIES');
+    expect(result.data.deletedFixtures).toBe(2);
+    expect(tx.fixture.updateMany).toHaveBeenCalled();
+    expect(tx.fixture.deleteMany).toHaveBeenCalledWith({ where: { tournamentId: 't-1' } });
+    expect(tx.tournament.update).toHaveBeenCalledWith({
+      where: { id: 't-1' },
+      data: { fixturesGeneratedAt: null, fixturesPublishedAt: null, wizardStep: 'GROUPS' },
+    });
+    expect(tx.auditLog.create).toHaveBeenCalledTimes(1);
+    expect(auth.assertCanManageFixtures).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([{ played: true }, { score: true }])('refuses to wipe results or played activity (%j)', async options => {
+    const { service, tx } = harness(options);
+    const preview = await service.preview('admin', 't-1');
+    expect(preview.data.allowed).toBe(false);
+    await expect(service.reset('admin', 't-1', 'INTERNATIONAL FRIENDLIES')).rejects.toThrow();
+    expect(tx.fixture.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('refuses resets when player match statistics have been recorded', async () => {
+    const { service, tx } = harness();
+    tx.playerTournamentStatistic.count.mockResolvedValueOnce(1);
+    const preview = await service.preview('admin', 't-1');
+    expect(preview.data.allowed).toBe(false);
+    expect(tx.fixture.deleteMany).not.toHaveBeenCalled();
+  });
+});

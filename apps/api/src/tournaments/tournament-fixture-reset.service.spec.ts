@@ -95,6 +95,18 @@ describe('tournament fixture reset safety', () => {
     expect(preview.data.allowed).toBe(false);
     expect(tx.fixture.deleteMany).not.toHaveBeenCalled();
   });
+  it('allows ready clicks on unplayed fixtures to be cleared by an explicit admin reset', async () => {
+    const { service, tx } = harness();
+    const fixtures = await tx.fixture.findMany();
+    fixtures[0].match.homeReadyAt = new Date() as never;
+    fixtures[1].match.awayReadyAt = new Date() as never;
+    tx.fixture.findMany.mockResolvedValue(fixtures);
+    const preview = await service.previewFullDraw('admin', 't-1');
+    expect(preview.data).toMatchObject({ allowed: true, readinessCount: 2 });
+    await service.resetFullDraw('admin', 't-1', 'INTERNATIONAL FRIENDLIES');
+    expect(tx.fixture.deleteMany).toHaveBeenCalled();
+    expect(tx.tournamentGroup.deleteMany).toHaveBeenCalled();
+  });
   it('previews complete group and fixture reset while keeping approved participants', async () => {
     const { service, tx, auth } = harness();
     const preview = await service.previewFullDraw('admin', 't-1');

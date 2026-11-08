@@ -13,7 +13,9 @@ import time
 import urllib.request
 
 LIVE = Path('/opt/fcarena')
-BASE = Path('/opt/fcarena-deployments/tournament-20261108')
+BASE = Path(os.environ.get('FC_ARENA_RELEASE_DIRECTORY', '/opt/fcarena-deployments/tournament-20261108')).resolve()
+if BASE.parent != Path('/opt/fcarena-deployments'):
+    raise SystemExit('Release directory must be directly under /opt/fcarena-deployments')
 SOURCE = BASE / 'source'
 CHECKS = BASE / 'checks.json'
 
@@ -88,7 +90,12 @@ def prepare(release):
     step('prisma-migrate-test', ['npm', 'exec', '--', 'prisma', 'migrate', 'deploy'], env, SOURCE / 'apps/api')
     step('api-build', ['npm', 'run', 'build:api'], env)
     step('api-unit', ['npm', 'run', 'test', '--workspace=apps/api', '--', '--maxWorkers=2'], env)
-    step('api-e2e', ['npm', 'run', 'test:e2e', '--workspace=apps/api', '--', '--maxWorkers=1'], env)
+    scope = os.environ.get('FC_ARENA_E2E_SCOPE')
+    step('api-e2e', ['npm', 'run', 'test:e2e', '--workspace=apps/api', '--', *([scope] if scope else []), '--maxWorkers=1'], env)
+    if scope:
+        checks = json.loads(CHECKS.read_text())
+        checks['api-e2e']['scope'] = scope
+        save(CHECKS, checks)
     build_web(release)
 
 def build_web(release):
@@ -153,7 +160,7 @@ def activate(release):
     command(['docker', 'exec', '-i', 'fc-arena-postgres', 'pg_restore', '-l'], input=(rollback / 'database.dump').read_bytes())
     (rollback / 'database.dump.sha256').write_text(hashlib.sha256((rollback / 'database.dump').read_bytes()).hexdigest() + '\n')
     # Exercise a complete restore in an isolated database before service promotion.
-    restore_db = 'fcarena_tournament_rollback_test'
+    restore_db = 'fcarena_rollback_' + release[:12] + '_test'
     sql('CREATE DATABASE ' + restore_db + ' OWNER fcarena_tournament_test;')
     command(['docker', 'exec', '-i', 'fc-arena-postgres', 'pg_restore', '-U', postgres(), '-d', restore_db, '--no-owner', '--no-privileges'], input=(rollback / 'database.dump').read_bytes())
     save(rollback / 'restore-verification.json', {'database': restore_db, 'restored': True, 'productionDatabaseChanged': False})

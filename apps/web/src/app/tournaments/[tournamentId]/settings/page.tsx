@@ -568,6 +568,7 @@ export default function TournamentSettingsPage() {
           fixtureCount: number;
           matchCount: number;
           scheduledCount: number;
+          readinessCount: number;
         };
       }>(`/tournaments/${tournamentId}/fixtures/full-reset-preview`);
 
@@ -583,6 +584,7 @@ export default function TournamentSettingsPage() {
         `Assigned teams to unassign: ${preview.data.assignedTeams}`,
         `Existing fixtures to delete: ${preview.data.fixtureCount}`,
         `Schedules to clear: ${preview.data.scheduledCount}`,
+        `Pre-match ready confirmations to clear: ${preview.data.readinessCount ?? 0}`,
         '',
         `Approved teams kept: ${preview.data.approvedTeams}`,
         '',

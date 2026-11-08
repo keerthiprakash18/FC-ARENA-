@@ -52,7 +52,8 @@ export class TournamentFixtureResetService {
       !!f.deadlineCase || ['LIVE', 'COMPLETED'].includes(f.status) ||
       (f.match && (
         ['LIVE', 'COMPLETED'].includes(f.match.status) ||
-        !!f.match.homeReadyAt || !!f.match.awayReadyAt ||
+        // Ready buttons are pre-match acknowledgements, not played results.
+        // An explicit admin reset may clear them while no match is live/played.
         !!f.match.confirmedResultSubmissionId ||
         !!f.match.arenaPost ||
         Object.values(f.match._count).some(value => Number(value) > 0)
@@ -82,11 +83,12 @@ export class TournamentFixtureResetService {
       matchCount: fixtures.filter(f => !!f.match).length,
       scheduledCount: fixtures.filter(f => !!f.scheduledAt || f.status === 'SCHEDULED').length,
       deadlineCaseCount: fixtures.filter(f => !!f.deadlineCase).length,
+      readinessCount: fixtures.filter(f => f.match?.homeReadyAt || f.match?.awayReadyAt).length,
       allowed: !hasProgress && !lockedByStatus,
       blocker: lockedByStatus
         ? 'Completed or cancelled tournaments cannot reset fixtures.'
         : hasProgress
-          ? 'Recorded results, player activity, disputes, statistics or awards exist. Reset blocked to protect competition history.'
+          ? 'A live match, recorded result or proof, dispute, statistics or award exists. Reset blocked to protect competition history.'
           : null,
     };
   }
@@ -118,8 +120,9 @@ export class TournamentFixtureResetService {
       assignedTeams: state.assignedTeams,
       fixtureCount: state.fixtureCount, matchCount: state.matchCount,
       scheduledCount: state.scheduledCount,
+      readinessCount: state.readinessCount,
       preserves: ['tournament', 'approved team registrations', 'players', 'league'],
-      resets: ['all group names', 'all group assignments', 'fixtures', 'schedules', 'brackets', 'wizard progress'],
+      resets: ['all group names', 'all group assignments', 'fixtures', 'schedules', 'pre-match ready confirmations', 'brackets', 'wizard progress'],
     }, error: null };
   }
 
@@ -219,6 +222,7 @@ export class TournamentFixtureResetService {
       fixtureCount: state.fixtureCount,
       matchCount: state.matchCount,
       scheduledCount: state.scheduledCount,
+      readinessCount: state.readinessCount,
       allowed: state.allowed,
       blocker: state.blocker,
       preserves: ['tournament', 'registrations', 'groups', 'group assignments'],

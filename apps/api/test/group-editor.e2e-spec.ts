@@ -201,9 +201,11 @@ describe('group editor with real PostgreSQL, fixtures, results and authenticated
   it('resets an unplayed 42-team draw atomically while retaining all approved teams', async () => {
     const cup = await seed([6, 6, 6, 6, 6, 6, 6]);
     const registrations = await db.tournamentRegistration.findMany({ where: { tournamentId: cup.id }, orderBy: { id: 'asc' } });
+    const ready = await db.match.findMany({ where: { tournamentId: cup.id }, take: 13, select: { id: true } });
+    await db.match.updateMany({ where: { id: { in: ready.map(m => m.id) } }, data: { homeReadyAt: new Date() } });
     const url = `/api/tournaments/${cup.id}/fixtures`;
     const preview = await request(app.getHttpServer()).get(url + '/full-reset-preview').set('Authorization', 'Bearer ' + token).expect(200);
-    expect(preview.body.data).toMatchObject({ allowed: true, groupCount: 7, approvedTeams: 42, fixtureCount: 105 });
+    expect(preview.body.data).toMatchObject({ allowed: true, groupCount: 7, approvedTeams: 42, fixtureCount: 105, readinessCount: 13 });
     await request(app.getHttpServer()).post(url + '/full-reset').set('Authorization', 'Bearer ' + viewerToken).send({ confirmation: `Group editor test ${number}` }).expect(403);
     await request(app.getHttpServer()).post(url + '/full-reset').set('Authorization', 'Bearer ' + token).send({ confirmation: 'WRONG' }).expect(400);
     const name = (await db.tournament.findUniqueOrThrow({ where: { id: cup.id } })).name;

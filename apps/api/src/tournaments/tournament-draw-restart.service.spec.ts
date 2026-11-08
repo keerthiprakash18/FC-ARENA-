@@ -88,7 +88,6 @@ describe('draw restart keeps old match history and copies approved teams', () =>
         status: 'REGISTRATION_CLOSED',
         wizardStep: 'GROUPS',
         name: 'INTERNATIONAL FRIENDLIES (New Draw)',
-        fixturesGeneratedAt: undefined,
       }),
     });
     const createData = tx.tournament.create.mock.calls[0][0].data;

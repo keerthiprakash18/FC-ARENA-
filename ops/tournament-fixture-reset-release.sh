@@ -6,7 +6,7 @@ umask 077
 
 LIVE=/opt/fcarena
 FEATURE_REF=feature/tournament-fixture-reset-20261108
-FEATURE_SHA=13cc7245ac198934dd4909bec6ebb5e2ff7d6165
+FEATURE_SHA=ef247b8cfc09d073a82fcb1baad79fbf18d42764
 BASE_SHA=043411b7b3420578d479f63f2e6e9041c5d0edac
 STAMP="$(date +%Y%m%d-%H%M%S)"
 SAFETY=/root/fcarena-safety

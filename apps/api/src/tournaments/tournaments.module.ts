@@ -55,6 +55,8 @@ import {
   TournamentGroupsService,
 } from './tournament-groups.service.js';
 import { SafeGroupEditorService } from './safe-group-editor.service.js';
+import { TournamentFixtureResetController } from './tournament-fixture-reset.controller.js';
+import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
 
 import {
   TournamentLogoService,
@@ -90,6 +92,7 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     TournamentEntriesController,
     TournamentGroupsAdminController,
     TournamentFixtureWizardController,
+    TournamentFixtureResetController,
     TournamentWizardFinalController,
   ],
 
@@ -100,6 +103,7 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     FixturesService,
     TournamentGroupsService,
     SafeGroupEditorService,
+    TournamentFixtureResetService,
     TournamentLogoService,
     GroupFixturesService,
     PlayoffsService,

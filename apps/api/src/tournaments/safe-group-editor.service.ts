@@ -32,10 +32,23 @@ export class SafeGroupEditorService {
     return this.apply(userId, tournamentId, null);
   }
 
+  async swap(
+    userId: string,
+    tournamentId: string,
+    registrationId: string,
+    otherRegistrationId: string,
+  ) {
+    if (registrationId === otherRegistrationId) {
+      this.conflict('SWAP_REQUIRES_DISTINCT_TEAMS', 'Choose two different teams to swap.');
+    }
+    return this.apply(userId, tournamentId, null, [registrationId, otherRegistrationId]);
+  }
+
   private async apply(
     userId: string,
     tournamentId: string,
     requested: ProposedMove[] | null,
+    swapRegistrationIds: [string, string] | null = null,
   ) {
     await this.authorization.assertCanManageTournamentPermission(
       userId, tournamentId, 'MANAGE_PARTICIPANTS',
@@ -79,9 +92,28 @@ export class SafeGroupEditorService {
       const plan = groups.map((g) => ({
         ...g, registrations: registrations.filter((r) => r.groupId === g.id).map((r) => ({ id: r.id })),
       }));
-      const wanted = requested ?? planGroupRebalance(
-        plan, registrations.filter((r) => !r.groupId).map((r) => r.id),
-      ).map(({ registrationId, groupId }) => ({ registrationId, groupId }));
+      let wanted: ProposedMove[];
+      if (swapRegistrationIds) {
+        const [firstId, secondId] = swapRegistrationIds;
+        const first = byEntry.get(firstId);
+        const second = byEntry.get(secondId);
+        if (!first || !second) {
+          this.conflict('REGISTRATION_NOT_APPROVED', 'Choose two approved teams to swap.');
+        }
+        if (!first!.groupId || !second!.groupId ||
+          first!.groupId === second!.groupId) {
+          this.conflict('SWAP_REQUIRES_DIFFERENT_GROUPS',
+            'Choose two assigned teams from different groups.');
+        }
+        wanted = [
+          { registrationId: firstId, groupId: second!.groupId },
+          { registrationId: secondId, groupId: first!.groupId },
+        ];
+      } else {
+        wanted = requested ?? planGroupRebalance(
+          plan, registrations.filter((r) => !r.groupId).map((r) => r.id),
+        ).map(({ registrationId, groupId }) => ({ registrationId, groupId }));
+      }
 
       const seen = new Set<string>();
       const changes: Array<{ registrationId: string; fromGroupId: string | null; groupId: string | null }> = [];
@@ -216,7 +248,8 @@ export class SafeGroupEditorService {
       await tx.auditLog.create({
         data: {
           actorUserId: userId,
-          action: requested ? 'TOURNAMENT_GROUP_MOVE' : 'TOURNAMENT_GROUP_REBALANCE',
+          action: swapRegistrationIds ? 'TOURNAMENT_GROUP_SWAP'
+            : requested ? 'TOURNAMENT_GROUP_MOVE' : 'TOURNAMENT_GROUP_REBALANCE',
           targetType: 'Tournament',
           targetId: tournamentId,
           scopeType: 'TOURNAMENT',

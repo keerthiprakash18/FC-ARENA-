@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
-interface ResetSummary {
+export interface ResetSummary {
   tournamentId: string;
   tournamentName: string;
   tournamentCode: string;

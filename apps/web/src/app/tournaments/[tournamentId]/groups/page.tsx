@@ -73,6 +73,7 @@ interface GroupsResponse {
 
   groups: TournamentGroup[];
   unassigned: GroupEntry[];
+  canEdit: boolean;
 }
 
 function getEntryName(
@@ -154,6 +155,8 @@ export default function TournamentGroupsPage() {
       [],
     );
 
+  const [canEdit, setCanEdit] = useState(false);
+
   const [
     groupNames,
     setGroupNames,
@@ -202,6 +205,8 @@ export default function TournamentGroupsPage() {
     setGroups(
       response.data.groups,
     );
+
+    setCanEdit(response.data.canEdit);
 
     setUnassigned(
       response.data.unassigned,
@@ -650,8 +655,8 @@ export default function TournamentGroupsPage() {
     tournament.status === 'REGISTRATION_CLOSED' || tournament.status === 'ACTIVE';
 
   const canManage =
-    tournament.isLeagueAdmin &&
-    registrationClosed;
+    canEdit &&
+    !['COMPLETED', 'CANCELLED'].includes(tournament.status);
 
   const groupCounts =
     groups.map(

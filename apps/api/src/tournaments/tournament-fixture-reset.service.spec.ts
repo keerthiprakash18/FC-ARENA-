@@ -43,6 +43,7 @@ function harness(options: { played?: boolean; score?: boolean; fixtures?: number
   };
   const prisma = {
     $transaction: vi.fn().mockImplementation((work: (db: typeof tx) => Promise<unknown>) => work(tx)),
+    $transactionWithRetry: vi.fn().mockImplementation((work: (db: typeof tx) => Promise<unknown>) => work(tx)),
   };
   const auth = { assertCanManageFixtures: vi.fn().mockResolvedValue(undefined), assertCanManageTournamentPermission: vi.fn().mockResolvedValue(undefined) };
   const service = new TournamentFixtureResetService(prisma as never, auth as never);

@@ -10,6 +10,8 @@ import {
 } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
+import { assertBalancedGroups } from './group-balance.js';
+
 import type {
   UpdateQualificationSettingsDto,
 } from './dto/update-qualification-settings.dto.js';
@@ -674,6 +676,17 @@ export class TournamentWizardFinalizeService {
           },
         });
       }
+    }
+
+    if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
+      !['ELITE_CUP', 'UCL_CUP', 'SINGLE_ELIMINATION'].includes(tournament.competitionFormat)) {
+      const groups = await this.prisma.tournamentGroup.findMany({
+        where: { tournamentId },
+        select: { id: true, name: true, registrations: {
+          where: { status: 'APPROVED' }, select: { id: true },
+        } },
+      });
+      assertBalancedGroups(groups, approvedEntries);
     }
 
     if (

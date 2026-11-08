@@ -11,7 +11,7 @@ const FULL_PERMISSIONS = [
 /**
  * Keep the original tournament/fixtures/results intact.
  * Restarting creates a NEW tournament with the same approved participants
- * and a blank group draw, so scores, disputes and awards are never destroyed.
+ * and a newly balanced, editable group draw, so scores, disputes and awards are never destroyed.
  */
 @Injectable()
 export class TournamentDrawRestartService {
@@ -181,7 +181,20 @@ export class TournamentDrawRestartService {
         ],
       });
 
-      const entries = source.registrations.map(entry => ({
+      // Generate the replacement groups FIRST, so each newly copied team
+      // receives a valid group FK immediately. Evenly distribute using the
+      // original approved registration ordering: 42 / 7 => six per group.
+      const groupRows = Array.from({ length: groupCount }, (_, index) => ({
+        id: randomUUID(),
+        tournamentId: fresh.id,
+        name: `Group ${String.fromCharCode(65 + index)}`,
+        position: index + 1,
+      }));
+      if (groupRows.length > 0) {
+        await tx.tournamentGroup.createMany({ data: groupRows });
+      }
+
+      const entries = source.registrations.map((entry, index) => ({
         id: randomUUID(),
         tournamentId: fresh.id,
         registeredByUserId: entry.registeredByUserId,
@@ -189,7 +202,7 @@ export class TournamentDrawRestartService {
         entryLogoUrl: entry.entryLogoUrl,
         sortOrder: entry.sortOrder,
         status: 'APPROVED' as const,
-        groupId: null,
+        groupId: groupRows.length ? groupRows[index % groupRows.length].id : null,
       }));
       await tx.tournamentRegistration.createMany({ data: entries });
       const members = source.registrations.flatMap((entry, index) =>
@@ -201,15 +214,6 @@ export class TournamentDrawRestartService {
       );
       if (members.length > 0) await tx.tournamentRegistrationMember.createMany({ data: members });
 
-      if (groupCount > 0) {
-        await tx.tournamentGroup.createMany({
-          data: Array.from({ length: groupCount }, (_, index) => ({
-            tournamentId: fresh.id,
-            name: `Group ${String.fromCharCode(65 + index)}`,
-            position: index + 1,
-          })),
-        });
-      }
 
       await tx.auditLog.create({ data: {
         actorUserId: userId,
@@ -242,7 +246,7 @@ export class TournamentDrawRestartService {
 
     return { success: true, data: {
       ...result,
-      message: 'New draw created. All approved teams carried over, groups ready to configure. Previous tournament and all match history are preserved separately.',
+      message: 'New draw created. All approved teams carried over and evenly distributed into editable groups. Previous tournament and all match history are preserved separately.',
     }, error: null };
   }
 }

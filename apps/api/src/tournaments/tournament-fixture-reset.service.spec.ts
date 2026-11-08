@@ -73,7 +73,7 @@ describe('tournament fixture full-reset safeguards', () => {
       where: { id: 'tournament-id' },
       data: {
         fixturesGeneratedAt: null, fixturesPublishedAt: null,
-        status: 'REGISTRATION_CLOSED', wizardStep: 'GROUPS',
+        wizardStep: 'GROUPS',
       },
     });
     expect(tx.auditLog.create).toHaveBeenCalledTimes(1);

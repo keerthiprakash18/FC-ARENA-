@@ -841,6 +841,15 @@ export class TournamentGroupsService {
     return this.safeGroupEditor.rebalance(userId, tournamentId);
   }
 
+  async swapTeams(
+    userId: string,
+    tournamentId: string,
+    registrationId: string,
+    otherRegistrationId: string,
+  ) {
+    return this.safeGroupEditor.swap(userId, tournamentId, registrationId, otherRegistrationId);
+  }
+
 
   private async getTournamentForAdmin(
     userId: string,

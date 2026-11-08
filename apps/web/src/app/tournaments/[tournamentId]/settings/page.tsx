@@ -493,6 +493,54 @@ export default function TournamentSettingsPage() {
     }
   }
 
+  async function restartWithExistingTeams() {
+    if (busy || !tournament) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const preview = await authenticatedRequest<{
+        data: {
+          tournamentName: string;
+          approvedTeamsToCarry: number;
+          groupsToSetUp: number;
+          historicalFixturesKept: number;
+        };
+      }>(`/tournaments/${tournamentId}/fixtures/restart-with-teams-preview`);
+
+      const message = [
+        `Old tournament: ${preview.data.tournamentName}`,
+        `Approved teams transferred: ${preview.data.approvedTeamsToCarry}`,
+        `New empty groups: ${preview.data.groupsToSetUp}`,
+        '',
+        `Old fixtures and results preserved: ${preview.data.historicalFixturesKept} fixtures`,
+        '',
+        'A NEW tournament will be created with a NEW link and code.',
+        'The original tournament, matches, scores, disputes and awards will stay unchanged.',
+        'Team assignments and fixtures start fresh. Share the NEW tournament link with players.',
+      ].join('\n');
+      if (!window.confirm(`START A NEW DRAW WITH EXISTING TEAMS?\n\n${message}`)) return;
+      const confirmation = window.prompt(
+        `Type the exact ORIGINAL tournament name to create a fresh draw:\n${preview.data.tournamentName}`,
+      );
+      if (confirmation !== preview.data.tournamentName) {
+        setError('Start again cancelled: original tournament name did not match.');
+        return;
+      }
+      const result = await authenticatedRequest<{
+        data: { tournamentId: string; carriedTeams: number; groupCount: number; message: string };
+      }>(`/tournaments/${tournamentId}/fixtures/restart-with-teams`, {
+        method: 'POST',
+        body: JSON.stringify({ confirmation }),
+      });
+      router.push(`/tournaments/${result.data.tournamentId}/wizard/groups`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not create the fresh tournament draw.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function resetCompleteGroupDraw() {
     if (busy || !tournament) return;
     setBusy(true);
@@ -514,8 +562,8 @@ export default function TournamentSettingsPage() {
       }>(`/tournaments/${tournamentId}/fixtures/full-reset-preview`);
 
       if (!preview.data.allowed) {
-        setError(preview.data.blocker ||
-          'A full reset is blocked because the tournament has results or match activity.');
+        setError((preview.data.blocker || 'This tournament has recorded results.') +
+          ' Use Start Fresh With Existing Teams below to keep the old results and create a clean draw.');
         return;
       }
 
@@ -819,6 +867,34 @@ export default function TournamentSettingsPage() {
           ) : null}
          </FcPanel>
 
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="border border-emerald-300 bg-emerald-50 p-5 text-slate-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-slate-100">
+            <p className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-200">
+              Restart Draw Without Losing Results
+            </p>
+            <h2 className="mt-2 text-xl font-black">Start Fresh With Existing Teams</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+              Wrong groups, fixtures or tournament draw? Create a new tournament
+              with the same approved teams and empty groups, ready for a fresh
+              balanced draw. Works even if the previous tournament has played
+              matches, submitted results, disputes or statistics.
+            </p>
+            <p className="mt-3 rounded-xl bg-white p-3 text-sm font-semibold leading-6 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
+              No scores are deleted. The original tournament remains available
+              for history. The fresh tournament has a new code and link, so
+              players must use the new tournament going forward.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void restartWithExistingTeams()}
+              className="mt-4 min-h-12 w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50 sm:w-auto"
+            >
+              {busy ? 'Preparing...' : 'Start Fresh Draw (Keep Results Safe)'}
+            </button>
+          </FcPanel>
+        ) : null}
 
         {tournament.isLeagueAdmin ? (
           <FcPanel className="border border-rose-400 bg-rose-50 p-5 text-slate-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-slate-100">

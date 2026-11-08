@@ -39,6 +39,7 @@ import {
 import { ReviewDeadlineCaseDto } from './dto/review-deadline-case.dto.js';
 import { SmartScheduleDto } from './dto/smart-schedule.dto.js';
 import { FixturesService } from './fixtures.service.js';
+import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
 import { GroupFixturesService } from './group-fixtures.service.js';
 import { PlayoffsService } from './playoffs.service.js';
 import { TournamentsService } from './tournaments.service.js';
@@ -59,6 +60,9 @@ export class TournamentsController {
 
     private readonly fixturesService:
       FixturesService,
+
+    private readonly fixtureResetService:
+      TournamentFixtureResetService,
 
     private readonly tournamentGroupsService:
       TournamentGroupsService,
@@ -574,6 +578,23 @@ export class TournamentsController {
       request.user.sub,
       tournamentId,
     );
+  }
+
+  @Get('tournaments/:tournamentId/fixtures/reset-preview')
+  previewFixtureReset(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.fixtureResetService.preview(request.user.sub, tournamentId);
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/reset')
+  resetFixtureDraw(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() body: { confirmation?: string },
+  ) {
+    return this.fixtureResetService.reset(request.user.sub, tournamentId, body?.confirmation);
   }
 
   @Post('tournaments/:tournamentId/fixtures/smart-schedule')

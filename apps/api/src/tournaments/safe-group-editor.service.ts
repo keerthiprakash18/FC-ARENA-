@@ -42,12 +42,9 @@ export class SafeGroupEditorService {
     );
     // Fixture permission is necessary even for a group move when it changes
     // existing official fixture records.
-    const existingFixtureCount = await this.prisma.fixture.count({ where: { tournamentId } });
-    if (existingFixtureCount) {
-      await this.authorization.assertCanManageTournamentPermission(
-        userId, tournamentId, 'MANAGE_FIXTURES',
-      );
-    }
+    await this.authorization.assertCanManageTournamentPermission(
+      userId, tournamentId, 'MANAGE_FIXTURES',
+    );
 
     const result = await this.prisma.$transactionWithRetry(async (tx) => {
       const tournament = await tx.tournament.findUnique({

@@ -11,14 +11,16 @@ describe('group draw balance', () => {
     expect(() => assertBalancedGroups(make([6,6,6,6,6,6,6]), 42)).not.toThrow();
   });
   it('rejects 7/5 fixture generation even when all 42 teams are assigned', () => {
+    let thrown: { getResponse(): unknown } | undefined;
     try {
       assertBalancedGroups(make([7,6,6,5,6,6,6]), 42);
-      fail('Expected a balance validation error');
     } catch (error) {
-      expect((error as { getResponse(): unknown }).getResponse()).toMatchObject({
-        error: { code: 'GROUPS_UNBALANCED' },
-      });
+      thrown = error as { getResponse(): unknown };
     }
+    expect(thrown).toBeDefined();
+    expect(thrown!.getResponse()).toMatchObject({
+      error: { code: 'GROUPS_UNBALANCED' },
+    });
   });
   it('rejects unassigned teams', () => {
     expect(() => assertBalancedGroups(make([6,6,6,5,6,6,6]), 42)).toThrow();

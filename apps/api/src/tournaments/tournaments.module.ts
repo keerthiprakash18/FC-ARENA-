@@ -98,6 +98,7 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,
+    SafeGroupEditorService,
     TournamentLogoService,
     GroupFixturesService,
     PlayoffsService,

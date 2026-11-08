@@ -80,6 +80,11 @@ def prepare(release):
     else:
         command(['docker', 'start', 'fcarena-tournament-test-redis'])
     env = test_env()
+    if not env['DATABASE_URL'].endswith('/fcarena_tournament_20261108_test'):
+        raise RuntimeError('Refusing to reset any database except the fixed disposable test database')
+    # Several legacy suites intentionally leave fixtures behind. Every complete
+    # release gate starts from a fresh database owned by the isolated test role.
+    sql('DROP DATABASE fcarena_tournament_20261108_test WITH (FORCE);\nCREATE DATABASE fcarena_tournament_20261108_test OWNER fcarena_tournament_test;')
     step('prisma-migrate-test', ['npm', 'exec', '--', 'prisma', 'migrate', 'deploy'], env, SOURCE / 'apps/api')
     step('api-build', ['npm', 'run', 'build:api'], env)
     step('api-unit', ['npm', 'run', 'test', '--workspace=apps/api', '--', '--maxWorkers=2'], env)

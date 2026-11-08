@@ -241,6 +241,16 @@ describe('group editor with real PostgreSQL, fixtures, results and authenticated
     expect(fresh.unassigned).toEqual([]);
     expect(await db.fixture.count({ where: { tournamentId: freshId } })).toBe(0);
     expect(await db.tournamentRegistrationMember.count({ where: { tournamentId: freshId, userId: owner } })).toBe(1);
+    const wizard = `/api/tournaments/${freshId}/wizard/fixture-preview`;
+    await request(app.getHttpServer()).post(wizard + '/generate').set('Authorization', 'Bearer ' + token).send({}).expect(201);
+    const generated = await db.fixture.findMany({ where: { tournamentId: freshId } });
+    expect(generated).toHaveLength(105);
+    const groupsByEntry = new Map(fresh.groups.flatMap(g => g.entries.map(e => [e.id, g.id] as const)));
+    expect(generated.every(f => groupsByEntry.get(f.homeRegistrationId!) === groupsByEntry.get(f.awayRegistrationId!))).toBe(true);
+    expect(new Set(generated.map(f => [f.homeRegistrationId, f.awayRegistrationId].sort().join(':'))).size).toBe(105);
+    await request(app.getHttpServer()).post(wizard + '/publish').set('Authorization', 'Bearer ' + token).send({}).expect(201);
+    expect(await db.match.count({ where: { tournamentId: freshId } })).toBe(105);
+    expect(await db.fixture.count({ where: { tournamentId: freshId, publishedAt: { not: null } } })).toBe(105);
     expect(await db.tournament.findUniqueOrThrow({ where: { id: cup.id } })).toEqual(tournament);
     expect(await loadFixtures(cup.id)).toEqual(original);
     expect(await db.auditLog.count({ where: { action: 'TOURNAMENT_DRAW_RESTART_WITH_TEAMS', targetId: cup.id } })).toBe(1);

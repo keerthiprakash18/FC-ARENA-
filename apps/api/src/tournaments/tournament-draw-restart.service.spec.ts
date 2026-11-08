@@ -94,7 +94,13 @@ describe('draw restart keeps old match history and copies approved teams', () =>
     expect(createData.code).not.toBe('FCA-T-OLD');
     const registrationData = tx.tournamentRegistration.createMany.mock.calls[0][0].data;
     expect(registrationData).toHaveLength(42);
-    expect(registrationData.every((entry: { groupId: null }) => entry.groupId === null)).toBe(true);
+    const newGroups = tx.tournamentGroup.createMany.mock.calls[0][0].data;
+    expect(newGroups).toHaveLength(7);
+    const counts = new Map<string, number>();
+    for (const entry of registrationData as Array<{ groupId: string }>) {
+      counts.set(entry.groupId, (counts.get(entry.groupId) ?? 0) + 1);
+    }
+    expect([...counts.values()]).toEqual([6, 6, 6, 6, 6, 6, 6]);
     expect(tx.tournamentRegistrationMember.createMany.mock.calls[0][0].data).toHaveLength(42);
     expect(tx.tournamentGroup.createMany.mock.calls[0][0].data).toHaveLength(7);
     expect(tx.fixture.deleteMany).not.toHaveBeenCalled();

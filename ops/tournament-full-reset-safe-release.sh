@@ -171,7 +171,10 @@ if grep -Eq '^(<<<<<<< |[|]{7} |=======$|>>>>>>> )' "$wizard_file"; then
   exit 21
 fi
 
-echo '== Build integrated live+KICKOFF source in staging =='
+echo '== Test guarded reset cases in isolated staging =='
+(cd "$STAGE" && npm run test --workspace=apps/api -- tournament-fixture-reset.service.spec.ts)
+
+echo '== Build integrated live+FULL DRAW reset source in staging =='
 (cd "$STAGE" && npm run build:api && npm run build:web)
 [[ -s "$STAGE/apps/api/dist/main.js" ]] || { echo 'ERROR: API build output not present'; exit 1; }
 [[ -s "$STAGE/apps/web/.next/BUILD_ID" ]] || { echo 'ERROR: web build output not present'; exit 1; }

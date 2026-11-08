@@ -20,6 +20,8 @@ import { TournamentGroupsService } from '../src/tournaments/tournament-groups.se
 import { PlayoffsService } from '../src/tournaments/playoffs.service.js';
 import { TournamentLogoService } from '../src/tournaments/tournament-logo.service.js';
 import { TournamentToolsService } from '../src/tournaments/tournament-tools.service.js';
+import { TournamentFixtureResetService } from '../src/tournaments/tournament-fixture-reset.service.js';
+import { TournamentDrawRestartService } from '../src/tournaments/tournament-draw-restart.service.js';
 import { configureHttpSecurity } from '../src/security/http-security.js';
 import { LeaguesController } from '../src/leagues/leagues.controller.js';
 import { LeaguesService } from '../src/leagues/leagues.service.js';
@@ -41,7 +43,7 @@ describe('Registration lists and scoped league-manager review over authenticated
     if(process.env.NODE_ENV!=='test'||!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||!url.pathname.endsWith('_test')) throw Error('Disposable loopback *_test database required');
     process.env.JWT_ACCESS_SECRET='review-access-'+run;process.env.JWT_REFRESH_SECRET='review-refresh-'+run;process.env.PUSH_ENABLED='false';
     const module=await Test.createTestingModule({imports:[PrismaModule,SecurityModule,AuthModule,NotificationsModule],controllers:[TournamentsController,LeaguesController],providers:[TournamentsService,LeaguesService,LeagueManagementService,{provide:LeagueLogoService,useValue:{}},
-      ...[FixturesService,GroupFixturesService,TournamentGroupsService,PlayoffsService,TournamentLogoService,TournamentToolsService].map(provide=>({provide,useValue:{}})),
+      ...[FixturesService,GroupFixturesService,TournamentGroupsService,PlayoffsService,TournamentLogoService,TournamentToolsService,TournamentFixtureResetService,TournamentDrawRestartService].map(provide=>({provide,useValue:{}})),
     ]}).compile();
     app=module.createNestApplication();configureHttpSecurity(app);await app.init();db=app.get(PrismaService);authorization=app.get(AuthorizationService);notifier=app.get(RegistrationNotificationsService);
     for(const [index,id] of users.entries())await db.user.create({data:{id,email:`review-${run}-${index}@example.invalid`,fullName:`Review Test ${index}`,passwordHash:'not-a-login-hash',role:id===superAdmin?'SUPER_ADMIN':'USER',status:'ACTIVE',player:{create:{playerCode:`RV-${run}-${index}`,identity:{create:{inGameName:`Review ${index}`,inGameNameNormalized:`review ${index}`,isVerified:true}}}}}});

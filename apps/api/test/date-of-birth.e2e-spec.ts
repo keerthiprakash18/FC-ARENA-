@@ -174,6 +174,9 @@ describe('Birth dates: authenticated HTTP, registration, privacy and deletion', 
     expect(exported.text).not.toMatch(/dateOfBirth|date_of_birth|1996-07-18/);
   });
   it('accepts date of birth at registration and keeps old API clients compatible', async () => {
+    // The dedicated test database is shared with auth rate-limit suites.
+    // Reset their loopback buckets without weakening the production limiter.
+    await db.authRateLimit.deleteMany({ where: { action: { in: ['REGISTER_IP', 'LOGIN_IP'] } } });
     for (const [label, dateOfBirth] of [
       ['new', '2000-02-29'],
       ['legacy', undefined],

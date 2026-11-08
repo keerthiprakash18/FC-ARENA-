@@ -57,7 +57,14 @@ export class PrismaService
         const adapterConflict = error instanceof Error && error.name === 'DriverAdapterError' &&
           typeof cause === 'object' && cause !== null && 'kind' in cause && cause.kind === 'TransactionWriteConflict' &&
           'originalCode' in cause && ['40001', '40P01'].includes(String(cause.originalCode));
-        if (!prismaConflict && !adapterConflict) throw error;
+        // SELECT ... FOR UPDATE failures are wrapped as P2010 rather than
+        // P2034. Retry only PostgreSQL's explicit transaction rollback states.
+        const rawConflict = typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2010' &&
+          'meta' in error && typeof error.meta === 'object' && error.meta !== null && (() => {
+            const meta = error.meta as { code?: unknown; driverAdapterError?: { cause?: { originalCode?: unknown } } };
+            return ['40001', '40P01'].includes(String(meta.code ?? meta.driverAdapterError?.cause?.originalCode));
+          })();
+        if (!prismaConflict && !adapterConflict && !rawConflict) throw error;
         if (attempt === 2) {
           throw new ConflictException({ success: false, data: null, error: {
             code: 'CONCURRENT_UPDATE', message: 'Another update is in progress. Please retry.',

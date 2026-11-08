@@ -24,6 +24,18 @@ describe('Transaction retry safety', () => {
     expect(f.transaction).toHaveBeenCalledTimes(1);
   });
 
+  it.each(['40001', '40P01'])('retries raw row-lock rollback %s wrapped by Prisma 7', async code => {
+    const f = service({ code: 'P2010', meta: { driverAdapterError: { cause: { kind: 'TransactionWriteConflict', originalCode: code } } } });
+    await expect(f.prisma.$transactionWithRetry(async () => 'committed')).resolves.toBe('committed');
+    expect(f.transaction).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry other raw query failures', async () => {
+    const error = { code: 'P2010', meta: { code: '23505' } }, f = service(error);
+    await expect(f.prisma.$transactionWithRetry(async () => 'committed')).rejects.toBe(error);
+    expect(f.transaction).toHaveBeenCalledTimes(1);
+  });
+
   it('returns a bounded conflict after three explicitly rolled-back attempts', async () => {
     const f = service({ code: 'P2034' });
     f.transaction.mockRejectedValue({ code: 'P2034' });

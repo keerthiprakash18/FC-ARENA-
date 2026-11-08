@@ -860,7 +860,7 @@ export default function TournamentGroupsPage() {
         ) : null}
 
         {locked ? (
-          <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.05] p-4 text-sm leading-6 text-sky-200">
+          <div className="rounded-2xl border border-sky-300 bg-sky-50 p-4 text-sm font-semibold leading-6 text-sky-900 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-100">
             Fixtures have been generated. Admins can still rename groups,
             move teams, or rebalance the draw when affected matches have
             not been scheduled, started or reported. Other fixtures are preserved.

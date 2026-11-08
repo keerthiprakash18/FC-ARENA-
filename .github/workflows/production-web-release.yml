@@ -1,15 +1,6 @@
 name: Production Web Release Verification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "apps/web/**"
-      - "packages/**"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/production-web-release.yml"
   workflow_dispatch:
 
 permissions:

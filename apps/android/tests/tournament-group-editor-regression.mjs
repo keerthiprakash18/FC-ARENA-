@@ -5,7 +5,8 @@ import { createUiContext, checkLayout } from './phase-ui-harness.mjs';
 import { tournament } from './phase-ui-fixtures.mjs';
 
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3102';
-const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--no-sandbox'] });
+const executablePath = process.env.CHROMIUM_PATH || (process.platform === 'win32' ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined);
+const browser = await chromium.launch({ headless: true, executablePath, args: ['--no-sandbox'] });
 const ok = (route, headers, data) => route.fulfill({ headers, json: { success: true, data, error: null } });
 await mkdir('.cache/tournament-groups', { recursive: true });
 let passed = 0;
@@ -59,8 +60,8 @@ try {
       assert.equal(saved.length, 1);
       assert.equal(new Set(saved[0].groups.flatMap(g => g.registrationIds)).size, 42);
       const first = state.groups[0].entries[0].id, second = state.groups[1].entries[0].id;
-      await f.page.getByLabel('First team', { exact: true }).selectOption(first);
-      await f.page.getByLabel('Second team', { exact: true }).selectOption(second);
+      await f.page.getByRole('combobox', { name: /^First team/ }).selectOption(first);
+      await f.page.getByRole('combobox', { name: /^Second team/ }).selectOption(second);
       await f.page.getByRole('button', { name: 'Swap in draft', exact: true }).click();
       await f.page.getByLabel('Group 1 name', { exact: true }).fill('Pool A');
       await f.page.getByRole('button', { name: 'Review changes', exact: true }).click();
@@ -88,6 +89,10 @@ try {
       assert.deepEqual(f.errors, []);
       console.log(`PASS ${width}px ${mode}: balance, swap, rename, WebView fallback, guarded reset, typed safe restart and navigation`);
       passed++;
+    } catch (error) {
+      await f.page.screenshot({ path: `.cache/tournament-groups/failure-${width}-${mode}.png`, fullPage: true });
+      console.log('Browser diagnostics', JSON.stringify(f.errors));
+      throw error;
     } finally { await f.context.close(); }
   }
 } finally { await browser.close(); }

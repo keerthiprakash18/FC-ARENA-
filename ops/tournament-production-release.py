@@ -184,11 +184,17 @@ def activate(release):
             target = LIVE / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(SOURCE / name, target)
+        dropins = {}
         for service in ['api', 'web']:
-            dropin = Path('/etc/systemd/system/fcarena-' + service + '.service.d/zzzz-tournament-production.conf')
-            if dropin.exists():
-                shutil.copy2(dropin, rollback / (service + '-dropin'))
+            directory = Path('/etc/systemd/system/fcarena-' + service + '.service.d')
+            directory.mkdir(exist_ok=True)
+            # Existing releases have accumulated ordered environment overrides.
+            # Add one after the actual last override instead of shadowing it.
+            last = max((p.name for p in directory.glob('*.conf')), default='zz-release.conf')
+            dropin = directory / (last[:-5] + 'z-tournament-production.conf')
+            dropins[service] = str(dropin)
             dropin.write_text('[Service]\nEnvironmentFile=' + str(BASE / 'release.env') + '\n')
+        save(rollback / 'dropins.json', dropins)
         command(['systemctl', 'daemon-reload'])
         command(['systemctl', 'start', 'fcarena-api', 'fcarena-web'])
         for attempt in range(30):
@@ -221,9 +227,10 @@ def restore():
         if (rollback / 'files' / name).exists(): shutil.copy2(rollback / 'files' / name, target)
         elif target.exists(): target.unlink()
     for service in ['api', 'web']:
-        dropin = Path('/etc/systemd/system/fcarena-' + service + '.service.d/zzzz-tournament-production.conf')
-        if (rollback / (service + '-dropin')).exists(): shutil.copy2(rollback / (service + '-dropin'), dropin)
-        elif dropin.exists(): dropin.unlink()
+        recorded = json.loads((rollback / 'dropins.json').read_text()) if (rollback / 'dropins.json').exists() else {}
+        if service in recorded:
+            dropin = Path(recorded[service])
+            if dropin.exists(): dropin.unlink()
     command(['systemctl', 'daemon-reload'])
     command(['systemctl', 'start', 'fcarena-api', 'fcarena-web'])
     save(BASE / 'activation.json', {'state': 'rolled-back'})

@@ -72,3 +72,4 @@ jobs:
             sleep 1
           done
           SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/ui-smoke.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-group-editor-regression.mjs

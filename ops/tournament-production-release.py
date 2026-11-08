@@ -89,12 +89,31 @@ def prepare(release):
     step('api-build', ['npm', 'run', 'build:api'], env)
     step('api-unit', ['npm', 'run', 'test', '--workspace=apps/api', '--', '--maxWorkers=2'], env)
     step('api-e2e', ['npm', 'run', 'test:e2e', '--workspace=apps/api', '--', '--maxWorkers=1'], env)
+    build_web(release)
+
+def build_web(release):
     web_env = {**os.environ, 'NODE_ENV': 'production', 'NODE_OPTIONS': '--max-old-space-size=1600',
                'FC_ARENA_RELEASE_SHA': release, 'NEXT_PUBLIC_FC_ARENA_RELEASE_SHA': release,
                'VERCEL_GIT_COMMIT_SHA': release, 'NEXT_DEPLOYMENT_ID': release[:32]}
     step('web-build', ['npm', 'run', 'build', '--workspace=apps/web', '--', '--webpack'], web_env)
     save(BASE / 'prepared.json', {'release': release, 'productionSchemaChanged': False})
     print('READY FOR ACTIVATION', release, flush=True)
+
+def rebuild_web(release):
+    checks = json.loads(CHECKS.read_text())
+    for name in ['prisma-migrate-test', 'api-build', 'api-unit', 'api-e2e']:
+        if checks.get(name, {}).get('exitCode') != 0:
+            raise RuntimeError('Missing passing API gate: ' + name)
+    with tarfile.open(BASE / 'source.tar.gz') as archive:
+        # Reusing API gates is allowed only when all API and dependency source
+        # bytes still match the already-built and tested release exactly.
+        for member in archive:
+            if member.isfile() and (member.name.startswith('apps/api/') or member.name in ['package.json', 'package-lock.json']):
+                existing = SOURCE / member.name
+                if not existing.exists() or existing.read_bytes().replace(b'\r\n', b'\n') != archive.extractfile(member).read().replace(b'\r\n', b'\n'):
+                    raise RuntimeError('API changed; run the complete prepare gate: ' + member.name)
+        archive.extractall(SOURCE, filter='data')
+    build_web(release)
 
 def health(url):
     with urllib.request.urlopen(url, timeout=15) as response:
@@ -212,7 +231,7 @@ def restore():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['prepare', 'activate', 'rollback'])
+    parser.add_argument('action', choices=['prepare', 'rebuild-web', 'activate', 'rollback'])
     parser.add_argument('--release', default='')
     args = parser.parse_args()
     if command(['hostname']).decode().strip() != 'fcarena-prod' or '45.129.87.8' not in command(['hostname', '-I']).decode():
@@ -220,5 +239,6 @@ if __name__ == '__main__':
     if args.action != 'rollback' and (len(args.release) != 40 or any(c not in '0123456789abcdef' for c in args.release)):
         raise SystemExit('A full lowercase Git release SHA is required')
     if args.action == 'prepare': prepare(args.release)
+    elif args.action == 'rebuild-web': rebuild_web(args.release)
     elif args.action == 'activate': activate(args.release)
     else: restore()

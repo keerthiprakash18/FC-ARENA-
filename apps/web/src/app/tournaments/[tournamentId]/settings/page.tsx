@@ -186,7 +186,7 @@ export default function TournamentSettingsPage() {
   useRouteLeague(user?.id, tournament?.leagueId);
 
   async function confirmTournamentName(name: string, title: string) {
-    return promptAction({ title, label: `Type the tournament name exactly: ${name}`,
+    return promptAction({ title, description: 'Review the tournament name before confirming this setup change.', label: `Type the tournament name exactly: ${name}`,
       confirmLabel: 'Confirm', required: true, multiline: false,
       validate: value => value !== name ? 'Tournament name must match exactly.' : undefined });
   }
@@ -488,7 +488,7 @@ export default function TournamentSettingsPage() {
   }
 
   async function saveTemplate() {
-    const name = await promptAction({ title: 'Save tournament template', label: 'Template name', required: true, multiline: false });
+    const name = await promptAction({ title: 'Save tournament template', description: 'Save these settings as a reusable template for this league.', label: 'Template name', required: true, multiline: false });
     if (!name?.trim()) return;
     setBusy(true);
     try {

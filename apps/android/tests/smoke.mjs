@@ -57,6 +57,7 @@ async function prepare(page) {
         case '/api/auth/preferences/dashboard': data = { preferences: { hiddenSections: [] } }; break;
         case '/api/experience/me/check-in': data = collectedDailyFixture(); break;
         case '/api/experience/me': data = emptyExperience; break;
+        case '/api/mobile/android/version': data = { updateAvailable: false, latest: null }; break;
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
@@ -195,7 +196,8 @@ async function checkScroll(page, name, required = false) {
 }
 try {
   browser = await connect();
-  const widths = android ? [null] : [360,375,390,412,430,768];
+  const widths = android ? [null] : process.env.SMOKE_WIDTH ? [Number(process.env.SMOKE_WIDTH)] : [360,375,390,412,430,768];
+  if (!android) assert(widths.every(width => Number.isInteger(width) && width >= 320 && width <= 1440), 'Invalid smoke viewport');
   for (const width of widths) {
     const context = android
       ? androidPage.context()
@@ -354,7 +356,7 @@ try {
   }
   assert.deepEqual(errors, [], 'Runtime/network errors');
   writeFileSync(`${output}/results.json`, JSON.stringify({ mode: android ? 'real adb swipe' : 'Chromium touch', results, errors }, null, 2));
-  console.log(`PASS: ${results.length} page/viewport checks; ${android ? 'real adb swipe, back and 5 resumes' : '6 viewport profiles'}`);
+  console.log(`PASS: ${results.length} page/viewport checks; ${android ? 'real adb swipe, back and 5 resumes' : 'Chromium touch profiles'}`);
 } catch (error) {
   writeFileSync(`${output}/failure.json`, JSON.stringify({ error: String(error), results, errors }, null, 2));
   throw error;

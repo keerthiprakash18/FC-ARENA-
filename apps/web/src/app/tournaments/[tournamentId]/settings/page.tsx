@@ -493,6 +493,67 @@ export default function TournamentSettingsPage() {
     }
   }
 
+  async function resetFixtureDraw() {
+    if (busy || !tournament) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const preview = await authenticatedRequest<{
+        data: {
+          tournamentName: string;
+          allowed: boolean;
+          blocker: string | null;
+          fixtureCount: number;
+          matchCount: number;
+          scheduledCount: number;
+        };
+      }>(`/tournaments/${tournamentId}/fixtures/reset-preview`);
+
+      if (!preview.data.allowed) {
+        setError(preview.data.blocker ||
+          'Reset is blocked because this tournament has recorded activity.');
+        return;
+      }
+      if (preview.data.fixtureCount === 0) {
+        setMessage('There are no fixtures to reset.');
+        return;
+      }
+
+      const details = [
+        `Fixtures: ${preview.data.fixtureCount}`,
+        `Match records: ${preview.data.matchCount}`,
+        `Scheduled fixtures: ${preview.data.scheduledCount}`,
+        '',
+        'This permanently removes all fixtures, match records and schedules.',
+        'Tournament registrations and group assignments remain unchanged.',
+        'All participants may need a fresh schedule announcement.',
+      ].join('\n');
+      if (!window.confirm(`RESET FIXTURE DRAW?\n\n${details}`)) return;
+
+      const confirmation = window.prompt(
+        `Type the exact tournament name to confirm:\n${preview.data.tournamentName}`,
+      );
+      if (confirmation !== preview.data.tournamentName) {
+        setError('Reset cancelled: tournament name did not match exactly.');
+        return;
+      }
+      const response = await authenticatedRequest<{
+        data: { message: string; deletedFixtures: number };
+      }>(`/tournaments/${tournamentId}/fixtures/reset`, {
+        method: 'POST',
+        body: JSON.stringify({ confirmation }),
+      });
+      setMessage(response.data.message);
+      await loadTournament();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to reset the fixture draw.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function exportVerifiedResults() {
     setBusy(true);
     try {
@@ -691,6 +752,32 @@ export default function TournamentSettingsPage() {
           ) : null}
          </FcPanel>
 
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="border border-rose-300 bg-rose-50 p-5 text-slate-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-slate-100">
+            <p className="text-xs font-black uppercase tracking-wider text-rose-800 dark:text-rose-200">
+              Fixture Management
+            </p>
+            <h2 className="mt-2 text-xl font-black">Reset Fixtures &amp; Start Again</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+              Delete the existing draw and schedules, then generate fresh fixtures
+              in the Tournament Wizard. Teams, registrations and groups stay
+              intact. This action cannot be undone.
+            </p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-rose-800 dark:text-rose-200">
+              To protect player results, resets are blocked after a match starts,
+              any score or dispute is submitted, or statistics are recorded.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void resetFixtureDraw()}
+              className="mt-4 min-h-12 w-full rounded-xl bg-rose-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50 sm:w-auto"
+            >
+              {busy ? 'Checking...' : 'Reset Fixture Draw'}
+            </button>
+          </FcPanel>
+        ) : null}
 
         {tournament.isLeagueAdmin ? (
           <>

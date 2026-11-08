@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
 /**
@@ -14,7 +15,7 @@ export class TournamentFixtureResetService {
     private readonly authorization: AuthorizationService,
   ) {}
 
-  private async inspectTx(tx: any, tournamentId: string) {
+  private async inspectTx(tx: Prisma.TransactionClient, tournamentId: string) {
     const tournament = await tx.tournament.findUnique({
       where: { id: tournamentId },
       select: {

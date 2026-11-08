@@ -77,6 +77,14 @@ export class FixturesService {
       });
     }
 
+    if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
+      !['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat)) {
+      throw new ConflictException({ success: false, data: null, error: {
+        code: 'USE_GROUP_FIXTURE_GENERATOR',
+        message: 'Multiple Group tournaments must generate fixtures separately per group through the Group Manager or Fixture Wizard.',
+      } });
+    }
+
     const registrations =
       await this.prisma.tournamentRegistration.findMany({
         where: {

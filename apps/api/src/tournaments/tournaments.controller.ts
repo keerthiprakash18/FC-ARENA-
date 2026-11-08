@@ -580,6 +580,23 @@ export class TournamentsController {
     );
   }
 
+  @Get('tournaments/:tournamentId/fixtures/full-reset-preview')
+  previewFullTournamentDrawReset(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.fixtureResetService.previewFullDraw(request.user.sub, tournamentId);
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/full-reset')
+  resetFullTournamentDraw(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() body: { confirmation?: string },
+  ) {
+    return this.fixtureResetService.resetFullDraw(request.user.sub, tournamentId, body?.confirmation);
+  }
+
   @Get('tournaments/:tournamentId/fixtures/reset-preview')
   previewFixtureReset(
     @Req() request: AuthenticatedRequest,

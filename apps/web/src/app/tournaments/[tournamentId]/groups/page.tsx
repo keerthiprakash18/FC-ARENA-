@@ -860,15 +860,33 @@ export default function TournamentGroupsPage() {
         ) : null}
 
         {locked ? (
-          <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.05] p-4 text-sm leading-6 text-sky-200">
-            Fixtures have been generated. Admins can still rename groups,
-            move teams, or rebalance the draw when affected matches have
-            not been scheduled, started or reported. Other fixtures are preserved.
-          </div>
+          <section aria-label="Generated fixtures notice"
+            className="rounded-2xl border border-[#8fc6de] !bg-[#eaf5fb] p-4 !text-[#12384c]">
+            <p className="text-sm font-black leading-6 !text-[#12384c]">
+              Fixtures are already generated
+            </p>
+            <p className="mt-2 text-sm leading-6 !text-[#20495c]">
+              Group names can still be edited. Team moves and rebalancing are allowed
+              only when the affected fixtures have no schedules, match activity or results.
+              This protects existing match IDs, dates and standings.
+            </p>
+            {tournament.isLeagueAdmin ? (
+              <Link href={`/tournaments/${tournamentId}/settings`}
+                className="mt-3 inline-flex min-h-11 items-center rounded-xl !bg-[#155e75] px-4 py-2 text-sm font-bold !text-white">
+                Need a fresh draw? Open Fixture Reset in Settings
+              </Link>
+            ) : null}
+          </section>
         ) : null}
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
+        {locked && error && tournament.isLeagueAdmin ? (
+          <Link href={`/tournaments/${tournamentId}/settings`}
+            className="inline-flex min-h-11 items-center rounded-xl border border-[#bf616d] !bg-[#fff1f2] px-4 py-2 text-sm font-bold !text-[#8b2131]">
+            Review Fixture Reset / Reconfigure Options
+          </Link>
+        ) : null}
 
         {tournament.isLeagueAdmin &&
         !locked ? (

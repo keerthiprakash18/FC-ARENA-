@@ -174,7 +174,7 @@ def activate(release):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
     save(rollback / 'changed-files.json', changed)
-    (BASE / 'release.env').write_text('FC_ARENA_RELEASE_SHA=' + release + '\n')
+    (BASE / 'release.env').write_text('FC_ARENA_RELEASE_SHA=' + release + '\nNEXT_DEPLOYMENT_ID=' + release[:32] + '\nVERCEL_GIT_COMMIT_SHA=' + release + '\nNEXT_PUBLIC_FC_ARENA_RELEASE_SHA=' + release + '\n')
     os.chmod(BASE / 'release.env', 0o600)
     save(BASE / 'activation.json', {'release': release, 'state': 'activating'})
     command(['systemctl', 'stop', 'fcarena-api', 'fcarena-web'])

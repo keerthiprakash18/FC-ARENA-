@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { _android, chromium } from 'playwright';
+import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
 
 const android = process.env.ANDROID_SMOKE === '1';
 const output = process.env.SMOKE_OUTPUT || '/tmp/fcarena-smoke';
@@ -54,6 +55,8 @@ async function prepare(page) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
         case '/api/auth/preferences/dashboard': data = { preferences: { hiddenSections: [] } }; break;
+        case '/api/experience/me/check-in': data = collectedDailyFixture(); break;
+        case '/api/experience/me': data = emptyExperience; break;
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
@@ -68,7 +71,8 @@ async function prepare(page) {
     }
     if (url.hostname === 'fcarena.in') {
       try {
-        const response = await fetch(`${process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000'}${url.pathname}${url.search}`, { headers: { ...route.request().headers(), host: 'localhost:3000' } });
+        const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
+        const response = await fetch(`${origin}${url.pathname}${url.search}`, { headers: { ...route.request().headers(), host: new URL(origin).host } });
         const headers = Object.fromEntries(response.headers);
         delete headers['content-encoding']; delete headers['transfer-encoding']; delete headers['content-length'];
         return route.fulfill({ status: response.status, headers, body: Buffer.from(await response.arrayBuffer()) });
@@ -225,6 +229,8 @@ try {
     }
     // Awards and League War are dashboard destinations, not bottom tabs.
     for (const path of ['/awards','/league-war']) {
+      const moreTools = page.locator('details.home-more-tools');
+      if (!(await moreTools.evaluate(node => node.open))) await moreTools.locator('summary').click();
       await page.locator(`.fc-main a[href="${path}"]`).click();
       await page.waitForURL(`**${path}`);
       await page.locator('.fc-main').waitFor();

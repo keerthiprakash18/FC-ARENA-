@@ -14,6 +14,8 @@ import {
 } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
+import { assertBalancedGroups } from './group-balance.js';
+
 import type {
   CreatePreviewFixtureDto,
 } from './dto/create-preview-fixture.dto.js';
@@ -520,6 +522,20 @@ export class TournamentFixturePreviewService {
             'Generate or manually add fixtures before continuing.',
         },
       });
+    }
+
+    if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
+      !['ELITE_CUP', 'UCL_CUP', 'SINGLE_ELIMINATION'].includes(tournament.competitionFormat)) {
+      const [groups, approvedTotal] = await Promise.all([
+        this.prisma.tournamentGroup.findMany({
+          where: { tournamentId },
+          select: { id: true, name: true, registrations: {
+            where: { status: 'APPROVED' }, select: { id: true },
+          } },
+        }),
+        this.prisma.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
+      ]);
+      assertBalancedGroups(groups, approvedTotal);
     }
 
     await this.validateFixtureSet(

@@ -36,6 +36,7 @@ import {
 import {
   TournamentGroupsService,
 } from './tournament-groups.service.js';
+import { SwapTournamentGroupEntriesDto } from './dto/swap-tournament-group-entries.dto.js';
 
 
 type AuthenticatedRequest =
@@ -142,6 +143,25 @@ export class TournamentGroupsAdminController {
     );
   }
 
+
+  @Post('tournaments/:tournamentId/groups/swap')
+  swapTeams(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: SwapTournamentGroupEntriesDto,
+  ) {
+    return this.tournamentGroupsService.swapTeams(
+      request.user.sub, tournamentId, dto.registrationId, dto.otherRegistrationId,
+    );
+  }
+
+  @Post('tournaments/:tournamentId/groups/rebalance')
+  rebalanceGroups(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.tournamentGroupsService.rebalanceGroups(request.user.sub, tournamentId);
+  }
 
   @Post(
     'tournaments/:tournamentId/groups/distribute',

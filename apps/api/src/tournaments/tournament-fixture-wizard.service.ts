@@ -35,6 +35,7 @@ import {
   type PlayoffSourceRef,
 } from './universal-playoff-engine.js';
 import { generateEliteCupSchedule } from './elite-cup-engine.js';
+import { assertBalancedGroups } from './group-balance.js';
 
 
 @Injectable()
@@ -198,6 +199,20 @@ export class TournamentFixtureWizardService {
         tournamentId,
         dto.groupId,
       );
+    }
+
+    if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
+      !['ELITE_CUP', 'UCL_CUP', 'SINGLE_ELIMINATION'].includes(tournament.competitionFormat)) {
+      const [balanceGroups, approvedTotal] = await Promise.all([
+        this.prisma.tournamentGroup.findMany({
+          where: { tournamentId },
+          select: { id: true, name: true, registrations: {
+            where: { status: 'APPROVED' }, select: { id: true },
+          } },
+        }),
+        this.prisma.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
+      ]);
+      assertBalancedGroups(balanceGroups, approvedTotal);
     }
 
     const published =

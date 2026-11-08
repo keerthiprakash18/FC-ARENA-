@@ -73,6 +73,7 @@ interface GroupsResponse {
 
   groups: TournamentGroup[];
   unassigned: GroupEntry[];
+  canEdit: boolean;
 }
 
 function getEntryName(
@@ -154,6 +155,13 @@ export default function TournamentGroupsPage() {
       [],
     );
 
+  const [canEdit, setCanEdit] = useState(false);
+
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+  const [swapFirst, setSwapFirst] = useState('');
+  const [swapSecond, setSwapSecond] = useState('');
+
   const [
     groupNames,
     setGroupNames,
@@ -202,6 +210,8 @@ export default function TournamentGroupsPage() {
     setGroups(
       response.data.groups,
     );
+
+    setCanEdit(response.data.canEdit);
 
     setUnassigned(
       response.data.unassigned,
@@ -520,6 +530,96 @@ export default function TournamentGroupsPage() {
     }
   }
 
+  async function renameGroup(group: TournamentGroup) {
+    const name = editingName.trim();
+    if (!name || name === group.name) {
+      setEditingGroupId(null);
+      return;
+    }
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/${group.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
+      });
+      setMessage(response.data.message);
+      setEditingGroupId(null);
+      await loadGroups(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to rename group.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function swapGroupTeams() {
+    if (!swapFirst || !swapSecond || swapFirst === swapSecond) {
+      setError('Choose two different teams from different groups.');
+      return;
+    }
+    const confirmed = await confirmAction({
+      title: 'Swap teams between groups?',
+      description: 'Both team assignments change together. If fixtures exist, only untouched fixtures from those two groups will be regenerated. Existing played, scheduled or reported matches are protected.',
+      confirmLabel: 'Swap teams',
+      destructive: true,
+    });
+    if (!confirmed) return;
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/swap`, {
+        method: 'POST',
+        body: JSON.stringify({ registrationId: swapFirst, otherRegistrationId: swapSecond }),
+      });
+      setMessage(response.data.message);
+      setSwapFirst('');
+      setSwapSecond('');
+      await loadGroups();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to swap teams.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function rebalanceGroups() {
+    const confirmed = await confirmAction({
+      title: 'Rebalance tournament groups?',
+      description: 'Only the minimum number of teams will move. If fixtures exist, affected unscheduled group fixtures will be regenerated; other fixtures remain unchanged. This is blocked when match activity or results exist.',
+      confirmLabel: 'Rebalance groups',
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string; changedTeams: number; regeneratedFixtures: number };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/rebalance`, { method: 'POST' });
+      setMessage(response.data.message);
+      await loadGroups();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to rebalance groups.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function changeGroup(
     entry:
       GroupEntry,
@@ -543,7 +643,7 @@ export default function TournamentGroupsPage() {
   async function _generateGroupFixtures() {
     const confirmed =
       (await confirmAction(
-        { title: 'Generate group fixtures?', description: 'Generate group-stage fixtures now? Group assignments will be locked after generation.', confirmLabel: 'Generate fixtures' },
+        { title: 'Generate group fixtures?', description: 'Generate group fixtures now? Admins may later correct groups only when affected matches have no activity.', confirmLabel: 'Generate fixtures' },
       ));
 
     if (!confirmed) {
@@ -620,13 +720,20 @@ export default function TournamentGroupsPage() {
     );
 
   const registrationClosed =
-    tournament.status ===
-    'REGISTRATION_CLOSED';
+    tournament.status === 'REGISTRATION_CLOSED' || tournament.status === 'ACTIVE';
 
   const canManage =
-    tournament.isLeagueAdmin &&
-    !locked &&
-    registrationClosed;
+    canEdit &&
+    !['COMPLETED', 'CANCELLED'].includes(tournament.status);
+
+  const allGroupTeams = groups.flatMap((group) =>
+    group.entries.map((entry) => ({
+      id: entry.id,
+      groupId: group.id,
+      label: `${getEntryName(entry)} — ${group.name}`,
+    })),
+  );
+  const selectedSwapGroup = allGroupTeams.find((entry) => entry.id === swapFirst)?.groupId;
 
   const groupCounts =
     groups.map(
@@ -666,7 +773,9 @@ export default function TournamentGroupsPage() {
     groups.length >= 2 &&
     unassigned.length ===
       0 &&
-    everyGroupPlayable;
+    everyGroupPlayable &&
+    balanced &&
+    !locked;
 
   return (
     <AppShell
@@ -751,17 +860,33 @@ export default function TournamentGroupsPage() {
         ) : null}
 
         {locked ? (
-          <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.05] p-4 text-sm leading-6 text-sky-200">
-            Fixtures have already
-            been generated.
-            Tournament groups are
-            now locked and can only
-            be viewed.
-          </div>
+          <section aria-label="Generated fixtures notice"
+            className="rounded-2xl border border-[#8fc6de] !bg-[#eaf5fb] p-4 !text-[#12384c]">
+            <p className="text-sm font-black leading-6 !text-[#12384c]">
+              Fixtures are already generated
+            </p>
+            <p className="mt-2 text-sm leading-6 !text-[#20495c]">
+              Group names can still be edited. Team moves and rebalancing are allowed
+              only when the affected fixtures have no schedules, match activity or results.
+              This protects existing match IDs, dates and standings.
+            </p>
+            {tournament.isLeagueAdmin ? (
+              <Link href={`/tournaments/${tournamentId}/settings`}
+                className="mt-3 inline-flex min-h-11 items-center rounded-xl !bg-[#155e75] px-4 py-2 text-sm font-bold !text-white">
+                Need a fresh draw? Open Fixture Reset in Settings
+              </Link>
+            ) : null}
+          </section>
         ) : null}
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
+        {locked && error && tournament.isLeagueAdmin ? (
+          <Link href={`/tournaments/${tournamentId}/settings`}
+            className="inline-flex min-h-11 items-center rounded-xl border border-[#bf616d] !bg-[#fff1f2] px-4 py-2 text-sm font-bold !text-[#8b2131]">
+            Review Fixture Reset / Reconfigure Options
+          </Link>
+        ) : null}
 
         {tournament.isLeagueAdmin &&
         !locked ? (
@@ -1010,6 +1135,67 @@ export default function TournamentGroupsPage() {
                 ) : null}
               </div>
 
+              {canManage && (!balanced || unassigned.length > 0) ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void rebalanceGroups()}
+                  className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+                >
+                  Rebalance Groups (minimum moves)
+                </button>
+              ) : null}
+
+              {canManage && allGroupTeams.length > 1 ? (
+                <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-4">
+                  <p className="text-sm font-black text-sky-300">Swap two teams between groups</p>
+                  <p className="mt-1 text-xs text-slate-400">Use this to edit an already-balanced draw without creating uneven groups.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="text-xs text-slate-400">
+                      Team 1
+                      <select
+                        aria-label="First team to swap"
+                        value={swapFirst}
+                        disabled={busy}
+                        onChange={(event) => {
+                          setSwapFirst(event.target.value);
+                          setSwapSecond('');
+                        }}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-sm text-white"
+                      >
+                        <option value="">Select first team</option>
+                        {allGroupTeams.map((team) => (
+                          <option key={team.id} value={team.id}>{team.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-slate-400">
+                      Team 2 (different group)
+                      <select
+                        aria-label="Second team to swap"
+                        value={swapSecond}
+                        disabled={busy || !swapFirst}
+                        onChange={(event) => setSwapSecond(event.target.value)}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-sm text-white disabled:opacity-40"
+                      >
+                        <option value="">Select second team</option>
+                        {allGroupTeams.filter((team) => team.groupId !== selectedSwapGroup).map((team) => (
+                          <option key={team.id} value={team.id}>{team.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy || !swapFirst || !swapSecond}
+                    onClick={() => void swapGroupTeams()}
+                    className="mt-3 rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#041019] disabled:opacity-40"
+                  >
+                    Confirm Team Swap
+                  </button>
+                </div>
+              ) : null}
+
               <div className="mt-5 grid gap-5 xl:grid-cols-2">
                 {groups.map(
                   (
@@ -1028,10 +1214,48 @@ export default function TournamentGroupsPage() {
                           </p>
 
                           <h3 className="mt-1 text-2xl font-black">
-                            {
-                              group.name
-                            }
+                            {group.name}
                           </h3>
+                          {canManage ? (
+                            editingGroupId === group.id ? (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                <input
+                                  aria-label={`Rename ${group.name}`}
+                                  value={editingName}
+                                  maxLength={40}
+                                  onChange={(event) => setEditingName(event.target.value)}
+                                  className="min-w-0 max-w-[180px] rounded-lg border border-white/10 bg-[#080e15] px-3 py-2 text-sm"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={busy || !editingName.trim()}
+                                  onClick={() => void renameGroup(group)}
+                                  className="rounded-lg bg-emerald-400 px-3 py-2 text-xs font-black text-black disabled:opacity-40"
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingGroupId(null)}
+                                  className="rounded-lg border border-white/10 px-3 py-2 text-xs font-black"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => {
+                                  setEditingGroupId(group.id);
+                                  setEditingName(group.name);
+                                }}
+                                className="mt-2 rounded-lg border border-sky-400/20 px-3 py-2 text-xs font-black text-sky-300 disabled:opacity-40"
+                              >
+                                Rename group
+                              </button>
+                            )
+                          ) : null}
                         </div>
 
                         <div className="grid h-12 min-w-12 place-items-center rounded-2xl bg-sky-400/10 px-3 font-black text-sky-400">

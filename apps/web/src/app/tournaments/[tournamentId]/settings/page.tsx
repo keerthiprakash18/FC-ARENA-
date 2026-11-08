@@ -91,6 +91,19 @@ interface DeadlineCase {
 }
 
 
+interface FixtureResetImpact {
+  tournamentCode: string;
+  tournamentName: string;
+  groupMode: string;
+  fixtures: number;
+  matches: number;
+  scheduled: number;
+  published: number;
+  protectedMatches: number;
+  canReset: boolean;
+  reason: string | null;
+}
+
 interface Registration {
   id: string;
   entryName: string | null;
@@ -180,6 +193,10 @@ export default function TournamentSettingsPage() {
     setDeadlineCases,
   ] = useState<DeadlineCase[]>([]);
 
+  const [resetImpact, setResetImpact] = useState<FixtureResetImpact | null>(null);
+  const [resetConfirmation, setResetConfirmation] = useState('');
+  const [resetPanelOpen, setResetPanelOpen] = useState(false);
+
 
   async function loadTournament() {
     const response =
@@ -216,6 +233,49 @@ export default function TournamentSettingsPage() {
   }
 
 
+  async function loadResetImpact() {
+    try {
+      const response = await authenticatedRequest<{ data: FixtureResetImpact }>(
+        `/tournaments/${tournamentId}/fixtures/reset-impact`,
+      );
+      setResetImpact(response.data);
+    } catch {
+      setResetImpact(null);
+    }
+  }
+
+  async function resetTournamentFixtures() {
+    if (!resetImpact || !resetImpact.canReset) return;
+    const expected = `RESET ${resetImpact.tournamentCode}`;
+    if (resetConfirmation.trim() !== expected) {
+      setError('Type the exact confirmation phrase before resetting fixtures.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const response = await authenticatedRequest<{ data: { message: string } }>(
+        `/tournaments/${tournamentId}/fixtures/reset`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ confirmation: expected }),
+        },
+      );
+      setResetPanelOpen(false);
+      setResetConfirmation('');
+      setMessage(response.data.message);
+      await loadTournament();
+      await loadResetImpact();
+      router.push(`/tournaments/${tournamentId}/${resetImpact.groupMode === 'MULTIPLE_GROUPS' ? 'groups' : 'wizard/fixture-settings'}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fixture reset failed. No fixture changes were confirmed.');
+      await loadResetImpact();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   useEffect(() => {
     void (async () => {
       try {
@@ -224,6 +284,7 @@ export default function TournamentSettingsPage() {
         );
 
         await loadTournament();
+        await loadResetImpact();
       } catch {
         router.replace(
           `/tournaments/${tournamentId}`,
@@ -750,6 +811,95 @@ export default function TournamentSettingsPage() {
               </div>
             </FcPanel>
 
+
+            <section
+              aria-labelledby="fixture-reset-heading"
+              className="rounded-[26px] border border-amber-500/40 !bg-[#fff8ed] p-5 !text-[#172b3e] md:p-6"
+            >
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] !text-[#8a4a07]">
+                Tournament Settings · Fixture Management
+              </p>
+              <h2 id="fixture-reset-heading" className="mt-2 text-xl font-black !text-[#172b3e]">
+                Reset Fixtures &amp; Set Up Again
+              </h2>
+              <p className="mt-2 text-sm leading-6 !text-[#31475a]">
+                Created the wrong draw or need to change your groups? Remove all unplayed fixtures
+                and start the setup again. Approved teams, tournament settings and group names stay saved.
+              </p>
+              {resetImpact ? (
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {([
+                    ['Fixtures', resetImpact.fixtures],
+                    ['Matches', resetImpact.matches],
+                    ['Scheduled', resetImpact.scheduled],
+                    ['Published', resetImpact.published],
+                  ] as const).map(([label, count]) => (
+                    <div key={label} className="rounded-xl border border-amber-500/25 bg-white/80 p-3">
+                      <p className="text-xs font-semibold !text-[#546476]">{label}</p>
+                      <p className="mt-1 text-xl font-black !text-[#172b3e]">{count}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm !text-[#7f4b19]">Checking whether fixtures can be reset...</p>
+              )}
+
+              {resetImpact?.reason ? (
+                <div role="alert" className="mt-4 rounded-xl border border-red-300 !bg-[#fff1f2] p-4 text-sm font-semibold leading-6 !text-[#85232e]">
+                  {resetImpact.reason}
+                </div>
+              ) : null}
+
+              {resetImpact?.canReset ? (
+                <>
+                  {!resetPanelOpen ? (
+                    <button type="button" onClick={() => setResetPanelOpen(true)}
+                      className="mt-4 rounded-xl border border-red-700 px-4 py-3 text-sm font-black !text-[#991b1b]">
+                      Reset All Fixtures
+                    </button>
+                  ) : (
+                    <div className="mt-4 rounded-xl border border-red-300 bg-white p-4">
+                      <p className="font-black !text-[#991b1b]">Permanent fixture reset</p>
+                      <p className="mt-2 text-sm leading-6 !text-[#334155]">
+                        This deletes {resetImpact.fixtures} fixtures and {resetImpact.matches} unplayed match records,
+                        including scheduled dates and published fixture links. Players and groups are retained.
+                        Any existing match results or disputes will block this operation automatically.
+                      </p>
+                      <label className="mt-4 block text-sm font-semibold !text-[#1e293b]">
+                        Type <strong className="font-mono">RESET {resetImpact.tournamentCode}</strong> to confirm
+                        <input
+                          type="text"
+                          value={resetConfirmation}
+                          onChange={(event) => setResetConfirmation(event.target.value)}
+                          autoCapitalize="characters"
+                          autoComplete="off"
+                          spellCheck={false}
+                          className="mt-2 block w-full rounded-xl border border-slate-400 bg-white px-3 py-3 font-mono text-sm !text-[#0f172a]"
+                          placeholder={`RESET ${resetImpact.tournamentCode}`}
+                        />
+                      </label>
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <button type="button" disabled={busy || resetConfirmation.trim() !== `RESET ${resetImpact.tournamentCode}`}
+                          onClick={() => void resetTournamentFixtures()}
+                          className="rounded-xl !bg-[#b91c1c] px-4 py-3 text-sm font-bold !text-white disabled:opacity-40">
+                          {busy ? 'Resetting...' : 'Confirm Reset & Reconfigure'}
+                        </button>
+                        <button type="button" disabled={busy}
+                          onClick={() => { setResetPanelOpen(false); setResetConfirmation(''); }}
+                          className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-bold !text-[#334155]">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : null}
+              {resetImpact?.fixtures === 0 ? (
+                <p className="mt-3 text-sm font-semibold !text-[#17603b]">
+                  No fixtures generated yet. You can already edit groups and create a new draw.
+                </p>
+              ) : null}
+            </section>
 
             <FcPanel className="p-5 sm:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">

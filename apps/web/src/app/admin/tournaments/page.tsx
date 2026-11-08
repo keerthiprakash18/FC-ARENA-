@@ -1,11 +1,15 @@
 'use client';
+import { TournamentRegistrationSummary, type RegistrationSummaryData } from '@/components/tournaments/registration-summary';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+import { useState } from 'react';
 
 import { AdminNavigation } from '@/components/admin/admin-navigation';
 import {
   FcEmptyState,
+  FcErrorState,
+  FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
@@ -24,7 +28,7 @@ interface Membership {
   };
 }
 
-interface Tournament {
+interface Tournament extends RegistrationSummaryData {
   id: string;
   name: string;
   code: string;
@@ -47,66 +51,18 @@ export default function AdminTournamentsPage() {
       [],
     );
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const leagues =
-          await authenticatedRequest<any>(
-            '/leagues/my',
-          );
-
-        const adminLeagues:
-          Membership[] =
-          leagues.data.leagues.filter(
-            (
-              membership:
-                Membership,
-            ) =>
-              Boolean(
-                membership.adminRole,
-              ),
-          );
-
-        const groups =
-          await Promise.all(
-            adminLeagues.map(
-              async (
-                membership,
-              ) => {
-                const response =
-                  await authenticatedRequest<any>(
-                    `/leagues/${membership.league.id}/tournaments`,
-                  );
-
-                return (
-                  response
-                    .data
-                    .tournaments as Tournament[]
-                ).map(
-                  (
-                    tournament,
-                  ) => ({
-                    ...tournament,
-                    leagueName:
-                      membership
-                        .league
-                        .name,
-                  }),
-                );
-              },
-            ),
-          );
-
-        setTournaments(
-          groups.flat(),
-        );
-      } catch {
-        setTournaments(
-          [],
-        );
-      }
-    })();
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const initialLoad = useRecoverableLoad(async signal => {
+    setLoading(true);
+    try {
+      const leagues = await authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my', { signal });
+      const groups = await Promise.all(leagues.data.leagues.filter(item => Boolean(item.adminRole)).map(async membership => {
+        const response = await authenticatedRequest<{ data: { tournaments: Tournament[] } }>(`/leagues/${membership.league.id}/tournaments`, { signal });
+        return response.data.tournaments.map(tournament => ({ ...tournament, leagueName: membership.league.name }));
+      }));
+      if (!signal.aborted) setTournaments(groups.flat());
+    } finally { if (!signal.aborted) setLoading(false); }
+  });
 
   return (
     <SecondaryFeaturePage
@@ -116,7 +72,7 @@ export default function AdminTournamentsPage() {
     >
       <AdminNavigation />
 
-      {tournaments.length === 0 ? (
+      {initialLoad.error ? <FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /> : loading ? <FcLoadingScreen label="Loading admin tournaments..." embedded /> : tournaments.length === 0 ? (
         <FcEmptyState
           title="No admin Tournaments"
           description="Create a Tournament inside a League where you have admin access."
@@ -157,7 +113,7 @@ export default function AdminTournamentsPage() {
 
                     <p className="mt-2 text-xs text-slate-600">
                       {
-                        tournament.approvedEntries
+                        tournament.registeredEntries ?? tournament.approvedEntries + (tournament.pendingEntries ?? 0)
                       }
                       /
                       {
@@ -183,6 +139,7 @@ export default function AdminTournamentsPage() {
                   />
                 </div>
 
+                <div className="mt-4"><TournamentRegistrationSummary tournament={tournament} /></div>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <Link
                     href={
@@ -193,14 +150,14 @@ export default function AdminTournamentsPage() {
                     Overview
                   </Link>
 
-                  <Link
+                  {(tournament.canManageSettings ?? true) ? <Link
                     href={
                       `/tournaments/${tournament.id}/settings`
                     }
                     className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
                   >
                     Settings
-                  </Link>
+                  </Link> : null}
 
                   <Link
                     href={

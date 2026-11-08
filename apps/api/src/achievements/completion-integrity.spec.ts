@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { assertRoundRobinComplete } from './completion-integrity.js';
+import { generateUclLeaguePhase } from '../tournaments/ucl-engine.js';
 
 function completedFixture(id: string, phase = 'STAGE') {
   return {
@@ -23,7 +24,11 @@ function completedFixture(id: string, phase = 'STAGE') {
 }
 
 describe('tournament completion integrity', () => {
-  it('accepts a completed partial UCL Cup league phase', () => {
+  it('accepts eight opponents per team without requiring a full round robin', () => {
+    const teams = Array.from({ length: 36 }, (_, index) => `TEAM-${index + 1}`);
+    const fixtures = generateUclLeaguePhase(teams).fixtures.map((fixture, index) => ({
+      ...completedFixture(`FIXTURE-${index}`), ...fixture, id: `FIXTURE-${index}`,
+    }));
     expect(() =>
       assertRoundRobinComplete(
         {
@@ -31,13 +36,15 @@ describe('tournament completion integrity', () => {
           competitionFormat: 'UCL_CUP',
           legType: 'SINGLE_LEG',
         },
-        Array.from({ length: 10 }, (_, index) => ({
-          id: `TEAM-${index + 1}`,
+        teams.map(id => ({
+          id,
           groupId: null,
         })),
-        [completedFixture('FIXTURE-1'), completedFixture('FIXTURE-2')],
+        fixtures,
       ),
     ).not.toThrow();
+    expect(() => assertRoundRobinComplete({ format: 'ROUND_ROBIN', competitionFormat: 'UCL_CUP', legType: 'SINGLE_LEG' },
+      teams.map(id => ({ id, groupId: null })), fixtures.slice(1))).toThrow();
   });
 
   it('still rejects an incomplete UCL Cup league phase', () => {

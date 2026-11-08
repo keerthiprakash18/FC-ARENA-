@@ -9,6 +9,13 @@ export interface OcrTextLine {
   text: string;
   confidence?: number;
   bbox?: { x0: number; y0: number; x1: number; y1: number };
+  words?: Array<{
+    text: string;
+    offset: number;
+    confidence: number;
+    bbox: { x0: number; y0: number; x1: number; y1: number };
+  }>;
+  source?: 'scoreboard';
 }
 
 export interface OcrProvider {

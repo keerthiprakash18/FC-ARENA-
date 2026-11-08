@@ -145,6 +145,12 @@ export function fixturePairKey(
     fixture.phase ||
     'LEGACY';
 
+  // UCL knockout meetings recur in separate legs and can recur in later
+  // rounds. Preserve each round/position/leg instead of merging the pair.
+  if (competitionFormat === 'UCL_CUP' && phase === 'PLAYOFF' && fixture.matchday != null) {
+    return [phase, fixture.roundNumber, fixture.matchday, home, away].join(':');
+  }
+
   /*
    * Double Round Robin legitimately
    * contains two meetings between the

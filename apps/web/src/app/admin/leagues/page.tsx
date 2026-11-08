@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+import { useState } from 'react';
 
 import { AdminNavigation } from '@/components/admin/admin-navigation';
 import {
   FcEmptyState,
+  FcErrorState,
+  FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
@@ -36,36 +39,14 @@ export default function AdminLeaguesPage() {
       [],
     );
 
-  useEffect(() => {
-    void authenticatedRequest<any>(
-      '/leagues/my',
-    )
-      .then(
-        (
-          response,
-        ) =>
-          setLeagues(
-            response
-              .data
-              .leagues
-              .filter(
-                (
-                  membership:
-                    Membership,
-                ) =>
-                  Boolean(
-                    membership.adminRole,
-                  ),
-              ),
-          ),
-      )
-      .catch(
-        () =>
-          setLeagues(
-            [],
-          ),
-      );
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const initialLoad = useRecoverableLoad(async signal => {
+    setLoading(true);
+    try {
+      const response = await authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my', { signal });
+      if (!signal.aborted) setLeagues(response.data.leagues.filter(item => Boolean(item.adminRole)));
+    } finally { if (!signal.aborted) setLoading(false); }
+  });
 
   return (
     <SecondaryFeaturePage
@@ -75,7 +56,7 @@ export default function AdminLeaguesPage() {
     >
       <AdminNavigation />
 
-      {leagues.length === 0 ? (
+      {initialLoad.error ? <FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /> : loading ? <FcLoadingScreen label="Loading admin leagues..." embedded /> : leagues.length === 0 ? (
         <FcEmptyState
           title="No League admin access"
           description="Admin tools appear only for Leagues where you are OWNER or ADMIN."

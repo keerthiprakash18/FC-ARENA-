@@ -17,6 +17,7 @@ import {
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { uclWinner, mirrorUclReturnLeg, assertUclFirstLegMutable } from './ucl-ties.js';
 
 type Outcome = 'W' | 'D' | 'L';
 
@@ -165,8 +166,13 @@ export class ResultCorrectionService {
           });
         }
 
+        const isUclKnockout = match.tournament.competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF';
+        if (isUclKnockout) await assertUclFirstLegMutable(tx, fixture);
+        if (!isUclKnockout && (dto.homePenaltyScore != null || dto.awayPenaltyScore != null)) {
+          throw new BadRequestException({ success: false, data: null, error: { code: 'PENALTIES_NOT_APPLICABLE', message: 'Penalty scores are only available for UCL knockout matches.' } });
+        }
         if (
-          this.isKnockoutFixture(
+          !isUclKnockout && this.isKnockoutFixture(
             match.tournament.format,
             match.fixture.groupId,
             match.tournament._count.groups,
@@ -192,7 +198,7 @@ export class ResultCorrectionService {
           match.confirmedResult;
 
         const oldWinner =
-          this.getWinnerRegistrationId(
+          isUclKnockout ? await uclWinner(tx, fixture, oldResult) : this.getWinnerRegistrationId(
             home.id,
             away.id,
             oldResult.homeScore,
@@ -200,7 +206,7 @@ export class ResultCorrectionService {
           );
 
         const newWinner =
-          this.getWinnerRegistrationId(
+          isUclKnockout ? await uclWinner(tx, fixture, dto) : this.getWinnerRegistrationId(
             home.id,
             away.id,
             dto.homeScore,
@@ -303,6 +309,8 @@ export class ResultCorrectionService {
 
               awayScore:
                 dto.awayScore,
+              homePenaltyScore: dto.homePenaltyScore ?? null,
+              awayPenaltyScore: dto.awayPenaltyScore ?? null,
 
               status:
                 'CONFIRMED',
@@ -624,8 +632,10 @@ export class ResultCorrectionService {
         const oldResult =
           match.confirmedResult;
 
+        const isUclKnockout = match.tournament.competitionFormat === 'UCL_CUP' && match.fixture.phase === 'PLAYOFF';
+        if (isUclKnockout) await assertUclFirstLegMutable(tx, match.fixture);
         const oldWinner =
-          this.getWinnerRegistrationId(
+          isUclKnockout ? await uclWinner(tx, match.fixture, oldResult) : this.getWinnerRegistrationId(
             home.id,
             away.id,
             oldResult.homeScore,
@@ -1218,6 +1228,7 @@ export class ResultCorrectionService {
                 newRegistrationId,
             },
     });
+    await mirrorUclReturnLeg(tx, targetFixture, targetSlot, newRegistrationId);
   }
 
 

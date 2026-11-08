@@ -241,6 +241,7 @@ export class PlayerCareerService {
   async getMyCareer(
     userId: string,
     dashboard = false,
+    leagueId?: string,
   ) {
     const user =
       await this.prisma.user.findUnique({
@@ -307,7 +308,7 @@ export class PlayerCareerService {
       });
     }
 
-    const statistics =
+    const allStatistics =
       await this.prisma.playerTournamentStatistic.findMany({
         where: {
           userId,
@@ -341,7 +342,7 @@ export class PlayerCareerService {
         },
       });
 
-    const tournamentEntries =
+    const allTournamentEntries =
       await this.prisma.tournamentRegistrationMember.findMany({
         where: {
           userId,
@@ -384,12 +385,24 @@ export class PlayerCareerService {
         },
       });
 
+    const leagues = new Map<string, { id: string; name: string; isMember: boolean }>();
+    for (const membership of user.leagueMemberships) leagues.set(membership.league.id, { id: membership.league.id, name: membership.league.name, isMember: true });
+    for (const entry of [...allStatistics, ...allTournamentEntries]) {
+      const league = entry.tournament.league;
+      if (!leagues.has(league.id)) leagues.set(league.id, { id: league.id, name: league.name, isMember: false });
+    }
+    if (leagueId && !leagues.has(leagueId)) throw new ForbiddenException({ success: false, data: null,
+      error: { code: 'CAREER_LEAGUE_NOT_AVAILABLE', message: 'This League is not part of your player career.' } });
+    const statistics = leagueId ? allStatistics.filter(row => row.tournament.league.id === leagueId) : allStatistics;
+    const tournamentEntries = leagueId ? allTournamentEntries.filter(row => row.tournament.league.id === leagueId) : allTournamentEntries;
+
     const matches =
       await this.prisma.match.findMany({
         where: {
           confirmedResultSubmissionId: {
             not: null,
           },
+          ...(leagueId ? { tournament: { leagueId } } : {}),
 
           OR: [
             {
@@ -517,6 +530,7 @@ export class PlayerCareerService {
       dashboard ? [] : await this.prisma.achievement.findMany({
         where: {
           userId,
+          ...(leagueId ? { tournament: { leagueId } } : {}),
         },
 
         include: {
@@ -919,11 +933,14 @@ export class PlayerCareerService {
             achievements.length,
         },
 
+        availableLeagues: [...leagues.values()],
+        scope: { leagueId: leagueId ?? null, name: leagueId ? leagues.get(leagueId)!.name : 'Overall' },
+
         matchHistory,
 
         tournamentHistory,
 
-        leagueHistory,
+        leagueHistory: leagueId ? leagueHistory.filter(row => row.league.id === leagueId) : leagueHistory,
 
         achievements,
       },

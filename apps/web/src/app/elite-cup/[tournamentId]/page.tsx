@@ -1,11 +1,12 @@
 'use client';
 
+import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
+import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { AppShell } from '@/components/app/app-shell';
-import { EliteCupFormatCard } from '@/components/elite-cup/elite-cup-format-card';
 import {
   competitionLabel,
   FcActionRow,
@@ -31,6 +32,7 @@ interface EliteCupTournament {
   logoUrl?: string | null;
   format?: string | null;
   competitionFormat?: string | null;
+  formatGuide?: TournamentFormatDescription | null;
   status: string;
   visibility?: string;
   maxEntries: number;
@@ -161,7 +163,7 @@ export default function EliteCupTournamentPage() {
           <FcStatCard label="Competition" value="Elite Cup" detail="Filtered by ELITE_CUP" tone="amber" />
         </section>
 
-        <EliteCupFormatCard approvedTeams={tournament.approvedEntries} savedFormat={tournament.competitionFormat} />
+        <TournamentFormatGuide guide={tournament.formatGuide} />
 
         <section>
           <div className="flex flex-wrap items-end justify-between gap-3">

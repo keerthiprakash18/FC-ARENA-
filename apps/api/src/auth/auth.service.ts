@@ -28,6 +28,7 @@ import type {
 } from './auth.types.js';
 import { OtpMailService } from './mail.service.js';
 import { normalizeLoginIdentifier } from './login-identifier.js';
+import { parseDateOfBirth } from './date-of-birth.service.js';
 import type { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import type { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';
@@ -86,6 +87,7 @@ export class AuthService {
     const inGameNameNormalized = inGameName.toLowerCase();
     const phoneNumber = dto.phoneNumber?.trim() || null;
     const gameUid = dto.gameUid?.trim() || null;
+    const dateOfBirth = dto.dateOfBirth === undefined ? null : parseDateOfBirth(dto.dateOfBirth);
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -139,6 +141,7 @@ export class AuthService {
             fullName: dto.fullName.trim(),
             email,
             phoneNumber,
+            dateOfBirth,
             passwordHash,
             status: 'ACTIVE',
           },
@@ -1138,6 +1141,7 @@ export class AuthService {
               anonymousName,
             email:
               anonymousEmail,
+            dateOfBirth: null,
             phoneNumber:
               null,
             passwordHash:
@@ -1152,6 +1156,10 @@ export class AuthService {
               null,
           },
         });
+
+        // Reward history and owned cosmetics are private account data.
+        // Child rows cascade from the wallet; competition records stay intact.
+        await tx.playerRewardWallet.deleteMany({ where: { userId } });
 
         await tx.auditLog.create({
           data: {
@@ -1372,6 +1380,10 @@ export class AuthService {
       Date.now() + REFRESH_TOKEN_SECONDS * 1000,
     );
 
+    // Complete fallible profile reads before consuming the current session.
+    // If storage fails here the existing refresh cookie can still be retried.
+    const themePreference = await this.getThemePreference(session.user.id);
+
     const rotated =
       await this.prisma.$transaction(
         async (tx) => {
@@ -1427,11 +1439,6 @@ export class AuthService {
     if (!rotated) {
       throw this.invalidRefreshToken();
     }
-
-    const themePreference =
-      await this.getThemePreference(
-        session.user.id,
-      );
 
     return {
       success: true,
@@ -1929,6 +1936,7 @@ export class AuthService {
     fullName: string;
     email: string;
     phoneNumber: string | null;
+    dateOfBirth?: Date | null;
     role: string;
     status: string;
     themePreference:
@@ -1948,6 +1956,7 @@ export class AuthService {
       fullName: user.fullName,
       email: user.email,
       phoneNumber: user.phoneNumber,
+      dateOfBirth: user.dateOfBirth?.toISOString().slice(0, 10) ?? null,
       role: user.role,
       status: user.status,
       themePreference:

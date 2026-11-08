@@ -1,3 +1,5 @@
+import { loadTournamentFormatGuide } from '../tournaments/tournament-format-guide.js';
+import { getUclReturnLegAccess } from '../results/ucl-ties.js';
 import {
   ConflictException,
   ForbiddenException,
@@ -96,6 +98,10 @@ export class MatchesService {
 
           participantSide,
 
+          returnLeg: match.tournament.competitionFormat === 'UCL_CUP'
+            ? await getUclReturnLegAccess(this.prisma, match.fixture)
+            : null,
+
           readiness: {
             homeReadyAt:
               match.homeReadyAt,
@@ -143,6 +149,8 @@ export class MatchesService {
 
             format:
               match.tournament.format,
+            competitionFormat: match.tournament.competitionFormat,
+            formatGuide: await loadTournamentFormatGuide(this.prisma, match.tournament.id),
           },
 
           league:
@@ -416,10 +424,19 @@ export class MatchesService {
     userId: string,
     matchId: string,
   ) {
-    await this.getMatchAccess(
-      userId,
-      matchId,
-    );
+    // A stream rechecks scope frequently; fetching all rosters/results is not
+    // necessary to decide whether this league member still has access.
+    const match = await this.prisma.match.findUnique({ where: { id: matchId },
+      select: { tournament: { select: { leagueId: true } } } });
+    if (!match) throw new NotFoundException({ success: false, data: null, error: {
+      code: 'MATCH_NOT_FOUND', message: 'Match could not be found.',
+    } });
+    const member = await this.prisma.leagueMember.findUnique({
+      where: { leagueId_userId: { leagueId: match.tournament.leagueId, userId } }, select: { id: true },
+    });
+    if (!member) throw new ForbiddenException({ success: false, data: null, error: {
+      code: 'LEAGUE_MEMBERSHIP_REQUIRED', message: 'You must be a League member to access this Match Room.',
+    } });
   }
 
   private async getMatchAccess(

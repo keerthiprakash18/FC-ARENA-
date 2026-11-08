@@ -24,10 +24,14 @@ export class JwtAuthGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<
+    return this.authenticateRequest(context.switchToHttp().getRequest<
       Request & { user?: AccessTokenPayload }
-    >();
+    >());
+  }
 
+  // Long-lived connections must revalidate the same session, account and role
+  // checks as ordinary HTTP requests before delivering private updates.
+  async authenticateRequest(request: Request & { user?: AccessTokenPayload }): Promise<boolean> {
     const authorization = request.headers.authorization;
 
     if (!authorization?.startsWith('Bearer ')) {

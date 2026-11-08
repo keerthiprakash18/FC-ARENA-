@@ -476,6 +476,8 @@ export type LeagueWarResultStatus = (typeof LeagueWarResultStatus)[keyof typeof 
 
 
 export const NotificationType = {
+  TOURNAMENT_REGISTRATION_RECEIVED: 'TOURNAMENT_REGISTRATION_RECEIVED',
+  TOURNAMENT_APPLICATION_SUBMITTED: 'TOURNAMENT_APPLICATION_SUBMITTED',
   LEAGUE_JOIN_REQUESTED: 'LEAGUE_JOIN_REQUESTED',
   LEAGUE_REQUEST_APPROVED: 'LEAGUE_REQUEST_APPROVED',
   LEAGUE_REQUEST_REJECTED: 'LEAGUE_REQUEST_REJECTED',
@@ -537,3 +539,23 @@ export const RoleScopeType = {
 } as const
 
 export type RoleScopeType = (typeof RoleScopeType)[keyof typeof RoleScopeType]
+
+
+export const ArenaPostKind = {
+  DISCUSSION: 'DISCUSSION',
+  QUESTION: 'QUESTION',
+  NEWS: 'NEWS',
+  RUMOUR: 'RUMOUR',
+  RESULT: 'RESULT'
+} as const
+
+export type ArenaPostKind = (typeof ArenaPostKind)[keyof typeof ArenaPostKind]
+
+
+export const ArenaReportStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type ArenaReportStatus = (typeof ArenaReportStatus)[keyof typeof ArenaReportStatus]

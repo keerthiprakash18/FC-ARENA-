@@ -1,17 +1,20 @@
 "use client";
+import { useActiveLeague } from '@/lib/active-league';
+import { registerAppRefresh } from '@/lib/app-refresh';
 
+import { hydrateFixtureFeed, loadFixtureFeed } from '@/lib/fixture-feed';
 import { ApiError } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 import { PremiumHero } from "@/components/fc/premium-ui";
 
 import { InlineResultPanel } from "@/components/fixtures/inline-result-panel";
+import { FixtureTeamButton } from '@/components/tournaments/fixture-team-button';
 
 import {
-  FcCrest,
   FcErrorState,
   FcEmptyState,
   FcLoadingScreen,
@@ -48,11 +51,13 @@ interface Tournament {
 interface Entry {
   id: string;
   entryName: string | null;
+  entryLogoUrl?: string | null;
 
   members: Array<{
     id: string;
     fullName: string;
     inGameName: string | null;
+    playerCode?: string | null;
   }>;
 }
 
@@ -65,6 +70,7 @@ interface Fixture {
   status: string;
   scheduledAt: string | null;
   venue?: string | null;
+  phase?: string;
   competitionFormat?: string;
   legType?: string;
 
@@ -173,6 +179,7 @@ function dateGroup(value: string | null) {
 }
 
 function fixtureStage(fixture: FixtureItem) {
+  if (fixture.phase === "PLAYOFF") return "KNOCKOUT";
   if (fixture.group) {
     return "GROUP_STAGE";
   }
@@ -216,7 +223,7 @@ export default function FixturesPage() {
 
   const [memberships, setMemberships] = useState<Membership[]>([]);
 
-  const [selectedLeagueId, setSelectedLeagueId] = useState("");
+  const [selectedLeagueId, setSelectedLeagueId] = useActiveLeague(user?.id, memberships);
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
 
@@ -244,128 +251,87 @@ export default function FixturesPage() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
+  const feedState = useRef<{ leagueId: string; version?: string }>({ leagueId: '' });
+  const refreshFeed = useRef<((force?: boolean) => Promise<boolean>) | null>(null);
+  const [renderPage, setRenderPage] = useState({ key: '', limit: 40 });
 
   useEffect(() => {
+    let active = true, loaded = false;
+    const controller = new AbortController();
     async function load() {
       try {
         const [current, leagues] = await Promise.all([
-          getCurrentUser(),
-
-          authenticatedRequest<{
-            data: {
-              leagues: Membership[];
-            };
-          }>("/leagues/my"),
+          getCurrentUser({ signal: controller.signal }),
+          authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my', { signal: controller.signal }),
         ]);
-
-        setUser(current);
-
-        const items = leagues.data.leagues;
-
-        setMemberships(items);
-
-        const initial =
-          items.find((item) => item.membershipType === "PRIMARY") ?? items[0];
-
-        if (initial) {
-          setSelectedLeagueId(initial.league.id);
-        }
+        if (!active) return;
+        setUser(current); setMemberships(leagues.data.leagues);
+        loaded = true;
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401) router.replace("/login");
-        else setError("Unable to load fixtures. Check your connection and retry.");
-      } finally {
-        setLoading(false);
-      }
+        if (!active) return;
+        if (err instanceof ApiError && err.status === 401) router.replace('/login');
+        else setError(err instanceof ApiError ? err.message : 'Unable to load fixtures. Please retry.');
+      } finally { if (active) setLoading(false); }
     }
-
     void load();
+    const recover = () => { if (!loaded) setRetry(value => value + 1); };
+    window.addEventListener('online', recover);
+    return () => { active = false; controller.abort(); window.removeEventListener('online', recover); };
   }, [router, retry]);
 
   useEffect(() => {
-    async function loadLeagueFixtures() {
-      if (!selectedLeagueId) {
-        setTournaments([]);
-
-        setFixtures([]);
-
-        return;
-      }
-
-      setLoading(true);
-
-      setError("");
-
-      try {
-        const tournamentResponse = await authenticatedRequest<{
-          data: {
-            tournaments: Tournament[];
-          };
-        }>(`/leagues/${selectedLeagueId}/tournaments`);
-
-        const currentMembership = memberships.find(
-          (item) => item.league.id === selectedLeagueId,
-        );
-
-        const competitionList = tournamentResponse.data.tournaments;
-
-        setTournaments(competitionList);
-
-        setSelectedTournamentId("ALL");
-
-        setSelectedGroupId("ALL");
-
-        setSelectedMatchday("ALL");
-
-        setSelectedStage("ALL");
-
-        setSelectedTeam("ALL");
-
-        setExpandedResultMatchId(null);
-
-        const groups = await Promise.all(
-          competitionList.map(async (tournament) => {
-            try {
-              const response = await authenticatedRequest<{
-                data: {
-                  fixtures: Fixture[];
-                  competitionFormat?: string;
-                  legType?: string;
-                };
-              }>(`/tournaments/${tournament.id}/fixtures`);
-
-              return response.data.fixtures.map((fixture) => ({
-                ...fixture,
-
-                competitionFormat: response.data.competitionFormat,
-                legType: response.data.legType,
-
-                tournamentId: tournament.id,
-
-                tournamentName: tournament.name,
-
-                leagueId: selectedLeagueId,
-
-                leagueName: currentMembership?.league.name || "League",
-              }));
-            } catch {
-              setError("Some tournament fixtures could not be loaded. Retry to see the complete schedule.");
-              return [];
-            }
-          }),
-        );
-
-        setFixtures(groups.flat());
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Unable to load fixtures.",
-        );
-      } finally {
-        setLoading(false);
-      }
+    if (!selectedLeagueId) return;
+    let active = true, epoch = 0;
+    let requestController: AbortController | null = null;
+    let pending: Promise<boolean> | null = null;
+    if (feedState.current.leagueId !== selectedLeagueId) {
+      feedState.current = { leagueId: selectedLeagueId };
+      setFixtures([]); setTournaments([]); setLoading(true); setError('');
+      setSelectedTournamentId('ALL'); setSelectedGroupId('ALL'); setSelectedMatchday('ALL');
+      setSelectedStage('ALL'); setSelectedTeam('ALL'); setExpandedResultMatchId(null);
     }
-
-    void loadLeagueFixtures();
-  }, [memberships, selectedLeagueId, retry]);
+    const load = (force = false): Promise<boolean> => {
+      if (!active || navigator.onLine === false || (!force && document.visibilityState === 'hidden')) return Promise.resolve(false);
+      if (pending && !force) return pending;
+      requestController?.abort(); requestController = new AbortController();
+      const generation = ++epoch;
+      const signal = requestController.signal;
+      const current = (async () => {
+        try {
+          const feed = await loadFixtureFeed(selectedLeagueId, force ? undefined : feedState.current.version, signal);
+          if (!active || generation !== epoch) return false;
+          if (!feed.unchanged) {
+            feedState.current = { leagueId: selectedLeagueId, version: feed.version };
+            setTournaments(feed.tournaments); setFixtures(hydrateFixtureFeed(feed));
+          }
+          setError('');
+          return true;
+        } catch (err) {
+          if (!active || signal.aborted || generation !== epoch) return false;
+          if (err instanceof ApiError && err.status === 401) router.replace('/login');
+          else setError(err instanceof ApiError ? err.message : 'Unable to refresh fixtures. Your loaded schedule is still available.');
+          return false;
+        } finally {
+          if (active && generation === epoch) { setLoading(false); pending = null; }
+        }
+      })();
+      pending = current;
+      return current;
+    };
+    refreshFeed.current = load;
+    const unsubscribeRefresh = registerAppRefresh(() => load(true));
+    void load();
+    const refresh = () => { void load(); };
+    const timer = window.setInterval(refresh, 15_000);
+    window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      active = false; epoch++; requestController?.abort(); window.clearInterval(timer); unsubscribeRefresh();
+      if (refreshFeed.current === load) refreshFeed.current = null;
+      window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [selectedLeagueId, retry, router]);
 
   const selectedMembership = useMemo(
     () =>
@@ -520,143 +486,18 @@ export default function FixturesPage() {
     );
   }, [fixtures, selectedTournamentId, selectedGroupId]);
 
-  async function refreshTournamentFixtures(
-    tournamentId: string,
-    tournamentName: string,
-  ) {
-    const response = await authenticatedRequest<{
-      data: {
-        fixtures: Fixture[];
-        competitionFormat?: string;
-        legType?: string;
-      };
-    }>(`/tournaments/${tournamentId}/fixtures`);
-
-    setFixtures((current) => [
-      ...current.filter((fixture) => fixture.tournamentId !== tournamentId),
-
-      ...response.data.fixtures.map((fixture) => ({
-        ...fixture,
-        competitionFormat: response.data.competitionFormat,
-        legType: response.data.legType,
-
-        tournamentId,
-        tournamentName,
-
-        leagueId: selectedLeagueId,
-
-        leagueName: selectedMembership?.league.name || "League",
-      })),
-    ]);
+  async function refreshTournamentFixtures() {
+    await refreshFeed.current?.(true);
   }
 
-  useEffect(() => {
-    if (!selectedLeagueId || tournaments.length === 0) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function syncOpponentFixtureUpdates() {
-      if (document.visibilityState === "hidden") {
-        return;
-      }
-
-      const currentMembership = memberships.find(
-        (item) => item.league.id === selectedLeagueId,
-      );
-
-      const refreshed = await Promise.all(
-        tournaments.map(async (tournament) => {
-          try {
-            const response = await authenticatedRequest<{
-              data: {
-                fixtures: Fixture[];
-                competitionFormat?: string;
-                legType?: string;
-              };
-            }>(`/tournaments/${tournament.id}/fixtures`);
-
-            return {
-              tournamentId: tournament.id,
-
-              fixtures: response.data.fixtures.map((fixture) => ({
-                ...fixture,
-                competitionFormat: response.data.competitionFormat,
-                legType: response.data.legType,
-
-                tournamentId: tournament.id,
-
-                tournamentName: tournament.name,
-
-                leagueId: selectedLeagueId,
-
-                leagueName: currentMembership?.league.name || "League",
-              })),
-            };
-          } catch {
-            return null;
-          }
-        }),
-      );
-
-      if (cancelled) {
-        return;
-      }
-
-      setFixtures((current) => {
-        let next = [...current];
-
-        for (const result of refreshed) {
-          if (!result) {
-            continue;
-          }
-
-          next = [
-            ...next.filter(
-              (fixture) => fixture.tournamentId !== result.tournamentId,
-            ),
-            ...result.fixtures,
-          ];
-        }
-
-        return next;
-      });
-    }
-
-    const interval = window.setInterval(() => {
-      void syncOpponentFixtureUpdates();
-    }, 15_000);
-
-    const onFocus = () => {
-      void syncOpponentFixtureUpdates();
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        void syncOpponentFixtureUpdates();
-      }
-    };
-
-    window.addEventListener("focus", onFocus);
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    return () => {
-      cancelled = true;
-
-      window.clearInterval(interval);
-
-      window.removeEventListener("focus", onFocus);
-
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [memberships, selectedLeagueId, tournaments]);
+  const filterKey = [selectedLeagueId, scope, selectedTournamentId, filter, selectedGroupId, selectedMatchday, selectedStage, selectedTeam].join('\0');
+  const renderLimit = renderPage.key === filterKey ? renderPage.limit : 40;
+  const displayedFixtures = useMemo(() => visibleFixtures.slice(0, renderLimit), [visibleFixtures, renderLimit]);
 
   const grouped = useMemo(() => {
     const groups = new Map<string, FixtureItem[]>();
 
-    for (const fixture of visibleFixtures) {
+    for (const fixture of displayedFixtures) {
       const key = fixtureFilter(fixture) === "COMPLETED" ? "Completed" : dateGroup(fixture.scheduledAt);
 
       const list = groups.get(key) ?? [];
@@ -679,7 +520,7 @@ export default function FixturesPage() {
     return order
       .filter((key) => groups.has(key))
       .map((key) => [key, groups.get(key) ?? []] as const);
-  }, [visibleFixtures]);
+  }, [displayedFixtures]);
 
   const upcomingCount = fixtures.filter(
     (fixture) => fixtureFilter(fixture) === "UPCOMING",
@@ -700,7 +541,7 @@ export default function FixturesPage() {
   if (!user && error) return <AppShell><FcErrorState message={error} onRetry={() => { setError(""); setRetry(value => value + 1); }} /></AppShell>;
 
   if (!user || (loading && memberships.length === 0)) {
-    return <FcLoadingScreen label="Loading Fixtures..." />;
+    return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Fixtures..." embedded /></AppShell>;
   }
 
   return (
@@ -1034,14 +875,10 @@ export default function FixturesPage() {
                                   />
                                 </div>
 
-                                <div className="premium-fixture-sides mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
-                                  <div className="flex min-w-0 items-center justify-end gap-2">
-                                    <p className="truncate text-right text-sm font-black">
-                                      {home}
-                                    </p>
+                              </Link>
 
-                                    <FcCrest name={home} size="sm" />
-                                  </div>
+                                <div className="premium-fixture-sides mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+                                  <FixtureTeamButton entry={fixture.home} name={home} side="HOME" reverse />
 
                                   <span className="rounded-lg border border-sky-400/15 bg-sky-400/[0.05] px-3 py-2 text-[10px] font-black text-sky-300">
                                      {fixture.match?.confirmedResult
@@ -1051,15 +888,8 @@ export default function FixturesPage() {
                                          : "VS"}
                                   </span>
 
-                                  <div className="flex min-w-0 items-center gap-2">
-                                    <FcCrest name={away} size="sm" />
-
-                                    <p className="truncate text-sm font-black">
-                                      {away}
-                                    </p>
-                                  </div>
+                                  <FixtureTeamButton entry={fixture.away} name={away} side="AWAY" />
                                 </div>
-                              </Link>
 
                               <div className="mt-5 flex flex-col gap-3 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-end sm:justify-between">
                                 <div>
@@ -1124,10 +954,7 @@ export default function FixturesPage() {
                                   completed={completed}
                                   matchHref={href}
                                   onSaved={() =>
-                                    refreshTournamentFixtures(
-                                      fixture.tournamentId,
-                                      fixture.tournamentName,
-                                    )
+                                    refreshTournamentFixtures()
                                   }
                                 />
                               ) : null}
@@ -1137,6 +964,7 @@ export default function FixturesPage() {
                       </div>
                     </section>
                   ))}
+                  {visibleFixtures.length > renderLimit ? <button type="button" className="theme-secondary-button min-h-11 w-full rounded-xl border px-4 py-3 font-semibold" onClick={() => setRenderPage({ key: filterKey, limit: renderLimit + 40 })}>Show more matches ({visibleFixtures.length - renderLimit} remaining)</button> : null}
                 </div>
               )}
             </section>

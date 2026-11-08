@@ -20,6 +20,8 @@ import { NotificationsModule } from './notifications/notifications.module.js';
 import { OcrModule } from './ocr/ocr.module.js';
 import { PlayerCareerModule } from './player-career/player-career.module.js';
 import { PublicModule } from './public/public.module.js';
+import { ExperienceModule } from './experience/experience.module.js';
+import { ArenaModule } from './arena/arena.module.js';
 import { RankingsModule } from './rankings/rankings.module.js';
 import { ResultsModule } from './results/results.module.js';
 import { SecurityModule } from './security/security.module.js';
@@ -50,6 +52,8 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
     DiscoverModule,
     FairPlayModule,
     PublicModule,
+    ExperienceModule,
+    ArenaModule,
   ],
 })
 export class AppModule {}

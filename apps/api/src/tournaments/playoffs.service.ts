@@ -32,6 +32,9 @@ import {
   type UniversalPlayoffBlueprint,
 } from './universal-playoff-engine.js';
 import { resolveEliteCupPlayoffQualifierCount } from './elite-cup-engine.js';
+import { buildUclPlayoffPlan, uclQualification } from './ucl-engine.js';
+import { rankUclEntries } from './ucl-ranking.js';
+import { isCanonicalCompletedFixture } from './fixture-deduplication.js';
 
 
 interface RankedEntry {
@@ -45,6 +48,7 @@ interface RankedEntry {
   goalDifference: number;
   goalsFor: number;
   wins: number;
+  uclRank?: number;
 }
 
 interface RankedGroup {
@@ -198,6 +202,7 @@ export class PlayoffsService {
         this.loadApprovedEntries(
           this.prisma,
           tournamentId,
+          tournament.competitionFormat,
         ),
 
         this.prisma.fixture.count({
@@ -245,7 +250,7 @@ export class PlayoffsService {
     }
 
 
-    const source =
+    const source = tournament.competitionFormat === 'UCL_CUP' ? 'OVERALL_STANDINGS' :
       this.resolvePlayoffSource(
         tournament.playoffSource,
         tournament.competitionFormat,
@@ -254,9 +259,12 @@ export class PlayoffsService {
       );
 
 
-    const qualificationTournament =
-      (tournament.competitionFormat === 'ELITE_CUP' ||
-        tournament.competitionFormat === 'UCL_CUP') &&
+    const qualificationTournament = tournament.competitionFormat === 'UCL_CUP' ? {
+      ...tournament,
+      playoffQualifiersTotal: uclQualification(approvedEntries.length).qualifiers,
+      playoffSeedingBasis: 'OVERALL_PERFORMANCE' as const,
+    } :
+      tournament.competitionFormat === 'ELITE_CUP' &&
       tournament.playoffQualifiersTotal === null
         ? {
             ...tournament,
@@ -343,7 +351,7 @@ export class PlayoffsService {
     }
 
 
-    const rawPlan =
+    const rawPlan = tournament.competitionFormat === 'UCL_CUP' ? buildUclPlayoffPlan(seedOrder, approvedEntries.length) :
       buildUniversalPlayoffPlan(
         tournament.playoffFormat,
         seedOrder,
@@ -358,7 +366,7 @@ export class PlayoffsService {
         ) => ({
           ...blueprint,
           roundName:
-            rawPlan.byeCount >
+            tournament.competitionFormat !== 'UCL_CUP' && rawPlan.byeCount >
               0 &&
             blueprint.roundNumber ===
               1 &&
@@ -388,6 +396,7 @@ export class PlayoffsService {
             await this.loadApprovedEntries(
               tx,
               tournamentId,
+              tournament.competitionFormat,
             );
 
 
@@ -537,8 +546,7 @@ export class PlayoffsService {
                   groupId:
                     null,
                   sequence,
-                  matchday:
-                    null,
+                  matchday: 'matchday' in blueprint ? blueprint.matchday as number | null : null,
                   roundNumber:
                     blueprint.roundNumber,
                   roundName:
@@ -1104,6 +1112,7 @@ export class PlayoffsService {
         data: {
           phase:
             'PLAYOFF',
+          matchday: 'matchday' in blueprint ? blueprint.matchday as number | null : null,
           homeRegistrationId:
             blueprint.homeRegistrationId,
           awayRegistrationId:
@@ -1886,6 +1895,7 @@ export class PlayoffsService {
     right:
       RankedEntry,
   ) {
+    if (left.uclRank !== undefined && right.uclRank !== undefined) return left.uclRank - right.uclRank;
     return (
       right.points -
         left.points ||
@@ -2016,6 +2026,7 @@ export class PlayoffsService {
       any,
     tournamentId:
       string,
+    competitionFormat?: string,
   ): Promise<
     RankedEntry[]
   > {
@@ -2049,7 +2060,7 @@ export class PlayoffsService {
       });
 
 
-    return rows.map(
+    const entries: RankedEntry[] = rows.map(
       (
         registration:
           any,
@@ -2089,6 +2100,19 @@ export class PlayoffsService {
           0,
       }),
     );
+    if (competitionFormat === 'UCL_CUP') {
+      const fixtures = await client.fixture.findMany({
+        where: { tournamentId, phase: 'STAGE', status: 'COMPLETED' },
+        include: { match: { include: { confirmedResult: true } } },
+      });
+      const ranked = rankUclEntries(entries.map(entry => ({ id: entry.id, seed: entry.sortOrder })),
+        fixtures.filter(isCanonicalCompletedFixture).filter((fixture: any) => fixture.homeRegistrationId && fixture.awayRegistrationId)
+          .map((fixture: any) => ({ homeId: fixture.homeRegistrationId, awayId: fixture.awayRegistrationId,
+            homeScore: fixture.match.confirmedResult.homeScore, awayScore: fixture.match.confirmedResult.awayScore })));
+      const positions = new Map(ranked.map((entry, index) => [entry.id, index]));
+      entries.forEach(entry => { entry.uclRank = positions.get(entry.id); });
+    }
+    return entries;
   }
 
 
@@ -2123,6 +2147,7 @@ export class PlayoffsService {
             entry.goalDifference,
             entry.goalsFor,
             entry.wins,
+            entry.uclRank ?? '',
           ].join(
             ':',
           ),

@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import Link from "next/link";
+import { PlayoffBracket } from '@/components/tournaments/playoff-bracket';
 
 import {
   useParams,
@@ -221,7 +222,7 @@ export default function PlayoffsPage() {
     useState("");
 
 
-  async function loadFixtures() {
+  async function loadFixtures(signal?: AbortSignal) {
     const response =
       await authenticatedRequest<{
         data: {
@@ -230,14 +231,31 @@ export default function PlayoffsPage() {
         };
       }>(
         `/tournaments/${tournamentId}/fixtures`,
+        signal ? { signal } : {},
       );
 
+    if (signal?.aborted) return;
     setFixtures(
       response
         .data
         .fixtures,
     );
   }
+
+  useEffect(() => {
+    if (!user) return;
+    const controller = new AbortController();
+    let pending = false;
+    const refresh = () => {
+      if (pending || navigator.onLine === false || document.visibilityState === 'hidden') return;
+      pending = true;
+      void loadFixtures(controller.signal).catch(() => undefined).finally(() => { pending = false; });
+    };
+    const timer = window.setInterval(refresh, 20_000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [user?.id, tournamentId]);
 
 
   useEffect(
@@ -958,6 +976,8 @@ export default function PlayoffsPage() {
                 </p>
               ) : null}
             </div>
+
+            <PlayoffBracket fixtures={playoffFixtures} tournamentName={tournament.name} format={tournament.competitionFormat === 'UCL_CUP' ? 'UCL_CUP' : tournament.playoffFormat} />
 
             <div className="premium-bracket-controls">
               <label className="fc-field-label">

@@ -66,10 +66,9 @@ export class TournamentEntriesService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueMember(
-      userId,
-      tournament.leagueId,
-    );
+    if (!(await this.authorization.canManageTournament(userId, tournamentId))) {
+      await this.assertLeagueMember(userId, tournament.leagueId);
+    }
 
     const entries =
       await this.prisma.tournamentRegistration.findMany({
@@ -253,18 +252,20 @@ export class TournamentEntriesService {
     }
 
     const entry = await this.prisma.$transactionWithRetry(async (tx) => {
+      const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
+      if (!current) throw this.tournamentNotFound();
       await assertUniqueEntryName(tx, tournamentId, entryName);
       const currentCount = await tx.tournamentRegistration.count({
         where: { tournamentId, status: { in: ['APPROVED', 'PENDING'] } },
       });
 
-      if (currentCount >= tournament.maxEntries) {
+      if (currentCount >= current.maxEntries) {
         throw new ConflictException({
           success: false,
           data: null,
           error: {
             code: 'TOURNAMENT_ENTRY_LIMIT_REACHED',
-            message: `This Tournament allows a maximum of ${tournament.maxEntries} entries.`,
+            message: `This Tournament allows a maximum of ${current.maxEntries} entries.`,
           },
         });
       }
@@ -370,6 +371,8 @@ export class TournamentEntriesService {
     }
 
     await this.prisma.$transactionWithRetry(async (tx) => {
+      const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
+      if (!current) throw this.tournamentNotFound();
       const existing = await tx.tournamentRegistration.findMany({
         where: { tournamentId, status: { in: ['APPROVED', 'PENDING'] } },
         select: { entryName: true },
@@ -390,13 +393,13 @@ export class TournamentEntriesService {
         });
       }
 
-      if (existing.length + names.length > tournament.maxEntries) {
+      if (existing.length + names.length > current.maxEntries) {
         throw new ConflictException({
           success: false,
           data: null,
           error: {
             code: 'TOURNAMENT_ENTRY_LIMIT_REACHED',
-            message: `Only ${Math.max(0, tournament.maxEntries - existing.length)} more team(s) can be added.`,
+            message: `Only ${Math.max(0, current.maxEntries - existing.length)} more team(s) can be added.`,
           },
         });
       }
@@ -484,7 +487,7 @@ export class TournamentEntriesService {
       });
     }
 
-    const isCaptain = entry.registeredByUserId === userId;
+    const isCaptain = entry.registeredByUserId === userId && entry.members.some(member => member.userId === userId);
     if (!isCaptain) {
       await this.authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_PARTICIPANTS');
     } else if (!['PENDING', 'APPROVED'].includes(entry.status)) {
@@ -495,24 +498,28 @@ export class TournamentEntriesService {
       });
     }
 
-    await this.assertEntriesEditable(
-      tournamentId,
-      tournament.status,
-    );
+    if (['COMPLETED', 'CANCELLED'].includes(tournament.status)) {
+      throw new ConflictException({ success: false, data: null, error: {
+        code: 'TOURNAMENT_TEAMS_LOCKED', message: 'Completed or cancelled Tournament entries cannot be changed.',
+      } });
+    }
+
+    // Names and crests do not change fixture identities or result ownership.
+    // Only roster changes require the participant lock.
+    if (dto.playerCodes !== undefined) await this.assertEntriesEditable(tournamentId, tournament.status);
 
     const updated = await this.prisma.$transactionWithRetry(async (tx) => {
       let nextUserIds: string[] | undefined;
 
       if (dto.playerCodes !== undefined) {
-        const playerCodes = [...new Set(dto.playerCodes.map((code) => code.trim().toUpperCase()).filter(Boolean))];
-
-        if (tournament.teamSize === 1) {
-          throw new BadRequestException({
-            success: false,
-            data: null,
-            error: { code: 'SOLO_ROSTER_LOCKED', message: 'Solo Tournament entries use the registered player automatically.' },
-          });
+        const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId }, select: { status: true } });
+        if (!['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(current.status) ||
+          await tx.fixture.count({ where: { tournamentId } }) > 0) {
+          throw new ConflictException({ success: false, data: null, error: {
+            code: 'TOURNAMENT_TEAMS_HAVE_FIXTURES', message: 'Player changes are locked once fixtures are generated.',
+          } });
         }
+        const playerCodes = [...new Set(dto.playerCodes.map((code) => code.trim().toUpperCase()).filter(Boolean))];
 
         if (playerCodes.length !== tournament.teamSize) {
           throw new BadRequestException({
@@ -536,7 +543,7 @@ export class TournamentEntriesService {
         }
 
         nextUserIds = players.map((player) => player.userId);
-        if (!nextUserIds.includes(entry.registeredByUserId)) {
+        if (entry.members.some(member => member.userId === entry.registeredByUserId) && !nextUserIds.includes(entry.registeredByUserId)) {
           throw new ForbiddenException({
             success: false,
             data: null,

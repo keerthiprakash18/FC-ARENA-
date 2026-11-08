@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FcNotice } from '@/components/fc/fc-ui';
 import { apiRequest } from '@/lib/api';
@@ -19,13 +19,15 @@ function initialRegistrationNotice(): string {
     return '';
   }
 
-  return sessionStorage.getItem('fc_auth_registration_notice') ?? '';
+  try { return sessionStorage.getItem('fc_auth_registration_notice') ?? ''; }
+  catch { return ''; }
 }
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState(initialRegistrationNotice);
+  const [notice, setNotice] = useState('');
+  useEffect(() => { setNotice(initialRegistrationNotice()); }, []);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -60,6 +62,7 @@ export default function LoginPage() {
             expiresIn: number;
 
             user: {
+              dateOfBirth?: string | null;
               themePreference:
                 ThemePreference;
             };
@@ -94,7 +97,7 @@ export default function LoginPage() {
       );
 
       router.replace(
-        '/dashboard',
+        response.data.user.dateOfBirth === null ? '/profile/date-of-birth' : '/dashboard',
       );
       sessionStorage.removeItem(
         'fc_auth_registration_notice',

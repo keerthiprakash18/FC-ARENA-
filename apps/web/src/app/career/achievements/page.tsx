@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useCareerData, careerHref, type CareerScopeData } from '@/lib/career-scope';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+import { CareerLeagueFilter } from '@/components/career/career-league-filter';
 import {
-  useEffect,
   useState,
 } from 'react';
 
@@ -24,8 +26,6 @@ import {
 
 import {
   authenticatedRequest,
-  type CurrentUser,
-  getCurrentUser,
 } from '@/lib/auth-client';
 
 interface Achievement {
@@ -51,7 +51,7 @@ interface SeasonalAward {
   seasonId: string;
 }
 
-interface CareerData {
+interface CareerData extends CareerScopeData {
   profile: {
     fullName: string;
     identity: {
@@ -128,82 +128,22 @@ function publicName(
 }
 
 export default function CareerAchievementsPage() {
-  const [error, setError] = useState('');
-  const [
-    user,
-    setUser,
-  ] =
-    useState<CurrentUser | null>(
-      null,
-    );
-
-  const [
-    career,
-    setCareer,
-  ] =
-    useState<CareerData | null>(
-      null,
-    );
-
-  const [
-    awards,
-    setAwards,
-  ] =
-    useState<AwardsOverview | null>(
-      null,
-    );
-
-  useEffect(() => {
-    void (async () => {
-      const [
-        current,
-        response,
-        awardsResponse,
-      ] =
-        await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{
-            success: true;
-            data: CareerData;
-            error: null;
-          }>(
-            '/players/me/career',
-          ),
-          authenticatedRequest<{
-            success: true;
-            data: AwardsOverview;
-            error: null;
-          }>(
-            '/awards/overview',
-          ),
-        ]);
-
-      setUser(
-        current,
-      );
-
-      setCareer(
-        response.data,
-      );
-
-      setAwards(
-        awardsResponse.data,
-      );
-    })().catch(err => setError(err instanceof Error ? err.message : 'Unable to load Achievements.'));
-  }, []);
-
-  if (error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
-  if (
-    !user ||
-    !career ||
-    !awards
-  ) {
-    return (
-      <FcLoadingScreen
-        label="Loading Achievements..."
-      />
-    );
-  }
+  const { user, career, leagueId, ...careerLoad } = useCareerData<CareerData>();
+  const [overallAwards, setOverallAwards] = useState<AwardsOverview | null>(null);
+  const awardLoad = useRecoverableLoad(async signal => {
+    if (leagueId) return;
+    const response = await authenticatedRequest<{ data: AwardsOverview }>('/awards/overview', { signal });
+    if (!signal.aborted) setOverallAwards(response.data);
+  }, leagueId ?? 'overall');
+  const error = careerLoad.error || (!leagueId ? awardLoad.error : '');
+  if (error) return <AppShell><FcErrorState message={error} onRetry={() => { careerLoad.retry(); awardLoad.retry(); }} /></AppShell>;
+  if (!user || !career || (!leagueId && !overallAwards)) return <FcLoadingScreen label="Loading Achievements..." />;
+  const awards: AwardsOverview = leagueId ? {
+    trophyCabinet: career.achievements.reduce<Record<string, number>>((counts, achievement) => {
+      const key = achievement.type === 'BEST_PLAYER' ? 'PLAYER_OF_TOURNAMENT' : achievement.type;
+      counts[key] = (counts[key] ?? 0) + 1; return counts;
+    }, {}), mySeasonalAwards: [],
+  } : overallAwards!;
 
   const playerName =
     career.profile.identity
@@ -269,7 +209,7 @@ export default function CareerAchievementsPage() {
     >
       <div className="space-y-6">
         <BackHeader
-          backHref="/career"
+          backHref={careerHref('/career', leagueId)}
           backLabel="Career Stats"
           eyebrow="Player Career"
           title="Trophy Cabinet"
@@ -277,6 +217,7 @@ export default function CareerAchievementsPage() {
         />
 
         <CareerNavigation />
+        <CareerLeagueFilter data={career} />
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {cabinet.map(

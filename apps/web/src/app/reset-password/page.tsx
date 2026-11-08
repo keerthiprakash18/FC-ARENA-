@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FcNotice } from '@/components/fc/fc-ui';
 import { apiRequest } from '@/lib/api';
@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
       ? ''
       : sessionStorage.getItem('fc_reset_dev_otp') ?? '',
   );
-  const [devOtp] = useState(() =>
+  const [devOtp, setDevOtp] = useState(() =>
     typeof window === 'undefined'
       ? ''
       : sessionStorage.getItem('fc_reset_dev_otp') ?? '',
@@ -28,6 +28,49 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [resendAt, setResendAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const [cooldownReady, setCooldownReady] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('fc_reset_last_request') || 'null');
+      setResendAt(saved?.email === email.trim().toLowerCase() && Number.isFinite(saved.sentAt) ? Math.min(saved.sentAt + 60_000, Date.now() + 60_000) : 0);
+    } catch { setResendAt(0); }
+    setNow(Date.now()); setCooldownReady(true);
+  }, [email]);
+  const remaining = Math.max(0, Math.ceil((resendAt - now) / 1000));
+  useEffect(() => {
+    if (!remaining) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [remaining]);
+
+  async function resend(event: React.MouseEvent<HTMLButtonElement>) {
+    const emailInput = event.currentTarget.form?.querySelector<HTMLInputElement>('[type="email"]');
+    if (!emailInput?.reportValidity() || remaining || resending || loading) return;
+    setResending(true); setError(''); setNotice('');
+    try {
+      const response = await apiRequest<{ data: { developmentOtp?: string } }>('/auth/forgot-password', {
+        method: 'POST', body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const sentAt = Date.now();
+      setNow(sentAt); setResendAt(sentAt + 60_000); setOtp('');
+      setDevOtp(response.data.developmentOtp ?? '');
+      try {
+        sessionStorage.setItem('fc_reset_email', email);
+        sessionStorage.setItem('fc_reset_last_request', JSON.stringify({ email: email.trim().toLowerCase(), sentAt }));
+        sessionStorage.removeItem('fc_reset_dev_otp');
+        if (response.data.developmentOtp) sessionStorage.setItem('fc_reset_dev_otp', response.data.developmentOtp);
+      } catch { /* Resending still succeeds when device storage is unavailable. */ }
+      setNotice('If an active account matches this email, a new reset code has been requested. Check your inbox and spam folder.');
+    } catch (caught) {
+      // A failed response may follow delivery; respect the server cooldown before another request.
+      const failedAt = Date.now(); setNow(failedAt); setResendAt(failedAt + 60_000);
+      setError(caught instanceof Error ? caught.message : 'Unable to request a new code.');
+    } finally { setResending(false); }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,6 +94,7 @@ export default function ResetPasswordPage() {
 
       sessionStorage.removeItem('fc_reset_email');
       sessionStorage.removeItem('fc_reset_dev_otp');
+      sessionStorage.removeItem('fc_reset_last_request');
 
       router.push('/login');
     } catch (err) {
@@ -98,6 +142,13 @@ export default function ResetPasswordPage() {
             DEVELOPMENT OTP: {devOtp}
           </div>
         ) : null}
+
+        <div className="field">
+          <p className="theme-muted text-sm">Code not received? Check your spam folder or request another code.</p>
+          <button type="button" disabled={!cooldownReady || resending || loading || remaining > 0} onClick={resend} className="theme-secondary-button min-h-11 rounded-xl border px-4 py-3 text-sm font-bold disabled:opacity-50">
+            {resending ? 'Requesting code...' : remaining ? `Resend code in ${remaining}s` : 'Resend code'}
+          </button>
+        </div>
 
         <div className="field">
           <label htmlFor="auth-newPassword">New Password</label>
@@ -158,11 +209,12 @@ export default function ResetPasswordPage() {
         </div>
 
         <FcNotice tone="error">{error}</FcNotice>
+        <FcNotice>{notice}</FcNotice>
 
         <button
           className="primary-button"
           type="submit"
-          disabled={loading}
+          disabled={loading || resending}
           aria-busy={loading}
         >
           {loading ? 'Resetting...' : 'Reset Password'}

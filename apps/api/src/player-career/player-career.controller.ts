@@ -1,4 +1,5 @@
 import { PlayerDashboardService } from './player-dashboard.service.js';
+import { CareerQueryDto } from './dto/career-query.dto.js';
 
 import {
   Body,
@@ -7,6 +8,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -72,9 +74,12 @@ export class PlayerCareerController {
     @Req()
     request:
       AuthenticatedRequest,
+    @Query() query: CareerQueryDto,
   ): Promise<unknown> {
     return this.playerCareerService.getMyCareer(
       request.user.sub,
+      false,
+      query.leagueId,
     );
   }
 

@@ -90,6 +90,11 @@ export class LeagueManagementService {
       });
     }
 
+    const [canManageMembers, canManageSettings] = await Promise.all([
+      this.authorization.hasLeaguePermission(userId, leagueId, 'MANAGE_MEMBERS'),
+      this.authorization.hasLeaguePermission(userId, leagueId, 'MANAGE_SETTINGS'),
+    ]);
+
     return {
       success: true,
       data: {
@@ -104,6 +109,8 @@ export class LeagueManagementService {
           members: league._count.members,
           maxMembers: league.maxMembers,
           pendingApplications: league._count.applications,
+          canManageMembers,
+          canManageSettings,
            membershipType: membership?.type ?? null,
            adminRole: league.admins[0]?.role ?? null,
            isSuperAdmin: requesterIsSuperAdmin,

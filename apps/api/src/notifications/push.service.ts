@@ -10,6 +10,7 @@ import { cert, initializeApp, type App } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
 import { PrismaService } from '../database/prisma.service.js';
 import { NotificationsService } from './notifications.service.js';
+import { FIXTURE_DAY_REMINDER, FixtureDayRemindersService } from './fixture-day-reminders.service.js';
 
 @Injectable()
 export class PushService implements OnModuleInit, OnModuleDestroy {
@@ -20,6 +21,7 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly fixtureReminders?: FixtureDayRemindersService,
   ) {}
   onModuleInit() {
     if (process.env.PUSH_ENABLED !== 'true') return;
@@ -302,6 +304,8 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
               }))
             )
               break;
+            if (item.entityType === FIXTURE_DAY_REMINDER &&
+              !(await this.fixtureReminders?.canDeliver(device.userId, item.entityId, item.href))) continue;
             await this.prisma.pushDelivery.createMany({
               data: [{ deviceId: device.id, notificationId: item.id }],
               skipDuplicates: true,

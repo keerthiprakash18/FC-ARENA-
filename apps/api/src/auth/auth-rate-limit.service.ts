@@ -23,7 +23,10 @@ type RateLimitAction =
   | 'VERIFY_EMAIL_IP'
   | 'REFRESH_IP'
   | 'ACCOUNT_DELETION_REQUEST_IP'
-  | 'ACCOUNT_DELETE_USER';
+  | 'ACCOUNT_DELETE_USER'
+  | 'DAILY_REWARD_CLAIM'
+  | 'COIN_COSMETIC_PURCHASE'
+  | 'COIN_COSMETIC_EQUIP';
 
 @Injectable()
 export class AuthRateLimitService

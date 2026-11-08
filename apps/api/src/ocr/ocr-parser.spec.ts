@@ -79,6 +79,18 @@ describe('scoreboard extraction', () => {
       detectScore([{ text: '2-1', confidence: 0.25 }], 0.99).confidence,
     ).toBe(0.25);
   });
+
+  it('prefers isolated final-header digits over badge numbers in another pass', () => {
+    const parsed = parseOcrResult({
+      text: 'Alpha 1-4 Beta', confidence: 0.95,
+      alternatives: [{
+        text: '', confidence: 0.9,
+        lines: [{ text: 'Alpha Beta', confidence: 0.9 },
+          { text: '1 - 0', confidence: 0.9, source: 'scoreboard' }],
+      }],
+    }, [alpha], [beta]);
+    expect(parsed.score).toMatchObject({ homeScore: 1, awayScore: 0, confidence: 0.9 });
+  });
 });
 
 describe('participant matching and fixture orientation', () => {
@@ -135,6 +147,16 @@ describe('participant matching and fixture orientation', () => {
     ).toBeLessThan(0.5);
   });
 
+  it('uses geometry when badge fragments add extra rows between the names and goals', () => {
+    const parsed = parseOcrResult({ text: '', confidence: 0.9, lines: [
+      { text: 'Beta', bbox: { x0: 100, x1: 200, y0: 40, y1: 70 } },
+      { text: 'Alpha', bbox: { x0: 600, x1: 700, y0: 40, y1: 70 } },
+      ...lines('badge', 'badge', 'badge', 'badge', 'badge'),
+      { text: '2 - 0', confidence: 0.9, source: 'scoreboard', bbox: { x0: 300, x1: 500, y0: 90, y1: 150 } },
+    ] }, [alpha], [beta]);
+    expect(parsed.score).toMatchObject({ homeScore: 0, awayScore: 2, confidence: 0.9 });
+  });
+
   it('keeps uncertain sides and missing participants below the autofill threshold', () => {
     expect(
       parseOcrResult(
@@ -153,6 +175,19 @@ describe('participant matching and fixture orientation', () => {
         0.95,
       ).userId,
     ).toBe('alpha');
+  });
+
+  it('uses the matched name confidence and position instead of an unreadable badge on the same row', () => {
+    const matched = matchParticipant([{
+      text: '??? Alpha Beta', confidence: 0,
+      bbox: { x0: 0, y0: 10, x1: 600, y1: 100 },
+      words: [
+        { text: '???', offset: 0, confidence: 0, bbox: { x0: 0, y0: 10, x1: 80, y1: 100 } },
+        { text: 'Alpha', offset: 4, confidence: 0.95, bbox: { x0: 100, y0: 20, x1: 200, y1: 45 } },
+        { text: 'Beta', offset: 10, confidence: 0.96, bbox: { x0: 400, y0: 20, x1: 500, y1: 45 } },
+      ],
+    }], [alpha], 0.1);
+    expect(matched).toMatchObject({ userId: 'alpha', confidence: 0.95, x: 150 });
   });
 
   it('supports Unicode participant names', () => {

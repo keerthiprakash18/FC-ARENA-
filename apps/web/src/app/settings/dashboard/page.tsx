@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { AppShell } from '@/components/app/app-shell';
 import { FcErrorState, FcLoadingScreen, FcPageHeader, FcPanel } from '@/components/fc/fc-ui';
 import { authenticatedRequest, getCurrentUser, type CurrentUser } from '@/lib/auth-client';
@@ -23,20 +24,15 @@ export default function DashboardPreferencesPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [current, response] = await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{ data: { preferences: DashboardPreferences } }>('/auth/preferences/dashboard'),
-        ]);
-        setUser(current);
-        setHiddenSections(response.data.preferences.hiddenSections ?? []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unable to load dashboard preferences.');
-      }
-    })();
-  }, []);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, response] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<{ data: { preferences: DashboardPreferences } }>('/auth/preferences/dashboard', { signal }),
+    ]);
+    if (signal.aborted) return;
+    setUser(current);
+    setHiddenSections(response.data.preferences.hiddenSections ?? []);
+  });
 
   async function toggle(key: DashboardSection) {
     const next = hiddenSections.includes(key)
@@ -60,10 +56,11 @@ export default function DashboardPreferencesPage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) return <FcLoadingScreen label="Loading Dashboard Preferences..." />;
   const playerName = user.player?.identity?.inGameName || user.fullName;
   return (
-    <AppShell playerName={playerName}>
+    <AppShell currentUser={user} playerName={playerName}>
       <div className="space-y-6">
         <FcPageHeader eyebrow="Account" title="Dashboard Preferences" subtitle="Choose which dashboard sections appear. This keeps customization safe and portable without changing dashboard data or card ordering." />
         {error ? <FcErrorState message={error} onRetry={() => window.location.reload()} /> : null}

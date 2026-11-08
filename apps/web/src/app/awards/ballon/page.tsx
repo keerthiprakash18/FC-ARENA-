@@ -139,30 +139,36 @@ export default function BallonSeasonsPage() {
     ).length;
 
   useEffect(() => {
-    void authenticatedRequest<any>(
-      '/ballon/seasons',
-    )
-      .then(
-        (
-          response,
-        ) =>
-          setSeasons(
-            response
-              .data
-              .seasons ??
-              [],
-          ),
-      )
-      .catch(
-        (
-          err,
-        ) =>
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Unable to load Ballon seasons.',
-          ),
-      );
+    let active = true;
+    let inFlight = false;
+    async function loadSeasons() {
+      if (!active || inFlight) return;
+      inFlight = true;
+      try {
+        const response = await authenticatedRequest<any>('/ballon/seasons');
+        if (active) {
+          setSeasons(response.data.seasons ?? []);
+          setError('');
+        }
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : 'Unable to load Ballon seasons.');
+      } finally {
+        inFlight = false;
+      }
+    }
+    const refreshOnFocus = () => {
+      if (document.visibilityState === 'visible') void loadSeasons();
+    };
+    void loadSeasons();
+    const interval = window.setInterval(refreshOnFocus, 10_000);
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshOnFocus);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshOnFocus);
+    };
   }, []);
 
   return (

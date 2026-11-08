@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useId, useState } from 'react';
+import type { QualificationBand } from '@/lib/tournament-format-guide';
 import { FcCrest } from '@/components/fc/fc-ui';
 
 interface CompactStanding {
@@ -24,10 +25,12 @@ export function CompactStandingsTable({
   label,
   rows,
   highlightedPositions = 1,
+  qualificationBands,
 }: {
   label: string;
   rows: CompactStanding[];
   highlightedPositions?: number;
+  qualificationBands?: QualificationBand[];
 }) {
   const id = useId();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -59,12 +62,13 @@ export function CompactStandingsTable({
           </thead>
           <tbody>
             {rows.map((row, index) => {
+              const band = qualificationBands?.find(band => row.position >= band.from && row.position <= band.to);
               const expanded = expandedId === row.registrationId;
               const detailId = `${id}-detail-${index}`;
               return (
                 <Fragment key={row.registrationId}>
-                  <tr className="fc-compact-team-row" data-highlighted={row.position <= highlightedPositions}>
-                    <td className="fc-compact-rank">{row.position}</td>
+                  <tr className="fc-compact-team-row" data-highlighted={qualificationBands ? !!band : row.position <= highlightedPositions} data-qualification={band?.tone}>
+                    <td className="fc-compact-rank" title={band?.label}>{row.position}{band ? <span className="sr-only"> · {band.label}</span> : null}</td>
                     <th scope="row" className="fc-compact-team-cell">
                       <button type="button" className="fc-compact-team-button" aria-label={`${row.entryName}, ${expanded ? 'hide' : 'show'} statistics`} aria-expanded={expanded} aria-controls={detailId} onClick={() => setExpandedId(expanded ? null : row.registrationId)}>
                         <span aria-hidden="true"><FcCrest name={row.entryName} imageUrl={row.logoUrl} size="sm" /></span>

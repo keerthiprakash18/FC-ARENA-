@@ -34,6 +34,9 @@ desktop.ini
 uploads/
 apps/api/uploads/
 apps/api/storage/ocr-cache/
+apps/api/storage/match-results/
+apps/api/storage/arena-talk/
+apps/api/storage/card-exports/
 
 docker/data/
 

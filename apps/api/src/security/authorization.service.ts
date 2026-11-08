@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 
 type ScopedRoleName =
   | 'TOURNAMENT_ADMIN'
@@ -104,9 +105,9 @@ export class AuthorizationService {
     if (await this.isSuperAdmin(userId)) return true;
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: tournamentId },
-      select: { createdByUserId: true },
+      select: { createdByUserId: true, leagueId: true },
     });
-    return Boolean(tournament && tournament.createdByUserId === userId);
+    return Boolean(tournament && (tournament.createdByUserId === userId || await this.isLeagueOwner(userId, tournament.leagueId)));
   }
 
   async hasLeaguePermission(userId: string, leagueId: string, permission: LeagueAdminPermissionName) {
@@ -116,7 +117,7 @@ export class AuthorizationService {
       select: { role: true, permissions: true },
     });
     if (!admin) return false;
-    return admin.role === 'OWNER' || (admin.permissions as string[]).includes(permission);
+    return admin.role === 'OWNER' || (admin.permissions ?? []).includes(permission);
   }
 
   async assertLeaguePermission(userId: string, leagueId: string, permission: LeagueAdminPermissionName) {
@@ -129,9 +130,14 @@ export class AuthorizationService {
     if (await this.isSuperAdmin(userId)) return true;
     const tournament = await this.prisma.tournament.findUnique({
       where: { id: tournamentId },
-      select: { createdByUserId: true },
+      select: { createdByUserId: true, leagueId: true },
     });
     if (tournament?.createdByUserId === userId) return true;
+    if (tournament && await this.isLeagueOwner(userId, tournament.leagueId)) return true;
+    // League tournament managers review entries across that league. Other
+    // tournament operations still require their own explicit permission.
+    if (tournament && permission === 'MANAGE_PARTICIPANTS' &&
+      await this.hasLeaguePermission(userId, tournament.leagueId, 'MANAGE_TOURNAMENTS')) return true;
     const admin = await this.prisma.tournamentAdmin.findUnique({
       where: { tournamentId_userId: { tournamentId, userId } },
       select: { role: true, permissions: true },
@@ -216,6 +222,8 @@ export class AuthorizationService {
     ) {
       return true;
     }
+
+    if (await this.hasLeaguePermission(userId, tournament.leagueId, 'MANAGE_TOURNAMENTS')) return true;
 
     if (
       await this.hasScopedRole(
@@ -413,6 +421,47 @@ export class AuthorizationService {
         'Result verification permission is required.',
       );
     }
+  }
+
+  /** Matches MANAGE_PARTICIPANTS checks without a permission query per list row. */
+  async registrationReviewScope(userId: string): Promise<Prisma.TournamentWhereInput> {
+    return (await this.tournamentListScopes(userId)).review;
+  }
+
+  async tournamentListScopes(userId: string) {
+    const access = await this.getEffectiveAccess(userId);
+    return { review: this.permissionScope(access, userId, 'MANAGE_PARTICIPANTS'),
+      settings: this.permissionScope(access, userId, 'MANAGE_SETTINGS') };
+  }
+
+  private permissionScope(access: Awaited<ReturnType<AuthorizationService['getEffectiveAccess']>>, userId: string,
+    permission: TournamentAdminPermissionName): Prisma.TournamentWhereInput {
+    if (access.globalRole === 'SUPER_ADMIN') return {};
+    const leagueIds = access.leagueRoles.filter(admin => admin.role === 'OWNER' ||
+      (permission === 'MANAGE_PARTICIPANTS' && admin.permissions.includes('MANAGE_TOURNAMENTS'))).map(admin => admin.leagueId);
+    const tournamentIds = access.tournamentRoles.filter(admin => admin.role === 'OWNER' ||
+      admin.permissions.includes(permission)).map(admin => admin.tournamentId);
+    for (const role of access.scopedRoles) {
+      if (role.role !== 'TOURNAMENT_ADMIN') continue;
+      if (role.scopeType === 'LEAGUE') leagueIds.push(role.scopeId);
+      if (role.scopeType === 'TOURNAMENT') tournamentIds.push(role.scopeId);
+    }
+    return { OR: [{ createdByUserId: userId }, { leagueId: { in: leagueIds } }, { id: { in: tournamentIds } }] };
+  }
+
+  /** The same scopes accepted by canVerifyResult, applied before queue pagination. */
+  async resultVerificationScope(userId: string): Promise<Prisma.TournamentWhereInput> {
+    const access = await this.getEffectiveAccess(userId);
+    if (access.globalRole === 'SUPER_ADMIN') return {};
+    const tournamentIds = access.tournamentRoles.filter(admin =>
+      admin.role === 'OWNER' || admin.permissions.includes('VERIFY_SCORES')).map(admin => admin.tournamentId);
+    const leagueIds: string[] = access.leagueRoles.filter(role => role.role === 'OWNER').map(role => role.leagueId);
+    for (const role of access.scopedRoles) {
+      if (role.role !== 'TOURNAMENT_ADMIN' && role.role !== 'MATCH_OFFICIAL') continue;
+      if (role.scopeType === 'TOURNAMENT') tournamentIds.push(role.scopeId);
+      if (role.scopeType === 'LEAGUE') leagueIds.push(role.scopeId);
+    }
+    return { OR: [{ createdByUserId: userId }, { id: { in: tournamentIds } }, { leagueId: { in: leagueIds } }] };
   }
 
   async getEffectiveAccess(

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 
-import { useRouter } from "next/navigation";
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
@@ -105,7 +105,6 @@ function ThemePreview({ option }: { option: ThemeOption }) {
 }
 
 export default function AppearancePage() {
-  const router = useRouter();
 
   const { themePreference, displayMode, setThemePreference, setDisplayMode } =
     useTheme();
@@ -118,15 +117,10 @@ export default function AppearancePage() {
 
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        setUser(await getCurrentUser());
-      } catch {
-        router.replace("/login");
-      }
-    })();
-  }, [router]);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const current = await getCurrentUser({ signal });
+    if (!signal.aborted) setUser(current);
+  });
 
   async function chooseTheme(nextTheme: ThemePreference) {
     if (saving) {
@@ -167,6 +161,7 @@ export default function AppearancePage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) {
     return <FcLoadingScreen label="Loading Appearance..." />;
   }

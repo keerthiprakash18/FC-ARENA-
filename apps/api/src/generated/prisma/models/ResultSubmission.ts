@@ -29,11 +29,15 @@ export type AggregateResultSubmission = {
 export type ResultSubmissionAvgAggregateOutputType = {
   homeScore: number | null
   awayScore: number | null
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
 }
 
 export type ResultSubmissionSumAggregateOutputType = {
   homeScore: number | null
   awayScore: number | null
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
 }
 
 export type ResultSubmissionMinAggregateOutputType = {
@@ -44,6 +48,8 @@ export type ResultSubmissionMinAggregateOutputType = {
   ocrExtractionId: string | null
   homeScore: number | null
   awayScore: number | null
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
   status: $Enums.ResultSubmissionStatus | null
   reviewedByUserId: string | null
   reviewedAt: Date | null
@@ -60,6 +66,8 @@ export type ResultSubmissionMaxAggregateOutputType = {
   ocrExtractionId: string | null
   homeScore: number | null
   awayScore: number | null
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
   status: $Enums.ResultSubmissionStatus | null
   reviewedByUserId: string | null
   reviewedAt: Date | null
@@ -76,6 +84,8 @@ export type ResultSubmissionCountAggregateOutputType = {
   ocrExtractionId: number
   homeScore: number
   awayScore: number
+  homePenaltyScore: number
+  awayPenaltyScore: number
   status: number
   reviewedByUserId: number
   reviewedAt: number
@@ -89,11 +99,15 @@ export type ResultSubmissionCountAggregateOutputType = {
 export type ResultSubmissionAvgAggregateInputType = {
   homeScore?: true
   awayScore?: true
+  homePenaltyScore?: true
+  awayPenaltyScore?: true
 }
 
 export type ResultSubmissionSumAggregateInputType = {
   homeScore?: true
   awayScore?: true
+  homePenaltyScore?: true
+  awayPenaltyScore?: true
 }
 
 export type ResultSubmissionMinAggregateInputType = {
@@ -104,6 +118,8 @@ export type ResultSubmissionMinAggregateInputType = {
   ocrExtractionId?: true
   homeScore?: true
   awayScore?: true
+  homePenaltyScore?: true
+  awayPenaltyScore?: true
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
@@ -120,6 +136,8 @@ export type ResultSubmissionMaxAggregateInputType = {
   ocrExtractionId?: true
   homeScore?: true
   awayScore?: true
+  homePenaltyScore?: true
+  awayPenaltyScore?: true
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
@@ -136,6 +154,8 @@ export type ResultSubmissionCountAggregateInputType = {
   ocrExtractionId?: true
   homeScore?: true
   awayScore?: true
+  homePenaltyScore?: true
+  awayPenaltyScore?: true
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
@@ -239,6 +259,8 @@ export type ResultSubmissionGroupByOutputType = {
   ocrExtractionId: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore: number | null
+  awayPenaltyScore: number | null
   status: $Enums.ResultSubmissionStatus
   reviewedByUserId: string | null
   reviewedAt: Date | null
@@ -278,6 +300,8 @@ export type ResultSubmissionWhereInput = {
   ocrExtractionId?: Prisma.UuidNullableFilter<"ResultSubmission"> | string | null
   homeScore?: Prisma.IntFilter<"ResultSubmission"> | number
   awayScore?: Prisma.IntFilter<"ResultSubmission"> | number
+  homePenaltyScore?: Prisma.IntNullableFilter<"ResultSubmission"> | number | null
+  awayPenaltyScore?: Prisma.IntNullableFilter<"ResultSubmission"> | number | null
   status?: Prisma.EnumResultSubmissionStatusFilter<"ResultSubmission"> | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"ResultSubmission"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"ResultSubmission"> | Date | string | null
@@ -300,6 +324,8 @@ export type ResultSubmissionOrderByWithRelationInput = {
   ocrExtractionId?: Prisma.SortOrderInput | Prisma.SortOrder
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -325,6 +351,8 @@ export type ResultSubmissionWhereUniqueInput = Prisma.AtLeast<{
   source?: Prisma.EnumResultSubmissionSourceFilter<"ResultSubmission"> | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFilter<"ResultSubmission"> | number
   awayScore?: Prisma.IntFilter<"ResultSubmission"> | number
+  homePenaltyScore?: Prisma.IntNullableFilter<"ResultSubmission"> | number | null
+  awayPenaltyScore?: Prisma.IntNullableFilter<"ResultSubmission"> | number | null
   status?: Prisma.EnumResultSubmissionStatusFilter<"ResultSubmission"> | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"ResultSubmission"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"ResultSubmission"> | Date | string | null
@@ -347,6 +375,8 @@ export type ResultSubmissionOrderByWithAggregationInput = {
   ocrExtractionId?: Prisma.SortOrderInput | Prisma.SortOrder
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -371,6 +401,8 @@ export type ResultSubmissionScalarWhereWithAggregatesInput = {
   ocrExtractionId?: Prisma.UuidNullableWithAggregatesFilter<"ResultSubmission"> | string | null
   homeScore?: Prisma.IntWithAggregatesFilter<"ResultSubmission"> | number
   awayScore?: Prisma.IntWithAggregatesFilter<"ResultSubmission"> | number
+  homePenaltyScore?: Prisma.IntNullableWithAggregatesFilter<"ResultSubmission"> | number | null
+  awayPenaltyScore?: Prisma.IntNullableWithAggregatesFilter<"ResultSubmission"> | number | null
   status?: Prisma.EnumResultSubmissionStatusWithAggregatesFilter<"ResultSubmission"> | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.UuidNullableWithAggregatesFilter<"ResultSubmission"> | string | null
   reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ResultSubmission"> | Date | string | null
@@ -384,6 +416,8 @@ export type ResultSubmissionCreateInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -405,6 +439,8 @@ export type ResultSubmissionUncheckedCreateInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -420,6 +456,8 @@ export type ResultSubmissionUpdateInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -441,6 +479,8 @@ export type ResultSubmissionUncheckedUpdateInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -459,6 +499,8 @@ export type ResultSubmissionCreateManyInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -472,6 +514,8 @@ export type ResultSubmissionUpdateManyMutationInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -487,6 +531,8 @@ export type ResultSubmissionUncheckedUpdateManyInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -518,6 +564,8 @@ export type ResultSubmissionCountOrderByAggregateInput = {
   ocrExtractionId?: Prisma.SortOrder
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
@@ -529,6 +577,8 @@ export type ResultSubmissionCountOrderByAggregateInput = {
 export type ResultSubmissionAvgOrderByAggregateInput = {
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrder
 }
 
 export type ResultSubmissionMaxOrderByAggregateInput = {
@@ -539,6 +589,8 @@ export type ResultSubmissionMaxOrderByAggregateInput = {
   ocrExtractionId?: Prisma.SortOrder
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
@@ -555,6 +607,8 @@ export type ResultSubmissionMinOrderByAggregateInput = {
   ocrExtractionId?: Prisma.SortOrder
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrder
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
@@ -566,6 +620,8 @@ export type ResultSubmissionMinOrderByAggregateInput = {
 export type ResultSubmissionSumOrderByAggregateInput = {
   homeScore?: Prisma.SortOrder
   awayScore?: Prisma.SortOrder
+  homePenaltyScore?: Prisma.SortOrder
+  awayPenaltyScore?: Prisma.SortOrder
 }
 
 export type ResultSubmissionScalarRelationFilter = {
@@ -774,6 +830,8 @@ export type ResultSubmissionCreateWithoutSubmittedByInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -793,6 +851,8 @@ export type ResultSubmissionUncheckedCreateWithoutSubmittedByInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -818,6 +878,8 @@ export type ResultSubmissionCreateWithoutReviewedByInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -838,6 +900,8 @@ export type ResultSubmissionUncheckedCreateWithoutReviewedByInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -884,6 +948,8 @@ export type ResultSubmissionScalarWhereInput = {
   ocrExtractionId?: Prisma.UuidNullableFilter<"ResultSubmission"> | string | null
   homeScore?: Prisma.IntFilter<"ResultSubmission"> | number
   awayScore?: Prisma.IntFilter<"ResultSubmission"> | number
+  homePenaltyScore?: Prisma.IntNullableFilter<"ResultSubmission"> | number | null
+  awayPenaltyScore?: Prisma.IntNullableFilter<"ResultSubmission"> | number | null
   status?: Prisma.EnumResultSubmissionStatusFilter<"ResultSubmission"> | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"ResultSubmission"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"ResultSubmission"> | Date | string | null
@@ -913,6 +979,8 @@ export type ResultSubmissionCreateWithoutMatchInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -932,6 +1000,8 @@ export type ResultSubmissionUncheckedCreateWithoutMatchInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -957,6 +1027,8 @@ export type ResultSubmissionCreateWithoutConfirmedForMatchInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -977,6 +1049,8 @@ export type ResultSubmissionUncheckedCreateWithoutConfirmedForMatchInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1023,6 +1097,8 @@ export type ResultSubmissionUpdateWithoutConfirmedForMatchInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1043,6 +1119,8 @@ export type ResultSubmissionUncheckedUpdateWithoutConfirmedForMatchInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1057,6 +1135,8 @@ export type ResultSubmissionCreateWithoutOcrExtractionInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -1076,6 +1156,8 @@ export type ResultSubmissionUncheckedCreateWithoutOcrExtractionInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1107,6 +1189,8 @@ export type ResultSubmissionUpdateWithoutOcrExtractionInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1126,6 +1210,8 @@ export type ResultSubmissionUncheckedUpdateWithoutOcrExtractionInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1141,6 +1227,8 @@ export type ResultSubmissionCreateWithoutStatEventsInput = {
   source?: $Enums.ResultSubmissionSource
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -1161,6 +1249,8 @@ export type ResultSubmissionUncheckedCreateWithoutStatEventsInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1191,6 +1281,8 @@ export type ResultSubmissionUpdateWithoutStatEventsInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1211,6 +1303,8 @@ export type ResultSubmissionUncheckedUpdateWithoutStatEventsInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1227,6 +1321,8 @@ export type ResultSubmissionCreateManySubmittedByInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1243,6 +1339,8 @@ export type ResultSubmissionCreateManyReviewedByInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedAt?: Date | string | null
   rejectionReason?: string | null
@@ -1255,6 +1353,8 @@ export type ResultSubmissionUpdateWithoutSubmittedByInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1274,6 +1374,8 @@ export type ResultSubmissionUncheckedUpdateWithoutSubmittedByInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1291,6 +1393,8 @@ export type ResultSubmissionUncheckedUpdateManyWithoutSubmittedByInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1304,6 +1408,8 @@ export type ResultSubmissionUpdateWithoutReviewedByInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1324,6 +1430,8 @@ export type ResultSubmissionUncheckedUpdateWithoutReviewedByInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1341,6 +1449,8 @@ export type ResultSubmissionUncheckedUpdateManyWithoutReviewedByInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1355,6 +1465,8 @@ export type ResultSubmissionCreateManyMatchInput = {
   ocrExtractionId?: string | null
   homeScore: number
   awayScore: number
+  homePenaltyScore?: number | null
+  awayPenaltyScore?: number | null
   status?: $Enums.ResultSubmissionStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
@@ -1368,6 +1480,8 @@ export type ResultSubmissionUpdateWithoutMatchInput = {
   source?: Prisma.EnumResultSubmissionSourceFieldUpdateOperationsInput | $Enums.ResultSubmissionSource
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1387,6 +1501,8 @@ export type ResultSubmissionUncheckedUpdateWithoutMatchInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1404,6 +1520,8 @@ export type ResultSubmissionUncheckedUpdateManyWithoutMatchInput = {
   ocrExtractionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   homeScore?: Prisma.IntFieldUpdateOperationsInput | number
   awayScore?: Prisma.IntFieldUpdateOperationsInput | number
+  homePenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  awayPenaltyScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumResultSubmissionStatusFieldUpdateOperationsInput | $Enums.ResultSubmissionStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1451,6 +1569,8 @@ export type ResultSubmissionSelect<ExtArgs extends runtime.Types.Extensions.Inte
   ocrExtractionId?: boolean
   homeScore?: boolean
   awayScore?: boolean
+  homePenaltyScore?: boolean
+  awayPenaltyScore?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1474,6 +1594,8 @@ export type ResultSubmissionSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   ocrExtractionId?: boolean
   homeScore?: boolean
   awayScore?: boolean
+  homePenaltyScore?: boolean
+  awayPenaltyScore?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1494,6 +1616,8 @@ export type ResultSubmissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   ocrExtractionId?: boolean
   homeScore?: boolean
   awayScore?: boolean
+  homePenaltyScore?: boolean
+  awayPenaltyScore?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1514,6 +1638,8 @@ export type ResultSubmissionSelectScalar = {
   ocrExtractionId?: boolean
   homeScore?: boolean
   awayScore?: boolean
+  homePenaltyScore?: boolean
+  awayPenaltyScore?: boolean
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
@@ -1522,7 +1648,7 @@ export type ResultSubmissionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ResultSubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "matchId" | "submittedByUserId" | "source" | "ocrExtractionId" | "homeScore" | "awayScore" | "status" | "reviewedByUserId" | "reviewedAt" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["resultSubmission"]>
+export type ResultSubmissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "matchId" | "submittedByUserId" | "source" | "ocrExtractionId" | "homeScore" | "awayScore" | "homePenaltyScore" | "awayPenaltyScore" | "status" | "reviewedByUserId" | "reviewedAt" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["resultSubmission"]>
 export type ResultSubmissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   match?: boolean | Prisma.MatchDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1563,6 +1689,8 @@ export type $ResultSubmissionPayload<ExtArgs extends runtime.Types.Extensions.In
     ocrExtractionId: string | null
     homeScore: number
     awayScore: number
+    homePenaltyScore: number | null
+    awayPenaltyScore: number | null
     status: $Enums.ResultSubmissionStatus
     reviewedByUserId: string | null
     reviewedAt: Date | null
@@ -2005,6 +2133,8 @@ export interface ResultSubmissionFieldRefs {
   readonly ocrExtractionId: Prisma.FieldRef<"ResultSubmission", 'String'>
   readonly homeScore: Prisma.FieldRef<"ResultSubmission", 'Int'>
   readonly awayScore: Prisma.FieldRef<"ResultSubmission", 'Int'>
+  readonly homePenaltyScore: Prisma.FieldRef<"ResultSubmission", 'Int'>
+  readonly awayPenaltyScore: Prisma.FieldRef<"ResultSubmission", 'Int'>
   readonly status: Prisma.FieldRef<"ResultSubmission", 'ResultSubmissionStatus'>
   readonly reviewedByUserId: Prisma.FieldRef<"ResultSubmission", 'String'>
   readonly reviewedAt: Prisma.FieldRef<"ResultSubmission", 'DateTime'>

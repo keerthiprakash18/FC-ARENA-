@@ -155,7 +155,11 @@ export default function BallonPlayerPage() {
     let active =
       true;
 
+    let inFlight = false;
+
     async function loadPlayer() {
+      if (!active || inFlight) return;
+      inFlight = true;
       try {
         const response =
           await authenticatedRequest<any>(
@@ -194,6 +198,8 @@ export default function BallonPlayerPage() {
             ? err.message
             : 'Unable to load player Ballon profile.',
         );
+      } finally {
+        inFlight = false;
       }
     }
 
@@ -212,7 +218,15 @@ export default function BallonPlayerPage() {
         10_000,
       );
 
+    const refreshOnFocus = () => {
+      if (document.visibilityState === 'visible') void loadPlayer();
+    };
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshOnFocus);
+
     return () => {
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshOnFocus);
       active =
         false;
       window.clearInterval(

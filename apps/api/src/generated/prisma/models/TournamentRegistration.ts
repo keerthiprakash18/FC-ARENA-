@@ -75,6 +75,7 @@ export type TournamentRegistrationCountAggregateOutputType = {
   status: number
   reviewedByUserId: number
   reviewedAt: number
+  notificationMemberIds: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -130,6 +131,7 @@ export type TournamentRegistrationCountAggregateInputType = {
   status?: true
   reviewedByUserId?: true
   reviewedAt?: true
+  notificationMemberIds?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -232,6 +234,7 @@ export type TournamentRegistrationGroupByOutputType = {
   status: $Enums.TournamentRegistrationStatus
   reviewedByUserId: string | null
   reviewedAt: Date | null
+  notificationMemberIds: string[]
   createdAt: Date
   updatedAt: Date
   _count: TournamentRegistrationCountAggregateOutputType | null
@@ -270,6 +273,7 @@ export type TournamentRegistrationWhereInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"TournamentRegistration"> | Date | string | null
+  notificationMemberIds?: Prisma.StringNullableListFilter<"TournamentRegistration">
   createdAt?: Prisma.DateTimeFilter<"TournamentRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TournamentRegistration"> | Date | string
   tournament?: Prisma.XOR<Prisma.TournamentScalarRelationFilter, Prisma.TournamentWhereInput>
@@ -293,6 +297,7 @@ export type TournamentRegistrationOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  notificationMemberIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   tournament?: Prisma.TournamentOrderByWithRelationInput
@@ -319,6 +324,7 @@ export type TournamentRegistrationWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumTournamentRegistrationStatusFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"TournamentRegistration"> | Date | string | null
+  notificationMemberIds?: Prisma.StringNullableListFilter<"TournamentRegistration">
   createdAt?: Prisma.DateTimeFilter<"TournamentRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TournamentRegistration"> | Date | string
   tournament?: Prisma.XOR<Prisma.TournamentScalarRelationFilter, Prisma.TournamentWhereInput>
@@ -342,6 +348,7 @@ export type TournamentRegistrationOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  notificationMemberIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TournamentRegistrationCountOrderByAggregateInput
@@ -365,6 +372,7 @@ export type TournamentRegistrationScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumTournamentRegistrationStatusWithAggregatesFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableWithAggregatesFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TournamentRegistration"> | Date | string | null
+  notificationMemberIds?: Prisma.StringNullableListFilter<"TournamentRegistration">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TournamentRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"TournamentRegistration"> | Date | string
 }
@@ -376,6 +384,7 @@ export type TournamentRegistrationCreateInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -399,6 +408,7 @@ export type TournamentRegistrationUncheckedCreateInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -414,6 +424,7 @@ export type TournamentRegistrationUpdateInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -437,6 +448,7 @@ export type TournamentRegistrationUncheckedUpdateInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -456,6 +468,7 @@ export type TournamentRegistrationCreateManyInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -467,6 +480,7 @@ export type TournamentRegistrationUpdateManyMutationInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -482,6 +496,7 @@ export type TournamentRegistrationUncheckedUpdateManyInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -496,6 +511,14 @@ export type TournamentRegistrationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
+}
+
 export type TournamentRegistrationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tournamentId?: Prisma.SortOrder
@@ -507,6 +530,7 @@ export type TournamentRegistrationCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   reviewedByUserId?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
+  notificationMemberIds?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -727,8 +751,17 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutGroupNestedInput = {
   deleteMany?: Prisma.TournamentRegistrationScalarWhereInput | Prisma.TournamentRegistrationScalarWhereInput[]
 }
 
+export type TournamentRegistrationCreatenotificationMemberIdsInput = {
+  set: string[]
+}
+
 export type EnumTournamentRegistrationStatusFieldUpdateOperationsInput = {
   set?: $Enums.TournamentRegistrationStatus
+}
+
+export type TournamentRegistrationUpdatenotificationMemberIdsInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
 export type TournamentRegistrationCreateNestedOneWithoutMembersInput = {
@@ -798,6 +831,7 @@ export type TournamentRegistrationCreateWithoutRegisteredByInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -819,6 +853,7 @@ export type TournamentRegistrationUncheckedCreateWithoutRegisteredByInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -844,6 +879,7 @@ export type TournamentRegistrationCreateWithoutReviewedByInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -865,6 +901,7 @@ export type TournamentRegistrationUncheckedCreateWithoutReviewedByInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -913,6 +950,7 @@ export type TournamentRegistrationScalarWhereInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFilter<"TournamentRegistration"> | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.UuidNullableFilter<"TournamentRegistration"> | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"TournamentRegistration"> | Date | string | null
+  notificationMemberIds?: Prisma.StringNullableListFilter<"TournamentRegistration">
   createdAt?: Prisma.DateTimeFilter<"TournamentRegistration"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"TournamentRegistration"> | Date | string
 }
@@ -940,6 +978,7 @@ export type TournamentRegistrationCreateWithoutTournamentInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   group?: Prisma.TournamentGroupCreateNestedOneWithoutRegistrationsInput
@@ -961,6 +1000,7 @@ export type TournamentRegistrationUncheckedCreateWithoutTournamentInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -1002,6 +1042,7 @@ export type TournamentRegistrationCreateWithoutGroupInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -1023,6 +1064,7 @@ export type TournamentRegistrationUncheckedCreateWithoutGroupInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -1064,6 +1106,7 @@ export type TournamentRegistrationCreateWithoutMembersInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -1086,6 +1129,7 @@ export type TournamentRegistrationUncheckedCreateWithoutMembersInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   homeFixtures?: Prisma.FixtureUncheckedCreateNestedManyWithoutHomeRegistrationInput
@@ -1116,6 +1160,7 @@ export type TournamentRegistrationUpdateWithoutMembersInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1138,6 +1183,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutMembersInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   homeFixtures?: Prisma.FixtureUncheckedUpdateManyWithoutHomeRegistrationNestedInput
@@ -1152,6 +1198,7 @@ export type TournamentRegistrationCreateWithoutHomeFixturesInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -1174,6 +1221,7 @@ export type TournamentRegistrationUncheckedCreateWithoutHomeFixturesInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -1193,6 +1241,7 @@ export type TournamentRegistrationCreateWithoutAwayFixturesInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -1215,6 +1264,7 @@ export type TournamentRegistrationUncheckedCreateWithoutAwayFixturesInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -1245,6 +1295,7 @@ export type TournamentRegistrationUpdateWithoutHomeFixturesInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1267,6 +1318,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutHomeFixturesInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1292,6 +1344,7 @@ export type TournamentRegistrationUpdateWithoutAwayFixturesInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1314,6 +1367,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutAwayFixturesInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1328,6 +1382,7 @@ export type TournamentRegistrationCreateWithoutStandingInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   tournament: Prisma.TournamentCreateNestedOneWithoutRegistrationsInput
@@ -1350,6 +1405,7 @@ export type TournamentRegistrationUncheckedCreateWithoutStandingInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutRegistrationInput
@@ -1380,6 +1436,7 @@ export type TournamentRegistrationUpdateWithoutStandingInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1402,6 +1459,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutStandingInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1419,6 +1477,7 @@ export type TournamentRegistrationCreateManyRegisteredByInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1433,6 +1492,7 @@ export type TournamentRegistrationCreateManyReviewedByInput = {
   sortOrder?: number
   status?: $Enums.TournamentRegistrationStatus
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1444,6 +1504,7 @@ export type TournamentRegistrationUpdateWithoutRegisteredByInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1465,6 +1526,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutRegisteredByInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1483,6 +1545,7 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByInput = 
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1494,6 +1557,7 @@ export type TournamentRegistrationUpdateWithoutReviewedByInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1515,6 +1579,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutReviewedByInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1533,6 +1598,7 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutReviewedByInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1547,6 +1613,7 @@ export type TournamentRegistrationCreateManyTournamentInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1558,6 +1625,7 @@ export type TournamentRegistrationUpdateWithoutTournamentInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   group?: Prisma.TournamentGroupUpdateOneWithoutRegistrationsNestedInput
@@ -1579,6 +1647,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutTournamentInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1597,6 +1666,7 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutTournamentInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1611,6 +1681,7 @@ export type TournamentRegistrationCreateManyGroupInput = {
   status?: $Enums.TournamentRegistrationStatus
   reviewedByUserId?: string | null
   reviewedAt?: Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationCreatenotificationMemberIdsInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1622,6 +1693,7 @@ export type TournamentRegistrationUpdateWithoutGroupInput = {
   sortOrder?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tournament?: Prisma.TournamentUpdateOneRequiredWithoutRegistrationsNestedInput
@@ -1643,6 +1715,7 @@ export type TournamentRegistrationUncheckedUpdateWithoutGroupInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutRegistrationNestedInput
@@ -1661,6 +1734,7 @@ export type TournamentRegistrationUncheckedUpdateManyWithoutGroupInput = {
   status?: Prisma.EnumTournamentRegistrationStatusFieldUpdateOperationsInput | $Enums.TournamentRegistrationStatus
   reviewedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  notificationMemberIds?: Prisma.TournamentRegistrationUpdatenotificationMemberIdsInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1725,6 +1799,7 @@ export type TournamentRegistrationSelect<ExtArgs extends runtime.Types.Extension
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
+  notificationMemberIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
@@ -1749,6 +1824,7 @@ export type TournamentRegistrationSelectCreateManyAndReturn<ExtArgs extends runt
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
+  notificationMemberIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
@@ -1768,6 +1844,7 @@ export type TournamentRegistrationSelectUpdateManyAndReturn<ExtArgs extends runt
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
+  notificationMemberIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
@@ -1787,11 +1864,12 @@ export type TournamentRegistrationSelectScalar = {
   status?: boolean
   reviewedByUserId?: boolean
   reviewedAt?: boolean
+  notificationMemberIds?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TournamentRegistrationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tournamentId" | "groupId" | "registeredByUserId" | "entryName" | "entryLogoUrl" | "sortOrder" | "status" | "reviewedByUserId" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["tournamentRegistration"]>
+export type TournamentRegistrationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tournamentId" | "groupId" | "registeredByUserId" | "entryName" | "entryLogoUrl" | "sortOrder" | "status" | "reviewedByUserId" | "reviewedAt" | "notificationMemberIds" | "createdAt" | "updatedAt", ExtArgs["result"]["tournamentRegistration"]>
 export type TournamentRegistrationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tournament?: boolean | Prisma.TournamentDefaultArgs<ExtArgs>
   group?: boolean | Prisma.TournamentRegistration$groupArgs<ExtArgs>
@@ -1839,6 +1917,7 @@ export type $TournamentRegistrationPayload<ExtArgs extends runtime.Types.Extensi
     status: $Enums.TournamentRegistrationStatus
     reviewedByUserId: string | null
     reviewedAt: Date | null
+    notificationMemberIds: string[]
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["tournamentRegistration"]>
@@ -2282,6 +2361,7 @@ export interface TournamentRegistrationFieldRefs {
   readonly status: Prisma.FieldRef<"TournamentRegistration", 'TournamentRegistrationStatus'>
   readonly reviewedByUserId: Prisma.FieldRef<"TournamentRegistration", 'String'>
   readonly reviewedAt: Prisma.FieldRef<"TournamentRegistration", 'DateTime'>
+  readonly notificationMemberIds: Prisma.FieldRef<"TournamentRegistration", 'String[]'>
   readonly createdAt: Prisma.FieldRef<"TournamentRegistration", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"TournamentRegistration", 'DateTime'>
 }

@@ -43,8 +43,19 @@ export function visualRows(data: Page): OcrTextLine[] {
   }
   return rows.map((row) => {
     row.sort((a, b) => a.bbox.x0 - b.bbox.x0);
+    let offset = 0;
     return {
       text: row.map((word) => word.text).join(' '),
+      words: row.map((word) => {
+        const positioned = {
+          text: word.text,
+          offset,
+          confidence: normalizedConfidence(word.confidence / 100),
+          bbox: word.bbox,
+        };
+        offset += word.text.length + 1;
+        return positioned;
+      }),
       confidence: normalizedConfidence(
         Math.min(...row.map((word) => word.confidence)) / 100,
       ),
@@ -56,6 +67,61 @@ export function visualRows(data: Page): OcrTextLine[] {
       },
     };
   });
+}
+
+// FC Mobile's final-result header places each goal total beside a decorative
+// centre emblem. Reading the entire row can turn that emblem into a third digit.
+// Anchor the two small crops to the full-time clock, excluding the emblem.
+export function scoreboardRegions(lines: OcrTextLine[], width: number, height: number) {
+  const clock = lines.find((line) =>
+    /^(?:90|120)\s*[:.]\s*00$/.test(line.text.trim()) && line.bbox &&
+    line.bbox.y0 < height * 0.45 &&
+    Math.abs((line.bbox.x0 + line.bbox.x1) / 2 - width / 2) < width * 0.08,
+  );
+  if (!clock?.bbox || width < height * 1.4) return [];
+  const clockHeight = clock.bbox.y1 - clock.bbox.y0;
+  if (clockHeight < 8 || clockHeight > height * 0.08) return [];
+  const top = Math.max(0, Math.floor(clock.bbox.y0 - clockHeight * 4.5));
+  const bottom = Math.min(height, Math.floor(clock.bbox.y0 - clockHeight * 0.1));
+  const center = (clock.bbox.x0 + clock.bbox.x1) / 2;
+  return [-0.1, 0.025].map((relativeLeft) => ({
+    left: Math.max(0, Math.floor(center + width * relativeLeft)),
+    top,
+    width: Math.floor(width * 0.075),
+    height: bottom - top,
+  }));
+}
+
+export function scoreboardDigit(data: Page) {
+  const text = data.text.trim();
+  // Confusable glyphs are converted only inside an isolated score crop. Never
+  // rewrite letters in names, clocks, or the full-page OCR text.
+  if (!/^[\dOoIl|]{1,2}$/.test(text)) return null;
+  const score = Number(text.replace(/[Oo]/g, '0').replace(/[Il|]/g, '1'));
+  if (score > 30) return null;
+  return { score, confidence: normalizedConfidence(Number(data.confidence) / 100) };
+}
+
+// Some layouts omit every isolated score digit from both OCR page passes.
+// Locate a large text band in the actual pixels, then let OCR read it again;
+// never infer the numbers from clocks, statistics or participant names.
+export function largestTextBand(pixels: Buffer, width: number, height: number) {
+  const bands: { top: number; bottom: number }[] = [];
+  let start = -1, lastInk = -1;
+  const left = Math.floor(width * 0.05), right = Math.ceil(width * 0.95);
+  for (let y = 0; y < height; y++) {
+    let ink = 0;
+    for (let x = left; x < right; x++) if (pixels[y * width + x] < 128) ink++;
+    if (ink >= Math.max(3, width * 0.003) && ink < width * 0.35) {
+      if (start < 0) start = y;
+      lastInk = y;
+    } else if (start >= 0 && y - lastInk > 3) {
+      bands.push({ top: start, bottom: lastInk + 1 }); start = -1;
+    }
+  }
+  if (start >= 0) bands.push({ top: start, bottom: lastInk + 1 });
+  return bands.filter(band => band.bottom - band.top >= 14 && band.bottom - band.top <= height * 0.2)
+    .sort((a,b) => (b.bottom-b.top)-(a.bottom-a.top))[0] ?? null;
 }
 
 @Injectable()
@@ -70,7 +136,12 @@ export class TesseractOcrProvider implements OcrProvider, OnModuleDestroy {
         process.env.OCR_CACHE_DIR ?? 'storage/ocr-cache',
       );
       this.workerPromise = mkdir(cachePath, { recursive: true })
-        .then(() => createWorker('eng', undefined, { cachePath }))
+        .then(() => createWorker('eng', undefined, {
+          cachePath,
+          // Tesseract otherwise throws from its message handler in addition to
+          // rejecting the job, which bypasses BullMQ's retry/error handling.
+          errorHandler: () => undefined,
+        }))
         .catch((error) => {
           this.workerPromise = null;
           throw error;
@@ -90,7 +161,7 @@ export class TesseractOcrProvider implements OcrProvider, OnModuleDestroy {
 
   private async recognize(imagePath: string): Promise<OcrRawExtraction> {
     const metadata = await sharp(imagePath).metadata();
-    const prepared = await sharp(imagePath)
+    const resized = await sharp(imagePath)
       .rotate()
       .flatten({ background: '#ffffff' })
       .resize({
@@ -98,7 +169,9 @@ export class TesseractOcrProvider implements OcrProvider, OnModuleDestroy {
         height: 2400,
         fit: 'inside',
       })
-      .grayscale()
+      .png()
+      .toBuffer();
+    const prepared = await sharp(resized).grayscale()
       .normalize()
       .sharpen()
       .png()
@@ -131,7 +204,63 @@ export class TesseractOcrProvider implements OcrProvider, OnModuleDestroy {
           lines,
         });
       }
+      const dimensions = await sharp(image).metadata();
+      const regions = scoreboardRegions(
+        variants.flatMap((variant) => variant.lines ?? []),
+        dimensions.width!,
+        dimensions.height!,
+      );
+      const digits: Array<{ score: number; confidence: number }> = [];
+      for (const region of regions) {
+        // Normalize each goal region independently. Full-page sharpening can
+        // erase a thin round zero against the header's gradient background.
+        let crop = await sharp(resized).extract(region).grayscale().normalize().png().toBuffer();
+        if ((await sharp(crop).stats()).channels[0].mean < 127) {
+          crop = await sharp(crop).negate({ alpha: false }).png().toBuffer();
+        }
+        crop = await sharp(crop).resize({ height: 240 })
+          .extend({ top: 20, bottom: 20, left: 20, right: 20, background: '#ffffff' })
+          .png().toBuffer();
+        await worker.setParameters({
+          tessedit_pageseg_mode: PSM.SINGLE_LINE,
+          tessedit_char_whitelist: '',
+        });
+        const { data } = await worker.recognize(crop, {}, { text: true, blocks: true });
+        let digit = scoreboardDigit(data);
+        if (!digit) {
+          // A lone round zero is sometimes classified as a graphic by the line
+          // segmenter. Try word segmentation in this isolated goal region.
+          await worker.setParameters({
+            tessedit_pageseg_mode: PSM.SINGLE_WORD,
+            tessedit_char_whitelist: '',
+          });
+          const retried = await worker.recognize(crop, {}, { text: true, blocks: true });
+          digit = scoreboardDigit(retried.data);
+        }
+        if (!digit) break;
+        digits.push(digit);
+      }
+      if (digits.length === 2) {
+        const scoreLine: OcrTextLine = {
+          text: `${digits[0].score} - ${digits[1].score}`,
+          confidence: Math.min(digits[0].confidence, digits[1].confidence),
+          source: 'scoreboard',
+          bbox: {
+            x0: regions[0].left,
+            x1: regions[1].left + regions[1].width,
+            y0: regions[0].top,
+            y1: regions[0].top + regions[0].height,
+          },
+        };
+        const recoveredVariants = variants.map((variant) => {
+          const lines = [...(variant.lines ?? []), scoreLine]
+            .sort((a, b) => (a.bbox?.y0 ?? 0) - (b.bbox?.y0 ?? 0));
+          return { ...variant, lines, text: lines.map((line) => line.text).join('\n') };
+        });
+        variants.push(...recoveredVariants);
+      }
       if (
+        digits.length !== 2 &&
         !variants.some(
           (variant) =>
             detectScore(variant.lines ?? [], variant.confidence).confidence >=
@@ -140,12 +269,18 @@ export class TesseractOcrProvider implements OcrProvider, OnModuleDestroy {
       ) {
         // Large, isolated scoreboard digits are often discarded as graphics by
         // page segmentation. Retry their visual band as a single numeric line.
-        const numericLine = variants
+        let numericLine = variants
           .flatMap((variant) => variant.lines ?? [])
           .filter((line) => /^\d{1,2}$/.test(line.text.trim()) && line.bbox)
           .sort(
             (a, b) => b.bbox!.y1 - b.bbox!.y0 - (a.bbox!.y1 - a.bbox!.y0),
           )[0];
+        if (!numericLine) {
+          const { data: pixels, info } = await sharp(image).greyscale().removeAlpha().raw().toBuffer({ resolveWithObject: true });
+          const band = largestTextBand(pixels, info.width, info.height);
+          if (band) numericLine = { text: '', confidence: 0,
+            bbox: { x0: 0, x1: info.width, y0: band.top, y1: band.bottom } };
+        }
         if (numericLine?.bbox) {
           const dimensions = await sharp(image).metadata();
           const padding = Math.ceil(

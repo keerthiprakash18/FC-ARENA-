@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Header,
+  Query,
   Param,
   Post,
   Req,
@@ -16,6 +18,8 @@ import { ReverseResultDto } from './dto/reverse-result.dto.js';
 import { SubmitResultDto } from './dto/submit-result.dto.js';
 import { ResultCorrectionService } from './result-correction.service.js';
 import { ResultsService } from './results.service.js';
+import { ResultReviewService } from './result-review.service.js';
+import { ResultQueueDto } from './dto/result-queue.dto.js';
 
 type AuthenticatedRequest =
   Request & {
@@ -26,12 +30,26 @@ type AuthenticatedRequest =
 @UseGuards(JwtAuthGuard)
 export class ResultsController {
   constructor(
+    private readonly resultReviewService: ResultReviewService,
     private readonly resultsService:
       ResultsService,
 
     private readonly resultCorrectionService:
       ResultCorrectionService,
   ) {}
+
+  @Get('admin/results')
+  @Header('Cache-Control', 'private, no-store')
+  queue(@Req() request: AuthenticatedRequest, @Query() query: ResultQueueDto) {
+    return this.resultReviewService.queue(request.user.sub, query);
+  }
+
+  @Get('results/:resultSubmissionId/evidence')
+  @Header('Cache-Control', 'private, no-store')
+  @Header('X-Content-Type-Options', 'nosniff')
+  evidence(@Req() request: AuthenticatedRequest, @Param('resultSubmissionId') id: string) {
+    return this.resultReviewService.evidence(request.user.sub, id);
+  }
 
   @Post(
     'matches/:matchId/results',

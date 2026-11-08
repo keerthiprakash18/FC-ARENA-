@@ -31,6 +31,7 @@ import {
   type CurrentUser,
 } from "@/lib/auth-client";
 import { getEliteCupPlayoffQualifierCount } from "@/lib/elite-cup-format";
+import { UclFormatCard } from '@/components/elite-cup/ucl-format-card';
 
 
 type PlayoffFormat =
@@ -619,6 +620,14 @@ export default function QualificationPage() {
     );
   }
 
+
+  if (competitionFormat === 'UCL_CUP') return <AppShell playerName={user.player?.identity?.inGameName}>
+    <TournamentWizardShell tournamentId={tournamentId} currentStep="QUALIFICATION" steps={steps} title="UCL Qualification" description="League standings decide the seeded knockout paths. The top seeds enter directly and play-off winners join them.">
+      <FcNotice tone="error">{error}</FcNotice>
+      <UclFormatCard approvedTeams={approvedEntries} />
+      <button type="button" disabled={busy} onClick={() => void save()} className="mt-5 rounded-xl bg-sky-400 px-5 py-3 font-bold text-[#031019] disabled:opacity-50">{busy ? 'Saving...' : 'Save UCL Format & Continue'}</button>
+    </TournamentWizardShell>
+  </AppShell>;
 
   return (
     <AppShell

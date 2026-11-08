@@ -321,16 +321,30 @@ export class AuthController {
       });
     }
 
-    const result = await this.authService.refresh(refreshToken);
+    try {
+      const result = await this.authService.refresh(refreshToken);
 
-    this.setRefreshCookie(response, result.data.refreshToken);
+      this.setRefreshCookie(response, result.data.refreshToken);
 
-    const { refreshToken: _refreshToken, ...safeData } = result.data;
+      const { refreshToken: _refreshToken, ...safeData } = result.data;
 
-    return {
-      ...result,
-      data: safeData,
-    };
+      return {
+        ...result,
+        data: safeData,
+      };
+    } catch (error) {
+      // A storage/network outage does not invalidate a valid session. Keep its
+      // cookie so the next request can recover; explicit rejection still clears it.
+      if (error instanceof UnauthorizedException) {
+        response.clearCookie(REFRESH_COOKIE_NAME, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+          path: '/api/auth',
+        });
+      }
+      throw error;
+    }
   }
 
   @Post('logout')

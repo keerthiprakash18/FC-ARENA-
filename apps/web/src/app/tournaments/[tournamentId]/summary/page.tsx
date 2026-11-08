@@ -370,6 +370,8 @@ export default function TournamentSummaryPage() {
           }
         />
 
+        <Link href={`/tournaments/${tournamentId}/report`} className="theme-primary-button inline-flex min-h-12 items-center rounded-xl px-5 text-sm font-bold">View & Export Full Report →</Link>
+
         <section className="fc-stadium-surface relative overflow-hidden rounded-[30px] border border-amber-300/20 p-6 sm:p-8">
           <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>

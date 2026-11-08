@@ -10,6 +10,36 @@ import { parseOcrResult } from './ocr-parser.js';
 describe.runIf(process.env.FC_OCR_INTEGRATION === '1')(
   'real Tesseract scoreboard integration',
   () => {
+    it.each([[0, 0], [1, 0], [10, 2]])(
+      'reads FC Mobile header goals %s-%s around a decorative centre emblem',
+      async (homeScore, awayScore) => {
+        const directory = await mkdtemp(join(tmpdir(), 'fc-ocr-header-'));
+        const imagePath = join(directory, 'header.png');
+        const provider = new TesseractOcrProvider();
+        try {
+          await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="2340" height="1080">
+            <rect width="2340" height="1080" fill="#101820"/>
+            <g fill="white" font-family="Arial, sans-serif" text-anchor="middle">
+              <text x="500" y="205" font-size="48">Alpha</text>
+              <text x="1840" y="205" font-size="48">Beta</text>
+              <text x="1025" y="225" font-size="96">${homeScore}</text>
+              <text x="1315" y="225" font-size="96">${awayScore}</text>
+              <text x="1170" y="245" font-size="130">7</text>
+              <text x="1170" y="272" font-size="32">90:00</text>
+              <text x="1170" y="500" font-size="32">Shots 12-10</text>
+            </g></svg>`)).png().toFile(imagePath);
+          const parsed = parseOcrResult(await provider.extract(imagePath),
+            [{ userId: 'alpha', fullName: 'Alpha Player', inGameName: 'Alpha' }],
+            [{ userId: 'beta', fullName: 'Beta Player', inGameName: 'Beta' }]);
+          expect(parsed.score).toMatchObject({ homeScore, awayScore });
+          expect(parsed.score.confidence).toBeGreaterThanOrEqual(0.5);
+        } finally {
+          await provider.onModuleDestroy();
+          await unlink(imagePath).catch(() => undefined);
+          await rmdir(directory);
+        }
+      }, 90_000,
+    );
     it.each([false, true])(
       'reads a dark scoreboard with reversed sides = %s',
       async (reversed) => {

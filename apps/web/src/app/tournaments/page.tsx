@@ -1,10 +1,13 @@
 "use client";
+import { useActiveLeague } from '@/lib/active-league';
+import { TournamentRegistrationSummary, type RegistrationSummaryData } from '@/components/tournaments/registration-summary';
 
 import { ResumeWizard } from "@/components/tournaments/resume-wizard";
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { confirmNamedDeletion } from "@/components/fc/confirmation-provider";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
@@ -12,6 +15,7 @@ import {
   competitionLabel,
   FcCrest,
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcNotice,
   FcPageHeader,
@@ -38,7 +42,7 @@ interface Membership {
   };
 }
 
-interface Tournament {
+interface Tournament extends RegistrationSummaryData {
   id: string;
   name: string;
   code: string;
@@ -107,20 +111,25 @@ function toneForStatus(status: string) {
 
 export default function TournamentsPage() {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<CurrentUser | null>(null);
 
   const [memberships, setMemberships] = useState<Membership[]>([]);
-
-  const [selectedLeagueId, setSelectedLeagueId] = useState("");
-
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-
-  const [filter, setFilter] = useState<Filter>("ACTIVE");
-
-  const [formatFilter, setFormatFilter] = useState<CompetitionFormat | null>(
-    null,
-  );
+  const [selectedLeagueId, selectLeague] = useActiveLeague(user?.id, memberships, searchParams.get('leagueId'));
+  const [record, setRecord] = useState<{ leagueId: string; tournaments: Tournament[] } | null>(null);
+  const tournaments = useMemo(() => record?.leagueId === selectedLeagueId ? record.tournaments : [], [record, selectedLeagueId]);
+  const requestedView = searchParams.get('view');
+  const filter: Filter = requestedView === 'UPCOMING' || requestedView === 'COMPLETED' ? requestedView : 'ACTIVE';
+  const requestedFormat = searchParams.get('format');
+  const formatFilter = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'SINGLE_ELIMINATION', 'GROUP_STAGE_KNOCKOUT', 'ELITE_CUP', 'UCL_CUP'].includes(requestedFormat ?? '') ? requestedFormat as CompetitionFormat : null;
+  function choose(key: string, value: string | null) {
+    if (key === 'leagueId' && value) selectLeague(value);
+    const next = new URLSearchParams(searchParams.toString());
+    if (value) next.set(key, value); else next.delete(key);
+    router.replace(`/tournaments${next.size ? `?${next}` : ''}`, { scroll: false });
+  }
+  const setFilter = (value: Filter) => choose('view', value === 'ACTIVE' ? null : value);
+  const setFormatFilter = (value: CompetitionFormat | null) => choose('format', value);
 
   const [loading, setLoading] = useState(true);
 
@@ -131,73 +140,38 @@ export default function TournamentsPage() {
     string | null
   >(null);
 
-  useEffect(() => {
-    async function load() {
+  const initialLoad = useRecoverableLoad(async signal => {
       try {
         const [currentUser, leagueResponse] = await Promise.all([
-          getCurrentUser(),
+          getCurrentUser({ signal }),
 
           authenticatedRequest<{
             data: {
               leagues: Membership[];
             };
-          }>("/leagues/my"),
+          }>("/leagues/my", { signal }),
         ]);
 
+        if (signal.aborted) return;
         setUser(currentUser);
 
         const leagues = leagueResponse.data.leagues;
 
         setMemberships(leagues);
 
-        const initial =
-          leagues.find((item) => item.membershipType === "PRIMARY") ??
-          leagues[0];
-
-        if (initial) {
-          setSelectedLeagueId(initial.league.id);
-        }
-      } catch {
-        router.replace("/login");
       } finally {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false);
       }
-    }
+  });
 
-    void load();
-  }, [router]);
-
-  useEffect(() => {
-    async function loadTournaments() {
-      if (!selectedLeagueId) {
-        setTournaments([]);
-
-        return;
-      }
-
-      setLoading(true);
-
-      setError("");
-
-      try {
-        const response = await authenticatedRequest<{
-          data: {
-            tournaments: Tournament[];
-          };
-        }>(`/leagues/${selectedLeagueId}/tournaments`);
-
-        setTournaments(response.data.tournaments);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Unable to load tournaments.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadTournaments();
-  }, [selectedLeagueId]);
+  const tournamentLoad = useRecoverableLoad(async signal => {
+    if (!selectedLeagueId) return;
+    if (record?.leagueId !== selectedLeagueId) setLoading(true);
+    try {
+      const response = await authenticatedRequest<{ data: { tournaments: Tournament[] } }>(`/leagues/${selectedLeagueId}/tournaments`, { signal });
+      if (!signal.aborted) setRecord({ leagueId: selectedLeagueId, tournaments: response.data.tournaments });
+    } finally { if (!signal.aborted) setLoading(false); }
+  }, selectedLeagueId);
 
   const selectedMembership = useMemo(
     () =>
@@ -241,7 +215,7 @@ export default function TournamentsPage() {
   );
 
   async function deleteTournament(tournament: Tournament) {
-    if (!selectedMembership?.adminRole) {
+    if (!(tournament.canManageSettings ?? Boolean(selectedMembership?.adminRole))) {
       return;
     }
 
@@ -271,9 +245,7 @@ export default function TournamentsPage() {
         }),
       });
 
-      setTournaments((current) =>
-        current.filter((item) => item.id !== tournament.id),
-      );
+      setRecord(current => current ? { ...current, tournaments: current.tournaments.filter(item => item.id !== tournament.id) } : current);
       setMessage(`“${tournament.name}” deleted.`);
     } catch (err) {
       setError(
@@ -284,12 +256,13 @@ export default function TournamentsPage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user || (loading && memberships.length === 0)) {
-    return <FcLoadingScreen label="Loading Tournaments..." />;
+    return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Tournaments..." embedded /></AppShell>;
   }
 
   return (
-    <AppShell playerName={user.player?.identity?.inGameName}>
+    <AppShell currentUser={user} playerName={user.player?.identity?.inGameName} playerRole={selectedMembership?.adminRole || 'Player'}>
       <div className="space-y-6">
         <FcPageHeader
           title="Tournaments"
@@ -333,7 +306,8 @@ export default function TournamentsPage() {
                   <button
                     key={membership.league.id}
                     type="button"
-                    onClick={() => setSelectedLeagueId(membership.league.id)}
+                    onClick={() => choose('leagueId', membership.league.id)}
+                    aria-pressed={selectedLeagueId === membership.league.id}
                     className={`rounded-xl border px-4 py-2.5 text-left text-sm font-black transition ${
                       selectedLeagueId === membership.league.id
                         ? "border-sky-400/30 bg-sky-400/[0.08] text-sky-300"
@@ -361,7 +335,7 @@ export default function TournamentsPage() {
             actionLabel="Open Leagues"
             actionHref="/leagues"
           />
-        ) : (
+        ) : tournamentLoad.error ? <FcErrorState message={tournamentLoad.error} onRetry={tournamentLoad.retry} /> : (
           <>
             <FcPanel className="overflow-hidden">
               <div className="flex flex-col gap-5 border-b border-[#253140] bg-[#151C26] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -465,7 +439,7 @@ export default function TournamentsPage() {
                 }
               />
 
-              {loading ? (
+              {loading || record?.leagueId !== selectedLeagueId ? (
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   {[0, 1].map((item) => (
                     <div
@@ -541,6 +515,7 @@ export default function TournamentsPage() {
                             <p className="mt-1 font-mono text-[10px] text-slate-600">
                               {tournament.code}
                             </p>
+                            <p className="mt-2 text-xs font-semibold text-sky-300">{selectedMembership.league.name}</p>
                           </div>
 
                           <div className="p-5 pb-3">
@@ -556,10 +531,10 @@ export default function TournamentsPage() {
 
                               <div className="rounded-xl bg-white/[0.025] p-3">
                                 <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Teams
+                                  Registered
                                 </p>
                                 <p className="mt-1 text-xs font-black">
-                                  {tournament.approvedEntries}/
+                                  {tournament.registeredEntries ?? tournament.approvedEntries + (tournament.pendingEntries ?? 0)}/
                                   {tournament.maxEntries}
                                 </p>
                               </div>
@@ -576,7 +551,7 @@ export default function TournamentsPage() {
 
                             <div className="mt-4">
                               <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-600">
-                                <span>Registration</span>
+                                <span>Approved places</span>
                                 <span>{Math.round(progress)}%</span>
                               </div>
 
@@ -591,6 +566,7 @@ export default function TournamentsPage() {
                             </div>
                           </div>
                         </Link>
+                        <div className="px-5 pb-4"><TournamentRegistrationSummary tournament={tournament} /></div>
 
                         <div className="flex flex-col gap-2 border-t border-white/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
                           <p className="text-xs text-slate-600">
@@ -619,7 +595,7 @@ export default function TournamentsPage() {
                             </Link>
 
                             {selectedMembership?.adminRole && tournament.status === "DRAFT" && <ResumeWizard tournamentId={tournament.id} />}
-                            {selectedMembership?.adminRole ? (
+                            {(tournament.canManageSettings ?? Boolean(selectedMembership?.adminRole)) ? (
                               <button
                                 type="button"
                                 disabled={

@@ -1,16 +1,22 @@
 "use client";
+import { useRouteLeague } from '@/lib/active-league';
+import { useAppRefresh } from '@/lib/app-refresh';
 
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
+import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
+import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
+import { useResultDraft } from "@/lib/result-draft";
 import { ApiError } from "@/lib/api";
 import { confirmAction, promptAction } from "@/components/fc/confirmation-provider";
 import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen, FcNotice } from "@/components/fc/fc-ui";
 import { PremiumPitch } from "@/components/fc/premium-ui";
 import { ShareCard } from "@/components/fc/share-card";
 import { MatchReminder } from "@/components/fc/match-reminder";
+import { PenaltyInputs, readPenaltyScores } from "@/components/matches/penalty-inputs";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
@@ -43,6 +49,13 @@ interface MatchCenter {
   isLeagueAdmin: boolean;
   isParticipant: boolean;
   participantSide: "HOME" | "AWAY" | null;
+  returnLeg?: {
+    canUpload: boolean;
+    firstLegMatchId: string | null;
+    firstLegFixtureCode: string | null;
+    firstLegScore: { homeScore: number; awayScore: number } | null;
+    message: string | null;
+  } | null;
 
   readiness: {
     homeReadyAt: string | null;
@@ -63,6 +76,8 @@ interface MatchCenter {
     name: string;
     mode: string;
     format: string;
+    competitionFormat?: string;
+    formatGuide?: TournamentFormatDescription | null;
   };
 
   league: {
@@ -93,6 +108,8 @@ interface ResultSubmission {
   id: string;
   homeScore: number;
   awayScore: number;
+  homePenaltyScore?: number | null;
+  awayPenaltyScore?: number | null;
   status: string;
   source?: string;
   rejectionReason: string | null;
@@ -190,6 +207,10 @@ function entryName(entry: MatchEntry | null, source: string | null) {
   return "TBD";
 }
 
+function supportsPenaltyScores(match: MatchCenter) {
+  return match.tournament.competitionFormat === 'UCL_CUP' && match.fixture.roundName.startsWith('UCL ') && match.fixture.matchday !== 1;
+}
+
 function percentage(confidence: number | null) {
   if (confidence === null) {
     return "—";
@@ -270,7 +291,30 @@ function realtimeBadgeClass(state: RealtimeConnectionState) {
   return "border-white/10 bg-white/[0.04] text-slate-500";
 }
 
+function MatchScheduleLabel({ schedule, status }: { schedule: MatchCenter['schedule']; status: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (status === 'COMPLETED' || status === 'CANCELLED') return;
+    const target = Math.max(new Date(schedule.scheduledAt ?? '').getTime() || 0, new Date(schedule.estimatedDeadlineAt ?? '').getTime() || 0);
+    if (target <= Date.now()) return;
+    const update = () => { if (document.visibilityState !== 'hidden') setNow(Date.now()); };
+    const timer = window.setInterval(update, 1_000);
+    document.addEventListener('visibilitychange', update);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', update); };
+  }, [schedule.scheduledAt, schedule.estimatedDeadlineAt, status]);
+  if (status === 'COMPLETED') return <>Match completed</>;
+  if (status === 'CANCELLED') return <>Match cancelled</>;
+  const start = new Date(schedule.scheduledAt ?? '').getTime(), deadline = new Date(schedule.estimatedDeadlineAt ?? '').getTime();
+  return <>{!Number.isFinite(start) ? 'Schedule pending' : now < start ? `Starts in ${formatCountdown(schedule.scheduledAt, now)}`
+    : Number.isFinite(deadline) && now < deadline ? `Match window · ${formatCountdown(schedule.estimatedDeadlineAt, now)} left` : 'Scheduled match window ended'}</>;
+}
+
 export default function MatchRoomPage() {
+  const params = useParams<{ matchId: string }>();
+  return <MatchRoom key={params.matchId} />;
+}
+
+function MatchRoom() {
   const params = useParams<{
     matchId: string;
   }>();
@@ -291,9 +335,20 @@ export default function MatchRoomPage() {
 
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const [ocrHomeScore, setOcrHomeScore] = useState("");
-
-  const [ocrAwayScore, setOcrAwayScore] = useState("");
+  const draft = useResultDraft(user && match ? `${user.id}:${match.id}` : '',
+    match ? `${match.fixture.id}:${match.fixture.home?.id}:${match.fixture.away?.id}` : '');
+  const ocrValues = draft.ocr.extractionId === latestOcr?.id ? draft.ocr : {
+    homeScore: (latestOcr?.scoreConfidence ?? 0) >= 0.5 && latestOcr?.detectedHomeScore != null ? String(latestOcr.detectedHomeScore) : '',
+    awayScore: (latestOcr?.scoreConfidence ?? 0) >= 0.5 && latestOcr?.detectedAwayScore != null ? String(latestOcr.detectedAwayScore) : '',
+    homePenaltyScore: '', awayPenaltyScore: '',
+  };
+  const ocrHomeScore = ocrValues.homeScore, ocrAwayScore = ocrValues.awayScore;
+  const setOcrHomeScore = (value: string) => latestOcr && draft.setOcr(latestOcr.id, { ...ocrValues, homeScore: value });
+  const setOcrAwayScore = (value: string) => latestOcr && draft.setOcr(latestOcr.id, { ...ocrValues, awayScore: value });
+  const hasDraft = Boolean(draft.file || Object.values(draft.manual).some(Boolean) || draft.ocr.extractionId);
+  useEffect(() => {
+    if (draft.ready && hasDraft && (confirmedId || submissions.some(item => item.status === 'PENDING_VERIFICATION' && item.submittedBy.id === user?.id))) draft.clear();
+  }, [draft.ready, hasDraft, confirmedId, submissions, user?.id]);
 
   const [busy, setBusy] = useState(false);
 
@@ -304,9 +359,13 @@ export default function MatchRoomPage() {
   const [realtimeState, setRealtimeState] =
     useState<RealtimeConnectionState>("connecting");
 
-  const [now, setNow] = useState(() => Date.now());
+  const [retry, setRetry] = useState(0);
+  const readEpoch = useRef({ match: 0, results: 0, ocr: 0 });
 
-  async function loadMatch() {
+  useRouteLeague(user?.id, match?.id === params.matchId ? match.league.id : null);
+
+  async function loadMatch(signal?: AbortSignal) {
+    const epoch = ++readEpoch.current.match;
     const response = await authenticatedRequest<{
       success: true;
 
@@ -315,12 +374,13 @@ export default function MatchRoomPage() {
       };
 
       error: null;
-    }>(`/matches/${params.matchId}`);
-
+    }>(`/matches/${params.matchId}`, signal ? { signal } : {});
+    if (signal?.aborted || epoch !== readEpoch.current.match) return;
     setMatch(response.data.match);
   }
 
-  async function loadResults() {
+  async function loadResults(signal?: AbortSignal) {
+    const epoch = ++readEpoch.current.results;
     const response = await authenticatedRequest<{
       success: true;
 
@@ -335,18 +395,19 @@ export default function MatchRoomPage() {
       };
 
       error: null;
-    }>(`/matches/${params.matchId}/results`);
-
+    }>(`/matches/${params.matchId}/results`, signal ? { signal } : {});
+    if (signal?.aborted || epoch !== readEpoch.current.results) return;
     setSubmissions(response.data.submissions);
 
     setConfirmedId(response.data.confirmedResultSubmissionId);
 
     setIsLeagueAdmin(
-      response.data.canVerifyResult || response.data.isLeagueAdmin,
+      response.data.canVerifyResult,
     );
   }
 
-  async function loadLatestOcr() {
+  async function loadLatestOcr(signal?: AbortSignal) {
+    const epoch = ++readEpoch.current.ocr;
     const response = await authenticatedRequest<{
       success: true;
 
@@ -355,42 +416,35 @@ export default function MatchRoomPage() {
       };
 
       error: null;
-    }>(`/matches/${params.matchId}/ocr/latest`);
-
+    }>(`/matches/${params.matchId}/ocr/latest`, signal ? { signal } : {});
+    if (signal?.aborted || epoch !== readEpoch.current.ocr) return;
     setLatestOcr(response.data.extraction);
   }
 
-  async function refreshMatchCenter() {
-    await Promise.all([loadMatch(), loadResults(), loadLatestOcr()]);
+  async function refreshMatchCenter(signal?: AbortSignal) {
+    await Promise.all([loadMatch(signal), loadResults(signal), loadLatestOcr(signal)]);
   }
+  useAppRefresh(signal => refreshMatchCenter(signal), params.matchId);
 
   useEffect(() => {
+    let active = true, loaded = false;
+    const controller = new AbortController();
     async function load() {
+      setError('');
       try {
-        const current = await getCurrentUser();
-
-        setUser(current);
-
-        await refreshMatchCenter();
+        const [current] = await Promise.all([getCurrentUser({ signal: controller.signal }), refreshMatchCenter(controller.signal)]);
+        if (active) { setUser(current); loaded = true; }
       } catch (err) {
-        if (err instanceof ApiError && err.status === 401)
-          router.replace("/login");
-        else setError("Unable to load this Match Room. Please retry.");
+        if (!active) return;
+        if (err instanceof ApiError && err.status === 401) router.replace('/login');
+        else setError(err instanceof ApiError ? err.message : 'Unable to load this Match Room. Please retry.');
       }
     }
-
     void load();
-  }, [params.matchId, router]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setNow(Date.now());
-    }, 1000);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, []);
+    const recover = () => { if (!loaded) setRetry(value => value + 1); };
+    window.addEventListener('online', recover);
+    return () => { active = false; controller.abort(); window.removeEventListener('online', recover); };
+  }, [params.matchId, router, retry]);
 
   useEffect(() => {
     if (!user) {
@@ -398,6 +452,15 @@ export default function MatchRoomPage() {
     }
 
     let refreshTimer: number | null = null;
+    let hasConnected = false;
+    const started = Date.now();
+    const refresh = () => {
+      if (refreshTimer !== null) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        void refreshMatchCenter().catch(() => undefined);
+        window.dispatchEvent(new Event('fc-arena:notifications-changed'));
+      }, 120);
+    };
 
     const stop = subscribeAuthenticatedEvents(
       `/matches/${params.matchId}/events`,
@@ -410,18 +473,15 @@ export default function MatchRoomPage() {
           return;
         }
 
-        if (refreshTimer !== null) {
-          window.clearTimeout(refreshTimer);
-        }
-
-        refreshTimer = window.setTimeout(() => {
-          void refreshMatchCenter().catch(() => undefined);
-          window.dispatchEvent(
-            new Event("fc-arena:notifications-changed"),
-          );
-        }, 120);
+        refresh();
       },
-      setRealtimeState,
+      state => {
+        setRealtimeState(state);
+        if (state === 'connected') {
+          if (hasConnected || Date.now() - started > 5_000) refresh();
+          hasConnected = true;
+        }
+      },
     );
 
     return () => {
@@ -434,76 +494,60 @@ export default function MatchRoomPage() {
   }, [user?.id, params.matchId]);
 
   useEffect(() => {
-    const status = latestOcr?.status;
-
-    if (status !== "QUEUED" && status !== "PROCESSING") {
-      return;
-    }
-
+    if (!user || realtimeState === 'connected') return;
+    const controller = new AbortController(); let pending = false;
     const timer = window.setInterval(() => {
-      void (async () => {
-        try {
-          const response = await authenticatedRequest<{
-            success: true;
+      if (pending || navigator.onLine === false || document.visibilityState === 'hidden') return;
+      pending = true;
+      void refreshMatchCenter(controller.signal).catch(() => {}).finally(() => { pending = false; });
+    }, 15_000);
+    return () => { controller.abort(); window.clearInterval(timer); };
+  }, [user?.id, realtimeState, params.matchId]);
 
-            data: {
-              extraction: OcrExtraction | null;
-            };
-
-            error: null;
-          }>(`/matches/${params.matchId}/ocr/latest`);
-
-          setLatestOcr(response.data.extraction);
-        } catch {
-          // Polling may retry
-          // automatically on
-          // the next interval.
-        }
-      })();
-    }, 2000);
-
-    return () => {
-      window.clearInterval(timer);
+  // Verification happens in another Match Room; listen there to unlock this leg.
+  const firstLegMatchId = match?.returnLeg?.firstLegMatchId;
+  const returnLegLocked = match?.returnLeg?.canUpload === false;
+  useEffect(() => {
+    if (!user || !returnLegLocked) return;
+    const controller = new AbortController();
+    let pending = false;
+    const refresh = () => {
+      if (pending || navigator.onLine === false || document.visibilityState === 'hidden') return;
+      pending = true;
+      void loadMatch(controller.signal).catch(() => undefined).finally(() => { pending = false; });
     };
-  }, [latestOcr?.status, params.matchId]);
+    const stop = firstLegMatchId ? subscribeAuthenticatedEvents(`/matches/${firstLegMatchId}/events`, refresh) : () => {};
+    const timer = window.setInterval(refresh, 15_000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { stop(); controller.abort(); window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [user?.id, returnLegLocked, firstLegMatchId, params.matchId]);
 
   useEffect(() => {
-    if (latestOcr?.status !== "COMPLETED") {
-      return;
-    }
-
-    const scoreConfidence = latestOcr.scoreConfidence ?? 0;
-
-    /*
-     * Master rule:
-     * < 0.50 must not be
-     * trusted automatically.
-     */
-    if (scoreConfidence < 0.5) {
-      setOcrHomeScore("");
-      setOcrAwayScore("");
-
-      return;
-    }
-
-    setOcrHomeScore(
-      latestOcr.detectedHomeScore !== null
-        ? String(latestOcr.detectedHomeScore)
-        : "",
-    );
-
-    setOcrAwayScore(
-      latestOcr.detectedAwayScore !== null
-        ? String(latestOcr.detectedAwayScore)
-        : "",
-    );
-  }, [
-    latestOcr?.id,
-    latestOcr?.status,
-    latestOcr?.scoreConfidence,
-    latestOcr?.detectedHomeScore,
-    latestOcr?.detectedAwayScore,
-  ]);
+    if (latestOcr?.status !== 'QUEUED' && latestOcr?.status !== 'PROCESSING') return;
+    let active = true, pending = false, delay = 2_000;
+    let timer: number | undefined;
+    const controller = new AbortController();
+    const poll = async () => {
+      if (!active || pending) return;
+      if (navigator.onLine !== false && document.visibilityState !== 'hidden') {
+        pending = true;
+        try { await loadLatestOcr(controller.signal); delay = 2_000; }
+        catch { delay = Math.min(delay * 2, 10_000); }
+        finally { pending = false; }
+      }
+      if (active) timer = window.setTimeout(poll, delay);
+    };
+    const resume = () => {
+      if (document.visibilityState === 'hidden' || navigator.onLine === false) return;
+      if (timer !== undefined) window.clearTimeout(timer);
+      void poll();
+    };
+    timer = window.setTimeout(poll, delay);
+    window.addEventListener('online', resume); document.addEventListener('visibilitychange', resume);
+    return () => { active = false; controller.abort(); if (timer !== undefined) window.clearTimeout(timer);
+      window.removeEventListener('online', resume); document.removeEventListener('visibilitychange', resume); };
+  }, [latestOcr?.status, params.matchId]);
 
   async function setReady(
     side: "HOME" | "AWAY" | undefined,
@@ -573,9 +617,12 @@ export default function MatchRoomPage() {
           homeScore: Number(data.get("homeScore")),
 
           awayScore: Number(data.get("awayScore")),
+          ...readPenaltyScores(data),
         }),
       });
 
+      draft.clear();
+      setMessage("Result received. Waiting for admin verification.");
       if (isLeagueAdmin) {
         const confirmedResponse = await authenticatedRequest<{
           success: true;
@@ -605,6 +652,7 @@ export default function MatchRoomPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to submit result.");
+      await loadResults().catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -615,9 +663,7 @@ export default function MatchRoomPage() {
 
     const formElement = event.currentTarget;
 
-    const form = new FormData(formElement);
-
-    const screenshot = form.get("screenshot");
+    const screenshot = draft.file;
 
     if (!(screenshot instanceof File) || screenshot.size === 0) {
       setError("Select a result screenshot.");
@@ -666,6 +712,7 @@ export default function MatchRoomPage() {
         setUploadProgress(progress),
       );
 
+      draft.setFile(null);
       setUploadProgress(100);
 
       setMessage(response.data.message);
@@ -684,6 +731,7 @@ export default function MatchRoomPage() {
 
   async function submitOcrResult(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const penaltyScores = readPenaltyScores(new FormData(event.currentTarget));
 
     if (!latestOcr) {
       return;
@@ -719,9 +767,12 @@ export default function MatchRoomPage() {
           homeScore: Number(ocrHomeScore),
 
           awayScore: Number(ocrAwayScore),
+          ...penaltyScores,
         }),
       });
 
+      draft.clear();
+      setMessage("Result received. Waiting for admin verification.");
       if (isLeagueAdmin) {
         const confirmedResponse = await authenticatedRequest<{
           success: true;
@@ -749,6 +800,7 @@ export default function MatchRoomPage() {
       setError(
         err instanceof Error ? err.message : "Unable to submit OCR result.",
       );
+      await loadResults().catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -873,6 +925,7 @@ export default function MatchRoomPage() {
           homeScore,
           awayScore,
           reason,
+          ...readPenaltyScores(data, 'corrected'),
         }),
       });
 
@@ -945,7 +998,7 @@ export default function MatchRoomPage() {
   if ((!user || !match) && error)
     return (
       <AppShell>
-        <FcErrorState message={error} onRetry={() => window.location.reload()} />
+        <FcErrorState message={error} onRetry={() => setRetry(value => value + 1)} />
       </AppShell>
     );
 
@@ -965,6 +1018,9 @@ export default function MatchRoomPage() {
 
   const canSubmit =
     !confirmedId &&
+    (match.isParticipant || isLeagueAdmin) &&
+    !submissions.some(item => item.status === 'PENDING_VERIFICATION') &&
+    !returnLegLocked &&
     (match.status === "UNSCHEDULED" ||
       match.status === "SCHEDULED" ||
       match.status === "LIVE");
@@ -973,6 +1029,7 @@ export default function MatchRoomPage() {
     latestOcr?.status === "QUEUED" || latestOcr?.status === "PROCESSING";
 
   const canSubmitOcr =
+    canSubmit &&
     latestOcr?.status === "COMPLETED" &&
     !latestOcr.resultSubmission &&
     !confirmedId;
@@ -983,28 +1040,6 @@ export default function MatchRoomPage() {
       (item) => item.status === "PENDING_VERIFICATION",
     );
 
-  const scheduledAtMs = match.schedule.scheduledAt
-    ? new Date(match.schedule.scheduledAt).getTime()
-    : null;
-
-  const deadlineAtMs = match.schedule.estimatedDeadlineAt
-    ? new Date(match.schedule.estimatedDeadlineAt).getTime()
-    : null;
-
-  const scheduleLabel =
-    scheduledAtMs === null || Number.isNaN(scheduledAtMs)
-      ? "Schedule pending"
-      : now < scheduledAtMs
-        ? `Starts in ${formatCountdown(match.schedule.scheduledAt, now)}`
-        : deadlineAtMs !== null &&
-            !Number.isNaN(deadlineAtMs) &&
-            now < deadlineAtMs
-          ? `Match window · ${formatCountdown(
-              match.schedule.estimatedDeadlineAt,
-              now,
-            )} left`
-          : "Scheduled match window ended";
-
   const participantReady =
     match.participantSide === "HOME"
       ? match.readiness.homeReady
@@ -1013,8 +1048,24 @@ export default function MatchRoomPage() {
         : false;
 
   return (
-    <AppShell playerName={user.player?.identity?.inGameName}>
+    <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
       <div className="premium-match-center space-y-6">
+        <TournamentFormatGuide guide={match.tournament.formatGuide} compact />
+        {returnLegLocked ? (
+          <section className="theme-card rounded-2xl border p-5" role="status" aria-label="Second leg locked">
+            <h2 className="theme-text font-bold">Second leg locked · first-leg verification required</h2>
+            <p className="theme-muted mt-2 text-sm">{match.returnLeg?.message}</p>
+            {firstLegMatchId ? <Link className="theme-primary-button mt-3 inline-flex rounded-xl px-4 py-3 text-sm" href={`/matches/${firstLegMatchId}`}>Open first leg {match.returnLeg?.firstLegFixtureCode}</Link> : null}
+          </section>
+        ) : match.returnLeg?.firstLegScore ? (
+          <p className="theme-muted text-sm" role="status">Verified first leg: {home} {match.returnLeg.firstLegScore.homeScore} – {match.returnLeg.firstLegScore.awayScore} {away}. The aggregate of both legs decides the winner.</p>
+        ) : null}
+        {canSubmit ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
+          <p className="theme-muted text-sm" role="status">{draft.status || 'Scores and screenshots are saved on this device for 7 days.'}</p>
+          {hasDraft ? <button type="button" disabled={busy} className="theme-text min-h-11 px-3 text-sm font-bold" onClick={async () => {
+            if (await confirmAction({ title: 'Discard saved draft?', description: 'Remove the scores and selected screenshot saved on this device?', confirmLabel: 'Discard draft' })) draft.clear();
+          }}>Discard draft</button> : null}
+        </div> : null}
         <div className="premium-match-links flex flex-wrap gap-4">
           <Link
             href={`/tournaments/${match.tournament.id}`}
@@ -1052,13 +1103,14 @@ export default function MatchRoomPage() {
                 Live Countdown
               </p>
               <p className="mt-1 text-sm font-black text-sky-300">
-                {scheduleLabel}
+                <MatchScheduleLabel schedule={match.schedule} status={match.status} />
               </p>
             </div>
           </div>
 
           <div className="fc-match-room-score-grid relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
             <div className="min-w-0 text-center">
+              <p className="theme-secondary-text mb-2 text-[10px] font-semibold uppercase tracking-wider">Home</p>
               <FcCrest name={home} size="lg" />
               <p className="break-words text-lg font-black md:text-3xl">
                 {home}
@@ -1094,6 +1146,7 @@ export default function MatchRoomPage() {
             </div>
 
             <div className="min-w-0 text-center">
+              <p className="theme-secondary-text mb-2 text-[10px] font-semibold uppercase tracking-wider">Away</p>
               <FcCrest name={away} size="lg" />
               <p className="break-words text-lg font-black md:text-3xl">
                 {away}
@@ -1195,11 +1248,12 @@ export default function MatchRoomPage() {
                 <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">{match.status.replaceAll("_", " ")}</span>
               </div>
               <p className="mt-3 text-sm font-semibold">{confirmed ? "Verified result · Match Room locked" : awaitingReview ? "Result submitted · awaiting verification" : match.readiness.bothReady ? "Both sides Ready · play the match" : canSubmit ? "Match Room active" : "Match details"}</p>
-              <p className="mt-1 text-xs text-slate-500">{scheduleLabel}</p>
+              <p className="mt-1 text-xs text-slate-500"><MatchScheduleLabel schedule={match.schedule} status={match.status} /></p>
             </div>
             <div className="flex flex-wrap gap-2">
               {!confirmed && (awaitingReview || canSubmit) ? <a className="theme-primary-button rounded-xl px-4 py-3 text-sm" href={awaitingReview ? "#result-verification" : "#result-entry"}>{awaitingReview ? "Review submissions" : "Enter score"}</a> : null}
-              {confirmed ? <ShareCard label="Share result card" filename="fc-arena-result" title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`} lines={[match.tournament.name, "Verified result", match.matchCode || "FC ARENA Match"]} /> : null}
+              {confirmed?.homePenaltyScore != null && confirmed.awayPenaltyScore != null ? <p className="mt-3 text-sm font-bold text-sky-300">Penalties {confirmed.homePenaltyScore}–{confirmed.awayPenaltyScore} · {confirmed.homePenaltyScore > confirmed.awayPenaltyScore ? home : away} win</p> : null}
+              {confirmed ? <ShareCard label="Share result card" filename="fc-arena-result" title={`${home} ${confirmed.homeScore} – ${confirmed.awayScore} ${away}`} lines={[match.tournament.name, confirmed.homePenaltyScore != null ? `Penalties ${confirmed.homePenaltyScore}–${confirmed.awayPenaltyScore}` : "Verified result", match.matchCode || "FC ARENA Match"]} /> : null}
               <MatchReminder title={`${home} vs ${away}`} scheduledAt={match.fixture.scheduledAt} matchId={String(params.matchId)} />
             </div>
           </div>
@@ -1264,13 +1318,23 @@ export default function MatchRoomPage() {
             <form onSubmit={uploadScreenshot} className="mt-6 grid gap-4">
               <input
                 name="screenshot"
+                key={draft.file?.name ?? 'empty-screenshot'}
                 aria-label="Match result screenshot"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                required
+                required={!draft.file}
+                disabled={!draft.ready || busy}
+                onChange={event => {
+                  const file = event.target.files?.[0] ?? null;
+                  if (file && (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024)) {
+                    setError('Choose a JPG, PNG or WEBP screenshot, 10 MB or smaller.'); event.target.value = ''; return;
+                  }
+                  draft.setFile(file);
+                }}
                 className="rounded-xl border border-dashed border-white/15 bg-black/10 p-4 text-sm"
               />
 
+              {draft.file ? <p className="theme-muted break-words text-sm">Selected screenshot: {draft.file.name} · {(draft.file.size / 1024).toFixed(0)} KB</p> : null}
               {uploadProgress > 0 ? (
                 <div>
                   <div className="mb-2 flex justify-between text-xs text-slate-500">
@@ -1291,7 +1355,7 @@ export default function MatchRoomPage() {
               ) : null}
 
               <button
-                disabled={busy || ocrProcessing}
+                disabled={busy || ocrProcessing || !draft.ready}
                 className="rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] disabled:opacity-50"
               >
                 {ocrProcessing
@@ -1441,12 +1505,32 @@ export default function MatchRoomPage() {
                       Verify Detected Result
                     </p>
 
+                    {(latestOcr.scoreConfidence ?? 0) < 0.5 &&
+                      latestOcr.detectedHomeScore !== null && latestOcr.detectedAwayScore !== null ? (
+                      <div className="mt-4 grid gap-2" role="group" aria-label="Choose detected score order">
+                        <p className="text-sm text-slate-400">Choose the correct team order, then review the scores below.</p>
+                        {([false, true] as const).map((swapped) => {
+                          const homeScore = swapped ? latestOcr.detectedAwayScore! : latestOcr.detectedHomeScore!;
+                          const awayScore = swapped ? latestOcr.detectedHomeScore! : latestOcr.detectedAwayScore!;
+                          if (swapped && homeScore === awayScore) return null;
+                          return (
+                            <button key={String(swapped)} type="button" disabled={busy}
+                              onClick={() => { draft.setOcr(latestOcr.id, { ...ocrValues, homeScore: String(homeScore), awayScore: String(awayScore) }); }}
+                              className="min-h-11 break-words rounded-xl border border-sky-400/20 px-3 py-3 text-sm font-bold text-sky-300 disabled:opacity-50">
+                              Use {home} {homeScore} – {awayScore} {away}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+
                     <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3">
                       <label className="grid min-w-0 gap-2 break-words text-sm font-bold">
                         <span><span className="block text-xs text-slate-500">Home</span>{home}</span>
 
                         <input
                           value={ocrHomeScore}
+                          disabled={!draft.ready || busy}
                           onChange={(event) =>
                             setOcrHomeScore(event.target.value)
                           }
@@ -1466,6 +1550,7 @@ export default function MatchRoomPage() {
 
                         <input
                           value={ocrAwayScore}
+                          disabled={!draft.ready || busy}
                           onChange={(event) =>
                             setOcrAwayScore(event.target.value)
                           }
@@ -1479,9 +1564,10 @@ export default function MatchRoomPage() {
                       </label>
                     </div>
 
+                    {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} values={ocrValues} onChange={(field, value) => draft.setOcr(latestOcr!.id, { ...ocrValues, [field]: value })} /> : null}
                     <button
-                      disabled={busy}
-                      className="mt-5 w-full rounded-xl bg-emerald-400 px-5 py-3 font-black text-black disabled:opacity-50"
+                      disabled={busy || !draft.ready}
+                      className="mt-5 w-full rounded-xl theme-primary-button px-5 py-3 font-black disabled:opacity-50"
                     >
                       {isLeagueAdmin
                         ? "Confirm OCR Result & Update Stats"
@@ -1530,6 +1616,9 @@ export default function MatchRoomPage() {
 
                 <input
                   name="homeScore"
+                  value={draft.manual.homeScore}
+                  onChange={event => draft.setManual("homeScore", event.target.value)}
+                  disabled={!draft.ready || busy}
                   inputMode="numeric"
                   type="number"
                   min="0"
@@ -1546,6 +1635,9 @@ export default function MatchRoomPage() {
 
                 <input
                   name="awayScore"
+                  value={draft.manual.awayScore}
+                  onChange={event => draft.setManual("awayScore", event.target.value)}
+                  disabled={!draft.ready || busy}
                   inputMode="numeric"
                   type="number"
                   min="0"
@@ -1555,9 +1647,10 @@ export default function MatchRoomPage() {
                 />
               </label>
 
+              {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} values={draft.manual} onChange={draft.setManual} /> : null}
               <button
-                disabled={busy}
-                className="col-span-3 rounded-xl border border-white/10 bg-white px-5 py-3 font-black text-black disabled:opacity-50"
+                disabled={busy || !draft.ready}
+                className="col-span-3 rounded-xl theme-primary-button border px-5 py-3 font-black disabled:opacity-50"
               >
                 {isLeagueAdmin
                   ? "Save Result & Update Stats"
@@ -1611,6 +1704,7 @@ export default function MatchRoomPage() {
                 </label>
               </div>
 
+              {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} prefix="corrected" homeScore={confirmed.homePenaltyScore} awayScore={confirmed.awayPenaltyScore} /> : null}
               <label className="fc-field-label">Correction reason <span className="theme-muted">Required · at least 3 characters</span>
               <textarea
                 name="correctionReason"
@@ -1625,7 +1719,7 @@ export default function MatchRoomPage() {
               <div className="flex flex-wrap gap-3">
                 <button
                   disabled={busy}
-                  className="rounded-xl bg-amber-300 px-5 py-3 font-black text-black disabled:opacity-50"
+                  className="rounded-xl theme-primary-button px-5 py-3 font-black disabled:opacity-50"
                 >
                   Correct Result
                 </button>
@@ -1713,7 +1807,7 @@ export default function MatchRoomPage() {
                         <button
                           disabled={busy}
                           onClick={() => void confirmResult(submission.id)}
-                          className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-black text-black"
+                          className="rounded-xl theme-primary-button px-4 py-2 text-sm font-black"
                         >
                           Confirm
                         </button>

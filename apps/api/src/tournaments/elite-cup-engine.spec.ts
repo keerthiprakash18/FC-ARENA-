@@ -20,6 +20,9 @@ describe('Elite Cup engine', () => {
     [5, 4, 4],
     [7, 5, 6],
     [10, 7, 7],
+    [10, 8, 8],
+    [16, 8, 8],
+    [36, 8, 8],
   ])(
     'creates a valid partial league phase for %i teams',
     (teamCount, requested, expectedEffective) => {
@@ -87,6 +90,37 @@ describe('Elite Cup engine', () => {
     expect(oddDegree.cappedMatchesPerTeam).toBe(3);
     expect(oddDegree.effectiveMatchesPerTeam).toBe(4);
   });
+
+  it.each(Array.from({ length: 39 }, (_, index) => index + 2))(
+    'balances every partial draw for a %i-team field',
+    (teamCount) => {
+      const teams = ids(teamCount);
+      for (let requested = 0; requested < teamCount; requested++) {
+        const schedule = generateEliteCupSchedule(teams, requested);
+        const home = new Map(teams.map(id => [id, 0]));
+        const away = new Map(teams.map(id => [id, 0]));
+        const matchdays = new Map<number, Set<string>>();
+        const pairs = new Set<string>();
+        for (const fixture of schedule.fixtures) {
+          home.set(fixture.homeTeamId, home.get(fixture.homeTeamId)! + 1);
+          away.set(fixture.awayTeamId, away.get(fixture.awayTeamId)! + 1);
+          expect(fixture.homeRegistrationId).toBe(fixture.homeTeamId);
+          expect(fixture.awayRegistrationId).toBe(fixture.awayTeamId);
+          const playing = matchdays.get(fixture.matchday) ?? new Set<string>();
+          expect(playing.has(fixture.homeTeamId) || playing.has(fixture.awayTeamId)).toBe(false);
+          playing.add(fixture.homeTeamId);
+          playing.add(fixture.awayTeamId);
+          matchdays.set(fixture.matchday, playing);
+          pairs.add(pairKey(fixture.homeTeamId, fixture.awayTeamId));
+        }
+        expect(pairs.size).toBe(schedule.fixtures.length);
+        for (const team of teams) {
+          expect(home.get(team)! + away.get(team)!).toBe(schedule.effectiveMatchesPerTeam);
+          expect(Math.abs(home.get(team)! - away.get(team)!)).toBe(schedule.effectiveMatchesPerTeam % 2);
+        }
+      }
+    },
+  );
 
   it('is deterministic, including home and away assignment', () => {
     const first = generateEliteCupSchedule(ids(8), 4);

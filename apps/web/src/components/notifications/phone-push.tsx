@@ -50,16 +50,17 @@ export function PushSync() {
       boundToken = "";
       registering = null;
     };
+    const signIn = () => { reset(); sync(); };
     sync();
     window.addEventListener("fc-arena:native-push", sync);
     window.addEventListener("fc-arena:signed-out", reset);
-    window.addEventListener("fc-arena:signed-in", sync);
+    window.addEventListener("fc-arena:signed-in", signIn);
     window.addEventListener("online", sync);
     window.addEventListener("focus", sync);
     return () => {
       window.removeEventListener("fc-arena:native-push", sync);
       window.removeEventListener("fc-arena:signed-out", reset);
-      window.removeEventListener("fc-arena:signed-in", sync);
+      window.removeEventListener("fc-arena:signed-in", signIn);
       window.removeEventListener("online", sync);
       window.removeEventListener("focus", sync);
     };
@@ -188,4 +189,16 @@ export function PhonePushSettings() {
       </p>
     </section>
   );
+}
+
+/** Put the permission/device controls beside the inbox on supported Android builds. */
+export function NativePhonePushSettings() {
+  const [supported, setSupported] = useState(false);
+  useEffect(() => {
+    const update = () => setSupported(Boolean(window.__fcPush?.supported));
+    void Promise.resolve().then(update);
+    window.addEventListener('fc-arena:native-push', update);
+    return () => window.removeEventListener('fc-arena:native-push', update);
+  }, []);
+  return supported ? <PhonePushSettings /> : null;
 }

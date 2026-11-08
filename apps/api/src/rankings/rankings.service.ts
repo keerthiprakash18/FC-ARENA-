@@ -276,6 +276,8 @@ export class RankingsService {
                     registrationId:
                       standing.registrationId,
 
+                    logoUrl: standing.registration.entryLogoUrl ?? null,
+
                     entryName:
                       standing.registration
                         .entryName ??

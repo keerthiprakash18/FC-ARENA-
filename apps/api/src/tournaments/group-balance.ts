@@ -1,4 +1,54 @@
 import { ConflictException } from '@nestjs/common';
+import type { Prisma } from '../generated/prisma/client.js';
+
+type GroupInputClient = Pick<Prisma.TransactionClient, 'tournamentGroup' | 'tournamentRegistration'>;
+export interface GroupInputs {
+  groups: Array<{ id: string; name: string; position: number }>;
+  entries: Array<{ id: string; groupId: string | null; sortOrder: number; createdAt: Date }>;
+}
+
+/** Approved entries are read separately so an unassigned or foreign-group entry cannot disappear. */
+export async function readGroupInputs(client: GroupInputClient, tournamentId: string): Promise<GroupInputs> {
+  const [groups, entries] = await Promise.all([
+    client.tournamentGroup.findMany({ where: { tournamentId }, orderBy: [{ position: 'asc' }, { id: 'asc' }], select: { id: true, name: true, position: true } }),
+    client.tournamentRegistration.findMany({ where: { tournamentId, status: 'APPROVED' }, orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }], select: { id: true, groupId: true, sortOrder: true, createdAt: true } }),
+  ]);
+  return { groups, entries };
+}
+
+export function groupInputsFingerprint(inputs: GroupInputs): string {
+  return JSON.stringify({ groups: [...inputs.groups].sort((a, b) => a.id.localeCompare(b.id)), entries: [...inputs.entries].sort((a, b) => a.id.localeCompare(b.id)) });
+}
+
+export function groupBalance(inputs: GroupInputs) {
+  const counts = new Map(inputs.groups.map(group => [group.id, 0]));
+  let unassigned = 0;
+  for (const entry of inputs.entries) {
+    if (!entry.groupId || !counts.has(entry.groupId)) unassigned++;
+    else counts.set(entry.groupId, counts.get(entry.groupId)! + 1);
+  }
+  const groups = inputs.groups.map(group => ({ ...group, count: counts.get(group.id)! }));
+  const minimum = groups.length ? Math.min(...groups.map(group => group.count)) : 0;
+  const maximum = groups.length ? Math.max(...groups.map(group => group.count)) : 0;
+  return { groups, unassigned, minimum, maximum, balanced: groups.length >= 2 && maximum - minimum <= 1 };
+}
+
+export function assertBalancedGroupInputs(inputs: GroupInputs): void {
+  const state = groupBalance(inputs);
+  assertBalancedGroupCounts(state.groups, state.unassigned);
+}
+
+export function assertBalancedGroupCounts(groups: ReadonlyArray<{ name: string; count: number }>, unassigned: number): void {
+  const fail = (code: string, message: string): never => { throw new ConflictException({ success: false, data: null, error: { code, message } }); };
+  if (groups.length < 2) fail('GROUPS_NOT_READY', 'Create at least two groups before generating or publishing the whole tournament.');
+  if (unassigned) fail('UNASSIGNED_ENTRIES', `${unassigned} approved team(s) are unassigned. Open Groups and distribute all approved teams before continuing.`);
+  const tooSmall = groups.find(group => group.count < 2);
+  if (tooSmall) fail('GROUP_NOT_PLAYABLE', `${tooSmall.name} must contain at least two approved teams. Reduce the group count or distribute the teams again.`);
+  const minimum = Math.min(...groups.map(group => group.count)), maximum = Math.max(...groups.map(group => group.count));
+  if (maximum - minimum > 1) fail('GROUPS_UNBALANCED', `Groups must be evenly balanced (currently ${minimum}–${maximum} teams). Open Groups and use Balance teams before continuing.`);
+}
+
+
 
 export type GroupBalanceInput = {
   id: string;

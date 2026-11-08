@@ -1,6 +1,8 @@
 'use client';
+import { useRouteLeague } from '@/lib/active-league';
+import { TournamentRegistrationSummary, type RegistrationSummaryData } from '@/components/tournaments/registration-summary';
 
-/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { confirmNamedDeletion } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
 
@@ -27,6 +29,7 @@ import {
   FcCrest,
   FcEmptyState,
   FcLoadingScreen,
+  FcErrorState,
   FcPageHeader,
   FcPanel,
   FcSectionHeading,
@@ -66,7 +69,7 @@ interface LeagueInfo {
 }
 
 
-interface Tournament {
+interface Tournament extends RegistrationSummaryData {
   id: string;
   name: string;
   code: string;
@@ -207,57 +210,21 @@ export default function LeagueTournamentsPage() {
   }
 
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const currentUser =
-          await getCurrentUser();
+  useRouteLeague(user?.id, league?.id === leagueId ? league.id : null);
 
-        setUser(
-          currentUser,
-        );
-
-        const leagueResult =
-          await authenticatedRequest<{
-            success: true;
-
-            data: {
-              league:
-                LeagueInfo;
-            };
-
-            error: null;
-          }>(
-            `/leagues/${leagueId}`,
-          );
-
-        setLeague(
-          leagueResult
-            .data
-            .league,
-        );
-
-        if (leagueResult.data.league.adminRole) {
-          const templateResponse = await authenticatedRequest<{
-            data: { templates: TournamentTemplate[] };
-          }>(`/leagues/${leagueId}/tournament-templates`);
-          setTemplates(templateResponse.data.templates);
-        }
-
-        await loadTournaments();
-      } catch {
-        router.replace(
-          '/leagues',
-        );
-      }
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, leagueResult, competitions] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<{ data: { league: LeagueInfo } }>(`/leagues/${leagueId}`, { signal }),
+      authenticatedRequest<{ data: { tournaments: Tournament[] } }>(`/leagues/${leagueId}/tournaments`, { signal }),
+    ]);
+    if (signal.aborted) return;
+    setUser(current); setLeague(leagueResult.data.league); setTournaments(competitions.data.tournaments);
+    if (leagueResult.data.league.adminRole) {
+      const saved = await authenticatedRequest<{ data: { templates: TournamentTemplate[] } }>(`/leagues/${leagueId}/tournament-templates`, { signal }).catch(() => null);
+      if (!signal.aborted && saved) setTemplates(saved.data.templates);
     }
-
-    void load();
-  }, [
-    leagueId,
-    router,
-  ]);
-
+  }, leagueId);
 
   useEffect(() => {
     const requestedFormat =
@@ -513,10 +480,8 @@ export default function LeagueTournamentsPage() {
     );
 
 
-  if (
-    !user ||
-    !league
-  ) {
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+  if (!user || !league || league.id !== leagueId) {
     return (
       <FcLoadingScreen
         label="Loading League Tournaments..."
@@ -623,10 +588,11 @@ export default function LeagueTournamentsPage() {
 
                   <input
                     name="maxEntries"
+                    key={competitionFormat}
                     type="number"
                     min="2"
                     max="128"
-                    defaultValue="16"
+                    defaultValue={competitionFormat === 'UCL_CUP' ? 36 : 16}
                     required
                     className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
@@ -689,7 +655,7 @@ export default function LeagueTournamentsPage() {
                     [
                       'UCL_CUP',
                       'UCL Cup',
-                      'Champions League-style league phase, qualification and final.',
+                      '36-team league phase, seeded two-leg knockout ties and a single final. Smaller fields use adapted qualification.',
                     ],
                   ] as Array<
                     [
@@ -967,12 +933,12 @@ export default function LeagueTournamentsPage() {
 
                         <div className="rounded-xl bg-white/[0.025] p-3">
                           <p className="text-[9px] uppercase tracking-wider text-slate-600">
-                            Entries
+                            Registered
                           </p>
 
                           <p className="mt-1 text-xs font-black">
                             {
-                              tournament.approvedEntries
+                              tournament.registeredEntries ?? tournament.approvedEntries + (tournament.pendingEntries ?? 0)
                             }
                             /
                             {
@@ -997,6 +963,7 @@ export default function LeagueTournamentsPage() {
                       </div>
 
 
+                      <div className="mt-4"><TournamentRegistrationSummary tournament={tournament} /></div>
                       <div className="mt-5 flex flex-wrap gap-2">
                         {tournament.status ===
                           'DRAFT' &&
@@ -1049,7 +1016,7 @@ export default function LeagueTournamentsPage() {
                           </button>
                         ) : null}
 
-                        {isAdmin ? (
+                        {(tournament.canManageSettings ?? isAdmin) ? (
                           <button
                             type="button"
                             disabled={

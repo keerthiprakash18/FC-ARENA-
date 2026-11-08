@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Effective date: 3 October 2026.
+          Effective date: 1 November 2026.
         </p>
       </PublicInfoCard>
 
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         icon="profile"
       >
         <p>
-          Account data can include your full name, email address, optional phone number, password hash, account status, verification status and app preferences.
+          Account data can include your full name, email address, optional phone number, date of birth, password hash, account status, verification status and app preferences. Your date of birth is used for your account profile, is not displayed on public player profiles, and is removed when your account is deleted.
         </p>
 
         <p>
@@ -48,6 +48,13 @@ export default function PrivacyPage() {
         <p>
           If you voluntarily upload a profile photo or match/result evidence, we process those files to provide profile, OCR, verification and dispute features.
         </p>
+      </PublicInfoCard>
+
+      <PublicInfoCard title="Arena Talk and player progress" icon="profile">
+        <p>Arena Talk stores posts, comments, reactions, poll options and votes, source links, optional images, and moderation reports. Football Talk posts are visible to active signed-in members. League posts and images require current access to that league; authorized moderators can review reported content. Player names, player codes, identity verification and profile images may appear alongside contributions.</p>
+        <p>We derive profile XP, levels and weekly missions from verified match participation and completed tournaments. Card frame preferences are stored in your account. Downloaded player cards contain public player identity, match statistics and progress; account email, phone number and game UID are excluded.</p>
+        <p>Photo cropping happens on your device before the selected crop is uploaded. Preparing a downloadable player card temporarily uploads the generated PNG to FC ARENA. The private download link expires after five minutes; temporary files are removed by periodic cleanup and are excluded from permanent media backups.</p>
+        <p>You can edit or remove your own contributions, report content and block players. Removed content becomes unavailable in feeds; records may be retained for moderation and abuse prevention. Orphaned images are eligible for cleanup after 24 hours, and images belonging to removed posts after 30 days. Reports and moderation actions are retained for safety review.</p>
       </PublicInfoCard>
 
       <PublicInfoCard

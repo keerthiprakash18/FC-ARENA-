@@ -24,6 +24,7 @@ export class PlayerDashboardService {
     const entrySelect = {
       id: true,
       entryName: true,
+      entryLogoUrl: true,
       members: {
         select: {
           user: {
@@ -49,7 +50,7 @@ export class PlayerDashboardService {
       awayRegistration: { select: entrySelect },
       match: { select: { id: true, status: true } },
       tournament: {
-        select: { id: true, name: true, league: { select: { name: true } } },
+        select: { id: true, name: true, leagueId: true, league: { select: { name: true } } },
       },
     } as const;
     // Scope by current membership AND account identity; never download other players' schedules.
@@ -73,7 +74,7 @@ export class PlayerDashboardService {
       ],
     };
     // Fixed query count and bounded payload even as league tournament history grows.
-    const [tournaments, future, unscheduled, overdue] = await Promise.all([
+    const [tournaments, future, unscheduled, overdue, live] = await Promise.all([
       this.prisma.tournament.findMany({
         where: {
           leagueId: { in: leagueIds },
@@ -93,9 +94,6 @@ export class PlayerDashboardService {
           startAt: true,
           leagueId: true,
           league: { select: { name: true } },
-          _count: {
-            select: { registrations: { where: { status: 'APPROVED' } } },
-          },
         },
       }),
       this.prisma.fixture.findMany({
@@ -116,11 +114,33 @@ export class PlayerDashboardService {
         take: 10,
         orderBy: [{ sequence: 'asc' }, { id: 'asc' }],
       }),
+      this.prisma.fixture.findMany({
+        where: { ...where, AND: [...where.AND as Prisma.FixtureWhereInput[], { match: { status: 'LIVE' } }] },
+        select,
+        take: 10,
+        orderBy: [{ scheduledAt: 'asc' }, { sequence: 'asc' }, { id: 'asc' }],
+      }),
     ]);
+    // One bounded aggregation for the displayed tournaments, including applications
+    // awaiting approval. Home and Cup must describe the same registrations.
+    const totals = tournaments.length ? await this.prisma.tournamentRegistration.groupBy({
+      by: ['tournamentId', 'status'],
+      where: { tournamentId: { in: tournaments.map(tournament => tournament.id) }, status: { in: ['PENDING', 'APPROVED'] } },
+      _count: true,
+    }) : [];
+    const counts = new Map<string, { approvedEntries: number; pendingEntries: number; registeredEntries: number }>();
+    for (const total of totals) {
+      const row = counts.get(total.tournamentId) ?? { approvedEntries: 0, pendingEntries: 0, registeredEntries: 0 };
+      if (total.status === 'APPROVED') row.approvedEntries += total._count;
+      if (total.status === 'PENDING') row.pendingEntries += total._count;
+      row.registeredEntries += total._count;
+      counts.set(total.tournamentId, row);
+    }
     const mapEntry = (entry: (typeof future)[number]['homeRegistration']) =>
       entry && {
         id: entry.id,
         entryName: entry.entryName,
+        entryLogoUrl: entry.entryLogoUrl,
         members: entry.members.map(({ user }) => ({
           id: user.id,
           fullName: user.fullName,
@@ -144,17 +164,18 @@ export class PlayerDashboardService {
           matchHistory: career.data.matchHistory,
         },
         memberships: memberships.data.leagues,
-        tournaments: tournaments.map(({ league, _count, ...tournament }) => ({
+        tournaments: tournaments.map(({ league, ...tournament }) => ({
           ...tournament,
           leagueName: league.name,
-          approvedEntries: _count.registrations,
+          ...(counts.get(tournament.id) ?? { approvedEntries: 0, pendingEntries: 0, registeredEntries: 0 }),
         })),
-        fixtures: [...future, ...unscheduled, ...overdue].map(
+        fixtures: [...new Map([...live, ...future, ...unscheduled, ...overdue].map(fixture => [fixture.id, fixture])).values()].map(
           ({ homeRegistration, awayRegistration, tournament, ...fixture }) => ({
             ...fixture,
             home: mapEntry(homeRegistration),
             away: mapEntry(awayRegistration),
             tournamentId: tournament.id,
+            leagueId: tournament.leagueId,
             tournamentName: tournament.name,
             leagueName: tournament.league.name,
           }),

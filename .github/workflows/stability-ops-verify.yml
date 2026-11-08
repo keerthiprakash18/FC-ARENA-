@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "ops/**"
+      - "scripts/check-availability.mjs"
+      - "tests/availability.test.mjs"
       - ".github/workflows/production-health.yml"
       - ".github/workflows/stability-ops-verify.yml"
   push:
@@ -11,6 +13,8 @@ on:
       - "ops/stability-monitoring-v1"
     paths:
       - "ops/**"
+      - "scripts/check-availability.mjs"
+      - "tests/availability.test.mjs"
       - ".github/workflows/production-health.yml"
       - ".github/workflows/stability-ops-verify.yml"
 
@@ -23,6 +27,13 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Verify availability failure detection
+        run: node --test tests/availability.test.mjs
 
       - name: Validate shell syntax
         shell: bash

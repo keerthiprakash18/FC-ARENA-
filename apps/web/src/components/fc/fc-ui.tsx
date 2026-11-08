@@ -381,12 +381,14 @@ export function FcSkeleton({
 export function FcLoadingScreen({
   label =
     'Loading FC ARENA...',
+  embedded = false,
 }: {
   label?: string;
+  embedded?: boolean;
 }) {
   return (
     <div
-      className="theme-app-background min-h-screen p-4 sm:p-6 lg:p-8"
+      className={embedded ? 'w-full' : 'theme-app-background min-h-screen p-4 sm:p-6 lg:p-8'}
       role="status"
       aria-live="polite"
     >

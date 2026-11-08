@@ -1,6 +1,11 @@
 ﻿'use client';
+import { registerAppRefresh } from '@/lib/app-refresh';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ApiError } from '@/lib/api';
+import { loadFixtureFeed, hydrateFixtureFeed } from '@/lib/fixture-feed';
+import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 import { useEffect, useState } from 'react';
 import { AppShell } from '@/components/app/app-shell';
 import {
@@ -14,11 +19,6 @@ interface MyLeague {
     id: string;
     name: string;
   };
-}
-
-interface Tournament {
-  id: string;
-  name: string;
 }
 
 interface Entry {
@@ -59,6 +59,10 @@ function entryName(entry: Entry | null) {
 }
 
 export default function MatchesPage() {
+  const router = useRouter();
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const [renderLimit, setRenderLimit] = useState(40);
   const [user, setUser] =
     useState<CurrentUser | null>(null);
 
@@ -69,99 +73,48 @@ export default function MatchesPage() {
     useState(true);
 
   useEffect(() => {
+    let active = true, loaded = false;
+    const controller = new AbortController();
     async function load() {
+      if (!loaded) setLoading(true); setError('');
       try {
-        const currentUser =
-          await getCurrentUser();
-
+        const [currentUser, leagueResult] = await Promise.all([
+          getCurrentUser({ signal: controller.signal }),
+          authenticatedRequest<{ data: { leagues: MyLeague[] } }>('/leagues/my', { signal: controller.signal }),
+        ]);
+        if (!active) return false;
         setUser(currentUser);
-
-        const leagueResult =
-          await authenticatedRequest<{
-            data: {
-              leagues: MyLeague[];
-            };
-          }>('/leagues/my');
-
-        const tournamentGroups =
-          await Promise.all(
-            leagueResult.data.leagues.map(
-              async (membership) => {
-                const result =
-                  await authenticatedRequest<{
-                    data: {
-                      tournaments: Tournament[];
-                    };
-                  }>(
-                    `/leagues/${membership.league.id}/tournaments`,
-                  );
-
-                return result.data.tournaments.map(
-                  (tournament) => ({
-                    ...tournament,
-                    leagueName:
-                      membership.league.name,
-                  }),
-                );
-              },
-            ),
-          );
-
-        const tournaments =
-          tournamentGroups.flat();
-
-        const matchGroups =
-          await Promise.all(
-            tournaments.map(
-              async (tournament) => {
-                try {
-                  const result =
-                    await authenticatedRequest<{
-                      data: {
-                        fixtures: Fixture[];
-                      };
-                    }>(
-                      `/tournaments/${tournament.id}/fixtures`,
-                    );
-
-                  return result.data.fixtures
-                    .filter(
-                      (fixture) =>
-                        fixture.match !== null,
-                    )
-                    .map((fixture) => ({
-                      ...fixture,
-                      tournamentName:
-                        tournament.name,
-                      leagueName:
-                        tournament.leagueName,
-                    }));
-                } catch {
-                  return [];
-                }
-              },
-            ),
-          );
-
-        setMatches(matchGroups.flat());
-      } finally {
-        setLoading(false);
-      }
+        const feeds = await Promise.allSettled(leagueResult.data.leagues.map(async membership => {
+          const feed = await loadFixtureFeed(membership.league.id, undefined, controller.signal);
+          return feed.unchanged ? [] : hydrateFixtureFeed(feed).filter(fixture => fixture.match !== null);
+        }));
+        if (!active) return false;
+        const denied = feeds.find(result => result.status === 'rejected' && result.reason instanceof ApiError && result.reason.status === 401);
+        if (denied) { router.replace('/login'); return false; }
+        if (!loaded || feeds.every(result => result.status === 'fulfilled')) setMatches(feeds.flatMap(result => result.status === 'fulfilled' ? result.value : []));
+        if (feeds.some(result => result.status === 'rejected')) setError('Some league schedules could not be loaded. Retry to see every match.');
+        loaded = true;
+        return feeds.every(result => result.status === 'fulfilled');
+      } catch (err) {
+        if (!active) return false;
+        if (err instanceof ApiError && err.status === 401) router.replace('/login');
+        else setError(err instanceof ApiError ? err.message : 'Unable to load matches. Please retry.');
+        return false;
+      } finally { if (active) setLoading(false); }
     }
-
+    const unsubscribe = registerAppRefresh(load);
     void load();
-  }, []);
+    const recover = () => { if (!loaded) setRetry(value => value + 1); };
+    window.addEventListener('online', recover);
+    return () => { active = false; controller.abort(); unsubscribe(); window.removeEventListener('online', recover); };
+  }, [router, retry]);
 
-  if (!user || loading) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-sm font-bold text-slate-500">
-        Loading matches...
-      </div>
-    );
-  }
+  if (error && !user) return <AppShell><FcErrorState message={error} onRetry={() => setRetry(value => value + 1)} /></AppShell>;
+  if (!user || loading) return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading matches..." embedded /></AppShell>;
 
   return (
     <AppShell
+      currentUser={user}
       playerName={
         user.player?.identity?.inGameName
       }
@@ -182,13 +135,14 @@ export default function MatchesPage() {
           </p>
         </section>
 
-        {matches.length === 0 ? (
+        {error ? <FcErrorState message={error} onRetry={() => setRetry(value => value + 1)} /> : null}
+        {matches.length === 0 && !error ? (
           <div className="rounded-[24px] border border-dashed border-white/10 p-10 text-center text-slate-500">
             No matches available yet.
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
-            {matches.map((fixture) => (
+            {matches.slice(0, renderLimit).map((fixture) => (
               <Link
                 key={fixture.id}
                 href={`/matches/${fixture.match!.id}`}
@@ -235,6 +189,7 @@ export default function MatchesPage() {
             ))}
           </div>
         )}
+        {matches.length > renderLimit ? <button type="button" onClick={() => setRenderLimit(limit => limit + 40)} className="theme-secondary-button min-h-11 w-full rounded-xl border px-4 py-3 font-semibold">Show more matches ({matches.length - renderLimit} remaining)</button> : null}
       </div>
     </AppShell>
   );

@@ -4,13 +4,14 @@ import { confirmAction, confirmNamedDeletion } from "@/components/fc/confirmatio
 import Link from "next/link";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import { AppShell } from "@/components/app/app-shell";
 
 import {
   FcCrest,
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcNotice,
   FcPageHeader,
@@ -57,7 +58,6 @@ interface LeaguePreview {
 }
 
 export default function LeaguesPage() {
-  const router = useRouter();
   const [inviteCode, setInviteCode] = useState("");
   useEffect(() => { try { const code = new URLSearchParams(window.location.search).get("code") || sessionStorage.getItem("fc-league-invite"); if (code && /^[a-zA-Z0-9-]{1,40}$/.test(code)) { setInviteCode(code); sessionStorage.setItem("fc-league-invite", code); } } catch {} }, []);
 
@@ -85,17 +85,14 @@ export default function LeaguesPage() {
     setLeagues(response.data.leagues);
   }
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        setUser(await getCurrentUser());
-
-        await loadLeagues();
-      } catch {
-        router.replace("/login");
-      }
-    })();
-  }, [router]);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, response] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<{ data: { leagues: MyLeague[] } }>('/leagues/my', { signal }),
+    ]);
+    if (signal.aborted) return;
+    setUser(current); setLeagues(response.data.leagues);
+  });
 
   async function createLeague(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -276,8 +273,9 @@ export default function LeaguesPage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) {
-    return <FcLoadingScreen label="Loading Leagues..." />;
+    return <AppShell><FcLoadingScreen label="Loading Leagues..." embedded /></AppShell>;
   }
 
   const atLimit = leagues.length >= 2;

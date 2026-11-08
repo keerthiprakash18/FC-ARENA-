@@ -1,26 +1,24 @@
 'use client';
 
+import { useCareerData, careerHref, type CareerScopeData } from '@/lib/career-scope';
+import { CareerLeagueFilter } from '@/components/career/career-league-filter';
+
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 import { AppShell } from '@/components/app/app-shell';
 import { BackHeader } from '@/components/app/back-header';
 import { CareerNavigation } from '@/components/career/career-navigation';
 import {
   FcCrest,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
 
-import {
-  authenticatedRequest,
-  type CurrentUser,
-  getCurrentUser,
-} from '@/lib/auth-client';
 
-interface CareerData {
+interface CareerData extends CareerScopeData {
   profile: {
     fullName: string;
     playerCode: string | null;
@@ -76,50 +74,9 @@ function outcomeClass(outcome: string) {
 }
 
 export default function CareerPage() {
-  const [user, setUser] =
-    useState<CurrentUser | null>(null);
-
-  const [career, setCareer] =
-    useState<CareerData | null>(null);
-
-  const [error, setError] =
-    useState('');
-
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [current, response] =
-          await Promise.all([
-            getCurrentUser(),
-            authenticatedRequest<{
-              success: true;
-              data: CareerData;
-              error: null;
-            }>('/players/me/career'),
-          ]);
-
-        setUser(current);
-        setCareer(response.data);
-      } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load Player Career.',
-        );
-      }
-    })();
-  }, []);
-
-  if (!user || !career) {
-    return (
-      <FcLoadingScreen
-        label={
-          error ||
-          'Loading Career Stats...'
-        }
-      />
-    );
-  }
+  const { user, career, leagueId, ...initialLoad } = useCareerData<CareerData>();
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+  if (!user || !career) return <FcLoadingScreen label="Loading Career Stats..." />;
 
   const stats =
     career.lifetimeStatistics;
@@ -130,14 +87,14 @@ export default function CareerPage() {
     career.profile.fullName;
 
   return (
-    <AppShell playerName={ign}>
+    <AppShell currentUser={user} playerName={ign}>
       <div className="space-y-6">
         <BackHeader
           backHref="/more"
           backLabel="More"
           eyebrow="Player"
           title="Career Stats"
-          subtitle="Your career summary only. Match history, tournaments, Leagues and achievements now have dedicated screens."
+          subtitle="View your overall career or choose a league to see its verified performance."
           action={
             career.profile.identity
               ?.isVerified ? (
@@ -150,6 +107,7 @@ export default function CareerPage() {
         />
 
         <CareerNavigation />
+        <CareerLeagueFilter data={career} />
 
         <FcPanel className="p-5 sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -275,7 +233,7 @@ export default function CareerPage() {
             ([title, description, href]) => (
               <Link
                 key={href}
-                href={href}
+                href={careerHref(href, leagueId)}
                 className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
               >
                 <p className="font-black">

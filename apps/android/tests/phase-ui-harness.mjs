@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { phaseData, draft } from './phase-ui-fixtures.mjs';
+import { makeFixtureFeed } from './fixture-feed-fixtures.mjs';
+import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
 
 export const user = {
   id: 'phase3', fullName: 'Phase Three Player', email: 'fixture@example.invalid', phoneNumber: null,
@@ -12,7 +14,7 @@ export const career = {
   matchHistory: [], tournamentHistory: [], leagueHistory: [], achievements: [],
 };
 
-export async function createUiContext(browser, { width, native = false, reducedMotion = 'reduce', theme = 'LUXURY_GOLD', mode = 'LIGHT', role = 'SUPER_ADMIN', overrides = {}, onMutation } = {}) {
+export async function createUiContext(browser, { width, native = false, direct = false, reducedMotion = 'reduce', theme = 'LUXURY_GOLD', mode = 'LIGHT', role = 'SUPER_ADMIN', overrides = {}, onMutation } = {}) {
   const context = await browser.newContext({
     viewport: { width, height: 850 }, serviceWorkers: 'block', reducedMotion,
     ...(native ? { userAgent: 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36 FC-Arena-Android/1.0' } : {}),
@@ -26,7 +28,7 @@ export async function createUiContext(browser, { width, native = false, reducedM
   const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
   await context.route('**/*', async route => {
     const request = route.request(), url = new URL(request.url());
-    const headers = { 'access-control-allow-origin': 'https://fcarena.in', 'access-control-allow-credentials': 'true', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS', 'access-control-allow-headers': 'Authorization,Content-Type' };
+    const headers = { 'access-control-allow-origin': direct ? new URL(origin).origin : 'https://fcarena.in', 'access-control-allow-credentials': 'true', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS', 'access-control-allow-headers': 'Authorization,Content-Type' };
     if (url.pathname.startsWith('/api/')) {
       if (url.pathname === '/api/matches/phase3/events') return route.fulfill({ headers: { ...headers, 'content-type': 'text/event-stream' }, body: 'event: connected\ndata: {"type":"connected"}\n\n' });
       if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
@@ -42,6 +44,11 @@ export async function createUiContext(browser, { width, native = false, reducedM
         return route.fulfill({ headers, json: { success: true, data: override, error: null } });
       }
       const defaults = {
+        '/api/experience/me/check-in': collectedDailyFixture(),
+        '/api/experience/me': emptyExperience,
+        '/api/auth/preferences/dashboard': { preferences: {} },
+        '/api/leagues/phase3/fixture-feed': makeFixtureFeed('phase3', phaseData['/api/leagues/phase3/tournaments'].tournaments,
+          { phase3: phaseData['/api/tournaments/phase3/fixtures'].fixtures }),
         '/api/auth/refresh': { accessToken: 'fixture-only', expiresIn: 3600 },
         '/api/auth/me': { user: { ...user, role, themePreference: theme } },
         '/api/notifications': { notifications: [], unreadCount: 0 },
@@ -52,6 +59,7 @@ export async function createUiContext(browser, { width, native = false, reducedM
       if (!data) { errors.push(`Unmocked API: ${url.pathname}`); return route.abort(); }
       return route.fulfill({ headers, json: { success: true, data, error: null } });
     }
+    if (direct && url.origin === new URL(origin).origin) return route.continue();
     if (url.hostname !== 'fcarena.in') { errors.push(`Unexpected request: ${url.origin}${url.pathname}`); return route.abort(); }
     try {
       const response = await fetch(`${origin}${url.pathname}${url.search}`, { headers: { ...request.headers(), host: new URL(origin).host } });

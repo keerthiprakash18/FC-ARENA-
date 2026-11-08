@@ -46,6 +46,7 @@ export function matchParticipant(
         lineIndex: -1,
         offset: -1,
         x: null as number | null,
+        y: null as number | null,
       };
       for (const alias of [candidate.inGameName, candidate.fullName]) {
         if (!alias) continue;
@@ -73,8 +74,15 @@ export function matchParticipant(
                   ? Number(target === normalized)
                   : similarity(target, normalized);
               if (score < 0.75) continue;
+              const matchedWords = line.words?.filter(
+                (word) => word.offset < last.index + last[0].length &&
+                  word.offset + word.text.length > offset,
+              );
+              const textConfidence = matchedWords?.length
+                ? Math.min(...matchedWords.map((word) => word.confidence))
+                : line.confidence ?? ocrConfidence;
               const confidence =
-                score * normalizedConfidence(line.confidence ?? ocrConfidence);
+                score * normalizedConfidence(textConfidence);
               if (confidence > best.confidence) {
                 best = {
                   userId: candidate.userId,
@@ -82,11 +90,16 @@ export function matchParticipant(
                   confidence,
                   lineIndex,
                   offset,
-                  x: line.bbox
+                  x: matchedWords?.length
+                    ? (matchedWords[0].bbox.x0 + matchedWords.at(-1)!.bbox.x1) / 2
+                    : line.bbox
                     ? line.bbox.x0 +
                       (offset / Math.max(1, line.text.length)) *
                         (line.bbox.x1 - line.bbox.x0)
                     : null,
+                  y: matchedWords?.length
+                    ? (matchedWords[0].bbox.y0 + matchedWords[0].bbox.y1) / 2
+                    : line.bbox ? (line.bbox.y0 + line.bbox.y1) / 2 : null,
                 };
               }
             }
@@ -103,6 +116,7 @@ export function matchParticipant(
     lineIndex: -1,
     offset: -1,
     x: null,
+    y: null,
   };
   if (
     best.confidence < 0.5 ||
@@ -171,7 +185,7 @@ export function detectScore(lines: OcrTextLine[], ocrConfidence: number) {
         continue;
       const standalone = text === match.text.trim();
       const rank =
-        (labelled ? 3 : standalone ? 2 : 1) +
+        (line.source === 'scoreboard' ? 5 : labelled ? 3 : standalone ? 2 : 1) +
         (match.separator === ' ' ? -0.5 : 0);
       candidates.push({
         homeScore,
@@ -187,7 +201,7 @@ export function detectScore(lines: OcrTextLine[], ocrConfidence: number) {
   candidates.sort((a, b) => b.rank - a.rank || b.confidence - a.confidence);
   const best = candidates[0];
   if (!best)
-    return { homeScore: null, awayScore: null, confidence: 0, lineIndex: -1 };
+    return { homeScore: null, awayScore: null, confidence: 0, rank: 0, lineIndex: -1 };
   const conflicting = candidates.some(
     (candidate) =>
       candidate.rank >= best.rank - 0.5 &&
@@ -206,7 +220,7 @@ export function parseOcrResult(
   awayCandidates: OcrParticipantCandidate[],
 ) {
   const results = [raw, ...(raw.alternatives ?? [])].map((variant) => {
-    const lines = variant.lines?.length
+    const lines: OcrTextLine[] = variant.lines?.length
       ? variant.lines
       : variant.text
           .split(/\r?\n/)
@@ -223,9 +237,13 @@ export function parseOcrResult(
     let orientationKnown = false;
     if (bothMatched) {
       const sameLine = home.lineIndex === away.lineIndex;
-      const nearScore =
-        Math.abs(home.lineIndex - score.lineIndex) <= 3 &&
-        Math.abs(away.lineIndex - score.lineIndex) <= 3;
+      const scoreBox = lines[score.lineIndex]?.bbox;
+      const nearScore = scoreBox && home.y !== null && away.y !== null
+        ? [home.y, away.y].every((y) =>
+            Math.abs(y - (scoreBox.y0 + scoreBox.y1) / 2) <=
+              Math.max(40, (scoreBox.y1 - scoreBox.y0) * 3))
+        : Math.abs(home.lineIndex - score.lineIndex) <= 3 &&
+          Math.abs(away.lineIndex - score.lineIndex) <= 3;
       const useCoordinates =
         home.x !== null && away.x !== null && Math.abs(home.x - away.x) > 20;
       orientationKnown = nearScore && (sameLine || useCoordinates);
@@ -242,6 +260,7 @@ export function parseOcrResult(
   results.sort(
     (a, b) =>
       Number(b.score.homeScore !== null) - Number(a.score.homeScore !== null) ||
+      b.score.rank - a.score.rank ||
       b.score.confidence - a.score.confidence ||
       b.home.confidence +
         b.away.confidence -
@@ -252,6 +271,7 @@ export function parseOcrResult(
     results.some(
       (result) =>
         result !== best &&
+        result.score.rank >= best.score.rank &&
         result.score.confidence >= 0.5 &&
         (result.score.homeScore !== best.score.homeScore ||
           result.score.awayScore !== best.score.awayScore),

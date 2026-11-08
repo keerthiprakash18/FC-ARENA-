@@ -12,7 +12,7 @@ const paths = ['/auth/me','/players/me/dashboard','/leagues/my','/leagues/test/t
   for (let i = 0; i < 15; i++) {
    const client = {};
    const api = { apiRequest: async () => { requests++; await new Promise(r => setTimeout(r, 40)); return { data: { sample: true } }; } };
-   vm.runInNewContext(code, { exports: client, require: () => api, Date, Promise, Error, JSON, Map, setTimeout });
+   vm.runInNewContext(code, { exports: client, require: () => api, Headers, Date, Promise, Error, JSON, Map, setTimeout });
    client.establishLoginSession('synthetic-test-token', 3600);
    const start = performance.now();
    await Promise.all([client.authenticatedRequest(path), client.authenticatedRequest(path), client.authenticatedRequest(path)]);

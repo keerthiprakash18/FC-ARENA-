@@ -1,0 +1,15 @@
+# Football team choices
+
+Registration, editing an entry, and admin manual entry share the football team picker. Players may choose a club by its football league, choose a national team, or keep a custom team name. The resulting name is sent through the existing `entryName` field. Player IDs, approval, capacity and duplicate-name validation continue to use the existing server endpoints.
+
+The checked-in snapshot contains 50 curated men's leagues, 873 club memberships and all 211 FIFA member associations. This is a selection of widely followed domestic competitions, including major second divisions, rather than an official world ranking. MLS and A-League are identified as cross-border competitions. National teams include FIFA territories and the separate UK home nations; they are not an ISO sovereign-country list.
+
+Names and league membership come from the ESPN roster URLs recorded for each league in `apps/web/src/data/football-teams.json`. National associations and confederations come from [FIFA's association directory](https://inside.fifa.com/associations). No badge images or other remote artwork are copied or requested.
+
+The JSON snapshot loads as a local JavaScript chunk only when the picker is opened. Selection does not depend on a third-party sports API at runtime. A failed chunk load leaves the custom name input available and offers a retry. Search is case and accent insensitive, supports country aliases and keeps the chosen league filter. Search Enter cannot submit the surrounding form; Escape closes choices without changing a draft.
+
+To update, run `python scripts/update-football-catalog.py --cache <new-empty-cache-directory>`. The script uses four concurrent read requests, saves source responses for review, excludes placeholder teams and requires a complete association list and populated rosters. Review promotions, relegations, team counts, names and the JSON diff before deployment. Then run `node --test tests/football-catalog.test.cjs` and the browser registration suite `apps/android/tests/football-team-picker-regression.mjs`. Do not refresh this catalogue during a player's registration session.
+
+The current membership role displayed in the app shell is presentation only. For pages that do not supply an explicit role, it is resolved from that account's memberships and the shared active league. Until known, the shell shows Account instead of incorrectly claiming Player. Server resource permissions still determine every administrative action.
+
+Teams already registered as pending or approved in this tournament are marked Already chosen and cannot be selected again. Name comparisons use the same Unicode, case and whitespace normalization as the server. Editing excludes only the current entry, and rejected/withdrawn entries release their names. Choices refresh on opening, focus, manual refresh and every 15 seconds while visible. A failed availability read disables catalogue selection until retry succeeds; the server remains the final atomic duplicate check for manual names and concurrent submissions.

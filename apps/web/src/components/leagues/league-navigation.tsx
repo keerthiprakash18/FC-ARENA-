@@ -19,8 +19,10 @@ const items = [
 
 export function LeagueNavigation({
   leagueId,
+  canManageMembers = false,
 }: {
   leagueId: string;
+  canManageMembers?: boolean;
 }) {
   const pathname =
     usePathname();
@@ -31,7 +33,7 @@ export function LeagueNavigation({
   return (
     <FcContextNav
       ariaLabel="League sections"
-      items={items.map(([label, suffix]) => {
+      items={[...items, ...(canManageMembers ? [['Join requests', '/settings#join-requests']] as const : [])].map(([label, suffix]) => {
         const isLeaderboard = suffix === '/leaderboard';
         const href = isLeaderboard
           ? `/leaderboards?league=${leagueId}`

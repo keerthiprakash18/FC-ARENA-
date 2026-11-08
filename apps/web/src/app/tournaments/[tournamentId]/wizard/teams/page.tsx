@@ -35,10 +35,13 @@ import {
   getCurrentUser,
   type CurrentUser,
 } from '@/lib/auth-client';
+import { FootballTeamPicker } from '@/components/tournaments/football-team-picker';
 import { normalizeTeamName } from '@/lib/entry-name';
+import { TournamentEntryLimit, type EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
+import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 
 
-interface Tournament {
+interface Tournament extends EntryLimitTournament {
   id: string;
   name: string;
   mode: string;
@@ -56,6 +59,7 @@ interface Entry {
   sortOrder: number;
   status: string;
   fixtureCount: number;
+  members?: Array<{ user: { player: { playerCode: string } | null } }>;
 }
 
 
@@ -186,6 +190,8 @@ export default function TeamsWizardPage() {
     setBusy,
   ] =
     useState(false);
+
+  const [editPlayerIds, setEditPlayerIds] = useState('');
 
 
   const [
@@ -514,6 +520,7 @@ export default function TeamsWizardPage() {
   function beginEdit(
     entry: Entry,
   ) {
+    setEditPlayerIds((entry.members ?? []).map(member => member.user.player?.playerCode ?? '').filter(Boolean).join('\n'));
     setEditingId(
       entry.id,
     );
@@ -566,6 +573,9 @@ export default function TeamsWizardPage() {
             JSON.stringify({
               entryName:
                 editName,
+              ...(participantManagementOpen && editPlayerIds.trim() ? {
+                playerCodes: editPlayerIds.split(/[\n,]+/).map(code => code.trim().toUpperCase()).filter(Boolean),
+              } : {}),
 
               ...(editLogo
                 ? {
@@ -887,6 +897,8 @@ export default function TeamsWizardPage() {
         0,
     );
 
+  const entryDetailsEditable = !['COMPLETED', 'CANCELLED'].includes(tournament.status);
+
 
   return (
     <AppShell
@@ -1038,6 +1050,15 @@ export default function TeamsWizardPage() {
         </section>
 
 
+        <div className="mt-6">
+          <TournamentFixtureStart tournament={{ ...tournament,
+            approvedEntries: approvedEntries.length, pendingEntries: pendingEntries.length }} />
+        </div>
+        <div className="mt-6">
+          <TournamentEntryLimit tournament={{ ...tournament, approvedEntries: approvedEntries.length }}
+            onUpdated={maxEntries => setTournament(current => current ? { ...current, maxEntries } : current)} />
+        </div>
+
         <section className="mt-7">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -1098,25 +1119,9 @@ export default function TeamsWizardPage() {
                   >
                     {editingId ===
                       entry.id &&
-                    participantManagementOpen ? (
+                    entryDetailsEditable ? (
                       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                        <input
-                          aria-label={`Team name for ${entry.entryName || 'unnamed team'}`}
-                          value={
-                            editName
-                          }
-                          onChange={
-                            (
-                              event,
-                            ) =>
-                              setEditName(
-                                event
-                                  .target
-                                  .value,
-                              )
-                          }
-                          className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3"
-                        />
+                        <FootballTeamPicker tournamentId={tournamentId} excludeEntryId={entry.id} label={`Team name for ${entry.entryName || 'unnamed team'}`} value={editName} onChange={setEditName} disabled={busy} />
 
                         <input
                           aria-label={`Logo URL for ${entry.entryName || 'unnamed team'}`}
@@ -1136,6 +1141,20 @@ export default function TeamsWizardPage() {
                           placeholder="Logo URL"
                           className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3"
                         />
+
+                        <label className="grid gap-2 text-xs text-slate-400">
+                          FC ARENA Player IDs ({tournament.teamSize} per entry)
+                          <textarea
+                            aria-label={`Player IDs for ${entry.entryName || 'unnamed team'}`}
+                            value={editPlayerIds}
+                            onChange={event => setEditPlayerIds(event.target.value)}
+                            disabled={!participantManagementOpen}
+                            rows={Math.min(5, Math.max(2, tournament.teamSize))}
+                            placeholder="One Player ID per line"
+                            className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 font-mono disabled:opacity-50"
+                          />
+                          {participantManagementOpen ? 'Link players so their personal fixtures appear on Home.' : 'Player changes are locked after fixtures are generated. Name and logo can still be updated.'}
+                        </label>
 
                         <div className="flex gap-2">
                           <button
@@ -1220,6 +1239,7 @@ export default function TeamsWizardPage() {
                         </div>
 
 
+                        {entryDetailsEditable ? <button type="button" onClick={() => beginEdit(entry)} className="rounded-xl border border-sky-400/20 px-4 py-2 text-sm font-black text-sky-300">Edit Details</button> : null}
                         {participantManagementOpen ? (
                           <div className="flex flex-wrap gap-2">
                             <button
@@ -1255,18 +1275,6 @@ export default function TeamsWizardPage() {
                               className="rounded-xl border border-white/10 px-3 py-2 text-sm disabled:opacity-30"
                             >
                               ↓
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                beginEdit(
-                                  entry,
-                                )
-                              }
-                              className="rounded-xl border border-sky-400/20 px-4 py-2 text-sm font-black text-sky-300"
-                            >
-                              Edit
                             </button>
 
                             <button
@@ -1318,18 +1326,7 @@ export default function TeamsWizardPage() {
                 }
                 className="grid gap-4 md:grid-cols-[1fr_1fr_auto]"
               >
-                <div className="field">
-                  <label htmlFor="wizard-entry-name">
-                    Team Name
-                  </label>
-
-                  <input
-                    id="wizard-entry-name"
-                    name="entryName"
-                    required
-                    placeholder="Manchester City"
-                  />
-                </div>
+                <FootballTeamPicker tournamentId={tournamentId} id="wizard-entry-name" disabled={busy} />
 
                 <div className="field">
                   <label htmlFor="wizard-entry-logo">

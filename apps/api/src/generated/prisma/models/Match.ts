@@ -271,6 +271,7 @@ export type MatchWhereInput = {
   statEvents?: Prisma.MatchResultStatEventListRelationFilter
   ocrExtractions?: Prisma.OcrExtractionListRelationFilter
   disputes?: Prisma.MatchDisputeListRelationFilter
+  arenaPost?: Prisma.XOR<Prisma.ArenaPostNullableScalarRelationFilter, Prisma.ArenaPostWhereInput> | null
 }
 
 export type MatchOrderByWithRelationInput = {
@@ -292,6 +293,7 @@ export type MatchOrderByWithRelationInput = {
   statEvents?: Prisma.MatchResultStatEventOrderByRelationAggregateInput
   ocrExtractions?: Prisma.OcrExtractionOrderByRelationAggregateInput
   disputes?: Prisma.MatchDisputeOrderByRelationAggregateInput
+  arenaPost?: Prisma.ArenaPostOrderByWithRelationInput
 }
 
 export type MatchWhereUniqueInput = Prisma.AtLeast<{
@@ -316,6 +318,7 @@ export type MatchWhereUniqueInput = Prisma.AtLeast<{
   statEvents?: Prisma.MatchResultStatEventListRelationFilter
   ocrExtractions?: Prisma.OcrExtractionListRelationFilter
   disputes?: Prisma.MatchDisputeListRelationFilter
+  arenaPost?: Prisma.XOR<Prisma.ArenaPostNullableScalarRelationFilter, Prisma.ArenaPostWhereInput> | null
 }, "id" | "serialNumber" | "matchCode" | "fixtureId" | "confirmedResultSubmissionId">
 
 export type MatchOrderByWithAggregationInput = {
@@ -370,6 +373,7 @@ export type MatchCreateInput = {
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateInput = {
@@ -388,6 +392,7 @@ export type MatchUncheckedCreateInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUpdateInput = {
@@ -405,6 +410,7 @@ export type MatchUpdateInput = {
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateInput = {
@@ -423,6 +429,7 @@ export type MatchUncheckedUpdateInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchCreateManyInput = {
@@ -699,6 +706,22 @@ export type MatchUpdateOneRequiredWithoutStatEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.MatchUpdateToOneWithWhereWithoutStatEventsInput, Prisma.MatchUpdateWithoutStatEventsInput>, Prisma.MatchUncheckedUpdateWithoutStatEventsInput>
 }
 
+export type MatchCreateNestedOneWithoutArenaPostInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutArenaPostInput, Prisma.MatchUncheckedCreateWithoutArenaPostInput>
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutArenaPostInput
+  connect?: Prisma.MatchWhereUniqueInput
+}
+
+export type MatchUpdateOneWithoutArenaPostNestedInput = {
+  create?: Prisma.XOR<Prisma.MatchCreateWithoutArenaPostInput, Prisma.MatchUncheckedCreateWithoutArenaPostInput>
+  connectOrCreate?: Prisma.MatchCreateOrConnectWithoutArenaPostInput
+  upsert?: Prisma.MatchUpsertWithoutArenaPostInput
+  disconnect?: Prisma.MatchWhereInput | boolean
+  delete?: Prisma.MatchWhereInput | boolean
+  connect?: Prisma.MatchWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MatchUpdateToOneWithWhereWithoutArenaPostInput, Prisma.MatchUpdateWithoutArenaPostInput>, Prisma.MatchUncheckedUpdateWithoutArenaPostInput>
+}
+
 export type MatchCreateWithoutTournamentInput = {
   id?: string
   serialNumber?: number
@@ -714,6 +737,7 @@ export type MatchCreateWithoutTournamentInput = {
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutTournamentInput = {
@@ -731,6 +755,7 @@ export type MatchUncheckedCreateWithoutTournamentInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutTournamentInput = {
@@ -791,6 +816,7 @@ export type MatchCreateWithoutFixtureInput = {
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutFixtureInput = {
@@ -808,6 +834,7 @@ export type MatchUncheckedCreateWithoutFixtureInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutFixtureInput = {
@@ -840,6 +867,7 @@ export type MatchUpdateWithoutFixtureInput = {
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutFixtureInput = {
@@ -857,6 +885,7 @@ export type MatchUncheckedUpdateWithoutFixtureInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchCreateWithoutResultSubmissionsInput = {
@@ -874,6 +903,7 @@ export type MatchCreateWithoutResultSubmissionsInput = {
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutResultSubmissionsInput = {
@@ -891,6 +921,7 @@ export type MatchUncheckedCreateWithoutResultSubmissionsInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutResultSubmissionsInput = {
@@ -913,6 +944,7 @@ export type MatchCreateWithoutConfirmedResultInput = {
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutConfirmedResultInput = {
@@ -930,6 +962,7 @@ export type MatchUncheckedCreateWithoutConfirmedResultInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutConfirmedResultInput = {
@@ -962,6 +995,7 @@ export type MatchUpdateWithoutResultSubmissionsInput = {
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutResultSubmissionsInput = {
@@ -979,6 +1013,7 @@ export type MatchUncheckedUpdateWithoutResultSubmissionsInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUpsertWithoutConfirmedResultInput = {
@@ -1006,6 +1041,7 @@ export type MatchUpdateWithoutConfirmedResultInput = {
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutConfirmedResultInput = {
@@ -1023,6 +1059,7 @@ export type MatchUncheckedUpdateWithoutConfirmedResultInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchCreateWithoutOcrExtractionsInput = {
@@ -1040,6 +1077,7 @@ export type MatchCreateWithoutOcrExtractionsInput = {
   confirmedResult?: Prisma.ResultSubmissionCreateNestedOneWithoutConfirmedForMatchInput
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutOcrExtractionsInput = {
@@ -1057,6 +1095,7 @@ export type MatchUncheckedCreateWithoutOcrExtractionsInput = {
   resultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutMatchInput
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutOcrExtractionsInput = {
@@ -1089,6 +1128,7 @@ export type MatchUpdateWithoutOcrExtractionsInput = {
   confirmedResult?: Prisma.ResultSubmissionUpdateOneWithoutConfirmedForMatchNestedInput
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutOcrExtractionsInput = {
@@ -1106,6 +1146,7 @@ export type MatchUncheckedUpdateWithoutOcrExtractionsInput = {
   resultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutMatchNestedInput
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchCreateWithoutDisputesInput = {
@@ -1123,6 +1164,7 @@ export type MatchCreateWithoutDisputesInput = {
   confirmedResult?: Prisma.ResultSubmissionCreateNestedOneWithoutConfirmedForMatchInput
   statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutDisputesInput = {
@@ -1140,6 +1182,7 @@ export type MatchUncheckedCreateWithoutDisputesInput = {
   resultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutMatchInput
   statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutDisputesInput = {
@@ -1172,6 +1215,7 @@ export type MatchUpdateWithoutDisputesInput = {
   confirmedResult?: Prisma.ResultSubmissionUpdateOneWithoutConfirmedForMatchNestedInput
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutDisputesInput = {
@@ -1189,6 +1233,7 @@ export type MatchUncheckedUpdateWithoutDisputesInput = {
   resultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutMatchNestedInput
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchCreateWithoutStatEventsInput = {
@@ -1206,6 +1251,7 @@ export type MatchCreateWithoutStatEventsInput = {
   confirmedResult?: Prisma.ResultSubmissionCreateNestedOneWithoutConfirmedForMatchInput
   ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchUncheckedCreateWithoutStatEventsInput = {
@@ -1223,6 +1269,7 @@ export type MatchUncheckedCreateWithoutStatEventsInput = {
   resultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutMatchInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
   disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+  arenaPost?: Prisma.ArenaPostUncheckedCreateNestedOneWithoutSourceMatchInput
 }
 
 export type MatchCreateOrConnectWithoutStatEventsInput = {
@@ -1255,6 +1302,7 @@ export type MatchUpdateWithoutStatEventsInput = {
   confirmedResult?: Prisma.ResultSubmissionUpdateOneWithoutConfirmedForMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutStatEventsInput = {
@@ -1270,6 +1318,94 @@ export type MatchUncheckedUpdateWithoutStatEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   resultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutMatchNestedInput
+  ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
+  disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
+}
+
+export type MatchCreateWithoutArenaPostInput = {
+  id?: string
+  serialNumber?: number
+  matchCode?: string | null
+  status?: $Enums.MatchStatus
+  homeReadyAt?: Date | string | null
+  awayReadyAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tournament: Prisma.TournamentCreateNestedOneWithoutMatchesInput
+  fixture: Prisma.FixtureCreateNestedOneWithoutMatchInput
+  resultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutMatchInput
+  confirmedResult?: Prisma.ResultSubmissionCreateNestedOneWithoutConfirmedForMatchInput
+  statEvents?: Prisma.MatchResultStatEventCreateNestedManyWithoutMatchInput
+  ocrExtractions?: Prisma.OcrExtractionCreateNestedManyWithoutMatchInput
+  disputes?: Prisma.MatchDisputeCreateNestedManyWithoutMatchInput
+}
+
+export type MatchUncheckedCreateWithoutArenaPostInput = {
+  id?: string
+  serialNumber?: number
+  matchCode?: string | null
+  tournamentId: string
+  fixtureId: string
+  status?: $Enums.MatchStatus
+  confirmedResultSubmissionId?: string | null
+  homeReadyAt?: Date | string | null
+  awayReadyAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  resultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutMatchInput
+  statEvents?: Prisma.MatchResultStatEventUncheckedCreateNestedManyWithoutMatchInput
+  ocrExtractions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutMatchInput
+  disputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutMatchInput
+}
+
+export type MatchCreateOrConnectWithoutArenaPostInput = {
+  where: Prisma.MatchWhereUniqueInput
+  create: Prisma.XOR<Prisma.MatchCreateWithoutArenaPostInput, Prisma.MatchUncheckedCreateWithoutArenaPostInput>
+}
+
+export type MatchUpsertWithoutArenaPostInput = {
+  update: Prisma.XOR<Prisma.MatchUpdateWithoutArenaPostInput, Prisma.MatchUncheckedUpdateWithoutArenaPostInput>
+  create: Prisma.XOR<Prisma.MatchCreateWithoutArenaPostInput, Prisma.MatchUncheckedCreateWithoutArenaPostInput>
+  where?: Prisma.MatchWhereInput
+}
+
+export type MatchUpdateToOneWithWhereWithoutArenaPostInput = {
+  where?: Prisma.MatchWhereInput
+  data: Prisma.XOR<Prisma.MatchUpdateWithoutArenaPostInput, Prisma.MatchUncheckedUpdateWithoutArenaPostInput>
+}
+
+export type MatchUpdateWithoutArenaPostInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  matchCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  homeReadyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  awayReadyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tournament?: Prisma.TournamentUpdateOneRequiredWithoutMatchesNestedInput
+  fixture?: Prisma.FixtureUpdateOneRequiredWithoutMatchNestedInput
+  resultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutMatchNestedInput
+  confirmedResult?: Prisma.ResultSubmissionUpdateOneWithoutConfirmedForMatchNestedInput
+  statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
+  ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
+  disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+}
+
+export type MatchUncheckedUpdateWithoutArenaPostInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  serialNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  matchCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tournamentId?: Prisma.StringFieldUpdateOperationsInput | string
+  fixtureId?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumMatchStatusFieldUpdateOperationsInput | $Enums.MatchStatus
+  confirmedResultSubmissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  homeReadyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  awayReadyAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  resultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutMatchNestedInput
+  statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
 }
@@ -1301,6 +1437,7 @@ export type MatchUpdateWithoutTournamentInput = {
   statEvents?: Prisma.MatchResultStatEventUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateWithoutTournamentInput = {
@@ -1318,6 +1455,7 @@ export type MatchUncheckedUpdateWithoutTournamentInput = {
   statEvents?: Prisma.MatchResultStatEventUncheckedUpdateManyWithoutMatchNestedInput
   ocrExtractions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutMatchNestedInput
   disputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutMatchNestedInput
+  arenaPost?: Prisma.ArenaPostUncheckedUpdateOneWithoutSourceMatchNestedInput
 }
 
 export type MatchUncheckedUpdateManyWithoutTournamentInput = {
@@ -1410,6 +1548,7 @@ export type MatchSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   statEvents?: boolean | Prisma.Match$statEventsArgs<ExtArgs>
   ocrExtractions?: boolean | Prisma.Match$ocrExtractionsArgs<ExtArgs>
   disputes?: boolean | Prisma.Match$disputesArgs<ExtArgs>
+  arenaPost?: boolean | Prisma.Match$arenaPostArgs<ExtArgs>
   _count?: boolean | Prisma.MatchCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["match"]>
 
@@ -1470,6 +1609,7 @@ export type MatchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   statEvents?: boolean | Prisma.Match$statEventsArgs<ExtArgs>
   ocrExtractions?: boolean | Prisma.Match$ocrExtractionsArgs<ExtArgs>
   disputes?: boolean | Prisma.Match$disputesArgs<ExtArgs>
+  arenaPost?: boolean | Prisma.Match$arenaPostArgs<ExtArgs>
   _count?: boolean | Prisma.MatchCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MatchIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1493,6 +1633,7 @@ export type $MatchPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     statEvents: Prisma.$MatchResultStatEventPayload<ExtArgs>[]
     ocrExtractions: Prisma.$OcrExtractionPayload<ExtArgs>[]
     disputes: Prisma.$MatchDisputePayload<ExtArgs>[]
+    arenaPost: Prisma.$ArenaPostPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1907,6 +2048,7 @@ export interface Prisma__MatchClient<T, Null = never, ExtArgs extends runtime.Ty
   statEvents<T extends Prisma.Match$statEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$statEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MatchResultStatEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ocrExtractions<T extends Prisma.Match$ocrExtractionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$ocrExtractionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OcrExtractionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   disputes<T extends Prisma.Match$disputesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$disputesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MatchDisputePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaPost<T extends Prisma.Match$arenaPostArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Match$arenaPostArgs<ExtArgs>>): Prisma.Prisma__ArenaPostClient<runtime.Types.Result.GetResult<Prisma.$ArenaPostPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2460,6 +2602,25 @@ export type Match$disputesArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.MatchDisputeScalarFieldEnum | Prisma.MatchDisputeScalarFieldEnum[]
+}
+
+/**
+ * Match.arenaPost
+ */
+export type Match$arenaPostArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaPost
+   */
+  select?: Prisma.ArenaPostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaPost
+   */
+  omit?: Prisma.ArenaPostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaPostInclude<ExtArgs> | null
+  where?: Prisma.ArenaPostWhereInput
 }
 
 /**

@@ -1,8 +1,9 @@
 'use client';
+import { TournamentRegistrationSummary, type RegistrationSummaryData } from '@/components/tournaments/registration-summary';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import { AppShell } from '@/components/app/app-shell';
 import { EliteCupFormatCard } from '@/components/elite-cup/elite-cup-format-card';
@@ -39,7 +40,7 @@ interface Membership {
   };
 }
 
-interface EliteCupTournament {
+interface EliteCupTournament extends RegistrationSummaryData {
   id: string;
   name: string;
   code: string;
@@ -76,25 +77,22 @@ function statusTone(status: string) {
 }
 
 export default function EliteCupHubPage() {
-  const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [tournaments, setTournaments] = useState<EliteCupTournament[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function load() {
+  const initialLoad = useRecoverableLoad(async signal => {
       try {
         const [currentUser, membershipResponse] = await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my'),
+          getCurrentUser({ signal }),
+          authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my', { signal }),
         ]);
 
         const leagueTournaments = await Promise.all(
           membershipResponse.data.leagues.map(async (membership) => {
             const response = await authenticatedRequest<{
               data: { tournaments: EliteCupTournament[] };
-            }>(`/leagues/${membership.league.id}/tournaments`);
+            }>(`/leagues/${membership.league.id}/tournaments`, { signal });
 
             return response.data.tournaments.map((tournament) => ({
               ...tournament,
@@ -111,18 +109,13 @@ export default function EliteCupHubPage() {
           }
         }
 
+        if (signal.aborted) return;
         setUser(currentUser);
         setTournaments(Array.from(uniqueTournaments.values()));
-      } catch {
-        setError('Unable to load Elite Cup tournaments. Please retry.');
-        router.replace('/login');
       } finally {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false);
       }
-    }
-
-    void load();
-  }, [router]);
+  });
 
   const approvedTeams = useMemo(
     () => tournaments.reduce((total, tournament) => total + (tournament.approvedEntries || 0), 0),
@@ -132,16 +125,9 @@ export default function EliteCupHubPage() {
   const recommendedFormat = getEliteCupRecommendedFormat(approvedTeams);
   const recommendation = getEliteCupFormatDefinition(recommendedFormat);
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (loading || !user) {
-    return <FcLoadingScreen label="Loading Elite Cup..." />;
-  }
-
-  if (error) {
-    return (
-      <AppShell playerName={user.player?.identity?.inGameName}>
-        <FcErrorState message={error} onRetry={() => window.location.reload()} />
-      </AppShell>
-    );
+    return <AppShell><FcLoadingScreen label="Loading Elite Cup..." embedded /></AppShell>;
   }
 
   return (
@@ -243,6 +229,7 @@ export default function EliteCupHubPage() {
                       </Link>
                     </div>
 
+                    <div className="mt-4"><TournamentRegistrationSummary tournament={tournament} /></div>
                     <div className="mt-5 grid gap-2 sm:grid-cols-2">
                       {tournamentDestinations.map(([label, description, icon, suffix, tone]) => (
                         <FcActionRow

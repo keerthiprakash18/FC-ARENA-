@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { AppShell } from '@/components/app/app-shell';
 import { FcErrorState, FcLoadingScreen, FcPageHeader, FcPanel } from '@/components/fc/fc-ui';
 import { authenticatedRequest, getCurrentUser, type CurrentUser } from '@/lib/auth-client';
@@ -22,28 +22,21 @@ const ITEMS: Array<{ key: PreferenceKey; title: string; description: string }> =
 const DEFAULTS: Preferences = Object.fromEntries(ITEMS.map(({ key }) => [key, true])) as Preferences;
 
 export default function NotificationPreferencesPage() {
-  const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [preferences, setPreferences] = useState<Preferences>(DEFAULTS);
   const [saving, setSaving] = useState<PreferenceKey | null>(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [current, response] = await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{ data: { preferences: Preferences } }>('/notifications/preferences'),
-        ]);
-        setUser(current);
-        setPreferences({ ...DEFAULTS, ...response.data.preferences });
-      } catch (err) {
-        if (err instanceof Error) setError(err.message);
-        else setError('Unable to load notification preferences.');
-      }
-    })();
-  }, [router]);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, response] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<{ data: { preferences: Preferences } }>('/notifications/preferences', { signal }),
+    ]);
+    if (signal.aborted) return;
+    setUser(current);
+    setPreferences({ ...DEFAULTS, ...response.data.preferences });
+  });
 
   async function toggle(key: PreferenceKey) {
     const next = !preferences[key];
@@ -66,11 +59,12 @@ export default function NotificationPreferencesPage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) return <FcLoadingScreen label="Loading Notification Preferences..." />;
   const playerName = user.player?.identity?.inGameName || user.fullName;
 
   return (
-    <AppShell playerName={playerName}>
+    <AppShell currentUser={user} playerName={playerName}>
       <div className="space-y-6">
         <FcPageHeader eyebrow="Account" title="Notification Preferences" subtitle="Choose which categories create new FC ARENA inbox and phone alerts. Existing notifications stay available in your inbox." />
         {error ? <FcErrorState message={error} onRetry={() => window.location.reload()} /> : null}

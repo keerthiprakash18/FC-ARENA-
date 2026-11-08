@@ -42,10 +42,15 @@ describe('Tournament entry self-edit authorization', () => {
     expect(setupState.tx.tournamentRegistration.update).not.toHaveBeenCalled();
   });
 
-  it('locks captain edits after fixtures are generated', async () => {
+  it('allows captain name corrections after fixtures are generated', async () => {
     const setupState = setup(1);
 
-    await expect(setupState.service.updateEntry('captain-1', 'tournament-1', 'entry-1', { entryName: 'Updated Team' })).rejects.toMatchObject({ response: { error: { code: 'TOURNAMENT_TEAMS_HAVE_FIXTURES' } } });
+    await expect(setupState.service.updateEntry('captain-1', 'tournament-1', 'entry-1', { entryName: 'Updated Team' })).resolves.toMatchObject({ success: true });
+  });
+
+  it('continues to lock roster changes after fixtures are generated', async () => {
+    const setupState = setup(1);
+    await expect(setupState.service.updateEntry('captain-1', 'tournament-1', 'entry-1', { playerCodes: ['FCA-P-000001'] })).rejects.toMatchObject({ response: { error: { code: 'TOURNAMENT_TEAMS_HAVE_FIXTURES' } } });
     expect(setupState.tx.tournamentRegistration.update).not.toHaveBeenCalled();
   });
 });

@@ -212,7 +212,11 @@ export default function BallonRankingsPage() {
     let active =
       true;
 
+    let inFlight = false;
+
     async function loadRankings() {
+      if (!active || inFlight) return;
+      inFlight = true;
       try {
         const response =
           await authenticatedRequest<any>(
@@ -255,6 +259,8 @@ export default function BallonRankingsPage() {
             ? err.message
             : 'Unable to load Ballon rankings.',
         );
+      } finally {
+        inFlight = false;
       }
     }
 
@@ -283,6 +289,7 @@ export default function BallonRankingsPage() {
         }
       };
 
+    window.addEventListener('focus', refreshOnFocus);
     document.addEventListener(
       'visibilitychange',
       refreshOnFocus,
@@ -294,6 +301,7 @@ export default function BallonRankingsPage() {
       window.clearInterval(
         interval,
       );
+      window.removeEventListener('focus', refreshOnFocus);
       document.removeEventListener(
         'visibilitychange',
         refreshOnFocus,

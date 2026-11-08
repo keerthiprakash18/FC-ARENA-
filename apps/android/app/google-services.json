@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "691337154267",
-    "project_id": "fc-arena-fe456",
-    "storage_bucket": "fc-arena-fe456.firebasestorage.app"
+    "project_number": "929140162839",
+    "project_id": "fc-arena-102a1",
+    "storage_bucket": "fc-arena-102a1.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:691337154267:android:639d0fbddb0d1ddc3b06fe",
+        "mobilesdk_app_id": "1:929140162839:android:4a5947e8912c51e7bcb752",
         "android_client_info": {
           "package_name": "in.fcarena.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCJHRxU75YX-z2I9kz9cVDdvobjvKMg8oQ"
+          "current_key": "AIzaSyA4Iao_0sQQx8-1m3N_r1M1Mq59aEdbk5g"
         }
       ],
       "services": {

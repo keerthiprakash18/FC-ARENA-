@@ -2,7 +2,8 @@
 
 import { confirmAction } from "@/components/fc/confirmation-provider";
 import { FcNotice } from "@/components/fc/fc-ui";
-import { ShareCard } from "@/components/fc/share-card";
+import { ProfilePhotoEditor } from "@/components/profile/profile-photo-editor";
+import { PlayerJourney } from "@/components/experience/player-journey";
 import Link from "next/link";
 
 import { useRouter } from "next/navigation";
@@ -15,7 +16,6 @@ import {
   FcLoadingScreen,
   FcPanel,
   FcStatCard,
-  FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
 import {
@@ -107,10 +107,13 @@ export default function ProfilePage() {
   const [user, setUser] = useState<CurrentUser | null>(null);
 
   const [career, setCareer] = useState<CareerData | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const [imageBusy, setImageBusy] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const [imageProgress, setImageProgress] = useState(0);
 
@@ -167,7 +170,7 @@ export default function ProfilePage() {
     );
   }
 
-  async function uploadProfileImage(file: File) {
+  async function uploadProfileImage(file: File): Promise<boolean> {
     setImageBusy(true);
 
     setImageProgress(0);
@@ -197,10 +200,12 @@ export default function ProfilePage() {
       setImageMessage(response.data.message);
 
       setImageProgress(100);
+      return true;
     } catch (err) {
       setImageError(
         err instanceof Error ? err.message : "Unable to upload profile photo.",
       );
+      return false;
     } finally {
       setImageBusy(false);
     }
@@ -249,6 +254,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     void (async () => {
+      setLoadError("");
       try {
         const [current, response] = await Promise.all([
           getCurrentUser(),
@@ -270,14 +276,15 @@ export default function ProfilePage() {
           inGameName: response.data.profile.identity?.inGameName || "",
           gameUid: response.data.profile.identity?.gameUid || "",
         });
-      } catch {
-        router.replace("/login");
+      } catch (err) {
+        setLoadError(err instanceof Error ? err.message : "Unable to load your profile.");
       }
     })();
-  }, [router]);
+  }, [router, loadAttempt]);
 
   if (!user || !career) {
-    return <FcLoadingScreen label="Loading Player Profile..." />;
+    if (loadError) return <AppShell><div className="community-error" role="alert">{loadError}<button type="button" onClick={() => setLoadAttempt(value => value + 1)}>Try again</button><Link href="/login">Sign in</Link></div></AppShell>;
+    return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Player Profile..." embedded /></AppShell>;
   }
 
   const identity = career.profile.identity;
@@ -384,142 +391,20 @@ export default function ProfilePage() {
   return (
     <AppShell playerName={playerName}>
       <div className="space-y-6">
-        <ShareCard title={user.player?.identity?.inGameName || user.fullName} lines={[`Player ID: ${career.profile.playerCode || "Pending"}`, `${career.lifetimeStatistics.matches} matches · ${career.lifetimeStatistics.wins} wins`, `${career.lifetimeStatistics.goalsFor} goals · ${career.lifetimeStatistics.winRate}% win rate`]} />
-        <FcPanel className="overflow-hidden">
-          <div className="fc-profile-banner h-20 sm:h-24" />
+        <h1 className="theme-text text-2xl font-bold">Your player profile</h1>
+        <section className="profile-photo-settings theme-panel" aria-label="Profile photo">
+          <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" className="sr-only" onChange={event => { const selected = event.target.files?.[0]; event.target.value = ""; if (selected) { setImageError(""); setImageMessage(""); setPhotoFile(selected); } }} />
+          <button type="button" className="profile-photo-current" disabled={imageBusy} onClick={() => imageInputRef.current?.click()} aria-label="Choose profile photo">
+            {career.profile.profileImageUrl ? <img src={career.profile.profileImageUrl} alt={`${playerName} profile`} /> : <span>{playerName.slice(0, 2).toUpperCase()}</span>}
+            <small>Edit photo</small>
+          </button>
+          <div><span className="community-eyebrow">YOUR PROFILE PHOTO</span><h2>{playerName}</h2><p className="community-muted">Preview, move, zoom and rotate your photo before saving.</p><div className="community-actions"><button type="button" className="community-button primary" disabled={imageBusy} onClick={() => imageInputRef.current?.click()}>{career.profile.profileImageUrl ? "Change photo" : "Add profile photo"}</button>{career.profile.profileImageUrl && <button type="button" className="community-button" disabled={imageBusy} onClick={() => void removeProfileImage()}>Remove photo</button>}</div></div>
+          {imageMessage && <p className="community-success" role="status">{imageMessage}</p>}
+          {imageError && !photoFile && <p className="community-error" role="alert">{imageError}</p>}
+        </section>
+        {photoFile && <ProfilePhotoEditor file={photoFile} busy={imageBusy} progress={imageProgress} error={imageError} onSave={uploadProfileImage} onCancel={() => { if (!imageBusy) setPhotoFile(null); }} onChoose={selected => { setImageError(""); setPhotoFile(selected); }} />}
 
-          <div className="p-5 sm:p-7">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center">
-                <div className="shrink-0">
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp"
-                    className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-
-                      event.target.value = "";
-
-                      if (file) {
-                        void uploadProfileImage(file);
-                      }
-                    }}
-                  />
-
-                  <button
-                    type="button"
-                    disabled={imageBusy}
-                    onClick={() => imageInputRef.current?.click()}
-                    className="group relative block h-24 w-24 overflow-hidden rounded-2xl border border-black/10 bg-black/[0.03] shadow-sm disabled:opacity-60"
-                    aria-label="Choose profile photo"
-                  >
-                    {career.profile.profileImageUrl ? (
-                      <img
-                        src={career.profile.profileImageUrl}
-                        alt={playerName + " profile"}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="theme-text grid h-full w-full place-items-center text-2xl font-bold">
-                        {playerName
-                          .split(/\s+/)
-                          .map((part) => part[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </span>
-                    )}
-
-                    <span className="absolute inset-x-0 bottom-0 bg-black/65 px-2 py-1.5 text-center text-[10px] font-semibold text-white">
-                      {imageBusy ? imageProgress + "%" : "Change photo"}
-                    </span>
-                  </button>
-                </div>
-
-                <div className="min-w-0">
-                  <p className="theme-text-link text-xs font-semibold uppercase tracking-[0.16em]">
-                    FC ARENA Player
-                  </p>
-
-                  <h1 className="theme-text mt-1 break-words text-2xl font-bold leading-tight tracking-[-0.03em] sm:text-3xl lg:text-4xl">
-                    {career.profile.fullName}
-                  </h1>
-
-                  <p className="theme-secondary-text mt-2 break-words text-sm">
-                    In-Game Name:{" "}
-                    <span className="theme-text font-semibold">
-                      {playerName}
-                    </span>
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {career.profile.playerCode ? (
-                      <span className="theme-soft-accent rounded-lg border px-3 py-1.5 font-mono text-xs font-semibold">
-                        {career.profile.playerCode}
-                      </span>
-                    ) : null}
-
-                    <FcStatusBadge
-                      label={
-                        identity?.isVerified
-                          ? "Verified Player"
-                          : "Active Player"
-                      }
-                      tone={identity?.isVerified ? "emerald" : "cyan"}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={imageBusy}
-                      onClick={() => imageInputRef.current?.click()}
-                      className="theme-secondary-button min-h-10 rounded-[10px] border px-3.5 text-xs font-semibold disabled:opacity-50"
-                    >
-                      {career.profile.profileImageUrl
-                        ? "Change Photo"
-                        : "Upload Photo"}
-                    </button>
-
-                    {career.profile.profileImageUrl ? (
-                      <button
-                        type="button"
-                        disabled={imageBusy}
-                        onClick={() => void removeProfileImage()}
-                        className="theme-danger-button min-h-10 rounded-[10px] border px-3.5 text-xs font-semibold disabled:opacity-50"
-                      >
-                        Remove
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-
-              <div className="shrink-0 lg:text-right">
-                <p className="theme-muted text-xs">Profile photo</p>
-
-                <p className="theme-secondary-text mt-1 max-w-xs text-xs leading-5">
-                  Choose a PNG, JPG or WEBP image from your device. It will be
-                  optimized automatically.
-                </p>
-              </div>
-            </div>
-
-            {imageMessage ? (
-              <div className="mt-5"><FcNotice>
-                {imageMessage}
-              </FcNotice></div>
-            ) : null}
-
-            {imageError ? (
-              <div className="mt-5"><FcNotice tone="error">
-                {imageError}
-              </FcNotice></div>
-            ) : null}
-          </div>
-        </FcPanel>
+        <PlayerJourney player={{ name: playerName, code: career.profile.playerCode, avatar: career.profile.profileImageUrl, verified: identity?.isVerified || false, matches: career.lifetimeStatistics.matches, wins: career.lifetimeStatistics.wins, goals: career.lifetimeStatistics.goalsFor, winRate: career.lifetimeStatistics.winRate }} />
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard

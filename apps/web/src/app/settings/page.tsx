@@ -1,11 +1,8 @@
 'use client';
 
-import {
-  useRouter,
-} from 'next/navigation';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import {
-  useEffect,
   useState,
 } from 'react';
 
@@ -15,6 +12,7 @@ import {
 
 import {
   FcLoadingScreen,
+  FcErrorState,
   FcMenuRow,
   FcPageHeader,
   FcPanel,
@@ -27,8 +25,6 @@ import {
 
 
 export default function SettingsPage() {
-  const router =
-    useRouter();
 
   const [
     user,
@@ -39,23 +35,13 @@ export default function SettingsPage() {
     );
 
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        setUser(
-          await getCurrentUser(),
-        );
-      } catch {
-        router.replace(
-          '/login',
-        );
-      }
-    })();
-  }, [
-    router,
-  ]);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const current = await getCurrentUser({ signal });
+    if (!signal.aborted) setUser(current);
+  });
 
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (
     !user
   ) {
@@ -76,6 +62,7 @@ export default function SettingsPage() {
 
   return (
     <AppShell
+      currentUser={user}
       playerName={
         playerName
       }
@@ -96,6 +83,7 @@ export default function SettingsPage() {
 
         <FcPanel className="p-5 sm:p-6">
           <div className="grid gap-3">
+            <FcMenuRow href="/profile/date-of-birth" icon="◉" title="Date of birth" description={user.dateOfBirth ? 'Review or update your private date of birth' : 'Complete your player profile'} tone="slate" />
             <FcMenuRow
               href="/settings/appearance"
               icon="◐"

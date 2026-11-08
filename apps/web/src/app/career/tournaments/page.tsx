@@ -1,7 +1,10 @@
 "use client";
 
+import { useCareerData, careerHref, type CareerScopeData } from '@/lib/career-scope';
+import { CareerLeagueFilter } from '@/components/career/career-league-filter';
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 import { BackHeader } from "@/components/app/back-header";
@@ -15,11 +18,6 @@ import {
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
-import {
-  authenticatedRequest,
-  type CurrentUser,
-  getCurrentUser,
-} from "@/lib/auth-client";
 
 interface TournamentHistory {
   tournament: {
@@ -52,7 +50,7 @@ interface TournamentHistory {
   };
 }
 
-interface CareerData {
+interface CareerData extends CareerScopeData {
   profile: {
     fullName: string;
     identity: {
@@ -64,29 +62,11 @@ interface CareerData {
 }
 
 export default function CareerTournamentsPage() {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-
-  const [career, setCareer] = useState<CareerData | null>(null);
-
+  const { user, career, leagueId, error, retry } = useCareerData<CareerData>();
   const [archive, setArchive] = useState("ALL");
-  const [error, setError] = useState("");
-  useEffect(() => {
-    void (async () => {
-      const [current, response] = await Promise.all([
-        getCurrentUser(),
-        authenticatedRequest<{
-          success: true;
-          data: CareerData;
-          error: null;
-        }>("/players/me/career"),
-      ]);
 
-      setUser(current);
-      setCareer(response.data);
-    })().catch(() => setError("Unable to load tournament history. Please retry."));
-  }, []);
 
-  if(error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
+  if(error) return <AppShell><FcErrorState message={error} onRetry={retry} /></AppShell>;
   if (!user || !career) {
     return <FcLoadingScreen label="Loading Tournament History..." />;
   }
@@ -99,7 +79,7 @@ export default function CareerTournamentsPage() {
     <AppShell playerName={playerName}>
       <div className="space-y-6">
         <BackHeader
-          backHref="/career"
+          backHref={careerHref('/career', leagueId)}
           backLabel="Career Stats"
           eyebrow="Player Career"
           title="Tournament History"
@@ -107,6 +87,7 @@ export default function CareerTournamentsPage() {
         />
 
         <CareerNavigation />
+        <CareerLeagueFilter data={career} />
         <label className="fc-field-label">Competition archive<select className="theme-secondary-button rounded-xl p-3" value={archive} onChange={event=>setArchive(event.target.value)}><option value="ALL">All competitions</option><option value="ACTIVE">Current competitions</option><option value="COMPLETED">Completed competitions</option></select></label>
 
         {entries.length === 0 ? (

@@ -1,4 +1,5 @@
 'use client';
+import { UclFormatCard } from './ucl-format-card';
 
 import {
   FcPanel,
@@ -28,6 +29,9 @@ export function EliteCupFormatCard({
   competitionName = 'Elite Cup',
   className = '',
 }: EliteCupFormatCardProps) {
+  if (savedFormat === 'UCL_CUP' || competitionName === 'UCL Cup') {
+    return <UclFormatCard approvedTeams={savedFormat ? approvedTeams : 36} className={className} />;
+  }
   const recommendedFormat = getEliteCupRecommendedFormat(approvedTeams);
   const recommendation = getEliteCupFormatDefinition(recommendedFormat);
   const saved = normalizeEliteCupFormat(savedFormat);

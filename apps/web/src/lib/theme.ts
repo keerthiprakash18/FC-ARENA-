@@ -56,7 +56,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
     palette: "Cream • Navy • Gold",
     description: "FC ARENA's premium default football presentation.",
     inspiration: "FC ARENA Original",
-    preview: { background: "#f6f4ee", sidebar: "#061e35", accent: "#d9b765", surface: "#fffefa" },
+    preview: { background: "#f5f5f2", sidebar: "#0b2033", accent: "#ecd394", surface: "#ffffff" },
   },
   {
     preference: "CLASSIC_BLUE",
@@ -110,7 +110,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
     palette: "Midnight Blue • Burgundy • Electric Blue",
     description: "Blue-and-burgundy vertical matchday skin with a dramatic night-game presentation.",
     inspiration: "Unofficial Barcelona fan theme",
-    preview: { background: "#0b1020", sidebar: "#080d18", accent: "#2f77ff", surface: "#11182a" },
+    preview: { background: "#f2f4fa", sidebar: "#080d18", accent: "#2858b8", surface: "#ffffff" },
   },
   {
     preference: "MUNICH_RED",
@@ -128,7 +128,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
     palette: "Midnight Navy • Red • Ice White",
     description: "Midnight navy skin with a bold central red stripe, luminous surfaces and a Paris night-match feel.",
     inspiration: "Unofficial PSG fan theme",
-    preview: { background: "#081321", sidebar: "#050d18", accent: "#e31b36", surface: "#0f1d2d" },
+    preview: { background: "#f4f6f9", sidebar: "#050d18", accent: "#bd2441", surface: "#ffffff" },
   },
   {
     preference: "MILAN_BLUE",
@@ -137,7 +137,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
     palette: "Black • Royal Blue • Steel",
     description: "Black-and-blue striped matchday skin with metallic contrast and a dramatic stadium-night atmosphere.",
     inspiration: "Unofficial Inter Milan fan theme",
-    preview: { background: "#090d14", sidebar: "#05080d", accent: "#1672d4", surface: "#101722" },
+    preview: { background: "#f2f5f9", sidebar: "#05080d", accent: "#1764b0", surface: "#ffffff" },
   },
   {
     preference: "MILAN_RED",
@@ -146,7 +146,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
     palette: "Black • Crimson • Smoke",
     description: "Black-and-crimson striped skin with smoky surfaces and a classic Milan night-game presentation.",
     inspiration: "Unofficial AC Milan fan theme",
-    preview: { background: "#0d0b0d", sidebar: "#080608", accent: "#d5192d", surface: "#171217" },
+    preview: { background: "#f8f4f5", sidebar: "#080608", accent: "#b6233b", surface: "#ffffff" },
   },
   {
     preference: "TURIN_MONO",

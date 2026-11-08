@@ -1,7 +1,10 @@
 "use client";
 
+import { useCareerData, careerHref, type CareerScopeData } from '@/lib/career-scope';
+import { CareerLeagueFilter } from '@/components/career/career-league-filter';
+
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 import { BackHeader } from "@/components/app/back-header";
@@ -14,11 +17,6 @@ import {
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
-import {
-  authenticatedRequest,
-  type CurrentUser,
-  getCurrentUser,
-} from "@/lib/auth-client";
 
 interface MatchHistory {
   id: string;
@@ -52,7 +50,7 @@ interface MatchHistory {
   };
 }
 
-interface CareerData {
+interface CareerData extends CareerScopeData {
   profile: {
     fullName: string;
     identity: {
@@ -64,31 +62,13 @@ interface CareerData {
 }
 
 export default function CareerMatchesPage() {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-
-  const [career, setCareer] = useState<CareerData | null>(null);
-
+  const { user, career, leagueId, error, retry } = useCareerData<CareerData>();
   const [opponent, setOpponent] = useState("ALL");
   const [season, setSeason] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [error, setError] = useState("");
-  useEffect(() => {
-    void (async () => {
-      const [current, response] = await Promise.all([
-        getCurrentUser(),
-        authenticatedRequest<{
-          success: true;
-          data: CareerData;
-          error: null;
-        }>("/players/me/career"),
-      ]);
 
-      setUser(current);
-      setCareer(response.data);
-    })().catch(() => setError("Unable to load match history. Please retry."));
-  }, []);
 
-  if (error) return <AppShell><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
+  if (error) return <AppShell><FcErrorState message={error} onRetry={retry} /></AppShell>;
   if (!user || !career) {
     return <FcLoadingScreen label="Loading Match History..." />;
   }
@@ -103,7 +83,7 @@ export default function CareerMatchesPage() {
     <AppShell playerName={playerName}>
       <div className="space-y-6">
         <BackHeader
-          backHref="/career"
+          backHref={careerHref('/career', leagueId)}
           backLabel="Career Stats"
           eyebrow="Player Career"
           title="Match History"
@@ -111,6 +91,7 @@ export default function CareerMatchesPage() {
         />
 
         <CareerNavigation />
+        <CareerLeagueFilter data={career} />
         <FcPanel className="grid gap-4 p-4 sm:grid-cols-2"><label className="fc-field-label">Year archive<select className="theme-secondary-button p-3" value={season} onChange={event=>setSeason(event.target.value)}><option value="ALL">All years</option>{years.map(year=><option key={year} value={year}>{year}</option>)}</select></label><label className="fc-field-label">Find a team or tournament<input className="theme-secondary-button p-3" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Search verified history" /></label><label className="fc-field-label sm:col-span-2">Head-to-head · verified opponents<select value={opponent} onChange={event=>setOpponent(event.target.value)} className="theme-secondary-button p-3"><option value="ALL">All opponents</option>{opponents.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label><p className="text-sm sm:col-span-2">{filtered.length} verified matches · {filtered.filter(m=>m.outcome==="W").length} W · {filtered.filter(m=>m.outcome==="D").length} D · {filtered.filter(m=>m.outcome==="L").length} L</p></FcPanel>
 
         {filtered.length === 0 ? (

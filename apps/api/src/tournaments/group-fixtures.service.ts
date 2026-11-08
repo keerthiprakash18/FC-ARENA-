@@ -11,8 +11,7 @@ import {
 
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
-
-import { assertBalancedGroups } from './group-balance.js';
+import { assertBalancedGroupCounts } from './group-balance.js';
 
 import {
   generateDoubleRoundRobinFixtures,
@@ -115,6 +114,7 @@ export class GroupFixturesService {
         include: {
           registrations: {
             where: {
+              tournamentId,
               status:
                 'APPROVED',
             },
@@ -201,7 +201,7 @@ export class GroupFixturesService {
       }
     }
 
-    assertBalancedGroups(groups, approvedEntries);
+    assertBalancedGroupCounts(groups.map(group => ({ name: group.name, count: group.registrations.length })), approvedEntries - assignedEntries);
 
     const plans =
       groups.map(
@@ -243,15 +243,16 @@ export class GroupFixturesService {
       await this.prisma.$transactionWithRetry(
         async (tx) => {
           const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
+          const currentApprovedEntries = await tx.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } });
           const currentGroups = await tx.tournamentGroup.findMany({
             where: { tournamentId },
-            include: { registrations: { where: { status: 'APPROVED' }, select: { id: true } } },
+            include: { registrations: { where: { tournamentId, status: 'APPROVED' }, select: { id: true } } },
           });
           const snapshot = (rows: Array<{ id: string; name: string; registrations: Array<{ id: string }> }>) =>
             JSON.stringify(rows.map((group) => ({ id: group.id, name: group.name,
               entries: group.registrations.map((entry) => entry.id).sort((a, b) => a.localeCompare(b)),
             })).sort((a, b) => a.id.localeCompare(b.id)));
-          if (current.status !== 'REGISTRATION_CLOSED' || current.competitionFormat !== tournament.competitionFormat ||
+          if (currentApprovedEntries !== approvedEntries || current.status !== 'REGISTRATION_CLOSED' || current.competitionFormat !== tournament.competitionFormat ||
             current.legType !== tournament.legType || snapshot(groups) !== snapshot(currentGroups)) {
             throw new ConflictException({ success: false, data: null, error: {
               code: 'FIXTURE_INPUTS_CHANGED', message: 'Group entries or settings changed. Generate the fixtures again.',

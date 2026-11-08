@@ -2,6 +2,7 @@
 
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 import { FcLoadingScreen } from '@/components/fc/fc-ui';
+import Link from 'next/link';
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
@@ -211,17 +212,14 @@ export default function GroupsWizardPage() {
           current,
         );
 
-        const wizardResponse =
-          await authenticatedRequest<{
-            success: true;
-
-            data:
-              WizardData;
-
-            error: null;
-          }>(
-            `/tournaments/${tournamentId}/wizard`,
-          );
+        const [wizardResponse, tournamentResponse] = await Promise.all([
+          authenticatedRequest<{ success: true; data: WizardData; error: null }>(`/tournaments/${tournamentId}/wizard`),
+          authenticatedRequest<{ data: { tournament: { fixturesGeneratedAt?: string | null; fixturesPublishedAt?: string | null } } }>(`/tournaments/${tournamentId}`),
+        ]);
+        if (tournamentResponse.data.tournament.fixturesGeneratedAt || tournamentResponse.data.tournament.fixturesPublishedAt) {
+          router.replace(`/tournaments/${tournamentId}/groups`);
+          return;
+        }
 
         if (
           !wizardResponse
@@ -608,9 +606,9 @@ export default function GroupsWizardPage() {
       return;
     }
 
-    const sizes = data.groups.map((group) => group.entries.length);
+    const sizes = data.groups.map(group => group.entries.length);
     if (Math.max(...sizes) - Math.min(...sizes) > 1) {
-      setError('Group sizes are uneven. Rebalance Groups before continuing.');
+      setError('Group sizes must be even before continuing. Use Auto Distribute or move teams so the difference is at most one.');
       return;
     }
 
@@ -698,6 +696,10 @@ export default function GroupsWizardPage() {
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
+        <div className="theme-panel flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 text-sm">
+          <p className="max-w-2xl leading-6 text-slate-500">Groups must be balanced before fixtures can be generated. The Group Manager also lets admins review and apply group changes after fixture generation.</p>
+          <Link href={`/tournaments/${tournamentId}/groups`} className="theme-text-link inline-flex min-h-11 items-center font-semibold">Open Group Manager →</Link>
+        </div>
 
 
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -1190,7 +1192,9 @@ export default function GroupsWizardPage() {
               data.groups.length <
                 2 ||
               data.unassigned.length >
-                0
+                0 ||
+              data.groups.some(group => group.entries.length < 2) ||
+              Math.max(...data.groups.map(group => group.entries.length)) - Math.min(...data.groups.map(group => group.entries.length)) > 1
             }
             onClick={() =>
               void continueWizard()

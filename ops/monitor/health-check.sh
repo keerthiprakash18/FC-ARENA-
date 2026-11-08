@@ -12,6 +12,13 @@ fail() {
 
 command -v curl >/dev/null 2>&1 || fail "curl is required"
 command -v python3 >/dev/null 2>&1 || fail "python3 is required"
+command -v node >/dev/null 2>&1 || fail "Node.js 24+ is required"
+
+# The Android wrapper opens the website before it can call the API. An API-only
+# probe misses a stopped web process, broken same-origin proxy or missing chunks.
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+FC_ARENA_HEALTH_URL="$API_HEALTH_URL" node "$script_dir/../../scripts/check-availability.mjs" \
+  || fail "public application availability check failed"
 
 body_file="$(mktemp)"
 trap 'rm -f "$body_file"' EXIT

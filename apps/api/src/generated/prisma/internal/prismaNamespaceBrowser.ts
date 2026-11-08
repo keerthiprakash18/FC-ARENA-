@@ -98,7 +98,18 @@ export const ModelName = {
   BallonSeason: 'BallonSeason',
   BallonRankingSnapshot: 'BallonRankingSnapshot',
   BallonFinalRanking: 'BallonFinalRanking',
-  SeasonalAward: 'SeasonalAward'
+  SeasonalAward: 'SeasonalAward',
+  PlayerExperiencePreferences: 'PlayerExperiencePreferences',
+  PlayerRewardWallet: 'PlayerRewardWallet',
+  PlayerDailyCheckIn: 'PlayerDailyCheckIn',
+  ArenaCoinEntry: 'ArenaCoinEntry',
+  PlayerOwnedCosmetic: 'PlayerOwnedCosmetic',
+  ArenaPost: 'ArenaPost',
+  ArenaComment: 'ArenaComment',
+  ArenaReaction: 'ArenaReaction',
+  ArenaPollOption: 'ArenaPollOption',
+  ArenaPollVote: 'ArenaPollVote',
+  ArenaReport: 'ArenaReport'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -122,6 +133,7 @@ export const UserScalarFieldEnum = {
   fullName: 'fullName',
   email: 'email',
   phoneNumber: 'phoneNumber',
+  dateOfBirth: 'dateOfBirth',
   passwordHash: 'passwordHash',
   role: 'role',
   status: 'status',
@@ -357,6 +369,7 @@ export const TournamentRegistrationScalarFieldEnum = {
   status: 'status',
   reviewedByUserId: 'reviewedByUserId',
   reviewedAt: 'reviewedAt',
+  notificationMemberIds: 'notificationMemberIds',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -445,6 +458,8 @@ export const ResultSubmissionScalarFieldEnum = {
   ocrExtractionId: 'ocrExtractionId',
   homeScore: 'homeScore',
   awayScore: 'awayScore',
+  homePenaltyScore: 'homePenaltyScore',
+  awayPenaltyScore: 'awayPenaltyScore',
   status: 'status',
   reviewedByUserId: 'reviewedByUserId',
   reviewedAt: 'reviewedAt',
@@ -935,6 +950,147 @@ export const SeasonalAwardScalarFieldEnum = {
 } as const
 
 export type SeasonalAwardScalarFieldEnum = (typeof SeasonalAwardScalarFieldEnum)[keyof typeof SeasonalAwardScalarFieldEnum]
+
+
+export const PlayerExperiencePreferencesScalarFieldEnum = {
+  userId: 'userId',
+  frame: 'frame',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlayerExperiencePreferencesScalarFieldEnum = (typeof PlayerExperiencePreferencesScalarFieldEnum)[keyof typeof PlayerExperiencePreferencesScalarFieldEnum]
+
+
+export const PlayerRewardWalletScalarFieldEnum = {
+  userId: 'userId',
+  balance: 'balance',
+  currentStreak: 'currentStreak',
+  longestStreak: 'longestStreak',
+  lastClaimDay: 'lastClaimDay',
+  background: 'background',
+  badge: 'badge',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlayerRewardWalletScalarFieldEnum = (typeof PlayerRewardWalletScalarFieldEnum)[keyof typeof PlayerRewardWalletScalarFieldEnum]
+
+
+export const PlayerDailyCheckInScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  day: 'day',
+  streak: 'streak',
+  baseCoins: 'baseCoins',
+  bonusCoins: 'bonusCoins',
+  totalCoins: 'totalCoins',
+  createdAt: 'createdAt'
+} as const
+
+export type PlayerDailyCheckInScalarFieldEnum = (typeof PlayerDailyCheckInScalarFieldEnum)[keyof typeof PlayerDailyCheckInScalarFieldEnum]
+
+
+export const ArenaCoinEntryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  reference: 'reference',
+  delta: 'delta',
+  balanceAfter: 'balanceAfter',
+  createdAt: 'createdAt'
+} as const
+
+export type ArenaCoinEntryScalarFieldEnum = (typeof ArenaCoinEntryScalarFieldEnum)[keyof typeof ArenaCoinEntryScalarFieldEnum]
+
+
+export const PlayerOwnedCosmeticScalarFieldEnum = {
+  userId: 'userId',
+  itemId: 'itemId',
+  purchasedAt: 'purchasedAt'
+} as const
+
+export type PlayerOwnedCosmeticScalarFieldEnum = (typeof PlayerOwnedCosmeticScalarFieldEnum)[keyof typeof PlayerOwnedCosmeticScalarFieldEnum]
+
+
+export const ArenaPostScalarFieldEnum = {
+  id: 'id',
+  authorUserId: 'authorUserId',
+  leagueId: 'leagueId',
+  sourceMatchId: 'sourceMatchId',
+  kind: 'kind',
+  body: 'body',
+  sourceUrl: 'sourceUrl',
+  imageKey: 'imageKey',
+  clientRequestId: 'clientRequestId',
+  requestHash: 'requestHash',
+  pollEndsAt: 'pollEndsAt',
+  createdAt: 'createdAt',
+  editedAt: 'editedAt',
+  hiddenAt: 'hiddenAt'
+} as const
+
+export type ArenaPostScalarFieldEnum = (typeof ArenaPostScalarFieldEnum)[keyof typeof ArenaPostScalarFieldEnum]
+
+
+export const ArenaCommentScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  authorUserId: 'authorUserId',
+  body: 'body',
+  clientRequestId: 'clientRequestId',
+  createdAt: 'createdAt',
+  editedAt: 'editedAt',
+  hiddenAt: 'hiddenAt'
+} as const
+
+export type ArenaCommentScalarFieldEnum = (typeof ArenaCommentScalarFieldEnum)[keyof typeof ArenaCommentScalarFieldEnum]
+
+
+export const ArenaReactionScalarFieldEnum = {
+  postId: 'postId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type ArenaReactionScalarFieldEnum = (typeof ArenaReactionScalarFieldEnum)[keyof typeof ArenaReactionScalarFieldEnum]
+
+
+export const ArenaPollOptionScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  label: 'label',
+  position: 'position'
+} as const
+
+export type ArenaPollOptionScalarFieldEnum = (typeof ArenaPollOptionScalarFieldEnum)[keyof typeof ArenaPollOptionScalarFieldEnum]
+
+
+export const ArenaPollVoteScalarFieldEnum = {
+  postId: 'postId',
+  userId: 'userId',
+  optionId: 'optionId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ArenaPollVoteScalarFieldEnum = (typeof ArenaPollVoteScalarFieldEnum)[keyof typeof ArenaPollVoteScalarFieldEnum]
+
+
+export const ArenaReportScalarFieldEnum = {
+  id: 'id',
+  reporterUserId: 'reporterUserId',
+  postId: 'postId',
+  commentId: 'commentId',
+  targetKey: 'targetKey',
+  reason: 'reason',
+  details: 'details',
+  status: 'status',
+  reviewedByUserId: 'reviewedByUserId',
+  resolutionNote: 'resolutionNote',
+  createdAt: 'createdAt',
+  resolvedAt: 'resolvedAt'
+} as const
+
+export type ArenaReportScalarFieldEnum = (typeof ArenaReportScalarFieldEnum)[keyof typeof ArenaReportScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -41,6 +41,7 @@ function moduleWithFetch(fetchImpl) {
       fetch:
         fetchImpl,
       Response,
+      Headers,
       AbortController,
       AbortSignal,
       DOMException,

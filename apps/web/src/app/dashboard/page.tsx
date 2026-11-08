@@ -1,12 +1,14 @@
 "use client";
+import { TournamentRegistrationSummary } from '@/components/tournaments/registration-summary';
 
 import { PlayerOnboarding } from "@/components/fc/player-onboarding";
-import { ApiError } from "@/lib/api";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useActiveLeague } from '@/lib/active-league';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
+import { FixtureTeamButton } from '@/components/tournaments/fixture-team-button';
 
 import type { FcIconName } from "@/components/fc/fc-icons";
 
@@ -130,6 +132,8 @@ interface Tournament {
   format: string;
   competitionFormat?: string;
   approvedEntries: number;
+  pendingEntries?: number;
+  registeredEntries?: number;
   maxEntries: number;
   startAt: string | null;
 }
@@ -169,13 +173,14 @@ interface DashboardTournament extends Tournament {
 
 interface DashboardFixture extends Fixture {
   tournamentId: string;
+  leagueId: string;
   tournamentName: string;
   leagueName: string;
 }
 
 type DashboardSection = "nextMatch" | "league" | "activeTournament" | "stats" | "quickActions" | "activity";
 
-type NextFixtureKind = "LIVE" | "TODAY" | "UPCOMING" | "POSTPONED";
+type NextFixtureKind = "LIVE" | "TODAY" | "UPCOMING" | "POSTPONED" | "UNSCHEDULED" | "PENDING";
 
 const TERMINAL_FIXTURE_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 const LIVE_FIXTURE_STATUSES = new Set(["LIVE", "IN_PROGRESS"]);
@@ -184,6 +189,9 @@ function fixtureStatus(fixture: DashboardFixture) {
   const matchStatus = fixture.match?.status?.toUpperCase();
   const fixtureStatusValue = fixture.status.toUpperCase();
 
+  if (TERMINAL_FIXTURE_STATUSES.has(fixtureStatusValue)) return fixtureStatusValue;
+  if (matchStatus && TERMINAL_FIXTURE_STATUSES.has(matchStatus)) return matchStatus;
+
   if (matchStatus && LIVE_FIXTURE_STATUSES.has(matchStatus)) {
     return matchStatus;
   }
@@ -191,6 +199,8 @@ function fixtureStatus(fixture: DashboardFixture) {
   if (LIVE_FIXTURE_STATUSES.has(fixtureStatusValue)) {
     return fixtureStatusValue;
   }
+
+  if (fixtureStatusValue === "POSTPONED") return fixtureStatusValue;
 
   if (matchStatus && matchStatus !== "UNSCHEDULED") {
     return matchStatus;
@@ -252,13 +262,17 @@ function isPostponedFixture(fixture: DashboardFixture) {
   return fixtureStatus(fixture) === "POSTPONED";
 }
 
+function isUnscheduledFixture(fixture: DashboardFixture) {
+  return fixtureTime(fixture) === null && !isLiveFixture(fixture) && !isPostponedFixture(fixture);
+}
+
 function isFutureScheduledFixture(fixture: DashboardFixture, nowMs: number) {
   const scheduledAt = fixtureTime(fixture);
 
   return (
     scheduledAt !== null &&
     scheduledAt >= nowMs &&
-    fixtureStatus(fixture) === "SCHEDULED"
+    !isPostponedFixture(fixture) && fixtureIsRelevant(fixture)
   );
 }
 
@@ -287,6 +301,12 @@ function fixtureKind(fixture: DashboardFixture, nowMs: number): NextFixtureKind 
   if (isPostponedFixture(fixture)) {
     return "POSTPONED";
   }
+
+  if (isUnscheduledFixture(fixture)) {
+    return "UNSCHEDULED";
+  }
+
+  if ((fixtureTime(fixture) ?? nowMs) < nowMs && !isToday(fixture.scheduledAt, nowMs)) return "PENDING";
 
   return isToday(fixture.scheduledAt, nowMs) ? "TODAY" : "UPCOMING";
 }
@@ -392,7 +412,6 @@ function SectionTitle({
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
 
   const [user, setUser] = useState<CurrentUser | null>(null);
 
@@ -400,7 +419,7 @@ export default function DashboardPage() {
 
   const [memberships, setMemberships] = useState<Membership[]>([]);
 
-  const [selectedLeagueId, setSelectedLeagueId] = useState("");
+  const [selectedLeagueId, setSelectedLeagueId] = useActiveLeague(user?.id, memberships);
 
   const [tournaments, setTournaments] = useState<DashboardTournament[]>([]);
 
@@ -408,7 +427,6 @@ export default function DashboardPage() {
 
   const [hiddenSections, setHiddenSections] = useState<DashboardSection[]>([]);
 
-  const [error, setError] = useState("");
 
   const [retryCount, setRetryCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -419,59 +437,45 @@ export default function DashboardPage() {
     return () => window.clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const [currentUser, summary, dashboardPreferences] = await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{ data: {
-            career: CareerData;
-            memberships: Membership[];
-            tournaments: DashboardTournament[];
-            fixtures: DashboardFixture[];
-          } }>("/players/me/dashboard"),
-          authenticatedRequest<{ data: { preferences: { hiddenSections: DashboardSection[] } } }>("/auth/preferences/dashboard").catch(() => ({ data: { preferences: { hiddenSections: [] as DashboardSection[] } } })),
-        ]);
-        if (cancelled) return;
-        setUser(currentUser);
-        setCareer(summary.data.career);
-        setMemberships(summary.data.memberships);
-        setSelectedLeagueId((currentLeagueId) => {
-          if (
-            currentLeagueId &&
-            summary.data.memberships.some(
-              (membership) => membership.league.id === currentLeagueId,
-            )
-          ) {
-            return currentLeagueId;
-          }
+  const initialLoad = useRecoverableLoad(async signal => {
+    if (!career) setLoading(true);
+    try {
+      const [currentUser, summary] = await Promise.all([
+        getCurrentUser({ signal }),
+        authenticatedRequest<{ data: { career: CareerData; memberships: Membership[];
+          tournaments: DashboardTournament[]; fixtures: DashboardFixture[] } }>("/players/me/dashboard", { signal }),
+      ]);
+      if (signal.aborted) return;
+      setUser(currentUser); setCareer(summary.data.career); setMemberships(summary.data.memberships);
+      setTournaments(summary.data.tournaments); setFixtures(summary.data.fixtures); setNowMs(Date.now());
+    } finally { if (!signal.aborted) setLoading(false); }
+  }, String(retryCount));
+  const error = initialLoad.error;
+  const reloadDashboard = initialLoad.reload;
 
-          return (
-            summary.data.memberships.find(
-              (membership) => membership.membershipType === "PRIMARY",
-            ) ?? summary.data.memberships[0]
-          )?.league.id ?? "";
-        });
-        setTournaments(summary.data.tournaments);
-        setFixtures(summary.data.fixtures);
-        setHiddenSections(dashboardPreferences.data.preferences.hiddenSections ?? []);
-      } catch (err) {
-        if (cancelled) return;
-        if (err instanceof ApiError && err.status === 401) {
-          router.replace("/login");
-          return;
-        }
-        setError("Unable to load your dashboard. Check your connection and try again.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    void load();
-    return () => { cancelled = true; };
-  }, [router, retryCount]);
+  // Personal display preferences must not hold up the player's fixture data.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    void authenticatedRequest<{ data: { preferences: { hiddenSections: DashboardSection[] } } }>(
+      "/auth/preferences/dashboard", { signal: controller.signal },
+    ).then(result => {
+      if (!cancelled) setHiddenSections(result.data.preferences.hiddenSections ?? []);
+    }).catch(() => {});
+    return () => { cancelled = true; controller.abort(); };
+  }, [user?.id, retryCount]);
+
+  // Revalidate the mounted dashboard without hiding loaded cards or resetting filters.
+  useEffect(() => {
+    if (!user?.id) return;
+    const refresh = () => { if (navigator.onLine !== false && document.visibilityState !== 'hidden') void reloadDashboard(); };
+    const timer = window.setInterval(refresh, 30_000);
+    window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh);
+      window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [user?.id, reloadDashboard]);
 
   const primaryMembership = useMemo(
     () =>
@@ -502,16 +506,21 @@ export default function DashboardPage() {
   );
 
   const scopedTournamentIds = useMemo(
-    () => new Set(scopedTournaments.map((tournament) => tournament.id)),
-    [scopedTournaments],
+    () => new Set([
+      ...scopedTournaments.map((tournament) => tournament.id),
+      ...fixtures.filter(fixture => fixture.leagueId === selectedMembership?.league.id).map(fixture => fixture.tournamentId),
+    ]),
+    [scopedTournaments, fixtures, selectedMembership],
   );
 
   const activeTournament = useMemo(
     () =>
+      scopedTournaments.find(tournament => fixtures.some(fixture => fixture.tournamentId === tournament.id)) ??
+      scopedTournaments.find(tournament => career?.tournamentHistory.some(entry => entry.tournament.id === tournament.id)) ??
       scopedTournaments.find(
         (tournament) => !["COMPLETED", "CANCELLED"].includes(tournament.status),
       ) ?? null,
-    [scopedTournaments],
+    [scopedTournaments, fixtures, career],
   );
 
   const registrationIdsByTournament = useMemo(
@@ -556,7 +565,14 @@ export default function DashboardPage() {
   const postponedFixture =
     personalRelevantFixtures.find(isPostponedFixture) ?? null;
 
-  const nextFixture = liveFixture ?? scheduledFixture ?? postponedFixture;
+  const unscheduledFixture =
+    personalRelevantFixtures.find(isUnscheduledFixture) ?? null;
+
+  const pendingFixture = personalRelevantFixtures.find(fixture =>
+    !isPostponedFixture(fixture) && fixtureTime(fixture) !== null && fixtureTime(fixture)! < nowMs,
+  ) ?? null;
+
+  const nextFixture = liveFixture ?? scheduledFixture ?? pendingFixture ?? postponedFixture ?? unscheduledFixture;
   const nextFixtureKind = nextFixture
     ? fixtureKind(nextFixture, nowMs)
     : null;
@@ -568,12 +584,12 @@ export default function DashboardPage() {
 
     return (
       personalRelevantFixtures.find(
-        (fixture) =>
-          fixture.tournamentId === activeTournament.id &&
-          (isLiveFixture(fixture) || isFutureScheduledFixture(fixture, nowMs)),
+          (fixture) =>
+            fixture.tournamentId === activeTournament.id &&
+            fixtureIsRelevant(fixture),
       ) ?? null
     );
-  }, [activeTournament, nowMs, personalRelevantFixtures]);
+  }, [activeTournament, personalRelevantFixtures]);
 
   if (error) return (
     <AppShell><FcPanel className="p-6">
@@ -584,7 +600,7 @@ export default function DashboardPage() {
   );
 
   if (loading || !user || !career) {
-    return <FcLoadingScreen label="Loading Home..." />;
+    return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Home..." embedded /></AppShell>;
   }
 
   const inGameName =
@@ -624,6 +640,23 @@ export default function DashboardPage() {
 
   const recentActivity = career.matchHistory.slice(0, 3);
   const isVisible = (section: DashboardSection) => !hiddenSections.includes(section);
+  const showNextMatch = isVisible("nextMatch") && Boolean(nextFixture);
+  const showLeague = isVisible("league") && Boolean(selectedMembership);
+  const hasProfile = Boolean(career.profile.identity || user.player?.identity);
+  const heroAction = nextFixture
+    ? showNextMatch
+      ? { href: "#dashboard-next-match", label: "See next match ↓", jump: true }
+      : { href: nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${nextFixture.tournamentId}/fixtures`, label: "Open Match Centre →", jump: false }
+    : !hasProfile
+      ? { href: "/profile", label: "Complete Profile →", jump: false }
+      : !selectedMembership
+        ? { href: "/leagues", label: "Join a League →", jump: false }
+        : { href: activeTournament ? "/fixtures" : "/tournaments", label: activeTournament ? "View Fixtures →" : "Browse Tournaments →", jump: false };
+  const emptyUpdates = [
+    ...(isVisible("league") && !selectedMembership ? [{ key: "league", icon: "league" as FcIconName, title: "My League", description: "No active League", href: "/leagues", action: "Find a league" }] : []),
+    ...(isVisible("activeTournament") && !activeTournament ? [{ key: "tournament", icon: "tournament" as FcIconName, title: "Active Tournament", description: "No active tournament", href: "/tournaments", action: "Browse cups" }] : []),
+    ...(isVisible("nextMatch") && !nextFixture ? [{ key: "fixture", icon: "fixtures" as FcIconName, title: "Next Match", description: "No upcoming matches scheduled", href: "/fixtures", action: "Fixtures" }] : []),
+  ];
 
   return (
     <AppShell
@@ -632,7 +665,6 @@ export default function DashboardPage() {
       playerRole={selectedMembership?.adminRole || "Player"}
     >
       <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-6">
-        <PlayerOnboarding userId={user.id} profile={!!career.profile.identity} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {error}
@@ -642,8 +674,8 @@ export default function DashboardPage() {
         <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border premium-home-hero">
           <div className="fc-hero-right hidden lg:block" />
 
-          <div className="relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] sm:py-6 lg:items-center lg:px-8">
-            <div>
+          <div className="home-hero-layout relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] sm:py-6 lg:items-center lg:px-8">
+            <div className="home-hero-avatar">
               <div className="theme-hero-avatar-ring grid h-[68px] w-[68px] place-items-center rounded-full border-[3px] sm:h-[82px] sm:w-[82px] lg:h-[86px] lg:w-[86px]">
                 <FcCrest
                   name={inGameName}
@@ -653,21 +685,21 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="min-w-0 lg:pr-5">
+            <div className="home-hero-copy min-w-0 lg:pr-5">
               <p className="theme-hero-kicker fc-dashboard-kicker text-[12px] font-bold tracking-[0.16em]">
                 <span className="fc-dashboard-live-dot" aria-hidden="true" />
                 FC ARENA MATCHDAY
               </p>
 
               <h1 className="theme-text mt-2 break-words text-[30px] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[42px] lg:text-[48px]">
-                Welcome back, {inGameName}
+                <span className="home-welcome">Welcome back, </span><span className="home-player-name">{inGameName}</span>
               </h1>
 
-              <p className="theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
-                Your next opponent, your competition, and your season — all in one place.
+              <p className="home-hero-description theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
+                {nextFixture ? "Your next fixture is ready. Get match ready." : selectedMembership ? "Your league, fixtures and season at a glance." : "Join your first league and get match ready."}
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="home-hero-tags mt-4 flex flex-wrap items-center gap-2">
                 <span className="theme-soft-accent rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold">
                   {playerCode}
                 </span>
@@ -679,10 +711,10 @@ export default function DashboardPage() {
                 ) : null}
 
                 <Link
-                  href={nextFixture?.match?.id ? `/matches/${nextFixture.match.id}` : "/fixtures"}
-                  className="theme-primary-button inline-flex min-h-11 items-center justify-center rounded-[10px] px-4 text-xs font-semibold"
+                  href={heroAction.href}
+                  className={`${heroAction.jump ? "home-hero-jump" : "theme-primary-button"} home-hero-action inline-flex min-h-11 items-center justify-center rounded-[10px] px-4 text-xs font-semibold`}
                 >
-                  {nextFixture?.match?.id ? "Open Match Centre →" : "Explore Fixtures →"}
+                  {heroAction.label}
                 </Link>
               </div>
             </div>
@@ -712,8 +744,9 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className={`fc-dashboard-section grid items-start gap-4 sm:gap-6 ${isVisible("nextMatch") && isVisible("league") ? "xl:grid-cols-[minmax(0,1.75fr)_minmax(0,0.95fr)]" : ""} ${!isVisible("nextMatch") && !isVisible("league") ? "hidden" : ""}`}>
-          <FcPanel className={`fc-next-match-panel premium-home-next relative overflow-hidden p-5 sm:p-6 ${!isVisible("nextMatch") ? "hidden" : ""}`}>
+        {showNextMatch || showLeague ? (
+        <section id="dashboard-next-match" tabIndex={-1} aria-label="Match and league overview" className={`fc-dashboard-section grid items-start gap-4 sm:gap-6 ${showNextMatch && showLeague ? "xl:grid-cols-[minmax(0,1.75fr)_minmax(0,0.95fr)]" : ""}`}>
+          {showNextMatch ? <FcPanel className="fc-next-match-panel premium-home-next relative overflow-hidden p-5 sm:p-6">
             <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
 
             <div className="relative">
@@ -726,6 +759,10 @@ export default function DashboardPage() {
                       ? "Today's Match"
                       : nextFixtureKind === "POSTPONED"
                         ? "Match Status"
+                        : nextFixtureKind === "PENDING"
+                          ? "Pending Match"
+                        : nextFixtureKind === "UNSCHEDULED"
+                          ? "Fixture Ready"
                         : "Next Match"
                 }
                 href="/fixtures"
@@ -742,6 +779,10 @@ export default function DashboardPage() {
                             ? "TODAY"
                             : nextFixtureKind === "POSTPONED"
                               ? "POSTPONED"
+                              : nextFixtureKind === "PENDING"
+                                ? "AWAITING PLAY"
+                              : nextFixtureKind === "UNSCHEDULED"
+                                ? "SCHEDULE PENDING"
                               : "UPCOMING"
                       }
                       tone={
@@ -760,25 +801,13 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="premium-match-sides mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
-                    <div className="flex min-w-0 flex-col items-center text-center">
-                      <FcCrest name={entryName(nextFixture.home)} imageUrl={nextFixture.home?.entryLogoUrl} size="lg" />
-
-                      <p className="theme-text mt-3 w-full break-words text-sm font-semibold">
-                        {entryName(nextFixture.home)}
-                      </p>
-                    </div>
+                    <FixtureTeamButton entry={nextFixture.home} name={entryName(nextFixture.home)} side="HOME" stacked size="lg" />
 
                     <div className={`theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold ${nextFixtureKind === "LIVE" ? "border-red-400/30 text-red-500" : ""}`}>
                       {nextFixtureKind === "LIVE" ? "LIVE" : "VS"}
                     </div>
 
-                    <div className="flex min-w-0 flex-col items-center text-center">
-                      <FcCrest name={entryName(nextFixture.away)} imageUrl={nextFixture.away?.entryLogoUrl} size="lg" />
-
-                      <p className="theme-text mt-3 w-full break-words text-sm font-semibold">
-                        {entryName(nextFixture.away)}
-                      </p>
-                    </div>
+                    <FixtureTeamButton entry={nextFixture.away} name={entryName(nextFixture.away)} side="AWAY" stacked size="lg" />
                   </div>
 
                   <div className="premium-match-footer mt-6 flex flex-col gap-3 border-t border-[var(--theme-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -790,6 +819,10 @@ export default function DashboardPage() {
                       <p className="theme-secondary-text mt-1 text-sm font-medium">
                         {nextFixtureKind === "POSTPONED"
                           ? "Awaiting a new kickoff time"
+                          : nextFixtureKind === "PENDING"
+                            ? `Kickoff passed · result pending · ${formatFixtureDateTime(nextFixture.scheduledAt)}`
+                          : nextFixtureKind === "UNSCHEDULED"
+                            ? "Fixture generated · kickoff time pending"
                           : formatFixtureDateTime(nextFixture.scheduledAt)}
                       </p>
 
@@ -812,29 +845,11 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 </>
-              ) : (
-                <div className="fc-next-match-empty mt-4 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-4 text-left sm:p-5">
-                  <h3 className="theme-text text-lg font-semibold leading-snug">
-                    No upcoming matches scheduled
-                  </h3>
-
-                  <p className="theme-muted text-sm leading-6">
-                    Your next scheduled fixture will appear here when a
-                    competition schedule is ready.
-                  </p>
-
-                  <Link
-                    href="/fixtures"
-                    className="theme-primary-button mt-1 inline-flex min-h-11 justify-self-start items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
-                  >
-                    View Fixtures →
-                  </Link>
-                </div>
-              )}
+              ) : null}
             </div>
-          </FcPanel>
+          </FcPanel> : null}
 
-          <FcPanel className={`fc-league-panel p-5 sm:p-6 ${!isVisible("league") ? "hidden" : ""}`}>
+          {showLeague ? <FcPanel className="fc-league-panel p-5 sm:p-6">
             <SectionTitle
               icon="league"
               title="My League"
@@ -931,34 +946,27 @@ export default function DashboardPage() {
                   Open League →
                 </Link>
               </>
-            ) : (
-              <div className="mt-6 rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-6 text-center">
-                <p className="theme-text text-base font-semibold">
-                  No active League
-                </p>
-
-                <p className="theme-muted mt-2 text-sm leading-6">
-                  Join with an invite code or create your own FC ARENA League.
-                </p>
-
-                <Link
-                  href="/leagues"
-                  className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
-                >
-                  Join or Create League →
-                </Link>
-              </div>
-            )}
-          </FcPanel>
+            ) : null}
+          </FcPanel> : null}
         </section>
+        ) : null}
 
-        <section className={`fc-dashboard-section grid gap-5 ${!isVisible("activeTournament") ? "hidden" : ""}`}>
+        <PlayerOnboarding userId={user.id} profile={hasProfile} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
+
+        {isVisible("activeTournament") && activeTournament ? <section className="fc-dashboard-section grid gap-5">
           <FcPanel className="fc-tournament-panel p-5 sm:p-6">
             <SectionTitle
               icon="tournament"
               title="Active Tournament"
               href="/tournaments"
             />
+
+            {memberships.length > 1 ? <label className="mt-4 grid gap-2 text-xs font-semibold theme-muted">League
+              <select aria-label="Active tournament league" value={selectedLeagueId} onChange={event => setSelectedLeagueId(event.target.value)}
+                className="theme-field min-h-11 w-full rounded-xl border px-3 py-2 text-sm">
+                {memberships.map(membership => <option key={membership.league.id} value={membership.league.id}>{membership.league.name}</option>)}
+              </select>
+            </label> : null}
 
             {activeTournament ? (
               <>
@@ -973,6 +981,7 @@ export default function DashboardPage() {
                     <h3 className="theme-text truncate text-lg font-semibold">
                       {activeTournament.name}
                     </h3>
+                    <p className="theme-secondary-text mt-1 break-words text-xs font-semibold">{activeTournament.leagueName || selectedMembership?.league.name} · {activeTournament.code}</p>
 
                     <p className="theme-muted mt-1 text-xs">
                       {(
@@ -992,7 +1001,7 @@ export default function DashboardPage() {
 
                 <div className="mt-5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="theme-muted">Competition progress</span>
+                    <span className="theme-muted">Approved places</span>
 
                     <span className="theme-secondary-text font-medium">
                       {activeTournament.approvedEntries}/
@@ -1009,16 +1018,22 @@ export default function DashboardPage() {
                     />
                   </div>
                 </div>
+                <div className="mt-3"><TournamentRegistrationSummary tournament={activeTournament} /></div>
 
                 {activeTournamentNextFixture ? (
                   <div className="mt-5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-4">
                     <p className="theme-muted text-xs">Next fixture</p>
 
-                        <p className="theme-text mt-1 truncate text-sm font-medium">
-                      {entryName(activeTournamentNextFixture.home)}
-                      {"  vs  "}
-                      {entryName(activeTournamentNextFixture.away)}
-                    </p>
+                    <div className="mt-2 grid gap-2 text-sm font-medium">
+                      <p className="theme-text min-w-0 break-words">
+                        <span className="theme-secondary-text mr-2 text-[11px] font-bold uppercase">Home</span>
+                        {entryName(activeTournamentNextFixture.home)}
+                      </p>
+                      <p className="theme-text min-w-0 break-words">
+                        <span className="theme-secondary-text mr-2 text-[11px] font-bold uppercase">Away</span>
+                        {entryName(activeTournamentNextFixture.away)}
+                      </p>
+                    </div>
                   </div>
                 ) : null}
 
@@ -1029,33 +1044,21 @@ export default function DashboardPage() {
                   View Tournament →
                 </Link>
               </>
-            ) : (
-              <div className="mt-6 rounded-2xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-6 text-center sm:p-8">
-                <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border text-lg">
-                  <FcIcon name="trophy" size={22} />
-                </div>
-
-                <h3 className="theme-text mt-4 text-base font-semibold">
-                  No Active Tournament
-                </h3>
-
-                <p className="theme-muted mx-auto mt-2 max-w-md text-sm leading-6">
-                  Browse your League competitions or start a new Tournament when
-                  you have admin access.
-                </p>
-
-                <Link
-                  href="/tournaments"
-                  className="theme-primary-button mt-5 inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
-                >
-                  Browse Tournaments →
-                </Link>
-              </div>
-            )}
+            ) : null}
           </FcPanel>
-        </section>
+        </section> : null}
 
-        <section className={`fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4 ${!isVisible("stats") ? "hidden" : ""}`}>
+        {emptyUpdates.length ? <section aria-label="Competition updates">
+          <FcPanel className="home-empty-overview">
+            {emptyUpdates.map(update => <Link key={update.key} href={update.href} className="home-empty-row">
+              <span className="home-empty-icon theme-tone-neutral"><FcIcon name={update.icon} size={18} /></span>
+              <span className="home-empty-copy"><span className="theme-text home-empty-title">{update.title}</span><span className="theme-muted">{update.description}</span></span>
+              <span className="theme-text-link home-empty-action">{update.action} →</span>
+            </Link>)}
+          </FcPanel>
+        </section> : null}
+
+        <section aria-label="Career overview" className={`home-overview-stats fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4 ${!isVisible("stats") ? "hidden" : ""}`}>
           <Link href="/career">
             <FcStatCard
               label="Matches"
@@ -1098,14 +1101,12 @@ export default function DashboardPage() {
         <div className={`fc-quick-actions-panel ${!isVisible("quickActions") ? "hidden" : ""}`}>
           <SectionTitle icon="activity" title="Quick Actions" />
 
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
-            <FcQuickActionTile href="/awards" icon="trophy" title="Awards" description="Player honours and awards" tone="amber" />
-            <FcQuickActionTile href="/league-war" icon="war" title="League War" description="League versus league" tone="cyan" />
+          <div className="home-core-actions mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <FcQuickActionTile
               href="/leagues"
               icon="+"
-              title="Join League"
-              description="Use invite code"
+              title={memberships.length ? "My Leagues" : "Join League"}
+              description={memberships.length ? "Open your leagues" : "Use invite code"}
               tone="cyan"
             />
 
@@ -1141,6 +1142,10 @@ export default function DashboardPage() {
               tone="cyan"
             />
 
+          </div>
+          <details className="home-more-tools">
+            <summary className="theme-secondary-text">More tools <span aria-hidden="true">⌄</span></summary>
+            <div className="home-more-tools-grid grid grid-cols-2 gap-3 lg:grid-cols-3">
             <FcQuickActionTile
               href="/profile"
               icon="◎"
@@ -1148,7 +1153,10 @@ export default function DashboardPage() {
               description="Edit your information"
               tone="amber"
             />
-          </div>
+              <FcQuickActionTile href="/awards" icon="trophy" title="Awards" description="Player honours and awards" tone="amber" />
+              <FcQuickActionTile href="/league-war" icon="war" title="League War" description="League versus league" tone="cyan" />
+            </div>
+          </details>
         </div>
         <FcPanel className={`fc-activity-panel p-5 sm:p-6 ${!isVisible("activity") ? "hidden" : ""}`}>
           <SectionTitle
@@ -1207,23 +1215,9 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-5 flex flex-col gap-4 rounded-xl border border-dashed border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="theme-text text-sm font-semibold">
-                  No recent activity
-                </p>
-
-                <p className="theme-muted mt-1 text-sm">
-                  Verified match results will appear here.
-                </p>
-              </div>
-
-              <Link
-                href="/fixtures"
-                className="theme-secondary-button inline-flex min-h-11 items-center justify-center rounded-[10px] border px-4 text-sm font-medium"
-              >
-                View Fixtures →
-              </Link>
+            <div className="home-activity-empty">
+              <p className="theme-text text-sm font-semibold">No recent activity</p>
+              <p className="theme-muted text-sm">Verified match results will appear here.</p>
             </div>
           )}
         </FcPanel>

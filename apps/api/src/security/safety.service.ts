@@ -348,7 +348,7 @@ export class SafetyService {
 
       data: {
         message:
-          'Player blocked. New League-owner membership interactions between you are now restricted.',
+          'Player blocked. Your Arena Talk posts and comments are hidden from each other, and new League-owner membership interactions are restricted.',
 
         blockedUser: {
           ...target,

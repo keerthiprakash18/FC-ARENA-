@@ -1,11 +1,16 @@
 "use client";
+import { useRouteLeague } from '@/lib/active-league';
+import { TournamentRegistrationSummary } from '@/components/tournaments/registration-summary';
 
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+
+import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
+import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import { PlayerProgress } from "@/components/tournaments/player-progress";
 import { confirmNamedDeletion } from "@/components/fc/confirmation-provider";
-import { ApiError } from "@/lib/api";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
@@ -24,6 +29,8 @@ import {
 } from "@/components/fc/fc-ui";
 
 import { TournamentNavigation } from "@/components/tournaments/tournament-navigation";
+import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
+import type { EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
 
 import {
   authenticatedRequest,
@@ -31,7 +38,7 @@ import {
   getCurrentUser,
 } from "@/lib/auth-client";
 
-interface Tournament {
+interface Tournament extends EntryLimitTournament {
   id: string;
   leagueId: string;
   name: string;
@@ -41,14 +48,19 @@ interface Tournament {
   mode: string;
   format: string;
   competitionFormat?: string;
+  formatGuide?: TournamentFormatDescription | null;
   groupMode?: string;
   status: string;
   visibility: string;
   maxEntries: number;
   approvedEntries: number;
+  canManageParticipants?: boolean;
+  pendingEntries?: number;
+  registeredEntries?: number;
   startAt: string | null;
   endAt?: string | null;
   isLeagueAdmin: boolean;
+  canManageSettings?: boolean;
 
   league: {
     id: string;
@@ -105,7 +117,6 @@ export default function TournamentOverviewPage() {
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
 
-  const [loadError, setLoadError] = useState("");
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
 
   const [groups, setGroups] = useState<Group[]>([]);
@@ -114,45 +125,22 @@ export default function TournamentOverviewPage() {
 
   const [deleteError, setDeleteError] = useState("");
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [current, tournamentResponse, fixtureResponse, groupResponse] =
-          await Promise.all([
-            getCurrentUser(),
+  const [supportError, setSupportError] = useState('');
+  useRouteLeague(user?.id, tournament?.id === tournamentId ? tournament.leagueId : null);
 
-            authenticatedRequest<any>(`/tournaments/${tournamentId}`),
-
-            authenticatedRequest<any>(
-              `/tournaments/${tournamentId}/fixtures`,
-            ).catch(() => ({
-              data: {
-                fixtures: [],
-              },
-            })),
-
-            authenticatedRequest<any>(
-              `/tournaments/${tournamentId}/groups`,
-            ).catch(() => ({
-              data: {
-                groups: [],
-              },
-            })),
-          ]);
-
-        setUser(current);
-
-        setTournament(tournamentResponse.data.tournament);
-
-        setFixtures(fixtureResponse.data.fixtures);
-
-        setGroups(groupResponse.data.groups);
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 401) router.replace("/login");
-        else setLoadError("Unable to load this tournament. Please retry.");
-      }
-    })();
-  }, [router, tournamentId]);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, response] = await Promise.all([getCurrentUser({ signal }), authenticatedRequest<any>(`/tournaments/${tournamentId}`, { signal })]);
+    if (signal.aborted) return;
+    setUser(current); setTournament(response.data.tournament);
+    const [schedule, sections] = await Promise.allSettled([
+      authenticatedRequest<any>(`/tournaments/${tournamentId}/fixtures`, { signal }),
+      authenticatedRequest<any>(`/tournaments/${tournamentId}/groups`, { signal }),
+    ]);
+    if (signal.aborted) return;
+    if (schedule.status === 'fulfilled') setFixtures(schedule.value.data.fixtures);
+    if (sections.status === 'fulfilled') setGroups(sections.value.data.groups);
+    setSupportError(schedule.status === 'rejected' || sections.status === 'rejected' ? 'Some fixture or group details could not refresh. Registration counts remain available.' : '');
+  }, tournamentId);
 
   const nextFixture = useMemo(
     () =>
@@ -184,7 +172,7 @@ export default function TournamentOverviewPage() {
   );
 
   async function deleteTournament() {
-    if (!tournament || !tournament.isLeagueAdmin || deletingTournament) {
+    if (!tournament || !(tournament.canManageSettings ?? tournament.isLeagueAdmin) || deletingTournament) {
       return;
     }
 
@@ -225,8 +213,8 @@ export default function TournamentOverviewPage() {
     }
   }
 
-  if (loadError) return <AppShell><FcErrorState message={loadError} onRetry={() => window.location.reload()} /></AppShell>;
-  if (!user || !tournament) {
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+  if (!user || !tournament || tournament.id !== tournamentId) {
     return <FcLoadingScreen label="Loading Tournament Overview..." />;
   }
 
@@ -253,7 +241,7 @@ export default function TournamentOverviewPage() {
               className="theme-primary-button premium-button"
               href={
                 tournament.status === "COMPLETED"
-                  ? `/tournaments/${tournamentId}/summary`
+                  ? `/tournaments/${tournamentId}/report`
                   : tournament.status === "DRAFT" && tournament.isLeagueAdmin
                     ? `/tournaments/${tournamentId}/wizard/setup`
                     : `/tournaments/${tournamentId}/fixtures`
@@ -261,16 +249,19 @@ export default function TournamentOverviewPage() {
             >
               {
                 tournament.status === "COMPLETED"
-                  ? "View Tournament Summary"
+                  ? "View Full Report"
                   : tournament.status === "DRAFT" && tournament.isLeagueAdmin
                     ? "Continue Setup"
                     : "Open Fixtures"
               } →
             </Link>
           }
-        ><div className="premium-hero-tags"><span>{competitionLabel(tournament.status)}</span><span>{competitionLabel(tournament.competitionFormat || tournament.format)}</span><span>{tournament.mode}</span><span>{tournament.approvedEntries} / {tournament.maxEntries} entries</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div></PremiumHero>
+        ><div className="premium-hero-tags"><span>{competitionLabel(tournament.status)}</span><span>{competitionLabel(tournament.competitionFormat || tournament.format)}</span><span>{tournament.mode}</span><span>{tournament.registeredEntries ?? tournament.approvedEntries} registered · {tournament.pendingEntries ?? 0} pending</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div></PremiumHero>
 
         <TournamentNavigation tournamentId={tournamentId} />
+        <TournamentRegistrationSummary tournament={tournament} />
+        {supportError ? <div role="status" className="theme-panel rounded-xl border p-4 text-sm">{supportError} <button type="button" className="font-bold underline" onClick={initialLoad.retry}>Retry details</button></div> : null}
+        <TournamentFormatGuide guide={tournament.formatGuide} />
         <PlayerProgress tournamentId={tournamentId} />
 
         <FcNotice tone="error">{deleteError}</FcNotice>
@@ -334,7 +325,7 @@ export default function TournamentOverviewPage() {
                   Registration
                 </Link>
 
-                {tournament.isLeagueAdmin ? (
+                {(tournament.canManageSettings ?? tournament.isLeagueAdmin) ? (
                   <button
                     type="button"
                     disabled={deletingTournament}
@@ -349,7 +340,7 @@ export default function TournamentOverviewPage() {
 
             <div className="mt-6">
               <div className="flex justify-between text-xs font-black text-slate-500">
-                <span>Entry Progress</span>
+                <span>Approved Entry Progress</span>
 
                 <span>
                   {tournament.approvedEntries}/{tournament.maxEntries}
@@ -370,14 +361,14 @@ export default function TournamentOverviewPage() {
 
         <section className="premium-metrics" aria-label="Tournament summary">
           <FcStatCard
-            label="Teams"
-            value={tournament.approvedEntries}
-            detail={`Max ${tournament.maxEntries}`}
+            label="Registrations"
+            value={tournament.registeredEntries ?? tournament.approvedEntries}
+            detail={`${tournament.approvedEntries} approved · ${tournament.pendingEntries ?? 0} pending`}
           />
 
           <FcStatCard
             label="Groups"
-            value={groups.length}
+            value={supportError ? "—" : groups.length}
             detail={
               tournament.groupMode
                 ? competitionLabel(tournament.groupMode)
@@ -388,7 +379,7 @@ export default function TournamentOverviewPage() {
 
           <FcStatCard
             label="Fixtures"
-            value={fixtures.length}
+            value={supportError ? "—" : fixtures.length}
             detail="Tournament schedule"
             tone="emerald"
           />
@@ -400,6 +391,8 @@ export default function TournamentOverviewPage() {
             tone="slate"
           />
         </section>
+
+        <TournamentFixtureStart tournament={tournament} />
 
         {nextFixture ? (
           <PremiumMatch home={entryName(nextFixture.home)} away={entryName(nextFixture.away)} label={`Next Match · ${nextFixture.roundName}`} status={<FcStatusBadge label={nextFixture.match?.status || nextFixture.status} />} href={nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${tournamentId}/fixtures`}>

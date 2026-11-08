@@ -296,6 +296,7 @@ export type LeagueWhereInput = {
   wonLeagueWars?: Prisma.LeagueWarListRelationFilter
   leagueWarParticipants?: Prisma.LeagueWarParticipantListRelationFilter
   fairPlayEvents?: Prisma.FairPlayEventListRelationFilter
+  arenaPosts?: Prisma.ArenaPostListRelationFilter
 }
 
 export type LeagueOrderByWithRelationInput = {
@@ -324,6 +325,7 @@ export type LeagueOrderByWithRelationInput = {
   wonLeagueWars?: Prisma.LeagueWarOrderByRelationAggregateInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantOrderByRelationAggregateInput
   fairPlayEvents?: Prisma.FairPlayEventOrderByRelationAggregateInput
+  arenaPosts?: Prisma.ArenaPostOrderByRelationAggregateInput
 }
 
 export type LeagueWhereUniqueInput = Prisma.AtLeast<{
@@ -355,6 +357,7 @@ export type LeagueWhereUniqueInput = Prisma.AtLeast<{
   wonLeagueWars?: Prisma.LeagueWarListRelationFilter
   leagueWarParticipants?: Prisma.LeagueWarParticipantListRelationFilter
   fairPlayEvents?: Prisma.FairPlayEventListRelationFilter
+  arenaPosts?: Prisma.ArenaPostListRelationFilter
 }, "id" | "code">
 
 export type LeagueOrderByWithAggregationInput = {
@@ -422,6 +425,7 @@ export type LeagueCreateInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateInput = {
@@ -449,6 +453,7 @@ export type LeagueUncheckedCreateInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUpdateInput = {
@@ -476,6 +481,7 @@ export type LeagueUpdateInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateInput = {
@@ -503,6 +509,7 @@ export type LeagueUncheckedUpdateInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateManyInput = {
@@ -836,6 +843,22 @@ export type LeagueUpdateOneRequiredWithoutLeagueWarParticipantsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LeagueUpdateToOneWithWhereWithoutLeagueWarParticipantsInput, Prisma.LeagueUpdateWithoutLeagueWarParticipantsInput>, Prisma.LeagueUncheckedUpdateWithoutLeagueWarParticipantsInput>
 }
 
+export type LeagueCreateNestedOneWithoutArenaPostsInput = {
+  create?: Prisma.XOR<Prisma.LeagueCreateWithoutArenaPostsInput, Prisma.LeagueUncheckedCreateWithoutArenaPostsInput>
+  connectOrCreate?: Prisma.LeagueCreateOrConnectWithoutArenaPostsInput
+  connect?: Prisma.LeagueWhereUniqueInput
+}
+
+export type LeagueUpdateOneWithoutArenaPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.LeagueCreateWithoutArenaPostsInput, Prisma.LeagueUncheckedCreateWithoutArenaPostsInput>
+  connectOrCreate?: Prisma.LeagueCreateOrConnectWithoutArenaPostsInput
+  upsert?: Prisma.LeagueUpsertWithoutArenaPostsInput
+  disconnect?: Prisma.LeagueWhereInput | boolean
+  delete?: Prisma.LeagueWhereInput | boolean
+  connect?: Prisma.LeagueWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LeagueUpdateToOneWithWhereWithoutArenaPostsInput, Prisma.LeagueUpdateWithoutArenaPostsInput>, Prisma.LeagueUncheckedUpdateWithoutArenaPostsInput>
+}
+
 export type LeagueCreateWithoutCreatorInput = {
   id?: string
   name: string
@@ -860,6 +883,7 @@ export type LeagueCreateWithoutCreatorInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutCreatorInput = {
@@ -886,6 +910,7 @@ export type LeagueUncheckedCreateWithoutCreatorInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutCreatorInput = {
@@ -957,6 +982,7 @@ export type LeagueCreateWithoutMembersInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutMembersInput = {
@@ -983,6 +1009,7 @@ export type LeagueUncheckedCreateWithoutMembersInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutMembersInput = {
@@ -1025,6 +1052,7 @@ export type LeagueUpdateWithoutMembersInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutMembersInput = {
@@ -1051,6 +1079,7 @@ export type LeagueUncheckedUpdateWithoutMembersInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutApplicationsInput = {
@@ -1077,6 +1106,7 @@ export type LeagueCreateWithoutApplicationsInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutApplicationsInput = {
@@ -1103,6 +1133,7 @@ export type LeagueUncheckedCreateWithoutApplicationsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutApplicationsInput = {
@@ -1145,6 +1176,7 @@ export type LeagueUpdateWithoutApplicationsInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutApplicationsInput = {
@@ -1171,6 +1203,7 @@ export type LeagueUncheckedUpdateWithoutApplicationsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutAdminsInput = {
@@ -1197,6 +1230,7 @@ export type LeagueCreateWithoutAdminsInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutAdminsInput = {
@@ -1223,6 +1257,7 @@ export type LeagueUncheckedCreateWithoutAdminsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutAdminsInput = {
@@ -1265,6 +1300,7 @@ export type LeagueUpdateWithoutAdminsInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutAdminsInput = {
@@ -1291,6 +1327,7 @@ export type LeagueUncheckedUpdateWithoutAdminsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutTournamentsInput = {
@@ -1317,6 +1354,7 @@ export type LeagueCreateWithoutTournamentsInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutTournamentsInput = {
@@ -1343,6 +1381,7 @@ export type LeagueUncheckedCreateWithoutTournamentsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutTournamentsInput = {
@@ -1385,6 +1424,7 @@ export type LeagueUpdateWithoutTournamentsInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutTournamentsInput = {
@@ -1411,6 +1451,7 @@ export type LeagueUncheckedUpdateWithoutTournamentsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutTournamentTemplatesInput = {
@@ -1437,6 +1478,7 @@ export type LeagueCreateWithoutTournamentTemplatesInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutTournamentTemplatesInput = {
@@ -1463,6 +1505,7 @@ export type LeagueUncheckedCreateWithoutTournamentTemplatesInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutTournamentTemplatesInput = {
@@ -1505,6 +1548,7 @@ export type LeagueUpdateWithoutTournamentTemplatesInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutTournamentTemplatesInput = {
@@ -1531,6 +1575,7 @@ export type LeagueUncheckedUpdateWithoutTournamentTemplatesInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutRankingSnapshotsInput = {
@@ -1557,6 +1602,7 @@ export type LeagueCreateWithoutRankingSnapshotsInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutRankingSnapshotsInput = {
@@ -1583,6 +1629,7 @@ export type LeagueUncheckedCreateWithoutRankingSnapshotsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutRankingSnapshotsInput = {
@@ -1625,6 +1672,7 @@ export type LeagueUpdateWithoutRankingSnapshotsInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutRankingSnapshotsInput = {
@@ -1651,6 +1699,7 @@ export type LeagueUncheckedUpdateWithoutRankingSnapshotsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutFairPlayEventsInput = {
@@ -1677,6 +1726,7 @@ export type LeagueCreateWithoutFairPlayEventsInput = {
   awayLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutAwayLeagueInput
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutFairPlayEventsInput = {
@@ -1703,6 +1753,7 @@ export type LeagueUncheckedCreateWithoutFairPlayEventsInput = {
   awayLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutAwayLeagueInput
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutFairPlayEventsInput = {
@@ -1745,6 +1796,7 @@ export type LeagueUpdateWithoutFairPlayEventsInput = {
   awayLeagueWars?: Prisma.LeagueWarUpdateManyWithoutAwayLeagueNestedInput
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutFairPlayEventsInput = {
@@ -1771,6 +1823,7 @@ export type LeagueUncheckedUpdateWithoutFairPlayEventsInput = {
   awayLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutAwayLeagueNestedInput
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutHomeLeagueWarsInput = {
@@ -1797,6 +1850,7 @@ export type LeagueCreateWithoutHomeLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutHomeLeagueWarsInput = {
@@ -1823,6 +1877,7 @@ export type LeagueUncheckedCreateWithoutHomeLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutHomeLeagueWarsInput = {
@@ -1854,6 +1909,7 @@ export type LeagueCreateWithoutAwayLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutAwayLeagueWarsInput = {
@@ -1880,6 +1936,7 @@ export type LeagueUncheckedCreateWithoutAwayLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutAwayLeagueWarsInput = {
@@ -1911,6 +1968,7 @@ export type LeagueCreateWithoutWonLeagueWarsInput = {
   awayLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutAwayLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutWonLeagueWarsInput = {
@@ -1937,6 +1995,7 @@ export type LeagueUncheckedCreateWithoutWonLeagueWarsInput = {
   awayLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutAwayLeagueInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutWonLeagueWarsInput = {
@@ -1979,6 +2038,7 @@ export type LeagueUpdateWithoutHomeLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutHomeLeagueWarsInput = {
@@ -2005,6 +2065,7 @@ export type LeagueUncheckedUpdateWithoutHomeLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUpsertWithoutAwayLeagueWarsInput = {
@@ -2042,6 +2103,7 @@ export type LeagueUpdateWithoutAwayLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutAwayLeagueWarsInput = {
@@ -2068,6 +2130,7 @@ export type LeagueUncheckedUpdateWithoutAwayLeagueWarsInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUpsertWithoutWonLeagueWarsInput = {
@@ -2105,6 +2168,7 @@ export type LeagueUpdateWithoutWonLeagueWarsInput = {
   awayLeagueWars?: Prisma.LeagueWarUpdateManyWithoutAwayLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutWonLeagueWarsInput = {
@@ -2131,6 +2195,7 @@ export type LeagueUncheckedUpdateWithoutWonLeagueWarsInput = {
   awayLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutAwayLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueCreateWithoutLeagueWarParticipantsInput = {
@@ -2157,6 +2222,7 @@ export type LeagueCreateWithoutLeagueWarParticipantsInput = {
   awayLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutAwayLeagueInput
   wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueUncheckedCreateWithoutLeagueWarParticipantsInput = {
@@ -2183,6 +2249,7 @@ export type LeagueUncheckedCreateWithoutLeagueWarParticipantsInput = {
   awayLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutAwayLeagueInput
   wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutLeagueInput
 }
 
 export type LeagueCreateOrConnectWithoutLeagueWarParticipantsInput = {
@@ -2225,6 +2292,7 @@ export type LeagueUpdateWithoutLeagueWarParticipantsInput = {
   awayLeagueWars?: Prisma.LeagueWarUpdateManyWithoutAwayLeagueNestedInput
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutLeagueWarParticipantsInput = {
@@ -2250,6 +2318,131 @@ export type LeagueUncheckedUpdateWithoutLeagueWarParticipantsInput = {
   homeLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutHomeLeagueNestedInput
   awayLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutAwayLeagueNestedInput
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
+}
+
+export type LeagueCreateWithoutArenaPostsInput = {
+  id?: string
+  name: string
+  code: string
+  logoUrl?: string | null
+  description?: string | null
+  region?: string | null
+  rules?: string | null
+  maxMembers?: number
+  maxAdmins?: number | null
+  discoverable?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  rankingSnapshots?: Prisma.RankingSnapshotCreateNestedManyWithoutLeagueInput
+  creator: Prisma.UserCreateNestedOneWithoutCreatedLeaguesInput
+  members?: Prisma.LeagueMemberCreateNestedManyWithoutLeagueInput
+  applications?: Prisma.LeagueApplicationCreateNestedManyWithoutLeagueInput
+  admins?: Prisma.LeagueAdminCreateNestedManyWithoutLeagueInput
+  tournaments?: Prisma.TournamentCreateNestedManyWithoutLeagueInput
+  tournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutLeagueInput
+  homeLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutHomeLeagueInput
+  awayLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutAwayLeagueInput
+  wonLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutWinnerLeagueInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutLeagueInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutLeagueInput
+}
+
+export type LeagueUncheckedCreateWithoutArenaPostsInput = {
+  id?: string
+  name: string
+  code: string
+  logoUrl?: string | null
+  description?: string | null
+  region?: string | null
+  rules?: string | null
+  maxMembers?: number
+  maxAdmins?: number | null
+  discoverable?: boolean
+  creatorUserId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  rankingSnapshots?: Prisma.RankingSnapshotUncheckedCreateNestedManyWithoutLeagueInput
+  members?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutLeagueInput
+  applications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutLeagueInput
+  admins?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutLeagueInput
+  tournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutLeagueInput
+  tournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutLeagueInput
+  homeLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutHomeLeagueInput
+  awayLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutAwayLeagueInput
+  wonLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutWinnerLeagueInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutLeagueInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutLeagueInput
+}
+
+export type LeagueCreateOrConnectWithoutArenaPostsInput = {
+  where: Prisma.LeagueWhereUniqueInput
+  create: Prisma.XOR<Prisma.LeagueCreateWithoutArenaPostsInput, Prisma.LeagueUncheckedCreateWithoutArenaPostsInput>
+}
+
+export type LeagueUpsertWithoutArenaPostsInput = {
+  update: Prisma.XOR<Prisma.LeagueUpdateWithoutArenaPostsInput, Prisma.LeagueUncheckedUpdateWithoutArenaPostsInput>
+  create: Prisma.XOR<Prisma.LeagueCreateWithoutArenaPostsInput, Prisma.LeagueUncheckedCreateWithoutArenaPostsInput>
+  where?: Prisma.LeagueWhereInput
+}
+
+export type LeagueUpdateToOneWithWhereWithoutArenaPostsInput = {
+  where?: Prisma.LeagueWhereInput
+  data: Prisma.XOR<Prisma.LeagueUpdateWithoutArenaPostsInput, Prisma.LeagueUncheckedUpdateWithoutArenaPostsInput>
+}
+
+export type LeagueUpdateWithoutArenaPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  rankingSnapshots?: Prisma.RankingSnapshotUpdateManyWithoutLeagueNestedInput
+  creator?: Prisma.UserUpdateOneRequiredWithoutCreatedLeaguesNestedInput
+  members?: Prisma.LeagueMemberUpdateManyWithoutLeagueNestedInput
+  applications?: Prisma.LeagueApplicationUpdateManyWithoutLeagueNestedInput
+  admins?: Prisma.LeagueAdminUpdateManyWithoutLeagueNestedInput
+  tournaments?: Prisma.TournamentUpdateManyWithoutLeagueNestedInput
+  tournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutLeagueNestedInput
+  homeLeagueWars?: Prisma.LeagueWarUpdateManyWithoutHomeLeagueNestedInput
+  awayLeagueWars?: Prisma.LeagueWarUpdateManyWithoutAwayLeagueNestedInput
+  wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+}
+
+export type LeagueUncheckedUpdateWithoutArenaPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  region?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rules?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxMembers?: Prisma.IntFieldUpdateOperationsInput | number
+  maxAdmins?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  discoverable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  creatorUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  rankingSnapshots?: Prisma.RankingSnapshotUncheckedUpdateManyWithoutLeagueNestedInput
+  members?: Prisma.LeagueMemberUncheckedUpdateManyWithoutLeagueNestedInput
+  applications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutLeagueNestedInput
+  admins?: Prisma.LeagueAdminUncheckedUpdateManyWithoutLeagueNestedInput
+  tournaments?: Prisma.TournamentUncheckedUpdateManyWithoutLeagueNestedInput
+  tournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutLeagueNestedInput
+  homeLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutHomeLeagueNestedInput
+  awayLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutAwayLeagueNestedInput
+  wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
@@ -2292,6 +2485,7 @@ export type LeagueUpdateWithoutCreatorInput = {
   wonLeagueWars?: Prisma.LeagueWarUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateWithoutCreatorInput = {
@@ -2318,6 +2512,7 @@ export type LeagueUncheckedUpdateWithoutCreatorInput = {
   wonLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutWinnerLeagueNestedInput
   leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutLeagueNestedInput
   fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutLeagueNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutLeagueNestedInput
 }
 
 export type LeagueUncheckedUpdateManyWithoutCreatorInput = {
@@ -2352,6 +2547,7 @@ export type LeagueCountOutputType = {
   wonLeagueWars: number
   leagueWarParticipants: number
   fairPlayEvents: number
+  arenaPosts: number
 }
 
 export type LeagueCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2366,6 +2562,7 @@ export type LeagueCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   wonLeagueWars?: boolean | LeagueCountOutputTypeCountWonLeagueWarsArgs
   leagueWarParticipants?: boolean | LeagueCountOutputTypeCountLeagueWarParticipantsArgs
   fairPlayEvents?: boolean | LeagueCountOutputTypeCountFairPlayEventsArgs
+  arenaPosts?: boolean | LeagueCountOutputTypeCountArenaPostsArgs
 }
 
 /**
@@ -2455,6 +2652,13 @@ export type LeagueCountOutputTypeCountFairPlayEventsArgs<ExtArgs extends runtime
   where?: Prisma.FairPlayEventWhereInput
 }
 
+/**
+ * LeagueCountOutputType without action
+ */
+export type LeagueCountOutputTypeCountArenaPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaPostWhereInput
+}
+
 
 export type LeagueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2482,6 +2686,7 @@ export type LeagueSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   wonLeagueWars?: boolean | Prisma.League$wonLeagueWarsArgs<ExtArgs>
   leagueWarParticipants?: boolean | Prisma.League$leagueWarParticipantsArgs<ExtArgs>
   fairPlayEvents?: boolean | Prisma.League$fairPlayEventsArgs<ExtArgs>
+  arenaPosts?: boolean | Prisma.League$arenaPostsArgs<ExtArgs>
   _count?: boolean | Prisma.LeagueCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["league"]>
 
@@ -2549,6 +2754,7 @@ export type LeagueInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   wonLeagueWars?: boolean | Prisma.League$wonLeagueWarsArgs<ExtArgs>
   leagueWarParticipants?: boolean | Prisma.League$leagueWarParticipantsArgs<ExtArgs>
   fairPlayEvents?: boolean | Prisma.League$fairPlayEventsArgs<ExtArgs>
+  arenaPosts?: boolean | Prisma.League$arenaPostsArgs<ExtArgs>
   _count?: boolean | Prisma.LeagueCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LeagueIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2573,6 +2779,7 @@ export type $LeaguePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     wonLeagueWars: Prisma.$LeagueWarPayload<ExtArgs>[]
     leagueWarParticipants: Prisma.$LeagueWarParticipantPayload<ExtArgs>[]
     fairPlayEvents: Prisma.$FairPlayEventPayload<ExtArgs>[]
+    arenaPosts: Prisma.$ArenaPostPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2994,6 +3201,7 @@ export interface Prisma__LeagueClient<T, Null = never, ExtArgs extends runtime.T
   wonLeagueWars<T extends Prisma.League$wonLeagueWarsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.League$wonLeagueWarsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeagueWarPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leagueWarParticipants<T extends Prisma.League$leagueWarParticipantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.League$leagueWarParticipantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeagueWarParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   fairPlayEvents<T extends Prisma.League$fairPlayEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.League$fairPlayEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FairPlayEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaPosts<T extends Prisma.League$arenaPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.League$arenaPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3698,6 +3906,30 @@ export type League$fairPlayEventsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.FairPlayEventScalarFieldEnum | Prisma.FairPlayEventScalarFieldEnum[]
+}
+
+/**
+ * League.arenaPosts
+ */
+export type League$arenaPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaPost
+   */
+  select?: Prisma.ArenaPostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaPost
+   */
+  omit?: Prisma.ArenaPostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaPostInclude<ExtArgs> | null
+  where?: Prisma.ArenaPostWhereInput
+  orderBy?: Prisma.ArenaPostOrderByWithRelationInput | Prisma.ArenaPostOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaPostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaPostScalarFieldEnum | Prisma.ArenaPostScalarFieldEnum[]
 }
 
 /**

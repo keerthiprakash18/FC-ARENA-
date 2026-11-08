@@ -1,4 +1,5 @@
 import { assertImageFormat } from '../security/image-format.js';
+import { assertUclReturnLegReady } from '../results/ucl-ties.js';
 import {
   BadRequestException,
   ConflictException,
@@ -8,7 +9,6 @@ import {
   NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import {
   InjectQueue,
@@ -33,6 +33,7 @@ import {
 import sharp, { type Metadata } from 'sharp';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
+import { PublicServiceUnavailableException } from '../security/public-service-unavailable.exception.js';
 import type { SubmitResultDto } from '../results/dto/submit-result.dto.js';
 import { ResultsService } from '../results/results.service.js';
 import {
@@ -163,6 +164,10 @@ export class OcrService
         userId,
         matchId,
       );
+
+    if (match.tournament?.competitionFormat === 'UCL_CUP') {
+      await assertUclReturnLegReady(this.prisma, match.fixture);
+    }
 
     if (
       match.confirmedResultSubmissionId
@@ -322,13 +327,6 @@ export class OcrService
         matchId,
       );
 
-    await mkdir(
-      matchDirectory,
-      {
-        recursive: true,
-      },
-    );
-
     const filename =
       `${randomUUID()}${extension}`;
 
@@ -338,28 +336,48 @@ export class OcrService
         filename,
       );
 
-    await writeFile(
-      imagePath,
-      file.buffer,
-    );
+    try {
+      await mkdir(matchDirectory, { recursive: true });
+      await writeFile(imagePath, file.buffer);
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException)?.code;
+      this.logger.error(JSON.stringify({
+        event: 'ocr_storage_unavailable',
+        code: ['EACCES', 'EPERM', 'EROFS', 'ENOSPC', 'ENOENT'].includes(code ?? '') ? code : 'UNKNOWN',
+      }));
+      throw new PublicServiceUnavailableException('OCR_STORAGE_UNAVAILABLE');
+    }
 
-    const extraction =
-      await this.prisma.ocrExtraction.create({
-        data: {
-          matchId,
-          submittedByUserId:
-            userId,
-          imagePath,
-          mimeType:
-            file.mimetype,
-          fileSize:
-            file.size,
-          width,
-          height,
-          status:
-            'QUEUED',
-        },
-      });
+    const extractionData = {
+      matchId,
+      submittedByUserId: userId,
+      imagePath,
+      mimeType: file.mimetype,
+      fileSize: file.size,
+      width,
+      height,
+      status: 'QUEUED' as const,
+    };
+    const extraction = await (async () => {
+      try {
+        if (match.tournament?.competitionFormat === 'UCL_CUP') {
+          return await this.prisma.$transactionWithRetry(async tx => {
+            const current = await tx.match.findUnique({ where: { id: matchId }, include: { fixture: true } });
+            if (!current || current.confirmedResultSubmissionId) {
+              throw new ConflictException({ success: false, data: null, error: {
+                code: 'RESULT_ALREADY_RECORDED', message: 'This match is no longer open for a screenshot.',
+              } });
+            }
+            await assertUclReturnLegReady(tx, current.fixture);
+            return tx.ocrExtraction.create({ data: extractionData });
+          }, { isolationLevel: 'Serializable' });
+        }
+        return await this.prisma.ocrExtraction.create({ data: extractionData });
+      } catch (error) {
+        await unlink(imagePath).catch(() => undefined);
+        throw error;
+      }
+    })();
 
     try {
       await this.ocrQueue.add(
@@ -379,7 +397,7 @@ export class OcrService
         where: { id: extraction.id },
         data: { status: 'FAILED', failureReason: message, processedAt: new Date() },
       });
-      throw new ServiceUnavailableException(message);
+      throw new PublicServiceUnavailableException('OCR_QUEUE_UNAVAILABLE');
     }
 
     return {

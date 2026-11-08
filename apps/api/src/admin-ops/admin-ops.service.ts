@@ -13,6 +13,7 @@ import {
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import { compareAndroidVersions } from './android-version.js';
 
 import type {
   BackupReportDto,
@@ -1539,6 +1540,7 @@ export class AdminOpsService {
 
   async androidVersionPolicy(
     rawVersionCode?: string,
+    rawVersionName?: string,
   ) {
     const installed =
       Number(
@@ -1546,7 +1548,7 @@ export class AdminOpsService {
       );
 
     const installedVersionCode =
-      Number.isInteger(
+      /^[1-9]\d{0,9}$/.test(rawVersionCode ?? '') && installed <= 2147483647 && Number.isSafeInteger(
         installed,
       ) &&
       installed >
@@ -1561,6 +1563,7 @@ export class AdminOpsService {
             'PRODUCTION',
           status:
             'PUBLISHED',
+          publishedAt: { lte: new Date() },
         },
 
         orderBy: {
@@ -1588,14 +1591,14 @@ export class AdminOpsService {
       };
     }
 
-    const updateAvailable =
-      installedVersionCode !==
-        null &&
-      installedVersionCode <
-        release.versionCode;
+    const nameComparison = rawVersionCode === undefined && rawVersionName
+      ? compareAndroidVersions(rawVersionName, release.versionName) : null;
+    const updateAvailable = installedVersionCode !== null
+      ? installedVersionCode < release.versionCode : nameComparison === -1;
 
     const forceUpdate =
       updateAvailable &&
+      installedVersionCode !== null &&
       release.forceUpdateBelowVersionCode !==
         null &&
       installedVersionCode! <

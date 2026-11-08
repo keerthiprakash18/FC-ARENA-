@@ -1,5 +1,9 @@
 'use client';
 
+import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
+import { PlayoffBracket } from '@/components/tournaments/playoff-bracket';
+import type { FixtureForUi } from '@/components/tournaments/fixture-card';
+import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import Link from 'next/link';
 import { FcCrest, FcStatusBadge } from '@/components/fc/fc-ui';
 import { FcIcon } from '@/components/fc/fc-icons';
@@ -31,6 +35,8 @@ interface PublicTournamentData {
     mode: string;
     format: string;
     competitionFormat: string;
+    playoffFormat?: string;
+    formatGuide?: TournamentFormatDescription | null;
     status: string;
     startAt: string | null;
     endAt: string | null;
@@ -42,6 +48,7 @@ interface PublicTournamentData {
     };
   };
 
+  bracketFixtures?: FixtureForUi[];
   groups: Array<{
     id: string;
     name: string;
@@ -74,6 +81,7 @@ interface PublicTournamentData {
     position: number;
     registrationId: string;
     name: string;
+    logoUrl?: string | null;
     played: number;
     wins: number;
     draws: number;
@@ -119,6 +127,10 @@ function formatCompetition(
 }
 
 export default function PublicTournamentPage() {
+  const params = useParams<{ code: string }>();
+  return <PublicTournamentView key={params.code} />;
+}
+function PublicTournamentView() {
   const params =
     useParams<{
       code: string;
@@ -150,38 +162,39 @@ export default function PublicTournamentPage() {
   ] =
     useState(false);
 
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [refreshError, setRefreshError] = useState('');
+  const [online, setOnline] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    void apiRequest<any>(
-      '/public/tournaments/' +
-        encodeURIComponent(
-          params.code,
-        ),
-    )
-      .then(
-        (
-          response,
-        ) => {
-          setData(
-            response.data,
-          );
-
-          setError('');
-        },
-      )
-      .catch(
-        (
-          err,
-        ) => {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Tournament not found.',
-          );
-        },
-      );
-  }, [
-    params.code,
-  ]);
+    const controller = new AbortController();
+    let pending = false;
+    const load = async (initial = false) => {
+      if (pending || (!initial && (navigator.onLine === false || document.visibilityState === 'hidden'))) return;
+      pending = true; setRefreshing(true);
+      try {
+        const response = await apiRequest<{ data: PublicTournamentData }>('/public/tournaments/' + encodeURIComponent(params.code), { signal: controller.signal });
+        if (!controller.signal.aborted) {
+          setData(response.data); setError(''); setRefreshError(''); setLastUpdated(Date.now());
+        }
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        const message = err instanceof Error ? err.message : 'Unable to refresh tournament results.';
+        if (initial && !lastUpdated) setError(message);
+        setRefreshError(message);
+      } finally { pending = false; if (!controller.signal.aborted) setRefreshing(false); }
+    };
+    const refresh = () => { setOnline(navigator.onLine !== false); void load(); };
+    const offline = () => setOnline(false);
+    setOnline(navigator.onLine !== false); void load(true);
+    const timer = window.setInterval(refresh, 20_000);
+    window.addEventListener('focus', refresh); window.addEventListener('online', refresh); window.addEventListener('offline', offline);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh); window.removeEventListener('offline', offline); document.removeEventListener('visibilitychange', refresh); };
+    // The retained timestamp does not restart the polling connection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.code, retry]);
 
   const upcoming =
     useMemo(
@@ -294,6 +307,7 @@ export default function PublicTournamentPage() {
             }
           </p>
 
+          <button type="button" onClick={() => setRetry(value => value + 1)} className="theme-secondary-button mt-4 min-h-11 rounded-xl border px-5 text-sm font-semibold">Try again</button>
           <Link
             href="/"
             className="theme-primary-button mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-semibold"
@@ -307,6 +321,13 @@ export default function PublicTournamentPage() {
 
   const tournament =
     data.tournament;
+
+  const entryLogos = new Map(data.groups.flatMap(group => group.entries).map(entry => [entry.id, entry.logoUrl]));
+  const standings = data.standings.map(row => ({
+    ...row,
+    entryName: row.name,
+    logoUrl: row.logoUrl ?? entryLogos.get(row.registrationId) ?? null,
+  }));
 
   return (
     <main className="fc-public-page premium-public min-h-screen">
@@ -349,13 +370,23 @@ export default function PublicTournamentPage() {
       </header>
 
       <div className="premium-page mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+        <aside aria-label="Tournament update status" className="theme-panel mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
+          <div className="theme-muted text-sm" role="status">
+            {!online ? 'Offline. Showing the last successfully loaded results.' : refreshError ? 'Reconnecting. Results may be out of date.' : refreshing ? 'Refreshing results...' : 'Results are up to date.'}
+            {lastUpdated ? <span className="mt-1 block text-xs">Last updated: {new Date(lastUpdated).toLocaleTimeString()}</span> : null}
+          </div>
+          <button type="button" disabled={!online || refreshing} onClick={() => setRetry(value => value + 1)} className="theme-text min-h-11 rounded-xl border px-4 text-sm font-bold disabled:opacity-50">Refresh results</button>
+        </aside>
+        {error ? <p role="alert" className="theme-muted mb-4 text-sm">{error}</p> : null}
         <PremiumHero eyebrow={`FC Arena · ${tournament.league.name}`} title={tournament.name} crest={tournament.name} imageUrl={tournament.logoUrl} description={tournament.description || undefined} action={upcoming.length ? <a href="#upcoming-fixtures" className="theme-primary-button premium-button">View Fixtures <FcIcon name="chevronRight" size={16} /></a> : undefined}>
           <div className="premium-hero-tags"><span>{formatCompetition(tournament.competitionFormat)}</span><span>{tournament.mode}</span><span>{formatCompetition(tournament.status)}</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div>
         </PremiumHero>
+        <TournamentFormatGuide guide={tournament.formatGuide} />
         <nav className="premium-public-tabs" aria-label="Public tournament sections">
           {upcoming.length ? <a href="#upcoming-fixtures">Fixtures</a> : null}
           {data.standings.length ? <a href="#standings">Standings</a> : null}
           {data.fixtures.some(fixture => fixture.result) ? <a href="#results">Results</a> : null}
+          {data.bracketFixtures?.length ? <a href="#playoff-bracket">Playoff bracket</a> : null}
           {data.topPlayers.length ? <a href="#top-players">Top Players</a> : null}
           {tournament.rules ? <a href="#tournament-rules">Rules</a> : null}
         </nav>
@@ -423,6 +454,8 @@ export default function PublicTournamentPage() {
           )}
         </section>
 
+        {data.bracketFixtures?.length ? <div id="playoff-bracket"><PlayoffBracket fixtures={data.bracketFixtures} tournamentName={tournament.name} format={tournament.competitionFormat === 'UCL_CUP' ? 'UCL_CUP' : tournament.playoffFormat} readOnly /></div> : null}
+
         {data.standings.length >
         0 ? (
           <section id="standings" className="premium-surface premium-public-standings">
@@ -438,11 +471,7 @@ export default function PublicTournamentPage() {
               </div>
             </div>
 
-            <CompactStandingsTable label="Tournament standings" rows={data.standings.map(row => ({
-              ...row,
-              entryName: row.name,
-              logoUrl: data.groups.flatMap(group => group.entries).find(entry => entry.id === row.registrationId)?.logoUrl,
-            }))} />
+            <CompactStandingsTable label="Tournament standings" rows={standings} qualificationBands={[]} />
 
             <div className="mt-5 hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[720px] text-sm">
@@ -479,7 +508,7 @@ export default function PublicTournamentPage() {
                 </thead>
 
                 <tbody>
-                  {data.standings.map(
+                  {standings.map(
                     (
                       row,
                     ) => (
@@ -496,9 +525,10 @@ export default function PublicTournamentPage() {
                         </td>
 
                         <td className="py-3 font-semibold">
-                          {
-                            row.name
-                          }
+                          <div className="flex items-center gap-3">
+                            <FcCrest name={row.name} imageUrl={row.logoUrl} size="sm" />
+                            {row.name}
+                          </div>
                         </td>
 
                         <td className="py-3 text-center">

@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { REQUEST_ID_HEADER } from './request-correlation.js';
+import { PublicServiceUnavailableException } from './public-service-unavailable.exception.js';
 
 @Catch()
 export class SafeExceptionFilter implements ExceptionFilter {
@@ -23,7 +24,7 @@ export class SafeExceptionFilter implements ExceptionFilter {
         path: request?.originalUrl ?? request?.url,
         status,
       }));
-      response.status(status).json({
+      response.status(status).json(exception instanceof PublicServiceUnavailableException ? exception.getResponse() : {
         success: false, data: null,
         error: { code: 'SERVICE_UNAVAILABLE', message: 'Unable to complete this request right now. Please try again.' },
       });

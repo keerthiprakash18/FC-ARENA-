@@ -30,6 +30,7 @@ import { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 import { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
+import { UpdateEntryLimitDto } from './dto/update-entry-limit.dto.js';
 import { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import {
   CloneTournamentDto,
@@ -39,6 +40,8 @@ import {
 import { ReviewDeadlineCaseDto } from './dto/review-deadline-case.dto.js';
 import { SmartScheduleDto } from './dto/smart-schedule.dto.js';
 import { FixturesService } from './fixtures.service.js';
+import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
+import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 import { GroupFixturesService } from './group-fixtures.service.js';
 import { PlayoffsService } from './playoffs.service.js';
 import { TournamentsService } from './tournaments.service.js';
@@ -59,6 +62,11 @@ export class TournamentsController {
 
     private readonly fixturesService:
       FixturesService,
+
+    private readonly fixtureResetService:
+      TournamentFixtureResetService,
+    private readonly drawRestartService:
+      TournamentDrawRestartService,
 
     private readonly tournamentGroupsService:
       TournamentGroupsService,
@@ -299,6 +307,23 @@ export class TournamentsController {
     );
   }
 
+
+  @Patch('tournaments/:tournamentId/entry-limit')
+  updateEntryLimit(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: UpdateEntryLimitDto,
+  ) {
+    return this.tournamentsService.updateEntryLimit(request.user.sub, tournamentId, dto);
+  }
+
+  @Post('tournaments/:tournamentId/prepare-fixtures')
+  prepareFixtures(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.tournamentsService.prepareFixtures(request.user.sub, tournamentId);
+  }
 
   @Patch(
     'tournaments/:tournamentId/setup',
@@ -574,6 +599,57 @@ export class TournamentsController {
       request.user.sub,
       tournamentId,
     );
+  }
+
+  @Get('tournaments/:tournamentId/fixtures/restart-with-teams-preview')
+  previewDrawRestart(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.drawRestartService.preview(request.user.sub, tournamentId);
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/restart-with-teams')
+  restartDrawWithTeams(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() body: { confirmation?: string },
+  ) {
+    return this.drawRestartService.restart(request.user.sub, tournamentId, body?.confirmation);
+  }
+
+  @Get('tournaments/:tournamentId/fixtures/full-reset-preview')
+  previewFullTournamentDrawReset(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.fixtureResetService.previewFullDraw(request.user.sub, tournamentId);
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/full-reset')
+  resetFullTournamentDraw(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() body: { confirmation?: string },
+  ) {
+    return this.fixtureResetService.resetFullDraw(request.user.sub, tournamentId, body?.confirmation);
+  }
+
+  @Get('tournaments/:tournamentId/fixtures/reset-preview')
+  previewFixtureReset(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.fixtureResetService.preview(request.user.sub, tournamentId);
+  }
+
+  @Post('tournaments/:tournamentId/fixtures/reset')
+  resetFixtureDraw(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() body: { confirmation?: string },
+  ) {
+    return this.fixtureResetService.reset(request.user.sub, tournamentId, body?.confirmation);
   }
 
   @Post('tournaments/:tournamentId/fixtures/smart-schedule')

@@ -1,15 +1,12 @@
 'use client';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import {
   type FormEvent,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
 
-import {
-  useRouter,
-} from 'next/navigation';
 
 import {
   AppShell,
@@ -55,8 +52,6 @@ const quickQuestions = [
 ] as const;
 
 export default function AiPage() {
-  const router =
-    useRouter();
 
   const [
     user,
@@ -104,22 +99,22 @@ export default function AiPage() {
   ] =
     useState('');
 
-  useEffect(() => {
-    void (async () => {
+  const initialLoad = useRecoverableLoad(async signal => {
       try {
         const [
           current,
           statusResponse,
         ] =
           await Promise.all([
-            getCurrentUser(),
+            getCurrentUser({ signal }),
             authenticatedRequest<{
               success: true;
               data: AiStatus;
               error: null;
-            }>('/ai/status'),
+            }>('/ai/status', { signal }),
           ]);
 
+        if (signal.aborted) return;
         setUser(
           current,
         );
@@ -127,19 +122,10 @@ export default function AiPage() {
         setStatus(
           statusResponse.data,
         );
-      } catch {
-        router.replace(
-          '/login',
-        );
       } finally {
-        setLoading(
-          false,
-        );
+        if (!signal.aborted) setLoading(false);
       }
-    })();
-  }, [
-    router,
-  ]);
+  });
 
   const playerName =
     useMemo(
@@ -264,6 +250,7 @@ export default function AiPage() {
     );
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (
     loading ||
     !user ||

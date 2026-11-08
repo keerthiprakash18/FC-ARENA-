@@ -1,5 +1,7 @@
 import { LeaguesModule } from '../leagues/leagues.module.js';
 import { PlayerDashboardService } from './player-dashboard.service.js';
+import { PlayerCardExportService } from './player-card-export.service.js';
+import { PlayerCardExportController } from './player-card-export.controller.js';
 
 import {
   Module,
@@ -29,12 +31,14 @@ import {
 
   controllers: [
     PlayerCareerController,
+    PlayerCardExportController,
   ],
 
   providers: [
     PlayerCareerService,
     PlayerDashboardService,
     PlayerProfileImageService,
+    PlayerCardExportService,
   ],
 
   exports: [

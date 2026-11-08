@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   createHash,
+  randomUUID,
 } from 'node:crypto';
 import sharp from 'sharp';
 import {
@@ -165,7 +166,7 @@ export class PlayerProfileImageService {
             {
               fit: 'cover',
               position:
-                'attention',
+                'centre',
             },
           )
           .webp({
@@ -306,6 +307,9 @@ export class PlayerProfileImageService {
       });
     }
 
+    const avatarUrl = new URL(payload.secure_url);
+    avatarUrl.searchParams.set('fc_photo', randomUUID());
+
     const updated =
       await this.prisma.player.update({
         where: {
@@ -314,7 +318,7 @@ export class PlayerProfileImageService {
         },
         data: {
           profileImageUrl:
-            payload.secure_url,
+            avatarUrl.toString(),
         },
         select: {
           profileImageUrl:

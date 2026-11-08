@@ -1,0 +1,22 @@
+.notice {
+  position: fixed;
+  z-index: 66;
+  top: calc(4.5rem + env(safe-area-inset-top, 0px));
+  left: max(12px, env(safe-area-inset-left, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  max-width: 440px;
+  margin-inline: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--theme-border);
+  border-radius: 16px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  box-shadow: 0 8px 30px #0003;
+}
+.notice h2 { margin: 0; font-size: 14px; font-weight: 750; line-height: 1.4; }
+.notice p { margin: 5px 0 8px; font-size: 12px; line-height: 1.5; color: var(--theme-text-secondary); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions button { min-height: 44px; padding: 8px 14px; border: 0; border-radius: 10px; font-size: 13px; font-weight: 700; background: var(--theme-primary); color: var(--theme-on-primary); cursor: pointer; }
+.actions button + button { background: transparent; color: var(--theme-text-secondary); }
+.actions button:disabled { opacity: 0.6; cursor: default; }
+.actions button:focus-visible { outline: 3px solid var(--theme-primary-bright); outline-offset: 3px; }

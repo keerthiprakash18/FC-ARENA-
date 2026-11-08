@@ -13,6 +13,9 @@ import {
 } from '@/components/theme/theme-provider';
 
 import { ConfirmationProvider } from '@/components/fc/confirmation-provider';
+import { AndroidUpdateNotice } from '@/components/app/android-update-notice';
+import { WebReleaseNotice } from '@/components/app/web-release-notice';
+import { AppRefreshProvider } from '@/components/app/app-refresh';
 import { WebVitalsReporter } from '@/components/telemetry/web-vitals-reporter';
 import './globals.css';
 import './design-tokens.css';
@@ -21,6 +24,9 @@ import './ux-polish.css';
 import './interactions.css';
 import './release-consistency.css';
 import './premium-redesign.css';
+import './player-community.css';
+import './daily-rewards.css';
+import './competition-clarity.css';
 import './native-android.css';
 
 export const metadata: Metadata = {
@@ -152,7 +158,9 @@ export default async function RootLayout({
           <ConfirmationProvider />
           <ServiceWorkerRegister />
           <WebVitalsReporter />
-          {children}
+          <AndroidUpdateNotice />
+          <WebReleaseNotice />
+          <AppRefreshProvider>{children}</AppRefreshProvider>
         </ThemeProvider>
       </body>
     </html>

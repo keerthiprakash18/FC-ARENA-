@@ -7,7 +7,7 @@ function moduleCode(path) {return ts.transpileModule(fs.readFileSync(path,'utf8'
 function client() {
  const out={}, calls=[];
  const api={apiRequest:(path,options)=>new Promise((resolve,reject)=>calls.push({path,options,resolve,reject}))};
- vm.runInNewContext(moduleCode('apps/web/src/lib/auth-client.ts'),{exports:out,require:()=>api,Date,Promise,Error,JSON,Map,setTimeout});
+ vm.runInNewContext(moduleCode('apps/web/src/lib/auth-client.ts'),{exports:out,require:()=>api,Headers,Date,Promise,Error,JSON,Map,setTimeout});
  out.establishLoginSession('account-a',3600); return {out,calls};
 }
 const tick=()=>new Promise(r=>setImmediate(r));
@@ -19,7 +19,7 @@ test('different scopes and custom request options do not coalesce',async()=>{
  const {out,calls}=client();const pending=[out.authenticatedRequest('/leagues/a'),out.authenticatedRequest('/leagues/b'),out.authenticatedRequest('/leagues/a',{cache:'no-store'}),out.authenticatedRequest('/leagues/a',{signal:new AbortController().signal})];await tick();assert.equal(calls.length,4);calls.forEach(c=>c.resolve({}));await Promise.all(pending);
 });
 test('new login cannot reuse an old account request',async()=>{
- const {out,calls}=client();const a=out.authenticatedRequest('/auth/me');await tick();out.establishLoginSession('account-b',3600);const b=out.authenticatedRequest('/auth/me');await tick();assert.equal(calls.length,2);assert.notEqual(calls[0].options.headers.Authorization,calls[1].options.headers.Authorization);calls[0].resolve({data:'a'});calls[1].resolve({data:'b'});assert.equal((await b).data,'b');await a;
+ const {out,calls}=client();const a=out.authenticatedRequest('/auth/me');await tick();out.establishLoginSession('account-b',3600);const b=out.authenticatedRequest('/auth/me');await tick();assert.equal(calls.length,2);assert.notEqual(calls[0].options.headers.get('Authorization'),calls[1].options.headers.get('Authorization'));calls[0].resolve({data:'a'});calls[1].resolve({data:'b'});assert.equal((await b).data,'b');await a;
 });
 test('mutation prevents a following read from sharing pre-mutation data',async()=>{
  const {out,calls}=client();const a=out.authenticatedRequest('/leagues/a');await tick();const mutation=out.authenticatedRequest('/leagues/a',{method:'PATCH'});await tick();const b=out.authenticatedRequest('/leagues/a');await tick();assert.equal(calls.length,3);calls.forEach(c=>c.resolve({}));await Promise.all([a,b,mutation]);
@@ -40,6 +40,10 @@ test('native worker retirement preserves unrelated workers/caches',async()=>{
 test('failed cleanup is retried instead of being permanently marked complete',async()=>{
  const f=workerFixture(true);await f.out.retireNativeServiceWorker();assert.equal(f.storage.size,0);await f.out.retireNativeServiceWorker();assert.equal(f.storage.size,1);
 });
+
+test('explicit native reload retires an old worker even after the session cleanup marker was set',async()=>{
+ const f=workerFixture();f.storage.set('fc-arena-sw-retired-v2','1');await f.out.retireNativeServiceWorker(true);assert.deepEqual(f.removed,['/sw.js']);assert.deepEqual(f.deleted,['fc-arena-v7']);
+});
 test('PWA activation deletes only old FC Arena caches',async()=>{
  const callbacks={},deleted=[];let completed;
  vm.runInNewContext(fs.readFileSync('apps/web/public/sw.js','utf8'),{self:{addEventListener:(name,fn)=>callbacks[name]=fn,clients:{claim:()=>{}},location:{origin:'https://fcarena.in'}},caches:{keys:async()=>['fc-arena-v7','fc-arena-v8','other-app'],delete:async name=>deleted.push(name)},Promise,URL});
@@ -55,4 +59,25 @@ test('push binding handles token rotation in flight and retries on a later login
 
 test('account change before token-await continuation cannot share the old request',async()=>{
  const {out,calls}=client();const a=out.authenticatedRequest('/auth/me');out.establishLoginSession('account-b',3600);const b=out.authenticatedRequest('/auth/me');await tick();assert.equal(calls.length,2);calls.forEach(c=>c.resolve({}));await Promise.all([a,b]);
+});
+
+test('leaving a page cancels its wait without cancelling a shared session refresh',async()=>{
+ const out={},calls=[];
+ const api={apiRequest:(path,options)=>new Promise((resolve,reject)=>calls.push({path,options,resolve,reject}))};
+ vm.runInNewContext(moduleCode('apps/web/src/lib/auth-client.ts'),{exports:out,require:()=>api,Headers,Date,Promise,Error,JSON,Map,setTimeout,DOMException});
+ const controller=new AbortController();
+ const a=out.authenticatedRequest('/fixtures',{signal:controller.signal});
+ const rejected=assert.rejects(a,error=>error.name==='AbortError');
+ const b=out.authenticatedRequest('/leagues/my');
+ await tick();assert.equal(calls.length,1);assert.equal(calls[0].path,'/auth/refresh');
+ controller.abort();await rejected;
+ calls[0].resolve({data:{accessToken:'refreshed',expiresIn:3600}});
+ await tick();assert.equal(calls.length,2);assert.equal(calls[1].path,'/leagues/my');
+ calls[1].resolve({data:'loaded'});assert.equal((await b).data,'loaded');
+});
+
+test('an already cancelled page does not start a token refresh',async()=>{
+ const {out,calls}=client();const controller=new AbortController();controller.abort();
+ await assert.rejects(out.authenticatedRequest('/fixtures',{signal:controller.signal}),error=>error.name==='AbortError');
+ assert.equal(calls.length,0);
 });

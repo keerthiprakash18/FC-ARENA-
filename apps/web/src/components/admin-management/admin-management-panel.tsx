@@ -47,7 +47,7 @@ const leaguePermissions: Permission[] = [
   { value: 'MANAGE_MEMBERS', label: 'Members', description: 'Review join requests and manage membership.' },
   { value: 'MANAGE_FIXTURES', label: 'Fixtures', description: 'Coordinate league fixture operations.' },
   { value: 'MANAGE_STANDINGS', label: 'Standings', description: 'Maintain standings and league results.' },
-  { value: 'MANAGE_TOURNAMENTS', label: 'Tournaments', description: 'Operate league tournaments where explicitly allowed.' },
+  { value: 'MANAGE_TOURNAMENTS', label: 'Tournaments', description: 'Create tournaments and review their registrations across this league. Other tournament permissions are assigned separately.' },
   { value: 'VIEW_REPORTS', label: 'Reports', description: 'View league reports and audit information.' },
 ];
 

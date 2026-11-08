@@ -43,9 +43,9 @@ export function PremiumMatch({ home, away, homeScore, awayScore, label, status, 
   return <article className="premium-match">
     <div className="premium-match-meta"><p>{label}</p>{status}</div>
     <div className="premium-match-sides">
-      <div className="premium-match-team"><FcCrest name={home} size="lg" /><strong>{home}</strong></div>
+      <div className="premium-match-team"><FcCrest name={home} size="lg" /><strong>{home}</strong><span className="theme-secondary-text text-[10px] font-semibold uppercase tracking-wider">Home</span></div>
       <div className="premium-match-score" aria-label={homeScore !== undefined && awayScore !== undefined ? `${homeScore} to ${awayScore}` : 'Versus'}>{homeScore !== undefined && awayScore !== undefined ? <>{homeScore}<span>:</span>{awayScore}</> : <span className="premium-versus">VS</span>}</div>
-      <div className="premium-match-team"><FcCrest name={away} size="lg" /><strong>{away}</strong></div>
+      <div className="premium-match-team"><FcCrest name={away} size="lg" /><strong>{away}</strong><span className="theme-secondary-text text-[10px] font-semibold uppercase tracking-wider">Away</span></div>
     </div>
     {children || href ? <div className="premium-match-footer">{children}{href ? <Link className="theme-primary-button premium-button" href={href}>{action}<FcIcon name="chevronRight" size={16} /></Link> : null}</div> : null}
   </article>;

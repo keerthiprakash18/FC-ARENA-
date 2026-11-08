@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rmdir, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rmdir, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,6 +6,11 @@ import sharp from 'sharp';
 import { OcrService } from './ocr.service.js';
 import { OcrProcessor } from './ocr.processor.js';
 import { OCR_JOB_PROCESS_MATCH_RESULT } from './ocr.constants.js';
+
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const fs = await importOriginal<typeof import('node:fs/promises')>();
+  return { ...fs, mkdir: vi.fn(fs.mkdir), writeFile: vi.fn(fs.writeFile) };
+});
 
 let directory: string;
 let imagePath: string;
@@ -21,6 +26,25 @@ afterEach(async () => {
 });
 
 describe('OCR queue lifecycle', () => {
+  it.each(['EACCES', 'EROFS', 'ENOSPC'])('reports an actionable upload error for storage failure %s', async (code) => {
+    vi.mocked(mkdir).mockRejectedValueOnce(Object.assign(new Error('/private/server/path'), { code }));
+    const image = await sharp({ create: { width: 640, height: 360, channels: 3, background: '#123456' } }).png().toBuffer();
+    const prisma = { ocrExtraction: { create: vi.fn() } };
+    const queue = { add: vi.fn() };
+    const service = new OcrService(prisma as never, {} as never, queue as never, {} as never, {} as never);
+    vi.spyOn(service as unknown as { getAuthorizedMatch(): Promise<object> }, 'getAuthorizedMatch').mockResolvedValue({});
+    try {
+      await service.uploadScreenshot('alice', 'match', { buffer: image, size: image.length, mimetype: 'image/png' } as never);
+      expect.fail('unwritable storage must fail');
+    } catch (error) {
+      const exception = error as { getStatus(): number; getResponse(): unknown };
+      expect(exception.getStatus()).toBe(503);
+      expect(exception.getResponse()).toMatchObject({ error: { code: 'OCR_STORAGE_UNAVAILABLE' } });
+      expect(JSON.stringify(exception.getResponse())).not.toContain('/private/server/path');
+    }
+    expect(prisma.ocrExtraction.create).not.toHaveBeenCalled();
+    expect(queue.add).not.toHaveBeenCalled();
+  });
   it.each([false, true])(
     'shows failure only after the final attempt = %s',
     async (finalAttempt) => {

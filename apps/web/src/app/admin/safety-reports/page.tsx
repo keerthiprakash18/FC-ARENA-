@@ -1,9 +1,9 @@
 'use client';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { AdminFilterBar } from '@/components/admin/admin-filter-bar';
 import { promptAction } from '@/components/fc/confirmation-provider';
 
 import {
-  useEffect,
   useState,
 } from 'react';
 
@@ -17,6 +17,7 @@ import {
 
 import {
   FcLoadingScreen,
+  FcErrorState,
   FcEmptyState,
   FcNotice,
   FcPageHeader,
@@ -107,7 +108,7 @@ export default function AdminSafetyReportsPage() {
     useState('');
   const [message, setMessage] = useState('');
 
-  async function loadReports() {
+  async function loadReports(signal?: AbortSignal) {
     const response =
       await authenticatedRequest<{
         success: true;
@@ -120,19 +121,20 @@ export default function AdminSafetyReportsPage() {
         error: null;
       }>(
         '/safety/admin/reports',
+        { signal },
       );
 
+    if (signal?.aborted) return;
     setReports(
       response.data
         .reports,
     );
   }
 
-  useEffect(() => {
-    void (async () => {
-      try {
+  const initialLoad = useRecoverableLoad(async signal => {
         const current =
-          await getCurrentUser();
+          await getCurrentUser({ signal });
+        if (signal.aborted) return;
 
         if (
           current.role !==
@@ -145,20 +147,13 @@ export default function AdminSafetyReportsPage() {
           return;
         }
 
+        await loadReports(signal);
+        if (signal.aborted) return;
         setUser(
           current,
         );
 
-        await loadReports();
-      } catch {
-        router.replace(
-          '/login',
-        );
-      }
-    })();
-  }, [
-    router,
-  ]);
+  });
 
   async function review(
     reportId:
@@ -228,6 +223,7 @@ export default function AdminSafetyReportsPage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) {
     return (
       <FcLoadingScreen

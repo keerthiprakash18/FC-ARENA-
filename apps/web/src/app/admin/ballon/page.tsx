@@ -150,13 +150,13 @@ export default function AdminBallonPage() {
     minimumMatches,
     setMinimumMatches,
   ] =
-    useState(10);
+    useState('10');
 
   const [
     maximumMatches,
     setMaximumMatches,
   ] =
-    useState(40);
+    useState('40');
 
   const [
     tournamentRequirements,
@@ -200,8 +200,6 @@ export default function AdminBallonPage() {
         ),
     );
 
-    setMinimumMatches(10);
-    setMaximumMatches(40);
   }
 
   const [
@@ -300,6 +298,11 @@ export default function AdminBallonPage() {
     );
   }, []);
 
+  const matchCountsValid =
+    minimumMatches.trim() !== '' && maximumMatches.trim() !== '' &&
+    Number.isInteger(Number(minimumMatches)) && Number(minimumMatches) >= 1 && Number(minimumMatches) <= 100 &&
+    Number.isInteger(Number(maximumMatches)) && Number(maximumMatches) >= Number(minimumMatches) && Number(maximumMatches) <= 200;
+
   const canCreate =
     useMemo(
       () =>
@@ -314,12 +317,13 @@ export default function AdminBallonPage() {
         ) &&
         selectedLeagueIds
           .length >
-          0,
+          0 && matchCountsValid,
       [
         endAt,
         name,
         selectedLeagueIds,
         startAt,
+        matchCountsValid,
       ],
     );
 
@@ -384,8 +388,8 @@ export default function AdminBallonPage() {
                   endAt +
                     'T23:59:59',
                 ).toISOString(),
-              minimumMatches,
-              maximumMatches,
+              minimumMatches: Number(minimumMatches),
+              maximumMatches: Number(maximumMatches),
               rankingLimit,
               tournamentRequirements,
               eligibleLeagueIds:
@@ -688,15 +692,7 @@ export default function AdminBallonPage() {
                   event,
                 ) =>
                   setMinimumMatches(
-                    Math.max(
-                      1,
-                      Number(
-                        event
-                          .target
-                          .value,
-                      ) ||
-                        1,
-                    ),
+                    event.target.value,
                   )
               }
               className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none"
@@ -707,21 +703,24 @@ export default function AdminBallonPage() {
             Maximum Matches Counted
             <input
               type="number"
-              min={minimumMatches}
+              min={Number(minimumMatches) || 1}
               max={200}
               value={maximumMatches}
               onChange={(event) =>
                 setMaximumMatches(
-                  Math.max(
-                    minimumMatches,
-                    Number(event.target.value) || minimumMatches,
-                  ),
+                  event.target.value,
                 )
               }
               className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm outline-none"
             />
           </label>
         </div>
+
+        {!matchCountsValid && (
+          <p role="alert" className="mt-3 text-sm text-amber-200">
+            Enter whole numbers: minimum 1–100, maximum up to 200 and at least the minimum.
+          </p>
+        )}
 
         <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[0.04] p-4">
           <p className="text-sm font-black text-amber-200">

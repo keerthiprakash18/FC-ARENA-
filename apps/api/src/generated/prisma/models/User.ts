@@ -29,6 +29,7 @@ export type UserMinAggregateOutputType = {
   fullName: string | null
   email: string | null
   phoneNumber: string | null
+  dateOfBirth: Date | null
   passwordHash: string | null
   role: $Enums.GlobalRole | null
   status: $Enums.UserStatus | null
@@ -43,6 +44,7 @@ export type UserMaxAggregateOutputType = {
   fullName: string | null
   email: string | null
   phoneNumber: string | null
+  dateOfBirth: Date | null
   passwordHash: string | null
   role: $Enums.GlobalRole | null
   status: $Enums.UserStatus | null
@@ -57,6 +59,7 @@ export type UserCountAggregateOutputType = {
   fullName: number
   email: number
   phoneNumber: number
+  dateOfBirth: number
   passwordHash: number
   role: number
   status: number
@@ -75,6 +78,7 @@ export type UserMinAggregateInputType = {
   fullName?: true
   email?: true
   phoneNumber?: true
+  dateOfBirth?: true
   passwordHash?: true
   role?: true
   status?: true
@@ -89,6 +93,7 @@ export type UserMaxAggregateInputType = {
   fullName?: true
   email?: true
   phoneNumber?: true
+  dateOfBirth?: true
   passwordHash?: true
   role?: true
   status?: true
@@ -103,6 +108,7 @@ export type UserCountAggregateInputType = {
   fullName?: true
   email?: true
   phoneNumber?: true
+  dateOfBirth?: true
   passwordHash?: true
   role?: true
   status?: true
@@ -192,6 +198,7 @@ export type UserGroupByOutputType = {
   fullName: string
   email: string
   phoneNumber: string | null
+  dateOfBirth: Date | null
   passwordHash: string
   role: $Enums.GlobalRole
   status: $Enums.UserStatus
@@ -229,6 +236,7 @@ export type UserWhereInput = {
   fullName?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
   phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  dateOfBirth?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumGlobalRoleFilter<"User"> | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
@@ -287,6 +295,14 @@ export type UserWhereInput = {
   supportTicketsCreated?: Prisma.SupportTicketListRelationFilter
   supportTicketsAssigned?: Prisma.SupportTicketListRelationFilter
   supportTicketMessages?: Prisma.SupportTicketMessageListRelationFilter
+  experiencePreferences?: Prisma.XOR<Prisma.PlayerExperiencePreferencesNullableScalarRelationFilter, Prisma.PlayerExperiencePreferencesWhereInput> | null
+  rewardWallet?: Prisma.XOR<Prisma.PlayerRewardWalletNullableScalarRelationFilter, Prisma.PlayerRewardWalletWhereInput> | null
+  arenaPosts?: Prisma.ArenaPostListRelationFilter
+  arenaComments?: Prisma.ArenaCommentListRelationFilter
+  arenaReactions?: Prisma.ArenaReactionListRelationFilter
+  arenaVotes?: Prisma.ArenaPollVoteListRelationFilter
+  arenaReports?: Prisma.ArenaReportListRelationFilter
+  arenaReviewedReports?: Prisma.ArenaReportListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -294,6 +310,7 @@ export type UserOrderByWithRelationInput = {
   fullName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -352,6 +369,14 @@ export type UserOrderByWithRelationInput = {
   supportTicketsCreated?: Prisma.SupportTicketOrderByRelationAggregateInput
   supportTicketsAssigned?: Prisma.SupportTicketOrderByRelationAggregateInput
   supportTicketMessages?: Prisma.SupportTicketMessageOrderByRelationAggregateInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesOrderByWithRelationInput
+  rewardWallet?: Prisma.PlayerRewardWalletOrderByWithRelationInput
+  arenaPosts?: Prisma.ArenaPostOrderByRelationAggregateInput
+  arenaComments?: Prisma.ArenaCommentOrderByRelationAggregateInput
+  arenaReactions?: Prisma.ArenaReactionOrderByRelationAggregateInput
+  arenaVotes?: Prisma.ArenaPollVoteOrderByRelationAggregateInput
+  arenaReports?: Prisma.ArenaReportOrderByRelationAggregateInput
+  arenaReviewedReports?: Prisma.ArenaReportOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -362,6 +387,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   fullName?: Prisma.StringFilter<"User"> | string
+  dateOfBirth?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumGlobalRoleFilter<"User"> | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
@@ -420,6 +446,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   supportTicketsCreated?: Prisma.SupportTicketListRelationFilter
   supportTicketsAssigned?: Prisma.SupportTicketListRelationFilter
   supportTicketMessages?: Prisma.SupportTicketMessageListRelationFilter
+  experiencePreferences?: Prisma.XOR<Prisma.PlayerExperiencePreferencesNullableScalarRelationFilter, Prisma.PlayerExperiencePreferencesWhereInput> | null
+  rewardWallet?: Prisma.XOR<Prisma.PlayerRewardWalletNullableScalarRelationFilter, Prisma.PlayerRewardWalletWhereInput> | null
+  arenaPosts?: Prisma.ArenaPostListRelationFilter
+  arenaComments?: Prisma.ArenaCommentListRelationFilter
+  arenaReactions?: Prisma.ArenaReactionListRelationFilter
+  arenaVotes?: Prisma.ArenaPollVoteListRelationFilter
+  arenaReports?: Prisma.ArenaReportListRelationFilter
+  arenaReviewedReports?: Prisma.ArenaReportListRelationFilter
 }, "id" | "email" | "phoneNumber">
 
 export type UserOrderByWithAggregationInput = {
@@ -427,6 +461,7 @@ export type UserOrderByWithAggregationInput = {
   fullName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -449,6 +484,7 @@ export type UserScalarWhereWithAggregatesInput = {
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  dateOfBirth?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   role?: Prisma.EnumGlobalRoleWithAggregatesFilter<"User"> | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
@@ -465,6 +501,7 @@ export type UserCreateInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -523,6 +560,14 @@ export type UserCreateInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -530,6 +575,7 @@ export type UserUncheckedCreateInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -588,6 +634,14 @@ export type UserUncheckedCreateInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUpdateInput = {
@@ -595,6 +649,7 @@ export type UserUpdateInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -653,6 +708,14 @@ export type UserUpdateInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -660,6 +723,7 @@ export type UserUncheckedUpdateInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -718,6 +782,14 @@ export type UserUncheckedUpdateInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -725,6 +797,7 @@ export type UserCreateManyInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -741,6 +814,7 @@ export type UserUpdateManyMutationInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -757,6 +831,7 @@ export type UserUncheckedUpdateManyInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -773,6 +848,7 @@ export type UserCountOrderByAggregateInput = {
   fullName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -789,6 +865,7 @@ export type UserMaxOrderByAggregateInput = {
   fullName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -803,6 +880,7 @@ export type UserMinOrderByAggregateInput = {
   fullName?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
+  dateOfBirth?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -830,6 +908,10 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type EnumGlobalRoleFieldUpdateOperationsInput = {
   set?: $Enums.GlobalRole
 }
@@ -840,10 +922,6 @@ export type EnumUserStatusFieldUpdateOperationsInput = {
 
 export type EnumThemePreferenceFieldUpdateOperationsInput = {
   set?: $Enums.ThemePreference
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -1564,11 +1642,128 @@ export type UserUpdateOneRequiredWithoutSeasonalAwardsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSeasonalAwardsInput, Prisma.UserUpdateWithoutSeasonalAwardsInput>, Prisma.UserUncheckedUpdateWithoutSeasonalAwardsInput>
 }
 
+export type UserCreateNestedOneWithoutExperiencePreferencesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExperiencePreferencesInput, Prisma.UserUncheckedCreateWithoutExperiencePreferencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExperiencePreferencesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutExperiencePreferencesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExperiencePreferencesInput, Prisma.UserUncheckedCreateWithoutExperiencePreferencesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExperiencePreferencesInput
+  upsert?: Prisma.UserUpsertWithoutExperiencePreferencesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExperiencePreferencesInput, Prisma.UserUpdateWithoutExperiencePreferencesInput>, Prisma.UserUncheckedUpdateWithoutExperiencePreferencesInput>
+}
+
+export type UserCreateNestedOneWithoutRewardWalletInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRewardWalletInput, Prisma.UserUncheckedCreateWithoutRewardWalletInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRewardWalletInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutRewardWalletNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutRewardWalletInput, Prisma.UserUncheckedCreateWithoutRewardWalletInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutRewardWalletInput
+  upsert?: Prisma.UserUpsertWithoutRewardWalletInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRewardWalletInput, Prisma.UserUpdateWithoutRewardWalletInput>, Prisma.UserUncheckedUpdateWithoutRewardWalletInput>
+}
+
+export type UserCreateNestedOneWithoutArenaPostsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaPostsInput, Prisma.UserUncheckedCreateWithoutArenaPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaPostsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutArenaPostsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaPostsInput, Prisma.UserUncheckedCreateWithoutArenaPostsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaPostsInput
+  upsert?: Prisma.UserUpsertWithoutArenaPostsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutArenaPostsInput, Prisma.UserUpdateWithoutArenaPostsInput>, Prisma.UserUncheckedUpdateWithoutArenaPostsInput>
+}
+
+export type UserCreateNestedOneWithoutArenaCommentsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaCommentsInput, Prisma.UserUncheckedCreateWithoutArenaCommentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaCommentsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutArenaCommentsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaCommentsInput, Prisma.UserUncheckedCreateWithoutArenaCommentsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaCommentsInput
+  upsert?: Prisma.UserUpsertWithoutArenaCommentsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutArenaCommentsInput, Prisma.UserUpdateWithoutArenaCommentsInput>, Prisma.UserUncheckedUpdateWithoutArenaCommentsInput>
+}
+
+export type UserCreateNestedOneWithoutArenaReactionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaReactionsInput, Prisma.UserUncheckedCreateWithoutArenaReactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaReactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutArenaReactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaReactionsInput, Prisma.UserUncheckedCreateWithoutArenaReactionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaReactionsInput
+  upsert?: Prisma.UserUpsertWithoutArenaReactionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutArenaReactionsInput, Prisma.UserUpdateWithoutArenaReactionsInput>, Prisma.UserUncheckedUpdateWithoutArenaReactionsInput>
+}
+
+export type UserCreateNestedOneWithoutArenaVotesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaVotesInput, Prisma.UserUncheckedCreateWithoutArenaVotesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaVotesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutArenaVotesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaVotesInput, Prisma.UserUncheckedCreateWithoutArenaVotesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaVotesInput
+  upsert?: Prisma.UserUpsertWithoutArenaVotesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutArenaVotesInput, Prisma.UserUpdateWithoutArenaVotesInput>, Prisma.UserUncheckedUpdateWithoutArenaVotesInput>
+}
+
+export type UserCreateNestedOneWithoutArenaReportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaReportsInput, Prisma.UserUncheckedCreateWithoutArenaReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutArenaReviewedReportsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaReviewedReportsInput, Prisma.UserUncheckedCreateWithoutArenaReviewedReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaReviewedReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutArenaReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaReportsInput, Prisma.UserUncheckedCreateWithoutArenaReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaReportsInput
+  upsert?: Prisma.UserUpsertWithoutArenaReportsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutArenaReportsInput, Prisma.UserUpdateWithoutArenaReportsInput>, Prisma.UserUncheckedUpdateWithoutArenaReportsInput>
+}
+
+export type UserUpdateOneWithoutArenaReviewedReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutArenaReviewedReportsInput, Prisma.UserUncheckedCreateWithoutArenaReviewedReportsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutArenaReviewedReportsInput
+  upsert?: Prisma.UserUpsertWithoutArenaReviewedReportsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutArenaReviewedReportsInput, Prisma.UserUpdateWithoutArenaReviewedReportsInput>, Prisma.UserUncheckedUpdateWithoutArenaReviewedReportsInput>
+}
+
 export type UserCreateWithoutPlayerInput = {
   id?: string
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -1626,6 +1821,14 @@ export type UserCreateWithoutPlayerInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutPlayerInput = {
@@ -1633,6 +1836,7 @@ export type UserUncheckedCreateWithoutPlayerInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -1690,6 +1894,14 @@ export type UserUncheckedCreateWithoutPlayerInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutPlayerInput = {
@@ -1713,6 +1925,7 @@ export type UserUpdateWithoutPlayerInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -1770,6 +1983,14 @@ export type UserUpdateWithoutPlayerInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlayerInput = {
@@ -1777,6 +1998,7 @@ export type UserUncheckedUpdateWithoutPlayerInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -1834,6 +2056,14 @@ export type UserUncheckedUpdateWithoutPlayerInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutAuthOtpsInput = {
@@ -1841,6 +2071,7 @@ export type UserCreateWithoutAuthOtpsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -1898,6 +2129,14 @@ export type UserCreateWithoutAuthOtpsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutAuthOtpsInput = {
@@ -1905,6 +2144,7 @@ export type UserUncheckedCreateWithoutAuthOtpsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -1962,6 +2202,14 @@ export type UserUncheckedCreateWithoutAuthOtpsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutAuthOtpsInput = {
@@ -1985,6 +2233,7 @@ export type UserUpdateWithoutAuthOtpsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2042,6 +2291,14 @@ export type UserUpdateWithoutAuthOtpsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuthOtpsInput = {
@@ -2049,6 +2306,7 @@ export type UserUncheckedUpdateWithoutAuthOtpsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2106,6 +2364,14 @@ export type UserUncheckedUpdateWithoutAuthOtpsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutRefreshSessionsInput = {
@@ -2113,6 +2379,7 @@ export type UserCreateWithoutRefreshSessionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2170,6 +2437,14 @@ export type UserCreateWithoutRefreshSessionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutRefreshSessionsInput = {
@@ -2177,6 +2452,7 @@ export type UserUncheckedCreateWithoutRefreshSessionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2234,6 +2510,14 @@ export type UserUncheckedCreateWithoutRefreshSessionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutRefreshSessionsInput = {
@@ -2257,6 +2541,7 @@ export type UserUpdateWithoutRefreshSessionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2314,6 +2599,14 @@ export type UserUpdateWithoutRefreshSessionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefreshSessionsInput = {
@@ -2321,6 +2614,7 @@ export type UserUncheckedUpdateWithoutRefreshSessionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2378,6 +2672,14 @@ export type UserUncheckedUpdateWithoutRefreshSessionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutCreatedLeaguesInput = {
@@ -2385,6 +2687,7 @@ export type UserCreateWithoutCreatedLeaguesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2442,6 +2745,14 @@ export type UserCreateWithoutCreatedLeaguesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutCreatedLeaguesInput = {
@@ -2449,6 +2760,7 @@ export type UserUncheckedCreateWithoutCreatedLeaguesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2506,6 +2818,14 @@ export type UserUncheckedCreateWithoutCreatedLeaguesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutCreatedLeaguesInput = {
@@ -2529,6 +2849,7 @@ export type UserUpdateWithoutCreatedLeaguesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2586,6 +2907,14 @@ export type UserUpdateWithoutCreatedLeaguesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedLeaguesInput = {
@@ -2593,6 +2922,7 @@ export type UserUncheckedUpdateWithoutCreatedLeaguesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2650,6 +2980,14 @@ export type UserUncheckedUpdateWithoutCreatedLeaguesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutLeagueMembershipsInput = {
@@ -2657,6 +2995,7 @@ export type UserCreateWithoutLeagueMembershipsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2714,6 +3053,14 @@ export type UserCreateWithoutLeagueMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueMembershipsInput = {
@@ -2721,6 +3068,7 @@ export type UserUncheckedCreateWithoutLeagueMembershipsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2778,6 +3126,14 @@ export type UserUncheckedCreateWithoutLeagueMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueMembershipsInput = {
@@ -2801,6 +3157,7 @@ export type UserUpdateWithoutLeagueMembershipsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2858,6 +3215,14 @@ export type UserUpdateWithoutLeagueMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueMembershipsInput = {
@@ -2865,6 +3230,7 @@ export type UserUncheckedUpdateWithoutLeagueMembershipsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -2922,6 +3288,14 @@ export type UserUncheckedUpdateWithoutLeagueMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutLeagueApplicationsInput = {
@@ -2929,6 +3303,7 @@ export type UserCreateWithoutLeagueApplicationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -2986,6 +3361,14 @@ export type UserCreateWithoutLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueApplicationsInput = {
@@ -2993,6 +3376,7 @@ export type UserUncheckedCreateWithoutLeagueApplicationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3050,6 +3434,14 @@ export type UserUncheckedCreateWithoutLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueApplicationsInput = {
@@ -3062,6 +3454,7 @@ export type UserCreateWithoutReviewedLeagueApplicationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3119,6 +3512,14 @@ export type UserCreateWithoutReviewedLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutReviewedLeagueApplicationsInput = {
@@ -3126,6 +3527,7 @@ export type UserUncheckedCreateWithoutReviewedLeagueApplicationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3183,6 +3585,14 @@ export type UserUncheckedCreateWithoutReviewedLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutReviewedLeagueApplicationsInput = {
@@ -3206,6 +3616,7 @@ export type UserUpdateWithoutLeagueApplicationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3263,6 +3674,14 @@ export type UserUpdateWithoutLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueApplicationsInput = {
@@ -3270,6 +3689,7 @@ export type UserUncheckedUpdateWithoutLeagueApplicationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3327,6 +3747,14 @@ export type UserUncheckedUpdateWithoutLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutReviewedLeagueApplicationsInput = {
@@ -3345,6 +3773,7 @@ export type UserUpdateWithoutReviewedLeagueApplicationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3402,6 +3831,14 @@ export type UserUpdateWithoutReviewedLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedLeagueApplicationsInput = {
@@ -3409,6 +3846,7 @@ export type UserUncheckedUpdateWithoutReviewedLeagueApplicationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3466,6 +3904,14 @@ export type UserUncheckedUpdateWithoutReviewedLeagueApplicationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutLeagueAdminRolesInput = {
@@ -3473,6 +3919,7 @@ export type UserCreateWithoutLeagueAdminRolesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3530,6 +3977,14 @@ export type UserCreateWithoutLeagueAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueAdminRolesInput = {
@@ -3537,6 +3992,7 @@ export type UserUncheckedCreateWithoutLeagueAdminRolesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3594,6 +4050,14 @@ export type UserUncheckedCreateWithoutLeagueAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueAdminRolesInput = {
@@ -3617,6 +4081,7 @@ export type UserUpdateWithoutLeagueAdminRolesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3674,6 +4139,14 @@ export type UserUpdateWithoutLeagueAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueAdminRolesInput = {
@@ -3681,6 +4154,7 @@ export type UserUncheckedUpdateWithoutLeagueAdminRolesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3738,6 +4212,14 @@ export type UserUncheckedUpdateWithoutLeagueAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutCreatedTournamentsInput = {
@@ -3745,6 +4227,7 @@ export type UserCreateWithoutCreatedTournamentsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3802,6 +4285,14 @@ export type UserCreateWithoutCreatedTournamentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutCreatedTournamentsInput = {
@@ -3809,6 +4300,7 @@ export type UserUncheckedCreateWithoutCreatedTournamentsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -3866,6 +4358,14 @@ export type UserUncheckedCreateWithoutCreatedTournamentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutCreatedTournamentsInput = {
@@ -3889,6 +4389,7 @@ export type UserUpdateWithoutCreatedTournamentsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -3946,6 +4447,14 @@ export type UserUpdateWithoutCreatedTournamentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedTournamentsInput = {
@@ -3953,6 +4462,7 @@ export type UserUncheckedUpdateWithoutCreatedTournamentsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4010,6 +4520,14 @@ export type UserUncheckedUpdateWithoutCreatedTournamentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutTournamentAdminRolesInput = {
@@ -4017,6 +4535,7 @@ export type UserCreateWithoutTournamentAdminRolesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4074,6 +4593,14 @@ export type UserCreateWithoutTournamentAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutTournamentAdminRolesInput = {
@@ -4081,6 +4608,7 @@ export type UserUncheckedCreateWithoutTournamentAdminRolesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4138,6 +4666,14 @@ export type UserUncheckedCreateWithoutTournamentAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutTournamentAdminRolesInput = {
@@ -4161,6 +4697,7 @@ export type UserUpdateWithoutTournamentAdminRolesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4218,6 +4755,14 @@ export type UserUpdateWithoutTournamentAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTournamentAdminRolesInput = {
@@ -4225,6 +4770,7 @@ export type UserUncheckedUpdateWithoutTournamentAdminRolesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4282,6 +4828,14 @@ export type UserUncheckedUpdateWithoutTournamentAdminRolesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutCreatedTournamentTemplatesInput = {
@@ -4289,6 +4843,7 @@ export type UserCreateWithoutCreatedTournamentTemplatesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4346,6 +4901,14 @@ export type UserCreateWithoutCreatedTournamentTemplatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutCreatedTournamentTemplatesInput = {
@@ -4353,6 +4916,7 @@ export type UserUncheckedCreateWithoutCreatedTournamentTemplatesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4410,6 +4974,14 @@ export type UserUncheckedCreateWithoutCreatedTournamentTemplatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutCreatedTournamentTemplatesInput = {
@@ -4433,6 +5005,7 @@ export type UserUpdateWithoutCreatedTournamentTemplatesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4490,6 +5063,14 @@ export type UserUpdateWithoutCreatedTournamentTemplatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedTournamentTemplatesInput = {
@@ -4497,6 +5078,7 @@ export type UserUncheckedUpdateWithoutCreatedTournamentTemplatesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4554,6 +5136,14 @@ export type UserUncheckedUpdateWithoutCreatedTournamentTemplatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutTournamentRegistrationsInput = {
@@ -4561,6 +5151,7 @@ export type UserCreateWithoutTournamentRegistrationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4618,6 +5209,14 @@ export type UserCreateWithoutTournamentRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutTournamentRegistrationsInput = {
@@ -4625,6 +5224,7 @@ export type UserUncheckedCreateWithoutTournamentRegistrationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4682,6 +5282,14 @@ export type UserUncheckedCreateWithoutTournamentRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutTournamentRegistrationsInput = {
@@ -4694,6 +5302,7 @@ export type UserCreateWithoutReviewedRegistrationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4751,6 +5360,14 @@ export type UserCreateWithoutReviewedRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutReviewedRegistrationsInput = {
@@ -4758,6 +5375,7 @@ export type UserUncheckedCreateWithoutReviewedRegistrationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -4815,6 +5433,14 @@ export type UserUncheckedCreateWithoutReviewedRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutReviewedRegistrationsInput = {
@@ -4838,6 +5464,7 @@ export type UserUpdateWithoutTournamentRegistrationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4895,6 +5522,14 @@ export type UserUpdateWithoutTournamentRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTournamentRegistrationsInput = {
@@ -4902,6 +5537,7 @@ export type UserUncheckedUpdateWithoutTournamentRegistrationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -4959,6 +5595,14 @@ export type UserUncheckedUpdateWithoutTournamentRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutReviewedRegistrationsInput = {
@@ -4977,6 +5621,7 @@ export type UserUpdateWithoutReviewedRegistrationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5034,6 +5679,14 @@ export type UserUpdateWithoutReviewedRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedRegistrationsInput = {
@@ -5041,6 +5694,7 @@ export type UserUncheckedUpdateWithoutReviewedRegistrationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5098,6 +5752,14 @@ export type UserUncheckedUpdateWithoutReviewedRegistrationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutTournamentEntryMembershipsInput = {
@@ -5105,6 +5767,7 @@ export type UserCreateWithoutTournamentEntryMembershipsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5162,6 +5825,14 @@ export type UserCreateWithoutTournamentEntryMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutTournamentEntryMembershipsInput = {
@@ -5169,6 +5840,7 @@ export type UserUncheckedCreateWithoutTournamentEntryMembershipsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5226,6 +5898,14 @@ export type UserUncheckedCreateWithoutTournamentEntryMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutTournamentEntryMembershipsInput = {
@@ -5249,6 +5929,7 @@ export type UserUpdateWithoutTournamentEntryMembershipsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5306,6 +5987,14 @@ export type UserUpdateWithoutTournamentEntryMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTournamentEntryMembershipsInput = {
@@ -5313,6 +6002,7 @@ export type UserUncheckedUpdateWithoutTournamentEntryMembershipsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5370,6 +6060,14 @@ export type UserUncheckedUpdateWithoutTournamentEntryMembershipsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutSubmittedResultSubmissionsInput = {
@@ -5377,6 +6075,7 @@ export type UserCreateWithoutSubmittedResultSubmissionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5434,6 +6133,14 @@ export type UserCreateWithoutSubmittedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutSubmittedResultSubmissionsInput = {
@@ -5441,6 +6148,7 @@ export type UserUncheckedCreateWithoutSubmittedResultSubmissionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5498,6 +6206,14 @@ export type UserUncheckedCreateWithoutSubmittedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutSubmittedResultSubmissionsInput = {
@@ -5510,6 +6226,7 @@ export type UserCreateWithoutReviewedResultSubmissionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5567,6 +6284,14 @@ export type UserCreateWithoutReviewedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutReviewedResultSubmissionsInput = {
@@ -5574,6 +6299,7 @@ export type UserUncheckedCreateWithoutReviewedResultSubmissionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5631,6 +6357,14 @@ export type UserUncheckedCreateWithoutReviewedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutReviewedResultSubmissionsInput = {
@@ -5654,6 +6388,7 @@ export type UserUpdateWithoutSubmittedResultSubmissionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5711,6 +6446,14 @@ export type UserUpdateWithoutSubmittedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubmittedResultSubmissionsInput = {
@@ -5718,6 +6461,7 @@ export type UserUncheckedUpdateWithoutSubmittedResultSubmissionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5775,6 +6519,14 @@ export type UserUncheckedUpdateWithoutSubmittedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutReviewedResultSubmissionsInput = {
@@ -5793,6 +6545,7 @@ export type UserUpdateWithoutReviewedResultSubmissionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5850,6 +6603,14 @@ export type UserUpdateWithoutReviewedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewedResultSubmissionsInput = {
@@ -5857,6 +6618,7 @@ export type UserUncheckedUpdateWithoutReviewedResultSubmissionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -5914,6 +6676,14 @@ export type UserUncheckedUpdateWithoutReviewedResultSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutOcrSubmissionsInput = {
@@ -5921,6 +6691,7 @@ export type UserCreateWithoutOcrSubmissionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -5978,6 +6749,14 @@ export type UserCreateWithoutOcrSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutOcrSubmissionsInput = {
@@ -5985,6 +6764,7 @@ export type UserUncheckedCreateWithoutOcrSubmissionsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6042,6 +6822,14 @@ export type UserUncheckedCreateWithoutOcrSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutOcrSubmissionsInput = {
@@ -6054,6 +6842,7 @@ export type UserCreateWithoutOcrHomeMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6111,6 +6900,14 @@ export type UserCreateWithoutOcrHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutOcrHomeMatchesInput = {
@@ -6118,6 +6915,7 @@ export type UserUncheckedCreateWithoutOcrHomeMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6175,6 +6973,14 @@ export type UserUncheckedCreateWithoutOcrHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutOcrHomeMatchesInput = {
@@ -6187,6 +6993,7 @@ export type UserCreateWithoutOcrAwayMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6244,6 +7051,14 @@ export type UserCreateWithoutOcrAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutOcrAwayMatchesInput = {
@@ -6251,6 +7066,7 @@ export type UserUncheckedCreateWithoutOcrAwayMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6308,6 +7124,14 @@ export type UserUncheckedCreateWithoutOcrAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutOcrAwayMatchesInput = {
@@ -6331,6 +7155,7 @@ export type UserUpdateWithoutOcrSubmissionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -6388,6 +7213,14 @@ export type UserUpdateWithoutOcrSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOcrSubmissionsInput = {
@@ -6395,6 +7228,7 @@ export type UserUncheckedUpdateWithoutOcrSubmissionsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -6452,6 +7286,14 @@ export type UserUncheckedUpdateWithoutOcrSubmissionsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutOcrHomeMatchesInput = {
@@ -6470,6 +7312,7 @@ export type UserUpdateWithoutOcrHomeMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -6527,6 +7370,14 @@ export type UserUpdateWithoutOcrHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOcrHomeMatchesInput = {
@@ -6534,6 +7385,7 @@ export type UserUncheckedUpdateWithoutOcrHomeMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -6591,6 +7443,14 @@ export type UserUncheckedUpdateWithoutOcrHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutOcrAwayMatchesInput = {
@@ -6609,6 +7469,7 @@ export type UserUpdateWithoutOcrAwayMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -6666,6 +7527,14 @@ export type UserUpdateWithoutOcrAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOcrAwayMatchesInput = {
@@ -6673,6 +7542,7 @@ export type UserUncheckedUpdateWithoutOcrAwayMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -6730,6 +7600,14 @@ export type UserUncheckedUpdateWithoutOcrAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutRoleAssignmentsInput = {
@@ -6737,6 +7615,7 @@ export type UserCreateWithoutRoleAssignmentsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6794,6 +7673,14 @@ export type UserCreateWithoutRoleAssignmentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutRoleAssignmentsInput = {
@@ -6801,6 +7688,7 @@ export type UserUncheckedCreateWithoutRoleAssignmentsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6858,6 +7746,14 @@ export type UserUncheckedCreateWithoutRoleAssignmentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutRoleAssignmentsInput = {
@@ -6870,6 +7766,7 @@ export type UserCreateWithoutRolesAssignedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6927,6 +7824,14 @@ export type UserCreateWithoutRolesAssignedInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutRolesAssignedInput = {
@@ -6934,6 +7839,7 @@ export type UserUncheckedCreateWithoutRolesAssignedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -6991,6 +7897,14 @@ export type UserUncheckedCreateWithoutRolesAssignedInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutRolesAssignedInput = {
@@ -7014,6 +7928,7 @@ export type UserUpdateWithoutRoleAssignmentsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7071,6 +7986,14 @@ export type UserUpdateWithoutRoleAssignmentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRoleAssignmentsInput = {
@@ -7078,6 +8001,7 @@ export type UserUncheckedUpdateWithoutRoleAssignmentsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7135,6 +8059,14 @@ export type UserUncheckedUpdateWithoutRoleAssignmentsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutRolesAssignedInput = {
@@ -7153,6 +8085,7 @@ export type UserUpdateWithoutRolesAssignedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7210,6 +8143,14 @@ export type UserUpdateWithoutRolesAssignedInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRolesAssignedInput = {
@@ -7217,6 +8158,7 @@ export type UserUncheckedUpdateWithoutRolesAssignedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7274,6 +8216,14 @@ export type UserUncheckedUpdateWithoutRolesAssignedInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -7281,6 +8231,7 @@ export type UserCreateWithoutAuditLogsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -7338,6 +8289,14 @@ export type UserCreateWithoutAuditLogsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -7345,6 +8304,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -7402,6 +8362,14 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -7425,6 +8393,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7482,6 +8451,14 @@ export type UserUpdateWithoutAuditLogsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -7489,6 +8466,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7546,6 +8524,14 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -7553,6 +8539,7 @@ export type UserCreateWithoutNotificationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -7610,6 +8597,14 @@ export type UserCreateWithoutNotificationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -7617,6 +8612,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -7674,6 +8670,14 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -7697,6 +8701,7 @@ export type UserUpdateWithoutNotificationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7754,6 +8759,14 @@ export type UserUpdateWithoutNotificationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -7761,6 +8774,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -7818,6 +8832,14 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutAnnouncementsCreatedInput = {
@@ -7825,6 +8847,7 @@ export type UserCreateWithoutAnnouncementsCreatedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -7882,6 +8905,14 @@ export type UserCreateWithoutAnnouncementsCreatedInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutAnnouncementsCreatedInput = {
@@ -7889,6 +8920,7 @@ export type UserUncheckedCreateWithoutAnnouncementsCreatedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -7946,6 +8978,14 @@ export type UserUncheckedCreateWithoutAnnouncementsCreatedInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutAnnouncementsCreatedInput = {
@@ -7969,6 +9009,7 @@ export type UserUpdateWithoutAnnouncementsCreatedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8026,6 +9067,14 @@ export type UserUpdateWithoutAnnouncementsCreatedInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAnnouncementsCreatedInput = {
@@ -8033,6 +9082,7 @@ export type UserUncheckedUpdateWithoutAnnouncementsCreatedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8090,6 +9140,14 @@ export type UserUncheckedUpdateWithoutAnnouncementsCreatedInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutSupportTicketsCreatedInput = {
@@ -8097,6 +9155,7 @@ export type UserCreateWithoutSupportTicketsCreatedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8154,6 +9213,14 @@ export type UserCreateWithoutSupportTicketsCreatedInput = {
   announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutSupportTicketsCreatedInput = {
@@ -8161,6 +9228,7 @@ export type UserUncheckedCreateWithoutSupportTicketsCreatedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8218,6 +9286,14 @@ export type UserUncheckedCreateWithoutSupportTicketsCreatedInput = {
   announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutSupportTicketsCreatedInput = {
@@ -8230,6 +9306,7 @@ export type UserCreateWithoutSupportTicketsAssignedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8287,6 +9364,14 @@ export type UserCreateWithoutSupportTicketsAssignedInput = {
   announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutSupportTicketsAssignedInput = {
@@ -8294,6 +9379,7 @@ export type UserUncheckedCreateWithoutSupportTicketsAssignedInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8351,6 +9437,14 @@ export type UserUncheckedCreateWithoutSupportTicketsAssignedInput = {
   announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutSupportTicketsAssignedInput = {
@@ -8374,6 +9468,7 @@ export type UserUpdateWithoutSupportTicketsCreatedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8431,6 +9526,14 @@ export type UserUpdateWithoutSupportTicketsCreatedInput = {
   announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupportTicketsCreatedInput = {
@@ -8438,6 +9541,7 @@ export type UserUncheckedUpdateWithoutSupportTicketsCreatedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8495,6 +9599,14 @@ export type UserUncheckedUpdateWithoutSupportTicketsCreatedInput = {
   announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutSupportTicketsAssignedInput = {
@@ -8513,6 +9625,7 @@ export type UserUpdateWithoutSupportTicketsAssignedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8570,6 +9683,14 @@ export type UserUpdateWithoutSupportTicketsAssignedInput = {
   announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupportTicketsAssignedInput = {
@@ -8577,6 +9698,7 @@ export type UserUncheckedUpdateWithoutSupportTicketsAssignedInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8634,6 +9756,14 @@ export type UserUncheckedUpdateWithoutSupportTicketsAssignedInput = {
   announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutSupportTicketMessagesInput = {
@@ -8641,6 +9771,7 @@ export type UserCreateWithoutSupportTicketMessagesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8698,6 +9829,14 @@ export type UserCreateWithoutSupportTicketMessagesInput = {
   announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutSupportTicketMessagesInput = {
@@ -8705,6 +9844,7 @@ export type UserUncheckedCreateWithoutSupportTicketMessagesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8762,6 +9902,14 @@ export type UserUncheckedCreateWithoutSupportTicketMessagesInput = {
   announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutSupportTicketMessagesInput = {
@@ -8785,6 +9933,7 @@ export type UserUpdateWithoutSupportTicketMessagesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8842,6 +9991,14 @@ export type UserUpdateWithoutSupportTicketMessagesInput = {
   announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupportTicketMessagesInput = {
@@ -8849,6 +10006,7 @@ export type UserUncheckedUpdateWithoutSupportTicketMessagesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -8906,6 +10064,14 @@ export type UserUncheckedUpdateWithoutSupportTicketMessagesInput = {
   announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutRaisedDisputesInput = {
@@ -8913,6 +10079,7 @@ export type UserCreateWithoutRaisedDisputesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -8970,6 +10137,14 @@ export type UserCreateWithoutRaisedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutRaisedDisputesInput = {
@@ -8977,6 +10152,7 @@ export type UserUncheckedCreateWithoutRaisedDisputesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9034,6 +10210,14 @@ export type UserUncheckedCreateWithoutRaisedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutRaisedDisputesInput = {
@@ -9046,6 +10230,7 @@ export type UserCreateWithoutResolvedDisputesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9103,6 +10288,14 @@ export type UserCreateWithoutResolvedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutResolvedDisputesInput = {
@@ -9110,6 +10303,7 @@ export type UserUncheckedCreateWithoutResolvedDisputesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9167,6 +10361,14 @@ export type UserUncheckedCreateWithoutResolvedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutResolvedDisputesInput = {
@@ -9190,6 +10392,7 @@ export type UserUpdateWithoutRaisedDisputesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9247,6 +10450,14 @@ export type UserUpdateWithoutRaisedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRaisedDisputesInput = {
@@ -9254,6 +10465,7 @@ export type UserUncheckedUpdateWithoutRaisedDisputesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9311,6 +10523,14 @@ export type UserUncheckedUpdateWithoutRaisedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutResolvedDisputesInput = {
@@ -9329,6 +10549,7 @@ export type UserUpdateWithoutResolvedDisputesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9386,6 +10607,14 @@ export type UserUpdateWithoutResolvedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutResolvedDisputesInput = {
@@ -9393,6 +10622,7 @@ export type UserUncheckedUpdateWithoutResolvedDisputesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9450,6 +10680,14 @@ export type UserUncheckedUpdateWithoutResolvedDisputesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutAchievementsInput = {
@@ -9457,6 +10695,7 @@ export type UserCreateWithoutAchievementsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9514,6 +10753,14 @@ export type UserCreateWithoutAchievementsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutAchievementsInput = {
@@ -9521,6 +10768,7 @@ export type UserUncheckedCreateWithoutAchievementsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9578,6 +10826,14 @@ export type UserUncheckedCreateWithoutAchievementsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutAchievementsInput = {
@@ -9601,6 +10857,7 @@ export type UserUpdateWithoutAchievementsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9658,6 +10915,14 @@ export type UserUpdateWithoutAchievementsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAchievementsInput = {
@@ -9665,6 +10930,7 @@ export type UserUncheckedUpdateWithoutAchievementsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9722,6 +10988,14 @@ export type UserUncheckedUpdateWithoutAchievementsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutPlayerTournamentStatisticsInput = {
@@ -9729,6 +11003,7 @@ export type UserCreateWithoutPlayerTournamentStatisticsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9786,6 +11061,14 @@ export type UserCreateWithoutPlayerTournamentStatisticsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutPlayerTournamentStatisticsInput = {
@@ -9793,6 +11076,7 @@ export type UserUncheckedCreateWithoutPlayerTournamentStatisticsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -9850,6 +11134,14 @@ export type UserUncheckedCreateWithoutPlayerTournamentStatisticsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutPlayerTournamentStatisticsInput = {
@@ -9873,6 +11165,7 @@ export type UserUpdateWithoutPlayerTournamentStatisticsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9930,6 +11223,14 @@ export type UserUpdateWithoutPlayerTournamentStatisticsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlayerTournamentStatisticsInput = {
@@ -9937,6 +11238,7 @@ export type UserUncheckedUpdateWithoutPlayerTournamentStatisticsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -9994,6 +11296,14 @@ export type UserUncheckedUpdateWithoutPlayerTournamentStatisticsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutAiUsageBucketsInput = {
@@ -10001,6 +11311,7 @@ export type UserCreateWithoutAiUsageBucketsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10058,6 +11369,14 @@ export type UserCreateWithoutAiUsageBucketsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutAiUsageBucketsInput = {
@@ -10065,6 +11384,7 @@ export type UserUncheckedCreateWithoutAiUsageBucketsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10122,6 +11442,14 @@ export type UserUncheckedCreateWithoutAiUsageBucketsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutAiUsageBucketsInput = {
@@ -10145,6 +11473,7 @@ export type UserUpdateWithoutAiUsageBucketsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -10202,6 +11531,14 @@ export type UserUpdateWithoutAiUsageBucketsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAiUsageBucketsInput = {
@@ -10209,6 +11546,7 @@ export type UserUncheckedUpdateWithoutAiUsageBucketsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -10266,6 +11604,14 @@ export type UserUncheckedUpdateWithoutAiUsageBucketsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutPushDevicesInput = {
@@ -10273,6 +11619,7 @@ export type UserCreateWithoutPushDevicesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10330,6 +11677,14 @@ export type UserCreateWithoutPushDevicesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutPushDevicesInput = {
@@ -10337,6 +11692,7 @@ export type UserUncheckedCreateWithoutPushDevicesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10394,6 +11750,14 @@ export type UserUncheckedCreateWithoutPushDevicesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutPushDevicesInput = {
@@ -10417,6 +11781,7 @@ export type UserUpdateWithoutPushDevicesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -10474,6 +11839,14 @@ export type UserUpdateWithoutPushDevicesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPushDevicesInput = {
@@ -10481,6 +11854,7 @@ export type UserUncheckedUpdateWithoutPushDevicesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -10538,6 +11912,14 @@ export type UserUncheckedUpdateWithoutPushDevicesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutAndroidReleasesInput = {
@@ -10545,6 +11927,7 @@ export type UserCreateWithoutAndroidReleasesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10602,6 +11985,14 @@ export type UserCreateWithoutAndroidReleasesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutAndroidReleasesInput = {
@@ -10609,6 +12000,7 @@ export type UserUncheckedCreateWithoutAndroidReleasesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10666,6 +12058,14 @@ export type UserUncheckedCreateWithoutAndroidReleasesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutAndroidReleasesInput = {
@@ -10689,6 +12089,7 @@ export type UserUpdateWithoutAndroidReleasesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -10746,6 +12147,14 @@ export type UserUpdateWithoutAndroidReleasesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAndroidReleasesInput = {
@@ -10753,6 +12162,7 @@ export type UserUncheckedUpdateWithoutAndroidReleasesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -10810,6 +12220,14 @@ export type UserUncheckedUpdateWithoutAndroidReleasesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutFairPlayEventsInput = {
@@ -10817,6 +12235,7 @@ export type UserCreateWithoutFairPlayEventsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10874,6 +12293,14 @@ export type UserCreateWithoutFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutFairPlayEventsInput = {
@@ -10881,6 +12308,7 @@ export type UserUncheckedCreateWithoutFairPlayEventsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -10938,6 +12366,14 @@ export type UserUncheckedCreateWithoutFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutFairPlayEventsInput = {
@@ -10950,6 +12386,7 @@ export type UserCreateWithoutIssuedFairPlayEventsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11007,6 +12444,14 @@ export type UserCreateWithoutIssuedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutIssuedFairPlayEventsInput = {
@@ -11014,6 +12459,7 @@ export type UserUncheckedCreateWithoutIssuedFairPlayEventsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11071,6 +12517,14 @@ export type UserUncheckedCreateWithoutIssuedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutIssuedFairPlayEventsInput = {
@@ -11083,6 +12537,7 @@ export type UserCreateWithoutRevokedFairPlayEventsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11140,6 +12595,14 @@ export type UserCreateWithoutRevokedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutRevokedFairPlayEventsInput = {
@@ -11147,6 +12610,7 @@ export type UserUncheckedCreateWithoutRevokedFairPlayEventsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11204,6 +12668,14 @@ export type UserUncheckedCreateWithoutRevokedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutRevokedFairPlayEventsInput = {
@@ -11227,6 +12699,7 @@ export type UserUpdateWithoutFairPlayEventsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11284,6 +12757,14 @@ export type UserUpdateWithoutFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFairPlayEventsInput = {
@@ -11291,6 +12772,7 @@ export type UserUncheckedUpdateWithoutFairPlayEventsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11348,6 +12830,14 @@ export type UserUncheckedUpdateWithoutFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutIssuedFairPlayEventsInput = {
@@ -11366,6 +12856,7 @@ export type UserUpdateWithoutIssuedFairPlayEventsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11423,6 +12914,14 @@ export type UserUpdateWithoutIssuedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutIssuedFairPlayEventsInput = {
@@ -11430,6 +12929,7 @@ export type UserUncheckedUpdateWithoutIssuedFairPlayEventsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11487,6 +12987,14 @@ export type UserUncheckedUpdateWithoutIssuedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutRevokedFairPlayEventsInput = {
@@ -11505,6 +13013,7 @@ export type UserUpdateWithoutRevokedFairPlayEventsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11562,6 +13071,14 @@ export type UserUpdateWithoutRevokedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRevokedFairPlayEventsInput = {
@@ -11569,6 +13086,7 @@ export type UserUncheckedUpdateWithoutRevokedFairPlayEventsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11626,6 +13144,14 @@ export type UserUncheckedUpdateWithoutRevokedFairPlayEventsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutFairPlayAppealsInput = {
@@ -11633,6 +13159,7 @@ export type UserCreateWithoutFairPlayAppealsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11690,6 +13217,14 @@ export type UserCreateWithoutFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutFairPlayAppealsInput = {
@@ -11697,6 +13232,7 @@ export type UserUncheckedCreateWithoutFairPlayAppealsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11754,6 +13290,14 @@ export type UserUncheckedCreateWithoutFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutFairPlayAppealsInput = {
@@ -11766,6 +13310,7 @@ export type UserCreateWithoutResolvedFairPlayAppealsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11823,6 +13368,14 @@ export type UserCreateWithoutResolvedFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutResolvedFairPlayAppealsInput = {
@@ -11830,6 +13383,7 @@ export type UserUncheckedCreateWithoutResolvedFairPlayAppealsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -11887,6 +13441,14 @@ export type UserUncheckedCreateWithoutResolvedFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutResolvedFairPlayAppealsInput = {
@@ -11910,6 +13472,7 @@ export type UserUpdateWithoutFairPlayAppealsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -11967,6 +13530,14 @@ export type UserUpdateWithoutFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutFairPlayAppealsInput = {
@@ -11974,6 +13545,7 @@ export type UserUncheckedUpdateWithoutFairPlayAppealsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12031,6 +13603,14 @@ export type UserUncheckedUpdateWithoutFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutResolvedFairPlayAppealsInput = {
@@ -12049,6 +13629,7 @@ export type UserUpdateWithoutResolvedFairPlayAppealsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12106,6 +13687,14 @@ export type UserUpdateWithoutResolvedFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutResolvedFairPlayAppealsInput = {
@@ -12113,6 +13702,7 @@ export type UserUncheckedUpdateWithoutResolvedFairPlayAppealsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12170,6 +13760,14 @@ export type UserUncheckedUpdateWithoutResolvedFairPlayAppealsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutCreatedLeagueWarsInput = {
@@ -12177,6 +13775,7 @@ export type UserCreateWithoutCreatedLeagueWarsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12234,6 +13833,14 @@ export type UserCreateWithoutCreatedLeagueWarsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutCreatedLeagueWarsInput = {
@@ -12241,6 +13848,7 @@ export type UserUncheckedCreateWithoutCreatedLeagueWarsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12298,6 +13906,14 @@ export type UserUncheckedCreateWithoutCreatedLeagueWarsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutCreatedLeagueWarsInput = {
@@ -12321,6 +13937,7 @@ export type UserUpdateWithoutCreatedLeagueWarsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12378,6 +13995,14 @@ export type UserUpdateWithoutCreatedLeagueWarsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedLeagueWarsInput = {
@@ -12385,6 +14010,7 @@ export type UserUncheckedUpdateWithoutCreatedLeagueWarsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12442,6 +14068,14 @@ export type UserUncheckedUpdateWithoutCreatedLeagueWarsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutLeagueWarParticipantsInput = {
@@ -12449,6 +14083,7 @@ export type UserCreateWithoutLeagueWarParticipantsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12506,6 +14141,14 @@ export type UserCreateWithoutLeagueWarParticipantsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueWarParticipantsInput = {
@@ -12513,6 +14156,7 @@ export type UserUncheckedCreateWithoutLeagueWarParticipantsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12570,6 +14214,14 @@ export type UserUncheckedCreateWithoutLeagueWarParticipantsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueWarParticipantsInput = {
@@ -12593,6 +14245,7 @@ export type UserUpdateWithoutLeagueWarParticipantsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12650,6 +14303,14 @@ export type UserUpdateWithoutLeagueWarParticipantsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueWarParticipantsInput = {
@@ -12657,6 +14318,7 @@ export type UserUncheckedUpdateWithoutLeagueWarParticipantsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -12714,6 +14376,14 @@ export type UserUncheckedUpdateWithoutLeagueWarParticipantsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutLeagueWarHomeMatchesInput = {
@@ -12721,6 +14391,7 @@ export type UserCreateWithoutLeagueWarHomeMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12778,6 +14449,14 @@ export type UserCreateWithoutLeagueWarHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueWarHomeMatchesInput = {
@@ -12785,6 +14464,7 @@ export type UserUncheckedCreateWithoutLeagueWarHomeMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12842,6 +14522,14 @@ export type UserUncheckedCreateWithoutLeagueWarHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueWarHomeMatchesInput = {
@@ -12854,6 +14542,7 @@ export type UserCreateWithoutLeagueWarAwayMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12911,6 +14600,14 @@ export type UserCreateWithoutLeagueWarAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueWarAwayMatchesInput = {
@@ -12918,6 +14615,7 @@ export type UserUncheckedCreateWithoutLeagueWarAwayMatchesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -12975,6 +14673,14 @@ export type UserUncheckedCreateWithoutLeagueWarAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueWarAwayMatchesInput = {
@@ -12987,6 +14693,7 @@ export type UserCreateWithoutLeagueWarResultUpdatesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13044,6 +14751,14 @@ export type UserCreateWithoutLeagueWarResultUpdatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutLeagueWarResultUpdatesInput = {
@@ -13051,6 +14766,7 @@ export type UserUncheckedCreateWithoutLeagueWarResultUpdatesInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13108,6 +14824,14 @@ export type UserUncheckedCreateWithoutLeagueWarResultUpdatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutLeagueWarResultUpdatesInput = {
@@ -13131,6 +14855,7 @@ export type UserUpdateWithoutLeagueWarHomeMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -13188,6 +14913,14 @@ export type UserUpdateWithoutLeagueWarHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueWarHomeMatchesInput = {
@@ -13195,6 +14928,7 @@ export type UserUncheckedUpdateWithoutLeagueWarHomeMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -13252,6 +14986,14 @@ export type UserUncheckedUpdateWithoutLeagueWarHomeMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutLeagueWarAwayMatchesInput = {
@@ -13270,6 +15012,7 @@ export type UserUpdateWithoutLeagueWarAwayMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -13327,6 +15070,14 @@ export type UserUpdateWithoutLeagueWarAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueWarAwayMatchesInput = {
@@ -13334,6 +15085,7 @@ export type UserUncheckedUpdateWithoutLeagueWarAwayMatchesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -13391,6 +15143,14 @@ export type UserUncheckedUpdateWithoutLeagueWarAwayMatchesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutLeagueWarResultUpdatesInput = {
@@ -13409,6 +15169,7 @@ export type UserUpdateWithoutLeagueWarResultUpdatesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -13466,6 +15227,14 @@ export type UserUpdateWithoutLeagueWarResultUpdatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeagueWarResultUpdatesInput = {
@@ -13473,6 +15242,7 @@ export type UserUncheckedUpdateWithoutLeagueWarResultUpdatesInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -13530,6 +15300,14 @@ export type UserUncheckedUpdateWithoutLeagueWarResultUpdatesInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutCreatedBallonSeasonsInput = {
@@ -13537,6 +15315,7 @@ export type UserCreateWithoutCreatedBallonSeasonsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13594,6 +15373,14 @@ export type UserCreateWithoutCreatedBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutCreatedBallonSeasonsInput = {
@@ -13601,6 +15388,7 @@ export type UserUncheckedCreateWithoutCreatedBallonSeasonsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13658,6 +15446,14 @@ export type UserUncheckedCreateWithoutCreatedBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutCreatedBallonSeasonsInput = {
@@ -13670,6 +15466,7 @@ export type UserCreateWithoutWonBallonSeasonsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13727,6 +15524,14 @@ export type UserCreateWithoutWonBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutWonBallonSeasonsInput = {
@@ -13734,6 +15539,7 @@ export type UserUncheckedCreateWithoutWonBallonSeasonsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13791,6 +15597,14 @@ export type UserUncheckedCreateWithoutWonBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutWonBallonSeasonsInput = {
@@ -13803,6 +15617,7 @@ export type UserCreateWithoutWonRisingStarSeasonsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13860,6 +15675,14 @@ export type UserCreateWithoutWonRisingStarSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutWonRisingStarSeasonsInput = {
@@ -13867,6 +15690,7 @@ export type UserUncheckedCreateWithoutWonRisingStarSeasonsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -13924,6 +15748,14 @@ export type UserUncheckedCreateWithoutWonRisingStarSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutWonRisingStarSeasonsInput = {
@@ -13947,6 +15779,7 @@ export type UserUpdateWithoutCreatedBallonSeasonsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14004,6 +15837,14 @@ export type UserUpdateWithoutCreatedBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedBallonSeasonsInput = {
@@ -14011,6 +15852,7 @@ export type UserUncheckedUpdateWithoutCreatedBallonSeasonsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14068,6 +15910,14 @@ export type UserUncheckedUpdateWithoutCreatedBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutWonBallonSeasonsInput = {
@@ -14086,6 +15936,7 @@ export type UserUpdateWithoutWonBallonSeasonsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14143,6 +15994,14 @@ export type UserUpdateWithoutWonBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWonBallonSeasonsInput = {
@@ -14150,6 +16009,7 @@ export type UserUncheckedUpdateWithoutWonBallonSeasonsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14207,6 +16067,14 @@ export type UserUncheckedUpdateWithoutWonBallonSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutWonRisingStarSeasonsInput = {
@@ -14225,6 +16093,7 @@ export type UserUpdateWithoutWonRisingStarSeasonsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14282,6 +16151,14 @@ export type UserUpdateWithoutWonRisingStarSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWonRisingStarSeasonsInput = {
@@ -14289,6 +16166,7 @@ export type UserUncheckedUpdateWithoutWonRisingStarSeasonsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14346,6 +16224,14 @@ export type UserUncheckedUpdateWithoutWonRisingStarSeasonsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutBallonFinalRankingsInput = {
@@ -14353,6 +16239,7 @@ export type UserCreateWithoutBallonFinalRankingsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -14410,6 +16297,14 @@ export type UserCreateWithoutBallonFinalRankingsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutBallonFinalRankingsInput = {
@@ -14417,6 +16312,7 @@ export type UserUncheckedCreateWithoutBallonFinalRankingsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -14474,6 +16370,14 @@ export type UserUncheckedCreateWithoutBallonFinalRankingsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutBallonFinalRankingsInput = {
@@ -14497,6 +16401,7 @@ export type UserUpdateWithoutBallonFinalRankingsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14554,6 +16459,14 @@ export type UserUpdateWithoutBallonFinalRankingsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBallonFinalRankingsInput = {
@@ -14561,6 +16474,7 @@ export type UserUncheckedUpdateWithoutBallonFinalRankingsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14618,6 +16532,14 @@ export type UserUncheckedUpdateWithoutBallonFinalRankingsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserCreateWithoutSeasonalAwardsInput = {
@@ -14625,6 +16547,7 @@ export type UserCreateWithoutSeasonalAwardsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -14682,6 +16605,14 @@ export type UserCreateWithoutSeasonalAwardsInput = {
   supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
 }
 
 export type UserUncheckedCreateWithoutSeasonalAwardsInput = {
@@ -14689,6 +16620,7 @@ export type UserUncheckedCreateWithoutSeasonalAwardsInput = {
   fullName: string
   email: string
   phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
   passwordHash: string
   role?: $Enums.GlobalRole
   status?: $Enums.UserStatus
@@ -14746,6 +16678,14 @@ export type UserUncheckedCreateWithoutSeasonalAwardsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
 }
 
 export type UserCreateOrConnectWithoutSeasonalAwardsInput = {
@@ -14769,6 +16709,7 @@ export type UserUpdateWithoutSeasonalAwardsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14826,6 +16767,14 @@ export type UserUpdateWithoutSeasonalAwardsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSeasonalAwardsInput = {
@@ -14833,6 +16782,7 @@ export type UserUncheckedUpdateWithoutSeasonalAwardsInput = {
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
@@ -14890,6 +16840,2478 @@ export type UserUncheckedUpdateWithoutSeasonalAwardsInput = {
   supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
   supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
   supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutExperiencePreferencesInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutExperiencePreferencesInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutExperiencePreferencesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExperiencePreferencesInput, Prisma.UserUncheckedCreateWithoutExperiencePreferencesInput>
+}
+
+export type UserUpsertWithoutExperiencePreferencesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExperiencePreferencesInput, Prisma.UserUncheckedUpdateWithoutExperiencePreferencesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExperiencePreferencesInput, Prisma.UserUncheckedCreateWithoutExperiencePreferencesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExperiencePreferencesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExperiencePreferencesInput, Prisma.UserUncheckedUpdateWithoutExperiencePreferencesInput>
+}
+
+export type UserUpdateWithoutExperiencePreferencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExperiencePreferencesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutRewardWalletInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutRewardWalletInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutRewardWalletInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutRewardWalletInput, Prisma.UserUncheckedCreateWithoutRewardWalletInput>
+}
+
+export type UserUpsertWithoutRewardWalletInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutRewardWalletInput, Prisma.UserUncheckedUpdateWithoutRewardWalletInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutRewardWalletInput, Prisma.UserUncheckedCreateWithoutRewardWalletInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutRewardWalletInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutRewardWalletInput, Prisma.UserUncheckedUpdateWithoutRewardWalletInput>
+}
+
+export type UserUpdateWithoutRewardWalletInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutRewardWalletInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutArenaPostsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutArenaPostsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutArenaPostsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaPostsInput, Prisma.UserUncheckedCreateWithoutArenaPostsInput>
+}
+
+export type UserUpsertWithoutArenaPostsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutArenaPostsInput, Prisma.UserUncheckedUpdateWithoutArenaPostsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaPostsInput, Prisma.UserUncheckedCreateWithoutArenaPostsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutArenaPostsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutArenaPostsInput, Prisma.UserUncheckedUpdateWithoutArenaPostsInput>
+}
+
+export type UserUpdateWithoutArenaPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutArenaPostsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutArenaCommentsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutArenaCommentsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutArenaCommentsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaCommentsInput, Prisma.UserUncheckedCreateWithoutArenaCommentsInput>
+}
+
+export type UserUpsertWithoutArenaCommentsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutArenaCommentsInput, Prisma.UserUncheckedUpdateWithoutArenaCommentsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaCommentsInput, Prisma.UserUncheckedCreateWithoutArenaCommentsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutArenaCommentsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutArenaCommentsInput, Prisma.UserUncheckedUpdateWithoutArenaCommentsInput>
+}
+
+export type UserUpdateWithoutArenaCommentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutArenaCommentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutArenaReactionsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutArenaReactionsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutArenaReactionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaReactionsInput, Prisma.UserUncheckedCreateWithoutArenaReactionsInput>
+}
+
+export type UserUpsertWithoutArenaReactionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutArenaReactionsInput, Prisma.UserUncheckedUpdateWithoutArenaReactionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaReactionsInput, Prisma.UserUncheckedCreateWithoutArenaReactionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutArenaReactionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutArenaReactionsInput, Prisma.UserUncheckedUpdateWithoutArenaReactionsInput>
+}
+
+export type UserUpdateWithoutArenaReactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutArenaReactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutArenaVotesInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutArenaVotesInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutArenaVotesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaVotesInput, Prisma.UserUncheckedCreateWithoutArenaVotesInput>
+}
+
+export type UserUpsertWithoutArenaVotesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutArenaVotesInput, Prisma.UserUncheckedUpdateWithoutArenaVotesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaVotesInput, Prisma.UserUncheckedCreateWithoutArenaVotesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutArenaVotesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutArenaVotesInput, Prisma.UserUncheckedUpdateWithoutArenaVotesInput>
+}
+
+export type UserUpdateWithoutArenaVotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutArenaVotesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserCreateWithoutArenaReportsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReviewedReports?: Prisma.ArenaReportCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutArenaReportsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutArenaReportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaReportsInput, Prisma.UserUncheckedCreateWithoutArenaReportsInput>
+}
+
+export type UserCreateWithoutArenaReviewedReportsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportCreateNestedManyWithoutReporterInput
+}
+
+export type UserUncheckedCreateWithoutArenaReviewedReportsInput = {
+  id?: string
+  fullName: string
+  email: string
+  phoneNumber?: string | null
+  dateOfBirth?: Date | string | null
+  passwordHash: string
+  role?: $Enums.GlobalRole
+  status?: $Enums.UserStatus
+  themePreference?: $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  player?: Prisma.PlayerUncheckedCreateNestedOneWithoutUserInput
+  authOtps?: Prisma.AuthOtpUncheckedCreateNestedManyWithoutUserInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedCreateNestedManyWithoutUserInput
+  createdLeagues?: Prisma.LeagueUncheckedCreateNestedManyWithoutCreatorInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedCreateNestedManyWithoutUserInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutUserInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedCreateNestedManyWithoutReviewedByInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournaments?: Prisma.TournamentUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedCreateNestedManyWithoutUserInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedCreateNestedManyWithoutCreatedByInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutRegisteredByInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedCreateNestedManyWithoutUserInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedCreateNestedManyWithoutReviewedByInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutSubmittedByInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedCreateNestedManyWithoutReviewedByInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedCreateNestedManyWithoutUserInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutSubmittedByInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutHomeMatchedUserInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedCreateNestedManyWithoutAwayMatchedUserInput
+  achievements?: Prisma.AchievementUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  pushDevices?: Prisma.PushDeviceUncheckedCreateNestedManyWithoutUserInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutUserInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedCreateNestedManyWithoutAssignedByInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutRaisedByInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedCreateNestedManyWithoutResolvedByInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutCreatedByInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutFinalWinnerInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedCreateNestedManyWithoutRisingStarInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedCreateNestedManyWithoutUserInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedCreateNestedManyWithoutUserInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedCreateNestedManyWithoutCreatedByInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedCreateNestedManyWithoutCreatedByInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutUserInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutIssuedByInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedCreateNestedManyWithoutRevokedByInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutAppealedByInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedCreateNestedManyWithoutResolvedByInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedCreateNestedManyWithoutUserInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutHomePlayerInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutAwayPlayerInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedCreateNestedManyWithoutResultUpdatedByInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedCreateNestedManyWithoutUserInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutCreatedByInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedCreateNestedManyWithoutAssignedToInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedCreateNestedManyWithoutAuthorInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedCreateNestedOneWithoutUserInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedCreateNestedOneWithoutUserInput
+  arenaPosts?: Prisma.ArenaPostUncheckedCreateNestedManyWithoutAuthorInput
+  arenaComments?: Prisma.ArenaCommentUncheckedCreateNestedManyWithoutAuthorInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedCreateNestedManyWithoutUserInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedCreateNestedManyWithoutUserInput
+  arenaReports?: Prisma.ArenaReportUncheckedCreateNestedManyWithoutReporterInput
+}
+
+export type UserCreateOrConnectWithoutArenaReviewedReportsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaReviewedReportsInput, Prisma.UserUncheckedCreateWithoutArenaReviewedReportsInput>
+}
+
+export type UserUpsertWithoutArenaReportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutArenaReportsInput, Prisma.UserUncheckedUpdateWithoutArenaReportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaReportsInput, Prisma.UserUncheckedCreateWithoutArenaReportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutArenaReportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutArenaReportsInput, Prisma.UserUncheckedUpdateWithoutArenaReportsInput>
+}
+
+export type UserUpdateWithoutArenaReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutArenaReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReviewedReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUpsertWithoutArenaReviewedReportsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutArenaReviewedReportsInput, Prisma.UserUncheckedUpdateWithoutArenaReviewedReportsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutArenaReviewedReportsInput, Prisma.UserUncheckedCreateWithoutArenaReviewedReportsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutArenaReviewedReportsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutArenaReviewedReportsInput, Prisma.UserUncheckedUpdateWithoutArenaReviewedReportsInput>
+}
+
+export type UserUpdateWithoutArenaReviewedReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUpdateManyWithoutReporterNestedInput
+}
+
+export type UserUncheckedUpdateWithoutArenaReviewedReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumGlobalRoleFieldUpdateOperationsInput | $Enums.GlobalRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  themePreference?: Prisma.EnumThemePreferenceFieldUpdateOperationsInput | $Enums.ThemePreference
+  notificationPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  dashboardPreferences?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  player?: Prisma.PlayerUncheckedUpdateOneWithoutUserNestedInput
+  authOtps?: Prisma.AuthOtpUncheckedUpdateManyWithoutUserNestedInput
+  refreshSessions?: Prisma.RefreshSessionUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagues?: Prisma.LeagueUncheckedUpdateManyWithoutCreatorNestedInput
+  leagueMemberships?: Prisma.LeagueMemberUncheckedUpdateManyWithoutUserNestedInput
+  leagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutUserNestedInput
+  reviewedLeagueApplications?: Prisma.LeagueApplicationUncheckedUpdateManyWithoutReviewedByNestedInput
+  leagueAdminRoles?: Prisma.LeagueAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournaments?: Prisma.TournamentUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentAdminRoles?: Prisma.TournamentAdminUncheckedUpdateManyWithoutUserNestedInput
+  createdTournamentTemplates?: Prisma.TournamentTemplateUncheckedUpdateManyWithoutCreatedByNestedInput
+  tournamentRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutRegisteredByNestedInput
+  tournamentEntryMemberships?: Prisma.TournamentRegistrationMemberUncheckedUpdateManyWithoutUserNestedInput
+  reviewedRegistrations?: Prisma.TournamentRegistrationUncheckedUpdateManyWithoutReviewedByNestedInput
+  submittedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  reviewedResultSubmissions?: Prisma.ResultSubmissionUncheckedUpdateManyWithoutReviewedByNestedInput
+  playerTournamentStatistics?: Prisma.PlayerTournamentStatisticUncheckedUpdateManyWithoutUserNestedInput
+  ocrSubmissions?: Prisma.OcrExtractionUncheckedUpdateManyWithoutSubmittedByNestedInput
+  ocrHomeMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutHomeMatchedUserNestedInput
+  ocrAwayMatches?: Prisma.OcrExtractionUncheckedUpdateManyWithoutAwayMatchedUserNestedInput
+  achievements?: Prisma.AchievementUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  pushDevices?: Prisma.PushDeviceUncheckedUpdateManyWithoutUserNestedInput
+  roleAssignments?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutUserNestedInput
+  rolesAssigned?: Prisma.RoleAssignmentUncheckedUpdateManyWithoutAssignedByNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  raisedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutRaisedByNestedInput
+  resolvedDisputes?: Prisma.MatchDisputeUncheckedUpdateManyWithoutResolvedByNestedInput
+  createdBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutCreatedByNestedInput
+  wonBallonSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutFinalWinnerNestedInput
+  wonRisingStarSeasons?: Prisma.BallonSeasonUncheckedUpdateManyWithoutRisingStarNestedInput
+  ballonFinalRankings?: Prisma.BallonFinalRankingUncheckedUpdateManyWithoutUserNestedInput
+  seasonalAwards?: Prisma.SeasonalAwardUncheckedUpdateManyWithoutUserNestedInput
+  createdLeagueWars?: Prisma.LeagueWarUncheckedUpdateManyWithoutCreatedByNestedInput
+  androidReleases?: Prisma.AndroidReleaseUncheckedUpdateManyWithoutCreatedByNestedInput
+  fairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutUserNestedInput
+  issuedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutIssuedByNestedInput
+  revokedFairPlayEvents?: Prisma.FairPlayEventUncheckedUpdateManyWithoutRevokedByNestedInput
+  fairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutAppealedByNestedInput
+  resolvedFairPlayAppeals?: Prisma.FairPlayAppealUncheckedUpdateManyWithoutResolvedByNestedInput
+  leagueWarParticipants?: Prisma.LeagueWarParticipantUncheckedUpdateManyWithoutUserNestedInput
+  leagueWarHomeMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutHomePlayerNestedInput
+  leagueWarAwayMatches?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutAwayPlayerNestedInput
+  leagueWarResultUpdates?: Prisma.LeagueWarMatchUncheckedUpdateManyWithoutResultUpdatedByNestedInput
+  aiUsageBuckets?: Prisma.AiUsageBucketUncheckedUpdateManyWithoutUserNestedInput
+  announcementsCreated?: Prisma.AnnouncementUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsCreated?: Prisma.SupportTicketUncheckedUpdateManyWithoutCreatedByNestedInput
+  supportTicketsAssigned?: Prisma.SupportTicketUncheckedUpdateManyWithoutAssignedToNestedInput
+  supportTicketMessages?: Prisma.SupportTicketMessageUncheckedUpdateManyWithoutAuthorNestedInput
+  experiencePreferences?: Prisma.PlayerExperiencePreferencesUncheckedUpdateOneWithoutUserNestedInput
+  rewardWallet?: Prisma.PlayerRewardWalletUncheckedUpdateOneWithoutUserNestedInput
+  arenaPosts?: Prisma.ArenaPostUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaComments?: Prisma.ArenaCommentUncheckedUpdateManyWithoutAuthorNestedInput
+  arenaReactions?: Prisma.ArenaReactionUncheckedUpdateManyWithoutUserNestedInput
+  arenaVotes?: Prisma.ArenaPollVoteUncheckedUpdateManyWithoutUserNestedInput
+  arenaReports?: Prisma.ArenaReportUncheckedUpdateManyWithoutReporterNestedInput
 }
 
 
@@ -14946,6 +19368,12 @@ export type UserCountOutputType = {
   supportTicketsCreated: number
   supportTicketsAssigned: number
   supportTicketMessages: number
+  arenaPosts: number
+  arenaComments: number
+  arenaReactions: number
+  arenaVotes: number
+  arenaReports: number
+  arenaReviewedReports: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -14997,6 +19425,12 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   supportTicketsCreated?: boolean | UserCountOutputTypeCountSupportTicketsCreatedArgs
   supportTicketsAssigned?: boolean | UserCountOutputTypeCountSupportTicketsAssignedArgs
   supportTicketMessages?: boolean | UserCountOutputTypeCountSupportTicketMessagesArgs
+  arenaPosts?: boolean | UserCountOutputTypeCountArenaPostsArgs
+  arenaComments?: boolean | UserCountOutputTypeCountArenaCommentsArgs
+  arenaReactions?: boolean | UserCountOutputTypeCountArenaReactionsArgs
+  arenaVotes?: boolean | UserCountOutputTypeCountArenaVotesArgs
+  arenaReports?: boolean | UserCountOutputTypeCountArenaReportsArgs
+  arenaReviewedReports?: boolean | UserCountOutputTypeCountArenaReviewedReportsArgs
 }
 
 /**
@@ -15345,12 +19779,55 @@ export type UserCountOutputTypeCountSupportTicketMessagesArgs<ExtArgs extends ru
   where?: Prisma.SupportTicketMessageWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountArenaPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaPostWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountArenaCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaCommentWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountArenaReactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaReactionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountArenaVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaPollVoteWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountArenaReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaReportWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountArenaReviewedReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ArenaReportWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   fullName?: boolean
   email?: boolean
   phoneNumber?: boolean
+  dateOfBirth?: boolean
   passwordHash?: boolean
   role?: boolean
   status?: boolean
@@ -15409,6 +19886,14 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   supportTicketsCreated?: boolean | Prisma.User$supportTicketsCreatedArgs<ExtArgs>
   supportTicketsAssigned?: boolean | Prisma.User$supportTicketsAssignedArgs<ExtArgs>
   supportTicketMessages?: boolean | Prisma.User$supportTicketMessagesArgs<ExtArgs>
+  experiencePreferences?: boolean | Prisma.User$experiencePreferencesArgs<ExtArgs>
+  rewardWallet?: boolean | Prisma.User$rewardWalletArgs<ExtArgs>
+  arenaPosts?: boolean | Prisma.User$arenaPostsArgs<ExtArgs>
+  arenaComments?: boolean | Prisma.User$arenaCommentsArgs<ExtArgs>
+  arenaReactions?: boolean | Prisma.User$arenaReactionsArgs<ExtArgs>
+  arenaVotes?: boolean | Prisma.User$arenaVotesArgs<ExtArgs>
+  arenaReports?: boolean | Prisma.User$arenaReportsArgs<ExtArgs>
+  arenaReviewedReports?: boolean | Prisma.User$arenaReviewedReportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -15417,6 +19902,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   fullName?: boolean
   email?: boolean
   phoneNumber?: boolean
+  dateOfBirth?: boolean
   passwordHash?: boolean
   role?: boolean
   status?: boolean
@@ -15433,6 +19919,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   fullName?: boolean
   email?: boolean
   phoneNumber?: boolean
+  dateOfBirth?: boolean
   passwordHash?: boolean
   role?: boolean
   status?: boolean
@@ -15449,6 +19936,7 @@ export type UserSelectScalar = {
   fullName?: boolean
   email?: boolean
   phoneNumber?: boolean
+  dateOfBirth?: boolean
   passwordHash?: boolean
   role?: boolean
   status?: boolean
@@ -15460,7 +19948,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fullName" | "email" | "phoneNumber" | "passwordHash" | "role" | "status" | "themePreference" | "notificationPreferences" | "dashboardPreferences" | "emailVerifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "fullName" | "email" | "phoneNumber" | "dateOfBirth" | "passwordHash" | "role" | "status" | "themePreference" | "notificationPreferences" | "dashboardPreferences" | "emailVerifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   player?: boolean | Prisma.User$playerArgs<ExtArgs>
   authOtps?: boolean | Prisma.User$authOtpsArgs<ExtArgs>
@@ -15511,6 +19999,14 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   supportTicketsCreated?: boolean | Prisma.User$supportTicketsCreatedArgs<ExtArgs>
   supportTicketsAssigned?: boolean | Prisma.User$supportTicketsAssignedArgs<ExtArgs>
   supportTicketMessages?: boolean | Prisma.User$supportTicketMessagesArgs<ExtArgs>
+  experiencePreferences?: boolean | Prisma.User$experiencePreferencesArgs<ExtArgs>
+  rewardWallet?: boolean | Prisma.User$rewardWalletArgs<ExtArgs>
+  arenaPosts?: boolean | Prisma.User$arenaPostsArgs<ExtArgs>
+  arenaComments?: boolean | Prisma.User$arenaCommentsArgs<ExtArgs>
+  arenaReactions?: boolean | Prisma.User$arenaReactionsArgs<ExtArgs>
+  arenaVotes?: boolean | Prisma.User$arenaVotesArgs<ExtArgs>
+  arenaReports?: boolean | Prisma.User$arenaReportsArgs<ExtArgs>
+  arenaReviewedReports?: boolean | Prisma.User$arenaReviewedReportsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -15568,12 +20064,21 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     supportTicketsCreated: Prisma.$SupportTicketPayload<ExtArgs>[]
     supportTicketsAssigned: Prisma.$SupportTicketPayload<ExtArgs>[]
     supportTicketMessages: Prisma.$SupportTicketMessagePayload<ExtArgs>[]
+    experiencePreferences: Prisma.$PlayerExperiencePreferencesPayload<ExtArgs> | null
+    rewardWallet: Prisma.$PlayerRewardWalletPayload<ExtArgs> | null
+    arenaPosts: Prisma.$ArenaPostPayload<ExtArgs>[]
+    arenaComments: Prisma.$ArenaCommentPayload<ExtArgs>[]
+    arenaReactions: Prisma.$ArenaReactionPayload<ExtArgs>[]
+    arenaVotes: Prisma.$ArenaPollVotePayload<ExtArgs>[]
+    arenaReports: Prisma.$ArenaReportPayload<ExtArgs>[]
+    arenaReviewedReports: Prisma.$ArenaReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     fullName: string
     email: string
     phoneNumber: string | null
+    dateOfBirth: Date | null
     passwordHash: string
     role: $Enums.GlobalRole
     status: $Enums.UserStatus
@@ -16026,6 +20531,14 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   supportTicketsCreated<T extends Prisma.User$supportTicketsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supportTicketsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   supportTicketsAssigned<T extends Prisma.User$supportTicketsAssignedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supportTicketsAssignedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   supportTicketMessages<T extends Prisma.User$supportTicketMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supportTicketMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SupportTicketMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  experiencePreferences<T extends Prisma.User$experiencePreferencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$experiencePreferencesArgs<ExtArgs>>): Prisma.Prisma__PlayerExperiencePreferencesClient<runtime.Types.Result.GetResult<Prisma.$PlayerExperiencePreferencesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  rewardWallet<T extends Prisma.User$rewardWalletArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$rewardWalletArgs<ExtArgs>>): Prisma.Prisma__PlayerRewardWalletClient<runtime.Types.Result.GetResult<Prisma.$PlayerRewardWalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  arenaPosts<T extends Prisma.User$arenaPostsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$arenaPostsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaComments<T extends Prisma.User$arenaCommentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$arenaCommentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaReactions<T extends Prisma.User$arenaReactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$arenaReactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaReactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaVotes<T extends Prisma.User$arenaVotesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$arenaVotesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaPollVotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaReports<T extends Prisma.User$arenaReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$arenaReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  arenaReviewedReports<T extends Prisma.User$arenaReviewedReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$arenaReviewedReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArenaReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -16059,6 +20572,7 @@ export interface UserFieldRefs {
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly dateOfBirth: Prisma.FieldRef<"User", 'DateTime'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'GlobalRole'>
   readonly status: Prisma.FieldRef<"User", 'UserStatus'>
@@ -17629,6 +22143,188 @@ export type User$supportTicketMessagesArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.SupportTicketMessageScalarFieldEnum | Prisma.SupportTicketMessageScalarFieldEnum[]
+}
+
+/**
+ * User.experiencePreferences
+ */
+export type User$experiencePreferencesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PlayerExperiencePreferences
+   */
+  select?: Prisma.PlayerExperiencePreferencesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PlayerExperiencePreferences
+   */
+  omit?: Prisma.PlayerExperiencePreferencesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PlayerExperiencePreferencesInclude<ExtArgs> | null
+  where?: Prisma.PlayerExperiencePreferencesWhereInput
+}
+
+/**
+ * User.rewardWallet
+ */
+export type User$rewardWalletArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PlayerRewardWallet
+   */
+  select?: Prisma.PlayerRewardWalletSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PlayerRewardWallet
+   */
+  omit?: Prisma.PlayerRewardWalletOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PlayerRewardWalletInclude<ExtArgs> | null
+  where?: Prisma.PlayerRewardWalletWhereInput
+}
+
+/**
+ * User.arenaPosts
+ */
+export type User$arenaPostsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaPost
+   */
+  select?: Prisma.ArenaPostSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaPost
+   */
+  omit?: Prisma.ArenaPostOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaPostInclude<ExtArgs> | null
+  where?: Prisma.ArenaPostWhereInput
+  orderBy?: Prisma.ArenaPostOrderByWithRelationInput | Prisma.ArenaPostOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaPostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaPostScalarFieldEnum | Prisma.ArenaPostScalarFieldEnum[]
+}
+
+/**
+ * User.arenaComments
+ */
+export type User$arenaCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaComment
+   */
+  select?: Prisma.ArenaCommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaComment
+   */
+  omit?: Prisma.ArenaCommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaCommentInclude<ExtArgs> | null
+  where?: Prisma.ArenaCommentWhereInput
+  orderBy?: Prisma.ArenaCommentOrderByWithRelationInput | Prisma.ArenaCommentOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaCommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaCommentScalarFieldEnum | Prisma.ArenaCommentScalarFieldEnum[]
+}
+
+/**
+ * User.arenaReactions
+ */
+export type User$arenaReactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaReaction
+   */
+  select?: Prisma.ArenaReactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaReaction
+   */
+  omit?: Prisma.ArenaReactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaReactionInclude<ExtArgs> | null
+  where?: Prisma.ArenaReactionWhereInput
+  orderBy?: Prisma.ArenaReactionOrderByWithRelationInput | Prisma.ArenaReactionOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaReactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaReactionScalarFieldEnum | Prisma.ArenaReactionScalarFieldEnum[]
+}
+
+/**
+ * User.arenaVotes
+ */
+export type User$arenaVotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaPollVote
+   */
+  select?: Prisma.ArenaPollVoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaPollVote
+   */
+  omit?: Prisma.ArenaPollVoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaPollVoteInclude<ExtArgs> | null
+  where?: Prisma.ArenaPollVoteWhereInput
+  orderBy?: Prisma.ArenaPollVoteOrderByWithRelationInput | Prisma.ArenaPollVoteOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaPollVoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaPollVoteScalarFieldEnum | Prisma.ArenaPollVoteScalarFieldEnum[]
+}
+
+/**
+ * User.arenaReports
+ */
+export type User$arenaReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaReport
+   */
+  select?: Prisma.ArenaReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaReport
+   */
+  omit?: Prisma.ArenaReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaReportInclude<ExtArgs> | null
+  where?: Prisma.ArenaReportWhereInput
+  orderBy?: Prisma.ArenaReportOrderByWithRelationInput | Prisma.ArenaReportOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaReportScalarFieldEnum | Prisma.ArenaReportScalarFieldEnum[]
+}
+
+/**
+ * User.arenaReviewedReports
+ */
+export type User$arenaReviewedReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ArenaReport
+   */
+  select?: Prisma.ArenaReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ArenaReport
+   */
+  omit?: Prisma.ArenaReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ArenaReportInclude<ExtArgs> | null
+  where?: Prisma.ArenaReportWhereInput
+  orderBy?: Prisma.ArenaReportOrderByWithRelationInput | Prisma.ArenaReportOrderByWithRelationInput[]
+  cursor?: Prisma.ArenaReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ArenaReportScalarFieldEnum | Prisma.ArenaReportScalarFieldEnum[]
 }
 
 /**

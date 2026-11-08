@@ -1,4 +1,5 @@
 "use client";
+import { NativePhonePushSettings } from '@/components/notifications/phone-push';
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -47,6 +48,7 @@ const resultTypes = [
   "STATISTICS_UPDATED",
 ];
 const actionTypes = [
+  'TOURNAMENT_REGISTRATION_RECEIVED',
   "MATCH_REMINDER",
   "MATCH_READY",
   "RESULT_SUBMITTED",
@@ -358,6 +360,7 @@ export default function NotificationsPage() {
           }
         />
 
+        <NativePhonePushSettings />
         {error ? (
           <FcErrorState
             message={error}

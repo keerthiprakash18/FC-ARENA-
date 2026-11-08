@@ -1,5 +1,7 @@
 'use client';
 
+import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
+import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import Link from 'next/link';
 
 import {
@@ -31,6 +33,8 @@ import {
   getCurrentUser,
 } from '@/lib/auth-client';
 import { FcNotice } from '@/components/fc/fc-ui';
+import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
+import type { EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
 
 
 type GroupFixture =
@@ -43,7 +47,7 @@ type GroupFixture =
   };
 
 
-interface Tournament {
+interface Tournament extends EntryLimitTournament {
   id: string;
   leagueId: string;
   name: string;
@@ -51,6 +55,7 @@ interface Tournament {
   status: string;
   fixturesGeneratedAt: string | null;
   competitionFormat: string;
+  formatGuide?: TournamentFormatDescription | null;
   legType: string;
 
   dailyMatchLimit: number;
@@ -758,6 +763,9 @@ export default function TournamentFixturesPage() {
         </button>
 
 
+        <TournamentFixtureStart tournament={tournament} />
+        <TournamentFormatGuide guide={tournament.formatGuide} compact />
+
         <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
             Fixture Center
@@ -1110,7 +1118,7 @@ export default function TournamentFixturesPage() {
             </p>
 
             <p className="mt-2 text-sm text-slate-600">
-              Generate tournament fixtures from the Group Manager.
+              Create fixtures with the approved teams whenever you are ready.
             </p>
 
             <Link

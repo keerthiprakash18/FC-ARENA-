@@ -5,8 +5,8 @@ FC Arena is packaged as a small native Android WebView shell that loads the prod
 ## Release identity
 
 - Package / application ID: `in.fcarena.app`
-- Version name: `1.0.16`
-- Version code: `18`
+- Version name: `1.0.17`
+- Version code: `19`
 - Minimum SDK: 24
 - Compile SDK: 36
 - Target SDK: 36
@@ -27,7 +27,21 @@ The native shell:
 - provides an offline page;
 - provides a native fallback screen if WebView initialization fails.
 
+An interrupted legacy startup automatically tries software rendering once.
+Startup guards cover synchronous browser creation only; slow network loading
+and normal background process termination do not activate the failure screen.
+A document that has not become visible within 20 foreground seconds shows the
+connection recovery page. Renderer recovery waits for the app to resume, and
+repeated renderer failures show a native retry screen. Its website button opens
+an explicit browser package so verified App Links cannot send it back to the app.
+
 ## Validation
+
+Run `gradle :app:testDebugUnitTest :app:assembleDebug :app:lintDebug` from this
+directory. Robolectric tests on API 28 and 35 exercise legacy startup flags,
+slow/offline document loading, foreground timers, renderer replacement, bounded
+recovery, browser routing and session preservation. These tests use a simulated
+Android runtime; they do not replace testing on the affected physical device.
 
 Android CI validates release lint and AAB compilation, then builds the debug
 wrapper and the current Next.js production frontend on Android API 33, 34, 35
@@ -63,13 +77,13 @@ powershell -ExecutionPolicy Bypass -File .\apps\android\build-signed-release.ps1
 
 The script:
 - requires `main` to match the latest `origin/main`;
-- verifies the next candidate from `version.properties` (currently Build 18 / version `1.0.16`);
+- verifies the next candidate from `version.properties` (currently Build 19 / version `1.0.17`);
 - prompts locally for the existing upload keystore path, alias, and passwords;
 - never writes passwords to the repository;
 - verifies the upload certificate SHA-256 before and after signing;
 - downloads and SHA-256-verifies official Gradle 8.13 only if Gradle is not installed;
 - builds the signed release AAB;
-- writes the final artifact to `apps/android/release/FC_ARENA_v1.0.16_build18_signed.aab`;
+- writes the final artifact to `apps/android/release/FC_ARENA_v1.0.17_build19_signed.aab`;
 - writes a companion SHA-256/source-commit metadata file.
 
 The `apps/android/release/` directory and private keystores are git-ignored.

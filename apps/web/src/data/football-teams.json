@@ -1,0 +1,2386 @@
+{
+  "updatedAt": "2026-11-08",
+  "nationalTeamsSource": "https://inside.fifa.com/associations",
+  "leagues": [
+    {
+      "id": "eng.1",
+      "name": "Premier League",
+      "country": "England",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams?limit=1000",
+      "clubs": [
+        "AFC Bournemouth",
+        "Arsenal",
+        "Aston Villa",
+        "Brentford",
+        "Brighton & Hove Albion",
+        "Chelsea",
+        "Coventry City",
+        "Crystal Palace",
+        "Everton",
+        "Fulham",
+        "Hull City",
+        "Ipswich Town",
+        "Leeds United",
+        "Liverpool",
+        "Manchester City",
+        "Manchester United",
+        "Newcastle United",
+        "Nottingham Forest",
+        "Sunderland",
+        "Tottenham Hotspur"
+      ]
+    },
+    {
+      "id": "eng.2",
+      "name": "EFL Championship",
+      "country": "England",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.2/teams?limit=1000",
+      "clubs": [
+        "Birmingham City",
+        "Blackburn Rovers",
+        "Bolton Wanderers",
+        "Bristol City",
+        "Burnley",
+        "Cardiff City",
+        "Charlton Athletic",
+        "Derby County",
+        "Lincoln City",
+        "Middlesbrough",
+        "Millwall",
+        "Norwich City",
+        "Portsmouth",
+        "Preston North End",
+        "Queens Park Rangers",
+        "Sheffield United",
+        "Southampton",
+        "Stoke City",
+        "Swansea City",
+        "Watford",
+        "West Bromwich Albion",
+        "West Ham United",
+        "Wolverhampton Wanderers",
+        "Wrexham"
+      ]
+    },
+    {
+      "id": "esp.1",
+      "name": "La Liga",
+      "country": "Spain",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/teams?limit=1000",
+      "clubs": [
+        "Alavés",
+        "Athletic Club",
+        "Atlético Madrid",
+        "Barcelona",
+        "Celta Vigo",
+        "Deportivo",
+        "Elche",
+        "Espanyol",
+        "Getafe",
+        "Levante",
+        "Málaga",
+        "Osasuna",
+        "Racing Santander",
+        "Rayo Vallecano",
+        "Real Betis",
+        "Real Madrid",
+        "Real Sociedad",
+        "Sevilla",
+        "Valencia",
+        "Villarreal"
+      ]
+    },
+    {
+      "id": "esp.2",
+      "name": "Segunda División",
+      "country": "Spain",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/esp.2/teams?limit=1000",
+      "clubs": [
+        "Albacete",
+        "Almería",
+        "Burgos",
+        "CD Sabadell",
+        "Castellón",
+        "Ceuta",
+        "Cádiz",
+        "Córdoba",
+        "Eibar",
+        "Eldense",
+        "FC Andorra",
+        "Girona",
+        "Granada",
+        "Las Palmas",
+        "Leganés",
+        "Mallorca",
+        "RC Celta Fortuna",
+        "Real Oviedo",
+        "Real Sociedad II",
+        "Real Valladolid",
+        "Sporting Gijón",
+        "Tenerife"
+      ]
+    },
+    {
+      "id": "ger.1",
+      "name": "Bundesliga",
+      "country": "Germany",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/teams?limit=1000",
+      "clubs": [
+        "1. FC Union Berlin",
+        "Bayer Leverkusen",
+        "Bayern Munich",
+        "Borussia Dortmund",
+        "Borussia Mönchengladbach",
+        "Eintracht Frankfurt",
+        "FC Augsburg",
+        "FC Cologne",
+        "Hamburg SV",
+        "Mainz",
+        "RB Leipzig",
+        "SC Freiburg",
+        "SC Paderborn 07",
+        "SV Elversberg",
+        "Schalke 04",
+        "TSG Hoffenheim",
+        "VfB Stuttgart",
+        "Werder Bremen"
+      ]
+    },
+    {
+      "id": "ger.2",
+      "name": "2. Bundesliga",
+      "country": "Germany",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.2/teams?limit=1000",
+      "clubs": [
+        "1. FC Heidenheim 1846",
+        "1. FC Magdeburg",
+        "1. FC Nürnberg",
+        "Arminia Bielefeld",
+        "Dynamo Dresden",
+        "Energie Cottbus",
+        "Hannover 96",
+        "Hertha Berlin",
+        "Holstein Kiel",
+        "Kaiserslautern",
+        "Karlsruher SC",
+        "SV Darmstadt 98",
+        "SpVgg Greuther Fürth",
+        "St. Pauli",
+        "TSV Eintracht Braunschweig",
+        "VfL Bochum",
+        "VfL Osnabruck",
+        "VfL Wolfsburg"
+      ]
+    },
+    {
+      "id": "ita.1",
+      "name": "Serie A",
+      "country": "Italy",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/teams?limit=1000",
+      "clubs": [
+        "AC Milan",
+        "AS Roma",
+        "Atalanta",
+        "Bologna",
+        "Cagliari",
+        "Como",
+        "Fiorentina",
+        "Frosinone",
+        "Genoa",
+        "Internazionale",
+        "Juventus",
+        "Lazio",
+        "Lecce",
+        "Monza",
+        "Napoli",
+        "Parma",
+        "Sassuolo",
+        "Torino",
+        "Udinese",
+        "Venezia"
+      ]
+    },
+    {
+      "id": "ita.2",
+      "name": "Serie B",
+      "country": "Italy",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.2/teams?limit=1000",
+      "clubs": [
+        "Arezzo",
+        "Ascoli",
+        "Benevento",
+        "Carrarese",
+        "Catanzaro",
+        "Cesena",
+        "Cremonese",
+        "Empoli",
+        "Hellas Verona",
+        "Juve Stabia",
+        "Mantova",
+        "Modena",
+        "Padova",
+        "Palermo",
+        "Pisa",
+        "Sampdoria",
+        "Sudtirol",
+        "US Avellino",
+        "Vicenza",
+        "Virtus Entella"
+      ]
+    },
+    {
+      "id": "fra.1",
+      "name": "Ligue 1",
+      "country": "France",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/teams?limit=1000",
+      "clubs": [
+        "AJ Auxerre",
+        "AS Monaco",
+        "Angers",
+        "Brest",
+        "Le Havre AC",
+        "Le Mans",
+        "Lens",
+        "Lille",
+        "Lorient",
+        "Lyon",
+        "Marseille",
+        "Nice",
+        "Paris FC",
+        "Paris Saint-Germain",
+        "Stade Rennais",
+        "Strasbourg",
+        "Toulouse",
+        "Troyes"
+      ]
+    },
+    {
+      "id": "fra.2",
+      "name": "Ligue 2",
+      "country": "France",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/fra.2/teams?limit=1000",
+      "clubs": [
+        "AS Nancy Lorraine",
+        "Annecy",
+        "Boulogne",
+        "Clermont Foot",
+        "Dijon FCO",
+        "Dunkerque",
+        "Grenoble",
+        "Guingamp",
+        "Metz",
+        "Montpellier",
+        "Nantes",
+        "Pau",
+        "Red Star FC 93",
+        "Rodez Aveyron",
+        "Saint-Étienne",
+        "Sochaux",
+        "Stade Laval",
+        "Stade de Reims"
+      ]
+    },
+    {
+      "id": "por.1",
+      "name": "Primeira Liga",
+      "country": "Portugal",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams?limit=1000",
+      "clubs": [
+        "Académico de Viseu",
+        "Alverca",
+        "Arouca",
+        "Benfica",
+        "Braga",
+        "C.D. Nacional",
+        "Casa Pia",
+        "Estoril",
+        "Estrela",
+        "FC Famalicao",
+        "FC Porto",
+        "Gil Vicente",
+        "Maritimo",
+        "Moreirense",
+        "Rio Ave",
+        "Santa Clara",
+        "Sporting CP",
+        "Vitória de Guimaraes"
+      ]
+    },
+    {
+      "id": "ned.1",
+      "name": "Eredivisie",
+      "country": "Netherlands",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ned.1/teams?limit=1000",
+      "clubs": [
+        "ADO Den Haag",
+        "AZ Alkmaar",
+        "Ajax Amsterdam",
+        "Excelsior",
+        "FC Groningen",
+        "FC Twente",
+        "FC Utrecht",
+        "Feyenoord Rotterdam",
+        "Fortuna Sittard",
+        "Go Ahead Eagles",
+        "Heerenveen",
+        "NEC Nijmegen",
+        "PEC Zwolle",
+        "PSV Eindhoven",
+        "SC Cambuur",
+        "Sparta Rotterdam",
+        "Telstar",
+        "Willem II"
+      ]
+    },
+    {
+      "id": "ned.2",
+      "name": "Eerste Divisie",
+      "country": "Netherlands",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ned.2/teams?limit=1000",
+      "clubs": [
+        "Almere City",
+        "De Graafschap",
+        "FC Den Bosch",
+        "FC Dordrecht",
+        "FC Eindhoven",
+        "FC Emmen",
+        "FC Volendam",
+        "Helmond Sport",
+        "Heracles Almelo",
+        "Jong AZ",
+        "Jong Ajax",
+        "Jong FC Utrecht",
+        "Jong PSV",
+        "MVV Maastricht",
+        "NAC Breda",
+        "RKC Waalwijk",
+        "Roda JC Kerkrade",
+        "TOP Oss",
+        "VVV-Venlo",
+        "Vitesse"
+      ]
+    },
+    {
+      "id": "sco.1",
+      "name": "Scottish Premiership",
+      "country": "Scotland",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/sco.1/teams?limit=1000",
+      "clubs": [
+        "Aberdeen",
+        "Celtic",
+        "Dundee",
+        "Dundee United",
+        "Falkirk",
+        "Heart of Midlothian",
+        "Hibernian",
+        "Kilmarnock",
+        "Motherwell",
+        "Rangers",
+        "St Johnstone",
+        "St Mirren"
+      ]
+    },
+    {
+      "id": "sui.1",
+      "name": "Swiss Super League",
+      "country": "Switzerland",
+      "season": "2025",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/sui.1/teams?limit=1000",
+      "clubs": [
+        "FC Basel",
+        "FC Lugano",
+        "FC Luzern",
+        "FC Sion",
+        "FC Thun",
+        "FC Zürich",
+        "Grasshoppers",
+        "Lausanne Sports",
+        "Servette",
+        "St. Gallen",
+        "Winterthur",
+        "Young Boys"
+      ]
+    },
+    {
+      "id": "bel.1",
+      "name": "Belgian Pro League",
+      "country": "Belgium",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/bel.1/teams?limit=1000",
+      "clubs": [
+        "Anderlecht",
+        "Antwerp",
+        "Cercle Brugge KSV",
+        "Club Brugge",
+        "KAA Gent",
+        "KV Kortrijk",
+        "KV Mechelen",
+        "KVC Westerlo",
+        "Lommel SK",
+        "OH Leuven",
+        "RAAL La Louvière",
+        "Racing Genk",
+        "Royal Charleroi SC",
+        "Sint-Truidense",
+        "Standard Liege",
+        "Union St.-Gilloise",
+        "Waasland-Beveren",
+        "Zulte-Waregem"
+      ]
+    },
+    {
+      "id": "aut.1",
+      "name": "Austrian Bundesliga",
+      "country": "Austria",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/aut.1/teams?limit=1000",
+      "clubs": [
+        "Austria Lustenau",
+        "Austria Vienna",
+        "Grazer AK",
+        "LASK Linz",
+        "RB Salzburg",
+        "Rapid Vienna",
+        "SC Rheindorf Altach",
+        "SK Sturm Graz",
+        "SV Josko Ried",
+        "TSV Hartberg",
+        "WSG Swarovski Tirol",
+        "Wolfsberger"
+      ]
+    },
+    {
+      "id": "rus.1",
+      "name": "Russian Premier League",
+      "country": "Russia",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/rus.1/teams?limit=1000",
+      "clubs": [
+        "Akhmat Grozny",
+        "Akron Tolyatti",
+        "CSKA Moscow",
+        "Dinamo Moscow",
+        "Dynamo Makhachkala",
+        "FC Baltika Kaliningrad",
+        "Fakel Voronezh",
+        "Gazovik Orenburg",
+        "Krasnodar",
+        "Krylia Sovetov",
+        "Lokomotiv Moscow",
+        "Rodina Moscow",
+        "Rostov",
+        "Rubin Kazan",
+        "Spartak Moscow",
+        "Zenit St Petersburg"
+      ]
+    },
+    {
+      "id": "tur.1",
+      "name": "Süper Lig",
+      "country": "Türkiye",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/teams?limit=1000",
+      "clubs": [
+        "Alanyaspor",
+        "Amed SFK",
+        "Besiktas",
+        "Caykur Rizespor",
+        "Erzurum BB",
+        "Eyupspor",
+        "Fenerbahce",
+        "Galatasaray",
+        "Gaziantep FK",
+        "Genclerbirligi",
+        "Goztepe",
+        "Istanbul Basaksehir",
+        "Kasimpasa",
+        "Kocaelispor",
+        "Konyaspor",
+        "Samsunspor",
+        "Trabzonspor",
+        "Çorum FK"
+      ]
+    },
+    {
+      "id": "gre.1",
+      "name": "Super League Greece",
+      "country": "Greece",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/gre.1/teams?limit=1000",
+      "clubs": [
+        "AEK Athens",
+        "Aris",
+        "Asteras Tripoli",
+        "Atromitos",
+        "Iraklis",
+        "Kalamata",
+        "Kifisia",
+        "Levadiakos",
+        "OFI Crete",
+        "Olympiacos",
+        "PAOK",
+        "Panathinaikos",
+        "Panetolikos",
+        "Volos NFC"
+      ]
+    },
+    {
+      "id": "den.1",
+      "name": "Danish Superliga",
+      "country": "Denmark",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/den.1/teams?limit=1000",
+      "clubs": [
+        "AC Horsens",
+        "AGF",
+        "Brøndby IF",
+        "F.C. København",
+        "FC Midtjylland",
+        "FC Nordsjælland",
+        "Lyngby Boldklub",
+        "Odense Boldklub",
+        "Randers FC",
+        "Silkeborg IF",
+        "Sønderjyske Fodbold",
+        "Viborg FF"
+      ]
+    },
+    {
+      "id": "swe.1",
+      "name": "Allsvenskan",
+      "country": "Sweden",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/swe.1/teams?limit=1000",
+      "clubs": [
+        "AIK",
+        "BK Häcken",
+        "Degerfors IF",
+        "Djurgården",
+        "GAIS",
+        "Halmstads BK",
+        "Hammarby IF",
+        "IF Brommapojkarna",
+        "IF Elfsborg",
+        "IFK Göteborg",
+        "IK Sirius",
+        "Kalmar FF",
+        "Malmö FF",
+        "Mjällby AIF",
+        "Västerås SK",
+        "Örgryte IS"
+      ]
+    },
+    {
+      "id": "nor.1",
+      "name": "Eliteserien",
+      "country": "Norway",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/nor.1/teams?limit=1000",
+      "clubs": [
+        "Aalesund",
+        "Bodo/Glimt",
+        "Fredrikstad",
+        "Hamarkameratene",
+        "IK Start",
+        "KFUM Oslo",
+        "Kristiansund BK",
+        "Lillestrom",
+        "Molde",
+        "Rosenborg",
+        "SK Brann",
+        "Sandefjord",
+        "Sarpsborg FK",
+        "Tromso",
+        "Viking FK",
+        "Vålerenga"
+      ]
+    },
+    {
+      "id": "usa.1",
+      "name": "Major League Soccer",
+      "country": "USA / Canada",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/teams?limit=1000",
+      "clubs": [
+        "Atlanta United FC",
+        "Austin FC",
+        "CF Montréal",
+        "Charlotte FC",
+        "Chicago Fire FC",
+        "Colorado Rapids",
+        "Columbus Crew",
+        "D.C. United",
+        "FC Cincinnati",
+        "FC Dallas",
+        "Houston Dynamo FC",
+        "Inter Miami CF",
+        "LA Galaxy",
+        "LAFC",
+        "Minnesota United FC",
+        "Nashville SC",
+        "New England Revolution",
+        "New York City FC",
+        "Orlando City SC",
+        "Philadelphia Union",
+        "Portland Timbers",
+        "Real Salt Lake",
+        "Red Bull New York",
+        "San Diego FC",
+        "San Jose Earthquakes",
+        "Seattle Sounders FC",
+        "Sporting Kansas City",
+        "St. Louis CITY SC",
+        "Toronto FC",
+        "Vancouver Whitecaps"
+      ]
+    },
+    {
+      "id": "usa.usl.1",
+      "name": "USL Championship",
+      "country": "USA",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/usa.usl.1/teams?limit=1000",
+      "clubs": [
+        "Birmingham Legion FC",
+        "Brooklyn FC",
+        "Charleston Battery",
+        "Colorado Springs Switchbacks FC",
+        "Detroit City FC",
+        "El Paso Locomotive FC",
+        "FC Tulsa",
+        "Hartford Athletic",
+        "Indy Eleven",
+        "Las Vegas Lights FC",
+        "Lexington",
+        "Loudoun United FC",
+        "Louisville City FC",
+        "Miami FC",
+        "Monterey Bay",
+        "New Mexico United",
+        "Oakland Roots",
+        "Orange County SC",
+        "Phoenix Rising FC",
+        "Pittsburgh Riverhounds",
+        "Rhode Island FC",
+        "Sacramento Republic FC",
+        "San Antonio FC",
+        "Sporting JAX",
+        "Tampa Bay Rowdies"
+      ]
+    },
+    {
+      "id": "mex.1",
+      "name": "Liga MX",
+      "country": "Mexico",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/mex.1/teams?limit=1000",
+      "clubs": [
+        "América",
+        "Atlante",
+        "Atlas",
+        "Atlético de San Luis",
+        "Cruz Azul",
+        "FC Juárez",
+        "Guadalajara",
+        "León",
+        "Monterrey",
+        "Necaxa",
+        "Pachuca",
+        "Puebla",
+        "Pumas UNAM",
+        "Querétaro",
+        "Santos",
+        "Tigres UANL",
+        "Tijuana",
+        "Toluca"
+      ]
+    },
+    {
+      "id": "mex.2",
+      "name": "Liga de Expansión MX",
+      "country": "Mexico",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/mex.2/teams?limit=1000",
+      "clubs": [
+        "Alebrijes de Oaxaca",
+        "Cancún FC",
+        "Club Atlético La Paz",
+        "Club Atlético Morelia",
+        "Club Jaiba Brava",
+        "Correcaminos UAT",
+        "Cruz Azul Hidalgo",
+        "Dorados de Sinaloa",
+        "Durango",
+        "Leones Negros",
+        "Mineros de Zacatecas",
+        "Piratas",
+        "Tapatío",
+        "Tepatitlán FC",
+        "Tlaxcala FC",
+        "Venados FC"
+      ]
+    },
+    {
+      "id": "arg.1",
+      "name": "Argentine Primera División",
+      "country": "Argentina",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/arg.1/teams?limit=1000",
+      "clubs": [
+        "Aldosivi",
+        "Argentinos Juniors",
+        "Atlético Tucumán",
+        "Banfield",
+        "Barracas Central",
+        "Belgrano (Córdoba)",
+        "Boca Juniors",
+        "Central Córdoba (Santiago del Estero)",
+        "Defensa y Justicia",
+        "Deportivo Riestra",
+        "Estudiantes de La Plata",
+        "Estudiantes de Río Cuarto",
+        "Gimnasia (Mendoza)",
+        "Gimnasia La Plata",
+        "Huracán",
+        "Independiente",
+        "Independiente Rivadavia",
+        "Instituto (Córdoba)",
+        "Lanús",
+        "Newell's Old Boys",
+        "Platense",
+        "Racing Club",
+        "River Plate",
+        "Rosario Central",
+        "San Lorenzo",
+        "Sarmiento (Junín)",
+        "Talleres (Córdoba)",
+        "Tigre",
+        "Unión (Santa Fe)",
+        "Vélez Sarsfield"
+      ]
+    },
+    {
+      "id": "arg.2",
+      "name": "Primera Nacional",
+      "country": "Argentina",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/arg.2/teams?limit=1000",
+      "clubs": [
+        "Acassuso",
+        "Agropecuario",
+        "All Boys",
+        "Almagro",
+        "Almirante Brown",
+        "Atlanta",
+        "Atletico Rafaela",
+        "Central Norte",
+        "Chacarita Juniors",
+        "Chaco For Ever",
+        "Ciudad de Bolívar",
+        "Colegiales",
+        "Colón (Santa Fe)",
+        "Defensores de Belgrano",
+        "Deportivo Madryn",
+        "Deportivo Maipú",
+        "Deportivo Morón",
+        "Estudiantes (Buenos Aires)",
+        "Ferro Carril Oeste",
+        "Gimnasia y Esgrima (Jujuy)",
+        "Gimnasia y Tiro (Salta)",
+        "Godoy Cruz Antonio Tomba",
+        "Güemes",
+        "Los Andes",
+        "Midland",
+        "Mitre (Santiago del Estero)",
+        "Nueva Chicago",
+        "Patronato",
+        "Quilmes",
+        "Racing (Córdoba)",
+        "San Martín (San Juan)",
+        "San Martín (Tucumán)",
+        "San Miguel",
+        "San Telmo",
+        "Temperley",
+        "Tristán Suárez"
+      ]
+    },
+    {
+      "id": "bra.1",
+      "name": "Brasileirão Série A",
+      "country": "Brazil",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.1/teams?limit=1000",
+      "clubs": [
+        "Athletico-PR",
+        "Atlético-MG",
+        "Bahia",
+        "Botafogo",
+        "Chapecoense",
+        "Corinthians",
+        "Coritiba",
+        "Cruzeiro",
+        "Flamengo",
+        "Fluminense",
+        "Grêmio",
+        "Internacional",
+        "Mirassol",
+        "Palmeiras",
+        "Red Bull Bragantino",
+        "Remo",
+        "Santos",
+        "São Paulo",
+        "Vasco da Gama",
+        "Vitória"
+      ]
+    },
+    {
+      "id": "bra.2",
+      "name": "Brasileirão Série B",
+      "country": "Brazil",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/bra.2/teams?limit=1000",
+      "clubs": [
+        "América Mineiro",
+        "Athletic",
+        "Atlético Goianiense",
+        "Avaí",
+        "Botafogo-SP",
+        "CRB",
+        "Ceará",
+        "Criciúma",
+        "Cuiabá",
+        "Fortaleza",
+        "Goiás",
+        "Juventude",
+        "Londrina",
+        "Novorizontino",
+        "Náutico",
+        "Operário PR",
+        "Ponte Preta",
+        "Sport",
+        "São Bernardo",
+        "Vila Nova"
+      ]
+    },
+    {
+      "id": "chi.1",
+      "name": "Chilean Primera División",
+      "country": "Chile",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/chi.1/teams?limit=1000",
+      "clubs": [
+        "Audax Italiano",
+        "Cobresal",
+        "Colo Colo",
+        "Coquimbo Unido",
+        "Deportes Concepcion",
+        "Deportes Limache",
+        "Everton CD",
+        "Huachipato",
+        "La Serena",
+        "O'Higgins",
+        "Palestino",
+        "Universidad Católica",
+        "Universidad de Chile",
+        "Universidad de Concepción",
+        "Unión La Calera",
+        "Ñublense"
+      ]
+    },
+    {
+      "id": "col.1",
+      "name": "Categoría Primera A",
+      "country": "Colombia",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/col.1/teams?limit=1000",
+      "clubs": [
+        "Alianza FC",
+        "América de Cali",
+        "Atlético Bucaramanga",
+        "Atlético Junior",
+        "Atlético Nacional",
+        "Boyacá Chicó FC",
+        "Cúcuta Deportivo",
+        "Deportes Tolima",
+        "Deportivo Cali",
+        "Deportivo Pasto",
+        "Deportivo Pereira",
+        "Fortaleza CEIF",
+        "Independiente Medellín",
+        "Independiente Santa Fe",
+        "Internacional de Bogotá",
+        "Jaguares de Córdoba",
+        "Llaneros FC",
+        "Millonarios",
+        "Once Caldas",
+        "Águilas Doradas"
+      ]
+    },
+    {
+      "id": "uru.1",
+      "name": "Uruguayan Primera División",
+      "country": "Uruguay",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/uru.1/teams?limit=1000",
+      "clubs": [
+        "Albion FC",
+        "Boston River",
+        "Central Español Fútbol Club",
+        "Cerro",
+        "Cerro Largo",
+        "Danubio",
+        "Defensor Sporting",
+        "Deportivo Maldonado",
+        "Juventud",
+        "Liverpool",
+        "Montevideo City Torque",
+        "Montevideo Wanderers",
+        "Nacional",
+        "Peñarol",
+        "Progreso",
+        "Racing (Montevideo)"
+      ]
+    },
+    {
+      "id": "per.1",
+      "name": "Liga 1",
+      "country": "Peru",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/per.1/teams?limit=1000",
+      "clubs": [
+        "ADT",
+        "Alianza Atlético",
+        "Alianza Lima",
+        "Atlético Grau",
+        "Cienciano del Cusco",
+        "Comerciantes Unidos",
+        "Cusco FC",
+        "Deportivo Garcilaso",
+        "Deportivo Moquegua",
+        "FC Cajamarca",
+        "Juan Pablo II",
+        "Los Chankas",
+        "Melgar",
+        "Sport Boys",
+        "Sport Huancayo",
+        "Sporting Cristal",
+        "UTC",
+        "Universitario"
+      ]
+    },
+    {
+      "id": "ecu.1",
+      "name": "Ecuadorian Serie A",
+      "country": "Ecuador",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ecu.1/teams?limit=1000",
+      "clubs": [
+        "Aucas",
+        "Barcelona SC",
+        "Delfín",
+        "Deportivo Cuenca",
+        "Emelec",
+        "Guayaquil City FC",
+        "Independiente del Valle",
+        "Leones",
+        "Libertad (Ecuador)",
+        "Liga de Quito",
+        "Macará",
+        "Manta F.C.",
+        "Mushuc Runa",
+        "Orense",
+        "Técnico Universitario",
+        "Universidad Católica (Quito)"
+      ]
+    },
+    {
+      "id": "par.1",
+      "name": "Paraguayan Primera División",
+      "country": "Paraguay",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/par.1/teams?limit=1000",
+      "clubs": [
+        "2 de Mayo",
+        "Cerro Porteño",
+        "Club Olimpia",
+        "Deportivo Recoleta",
+        "Guaraní",
+        "Libertad",
+        "Nacional Asunción",
+        "Rubio Ñú",
+        "Sportivo Ameliano",
+        "Sportivo Luqueño",
+        "Sportivo San Lorenzo",
+        "Sportivo Trinidense"
+      ]
+    },
+    {
+      "id": "bol.1",
+      "name": "Bolivian Primera División",
+      "country": "Bolivia",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/bol.1/teams?limit=1000",
+      "clubs": [
+        "ABB",
+        "Always Ready",
+        "Aurora",
+        "Blooming",
+        "Bolívar",
+        "GV San José",
+        "Guabirá",
+        "Independiente Petrolero",
+        "Nacional Potosí",
+        "Oriente Petrolero",
+        "Real Oruro",
+        "Real Potosí",
+        "Real Tomayapo",
+        "San Antonio Bulo Bulo",
+        "The Strongest",
+        "Universitario de Vinto"
+      ]
+    },
+    {
+      "id": "ven.1",
+      "name": "Venezuelan Primera División",
+      "country": "Venezuela",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ven.1/teams?limit=1000",
+      "clubs": [
+        "Academia Puerto Cabello",
+        "Anzoátegui FC",
+        "Carabobo",
+        "Caracas FC",
+        "Deportivo La Guaira",
+        "Deportivo Táchira",
+        "Metropolitanos",
+        "Monagas SC",
+        "Portuguesa",
+        "Rayo Zuliano",
+        "Trujillanos",
+        "Zamora FC"
+      ]
+    },
+    {
+      "id": "crc.1",
+      "name": "Costa Rican Primera División",
+      "country": "Costa Rica",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/crc.1/teams?limit=1000",
+      "clubs": [
+        "AD San Carlos",
+        "Alajuelense",
+        "Cartaginés",
+        "Escorpiones Belén",
+        "Herediano",
+        "Inter de San Carlos",
+        "Puntarenas FC",
+        "Pérez Zeledón",
+        "Saprissa",
+        "Sporting San José"
+      ]
+    },
+    {
+      "id": "hon.1",
+      "name": "Liga Nacional",
+      "country": "Honduras",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/hon.1/teams?limit=1000",
+      "clubs": [
+        "CA Independiente Siguatepeque",
+        "CD Choloma",
+        "CD Estrella Roja",
+        "Club Deportivo Marathón",
+        "Club Deportivo Olimpia",
+        "FC Motagua",
+        "Génesis PN",
+        "Juticalpa FC",
+        "Olancho FC",
+        "Platense",
+        "Real España",
+        "UPNFM"
+      ]
+    },
+    {
+      "id": "gua.1",
+      "name": "Liga Nacional",
+      "country": "Guatemala",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/gua.1/teams?limit=1000",
+      "clubs": [
+        "Antigua GFC",
+        "Aurora FC",
+        "CD Guastatoya",
+        "CD Malacateco",
+        "Cobán Imperial",
+        "Comunicaciones",
+        "Deportivo Mixco",
+        "Deportivo San Pedro",
+        "Marquense",
+        "Municipal",
+        "Suchitepequez",
+        "Xelajú MC"
+      ]
+    },
+    {
+      "id": "slv.1",
+      "name": "Primera División",
+      "country": "El Salvador",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/slv.1/teams?limit=1000",
+      "clubs": [
+        "Alianza FC",
+        "Atletico Balboa",
+        "C.D. Platense",
+        "CD FAS",
+        "CD Municipal Limeño",
+        "Cacahuatique",
+        "Fuerte San Francisco",
+        "Inca Aruba",
+        "Internacional Santa Tecla",
+        "Isidro Metapán",
+        "Luis Ángel Firpo",
+        "Águila"
+      ]
+    },
+    {
+      "id": "ksa.1",
+      "name": "Saudi Pro League",
+      "country": "Saudi Arabia",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ksa.1/teams?limit=1000",
+      "clubs": [
+        "Abha",
+        "Al Ahli",
+        "Al Diriyah",
+        "Al Ettifaq",
+        "Al Faisaly",
+        "Al Fateh",
+        "Al Fayha",
+        "Al Hazem",
+        "Al Hilal",
+        "Al Ittihad",
+        "Al Khaleej",
+        "Al Kholood",
+        "Al Nassr",
+        "Al Qadsiah",
+        "Al Riyadh",
+        "Al Shabab",
+        "Al Taawoun",
+        "Neom SC"
+      ]
+    },
+    {
+      "id": "chn.1",
+      "name": "Chinese Super League",
+      "country": "China",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/chn.1/teams?limit=1000",
+      "clubs": [
+        "Beijing Guoan",
+        "Chengdu Rongcheng",
+        "Chongqing Tonglianglong",
+        "Dalian Yingbo",
+        "Henan",
+        "Liaoning Tieren",
+        "Qingdao Hainiu",
+        "Qingdao West Coast",
+        "Shandong Taishan",
+        "Shanghai Port FC",
+        "Shanghai Shenhua FC",
+        "Shenzhen Xinpengcheng",
+        "Tianjin Jinmen Tiger",
+        "Wuhan Three Towns",
+        "Yunnan Yukun",
+        "Zhejiang Professional FC"
+      ]
+    },
+    {
+      "id": "jpn.1",
+      "name": "J1 League",
+      "country": "Japan",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/jpn.1/teams?limit=1000",
+      "clubs": [
+        "Avispa Fukuoka",
+        "Cerezo Osaka",
+        "FC Tokyo",
+        "Fagiano Okayama",
+        "Gamba Osaka",
+        "JEF United Ichihara-Chiba",
+        "Kashima Antlers",
+        "Kashiwa Reysol",
+        "Kawasaki Frontale",
+        "Kyoto Sanga",
+        "Machida Zelvia",
+        "Mito Hollyhock",
+        "Nagoya Grampus",
+        "Sanfrecce Hiroshima",
+        "Shimizu S-Pulse",
+        "Tokyo Verdy 1969",
+        "Urawa Red Diamonds",
+        "V-Varen Nagasaki",
+        "Vissel Kobe",
+        "Yokohama F. Marinos"
+      ]
+    },
+    {
+      "id": "ind.1",
+      "name": "Indian Super League",
+      "country": "India",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ind.1/teams?limit=1000",
+      "clubs": [
+        "Bengaluru FC",
+        "Chennaiyin FC",
+        "Churchill Brothers",
+        "East Bengal FC",
+        "FC GOA",
+        "Inter Kashi",
+        "Kerala Blasters FC",
+        "Mohun Bagan Super Giant",
+        "Mumbai City FC",
+        "NorthEast United FC",
+        "Odisha FC",
+        "Punjab FC",
+        "Sporting Club Delhi"
+      ]
+    },
+    {
+      "id": "ind.2",
+      "name": "I-League",
+      "country": "India",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/ind.2/teams?limit=1000",
+      "clubs": [
+        "Bengaluru United FC",
+        "Chanmari FC",
+        "Dempo Sports Club",
+        "Gokulam Kerala FC",
+        "Mohammedan SC",
+        "Nagaland United SC",
+        "Rajasthan United FC",
+        "Real Kashmir",
+        "Samaleswari SC",
+        "Shillong Lajong FC",
+        "Sreenidi Deccan FC"
+      ]
+    },
+    {
+      "id": "aus.1",
+      "name": "A-League Men",
+      "country": "Australia / New Zealand",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/aus.1/teams?limit=1000",
+      "clubs": [
+        "Adelaide United FC",
+        "Auckland FC",
+        "Brisbane Roar FC",
+        "Central Coast Mariners FC",
+        "Macarthur FC",
+        "Melbourne City FC",
+        "Melbourne Victory",
+        "Newcastle Jets",
+        "Perth Glory FC",
+        "Sydney FC",
+        "Wellington Phoenix",
+        "Western Sydney Wanderers FC"
+      ]
+    },
+    {
+      "id": "rsa.1",
+      "name": "South African Premiership",
+      "country": "South Africa",
+      "season": "2026",
+      "source": "https://site.api.espn.com/apis/site/v2/sports/soccer/rsa.1/teams?limit=1000",
+      "clubs": [
+        "AmaZulu",
+        "Chippa United",
+        "Durban City",
+        "Golden Arrows",
+        "Kaizer Chiefs",
+        "Kruger United",
+        "Mamelodi Sundowns",
+        "Marumo Gallants",
+        "Milford FC",
+        "Orlando Pirates",
+        "Polokwane City FC",
+        "Richards Bay FC",
+        "Sekhukhune United FC",
+        "Siwelele",
+        "Stellenbosch",
+        "TS Galaxy FC"
+      ]
+    }
+  ],
+  "nationalTeams": [
+    {
+      "id": "AFG",
+      "name": "Afghanistan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "ALB",
+      "name": "Albania",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "ALG",
+      "name": "Algeria",
+      "confederation": "CAF"
+    },
+    {
+      "id": "ASA",
+      "name": "American Samoa",
+      "confederation": "OFC"
+    },
+    {
+      "id": "AND",
+      "name": "Andorra",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "ANG",
+      "name": "Angola",
+      "confederation": "CAF"
+    },
+    {
+      "id": "AIA",
+      "name": "Anguilla",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "ATG",
+      "name": "Antigua and Barbuda",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "ARG",
+      "name": "Argentina",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "ARM",
+      "name": "Armenia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "ARU",
+      "name": "Aruba",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "AUS",
+      "name": "Australia",
+      "confederation": "AFC"
+    },
+    {
+      "id": "AUT",
+      "name": "Austria",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "AZE",
+      "name": "Azerbaijan",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "BAH",
+      "name": "Bahamas",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "BHR",
+      "name": "Bahrain",
+      "confederation": "AFC"
+    },
+    {
+      "id": "BAN",
+      "name": "Bangladesh",
+      "confederation": "AFC"
+    },
+    {
+      "id": "BRB",
+      "name": "Barbados",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "BLR",
+      "name": "Belarus",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "BEL",
+      "name": "Belgium",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "BLZ",
+      "name": "Belize",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "BEN",
+      "name": "Benin",
+      "confederation": "CAF"
+    },
+    {
+      "id": "BER",
+      "name": "Bermuda",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "BHU",
+      "name": "Bhutan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "BOL",
+      "name": "Bolivia",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "BIH",
+      "name": "Bosnia and Herzegovina",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "BOT",
+      "name": "Botswana",
+      "confederation": "CAF"
+    },
+    {
+      "id": "BRA",
+      "name": "Brazil",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "VGB",
+      "name": "British Virgin Islands",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "BRU",
+      "name": "Brunei Darussalam",
+      "confederation": "AFC"
+    },
+    {
+      "id": "BUL",
+      "name": "Bulgaria",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "BFA",
+      "name": "Burkina Faso",
+      "confederation": "CAF"
+    },
+    {
+      "id": "BDI",
+      "name": "Burundi",
+      "confederation": "CAF"
+    },
+    {
+      "id": "CPV",
+      "name": "Cabo Verde",
+      "confederation": "CAF"
+    },
+    {
+      "id": "CAM",
+      "name": "Cambodia",
+      "confederation": "AFC"
+    },
+    {
+      "id": "CMR",
+      "name": "Cameroon",
+      "confederation": "CAF"
+    },
+    {
+      "id": "CAN",
+      "name": "Canada",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "CAY",
+      "name": "Cayman Islands",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "CTA",
+      "name": "Central African Republic",
+      "confederation": "CAF"
+    },
+    {
+      "id": "CHA",
+      "name": "Chad",
+      "confederation": "CAF"
+    },
+    {
+      "id": "CHI",
+      "name": "Chile",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "CHN",
+      "name": "China PR",
+      "confederation": "AFC"
+    },
+    {
+      "id": "TPE",
+      "name": "Chinese Taipei",
+      "confederation": "AFC"
+    },
+    {
+      "id": "COL",
+      "name": "Colombia",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "COM",
+      "name": "Comoros",
+      "confederation": "CAF"
+    },
+    {
+      "id": "CGO",
+      "name": "Congo",
+      "confederation": "CAF"
+    },
+    {
+      "id": "COD",
+      "name": "Congo DR",
+      "confederation": "CAF"
+    },
+    {
+      "id": "COK",
+      "name": "Cook Islands",
+      "confederation": "OFC"
+    },
+    {
+      "id": "CRC",
+      "name": "Costa Rica",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "CRO",
+      "name": "Croatia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "CUB",
+      "name": "Cuba",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "CUW",
+      "name": "Curaçao",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "CYP",
+      "name": "Cyprus",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "CZE",
+      "name": "Czechia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "CIV",
+      "name": "Côte d'Ivoire",
+      "confederation": "CAF"
+    },
+    {
+      "id": "PRK",
+      "name": "DPR Korea",
+      "confederation": "AFC"
+    },
+    {
+      "id": "DEN",
+      "name": "Denmark",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "DJI",
+      "name": "Djibouti",
+      "confederation": "CAF"
+    },
+    {
+      "id": "DMA",
+      "name": "Dominica",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "DOM",
+      "name": "Dominican Republic",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "ECU",
+      "name": "Ecuador",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "EGY",
+      "name": "Egypt",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SLV",
+      "name": "El Salvador",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "ENG",
+      "name": "England",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "EQG",
+      "name": "Equatorial Guinea",
+      "confederation": "CAF"
+    },
+    {
+      "id": "ERI",
+      "name": "Eritrea",
+      "confederation": "CAF"
+    },
+    {
+      "id": "EST",
+      "name": "Estonia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SWZ",
+      "name": "Eswatini",
+      "confederation": "CAF"
+    },
+    {
+      "id": "ETH",
+      "name": "Ethiopia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "FRO",
+      "name": "Faroe Islands",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "FIJ",
+      "name": "Fiji",
+      "confederation": "OFC"
+    },
+    {
+      "id": "FIN",
+      "name": "Finland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "FRA",
+      "name": "France",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "GAB",
+      "name": "Gabon",
+      "confederation": "CAF"
+    },
+    {
+      "id": "GEO",
+      "name": "Georgia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "GER",
+      "name": "Germany",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "GHA",
+      "name": "Ghana",
+      "confederation": "CAF"
+    },
+    {
+      "id": "GIB",
+      "name": "Gibraltar",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "GRE",
+      "name": "Greece",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "GRN",
+      "name": "Grenada",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "GUM",
+      "name": "Guam",
+      "confederation": "AFC"
+    },
+    {
+      "id": "GUA",
+      "name": "Guatemala",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "GUI",
+      "name": "Guinea",
+      "confederation": "CAF"
+    },
+    {
+      "id": "GNB",
+      "name": "Guinea-Bissau",
+      "confederation": "CAF"
+    },
+    {
+      "id": "GUY",
+      "name": "Guyana",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "HAI",
+      "name": "Haiti",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "HON",
+      "name": "Honduras",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "HKG",
+      "name": "Hong Kong, China",
+      "confederation": "AFC"
+    },
+    {
+      "id": "HUN",
+      "name": "Hungary",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "IRN",
+      "name": "IR Iran",
+      "confederation": "AFC"
+    },
+    {
+      "id": "ISL",
+      "name": "Iceland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "IND",
+      "name": "India",
+      "confederation": "AFC"
+    },
+    {
+      "id": "IDN",
+      "name": "Indonesia",
+      "confederation": "AFC"
+    },
+    {
+      "id": "IRQ",
+      "name": "Iraq",
+      "confederation": "AFC"
+    },
+    {
+      "id": "ISR",
+      "name": "Israel",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "ITA",
+      "name": "Italy",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "JAM",
+      "name": "Jamaica",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "JPN",
+      "name": "Japan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "JOR",
+      "name": "Jordan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "KAZ",
+      "name": "Kazakhstan",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "KEN",
+      "name": "Kenya",
+      "confederation": "CAF"
+    },
+    {
+      "id": "KOR",
+      "name": "Korea Republic",
+      "confederation": "AFC"
+    },
+    {
+      "id": "KOS",
+      "name": "Kosovo",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "KUW",
+      "name": "Kuwait",
+      "confederation": "AFC"
+    },
+    {
+      "id": "KGZ",
+      "name": "Kyrgyz Republic",
+      "confederation": "AFC"
+    },
+    {
+      "id": "LAO",
+      "name": "Laos",
+      "confederation": "AFC"
+    },
+    {
+      "id": "LVA",
+      "name": "Latvia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "LBN",
+      "name": "Lebanon",
+      "confederation": "AFC"
+    },
+    {
+      "id": "LES",
+      "name": "Lesotho",
+      "confederation": "CAF"
+    },
+    {
+      "id": "LBR",
+      "name": "Liberia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "LBY",
+      "name": "Libya",
+      "confederation": "CAF"
+    },
+    {
+      "id": "LIE",
+      "name": "Liechtenstein",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "LTU",
+      "name": "Lithuania",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "LUX",
+      "name": "Luxembourg",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "MAC",
+      "name": "Macau, China",
+      "confederation": "AFC"
+    },
+    {
+      "id": "MAD",
+      "name": "Madagascar",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MWI",
+      "name": "Malawi",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MAS",
+      "name": "Malaysia",
+      "confederation": "AFC"
+    },
+    {
+      "id": "MDV",
+      "name": "Maldives",
+      "confederation": "AFC"
+    },
+    {
+      "id": "MLI",
+      "name": "Mali",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MLT",
+      "name": "Malta",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "MTN",
+      "name": "Mauritania",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MRI",
+      "name": "Mauritius",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MEX",
+      "name": "Mexico",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "MDA",
+      "name": "Moldova",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "MNG",
+      "name": "Mongolia",
+      "confederation": "AFC"
+    },
+    {
+      "id": "MNE",
+      "name": "Montenegro",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "MSR",
+      "name": "Montserrat",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "MAR",
+      "name": "Morocco",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MOZ",
+      "name": "Mozambique",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MYA",
+      "name": "Myanmar",
+      "confederation": "AFC"
+    },
+    {
+      "id": "NAM",
+      "name": "Namibia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "NEP",
+      "name": "Nepal",
+      "confederation": "AFC"
+    },
+    {
+      "id": "NED",
+      "name": "Netherlands",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "NCL",
+      "name": "New Caledonia",
+      "confederation": "OFC"
+    },
+    {
+      "id": "NZL",
+      "name": "New Zealand",
+      "confederation": "OFC"
+    },
+    {
+      "id": "NCA",
+      "name": "Nicaragua",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "NIG",
+      "name": "Niger",
+      "confederation": "CAF"
+    },
+    {
+      "id": "NGA",
+      "name": "Nigeria",
+      "confederation": "CAF"
+    },
+    {
+      "id": "MKD",
+      "name": "North Macedonia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "NIR",
+      "name": "Northern Ireland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "NOR",
+      "name": "Norway",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "OMA",
+      "name": "Oman",
+      "confederation": "AFC"
+    },
+    {
+      "id": "PAK",
+      "name": "Pakistan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "PLE",
+      "name": "Palestine",
+      "confederation": "AFC"
+    },
+    {
+      "id": "PAN",
+      "name": "Panama",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "PNG",
+      "name": "Papua New Guinea",
+      "confederation": "OFC"
+    },
+    {
+      "id": "PAR",
+      "name": "Paraguay",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "PER",
+      "name": "Peru",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "PHI",
+      "name": "Philippines",
+      "confederation": "AFC"
+    },
+    {
+      "id": "POL",
+      "name": "Poland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "POR",
+      "name": "Portugal",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "PUR",
+      "name": "Puerto Rico",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "QAT",
+      "name": "Qatar",
+      "confederation": "AFC"
+    },
+    {
+      "id": "IRL",
+      "name": "Republic of Ireland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "ROU",
+      "name": "Romania",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "RUS",
+      "name": "Russia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "RWA",
+      "name": "Rwanda",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SAM",
+      "name": "Samoa",
+      "confederation": "OFC"
+    },
+    {
+      "id": "SMR",
+      "name": "San Marino",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "KSA",
+      "name": "Saudi Arabia",
+      "confederation": "AFC"
+    },
+    {
+      "id": "SCO",
+      "name": "Scotland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SEN",
+      "name": "Senegal",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SRB",
+      "name": "Serbia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SEY",
+      "name": "Seychelles",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SLE",
+      "name": "Sierra Leone",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SGP",
+      "name": "Singapore",
+      "confederation": "AFC"
+    },
+    {
+      "id": "SVK",
+      "name": "Slovakia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SVN",
+      "name": "Slovenia",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SOL",
+      "name": "Solomon Islands",
+      "confederation": "OFC"
+    },
+    {
+      "id": "SOM",
+      "name": "Somalia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "RSA",
+      "name": "South Africa",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SSD",
+      "name": "South Sudan",
+      "confederation": "CAF"
+    },
+    {
+      "id": "ESP",
+      "name": "Spain",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SRI",
+      "name": "Sri Lanka",
+      "confederation": "AFC"
+    },
+    {
+      "id": "SKN",
+      "name": "St Kitts and Nevis",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "LCA",
+      "name": "St Lucia",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "VIN",
+      "name": "St Vincent and the Grenadines",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "SDN",
+      "name": "Sudan",
+      "confederation": "CAF"
+    },
+    {
+      "id": "SUR",
+      "name": "Suriname",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "SWE",
+      "name": "Sweden",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SUI",
+      "name": "Switzerland",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "SYR",
+      "name": "Syria",
+      "confederation": "AFC"
+    },
+    {
+      "id": "STP",
+      "name": "São Tomé and Príncipe",
+      "confederation": "CAF"
+    },
+    {
+      "id": "TAH",
+      "name": "Tahiti",
+      "confederation": "OFC"
+    },
+    {
+      "id": "TJK",
+      "name": "Tajikistan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "TAN",
+      "name": "Tanzania",
+      "confederation": "CAF"
+    },
+    {
+      "id": "THA",
+      "name": "Thailand",
+      "confederation": "AFC"
+    },
+    {
+      "id": "GAM",
+      "name": "The Gambia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "TLS",
+      "name": "Timor-Leste",
+      "confederation": "AFC"
+    },
+    {
+      "id": "TOG",
+      "name": "Togo",
+      "confederation": "CAF"
+    },
+    {
+      "id": "TGA",
+      "name": "Tonga",
+      "confederation": "OFC"
+    },
+    {
+      "id": "TRI",
+      "name": "Trinidad and Tobago",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "TUN",
+      "name": "Tunisia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "TKM",
+      "name": "Turkmenistan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "TCA",
+      "name": "Turks and Caicos Islands",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "TUR",
+      "name": "Türkiye",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "VIR",
+      "name": "US Virgin Islands",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "USA",
+      "name": "USA",
+      "confederation": "CONCACAF"
+    },
+    {
+      "id": "UGA",
+      "name": "Uganda",
+      "confederation": "CAF"
+    },
+    {
+      "id": "UKR",
+      "name": "Ukraine",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "UAE",
+      "name": "United Arab Emirates",
+      "confederation": "AFC"
+    },
+    {
+      "id": "URU",
+      "name": "Uruguay",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "UZB",
+      "name": "Uzbekistan",
+      "confederation": "AFC"
+    },
+    {
+      "id": "VAN",
+      "name": "Vanuatu",
+      "confederation": "OFC"
+    },
+    {
+      "id": "VEN",
+      "name": "Venezuela",
+      "confederation": "CONMEBOL"
+    },
+    {
+      "id": "VIE",
+      "name": "Vietnam",
+      "confederation": "AFC"
+    },
+    {
+      "id": "WAL",
+      "name": "Wales",
+      "confederation": "UEFA"
+    },
+    {
+      "id": "YEM",
+      "name": "Yemen",
+      "confederation": "AFC"
+    },
+    {
+      "id": "ZAM",
+      "name": "Zambia",
+      "confederation": "CAF"
+    },
+    {
+      "id": "ZIM",
+      "name": "Zimbabwe",
+      "confederation": "CAF"
+    }
+  ]
+}

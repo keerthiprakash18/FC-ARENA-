@@ -54,9 +54,6 @@ import {
 import {
   TournamentGroupsService,
 } from './tournament-groups.service.js';
-import { SafeGroupEditorService } from './safe-group-editor.service.js';
-import { TournamentFixtureResetController } from './tournament-fixture-reset.controller.js';
-import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
 
 import {
   TournamentLogoService,
@@ -78,13 +75,27 @@ import {
   TournamentWizardFinalizeService,
 } from './tournament-wizard-finalize.service.js';
 import { TournamentToolsService } from './tournament-tools.service.js';
+import { AchievementsModule } from '../achievements/achievements.module.js';
+import { ResultsModule } from '../results/results.module.js';
+import { TournamentReportService } from './tournament-report.service.js';
+import { TournamentReportController } from './tournament-report.controller.js';
+import { TournamentReportDownloadController } from './tournament-report-download.controller.js';
+import { TournamentReportDownloadService } from './tournament-report-download.service.js';
+import { TournamentGroupEditorService } from './tournament-group-editor.service.js';
+import { TournamentGroupEditorController } from './tournament-group-editor.controller.js';
 
+
+import { SafeGroupEditorService } from './safe-group-editor.service.js';
+import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
+import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 
 @Module({
   imports: [
     AuthModule,
     MatchesModule,
     NotificationsModule,
+    AchievementsModule,
+    ResultsModule,
   ],
 
   controllers: [
@@ -92,18 +103,21 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     TournamentEntriesController,
     TournamentGroupsAdminController,
     TournamentFixtureWizardController,
-    TournamentFixtureResetController,
     TournamentWizardFinalController,
+    TournamentReportController,
+    TournamentReportDownloadController,
+    TournamentGroupEditorController,
   ],
 
   providers: [
+    SafeGroupEditorService,
+    TournamentFixtureResetService,
+    TournamentDrawRestartService,
     TournamentsService,
     TournamentEntriesService,
     TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,
-    SafeGroupEditorService,
-    TournamentFixtureResetService,
     TournamentLogoService,
     GroupFixturesService,
     PlayoffsService,
@@ -111,6 +125,9 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     TournamentFixturePreviewService,
     TournamentWizardFinalizeService,
     TournamentToolsService,
+    TournamentReportService,
+    TournamentReportDownloadService,
+    TournamentGroupEditorService,
   ],
 
   exports: [
@@ -125,6 +142,7 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     TournamentFixturePreviewService,
     TournamentWizardFinalizeService,
     TournamentToolsService,
+    TournamentReportService,
   ],
 })
 export class TournamentsModule {}

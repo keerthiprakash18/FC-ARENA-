@@ -1,5 +1,5 @@
 /* Premium composition layer. Native scrolling/insets remain authoritative. */
-.fc-premium { --premium-ink: #0d263d; --premium-gold: #d9b765; font-family: var(--fc-font); font-size: 15px; }
+.fc-premium { --premium-ink: #10263c; --premium-gold: var(--theme-matchday-accent); font-family: var(--fc-font); font-size: 15px; }
 .fc-premium .fc-main { max-width: 1360px; }
 .fc-premium .fc-main :is(h1,h2,h3) { text-wrap: balance; letter-spacing: -.035em; }
 .fc-premium .fc-main h1 { font-size: clamp(28px, 3vw, 38px); font-weight: 650; line-height: 1.12; }
@@ -12,12 +12,14 @@
 .fc-premium .fc-empty-state > div { margin-left: 0; }
 .fc-premium .fc-empty-state p { margin-left: 0; }
 .fc-premium .fc-sidebar-art::before, .fc-premium .fc-sidebar-art::after { display: none; }
-.fc-premium .theme-sidebar { background: #091f34 !important; color: #fffefa; }
+.fc-premium .theme-sidebar { background: var(--theme-sidebar) !important; color: var(--theme-sidebar-text); }
 .fc-premium .theme-sidebar :is(.theme-sidebar-label,.theme-sidebar-muted) { color: #b7c6d4; }
 .fc-premium .theme-sidebar .theme-nav-item { height: 50px; border: 0; border-radius: 9px; color: #c6d2df; font-size: 14px; font-weight: 550; }
-.fc-premium .theme-sidebar .theme-nav-item[data-active="true"] { background: #d9b765; color: #0d263d; box-shadow: none; font-weight: 700; }
-.fc-premium .theme-sidebar .theme-nav-item[data-active="true"] .theme-nav-icon { color: #0d263d; background: transparent; }
+.fc-premium .theme-sidebar .theme-nav-item[data-active="true"] { background: var(--theme-matchday-accent) !important; color: var(--theme-on-matchday-accent) !important; box-shadow: none; font-weight: 700; }
+.fc-premium .theme-sidebar .theme-nav-item[data-active="true"] .theme-nav-icon { color: var(--theme-on-matchday-accent) !important; background: transparent; }
 .fc-premium .theme-nav-accent { display: none; }
+.fc-premium .fc-app-shell::before { content: none; }
+.fc-premium .fc-app-shell::after { opacity: .22; }
 .fc-premium .theme-sidebar .theme-user-card { background: #122d43; border-color: #294357; }
 .fc-premium .theme-sidebar-user-name, .fc-premium .theme-brand-title { color: #fffefa; }
 .fc-premium .theme-sidebar .theme-quick-action { border: 0; background: transparent; color: #c6d2df; }
@@ -32,8 +34,10 @@
   .fc-premium .premium-primary-grid .theme-bottom-item > span:last-child { font-size: 9px; }
 }
 .fc-premium .premium-primary-rail .theme-bottom-item { flex: 1 0 78px; min-width: 78px; }
-.fc-premium .theme-bottom-item[data-active="true"] { color: var(--theme-text); background: var(--fc-gold-soft); }
-.fc-premium .theme-bottom-item[data-active="true"] .theme-bottom-icon { color: var(--theme-text); background: transparent; }
+.fc-premium .theme-bottom-item[data-active="true"] { color: var(--theme-primary); background: var(--theme-primary-soft); }
+.fc-premium .theme-bottom-item[data-active="true"] .theme-bottom-icon { color: var(--theme-primary); background: transparent; }
+:root[data-theme="luxury-gold"] .fc-premium .theme-bottom-item[data-active="true"] { color: var(--fc-gold); background: var(--fc-gold-soft); }
+:root[data-theme="luxury-gold"] .fc-premium .theme-bottom-item[data-active="true"] .theme-bottom-icon { color: var(--fc-gold); }
 .fc-premium .theme-bottom-item > span:last-child { font-size: 12px; letter-spacing: 0; }
 .premium-page { display: grid; gap: 28px; }
 .premium-page > * { min-width: 0; margin-top: 0 !important; }
@@ -184,15 +188,20 @@
 .fc-premium .fc-main .fc-panel .premium-home-empty :is(h2, h3) { overflow-wrap: normal !important; word-break: normal !important; }
 .premium-home-empty p { max-width: 520px; color: #c4d0dd; font-size: 14px; line-height: 1.65; margin-block: 12px 22px; }
 .premium-home-empty > a { flex-shrink: 0; }
-.fc-dashboard-page .premium-home-hero {
-  /* The inner grid owns padding; do not add a second inset around it. */
+/* The Home hero is a matchday surface in every club/mode. Local text tokens
+   keep legacy utility classes readable inside it without recoloring normal cards. */
+.fc-premium .fc-main .premium-home-hero {
+  --theme-text: var(--theme-matchday-text);
+  --theme-text-secondary: var(--theme-matchday-muted);
+  --theme-text-muted: var(--theme-matchday-muted);
+  --theme-primary: var(--theme-matchday-accent);
+  --theme-on-primary: var(--theme-on-matchday-accent);
   padding: 0;
-  border-color: #294357;
-  background:
-    linear-gradient(110deg, rgba(7, 24, 42, 0.98), rgba(13, 38, 61, 0.9)),
-    radial-gradient(circle at 86% 22%, rgba(229, 199, 127, 0.24), transparent 30%),
-    #0d263d;
-  box-shadow: 0 14px 30px rgb(13 38 61 / 10%);
+  border-color: #35526a;
+  border-top-color: var(--theme-matchday-accent);
+  background: linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end)) !important;
+  color: var(--theme-matchday-text);
+  box-shadow: 0 10px 24px rgb(10 28 46 / 10%);
 }
 .fc-dashboard-page .premium-home-hero::after {
   content: '';
@@ -200,21 +209,35 @@
   position: absolute;
   inset: auto -8% -44% 42%;
   height: 80%;
-  border: 1px solid rgb(229 199 127 / 24%);
+  border: 1px solid rgb(255 255 255 / 15%);
   border-radius: 50%;
-  box-shadow: 0 0 0 24px rgb(229 199 127 / 5%), 0 0 0 56px rgb(229 199 127 / 3%);
+  box-shadow: 0 0 0 24px rgb(255 255 255 / 3%), 0 0 0 56px rgb(255 255 255 / 2%);
   transform: perspective(700px) rotateX(62deg);
 }
-.fc-dashboard-page .premium-home-hero .theme-text { color: var(--theme-text); }
-.fc-dashboard-page .premium-home-hero .theme-secondary-text { color: var(--theme-text-secondary); }
-.fc-dashboard-page .premium-home-hero .theme-soft-accent {
-  border-color: #456074;
-  background: #18364e;
-  color: #e5c77f;
+.fc-premium .premium-home-hero .theme-hero-avatar-ring {
+  border-color: var(--theme-matchday-accent);
+  background: rgb(255 255 255 / 6%);
 }
-.fc-dashboard-page .premium-home-hero .theme-primary-button {
-  background: #d9b765 !important;
-  color: #0d263d !important;
+.fc-premium .premium-home-hero .theme-crest {
+  border-color: #48627a;
+  background: #17364f;
+  color: var(--theme-matchday-text);
+}
+.fc-premium .premium-home-hero :is(.theme-hero-kicker, .theme-hero-slogan, .theme-hero-side-copy, .theme-hero-side-code) {
+  color: var(--theme-matchday-muted);
+}
+.fc-premium .premium-home-hero .theme-soft-accent {
+  border-color: #496175;
+  background: #17364f;
+  color: var(--theme-matchday-accent);
+}
+.fc-premium .fc-main .premium-home-hero .theme-primary-button {
+  border-color: var(--theme-matchday-accent);
+  background: var(--theme-matchday-accent) !important;
+  color: var(--theme-on-matchday-accent) !important;
+}
+.fc-premium .fc-main .premium-home-hero .theme-primary-button:hover {
+  background: color-mix(in srgb, var(--theme-matchday-accent) 88%, white) !important;
 }
 .fc-dashboard-page .premium-home-next {
   /* This is a grid card, not the half-width inset used on the landing page. */
@@ -485,6 +508,69 @@
   .fc-premium :is(.premium-hero,.premium-match,.premium-destination,.premium-crest) { transition: none; animation: none; }
 }
 
+/* Home puts the next task first; empty competitions share compact rows. */
+.fc-premium .home-welcome { display: block; font-size: 15px; line-height: 1.5; font-weight: 500; letter-spacing: 0; }
+.fc-premium .home-player-name { display: block; }
+.fc-premium .home-hero-jump { border: 1px solid #657d92; color: var(--theme-matchday-text); background: rgb(255 255 255 / 5%); }
+.fc-premium .home-hero-jump:hover { background: rgb(255 255 255 / 11%); }
+#dashboard-next-match { scroll-margin-top: calc(80px + env(safe-area-inset-top, 0px)); }
+.fc-premium .fc-main .home-onboarding { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; padding: 12px 16px; border: 1px solid var(--theme-border); }
+.home-onboarding summary { cursor: pointer; list-style: none; min-height: 44px; display: flex; align-items: center; }
+.home-onboarding summary::-webkit-details-marker { display: none; }
+.fc-premium .fc-main .home-onboarding h2 { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; width: 100%; font-size: 14px; line-height: 1.5; letter-spacing: 0; }
+.home-onboarding-next { grid-row: 2; font-size: 12px; font-weight: 400; }
+.home-onboarding .home-disclosure-chevron { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+.home-onboarding details[open] .home-disclosure-chevron { transform: rotate(180deg); }
+.home-onboarding nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.home-onboarding nav a { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px; border: 1px solid var(--theme-border); border-radius: 8px; font-size: 12px; }
+.home-onboarding-dismiss { min-height: 44px; padding: 8px 12px; border: 1px solid var(--theme-border); border-radius: 8px; font-size: 12px; }
+.fc-premium .fc-main .home-empty-overview { padding: 0; }
+.home-empty-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 72px; padding: 12px 16px; }
+.home-empty-row + .home-empty-row { border-top: 1px solid var(--theme-border); }
+.home-empty-row:hover { background: var(--theme-elevated); }
+.home-empty-icon { display: grid; place-items: center; height: 32px; border-radius: 9px; }
+.home-empty-copy { display: grid; min-width: 0; gap: 3px; font-size: 12px; line-height: 1.5; }
+.home-empty-title { font-size: 14px; font-weight: 650; }
+.home-empty-action { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.fc-premium .fc-main .home-overview-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--theme-border); border-radius: var(--fc-card-radius); background: var(--theme-surface); }
+.home-overview-stats > a { min-width: 0; }
+.home-overview-stats > a + a { border-left: 1px solid var(--theme-border); }
+.fc-premium .fc-main .home-overview-stats .theme-stat-card { min-height: 0; padding: 16px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.fc-premium .fc-main .home-overview-stats.hidden { display: none; }
+.home-more-tools { margin-top: 12px; }
+.home-more-tools > summary { display: flex; justify-content: space-between; align-items: center; min-height: 44px; cursor: pointer; padding: 6px 4px; font-size: 13px; font-weight: 600; list-style: none; }
+.home-more-tools > summary::-webkit-details-marker { display: none; }
+.home-more-tools[open] > summary { margin-bottom: 8px; }
+.home-activity-empty { display: grid; gap: 4px; padding-top: 16px; }
+@media (max-width: 639px) {
+  .fc-premium .fc-main .premium-home-hero .home-hero-layout { grid-template-columns: 44px minmax(0, 1fr); min-height: 0; gap: 12px; padding: 16px; }
+  .fc-premium .home-hero-avatar { align-self: start; margin-top: 22px; }
+  .fc-premium .home-hero-avatar .theme-hero-avatar-ring { width: 44px; height: 44px; border-width: 2px; }
+  .fc-premium .home-hero-avatar .theme-crest { width: 32px; height: 32px; font-size: 12px; }
+  .fc-premium .home-hero-copy h1 { margin-top: 6px; }
+  .fc-premium .home-welcome { font-size: 12px; }
+  .fc-premium .home-player-name { font-size: 24px; line-height: 1.15; }
+  .fc-premium .home-hero-copy .fc-dashboard-kicker { font-size: 10px; letter-spacing: .07em; }
+  .fc-premium .home-hero-description { margin-top: 8px; font-size: 12px; line-height: 1.5; }
+  .fc-premium .home-hero-tags { margin-top: 10px; gap: 6px; }
+  .fc-premium .home-hero-tags .theme-status-badge { padding: 3px 8px; font-size: 10px; }
+  .fc-premium .home-hero-action { width: 100%; margin-top: 4px; }
+  .fc-premium .fc-main .home-onboarding { gap: 8px; padding: 10px 12px; }
+  .fc-premium .fc-main .home-onboarding h2 { font-size: 13px; }
+  .home-onboarding nav { grid-template-columns: minmax(0, 1fr); }
+  .home-empty-row { grid-template-columns: 28px minmax(0, 1fr) auto; min-height: 68px; gap: 8px; padding: 12px; }
+  .home-empty-icon { height: 28px; }
+  .home-empty-action { font-size: 11px; }
+  .fc-premium .fc-main .home-overview-stats .theme-stat-card { padding: 12px 10px; }
+  .home-overview-stats .theme-stat-card > div > span, .home-overview-stats .theme-stat-card > p { display: none; }
+  .fc-premium .home-overview-stats .theme-stat-card .fc-display-strong { font-size: 23px; line-height: 1.2; }
+  .home-overview-stats .theme-stat-card .theme-secondary-text { font-size: 11px; white-space: nowrap; }
+  .fc-premium .home-core-actions > a, .fc-premium .home-more-tools-grid > a { padding: 12px; min-height: 84px; gap: 10px; }
+  .home-core-actions .fc-quick-action-tile > span:first-child, .home-more-tools-grid .fc-quick-action-tile > span:first-child { width: 32px; height: 32px; }
+  .home-core-actions .fc-quick-action-tile .theme-action-chevron, .home-more-tools-grid .fc-quick-action-tile .theme-action-chevron { display: none; }
+  .home-core-actions .fc-quick-action-tile .theme-text, .home-more-tools-grid .fc-quick-action-tile .theme-text { font-size: 13px; }
+}
+
 /* Shared product-wide finish: every authenticated route uses the same
    matchday surface, controls, cards, tables and responsive rhythm. */
 .fc-premium .fc-main {
@@ -530,7 +616,7 @@
   background: var(--premium-gold);
 }
 .fc-premium .fc-main :where(input, select, textarea) {
-  border-color: var(--theme-border);
+  border-color: var(--theme-control-border) !important;
   background: var(--theme-surface);
   color: var(--theme-text);
   box-shadow: none;
@@ -539,8 +625,11 @@
   color: var(--theme-text-muted);
 }
 .fc-premium .fc-main :where(input, select, textarea):focus {
-  border-color: color-mix(in srgb, var(--theme-primary) 58%, var(--theme-border));
+  border-color: var(--theme-primary) !important;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 10%, transparent);
+}
+.fc-premium .fc-main :where(input, select, textarea)[aria-invalid="true"] {
+  border-color: var(--theme-danger) !important;
 }
 .fc-premium .fc-main .theme-primary-button,
 .fc-premium .fc-main .theme-secondary-button,
@@ -581,16 +670,16 @@
   border-radius: var(--fc-control-radius);
 }
 .fc-premium .theme-top-header {
-  background: color-mix(in srgb, var(--theme-surface) 92%, transparent);
-  backdrop-filter: blur(18px);
+  background: var(--theme-header);
+  backdrop-filter: none;
 }
 
 /* Club selections must survive the premium layer, not just change swatches. */
 :root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium {
   --premium-gold: var(--theme-primary-bright);
-  --club-matchday-start: color-mix(in srgb, var(--theme-primary) 24%, #071321);
-  --club-matchday-end: color-mix(in srgb, var(--theme-primary) 40%, #071321);
-  --club-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 40%, #ffffff);
+  --club-matchday-start: var(--theme-matchday-start);
+  --club-matchday-end: var(--theme-matchday-end);
+  --club-matchday-accent: var(--theme-matchday-accent);
 }
 :root[data-theme]:not([data-theme="luxury-gold"]) .fc-app-shell {
   background: var(--theme-club-glow), var(--theme-background) !important;

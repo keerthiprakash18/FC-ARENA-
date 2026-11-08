@@ -9,6 +9,11 @@ import {
 } from 'class-validator';
 
 export class RegisterDto {
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  dateOfBirth?: string;
+
   @IsString()
   @MinLength(2)
   @MaxLength(120)

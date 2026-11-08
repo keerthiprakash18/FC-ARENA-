@@ -1,6 +1,6 @@
 'use client';
 
-/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import { confirmAction, confirmNamedDeletion } from '@/components/fc/confirmation-provider';
 import {
@@ -24,6 +24,7 @@ import {
 import {
   FcCrest,
   FcLoadingScreen,
+  FcErrorState,
   FcNotice,
   FcPanel,
   FcStatusBadge,
@@ -58,6 +59,8 @@ interface LeagueHome {
     | 'ADMIN'
     | null;
   isSuperAdmin?: boolean;
+  canManageMembers?: boolean;
+  canManageSettings?: boolean;
   pendingApplications: number;
 }
 
@@ -114,6 +117,7 @@ export default function LeagueSettingsPage() {
     useState<Application[]>(
       [],
     );
+  const [loadedLeagueId, setLoadedLeagueId] = useState<string | null>(null);
 
   const logoInputRef =
     useRef<HTMLInputElement | null>(
@@ -149,10 +153,10 @@ export default function LeagueSettingsPage() {
     useState('');
 
 
-  async function load() {
+  async function load(signal?: AbortSignal) {
     const leagueResponse =
       await authenticatedRequest<any>(
-        `/leagues/${leagueId}`,
+        `/leagues/${leagueId}`, { signal },
       );
 
     const currentLeague:
@@ -161,49 +165,38 @@ export default function LeagueSettingsPage() {
         .data
         .league;
 
-    setLeague(
-      currentLeague,
-    );
+    if (signal?.aborted) return;
+    setLeague(currentLeague);
 
     if (
-      currentLeague.adminRole
+      currentLeague.canManageMembers ?? Boolean(currentLeague.adminRole)
     ) {
       const response =
         await authenticatedRequest<any>(
-          `/leagues/${leagueId}/applications`,
+          `/leagues/${leagueId}/applications`, { signal },
         );
 
+      if (signal?.aborted) return;
       setApplications(
         response
           .data
           .applications,
       );
-    }
+    } else setApplications([]);
+    if (!signal?.aborted) setLoadedLeagueId(leagueId);
   }
 
 
+  const initialLoad = useRecoverableLoad(async signal => {
+    const current = await getCurrentUser({ signal });
+    if (signal.aborted) return;
+    setUser(current); await load(signal);
+  }, leagueId);
   useEffect(() => {
-    void (async () => {
-      try {
-        const current =
-          await getCurrentUser();
-
-        setUser(
-          current,
-        );
-
-        await load();
-      } catch {
-        router.replace(
-          `/leagues/${leagueId}`,
-        );
-      }
-    })();
-  }, [
-    leagueId,
-    router,
-  ]);
-
+    if (league?.id !== leagueId || loadedLeagueId !== leagueId || initialLoad.error || window.location.hash !== '#join-requests') return;
+    const frame = requestAnimationFrame(() => document.getElementById('join-requests')?.scrollIntoView({ block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [league?.id, leagueId, loadedLeagueId, initialLoad.error]);
 
   async function uploadLeagueLogo(
     file: File,
@@ -415,7 +408,6 @@ export default function LeagueSettingsPage() {
       setMessage(
         response.data.message,
       );
-
       await load();
     } catch (
       err
@@ -581,8 +573,9 @@ export default function LeagueSettingsPage() {
       setMessage(
         response.data.message,
       );
-
-      await load();
+      setApplications(current => current.filter(application => application.id !== applicationId));
+      try { await load(); }
+      catch { setMessage('Decision saved. Refreshing the remaining join requests…'); initialLoad.retry(); }
     } catch (
       err
     ) {
@@ -599,10 +592,8 @@ export default function LeagueSettingsPage() {
   }
 
 
-  if (
-    !user ||
-    !league
-  ) {
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+  if (!user || !league || league.id !== leagueId || loadedLeagueId !== leagueId) {
     return (
       <FcLoadingScreen
         label="Loading League Settings..."
@@ -640,6 +631,7 @@ export default function LeagueSettingsPage() {
           leagueId={
             leagueId
           }
+          canManageMembers={league.canManageMembers ?? Boolean(league.adminRole)}
         />
 
 
@@ -647,7 +639,7 @@ export default function LeagueSettingsPage() {
         <FcNotice tone="error">{error}</FcNotice>
 
 
-        {league.adminRole ? (
+        {(league.canManageSettings ?? Boolean(league.adminRole)) ? (
           <FcPanel className="p-5 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
@@ -900,8 +892,8 @@ export default function LeagueSettingsPage() {
         ) : null}
 
 
-        {league.adminRole ? (
-          <section>
+        {(league.canManageMembers ?? Boolean(league.adminRole)) ? (
+          <section id="join-requests" className="scroll-mt-28">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">

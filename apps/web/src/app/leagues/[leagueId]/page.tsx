@@ -1,9 +1,11 @@
 "use client";
+import { useRouteLeague } from '@/lib/active-league';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import { LeagueInvite } from "@/components/fc/league-invite";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
 
@@ -12,6 +14,7 @@ import { FcIcon, iconNameFromLegacy } from "@/components/fc/fc-icons";
 
 import {
   FcLoadingScreen,
+  FcErrorState,
   FcPanel,
   FcStatCard,
 } from "@/components/fc/fc-ui";
@@ -37,6 +40,7 @@ interface LeagueHome {
   pendingApplications: number;
   membershipType: "PRIMARY" | "SECONDARY";
   adminRole: "OWNER" | "ADMIN" | null;
+  canManageMembers?: boolean;
 
   creator: {
     id: string;
@@ -56,7 +60,6 @@ export default function LeagueOverviewPage() {
     leagueId: string;
   }>();
 
-  const router = useRouter();
 
   const [user, setUser] = useState<CurrentUser | null>(null);
 
@@ -64,45 +67,19 @@ export default function LeagueOverviewPage() {
 
   const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [current, leagueResponse, tournamentResponse] = await Promise.all(
-          [
-            getCurrentUser(),
+  useRouteLeague(user?.id, league?.id === leagueId ? league.id : null);
 
-            authenticatedRequest<{
-              success: true;
-              data: {
-                league: LeagueHome;
-              };
-              error: null;
-            }>(`/leagues/${leagueId}`),
-
-            authenticatedRequest<{
-              success: true;
-              data: {
-                tournaments: TournamentSummary[];
-              };
-              error: null;
-            }>(`/leagues/${leagueId}/tournaments`),
-          ],
-        );
-
-        setUser(current);
-
-        setLeague(leagueResponse.data.league);
-
-        setTournaments(tournamentResponse.data.tournaments);
-      } catch {
-        router.replace("/leagues");
-      }
-    }
-
-    void load();
-  }, [leagueId, router]);
-
-  if (!user || !league) {
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, leagueResponse, tournamentResponse] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<{ data: { league: LeagueHome } }>(`/leagues/${leagueId}`, { signal }),
+      authenticatedRequest<{ data: { tournaments: TournamentSummary[] } }>(`/leagues/${leagueId}/tournaments`, { signal }),
+    ]);
+    if (signal.aborted) return;
+    setUser(current); setLeague(leagueResponse.data.league); setTournaments(tournamentResponse.data.tournaments);
+  }, leagueId);
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+  if (!user || !league || league.id !== leagueId) {
     return <FcLoadingScreen label="Loading League Overview..." />;
   }
 
@@ -123,7 +100,11 @@ export default function LeagueOverviewPage() {
           action={<Link href={`/leagues/${leagueId}/tournaments`} className="theme-primary-button premium-button">Open Tournaments <FcIcon name="chevronRight" size={16} /></Link>}
         ><div className="premium-hero-tags"><span>{league.members} / {league.maxMembers} members</span><span>{league.membershipType}</span><span>{league.adminRole || "Player"}</span><span>{activeTournaments} active tournaments</span><span>{league.code}</span></div></PremiumHero>
 
-        <LeagueNavigation leagueId={leagueId} />
+        <LeagueNavigation leagueId={leagueId} canManageMembers={league.canManageMembers ?? Boolean(league.adminRole)} />
+        {(league.canManageMembers ?? Boolean(league.adminRole)) ? <Link href={`/leagues/${leagueId}/settings#join-requests`} className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 py-3 text-sm font-bold">
+          {league.pendingApplications ? `Review ${league.pendingApplications} join requests` : 'Manage join requests'}
+        </Link> : null}
+        <Link href={`/arena-talk?leagueId=${leagueId}`} className="community-button">League conversation · Arena Talk ↗</Link>
 
         <section className="premium-metrics" aria-label="League summary">
           <FcStatCard

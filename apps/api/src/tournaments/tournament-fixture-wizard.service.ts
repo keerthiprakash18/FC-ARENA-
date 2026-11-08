@@ -35,7 +35,9 @@ import {
   type PlayoffSourceRef,
 } from './universal-playoff-engine.js';
 import { generateEliteCupSchedule } from './elite-cup-engine.js';
-import { assertBalancedGroups } from './group-balance.js';
+import { generateUclLeaguePhase } from './ucl-engine.js';
+import type { Prisma } from '../generated/prisma/client.js';
+import { assertBalancedGroupInputs, groupInputsFingerprint, readGroupInputs, type GroupInputs } from './group-balance.js';
 
 
 @Injectable()
@@ -201,20 +203,6 @@ export class TournamentFixtureWizardService {
       );
     }
 
-    if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
-      !['ELITE_CUP', 'UCL_CUP', 'SINGLE_ELIMINATION'].includes(tournament.competitionFormat)) {
-      const [balanceGroups, approvedTotal] = await Promise.all([
-        this.prisma.tournamentGroup.findMany({
-          where: { tournamentId },
-          select: { id: true, name: true, registrations: {
-            where: { status: 'APPROVED' }, select: { id: true },
-          } },
-        }),
-        this.prisma.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
-      ]);
-      assertBalancedGroups(balanceGroups, approvedTotal);
-    }
-
     const published =
       await this.prisma.fixture.count({
         where: {
@@ -253,22 +241,6 @@ export class TournamentFixtureWizardService {
       });
     }
 
-    await this.prisma.fixture.deleteMany({
-      where: {
-        tournamentId,
-
-        ...(dto.groupId
-          ? {
-              groupId:
-                dto.groupId,
-            }
-          : {}),
-
-        publishedAt:
-          null,
-      },
-    });
-
     if (
       tournament.fixtureMode ===
       'MANUAL'
@@ -288,14 +260,14 @@ export class TournamentFixtureWizardService {
       };
     }
 
-    const selectedIds =
-      dto.registrationIds
-        ? await this.validateSelectedRegistrations(
-            tournamentId,
-            dto.registrationIds,
-            dto.groupId,
-          )
-        : null;
+    const inputs = await readGroupInputs(this.prisma, tournamentId);
+    const selectedIds = dto.registrationIds ? [...dto.registrationIds] : null;
+    if (selectedIds) {
+      const chosen = inputs.entries.filter(entry => selectedIds.includes(entry.id));
+      if (chosen.length !== selectedIds.length) throw new BadRequestException({ success: false, data: null, error: { code: 'INVALID_FIXTURE_PARTICIPANTS', message: 'Every selected participant must be an approved entry in this Tournament.' } });
+      if (dto.groupId && chosen.some(entry => entry.groupId !== dto.groupId)) throw new BadRequestException({ success: false, data: null, error: { code: 'CROSS_GROUP_SELECTION', message: 'Every selected participant must belong to the selected Group.' } });
+    }
+    if (tournament.groupMode === 'MULTIPLE_GROUPS' && !dto.groupId && !selectedIds && tournament.competitionFormat !== 'SINGLE_ELIMINATION') assertBalancedGroupInputs(inputs);
 
     if (
       tournament.competitionFormat ===
@@ -306,6 +278,7 @@ export class TournamentFixtureWizardService {
         tournamentId,
         dto,
         selectedIds,
+        inputs,
       );
     }
 
@@ -328,25 +301,9 @@ export class TournamentFixtureWizardService {
     if (
       dto.groupId
     ) {
-      const group =
-        await this.prisma.tournamentGroup.findUniqueOrThrow({
-          where: {
-            id:
-              dto.groupId,
-          },
-
-          select: {
-            id: true,
-            name: true,
-          },
-        });
-
-      const ids =
-        selectedIds ??
-        await this.getApprovedRegistrationIds(
-          tournamentId,
-          group.id,
-        );
+      const group = inputs.groups.find(group => group.id === dto.groupId);
+      if (!group) throw new ConflictException({ success: false, data: null, error: { code: 'FIXTURE_INPUTS_CHANGED', message: 'This group changed. Reload Groups and generate the preview again.' } });
+      const ids = selectedIds ?? inputs.entries.filter(entry => entry.groupId === group.id).map(entry => entry.id);
 
       this.assertEnoughParticipants(
         ids,
@@ -373,44 +330,7 @@ export class TournamentFixtureWizardService {
       tournament.groupMode ===
       'MULTIPLE_GROUPS'
     ) {
-      const groups =
-        await this.prisma.tournamentGroup.findMany({
-          where: {
-            tournamentId,
-          },
-
-          orderBy: {
-            position:
-              'asc',
-          },
-
-          include: {
-            registrations: {
-              where: {
-                status:
-                  'APPROVED',
-
-                ...(selectedIds
-                  ? {
-                      id: {
-                        in:
-                          selectedIds,
-                      },
-                    }
-                  : {}),
-              },
-
-              orderBy: {
-                sortOrder:
-                  'asc',
-              },
-
-              select: {
-                id: true,
-              },
-            },
-          },
-        });
+      const groups = inputs.groups.map(group => ({ ...group, registrations: inputs.entries.filter(entry => entry.groupId === group.id && (!selectedIds || selectedIds.includes(entry.id))).map(entry => ({ id: entry.id })) }));
 
       if (
         groups.length <
@@ -520,11 +440,7 @@ export class TournamentFixtureWizardService {
         });
       }
     } else {
-      const ids =
-        selectedIds ??
-        await this.getApprovedRegistrationIds(
-          tournamentId,
-        );
+      const ids = selectedIds ?? inputs.entries.map(entry => entry.id);
 
       this.assertEnoughParticipants(
         ids,
@@ -587,36 +503,15 @@ export class TournamentFixtureWizardService {
       plan.blueprints =
         this.applyHomeAwayMode(
           generated,
-          tournament.legType,
           dto.homeAwayMode ??
             'BALANCED',
         );
     }
 
 
-    let sequence =
-      (
-        await this.prisma.fixture.findFirst({
-          where: {
-            tournamentId,
-          },
-
-          orderBy: {
-            sequence:
-              'desc',
-          },
-
-          select: {
-            sequence: true,
-          },
-        })
-      )?.sequence ??
-      0;
-
-    await this.prisma.$transaction(
-      async (
-        tx,
-      ) => {
+    await this.prisma.$transactionWithRetry(
+      async (tx) => {
+        let sequence = await this.preparePreviewReplacement(tx, tournament, tournamentId, dto, inputs);
         for (
           const plan
           of plans
@@ -840,21 +735,18 @@ export class TournamentFixtureWizardService {
       );
     }
 
-    const deleted =
-      await this.prisma.fixture.deleteMany({
-        where: {
-          tournamentId,
-
-          ...(groupId
-            ? {
-                groupId,
-              }
-            : {}),
-
-          publishedAt:
-            null,
-        },
-      });
+    const deleted = await this.prisma.$transactionWithRetry(async tx => {
+      const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
+      this.assertDraft(current.status);
+      await new AuthorizationService(tx as unknown as PrismaService).assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
+      if (groupId) {
+        const group = await tx.tournamentGroup.findUnique({ where: { id: groupId }, select: { tournamentId: true } });
+        if (!group || group.tournamentId !== tournamentId) throw new NotFoundException({ success: false, data: null, error: { code: 'TOURNAMENT_GROUP_NOT_FOUND', message: 'Tournament Group could not be found. Reload the groups before resetting this preview.' } });
+      }
+      const scope = { tournamentId, ...(groupId ? { groupId } : {}) };
+      await this.assertPreviewResettable(tx, scope);
+      return tx.fixture.deleteMany({ where: { ...scope, publishedAt: null } });
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,
@@ -879,12 +771,9 @@ export class TournamentFixtureWizardService {
     tournamentId: string,
     dto: GenerateFixturePreviewDto,
     selectedIds: string[] | null,
+    inputs: GroupInputs,
   ) {
-    let registrationIds =
-      selectedIds ??
-      await this.getApprovedRegistrationIds(
-        tournamentId,
-      );
+    let registrationIds = selectedIds ?? inputs.entries.map(entry => entry.id);
 
     const configuredTotal =
       tournament.playoffQualifiersTotal ??
@@ -963,28 +852,9 @@ export class TournamentFixtureWizardService {
         }),
       );
 
-    let sequence =
-      (
-        await this.prisma.fixture.findFirst({
-          where: {
-            tournamentId,
-          },
-          orderBy: {
-            sequence:
-              'desc',
-          },
-          select: {
-            sequence:
-              true,
-          },
-        })
-      )?.sequence ??
-      0;
-
-    await this.prisma.$transaction(
-      async (
-        tx,
-      ) => {
+    await this.prisma.$transactionWithRetry(
+      async (tx) => {
+        let sequence = await this.preparePreviewReplacement(tx, tournament, tournamentId, dto, inputs);
         const ids =
           new Map<
             string,
@@ -1089,6 +959,39 @@ export class TournamentFixtureWizardService {
   }
 
 
+  private async preparePreviewReplacement(tx: Prisma.TransactionClient, tournament: any, tournamentId: string, dto: GenerateFixturePreviewDto, inputs: GroupInputs): Promise<number> {
+    const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
+    const fields = ['status', 'fixtureMode', 'competitionFormat', 'legType', 'groupMode', 'playoffFormat', 'playoffSeedingBasis', 'playoffQualifiersTotal'] as const;
+    const freshInputs = await readGroupInputs(tx, tournamentId);
+    if (fields.some(key => current[key] !== tournament[key]) || groupInputsFingerprint(freshInputs) !== groupInputsFingerprint(inputs)) throw new ConflictException({ success: false, data: null, error: { code: 'FIXTURE_INPUTS_CHANGED', message: 'Approved teams, groups or fixture settings changed. Reload Groups and generate the preview again.' } });
+    const scope = { tournamentId, ...(dto.groupId ? { groupId: dto.groupId } : {}) };
+    if (await tx.fixture.count({ where: { ...scope, publishedAt: { not: null } } })) throw new ConflictException({ success: false, data: null, error: { code: 'PUBLISHED_FIXTURES_LOCKED', message: 'Official fixtures were published while preparing this preview. Reload the tournament before editing fixtures.' } });
+    await this.assertPreviewResettable(tx, scope);
+    await tx.fixture.deleteMany({ where: { ...scope, publishedAt: null } });
+    return (await tx.fixture.findFirst({ where: { tournamentId }, orderBy: { sequence: 'desc' }, select: { sequence: true } }))?.sequence ?? 0;
+  }
+
+  /** Internal unpublished bracket links are fresh wiring, not played history. */
+  private async assertPreviewResettable(tx: Prisma.TransactionClient, scope: { tournamentId: string; groupId?: string }): Promise<void> {
+    const fixtures = await tx.fixture.findMany({ where: { ...scope, publishedAt: null }, orderBy: { sequence: 'asc' }, include: {
+      deadlineCase: { select: { id: true } },
+      previousFixtures: { select: { id: true } }, previousLoserFixtures: { select: { id: true } },
+      match: { include: { arenaPost: { select: { id: true } }, _count: { select: { resultSubmissions: true, statEvents: true, ocrExtractions: true, disputes: true } } } },
+    } });
+    const ids = new Set(fixtures.map(fixture => fixture.id));
+    const safeStatuses = new Set(['UNSCHEDULED', 'SCHEDULED', 'POSTPONED']);
+    for (const fixture of fixtures) {
+      const match = fixture.match;
+      const externalProgression = (fixture.nextFixtureId && !ids.has(fixture.nextFixtureId)) || (fixture.loserNextFixtureId && !ids.has(fixture.loserNextFixtureId)) || fixture.previousFixtures.some(previous => !ids.has(previous.id)) || fixture.previousLoserFixtures.some(previous => !ids.has(previous.id));
+      const incompleteProgression = Boolean(fixture.nextFixtureId) !== Boolean(fixture.nextSlot) || Boolean(fixture.loserNextFixtureId) !== Boolean(fixture.loserNextSlot);
+      const activity = match && (!safeStatuses.has(match.status) || match.homeReadyAt || match.awayReadyAt || match.confirmedResultSubmissionId || match.arenaPost || Object.values(match._count).some(count => count > 0));
+      if (!safeStatuses.has(fixture.status) || fixture.deadlineCase || externalProgression || incompleteProgression || activity) throw new ConflictException({ success: false, data: null, error: {
+        code: 'FIXTURE_PREVIEW_HAS_MATCH_ACTIVITY', fixtureCode: fixture.fixtureCode,
+        message: `${fixture.fixtureCode}: this preview contains match activity, recorded history or progression outside the reset scope. Existing fixtures, results and proof have been preserved.`,
+      } });
+    }
+  }
+
   private async connectUniversalSource(
     tx: any,
     source: PlayoffSourceRef | null,
@@ -1146,7 +1049,7 @@ export class TournamentFixtureWizardService {
       string[],
   ) {
     if (competitionFormat === 'ELITE_CUP' || competitionFormat === 'UCL_CUP') {
-      const schedule = generateEliteCupSchedule(
+      const schedule = competitionFormat === 'UCL_CUP' ? generateUclLeaguePhase(registrationIds) : generateEliteCupSchedule(
         registrationIds,
         Math.min(8, Math.max(1, registrationIds.length - 1)),
       );
@@ -1191,136 +1094,20 @@ export class TournamentFixtureWizardService {
 
 
   private applyHomeAwayMode(
-    source:
-      FixtureBlueprint[],
-
-    legType:
-      string,
-
-    mode:
-      | 'BALANCED'
-      | 'RANDOM'
-      | 'MANUAL',
+    source: FixtureBlueprint[],
+    mode: 'BALANCED' | 'RANDOM' | 'MANUAL',
   ) {
-    const fixtures =
-      source.map(
-        (
-          fixture,
-        ) => ({
-          ...fixture,
-        }),
-      );
-
-    if (
-      mode !==
-      'RANDOM'
-    ) {
-      return fixtures;
-    }
-
-    if (
-      legType ===
-      'HOME_AWAY'
-    ) {
-      const pairs =
-        new Map<
-          string,
-          FixtureBlueprint[]
-        >();
-
-      for (
-        const fixture
-        of fixtures
-      ) {
-        const home =
-          fixture.homeRegistrationId;
-
-        const away =
-          fixture.awayRegistrationId;
-
-        if (
-          !home ||
-          !away
-        ) {
-          continue;
-        }
-
-        const key =
-          [
-            home,
-            away,
-          ]
-            .sort()
-            .join(':');
-
-        const list =
-          pairs.get(
-            key,
-          ) ??
-          [];
-
-        list.push(
-          fixture,
-        );
-
-        pairs.set(
-          key,
-          list,
-        );
-      }
-
-      for (
-        const pair
-        of pairs.values()
-      ) {
-        if (
-          randomInt(
-            0,
-            2,
-          ) ===
-          0
-        ) {
-          continue;
-        }
-
-        for (
-          const fixture
-          of pair
-        ) {
-          [
-            fixture.homeRegistrationId,
-            fixture.awayRegistrationId,
-          ] = [
-            fixture.awayRegistrationId,
-            fixture.homeRegistrationId,
-          ];
-        }
-      }
-
-      return fixtures;
-    }
-
-    for (
-      const fixture
-      of fixtures
-    ) {
-      if (
-        randomInt(
-          0,
-          2,
-        ) ===
-        1
-      ) {
-        [
-          fixture.homeRegistrationId,
-          fixture.awayRegistrationId,
-        ] = [
-          fixture.awayRegistrationId,
-          fixture.homeRegistrationId,
-        ];
+    const fixtures = source.map(fixture => ({ ...fixture }));
+    // Reversing the complete draw preserves each team's balance, return legs,
+    // and UCL pot allocations. Independent coin flips can undo that fairness.
+    if (mode === 'RANDOM' && randomInt(0, 2) === 1) {
+      for (const fixture of fixtures) {
+        [fixture.homeRegistrationId, fixture.awayRegistrationId] =
+          [fixture.awayRegistrationId, fixture.homeRegistrationId];
+        [fixture.homeSourceKey, fixture.awaySourceKey] =
+          [fixture.awaySourceKey, fixture.homeSourceKey];
       }
     }
-
     return fixtures;
   }
 

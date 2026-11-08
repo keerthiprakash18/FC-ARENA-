@@ -6,6 +6,7 @@ import {
 import type { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
+import { csvCell } from '../security/csv-cell.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import type {
   CloneTournamentDto,
@@ -398,7 +399,7 @@ export class TournamentToolsService {
   }
 
   private csv(value: unknown) {
-    return `"${String(value).replaceAll('"', '""')}"`;
+    return csvCell(value);
   }
 
   private notFound(message: string) {

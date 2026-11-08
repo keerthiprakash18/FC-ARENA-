@@ -6,6 +6,7 @@ import { FormEvent, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FcNotice } from '@/components/fc/fc-ui';
 import { apiRequest } from '@/lib/api';
+import { todayForBirthDate } from '@/lib/date-of-birth';
 
 interface RegisterResponse {
   success: true;
@@ -33,6 +34,7 @@ export default function RegisterPage() {
 
     const payload = {
       fullName: String(form.get('fullName') ?? ''),
+      dateOfBirth: String(form.get('dateOfBirth') ?? ''),
       email: String(form.get('email') ?? '')
         .trim()
         .toLowerCase(),
@@ -81,6 +83,12 @@ export default function RegisterPage() {
         <div className="field">
           <label htmlFor="auth-email">Email</label>
           <input id="auth-email" name="email" type="email" required />
+        </div>
+
+        <div className="field">
+          <label htmlFor="auth-dateOfBirth">Date of birth</label>
+          <input id="auth-dateOfBirth" name="dateOfBirth" type="date" autoComplete="bday" min="1900-01-01" max={todayForBirthDate()} required />
+          <p className="theme-muted text-sm">Private account information. Not shown on public profiles.</p>
         </div>
 
         <div className="form-grid">

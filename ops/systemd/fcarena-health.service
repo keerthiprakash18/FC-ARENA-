@@ -7,4 +7,5 @@ Wants=network-online.target
 Type=oneshot
 User=root
 WorkingDirectory=/opt/fcarena
+TimeoutStartSec=150s
 ExecStart=/opt/fcarena/ops/monitor/health-check.sh

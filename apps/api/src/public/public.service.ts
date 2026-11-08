@@ -1,3 +1,5 @@
+import { loadTournamentFormatGuide } from '../tournaments/tournament-format-guide.js';
+import { csvCell } from '../security/csv-cell.js';
 import {
   Injectable,
   NotFoundException,
@@ -96,6 +98,8 @@ export class PublicService {
             },
 
             include: {
+              previousFixtures: { select: { id: true, fixtureCode: true, nextSlot: true } },
+              previousLoserFixtures: { select: { id: true, fixtureCode: true, loserNextSlot: true } },
               group: {
                 select: {
                   id: true,
@@ -164,6 +168,10 @@ export class PublicService {
 
                       awayScore:
                         true,
+
+                      homePenaltyScore: true,
+                      awayPenaltyScore: true,
+                      status: true,
 
                       reviewedAt:
                         true,
@@ -350,6 +358,7 @@ export class PublicService {
 
           competitionFormat:
             tournament.competitionFormat,
+          playoffFormat: tournament.playoffFormat,
 
           status:
             tournament.status,
@@ -362,6 +371,7 @@ export class PublicService {
 
           qualifiersPerGroup:
             tournament.qualifiersPerGroup,
+          formatGuide: await loadTournamentFormatGuide(this.prisma, tournament.id),
 
           league:
             tournament.league,
@@ -423,6 +433,24 @@ export class PublicService {
                 ),
             }),
           ),
+
+        bracketFixtures: tournament.fixtures.filter(fixture => fixture.phase === 'PLAYOFF').map(fixture => {
+          const entry = (registration: typeof fixture.homeRegistration) => registration ? {
+            id: registration.id, entryName: registrationName(registration), entryLogoUrl: registration.entryLogoUrl, members: [],
+          } : null;
+          const source = (slot: 'HOME' | 'AWAY') => {
+            const winner = fixture.previousFixtures.find(previous => previous.nextSlot === slot);
+            const loser = fixture.previousLoserFixtures.find(previous => previous.loserNextSlot === slot);
+            const previous = winner ?? loser;
+            return previous ? { id: previous.id, fixtureCode: previous.fixtureCode, outcome: winner ? 'WINNER' : 'LOSER' } : null;
+          };
+          return { id: fixture.id, fixtureCode: fixture.fixtureCode, sequence: fixture.sequence, roundNumber: fixture.roundNumber,
+            roundName: fixture.roundName, bracketPosition: fixture.bracketPosition, phase: fixture.phase, matchday: fixture.matchday,
+            status: fixture.status, scheduledAt: fixture.scheduledAt, venue: fixture.venue, group: null,
+            home: entry(fixture.homeRegistration), away: entry(fixture.awayRegistration), homeSource: source('HOME'), awaySource: source('AWAY'),
+            match: fixture.match ? { id: fixture.match.id, matchCode: fixture.match.matchCode, status: fixture.match.status,
+              confirmedResult: fixture.match.confirmedResult?.status === 'CONFIRMED' ? fixture.match.confirmedResult : null } : null };
+        }),
 
         fixtures:
           tournament.fixtures.map(
@@ -502,6 +530,8 @@ export class PublicService {
                 registrationName(
                   standing.registration,
                 ),
+
+              logoUrl: standing.registration.entryLogoUrl ?? null,
 
               played:
                 standing.played,
@@ -630,13 +660,6 @@ export class PublicService {
   }
 
   private csv(value: string | number | null | undefined) {
-    const text = String(value ?? '');
-    const isNumericCell = /^-?\d+(?:\.\d+)?$/.test(text);
-    const safeText =
-      !isNumericCell && /^[\t\r\n ]*[=+\-@]/.test(text)
-        ? `'${text}`
-        : text;
-
-    return `"${safeText.replaceAll('"', '""')}"`;
+    return csvCell(value);
   }
 }

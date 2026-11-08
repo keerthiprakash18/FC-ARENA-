@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { AwardEmblem, PremiumHero } from '@/components/fc/premium-ui';
 import { ShareCard } from '@/components/fc/share-card';
+import { PublicPlayerCard } from '@/components/experience/player-identity-card';
 import {
   useEffect,
   useState,
@@ -263,6 +264,7 @@ export default function PublicPlayerPage() {
 
       {data ? (
         <>
+          <PublicPlayerCard userId={data.player.userId} player={{ name: nameFor(data), code: data.player.playerCode, avatar: data.player.profileImageUrl, verified: data.player.verified, matches: data.lifetimeStatistics.matches, wins: data.lifetimeStatistics.wins, goals: data.lifetimeStatistics.goalsFor, winRate: data.lifetimeStatistics.winRate }} />
           <section className="premium-metrics premium-player-metrics" aria-label="Player career summary">
             {[
               [

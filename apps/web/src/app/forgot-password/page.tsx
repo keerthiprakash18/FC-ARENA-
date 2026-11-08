@@ -31,6 +31,8 @@ export default function ForgotPasswordPage() {
       });
 
       sessionStorage.setItem('fc_reset_email', email);
+      sessionStorage.setItem('fc_reset_last_request', JSON.stringify({ email: email.trim().toLowerCase(), sentAt: Date.now() }));
+      sessionStorage.removeItem('fc_reset_dev_otp');
 
       if (result.data.developmentOtp) {
         sessionStorage.setItem(

@@ -1,3 +1,4 @@
+import { loadTournamentFormatGuide } from '../tournaments/tournament-format-guide.js';
 import {
   BadRequestException,
   ConflictException,
@@ -19,6 +20,8 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
+import { rankUclEntries } from '../tournaments/ucl-ranking.js';
 
 type Outcome = 'W' | 'D' | 'L';
 
@@ -211,6 +214,11 @@ export class ResultsService {
               tx,
               currentMatch,
             );
+            if (currentMatch.tournament.competitionFormat === 'UCL_CUP' && currentMatch.fixture.phase === 'PLAYOFF') {
+              await uclWinner(tx, currentMatch.fixture, dto);
+            } else if (dto.homePenaltyScore != null || dto.awayPenaltyScore != null) {
+              throw new BadRequestException({ success: false, data: null, error: { code: 'PENALTIES_NOT_APPLICABLE', message: 'Penalty scores are only available for UCL knockout matches.' } });
+            }
 
             await this.assertPairNotAlreadyPending(
               tx,
@@ -257,6 +265,8 @@ export class ResultsService {
                   dto.homeScore,
                 awayScore:
                   dto.awayScore,
+                homePenaltyScore: dto.homePenaltyScore,
+                awayPenaltyScore: dto.awayPenaltyScore,
                 source: source.ocrExtractionId ? 'OCR' : 'MANUAL',
                 ocrExtractionId: source.ocrExtractionId,
                 status: 'PENDING_VERIFICATION',
@@ -626,6 +636,9 @@ export class ResultsService {
           submission.match,
         );
 
+        const isUclKnockout = submission.match.tournament.competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF';
+        const uclWinnerId = isUclKnockout ? await uclWinner(tx, fixture, submission) : null;
+
         if (
           this.isKnockoutFixture(
             submission.match.tournament.format,
@@ -633,7 +646,7 @@ export class ResultsService {
             submission.match.tournament._count.groups,
             fixture.phase,
           ) &&
-          submission.homeScore ===
+          !isUclKnockout && submission.homeScore ===
             submission.awayScore
         ) {
           throw new BadRequestException({
@@ -800,6 +813,7 @@ export class ResultsService {
         }
 
         if (
+          (!isUclKnockout || uclWinnerId !== null) &&
           this.isKnockoutFixture(
             submission.match.tournament.format,
             fixture.groupId,
@@ -808,10 +822,10 @@ export class ResultsService {
           )
         ) {
           const winnerRegistrationId =
-            submission.homeScore >
+            uclWinnerId ?? (submission.homeScore >
             submission.awayScore
               ? home.id
-              : away.id;
+              : away.id);
 
           const loserRegistrationId =
             winnerRegistrationId ===
@@ -1214,8 +1228,15 @@ export class ResultsService {
         },
       );
 
+    const uclPositions = tournament.competitionFormat === 'UCL_CUP' ? new Map(rankUclEntries(
+      registrations.map(registration => ({ id: registration.id, seed: registration.sortOrder })),
+      standingsFixtures.filter(fixture => fixture.homeRegistrationId && fixture.awayRegistrationId && fixture.match?.confirmedResult)
+        .map(fixture => ({ homeId: fixture.homeRegistrationId!, awayId: fixture.awayRegistrationId!,
+          homeScore: fixture.match!.confirmedResult!.homeScore, awayScore: fixture.match!.confirmedResult!.awayScore })),
+    ).map((entry, index) => [entry.id, index])) : null;
     rows.sort(
       (a, b) =>
+        (uclPositions ? uclPositions.get(a.registrationId)! - uclPositions.get(b.registrationId)! : 0) ||
         b.points -
           a.points ||
         b.goalDifference -
@@ -1244,6 +1265,7 @@ export class ResultsService {
           status: tournament.status,
           competitionFormat: tournament.competitionFormat,
           legType: tournament.legType,
+          formatGuide: await loadTournamentFormatGuide(this.prisma, tournamentId),
         },
 
         standings:
@@ -1828,6 +1850,7 @@ export class ResultsService {
                 registrationId,
             },
     });
+    await mirrorUclReturnLeg(tx, target, targetSlot, registrationId);
   }
 
 
@@ -2151,6 +2174,8 @@ export class ResultsService {
               fixture.groupId,
 
             matchday,
+            phase: fixture.phase,
+            ...(fixture.phase === 'PLAYOFF' ? { roundNumber: fixture.roundNumber } : {}),
 
             OR: [
               {
@@ -2286,6 +2311,9 @@ export class ResultsService {
             fixture.groupId,
 
           ...matchdayFilter,
+          phase: fixture.phase,
+          ...(competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF'
+            ? { roundNumber: fixture.roundNumber, matchday: fixture.matchday } : {}),
 
           ...(homeAway &&
           Object.keys(
@@ -2412,6 +2440,9 @@ export class ResultsService {
               fixture.groupId,
 
             matchday,
+
+            phase: fixture.phase,
+            ...(fixture.phase === 'PLAYOFF' ? { roundNumber: fixture.roundNumber } : {}),
 
             OR: [
               {
@@ -2542,6 +2573,10 @@ export class ResultsService {
             fixture.groupId,
 
           ...matchdayFilter,
+
+          phase: fixture.phase,
+          ...(competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF'
+            ? { roundNumber: fixture.roundNumber, matchday: fixture.matchday } : {}),
 
           ...(homeAway &&
           Object.keys(

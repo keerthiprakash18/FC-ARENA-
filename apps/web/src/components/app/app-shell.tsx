@@ -1,6 +1,12 @@
 'use client';
 
+import { useLeagueRole } from '@/lib/use-league-role';
+
 import { PushSync } from '@/components/notifications/phone-push';
+import { PullToRefresh } from '@/components/app/app-refresh';
+import { NetworkStatus } from './network-status';
+import { DailyRewards } from '@/components/experience/daily-rewards';
+import { DateOfBirthReminder } from '@/components/profile/date-of-birth-reminder';
 import Link from 'next/link';
 import {
   usePathname,
@@ -64,6 +70,8 @@ type SidebarIconName =
 
 
 const quickLinks = [
+  { label: 'Player Journey', href: '/experience', icon: 'profile' as const },
+  { label: 'Arena Talk', href: '/arena-talk', icon: 'more' as const },
   {
     label: 'Join League',
     href: '/leagues',
@@ -560,6 +568,7 @@ export function AppShell({
   playerRole,
   currentUser,
 }: AppShellProps) {
+  const leagueRole = useLeagueRole(currentUser, playerRole);
   const pathname =
     usePathname();
 
@@ -582,6 +591,7 @@ export function AppShell({
   const playerImageUrl = currentUser
     ? profileImage?.ownerId === currentUser.id ? profileImage.url : currentUser.player?.profileImageUrl ?? null
     : profileImage?.url ?? null;
+  const rewardUserId=currentUser?.id||profileImage?.ownerId;
 
   useEffect(() => {
     let active =
@@ -661,13 +671,12 @@ export function AppShell({
 
     try {
       await logoutCurrentUser();
-
-      router.replace(
-        '/login',
-      );
-
-      router.refresh();
+    } catch {
+      // The local access session is cleared by logoutCurrentUser even when
+      // the remote cookie request fails, so still leave the protected UI.
     } finally {
+      router.replace('/login');
+      router.refresh();
       setLoggingOut(
         false,
       );
@@ -689,7 +698,9 @@ export function AppShell({
 
   return (
     <div className="fc-app-shell min-h-screen">
+      <PullToRefresh />
       <PushSync />
+      {!loggingOut&&rewardUserId&&<DailyRewards key={rewardUserId} userId={rewardUserId} />}
       <a href="#main-content" className="fc-skip-link">Skip to content</a>
       <aside className="theme-sidebar fc-sidebar-art fixed inset-y-0 left-0 z-40 hidden w-[270px] overflow-hidden border-r lg:flex lg:flex-col">
         <div className="theme-sidebar-divider shrink-0 border-b px-[22px] py-5">
@@ -821,8 +832,7 @@ export function AppShell({
               </span>
 
               <span className="theme-sidebar-muted mt-0.5 block text-[12px] font-normal">
-                {playerRole ||
-                  'Player'}
+                {leagueRole}
               </span>
             </span>
 
@@ -878,7 +888,7 @@ export function AppShell({
             playerName
           }
           playerRole={
-            playerRole
+            leagueRole
           }
           playerImageUrl={
             playerImageUrl
@@ -892,6 +902,8 @@ export function AppShell({
               : 'pb-8'
           }`}
         >
+          <NetworkStatus />
+          <DateOfBirthReminder currentUser={currentUser} />
           {
             children
           }

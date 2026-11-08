@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import { assertRoundRobinComplete } from './completion-integrity.js';
+import { isUclLeg, resolveAggregateWinner } from '../results/ucl-ties.js';
 import {
   deduplicateFixtureRecords,
   isCanonicalCompletedFixture,
@@ -274,11 +275,12 @@ export class AchievementsService {
               tournamentId,
 
               groupId: null,
+              ...(currentTournament.competitionFormat === 'UCL_CUP' ? { phase: 'PLAYOFF' as const } : {}),
             },
           });
 
         if (
-          groupCount > 0 &&
+          (groupCount > 0 || currentTournament.competitionFormat === 'UCL_CUP') &&
           playoffFixtureCount === 0
         ) {
           throw new ConflictException({
@@ -296,7 +298,7 @@ export class AchievementsService {
         }
 
         const hasGroupPlayoffs =
-          groupCount > 0 &&
+          (groupCount > 0 || currentTournament.competitionFormat === 'UCL_CUP') &&
           playoffFixtureCount > 0;
 
         const completionFixtures = await tx.fixture.findMany({
@@ -1574,7 +1576,8 @@ export class AchievementsService {
 
     if (
       result.homeScore ===
-      result.awayScore
+      result.awayScore &&
+      (result.homePenaltyScore == null || result.awayPenaltyScore == null || result.homePenaltyScore === result.awayPenaltyScore)
     ) {
       throw new ConflictException({
         success: false,
@@ -1589,17 +1592,16 @@ export class AchievementsService {
       });
     }
 
+    const winnerId = resolveAggregateWinner(finalFixture.homeRegistration.id, finalFixture.awayRegistration.id, result);
     const champion =
-      result.homeScore >
-      result.awayScore
+      winnerId === finalFixture.homeRegistration.id
         ? finalFixture
             .homeRegistration
         : finalFixture
             .awayRegistration;
 
     const runnerUp =
-      result.homeScore >
-      result.awayScore
+      winnerId === finalFixture.homeRegistration.id
         ? finalFixture
             .awayRegistration
         : finalFixture
@@ -1615,15 +1617,19 @@ export class AchievementsService {
       if (
         !fixtureResult ||
         !fixture.homeRegistration ||
-        !fixture.awayRegistration ||
-        fixtureResult.homeScore ===
-          fixtureResult.awayScore
+        !fixture.awayRegistration
       ) {
         return null;
       }
 
-      return fixtureResult.homeScore >
-        fixtureResult.awayScore
+      if (isUclLeg(fixture) && fixture.matchday === 1) return null;
+      const firstLeg = isUclLeg(fixture) && fixture.matchday === 2 ? fixtures.find((first: any) =>
+        first.phase === 'PLAYOFF' && first.roundNumber === fixture.roundNumber && first.bracketPosition === fixture.bracketPosition && first.matchday === 1,
+      )?.match?.confirmedResult : undefined;
+      let winnerId: string;
+      try { winnerId = resolveAggregateWinner(fixture.homeRegistration.id, fixture.awayRegistration.id, fixtureResult, firstLeg); }
+      catch { return null; }
+      return winnerId === fixture.homeRegistration.id
         ? {
             winner:
               fixture.homeRegistration,

@@ -1,8 +1,9 @@
 'use client';
+import { TournamentRegistrationSummary, type RegistrationSummaryData } from '@/components/tournaments/registration-summary';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import { AppShell } from '@/components/app/app-shell';
 import { EliteCupFormatCard } from '@/components/elite-cup/elite-cup-format-card';
@@ -29,7 +30,7 @@ interface Membership {
   league: { id: string; name: string; code: string };
 }
 
-interface UclCupTournament {
+interface UclCupTournament extends RegistrationSummaryData {
   id: string;
   name: string;
   code: string;
@@ -60,24 +61,22 @@ function statusTone(status: string) {
 }
 
 export default function UclCupHubPage() {
-  const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [tournaments, setTournaments] = useState<UclCupTournament[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    async function load() {
+  const initialLoad = useRecoverableLoad(async signal => {
       try {
         const [currentUser, membershipResponse] = await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my'),
+          getCurrentUser({ signal }),
+          authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my', { signal }),
         ]);
 
         const leagueTournaments = await Promise.all(
           membershipResponse.data.leagues.map(async (membership) => {
             const response = await authenticatedRequest<{ data: { tournaments: UclCupTournament[] } }>(
               `/leagues/${membership.league.id}/tournaments`,
+              { signal },
             );
             return response.data.tournaments.map((tournament) => ({
               ...tournament,
@@ -91,18 +90,13 @@ export default function UclCupHubPage() {
           if (tournament.competitionFormat === 'UCL_CUP') unique.set(tournament.id, tournament);
         }
 
+        if (signal.aborted) return;
         setUser(currentUser);
         setTournaments([...unique.values()]);
-      } catch {
-        setError('Unable to load UCL Cup tournaments. Please retry.');
-        router.replace('/login');
       } finally {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false);
       }
-    }
-
-    void load();
-  }, [router]);
+  });
 
   const approvedTeams = useMemo(
     () => tournaments.reduce((total, tournament) => total + (tournament.approvedEntries || 0), 0),
@@ -110,11 +104,8 @@ export default function UclCupHubPage() {
   );
   const recommendation = getEliteCupFormatDefinition(getEliteCupRecommendedFormat(approvedTeams));
 
-  if (loading || !user) return <FcLoadingScreen label="Loading UCL Cup..." />;
-
-  if (error) {
-    return <AppShell playerName={user.player?.identity?.inGameName}><FcErrorState message={error} onRetry={() => window.location.reload()} /></AppShell>;
-  }
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+  if (loading || !user) return <AppShell><FcLoadingScreen label="Loading UCL Cup..." embedded /></AppShell>;
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
@@ -160,6 +151,7 @@ export default function UclCupHubPage() {
                     </div>
                     {!savedEliteCupFormatMatchesRecommendation(tournament.competitionFormat, tournament.approvedEntries) ? <p className="mt-4 rounded-xl border border-amber-300/25 bg-amber-300/[0.06] p-3 text-xs leading-5 text-amber-200">Saved format differs from the current team-count recommendation.</p> : null}
                     <div className="mt-4 flex flex-wrap gap-2"><Link href={`/ucl-cup/${tournament.id}`} className="inline-flex min-h-10 items-center rounded-xl bg-sky-400 px-4 py-2 text-sm font-black text-[#031019]">Open UCL Cup</Link><Link href={`/tournaments/${tournament.id}`} className="inline-flex min-h-10 items-center rounded-xl border border-white/10 px-4 py-2 text-sm font-black text-slate-300">Tournament Overview</Link></div>
+                    <div className="mt-4"><TournamentRegistrationSummary tournament={tournament} /></div>
                     <div className="mt-5 grid gap-2 sm:grid-cols-2">{destinations.map(([label, description, icon, suffix, tone]) => <FcActionRow key={label} href={`/tournaments/${tournament.id}/${suffix}`} icon={icon} title={label} description={description} tone={tone} />)}</div>
                   </div>
                 </FcPanel>

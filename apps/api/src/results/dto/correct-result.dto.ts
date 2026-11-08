@@ -1,5 +1,6 @@
 import {
   IsInt,
+  IsOptional,
   IsString,
   Max,
   MaxLength,
@@ -17,6 +18,18 @@ export class CorrectResultDto {
   @Min(0)
   @Max(99)
   awayScore!: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(99)
+  homePenaltyScore?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(99)
+  awayPenaltyScore?: number;
 
   @IsString()
   @MinLength(3)

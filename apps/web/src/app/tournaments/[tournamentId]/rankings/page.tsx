@@ -1,5 +1,5 @@
 'use client';
-import { FcEmptyState, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
+import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 import { CompactStandingsTable } from '@/components/tournaments/compact-standings-table';
 
 import Link from 'next/link';
@@ -46,6 +46,7 @@ interface TeamRanking {
   position: number;
   registrationId: string;
   entryName: string;
+  logoUrl?: string | null;
   played: number;
   wins: number;
   draws: number;
@@ -597,9 +598,10 @@ export default function RankingsPage() {
                         </td>
 
                         <td className="p-4 text-left font-black">
-                          {
-                            team.entryName
-                          }
+                          <div className="flex items-center gap-3">
+                            <FcCrest name={team.entryName} imageUrl={team.logoUrl} size="sm" />
+                            {team.entryName}
+                          </div>
                         </td>
 
                         <td className="p-4">

@@ -257,3 +257,58 @@ export type BallonFinalRanking = Prisma.BallonFinalRankingModel
  *
  */
 export type SeasonalAward = Prisma.SeasonalAwardModel
+/**
+ * Model PlayerExperiencePreferences
+ *
+ */
+export type PlayerExperiencePreferences = Prisma.PlayerExperiencePreferencesModel
+/**
+ * Model PlayerRewardWallet
+ *
+ */
+export type PlayerRewardWallet = Prisma.PlayerRewardWalletModel
+/**
+ * Model PlayerDailyCheckIn
+ *
+ */
+export type PlayerDailyCheckIn = Prisma.PlayerDailyCheckInModel
+/**
+ * Model ArenaCoinEntry
+ *
+ */
+export type ArenaCoinEntry = Prisma.ArenaCoinEntryModel
+/**
+ * Model PlayerOwnedCosmetic
+ *
+ */
+export type PlayerOwnedCosmetic = Prisma.PlayerOwnedCosmeticModel
+/**
+ * Model ArenaPost
+ *
+ */
+export type ArenaPost = Prisma.ArenaPostModel
+/**
+ * Model ArenaComment
+ *
+ */
+export type ArenaComment = Prisma.ArenaCommentModel
+/**
+ * Model ArenaReaction
+ *
+ */
+export type ArenaReaction = Prisma.ArenaReactionModel
+/**
+ * Model ArenaPollOption
+ *
+ */
+export type ArenaPollOption = Prisma.ArenaPollOptionModel
+/**
+ * Model ArenaPollVote
+ *
+ */
+export type ArenaPollVote = Prisma.ArenaPollVoteModel
+/**
+ * Model ArenaReport
+ *
+ */
+export type ArenaReport = Prisma.ArenaReportModel

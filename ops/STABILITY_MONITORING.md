@@ -18,8 +18,15 @@ Operational acceptance still requires one controlled test crash on a non-public/
 
 There are two independent layers.
 
-- External: .github/workflows/production-health.yml checks https://api.fcarena.in/api/health every 15 minutes.
-- VPS-local: ops/monitor/health-check.sh checks the API plus root disk and memory every 5 minutes.
+- External: .github/workflows/production-health.yml schedules a read-only availability check every 5 minutes. GitHub may delay scheduled jobs; this is not a guaranteed detection SLA.
+- Both the external job and VPS-local ops/monitor/health-check.sh verify the homepage, Android `/dashboard` startup document, exact JavaScript/CSS chunk URLs, website `/api/health` proxy and direct API health. The API checks require PostgreSQL and Redis to report connected. HTTP, DNS, TLS and connection failures are reported separately.
+- VPS-local checks also inspect root disk and memory every 5 minutes. They require Node.js 24+.
+
+Run the same read-only check manually with `npm run check:availability` and verify its failure detection with `npm run check:availability:test`. No dependencies need installing for these commands on Node.js 24+.
+
+These checks detect HTTP availability and missing deploy files; they do not execute browser JavaScript or prove an authenticated user can complete every app flow. Failure notifications depend on repository Actions notification settings. No SMS, email or paging integration is provisioned by this patch.
+
+Repository changes are not active until merged/deployed. Follow [the host outage runbook](HOST_OUTAGE.md) when HTTPS and SSH both time out. A local process restart policy cannot recover an unreachable hosting network.
 
 The API health endpoint already checks PostgreSQL and Redis and exposes latency, process memory, uptime and release SHA.
 

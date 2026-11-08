@@ -79,6 +79,11 @@ const quickSearchItems = [
     href: '/profile',
   },
   {
+    label: 'Check-in Calendar',
+    keywords: 'daily check in calendar streak coins rewards',
+    href: '/experience#daily-check-in',
+  },
+  {
     label: 'Notifications',
     keywords: 'notifications alerts',
     href: '/notifications',
@@ -293,10 +298,11 @@ export function AppHeader({
 
   return (
     <header className="theme-top-header sticky top-0 z-30 border-b">
-      <div className="mx-auto flex h-[68px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="fc-header-layout mx-auto flex h-[68px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 lg:hidden"
+          aria-label="FC Arena Home"
+          className="fc-header-brand flex shrink-0 items-center gap-2 lg:hidden"
         >
           <span
             className="theme-brand-mark grid h-9 w-9 place-items-center overflow-hidden rounded-xl border"
@@ -309,13 +315,13 @@ export function AppHeader({
             />
           </span>
 
-          <span className="fc-display text-lg font-semibold tracking-[-0.02em]">
+          <span className="fc-header-wordmark fc-display text-lg font-semibold tracking-[-0.02em]">
             FC <span className="theme-brand-accent">ARENA</span>
           </span>
         </Link>
 
 
-        <div className="relative hidden w-full max-w-[440px] lg:block" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchOpen(false); }}>
+        <div className="fc-header-search relative hidden min-w-0 w-full max-w-[440px] lg:block" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchOpen(false); }}>
           <label className="theme-search flex h-10 items-center gap-3 rounded-xl border px-3.5 shadow-[0_4px_14px_rgba(11,37,69,0.04)] transition">
             <span className="theme-muted" aria-hidden="true">
               <FcIcon
@@ -447,7 +453,7 @@ export function AppHeader({
         </div>
 
 
-        <div className="flex items-center gap-2.5">
+        <div className="fc-header-actions flex items-center gap-2.5">
           <Link
             href="/discover"
             aria-label="Discover FC Arena"
@@ -493,6 +499,15 @@ export function AppHeader({
             </span>
           </button>
 
+          <Link
+            href="/experience#daily-check-in"
+            aria-label="Check-in Calendar"
+            title="Check-in Calendar"
+            className="fc-header-calendar theme-profile-chip grid h-11 w-11 shrink-0 place-items-center rounded-xl border transition duration-200"
+          >
+            <FcIcon name="calendar" size={20} />
+          </Link>
+
           <ThemeQuickPicker />
 
           <NotificationBell />
@@ -503,7 +518,8 @@ export function AppHeader({
 
           <Link
             href="/profile"
-            className="theme-profile-chip flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
+            aria-label="Your profile"
+            className="fc-header-profile theme-profile-chip flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
           >
             <span className="theme-avatar grid h-9 w-9 place-items-center overflow-hidden rounded-full border text-xs font-semibold">
               {playerImageUrl ? (

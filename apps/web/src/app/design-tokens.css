@@ -7,8 +7,8 @@
   --fc-on-navy: #fffefa;
   --fc-shell-muted: #becbd7;
   --fc-gold-bright: #d9b765;
-  --fc-gold: #956b19;
-  --fc-gold-soft: #f4ead2;
+  --fc-gold: #805a18;
+  --fc-gold-soft: #f7edd5;
   --fc-card-radius: 16px;
   --fc-control-radius: 10px;
   --fc-control-height: 44px;
@@ -22,40 +22,41 @@
   --fc-panel-padding: 20px;
   --fc-panel-shadow: var(--theme-card-shadow);
   --fc-tab-radius: 10px;
-  --theme-background: #f6f4ee;
-  --theme-secondary-background: #f1eee6;
-  --theme-surface: #fffefa;
-  --theme-elevated: #f1eee6;
-  --theme-sidebar: #061e35;
-  --theme-sidebar-secondary: #082944;
+  --theme-background: #f5f5f2;
+  --theme-secondary-background: #eef1f4;
+  --theme-surface: #ffffff;
+  --theme-elevated: #f7f9fb;
+  --theme-sidebar: #0b2033;
+  --theme-sidebar-secondary: #122e45;
   --theme-sidebar-border: rgba(255,255,255,.08);
   --theme-sidebar-text: #fffefa;
-  --theme-sidebar-muted: #a9b4c2;
-  --theme-sidebar-icon: #a8b3c0;
-  --theme-header: #fffefa;
-  --theme-header-alpha: #fffefa;
+  --theme-sidebar-muted: #bdcbd9;
+  --theme-sidebar-icon: #bdcbd9;
+  --theme-header: #ffffff;
+  --theme-header-alpha: #ffffff;
   --theme-primary: #102d4c;
   --theme-primary-hover: #1d4166;
   --theme-primary-bright: #d9b765;
   --theme-primary-soft: #e9edf0;
   --theme-primary-soft-strong: #dce4eb;
   --theme-on-primary: #ffffff;
-  --theme-text: #102b46;
-  --theme-text-secondary: #536174;
-  --theme-text-muted: #637084;
-  --theme-border: #e0dfd8;
-  --theme-success: #137747;
-  --theme-success-soft: #eaf4ee;
-  --theme-warning: #966008;
-  --theme-warning-soft: #fff3d6;
-  --theme-danger: #bd303b;
-  --theme-danger-soft: #fceef0;
-  --theme-focus: #956b19;
+  --theme-text: #142b40;
+  --theme-text-secondary: #4d6174;
+  --theme-text-muted: #5b6d7f;
+  --theme-border: #dce3e9;
+  --theme-control-border: #7c8ea1;
+  --theme-success: #176d48;
+  --theme-success-soft: #eaf5ee;
+  --theme-warning: #855806;
+  --theme-warning-soft: #fff3d5;
+  --theme-danger: #b42e42;
+  --theme-danger-soft: #fceff1;
+  --theme-focus: #805a18;
   --theme-hero-start: var(--theme-surface);
   --theme-hero-end: var(--fc-gold-soft);
   --theme-hero-accent: rgba(217,183,101,.1);
-  --theme-card-shadow: 0 2px 8px rgba(15,35,57,.035);
-  --theme-card-shadow-hover: 0 3px 12px rgba(15,35,57,.06);
+  --theme-card-shadow: 0 2px 8px rgba(15,35,57,.045);
+  --theme-card-shadow-hover: 0 8px 22px rgba(15,35,57,.075);
   --theme-overlay: rgba(7,30,53,.55);
   --theme-club-glow: radial-gradient(circle at 84% 10%, rgba(217,183,101,.10), transparent 24rem);
   --theme-club-pattern: linear-gradient(transparent, transparent);
@@ -99,6 +100,12 @@
   --auth-accent: var(--theme-primary);
   --auth-accent-strong: var(--theme-primary-hover);
   --auth-success: var(--theme-success);
+  --theme-matchday-start: #0c253d;
+  --theme-matchday-end: #193f55;
+  --theme-matchday-text: #f7f9fd;
+  --theme-matchday-muted: #c8d5e1;
+  --theme-matchday-accent: #ecd394;
+  --theme-on-matchday-accent: #10263c;
 }
 
 :root[data-theme="classic-blue"] {
@@ -114,15 +121,18 @@
   --theme-sidebar-icon: #536b91;
   --theme-header: #ffffff;
   --theme-header-alpha: #ffffff;
-  --theme-primary: #1168d0;
+  --theme-primary: #0e5fbd;
   --theme-primary-hover: #095ab9;
   --theme-primary-bright: #1685ff;
-  --theme-primary-soft: #e8f2ff;
-  --theme-primary-soft-strong: #d9eaff;
+  --theme-primary-soft: #ecf3fc;
+  --theme-primary-soft-strong: #e5eefb;
   --theme-text: #0b1f44;
   --theme-text-secondary: #60708a;
   --theme-border: #dce5f1;
   --theme-focus: #176caa;
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="city-sky"] {
@@ -138,11 +148,11 @@
   --theme-sidebar-icon: #a7cce0;
   --theme-header: #ffffff;
   --theme-header-alpha: #ffffff;
-  --theme-primary: #1b7198;
+  --theme-primary: #19688c;
   --theme-primary-hover: #155c7d;
   --theme-primary-bright: #6fc4e8;
-  --theme-primary-soft: #dff2f9;
-  --theme-primary-soft-strong: #c9e9f5;
+  --theme-primary-soft: #eaf5fa;
+  --theme-primary-soft-strong: #dceef6;
   --theme-text: #0a2740;
   --theme-text-secondary: #486779;
   --theme-text-muted: #526d7d;
@@ -159,6 +169,9 @@
     radial-gradient(circle at 50% 12%, rgba(111,196,232,.18), transparent 16rem),
     repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 2px, transparent 2px 30px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="london-red"] {
@@ -178,10 +191,10 @@
   --theme-primary-hover: #ab1822;
   --theme-primary-bright: #ef4050;
   --theme-primary-soft: #fde7e9;
-  --theme-primary-soft-strong: #f9d3d7;
+  --theme-primary-soft-strong: #fbe8eb;
   --theme-text: #25171a;
   --theme-text-secondary: #66565a;
-  --theme-text-muted: #837377;
+  --theme-text-muted: #715f66;
   --theme-border: #ecdadd;
   --theme-focus: #c91f2b;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(215,25,32,.18), transparent 26rem);
@@ -194,6 +207,9 @@
     linear-gradient(155deg, rgba(201,31,43,.26), transparent 35%),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 46px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="mersey-red"] {
@@ -213,7 +229,7 @@
   --theme-primary-hover: #991023;
   --theme-primary-bright: #d92b43;
   --theme-primary-soft: #f8dde2;
-  --theme-primary-soft-strong: #f0c8d0;
+  --theme-primary-soft-strong: #fae6eb;
   --theme-text: #2a151a;
   --theme-text-secondary: #6f555b;
   --theme-text-muted: #7a6067;
@@ -230,6 +246,9 @@
     radial-gradient(ellipse at 50% 5%, rgba(217,43,67,.22), transparent 18rem),
     repeating-linear-gradient(112deg, rgba(255,255,255,.035) 0 2px, transparent 2px 28px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="madrid-royal"] {
@@ -252,7 +271,7 @@
   --theme-primary-soft-strong: #d8def2;
   --theme-text: #111a36;
   --theme-text-secondary: #59617b;
-  --theme-text-muted: #747b91;
+  --theme-text-muted: #666a7b;
   --theme-border: #e0e3ed;
   --theme-focus: #2848a9;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(212,171,76,.18), transparent 23rem), radial-gradient(circle at 72% 18%, rgba(40,72,169,.13), transparent 29rem);
@@ -266,34 +285,37 @@
     linear-gradient(145deg, rgba(212,171,76,.18), transparent 30%),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 56px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="catalan-nights"] {
-  --theme-background: #0b1020;
-  --theme-secondary-background: #10172a;
-  --theme-surface: #131b30;
-  --theme-elevated: #18233b;
+  --theme-background: #f2f4fa;
+  --theme-secondary-background: #e9edf6;
+  --theme-surface: #ffffff;
+  --theme-elevated: #f7f8fc;
   --theme-sidebar: #080d18;
   --theme-sidebar-secondary: #10172a;
   --theme-sidebar-border: #26314b;
   --theme-sidebar-text: #f4f6ff;
   --theme-sidebar-muted: #9ca7c1;
   --theme-sidebar-icon: #a7b2cf;
-  --theme-header: #10172a;
-  --theme-header-alpha: #10172a;
-  --theme-primary: #5b8fff;
-  --theme-primary-hover: #78a2ff;
-  --theme-on-primary: #071321;
+  --theme-header: #ffffff;
+  --theme-header-alpha: #ffffff;
+  --theme-primary: #2858b8;
+  --theme-primary-hover: #204a9f;
+  --theme-on-primary: #ffffff;
   --theme-primary-bright: #b11e54;
-  --theme-primary-soft: #182c55;
-  --theme-primary-soft-strong: #213b70;
-  --theme-text: #f5f7ff;
-  --theme-text-secondary: #bbc4d8;
-  --theme-text-muted: #8e9ab4;
-  --theme-border: #2a3550;
-  --theme-focus: #75a1ff;
-  --theme-card-shadow: 0 2px 10px rgba(0,0,0,.24);
-  --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.32);
+  --theme-primary-soft: #ecf1fc;
+  --theme-primary-soft-strong: #e1eafa;
+  --theme-text: #172742;
+  --theme-text-secondary: #4d607c;
+  --theme-text-muted: #5c6b80;
+  --theme-border: #d9e1ee;
+  --theme-focus: #2858b8;
+  --theme-card-shadow: 0 2px 8px rgba(15,35,57,.045);
+  --theme-card-shadow-hover: 0 8px 22px rgba(15,35,57,.075);
   --theme-club-glow: radial-gradient(circle at 82% 9%, rgba(177,30,84,.18), transparent 24rem), radial-gradient(circle at 70% 20%, rgba(59,121,255,.16), transparent 31rem);
   --theme-club-label: "BARCELONA";
   --theme-club-mark: "BARÇA";
@@ -304,6 +326,9 @@
     repeating-linear-gradient(90deg, rgba(59,121,255,.12) 0 26px, rgba(177,30,84,.14) 26px 52px),
     linear-gradient(180deg, rgba(8,13,24,.58), rgba(8,13,24,.92));
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="munich-red"] {
@@ -323,10 +348,10 @@
   --theme-primary-hover: #a80720;
   --theme-primary-bright: #e72c45;
   --theme-primary-soft: #fae2e6;
-  --theme-primary-soft-strong: #f2cbd2;
+  --theme-primary-soft-strong: #fbe7ea;
   --theme-text: #28181c;
   --theme-text-secondary: #6a575b;
-  --theme-text-muted: #877579;
+  --theme-text-muted: #726168;
   --theme-border: #eadadd;
   --theme-focus: #c70a25;
   --theme-club-glow: radial-gradient(circle at 86% 8%, rgba(208,2,27,.18), transparent 26rem);
@@ -339,34 +364,37 @@
     linear-gradient(45deg, rgba(231,44,69,.10) 25%, transparent 25% 75%, rgba(231,44,69,.10) 75%),
     linear-gradient(-45deg, rgba(255,255,255,.035) 25%, transparent 25% 75%, rgba(255,255,255,.035) 75%);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="paris-night"] {
-  --theme-background: #081321;
-  --theme-secondary-background: #0b1929;
-  --theme-surface: #0f1d2d;
-  --theme-elevated: #13253a;
+  --theme-background: #f4f6f9;
+  --theme-secondary-background: #eaf0f5;
+  --theme-surface: #ffffff;
+  --theme-elevated: #f8fafc;
   --theme-sidebar: #050d18;
   --theme-sidebar-secondary: #091523;
   --theme-sidebar-border: #22364b;
   --theme-sidebar-text: #f7fbff;
   --theme-sidebar-muted: #91a6ba;
   --theme-sidebar-icon: #9fb4c8;
-  --theme-header: #0b1929;
-  --theme-header-alpha: #0b1929;
-  --theme-primary: #ff6174;
-  --theme-primary-hover: #ff8290;
-  --theme-on-primary: #071321;
+  --theme-header: #ffffff;
+  --theme-header-alpha: #ffffff;
+  --theme-primary: #bd2441;
+  --theme-primary-hover: #a41d36;
+  --theme-on-primary: #ffffff;
   --theme-primary-bright: #5aa8ff;
-  --theme-primary-soft: #351622;
-  --theme-primary-soft-strong: #4b1c2b;
-  --theme-text: #f4f8fc;
-  --theme-text-secondary: #b4c2d1;
-  --theme-text-muted: #8fa1b5;
-  --theme-border: #263a4f;
-  --theme-focus: #ff7183;
-  --theme-card-shadow: 0 2px 10px rgba(0,0,0,.24);
-  --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.32);
+  --theme-primary-soft: #fcecf0;
+  --theme-primary-soft-strong: #f9e0e7;
+  --theme-text: #172d44;
+  --theme-text-secondary: #4b6178;
+  --theme-text-muted: #5c6e80;
+  --theme-border: #dce4ed;
+  --theme-focus: #bd2441;
+  --theme-card-shadow: 0 2px 8px rgba(15,35,57,.045);
+  --theme-card-shadow-hover: 0 8px 22px rgba(15,35,57,.075);
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(227,27,54,.18), transparent 24rem), radial-gradient(circle at 70% 19%, rgba(44,112,188,.16), transparent 31rem);
   --theme-club-label: "PARIS";
   --theme-club-mark: "PSG";
@@ -376,34 +404,37 @@
   --theme-sidebar-pattern:
     linear-gradient(90deg, transparent 0 43%, rgba(255,255,255,.07) 43% 46%, rgba(227,27,54,.24) 46% 54%, rgba(255,255,255,.07) 54% 57%, transparent 57% 100%);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="milan-blue"] {
-  --theme-background: #090d14;
-  --theme-secondary-background: #0d131d;
-  --theme-surface: #101722;
-  --theme-elevated: #16202d;
+  --theme-background: #f2f5f9;
+  --theme-secondary-background: #e9eef5;
+  --theme-surface: #ffffff;
+  --theme-elevated: #f7f9fc;
   --theme-sidebar: #05080d;
   --theme-sidebar-secondary: #090e16;
   --theme-sidebar-border: #26313f;
   --theme-sidebar-text: #f3f7fb;
   --theme-sidebar-muted: #929eae;
   --theme-sidebar-icon: #9eabba;
-  --theme-header: #0d131d;
-  --theme-header-alpha: #0d131d;
-  --theme-primary: #4a9af0;
-  --theme-primary-hover: #75b7fb;
-  --theme-on-primary: #071321;
+  --theme-header: #ffffff;
+  --theme-header-alpha: #ffffff;
+  --theme-primary: #1764b0;
+  --theme-primary-hover: #115498;
+  --theme-on-primary: #ffffff;
   --theme-primary-bright: #65a9ef;
-  --theme-primary-soft: #102746;
-  --theme-primary-soft-strong: #18365e;
-  --theme-text: #f3f7fb;
-  --theme-text-secondary: #b6c0cc;
-  --theme-text-muted: #8f9cab;
-  --theme-border: #263443;
-  --theme-focus: #65a9ef;
-  --theme-card-shadow: 0 2px 10px rgba(0,0,0,.25);
-  --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.34);
+  --theme-primary-soft: #eaf2fc;
+  --theme-primary-soft-strong: #dfebfa;
+  --theme-text: #182b42;
+  --theme-text-secondary: #4e6177;
+  --theme-text-muted: #5c6c80;
+  --theme-border: #d8e2ed;
+  --theme-focus: #1764b0;
+  --theme-card-shadow: 0 2px 8px rgba(15,35,57,.045);
+  --theme-card-shadow-hover: 0 8px 22px rgba(15,35,57,.075);
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(22,114,212,.24), transparent 27rem);
   --theme-club-label: "MILANO";
   --theme-club-mark: "INTER";
@@ -413,34 +444,37 @@
   --theme-sidebar-pattern:
     repeating-linear-gradient(90deg, rgba(22,114,212,.16) 0 28px, rgba(0,0,0,.15) 28px 56px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="milan-red"] {
-  --theme-background: #0d0b0d;
-  --theme-secondary-background: #120f12;
-  --theme-surface: #171217;
-  --theme-elevated: #201820;
+  --theme-background: #f8f4f5;
+  --theme-secondary-background: #f1e9ed;
+  --theme-surface: #ffffff;
+  --theme-elevated: #fbf8f9;
   --theme-sidebar: #080608;
   --theme-sidebar-secondary: #100b10;
   --theme-sidebar-border: #352a35;
   --theme-sidebar-text: #faf6f8;
   --theme-sidebar-muted: #a6959d;
   --theme-sidebar-icon: #b09fa7;
-  --theme-header: #120f12;
-  --theme-header-alpha: #120f12;
-  --theme-primary: #f65365;
-  --theme-primary-hover: #ff7b88;
-  --theme-on-primary: #071321;
+  --theme-header: #ffffff;
+  --theme-header-alpha: #ffffff;
+  --theme-primary: #b6233b;
+  --theme-primary-hover: #9d1d32;
+  --theme-on-primary: #ffffff;
   --theme-primary-bright: #f06a77;
-  --theme-primary-soft: #35141b;
-  --theme-primary-soft-strong: #4a1b25;
-  --theme-text: #faf6f8;
-  --theme-text-secondary: #c6b9bf;
-  --theme-text-muted: #9d8e95;
-  --theme-border: #392b33;
-  --theme-focus: #f06a77;
-  --theme-card-shadow: 0 2px 10px rgba(0,0,0,.25);
-  --theme-card-shadow-hover: 0 4px 16px rgba(0,0,0,.34);
+  --theme-primary-soft: #fbecef;
+  --theme-primary-soft-strong: #f8e0e6;
+  --theme-text: #32202b;
+  --theme-text-secondary: #695763;
+  --theme-text-muted: #73616b;
+  --theme-border: #e7dce2;
+  --theme-focus: #b6233b;
+  --theme-card-shadow: 0 2px 8px rgba(15,35,57,.045);
+  --theme-card-shadow-hover: 0 8px 22px rgba(15,35,57,.075);
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(213,25,45,.22), transparent 27rem);
   --theme-club-label: "MILANO";
   --theme-club-mark: "AC MILAN";
@@ -450,6 +484,9 @@
   --theme-sidebar-pattern:
     repeating-linear-gradient(90deg, rgba(213,25,45,.15) 0 28px, rgba(0,0,0,.17) 28px 56px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-theme="turin-mono"] {
@@ -472,7 +509,7 @@
   --theme-primary-soft-strong: #d5d8db;
   --theme-text: #171a1d;
   --theme-text-secondary: #5b6167;
-  --theme-text-muted: #747a80;
+  --theme-text-muted: #616970;
   --theme-border: #d9dcdf;
   --theme-focus: #4b5056;
   --theme-club-glow: radial-gradient(circle at 84% 8%, rgba(52,56,61,.13), transparent 25rem);
@@ -484,40 +521,44 @@
   --theme-sidebar-pattern:
     repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 24px, rgba(0,0,0,.22) 24px 48px);
 
+  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
+  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
+  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
 }
 
 :root[data-mode="dark"] {
   color-scheme: dark;
-  --fc-gold: #e1c477;
-  --fc-gold-soft: #302b1f;
-  --theme-background: #071019;
-  --theme-secondary-background: #0b1622;
-  --theme-surface: #101c29;
-  --theme-elevated: #142332;
-  --theme-sidebar: #06111c;
-  --theme-sidebar-secondary: #091827;
-  --theme-sidebar-border: #213346;
+  --fc-gold: #e6ca87;
+  --fc-gold-soft: #352d1e;
+  --theme-background: #0a121e;
+  --theme-secondary-background: #0f1b2a;
+  --theme-surface: #132132;
+  --theme-elevated: #1a2b40;
+  --theme-sidebar: #081523;
+  --theme-sidebar-secondary: #102236;
+  --theme-sidebar-border: #263a50;
   --theme-sidebar-text: #f4f7fb;
-  --theme-sidebar-muted: #8d9caf;
-  --theme-sidebar-icon: #94a7bc;
-  --theme-header: #0b1622;
-  --theme-header-alpha: #0b1622;
+  --theme-sidebar-muted: #acbdd0;
+  --theme-sidebar-icon: #b6c7d8;
+  --theme-header: #101d2c;
+  --theme-header-alpha: #101d2c;
   --theme-primary: #3ba8ff;
   --theme-primary-hover: #67bbff;
   --theme-primary-bright: #67bbff;
   --theme-primary-soft: #102a42;
   --theme-primary-soft-strong: #153a5b;
-  --theme-on-primary: #071c33;
-  --theme-text: #f4f7fb;
-  --theme-text-secondary: #b4c0ce;
-  --theme-text-muted: #9aa9bb;
-  --theme-border: #26384a;
-  --theme-success: #3bc98a;
-  --theme-success-soft: #132f28;
-  --theme-warning: #f1b84b;
-  --theme-warning-soft: #332b1b;
-  --theme-danger: #ff8991;
-  --theme-danger-soft: #34202b;
+  --theme-on-primary: #0a1a2b;
+  --theme-text: #eef4fb;
+  --theme-text-secondary: #bfccdb;
+  --theme-text-muted: #a5b5c8;
+  --theme-border: #2b3d53;
+  --theme-control-border: #647f9b;
+  --theme-success: #74dca4;
+  --theme-success-soft: #15372b;
+  --theme-warning: #f3cc7e;
+  --theme-warning-soft: #352d1e;
+  --theme-danger: #ff9da8;
+  --theme-danger-soft: #39242f;
   --theme-focus: #8dc9ff;
   --theme-card-shadow: 0 2px 8px rgba(0,0,0,.16);
   --theme-card-shadow-hover: 0 3px 12px rgba(0,0,0,.22);
@@ -525,36 +566,44 @@
 }
 
 :root[data-mode="dark"][data-theme="luxury-gold"] {
-  --theme-primary: #d5ae5c;
-  --theme-primary-hover: #e4c57d;
-  --theme-primary-bright: #e4c57d;
-  --theme-primary-soft: #302712;
-  --theme-primary-soft-strong: #433519;
+  --theme-primary: #e2c17b;
+  --theme-primary-hover: #edd49d;
+  --theme-primary-bright: #edd49d;
+  --theme-primary-soft: #302a1d;
+  --theme-primary-soft-strong: #3b3322;
 }
 
 :root[data-mode="dark"][data-theme="city-sky"] {
-  --theme-primary: #62b9df; --theme-primary-hover: #83c9e7; --theme-primary-bright: #8dd3ef; --theme-primary-soft: #123246; --theme-primary-soft-strong: #17445f;
+  --theme-primary: #8bcfea; --theme-primary-hover: #abe0f4; --theme-primary-bright: #abe0f4; --theme-primary-soft: #122e40; --theme-primary-soft-strong: #18394c;
 }
-:root[data-mode="dark"][data-theme="london-red"],
-:root[data-mode="dark"][data-theme="mersey-red"],
+:root[data-mode="dark"][data-theme="london-red"] {
+  --theme-primary: #ff8290; --theme-primary-hover: #ff9ca7; --theme-primary-bright: #ff9ca7; --theme-primary-soft: #351d29; --theme-primary-soft-strong: #412332;
+}
+
+:root[data-mode="dark"][data-theme="mersey-red"] {
+  --theme-primary: #ff8290; --theme-primary-hover: #ff9ca7; --theme-primary-bright: #ff9ca7; --theme-primary-soft: #351d29; --theme-primary-soft-strong: #412332;
+}
+
 :root[data-mode="dark"][data-theme="munich-red"] {
-  --theme-primary: #ef4a5b; --theme-primary-hover: #ff6b79; --theme-primary-bright: #ff8290; --theme-primary-soft: #381820; --theme-primary-soft-strong: #4d202a;
+  --theme-primary: #ff8290; --theme-primary-hover: #ff9ca7; --theme-primary-bright: #ff9ca7; --theme-primary-soft: #351d29; --theme-primary-soft-strong: #412332;
 }
 :root[data-mode="dark"][data-theme="madrid-royal"] {
-  --theme-primary: #7994ff; --theme-primary-hover: #96aaff; --theme-primary-bright: #d9b65f; --theme-primary-soft: #202b55; --theme-primary-soft-strong: #2b3a70;
+  --theme-primary: #a4b5ff; --theme-primary-hover: #becaff; --theme-primary-bright: #e1c77f; --theme-primary-soft: #222d4d; --theme-primary-soft-strong: #2a3557;
 }
 :root[data-mode="dark"][data-theme="catalan-nights"] {
-  --theme-primary: #5b8fff; --theme-primary-hover: #78a2ff; --theme-primary-bright: #cf3a70; --theme-primary-soft: #1a2d59; --theme-primary-soft-strong: #223b72;
+  --theme-primary: #9bb5ff; --theme-primary-hover: #bbcbff; --theme-primary-bright: #ee8ab0; --theme-primary-soft: #1c2b4b; --theme-primary-soft-strong: #233454;
 }
 :root[data-mode="dark"][data-theme="paris-night"] {
-  --theme-primary: #ef4056; --theme-primary-hover: #ff6074; --theme-primary-bright: #6bb0ff; --theme-primary-soft: #3a1722; --theme-primary-soft-strong: #51202d;
+  --theme-primary: #ff8497; --theme-primary-hover: #ffa2af; --theme-primary-bright: #95c5ff; --theme-primary-soft: #351d2c; --theme-primary-soft-strong: #402536;
 }
 :root[data-mode="dark"][data-theme="milan-blue"] {
-  --theme-primary: #3b91ed; --theme-primary-hover: #5ba5f3; --theme-primary-bright: #75b7fb; --theme-primary-soft: #102b4b; --theme-primary-soft-strong: #173a64;
+  --theme-primary: #7bb9ff; --theme-primary-hover: #9ccbff; --theme-primary-bright: #9ccbff; --theme-primary-soft: #152c45; --theme-primary-soft-strong: #1d3752;
 }
 :root[data-mode="dark"][data-theme="milan-red"] {
-  --theme-primary: #f65365; --theme-primary-hover: #ff6170; --theme-primary-bright: #ff7b88; --theme-primary-soft: #3d1720; --theme-primary-soft-strong: #54202b;
+  --theme-primary: #ff8495; --theme-primary-hover: #ffa2ae; --theme-primary-bright: #ffa2ae; --theme-primary-soft: #361e2a; --theme-primary-soft-strong: #422532;
 }
 :root[data-mode="dark"][data-theme="turin-mono"] {
-  --theme-primary: #d8dde2; --theme-primary-hover: #ffffff; --theme-primary-bright: #ffffff; --theme-primary-soft: #262b30; --theme-primary-soft-strong: #343a40; --theme-on-primary: #101214;
+  --theme-primary: #e0e6ed; --theme-primary-hover: #ffffff; --theme-primary-bright: #ffffff; --theme-primary-soft: #293441; --theme-primary-soft-strong: #344151; --theme-on-primary: #101214;
+  --theme-matchday-start: #111c29;
+  --theme-matchday-end: #293442;
 }

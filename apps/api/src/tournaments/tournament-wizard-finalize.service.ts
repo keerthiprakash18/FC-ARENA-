@@ -10,12 +10,13 @@ import {
 } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
-import { assertBalancedGroups } from './group-balance.js';
 
 import type {
   UpdateQualificationSettingsDto,
 } from './dto/update-qualification-settings.dto.js';
 import { resolveEliteCupPlayoffQualifierCount } from './elite-cup-engine.js';
+import { uclQualification } from './ucl-engine.js';
+import { assertBalancedGroupInputs, groupInputsFingerprint, readGroupInputs } from './group-balance.js';
 
 
 @Injectable()
@@ -38,6 +39,12 @@ export class TournamentWizardFinalizeService {
         userId,
         tournamentId,
       );
+    if (tournament.competitionFormat === 'UCL_CUP') dto = {
+      playoffPairingMethod: dto.playoffPairingMethod,
+      playoffFormat: 'PROTECTED_SEED', playoffSource: 'OVERALL_STANDINGS',
+      playoffSeedingBasis: 'OVERALL_PERFORMANCE', playoffQualifiersTotal: undefined,
+      qualifiersPerGroup: undefined, avoidSameGroupEarly: false,
+    };
 
     if (
       ![
@@ -260,6 +267,7 @@ export class TournamentWizardFinalizeService {
         qualifiersPerGroup;
     } else {
       playoffQualifiersTotal =
+        tournament.competitionFormat === 'UCL_CUP' ? uclQualification(approvedEntries).qualifiers :
         ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat) &&
         dto.playoffQualifiersTotal === undefined &&
         tournament.playoffQualifiersTotal === null
@@ -584,15 +592,8 @@ export class TournamentWizardFinalizeService {
       });
     }
 
-    const approvedEntries =
-      await this.prisma.tournamentRegistration.count({
-        where: {
-          tournamentId,
-
-          status:
-            'APPROVED',
-        },
-      });
+    const publicationInputs = await readGroupInputs(this.prisma, tournamentId);
+    const approvedEntries = publicationInputs.entries.length;
 
     if (
       approvedEntries <
@@ -642,52 +643,7 @@ export class TournamentWizardFinalizeService {
       });
     }
 
-    if (
-      tournament.groupMode ===
-      'MULTIPLE_GROUPS'
-    ) {
-      const unassigned =
-        await this.prisma.tournamentRegistration.count({
-          where: {
-            tournamentId,
-
-            status:
-              'APPROVED',
-
-            groupId:
-              null,
-          },
-        });
-
-      if (
-        unassigned >
-        0
-      ) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-
-          error: {
-            code:
-              'UNASSIGNED_TEAMS',
-
-            message:
-              `${unassigned} team(s) are still unassigned.`,
-          },
-        });
-      }
-    }
-
-    if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
-      !['ELITE_CUP', 'UCL_CUP', 'SINGLE_ELIMINATION'].includes(tournament.competitionFormat)) {
-      const groups = await this.prisma.tournamentGroup.findMany({
-        where: { tournamentId },
-        select: { id: true, name: true, registrations: {
-          where: { status: 'APPROVED' }, select: { id: true },
-        } },
-      });
-      assertBalancedGroups(groups, approvedEntries);
-    }
+    if (tournament.groupMode === 'MULTIPLE_GROUPS') assertBalancedGroupInputs(publicationInputs);
 
     if (
       [
@@ -759,24 +715,16 @@ export class TournamentWizardFinalizeService {
     const now =
       new Date();
 
-    const updated =
-      await this.prisma.tournament.update({
-        where: {
-          id:
-            tournamentId,
-        },
-
-        data: {
-          status:
-            'ACTIVE',
-
-          publishedAt:
-            now,
-
-          wizardStep:
-            'PUBLISHED',
-        },
-      });
+    const updated = await this.prisma.$transactionWithRetry(async tx => {
+      const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
+      const fields = ['status', 'competitionFormat', 'groupMode', 'legType', 'fixtureMode', 'playoffSource', 'playoffFormat', 'qualifiersPerGroup', 'playoffQualifiersTotal'] as const;
+      const freshInputs = await readGroupInputs(tx, tournamentId);
+      if (fields.some(key => current[key] !== tournament[key]) || groupInputsFingerprint(freshInputs) !== groupInputsFingerprint(publicationInputs)) throw new ConflictException({ success: false, data: null, error: { code: 'FIXTURE_INPUTS_CHANGED', message: 'Approved teams, groups or tournament settings changed. Review the groups and fixtures before publishing again.' } });
+      if (current.groupMode === 'MULTIPLE_GROUPS') assertBalancedGroupInputs(freshInputs);
+      const currentFixtures = await tx.fixture.count({ where: { tournamentId, publishedAt: { not: null } } });
+      if (!currentFixtures) throw new ConflictException({ success: false, data: null, error: { code: 'FIXTURES_NOT_PUBLISHED', message: 'Publish the fixture preview before publishing the Tournament.' } });
+      return tx.tournament.update({ where: { id: tournamentId }, data: { status: 'ACTIVE', publishedAt: now, wizardStep: 'PUBLISHED' } });
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,

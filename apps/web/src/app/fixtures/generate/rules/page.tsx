@@ -390,12 +390,12 @@ export default function FixtureRulesPage() {
                   [
                     'BALANCED',
                     'Balanced Home/Away',
-                    'Use the standard rotation balance.',
+                    'Equal home and away games, with at most one extra game on either side for odd totals.',
                   ],
                   [
                     'RANDOM',
                     'Random Home/Away',
-                    'Randomize orientation while preserving valid pairings.',
+                    'Randomly reverse the balanced draw while keeping home and away games fair.',
                   ],
                   [
                     'MANUAL',

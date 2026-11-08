@@ -1,17 +1,17 @@
 'use client';
+import { CompactTeamCard } from '@/components/tournaments/compact-team-card';
+import { TeamListExport } from '@/components/tournaments/team-list-export';
+import { FootballTeamPicker } from '@/components/tournaments/football-team-picker';
+import { useRouteLeague } from '@/lib/active-league';
 import { normalizeTeamName } from '@/lib/entry-name';
 
-/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
 import { confirmAction } from '@/components/fc/confirmation-provider';
 import { FcNotice } from '@/components/fc/fc-ui';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import {
-  useParams,
-  useRouter,
-} from 'next/navigation';
-import {
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -23,8 +23,8 @@ import {
   BackHeader,
 } from '@/components/app/back-header';
 import {
-  FcCrest,
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
@@ -32,6 +32,8 @@ import {
 import {
   TournamentNavigation,
 } from '@/components/tournaments/tournament-navigation';
+import { TournamentEntryLimit, type EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
+import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 
 import {
   EntryLogoUpload,
@@ -89,12 +91,15 @@ interface RoleAssignment {
 }
 
 
-interface Tournament {
+interface Tournament extends EntryLimitTournament {
+  leagueId?: string;
   id: string;
   name: string;
   status: string;
   maxEntries: number;
   isLeagueAdmin: boolean;
+  canManageParticipants?: boolean;
+  canManageAdmins?: boolean;
 }
 
 
@@ -125,8 +130,6 @@ export default function TournamentTeamsPage() {
       tournamentId: string;
     }>();
 
-  const router =
-    useRouter();
 
   const [
     user,
@@ -232,61 +235,29 @@ export default function TournamentTeamsPage() {
   }
 
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [
-          current,
-          competition,
-          teams,
-        ] =
-          await Promise.all([
-            getCurrentUser(),
+  const [teamSearch, setTeamSearch] = useState('');
+  const filteredEntries = useMemo(() => {
+    const query = teamSearch.trim().toLocaleLowerCase();
+    return query ? entries.filter(entry => [entry.entryName, ...entry.members.flatMap(member => [member.user.fullName, member.user.player?.identity?.inGameName, member.user.player?.playerCode])].some(value => value?.toLocaleLowerCase().includes(query))) : entries;
+  }, [entries, teamSearch]);
+  const [roleError, setRoleError] = useState('');
+  useRouteLeague(user?.id, tournament?.id === tournamentId ? tournament.leagueId : null);
 
-            authenticatedRequest<TournamentResponse>(
-              `/tournaments/${tournamentId}`,
-            ),
-
-            authenticatedRequest<EntriesResponse>(
-              `/tournaments/${tournamentId}/entries`,
-            ),
-          ]);
-
-        setUser(
-          current,
-        );
-
-        setTournament(
-          competition
-            .data
-            .tournament,
-        );
-
-        setEntries(
-          teams
-            .data
-            .entries,
-        );
-
-        if (
-          competition
-            .data
-            .tournament
-            .isLeagueAdmin
-        ) {
-          await loadMatchAdmins();
-        }
-      } catch {
-        router.replace(
-          `/tournaments/${tournamentId}`,
-        );
-      }
-    })();
-  }, [
-    router,
-    tournamentId,
-  ]);
-
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, competition, teams] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<TournamentResponse>(`/tournaments/${tournamentId}`, { signal }),
+      authenticatedRequest<EntriesResponse>(`/tournaments/${tournamentId}/entries`, { signal }),
+    ]);
+    if (signal.aborted) return;
+    const next = competition.data.tournament;
+    setUser(current); setTournament({ ...next, canManageParticipants: next.canManageParticipants ?? next.isLeagueAdmin });
+    setEntries(teams.data.entries);
+    if (next.canManageAdmins) {
+      try { await loadMatchAdmins(); setRoleError(''); }
+      catch { if (!signal.aborted) setRoleError('Match admin details could not load. Your team registrations are still available.'); }
+    }
+  }, tournamentId);
 
   const totalFixtures =
     useMemo(
@@ -348,7 +319,7 @@ export default function TournamentTeamsPage() {
   ) {
     if (
       !tournament
-        ?.isLeagueAdmin
+        ?.canManageAdmins
     ) {
       return;
     }
@@ -422,7 +393,7 @@ export default function TournamentTeamsPage() {
   ) {
     if (
       !tournament
-        ?.isLeagueAdmin
+        ?.canManageAdmins
     ) {
       return;
     }
@@ -481,7 +452,7 @@ export default function TournamentTeamsPage() {
   const canManageEntries =
     Boolean(
       tournament
-        ?.isLeagueAdmin &&
+        ?.canManageAdmins &&
       preActive &&
       totalFixtures ===
         0,
@@ -666,9 +637,11 @@ export default function TournamentTeamsPage() {
   }
 
 
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+
   if (
     !user ||
-    !tournament
+    !tournament || tournament.id !== tournamentId
   ) {
     return (
       <FcLoadingScreen
@@ -686,7 +659,7 @@ export default function TournamentTeamsPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-6" data-refresh-lock={busy ? 'true' : undefined}>
         <BackHeader
           backHref={
             `/tournaments/${tournamentId}`
@@ -717,9 +690,17 @@ export default function TournamentTeamsPage() {
             tournamentId
           }
         />
+        <FcNotice tone="error">{roleError}</FcNotice>
 
 
-        {tournament.isLeagueAdmin ? (
+        <TournamentFixtureStart tournament={{ ...tournament,
+          approvedEntries: entries.filter(entry => entry.status === 'APPROVED').length,
+          pendingEntries: entries.filter(entry => entry.status === 'PENDING').length }} />
+
+        <TournamentEntryLimit tournament={{ ...tournament, approvedEntries: entries.filter(entry => entry.status === 'APPROVED').length }}
+          onUpdated={maxEntries => setTournament(current => current ? { ...current, maxEntries } : current)} />
+
+        {tournament.canManageParticipants ? (
           <FcPanel className="p-4 sm:p-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -772,7 +753,7 @@ export default function TournamentTeamsPage() {
         ) : null}
 
 
-        {tournament.isLeagueAdmin ? (
+        {tournament.canManageParticipants ? (
           <FcPanel className="p-4 sm:p-5">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -811,7 +792,7 @@ export default function TournamentTeamsPage() {
         ) : null}
 
 
-        {tournament.isLeagueAdmin &&
+        {tournament.canManageParticipants &&
         !canManageEntries ? (
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4 text-sm leading-6 text-amber-300">
             {totalFixtures >
@@ -826,6 +807,11 @@ export default function TournamentTeamsPage() {
         <FcNotice tone="error">{error}</FcNotice>
 
 
+        <TeamListExport tournamentId={tournamentId} approvedCount={entries.filter(entry => entry.status === 'APPROVED').length} />
+        {entries.length > 0 ? <label className="grid gap-2 text-sm font-semibold">Find a team or player
+          <input type="search" value={teamSearch} onChange={event => setTeamSearch(event.target.value)} placeholder="Team name, player name or ID" className="min-h-11 w-full rounded-xl border border-white/10 bg-transparent px-4 text-sm" />
+          <span className="text-xs font-normal text-slate-500" role="status">{filteredEntries.length} of {entries.length} teams · Open a card for players and actions</span>
+        </label> : null}
         {entries.length ===
         0 ? (
           <FcEmptyState
@@ -837,43 +823,18 @@ export default function TournamentTeamsPage() {
             }
           />
         ) : (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {entries.map(
+          <section className="grid grid-cols-2 items-start gap-3 md:gap-4 xl:grid-cols-3" aria-label="Tournament teams">
+            {!filteredEntries.length ? <p className="col-span-2 py-8 text-center text-sm text-slate-500">No teams match your search.</p> : null}
+            {filteredEntries.map(
               (
                 entry,
               ) => (
-                <FcPanel
-                  key={
-                    entry.id
-                  }
-                  className="p-5"
-                >
+                <CompactTeamCard key={entry.id} name={entry.entryName || 'Unnamed Team'} logoUrl={entry.entryLogoUrl} status={entry.status} fixtureCount={entry.fixtureCount} memberCount={entry.members.length} editing={editingId === entry.id && canManageEntries}>
                   {editingId ===
                     entry.id &&
                   canManageEntries ? (
                     <div className="space-y-3">
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                          Team Name
-                        </span>
-
-                        <input
-                          value={
-                            editName
-                          }
-                          onChange={
-                            (
-                              event,
-                            ) =>
-                              setEditName(
-                                event
-                                  .target
-                                  .value,
-                              )
-                          }
-                          className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                        />
-                      </label>
+                      <FootballTeamPicker tournamentId={tournamentId} excludeEntryId={entry.id} value={editName} onChange={setEditName} disabled={busy} />
 
                       <label className="grid gap-2">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-500">
@@ -935,47 +896,14 @@ export default function TournamentTeamsPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-4">
-                        <FcCrest
-                          name={
-                            entry.entryName ||
-                            'FC Team'
-                          }
-                          imageUrl={
-                            entry.entryLogoUrl
-                          }
-                        />
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="truncate font-black">
-                              {entry.entryName ||
-                                'Unnamed Team'}
-                            </h2>
-
-                            <FcStatusBadge
-                              label={
-                                entry.status
-                              }
-                              tone={
-                                entry.status ===
-                                'APPROVED'
-                                  ? 'emerald'
-                                  : 'amber'
-                              }
-                            />
-                          </div>
-
-                          <p className="mt-1 text-xs text-slate-600">
-                            {
-                              entry.fixtureCount
-                            }{' '}
-                            fixtures
-                          </p>
-                        </div>
+                      <div className="space-y-2 border-t border-white/10 pt-3">
+                        <p className="text-xs font-semibold text-slate-500">Registered players</p>
+                        {entry.members.length ? entry.members.map(member => <Link key={member.user.id} href={`/discover/players/${member.user.id}`} className="block rounded-lg border border-white/10 px-3 py-2 text-sm font-semibold break-words">
+                          {member.user.player?.identity?.inGameName || member.user.fullName}<span className="mt-1 block text-xs font-normal text-slate-500">{member.user.player?.playerCode || 'FC Arena player'}</span>
+                        </Link>) : <p className="text-xs text-slate-500">No linked players recorded.</p>}
                       </div>
 
-                      {tournament.isLeagueAdmin ? (
+                      {tournament.canManageParticipants ? (
                         <div className="mt-4 border-t border-white/[0.06] pt-4">
                           <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
                             Team Logo
@@ -1014,7 +942,7 @@ export default function TournamentTeamsPage() {
                       ) : null}
 
 
-                      {tournament.isLeagueAdmin ? (
+                      {tournament.canManageAdmins ? (
                         <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
                           <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
                             Match Admin Access
@@ -1115,7 +1043,7 @@ export default function TournamentTeamsPage() {
                       ) : null}
 
 
-                      {tournament.isLeagueAdmin &&
+                      {tournament.canManageParticipants &&
                       canManageEntries ? (
                         <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4">
                           <button
@@ -1151,7 +1079,7 @@ export default function TournamentTeamsPage() {
                       ) : null}
                     </>
                   )}
-                </FcPanel>
+                </CompactTeamCard>
               ),
             )}
           </section>

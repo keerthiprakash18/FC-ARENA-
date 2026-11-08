@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import { AppShell } from "@/components/app/app-shell";
 
 import {
   FcLoadingScreen,
+  FcErrorState,
   FcMenuRow,
   FcPageHeader,
   FcPanel,
@@ -44,23 +46,21 @@ export default function MorePage() {
 
   const [loggingOut, setLoggingOut] = useState(false);
 
-  useEffect(() => {
-    void (async () => {
-      try {
+  const initialLoad = useRecoverableLoad(async signal => {
         const [current, leagues, notifications] = await Promise.all([
-          getCurrentUser(),
+          getCurrentUser({ signal }),
 
           authenticatedRequest<{
             data: {
               leagues: Membership[];
             };
-          }>("/leagues/my"),
+          }>("/leagues/my", { signal }),
 
           authenticatedRequest<{
             success: true;
             data: NotificationData;
             error: null;
-          }>("/notifications").catch(() => ({
+          }>("/notifications?summary=true", { signal }).catch(() => ({
             success: true as const,
 
             data: {
@@ -71,16 +71,13 @@ export default function MorePage() {
           })),
         ]);
 
+        if (signal.aborted) return;
         setUser(current);
 
         setMemberships(leagues.data.leagues);
 
         setUnread(notifications.data.unreadCount);
-      } catch {
-        router.replace("/login");
-      }
-    })();
-  }, [router]);
+  });
 
   const isAdmin = useMemo(
     () => memberships.some((membership) => Boolean(membership.adminRole)),
@@ -96,17 +93,18 @@ export default function MorePage() {
 
     try {
       await logoutCurrentUser();
-
-      router.replace("/login");
-
-      router.refresh();
+    } catch {
+      // Local auth is cleared even if the remote logout request fails.
     } finally {
+      router.replace("/login");
+      router.refresh();
       setLoggingOut(false);
     }
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) {
-    return <FcLoadingScreen label="Loading More..." />;
+    return <AppShell><FcLoadingScreen label="Loading More..." embedded /></AppShell>;
   }
 
   const inGameName = user.player?.identity?.inGameName || user.fullName;
@@ -141,6 +139,11 @@ export default function MorePage() {
           </div>
         </FcPanel>
 
+        <section className="grid gap-3 sm:grid-cols-2">
+          <FcMenuRow href="/experience" icon="↗" title="Player Journey" description="Levels, weekly missions and your player card" tone="amber" />
+          <FcMenuRow href="/arena-talk" icon="◉" title="Arena Talk" description="Your league conversations and the football community" tone="cyan" />
+          {user.role === "SUPER_ADMIN" && <FcMenuRow href="/admin/community" icon="◎" title="Community Reports" description="Review reported posts and comments" />}
+        </section>
         <details className="theme-panel rounded-2xl p-4" open>
           <summary className="min-h-11 cursor-pointer font-semibold">Competition Hubs</summary>
 

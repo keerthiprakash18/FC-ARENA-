@@ -49,6 +49,7 @@ export class MatchesController {
 
     private readonly realtime:
       MatchRealtimeService,
+    private readonly authGuard: JwtAuthGuard,
   ) {}
 
   @Get(':matchId/events')
@@ -95,79 +96,44 @@ export class MatchesController {
 
     response.flushHeaders?.();
 
-    const send =
-      (
-        event:
-          unknown,
-      ) => {
-        if (
-          response.writableEnded
-        ) {
-          return;
-        }
-
-        response.write(
-          `event: match\ndata: ${JSON.stringify(
-            event,
-          )}\n\n`,
-        );
-      };
-
-    send({
-      type:
-        'connected',
-      matchId,
-      at:
-        new Date()
-          .toISOString(),
-    });
-
-    const unsubscribe =
-      this.realtime.subscribe(
-        matchId,
-        send,
-      );
-
-    const heartbeat =
-      setInterval(
-        () => {
-          if (
-            !response.writableEnded
-          ) {
-            response.write(
-              ': heartbeat\n\n',
-            );
-          }
-        },
-        20_000,
-      );
-
+    let closed = false, pending = 0;
+    let queue = Promise.resolve();
+    let heartbeat: ReturnType<typeof setInterval> | undefined;
+    let unsubscribe = () => {};
+    function cleanup() {
+      if (closed) return;
+      closed = true;
+      if (heartbeat) clearInterval(heartbeat);
+      unsubscribe();
+      if (!response.writableEnded) response.end();
+    }
+    const send = (event: unknown) => {
+      if (closed || response.writableEnded) return;
+      if (response.writableLength > 65_536) { cleanup(); return; }
+      response.write(`event: match\ndata: ${JSON.stringify(event)}\n\n`);
+    };
+    const enqueue = (write: () => void) => {
+      if (closed) return;
+      if (pending >= 32) { cleanup(); return; }
+      pending++;
+      queue = queue.then(async () => {
+        if (closed) return;
+        await this.authGuard.authenticateRequest(request);
+        await this.matchesService.assertRealtimeAccess(request.user.sub, matchId);
+        if (!closed) write();
+      }).catch(() => cleanup()).finally(() => { pending--; });
+    };
+    send({ type: 'connected', matchId, at: new Date().toISOString() });
+    unsubscribe = this.realtime.subscribe(matchId, event => enqueue(() => send(event)));
+    heartbeat = setInterval(() => enqueue(() => {
+      if (response.writableLength > 65_536) cleanup();
+      else if (!closed && !response.writableEnded) response.write(': heartbeat\n\n');
+    }), 20_000);
     heartbeat.unref?.();
+    response.on('close', cleanup);
+    request.on('aborted', cleanup);
+    if (response.destroyed || request.aborted) cleanup();
 
-    const cleanup =
-      () => {
-        clearInterval(
-          heartbeat,
-        );
-
-        unsubscribe();
-
-        if (
-          !response.writableEnded
-        ) {
-          response.end();
-        }
-      };
-
-    response.on(
-      'close',
-      cleanup,
-    );
-
-    request.on(
-      'aborted',
-      cleanup,
-    );
   }
 
   @Post(':matchId/ready')

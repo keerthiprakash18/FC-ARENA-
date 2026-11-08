@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Headers,
   Param,
   Patch,
@@ -152,13 +153,16 @@ export class MobileVersionController {
   ) {}
 
   @Get('version')
+  @Header('Cache-Control', 'no-store')
   version(
     @Query('versionCode')
     versionCode?:
       string,
+    @Query('versionName') versionName?: string,
   ) {
     return this.adminOps.androidVersionPolicy(
       versionCode,
+      versionName,
     );
   }
 }

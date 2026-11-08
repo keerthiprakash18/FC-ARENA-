@@ -1,3 +1,5 @@
+import { balanceHomeAwayPairs } from './home-away-balance.js';
+
 export type EliteCupTeam = string | { id: string } | { teamId: string };
 
 export interface EliteCupFixture {
@@ -74,10 +76,6 @@ function effectiveDegree(
     teamCount % 2 === 1 && capped % 2 === 1 ? capped + 1 : capped;
 
   return { capped, effective };
-}
-
-function orientationCost(homeImbalance: number, awayImbalance: number): number {
-  return Math.abs(homeImbalance + 1) + Math.abs(awayImbalance - 1);
 }
 
 interface EliteCupPairing {
@@ -200,14 +198,15 @@ export function generateEliteCupSchedule(
     requestedMatchesPerTeam,
   );
 
-  const homeCounts = new Map(teamIds.map((teamId) => [teamId, 0]));
-  const awayCounts = new Map(teamIds.map((teamId) => [teamId, 0]));
   const fixtures: EliteCupFixture[] = [];
 
   const occupiedByMatchday = new Map<number, Set<string>>();
   const pairings = generatePairings(teamIds, effective);
+  const directions = balanceHomeAwayPairs(
+    pairings.map(pairing => [pairing.leftTeamId, pairing.rightTeamId]),
+  );
 
-  for (const pairing of pairings) {
+  for (const [index, pairing] of pairings.entries()) {
     let matchday = pairing.sourceRound;
     while (
       (occupiedByMatchday.get(matchday)?.has(pairing.leftTeamId) ?? false) ||
@@ -216,29 +215,7 @@ export function generateEliteCupSchedule(
       matchday += 1;
     }
 
-    const left = pairing.leftTeamId;
-    const right = pairing.rightTeamId;
-    const leftHomeImbalance =
-      (homeCounts.get(left) ?? 0) - (awayCounts.get(left) ?? 0);
-    const rightHomeImbalance =
-      (homeCounts.get(right) ?? 0) - (awayCounts.get(right) ?? 0);
-    const leftHomeCost = orientationCost(leftHomeImbalance, rightHomeImbalance);
-    const rightHomeCost = orientationCost(
-      rightHomeImbalance,
-      leftHomeImbalance,
-    );
-
-    // For odd team counts, each selected rotational factor is a directed
-    // cycle. Its natural direction gives every team one home and one away
-    // fixture per factor, keeping the complete schedule exactly balanced.
-    const leftIsHome =
-      teamIds.length % 2 === 1
-        ? true
-        : leftHomeCost < rightHomeCost ||
-          (leftHomeCost === rightHomeCost &&
-            (pairing.sourceRound + pairing.sourcePosition) % 2 === 0);
-    const homeTeamId = leftIsHome ? left : right;
-    const awayTeamId = leftIsHome ? right : left;
+    const [homeTeamId, awayTeamId] = directions[index];
 
     const matchdayTeams = occupiedByMatchday.get(matchday) ?? new Set<string>();
     addFixture(
@@ -251,8 +228,6 @@ export function generateEliteCupSchedule(
     matchdayTeams.add(homeTeamId);
     matchdayTeams.add(awayTeamId);
     occupiedByMatchday.set(matchday, matchdayTeams);
-    homeCounts.set(homeTeamId, (homeCounts.get(homeTeamId) ?? 0) + 1);
-    awayCounts.set(awayTeamId, (awayCounts.get(awayTeamId) ?? 0) + 1);
   }
 
   const matchdays = Math.max(0, ...fixtures.map((fixture) => fixture.matchday));

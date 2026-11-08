@@ -1,8 +1,20 @@
 import { BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import { SafeExceptionFilter } from './safe-exception.filter.js';
+import { PublicServiceUnavailableException } from './public-service-unavailable.exception.js';
 
 describe('Safe API errors', () => {
+  it('preserves fixed, actionable OCR availability errors', () => {
+    const response = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+    new SafeExceptionFilter().catch(new PublicServiceUnavailableException('OCR_STORAGE_UNAVAILABLE'), {
+      switchToHttp: () => ({ getResponse: () => response, getRequest: () => undefined }),
+    } as never);
+    expect(response.status).toHaveBeenCalledWith(503);
+    expect(response.json).toHaveBeenCalledWith({ success: false, data: null, error: {
+      code: 'OCR_STORAGE_UNAVAILABLE',
+      message: expect.stringContaining('enter the scores manually'),
+    } });
+  });
   it.each([new Error('private-provider-value'), new InternalServerErrorException('private-provider-value')])('masks internal errors', (error) => {
     const response = { status: vi.fn().mockReturnThis(), json: vi.fn() };
     new SafeExceptionFilter().catch(error, { switchToHttp: () => ({ getResponse: () => response, getRequest: () => undefined }) } as never);

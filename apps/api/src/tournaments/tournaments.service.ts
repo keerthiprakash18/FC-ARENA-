@@ -1,3 +1,4 @@
+import { loadTournamentFormatGuide } from './tournament-format-guide.js';
 import {
   BadRequestException,
   ConflictException,
@@ -11,11 +12,32 @@ import { AuthorizationService } from '../security/authorization.service.js';
 import type { CreateTournamentDto } from './dto/create-tournament.dto.js';
 import type { DeleteTournamentDto } from './dto/delete-tournament.dto.js';
 import type { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
+import type { UpdateEntryLimitDto } from './dto/update-entry-limit.dto.js';
 import type { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import type { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 import { assertUniqueEntryName } from './entry-name.js';
+import { RegistrationNotificationsService } from '../notifications/registration-notifications.service.js';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function entryLimitLockReason(status: string, fixtureCount: number): string | null {
+  if (!['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(status)) {
+    return 'The entry limit is locked after the Tournament starts or finishes.';
+  }
+  if (fixtureCount > 0) {
+    return 'The entry limit is locked because fixtures have already been generated.';
+  }
+  return null;
+}
+
+function assertEntryLimitFits(maxEntries: number, approvedEntries: number) {
+  if (maxEntries < approvedEntries) {
+    throw new BadRequestException({ success: false, data: null, error: {
+      code: 'ENTRY_LIMIT_BELOW_APPROVED_COUNT',
+      message: `There are ${approvedEntries} approved entries. Remove an entry first or use a limit of at least ${approvedEntries}.`,
+    } });
+  }
+}
 
 @Injectable()
 export class TournamentsService {
@@ -23,6 +45,7 @@ export class TournamentsService {
     private readonly prisma: PrismaService,
     private readonly authorizationService:
       AuthorizationService,
+    private readonly registrationNotifications?: RegistrationNotificationsService,
   ) {}
 
   async createTournament(
@@ -272,35 +295,36 @@ export class TournamentsService {
       await this.assertLeagueMember(userId, leagueId);
     }
 
-    const tournaments = await this.prisma.tournament.findMany({
-      where: {
-        leagueId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        _count: {
-          select: {
-            registrations: {
-              where: {
-                status: 'APPROVED',
-              },
-            },
-          },
-        },
-      },
-    });
+    const scopes = await this.authorizationService.tournamentListScopes(userId);
+    const [tournaments, counts, reviewable, editable] = await Promise.all([
+      this.prisma.tournament.findMany({ where: { leagueId }, orderBy: { createdAt: 'desc' } }),
+      this.prisma.tournamentRegistration.groupBy({
+        by: ['tournamentId', 'status'],
+        where: { tournament: { leagueId }, status: { in: ['APPROVED', 'PENDING'] } },
+        _count: { _all: true },
+      }),
+      this.prisma.tournament.findMany({ where: { AND: [{ leagueId }, scopes.review] }, select: { id: true } }),
+      this.prisma.tournament.findMany({ where: { AND: [{ leagueId }, scopes.settings] }, select: { id: true } }),
+    ]);
+    const totals = new Map<string, { approved: number; pending: number }>();
+    for (const row of counts) {
+      const current = totals.get(row.tournamentId) ?? { approved: 0, pending: 0 };
+      if (row.status === 'APPROVED') current.approved = row._count._all;
+      if (row.status === 'PENDING') current.pending = row._count._all;
+      totals.set(row.tournamentId, current);
+    }
+    const reviewIds = new Set(reviewable.map(row => row.id));
+    const editIds = new Set(editable.map(row => row.id));
 
     return {
       success: true,
       data: {
-        tournaments: tournaments.map((tournament) => ({
-          ...tournament,
-          approvedEntries:
-            tournament._count.registrations,
-          _count: undefined,
-        })),
+        tournaments: tournaments.map((tournament) => {
+          const total = totals.get(tournament.id) ?? { approved: 0, pending: 0 };
+          return { ...tournament, approvedEntries: total.approved, pendingEntries: total.pending,
+            registeredEntries: total.approved + total.pending, canManageParticipants: reviewIds.has(tournament.id),
+            canManageSettings: editIds.has(tournament.id) };
+        }),
       },
       error: null,
     };
@@ -338,6 +362,7 @@ export class TournamentsService {
           },
           _count: {
             select: {
+              fixtures: true,
               registrations: {
                 where: {
                   status: 'APPROVED',
@@ -386,11 +411,21 @@ export class TournamentsService {
         tournamentId,
       );
 
+    const canManageSettings = await this.authorizationService.canManageTournamentPermission(
+      userId, tournamentId, 'MANAGE_SETTINGS',
+    );
+    const canManageParticipants = await this.authorizationService.canManageTournamentPermission(
+      userId, tournamentId, 'MANAGE_PARTICIPANTS',
+    );
+    const pendingEntries = await this.prisma.tournamentRegistration.count({ where: { tournamentId, status: 'PENDING' } });
+    const entryLimitLockedReason = entryLimitLockReason(tournament.status, tournament._count.fixtures);
+
     return {
       success: true,
       data: {
         tournament: {
           ...tournament,
+          formatGuide: await loadTournamentFormatGuide(this.prisma, tournamentId),
           approvedEntries:
             tournament._count.registrations,
           isLeagueAdmin:
@@ -398,6 +433,14 @@ export class TournamentsService {
           canManageTournament,
           canManageFixtures,
           canManageAdmins,
+          canManageSettings,
+          canManageParticipants,
+          pendingEntries,
+          registeredEntries: tournament._count.registrations + pendingEntries,
+          canEditEntryLimit: canManageSettings && entryLimitLockedReason === null,
+          canExtendEntryLimit: canManageSettings && entryLimitLockedReason === null,
+          canPrepareFixtures: canManageSettings && canManageParticipants && canManageFixtures && entryLimitLockedReason === null,
+          entryLimitLockedReason,
           _count: undefined,
         },
       },
@@ -754,6 +797,13 @@ export class TournamentsService {
     const registration =
       await this.prisma.$transactionWithRetry(
         async (tx) => {
+          const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
+          if (!current) throw this.tournamentNotFound();
+          if (current.status !== 'REGISTRATION_OPEN') {
+            throw new ConflictException({ success: false, data: null, error: {
+              code: 'REGISTRATION_NOT_OPEN', message: 'Tournament registration is not currently open.',
+            } });
+          }
           await assertUniqueEntryName(tx, tournamentId, entryName);
           if (autoApprove) {
             const approvedCount =
@@ -767,7 +817,7 @@ export class TournamentsService {
 
             if (
               approvedCount >=
-              tournament.maxEntries
+              current.maxEntries
             ) {
               throw new ConflictException({
                 success: false,
@@ -822,6 +872,9 @@ export class TournamentsService {
         },
       );
 
+    // The committed entry remains successful even if optional notification delivery needs retry.
+    await this.registrationNotifications?.notify(registration.id).catch(() => {});
+
     return {
       success: true,
       data: {
@@ -858,10 +911,10 @@ export class TournamentsService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueMember(
-      userId,
-      tournament.leagueId,
-    );
+    const membership = await this.prisma.leagueMember.findUnique({ where: { leagueId_userId: { leagueId: tournament.leagueId, userId } } });
+    if (!membership && !(await this.authorizationService.canManageTournament(userId, tournamentId))) {
+      await this.assertLeagueMember(userId, tournament.leagueId);
+    }
 
     const registration =
       await this.prisma.tournamentRegistration.findFirst({
@@ -943,16 +996,17 @@ export class TournamentsService {
     const canEdit = Boolean(
       registration &&
       ['PENDING', 'APPROVED'].includes(registration.status) &&
-      ['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(tournament.status) &&
-      fixtureCount === 0,
+      registration.registeredByUserId === userId &&
+      registration.members.some(member => member.userId === userId) &&
+      !['COMPLETED', 'CANCELLED'].includes(tournament.status),
     );
+    const canEditRoster = canEdit && fixtureCount === 0 &&
+      ['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(tournament.status);
     const editLockReason = registration
       ? registration.status === 'REJECTED'
         ? 'Rejected registrations must be submitted again.'
-        : fixtureCount > 0
-          ? 'Team editing is locked after fixtures are generated.'
-          : !['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(tournament.status)
-            ? 'Team editing is locked after the Tournament becomes active.'
+        : ['COMPLETED', 'CANCELLED'].includes(tournament.status)
+            ? 'This Tournament has ended. Entry details are read-only.'
             : null
       : null;
 
@@ -962,6 +1016,7 @@ export class TournamentsService {
       data: {
         registration,
         canEdit,
+        canEditRoster,
         editLockReason,
       },
 
@@ -1123,6 +1178,7 @@ export class TournamentsService {
       },
     );
 
+    await this.registrationNotifications?.notify(registrationId).catch(() => {});
     return {
       success: true,
       data: {
@@ -1145,6 +1201,7 @@ export class TournamentsService {
         where: {
           id: registrationId,
         },
+        include: { members: { select: { userId: true } } },
       });
 
     if (
@@ -1186,12 +1243,14 @@ export class TournamentsService {
         },
         data: {
           status: 'REJECTED',
+          notificationMemberIds: registration.members.map(member => member.userId),
           reviewedByUserId: adminUserId,
           reviewedAt: new Date(),
         },
       }),
     ]);
 
+    await this.registrationNotifications?.notify(registrationId, registration.members.map(member => member.userId)).catch(() => {});
     return {
       success: true,
       data: {
@@ -1279,6 +1338,78 @@ export class TournamentsService {
     };
   }
 
+
+  async updateEntryLimit(userId: string, tournamentId: string, dto: UpdateEntryLimitDto) {
+    await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
+
+    const limits = await this.prisma.$transactionWithRetry(async (tx) => {
+      const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
+      if (!current) throw this.tournamentNotFound();
+
+      const fixtureCount = await tx.fixture.count({ where: { tournamentId } });
+      const reason = entryLimitLockReason(current.status, fixtureCount);
+      if (reason) {
+        throw new ConflictException({ success: false, data: null,
+          error: { code: 'TOURNAMENT_ENTRY_LIMIT_LOCKED', message: reason } });
+      }
+      const approvedEntries = await tx.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } });
+      assertEntryLimitFits(dto.maxEntries, approvedEntries);
+      if (dto.maxEntries !== current.maxEntries) {
+        await tx.tournament.update({ where: { id: tournamentId }, data: { maxEntries: dto.maxEntries } });
+      }
+      return { previousMaxEntries: current.maxEntries, maxEntries: dto.maxEntries };
+    }, { isolationLevel: 'Serializable' });
+
+    return { success: true, data: { ...limits,
+      message: limits.previousMaxEntries === limits.maxEntries
+        ? 'The entry limit is unchanged.'
+        : `Entry limit updated from ${limits.previousMaxEntries} to ${limits.maxEntries}.`,
+    }, error: null };
+  }
+
+  async prepareFixtures(userId: string, tournamentId: string) {
+    await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
+    await this.authorizationService.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_PARTICIPANTS');
+    await this.authorizationService.assertCanManageFixtures(userId, tournamentId);
+
+    const prepared = await this.prisma.$transactionWithRetry(async tx => {
+      const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
+      if (!current) throw this.tournamentNotFound();
+      const [fixtures, approvedEntries, pendingEntries] = await Promise.all([
+        tx.fixture.count({ where: { tournamentId } }),
+        tx.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
+        tx.tournamentRegistration.count({ where: { tournamentId, status: 'PENDING' } }),
+      ]);
+      if (entryLimitLockReason(current.status, fixtures)) {
+        throw new ConflictException({ success: false, data: null, error: {
+          code: 'TOURNAMENT_FIXTURE_SETUP_LOCKED',
+          message: 'Fixture setup is only available before fixtures are generated and before the Tournament starts.',
+        } });
+      }
+      if (approvedEntries < 2) {
+        throw new ConflictException({ success: false, data: null, error: {
+          code: 'NOT_ENOUGH_TEAMS', message: 'At least two approved teams are required to create fixtures.',
+        } });
+      }
+      if (pendingEntries > 0) {
+        throw new ConflictException({ success: false, data: null, error: {
+          code: 'PENDING_REGISTRATIONS_EXIST',
+          message: `Review the ${pendingEntries} pending registration(s) before creating fixtures.`,
+        } });
+      }
+      const nextStep = current.groupMode === 'MULTIPLE_GROUPS' ? 'GROUPS' as const : 'FIXTURE_SETTINGS' as const;
+      await tx.tournament.update({ where: { id: tournamentId }, data: {
+        status: 'REGISTRATION_CLOSED',
+        registrationClosedAt: current.registrationClosedAt ?? new Date(),
+        wizardStep: nextStep,
+      } });
+      return { approvedEntries, maxEntries: current.maxEntries, nextStep };
+    }, { isolationLevel: 'Serializable' });
+
+    return { success: true, data: { ...prepared,
+      message: `Registration closed. Continue with ${prepared.approvedEntries} approved teams.`,
+    }, error: null };
+  }
 
   async updateTournamentSetup(
     userId: string,
@@ -1385,7 +1516,18 @@ export class TournamentsService {
     }
 
     const updated =
-      await this.prisma.tournament.update({
+      await this.prisma.$transactionWithRetry(async tx => {
+        const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
+        if (!current || current.status !== 'DRAFT') {
+          throw new ConflictException({ success: false, data: null, error: {
+            code: 'TOURNAMENT_SETUP_LOCKED', message: 'Tournament setup can only be edited while the Tournament is in Draft.',
+          } });
+        }
+        if (dto.maxEntries !== undefined) {
+          const approvedEntries = await tx.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } });
+          assertEntryLimitFits(dto.maxEntries, approvedEntries);
+        }
+        return tx.tournament.update({
         where: {
           id: tournamentId,
         },
@@ -1467,6 +1609,7 @@ export class TournamentsService {
             'TEAMS',
         },
       });
+      }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,

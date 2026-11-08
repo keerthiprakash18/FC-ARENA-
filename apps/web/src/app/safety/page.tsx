@@ -1,16 +1,13 @@
 'use client';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
 import Link from 'next/link';
 
 import {
   FormEvent,
-  useEffect,
   useState,
 } from 'react';
 
-import {
-  useRouter,
-} from 'next/navigation';
 
 import {
   AppShell,
@@ -18,6 +15,7 @@ import {
 
 import {
   FcLoadingScreen,
+  FcErrorState,
   FcPageHeader,
   FcPanel,
   FcSectionHeading,
@@ -123,8 +121,6 @@ const contentTypeOptions = [
 ] as const;
 
 export default function SafetyPage() {
-  const router =
-    useRouter();
 
   const [
     user,
@@ -202,7 +198,7 @@ export default function SafetyPage() {
   ] =
     useState('');
 
-  async function loadSafetyData() {
+  async function loadSafetyData(signal?: AbortSignal) {
     const [
       blocksResponse,
       reportsResponse,
@@ -215,7 +211,7 @@ export default function SafetyPage() {
               BlockedUser[];
           };
           error: null;
-        }>('/safety/blocks'),
+        }>('/safety/blocks', { signal }),
 
         authenticatedRequest<{
           success: true;
@@ -226,9 +222,11 @@ export default function SafetyPage() {
           error: null;
         }>(
           '/safety/reports/mine',
+          { signal },
         ),
       ]);
 
+    if (signal?.aborted) return;
     setBlockedUsers(
       blocksResponse
         .data
@@ -242,26 +240,18 @@ export default function SafetyPage() {
     );
   }
 
-  useEffect(() => {
-    void (async () => {
-      try {
+  const initialLoad = useRecoverableLoad(async signal => {
         const current =
-          await getCurrentUser();
+          await getCurrentUser({ signal });
+
+        await loadSafetyData(signal);
+        if (signal.aborted) return;
 
         setUser(
           current,
         );
 
-        await loadSafetyData();
-      } catch {
-        router.replace(
-          '/login',
-        );
-      }
-    })();
-  }, [
-    router,
-  ]);
+  });
 
   async function submitReport(
     event:
@@ -480,6 +470,7 @@ export default function SafetyPage() {
     }
   }
 
+  if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) {
     return (
       <FcLoadingScreen

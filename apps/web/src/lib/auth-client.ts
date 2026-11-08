@@ -8,6 +8,7 @@ export interface CurrentUser {
   fullName: string;
   email: string;
   phoneNumber: string | null;
+  dateOfBirth?: string | null;
   role: string;
   status: string;
   themePreference:
@@ -51,6 +52,24 @@ const notificationCaches = new Map<string, { value: unknown; expiresAt: number }
 let notificationGeneration = 0;
 function clearNotificationCache() { pendingReads.clear(); notificationGeneration++; notificationRequests.clear(); notificationCaches.clear(); }
 
+let sessionEpoch = 0;
+let profileEpoch = 0;
+let currentUserCache: { user: CurrentUser; epoch: number; expiresAt: number } | null = null;
+interface ProfileRead { promise: Promise<CurrentUser>; controller: AbortController; subscribers: number; settled: boolean; epoch: number }
+let currentUserRead: ProfileRead | null = null;
+function invalidateCurrentUser() { profileEpoch++; currentUserCache = null; currentUserRead = null; }
+
+/** Refresh visible data without ending or rotating the signed-in account. */
+export function invalidateAppReadCaches(): void {
+  invalidateCurrentUser();
+  clearNotificationCache();
+}
+
+/** Synchronous identity snapshot for already-authenticated app navigation. */
+export function peekCurrentUser(): CurrentUser | null {
+  return currentUserCache?.epoch === profileEpoch && currentUserCache.expiresAt > Date.now() ? currentUserCache.user : null;
+}
+
 let accessToken: string | null = null;
 let accessTokenExpiresAt = 0;
 
@@ -73,6 +92,8 @@ export function establishLoginSession(
   token: string,
   expiresInSeconds: number,
 ): void {
+  sessionEpoch++;
+  invalidateCurrentUser();
   clearNotificationCache();
   accessToken = token;
 
@@ -109,7 +130,8 @@ export async function refreshAccessToken(
     return refreshPromise;
   }
 
-  refreshPromise =
+  const epoch = sessionEpoch;
+  const pending =
     (async (): Promise<string> => {
       const refresh =
         await apiRequest<{
@@ -125,6 +147,7 @@ export async function refreshAccessToken(
           method: 'POST',
         });
 
+      if (epoch !== sessionEpoch) throw new DOMException('The signed-in account changed.', 'AbortError');
       const newAccessToken =
         refresh.data.accessToken;
 
@@ -141,25 +164,42 @@ export async function refreshAccessToken(
       return newAccessToken;
     })();
 
+  refreshPromise = pending;
   try {
-    return await refreshPromise;
+    return await pending;
   } finally {
-    refreshPromise = null;
+    if (refreshPromise === pending) refreshPromise = null;
   }
+}
+
+// Cancelling one page must not cancel a shared session refresh for other pages.
+async function waitForSession(signal?: AbortSignal | null): Promise<string> {
+  const pending = refreshAccessToken();
+  if (!signal) return pending;
+  let cancel = () => {};
+  const cancelled = new Promise<never>((_, reject) => {
+    cancel = () => reject(signal.reason ?? new DOMException('Request cancelled.', 'AbortError'));
+    signal.addEventListener('abort', cancel, { once: true });
+    if (signal.aborted) cancel();
+  });
+  try { return await Promise.race([pending, cancelled]); }
+  finally { signal.removeEventListener('abort', cancel); }
 }
 
 export async function authenticatedRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token =
-    await refreshAccessToken();
+  if (options.signal?.aborted) throw options.signal.reason ?? new DOMException('Request cancelled.', 'AbortError');
+  const token = await waitForSession(options.signal);
 
   const method =
     (
       options.method ||
       'GET'
     ).toUpperCase();
+
+  if (method !== 'GET') invalidateCurrentUser();
 
   if (
     path.startsWith(
@@ -170,25 +210,11 @@ export async function authenticatedRequest<T>(
     clearNotificationCache();
   }
 
-  const perform =
-    (
-      bearerToken:
-        string,
-    ) =>
-      apiRequest<T>(
-        path,
-        {
-          ...options,
-          headers: {
-            ...(
-              options.headers ??
-              {}
-            ),
-            Authorization:
-              `Bearer ${bearerToken}`,
-          },
-        },
-      );
+  const perform = (bearerToken: string) => {
+    const headers = new Headers(options.headers);
+    headers.set('Authorization', `Bearer ${bearerToken}`);
+    return apiRequest<T>(path, { ...options, headers });
+  };
 
   /*
    * Only idempotent reads get an automatic auth retry.
@@ -236,9 +262,7 @@ export async function authenticatedRequest<T>(
     method !== 'GET'
   ) {
     return request()
-      .finally(
-        clearNotificationCache,
-      );
+      .finally(() => { clearNotificationCache(); invalidateCurrentUser(); });
   }
 
   if (
@@ -248,8 +272,7 @@ export async function authenticatedRequest<T>(
 
     return request()
       .finally(
-        () =>
-          pendingReads.clear(),
+        () => { pendingReads.clear(); invalidateCurrentUser(); },
       );
   }
 
@@ -420,7 +443,24 @@ function sendUpload<T>(
         true;
 
       xhr.timeout =
-        30_000;
+        120_000;
+
+      // Slow mobile transfers may take over 30 seconds while still progressing.
+      // Bound stalls separately, and never automatically replay an uncertain write.
+      let stallTimer: ReturnType<typeof setTimeout>;
+      const clearStall = () => clearTimeout(stallTimer);
+      const resetStall = () => {
+        clearStall();
+        stallTimer = setTimeout(() => {
+          reject(new UploadRequestError('The upload stopped responding. Check your connection and retry.', 408));
+          xhr.abort();
+        }, 30_000);
+      };
+      xhr.onprogress = resetStall;
+      xhr.onabort = () => {
+        clearStall();
+        reject(new UploadRequestError('The upload was cancelled.', 0));
+      };
 
       xhr.setRequestHeader(
         'Authorization',
@@ -429,6 +469,7 @@ function sendUpload<T>(
 
       xhr.upload.onprogress =
         (event) => {
+          resetStall();
           if (
             !event.lengthComputable ||
             !onProgress
@@ -452,6 +493,7 @@ function sendUpload<T>(
 
       xhr.onerror =
         () => {
+          clearStall();
           reject(
             new UploadRequestError(
               'Unable to upload file. Check your connection and retry.',
@@ -462,6 +504,7 @@ function sendUpload<T>(
 
       xhr.ontimeout =
         () => {
+          clearStall();
           reject(
             new UploadRequestError(
               'The upload timed out. Please retry.',
@@ -472,6 +515,7 @@ function sendUpload<T>(
 
       xhr.onload =
         () => {
+          clearStall();
           let payload:
             unknown = null;
 
@@ -517,9 +561,9 @@ function sendUpload<T>(
           );
         };
 
-      xhr.send(
-        formData,
-      );
+      resetStall();
+      try { xhr.send(formData); }
+      catch (error) { clearStall(); reject(error); }
     },
   );
 }
@@ -531,6 +575,7 @@ export async function authenticatedUpload<T>(
     progress: number,
   ) => void,
 ): Promise<T> {
+  invalidateCurrentUser();
   let token =
     await refreshAccessToken();
 
@@ -565,13 +610,13 @@ export async function authenticatedUpload<T>(
         true,
       );
 
-    return sendUpload<T>(
+    return await sendUpload<T>(
       path,
       formData,
       token,
       onProgress,
     );
-  }
+  } finally { invalidateCurrentUser(); }
 }
 
 export type RealtimeConnectionState =
@@ -587,352 +632,150 @@ export interface AuthenticatedRealtimeEvent {
 
 export function subscribeAuthenticatedEvents(
   path: string,
-  onEvent:
-    (
-      event:
-        AuthenticatedRealtimeEvent,
-    ) => void,
-  onState?:
-    (
-      state:
-        RealtimeConnectionState,
-    ) => void,
+  onEvent: (event: AuthenticatedRealtimeEvent) => void,
+  onState?: (state: RealtimeConnectionState) => void,
 ) {
-  const controller =
-    new AbortController();
-
-  let stopped =
-    false;
-
-  let retryDelay =
-    1_000;
-
-  const sleep =
-    (
-      milliseconds:
-        number,
-    ) =>
-      new Promise<void>(
-        (
-          resolve,
-        ) => {
-          window.setTimeout(
-            resolve,
-            milliseconds,
-          );
-        },
-      );
-
-  const connect =
-    async () => {
-      while (
-        !stopped
-      ) {
-        try {
-          onState?.(
-            retryDelay ===
-              1_000
-              ? 'connecting'
-              : 'reconnecting',
-          );
-
-          let token =
-            await refreshAccessToken();
-
-          let response =
-            await fetch(
-              `${API_URL}${path}`,
-              {
-                method:
-                  'GET',
-
-                credentials:
-                  'include',
-
-                headers: {
-                  Accept:
-                    'text/event-stream',
-
-                  Authorization:
-                    `Bearer ${token}`,
-                },
-
-                cache:
-                  'no-store',
-
-                signal:
-                  controller.signal,
-              },
-            );
-
-          if (
-            response.status ===
-            401 &&
-            !stopped
-          ) {
-            token =
-              await refreshAccessToken(
-                true,
-              );
-
-            response =
-              await fetch(
-                `${API_URL}${path}`,
-                {
-                  method:
-                    'GET',
-
-                  credentials:
-                    'include',
-
-                  headers: {
-                    Accept:
-                      'text/event-stream',
-
-                    Authorization:
-                      `Bearer ${token}`,
-                  },
-
-                  cache:
-                    'no-store',
-
-                  signal:
-                    controller.signal,
-                },
-              );
-          }
-
-          if (
-            !response.ok ||
-            !response.body
-          ) {
-            throw new Error(
-              'Realtime stream unavailable.',
-            );
-          }
-
-          onState?.(
-            'connected',
-          );
-
-          retryDelay =
-            1_000;
-
-          const reader =
-            response.body
-              .getReader();
-
-          const decoder =
-            new TextDecoder();
-
-          let buffer =
-            '';
-
-          while (
-            !stopped
-          ) {
-            const {
-              value,
-              done,
-            } =
-              await reader.read();
-
-            if (
-              done
-            ) {
-              break;
-            }
-
-            buffer +=
-              decoder.decode(
-                value,
-                {
-                  stream:
-                    true,
-                },
-              );
-
-            buffer =
-              buffer.replaceAll(
-                '\r\n',
-                '\n',
-              );
-
-            let boundary =
-              buffer.indexOf(
-                '\n\n',
-              );
-
-            while (
-              boundary >=
-              0
-            ) {
-              const frame =
-                buffer
-                  .slice(
-                    0,
-                    boundary,
-                  )
-                  .trim();
-
-              buffer =
-                buffer.slice(
-                  boundary +
-                    2,
-                );
-
-              if (
-                frame &&
-                !frame.startsWith(
-                  ':',
-                )
-              ) {
-                let event =
-                  'message';
-
-                const dataLines:
-                  string[] =
-                  [];
-
-                for (
-                  const line
-                  of frame.split(
-                    '\n',
-                  )
-                ) {
-                  if (
-                    line.startsWith(
-                      'event:',
-                    )
-                  ) {
-                    event =
-                      line
-                        .slice(
-                          6,
-                        )
-                        .trim();
-                  }
-
-                  if (
-                    line.startsWith(
-                      'data:',
-                    )
-                  ) {
-                    dataLines.push(
-                      line
-                        .slice(
-                          5,
-                        )
-                        .trimStart(),
-                    );
-                  }
-                }
-
-                if (
-                  dataLines.length >
-                  0
-                ) {
-                  const raw =
-                    dataLines.join(
-                      '\n',
-                    );
-
-                  let data:
-                    unknown =
-                    raw;
-
-                  try {
-                    data =
-                      JSON.parse(
-                        raw,
-                      );
-                  } catch {
-                    // Plain text
-                    // SSE payloads are
-                    // still valid.
-                  }
-
-                  onEvent({
-                    event,
-                    data,
-                  });
-                }
-              }
-
-              boundary =
-                buffer.indexOf(
-                  '\n\n',
-                );
-            }
-          }
-
-          if (
-            !stopped
-          ) {
-            throw new Error(
-              'Realtime connection closed.',
-            );
-          }
-        } catch {
-          if (
-            stopped ||
-            controller.signal
-              .aborted
-          ) {
-            break;
-          }
-
-          onState?.(
-            'reconnecting',
-          );
-
-          await sleep(
-            retryDelay,
-          );
-
-          retryDelay =
-            Math.min(
-              retryDelay *
-                2,
-              10_000,
-            );
-        }
-      }
-
-      onState?.(
-        'disconnected',
-      );
-    };
-
-  void connect();
-
-  return () => {
-    stopped =
-      true;
-
-    controller.abort();
-
-    onState?.(
-      'disconnected',
-    );
+  let stopped = false, terminal = false, retryDelay = 1_000, reconnectRequested = false;
+  let attempt: AbortController | null = null;
+  let wake: (() => void) | null = null;
+  const active = () => navigator.onLine !== false && document.visibilityState !== 'hidden';
+  const pause = (milliseconds?: number) => new Promise<void>(resolve => {
+    let timer: number | undefined;
+    const finish = () => { if (timer !== undefined) window.clearTimeout(timer); if (wake === finish) wake = null; resolve(); };
+    wake = finish;
+    if (milliseconds !== undefined) timer = window.setTimeout(finish, milliseconds);
+  });
+  const interrupted = () => { reconnectRequested = true; attempt?.abort(); retryDelay = 1_000; wake?.(); };
+  const state = (value: RealtimeConnectionState) => { if (!stopped || value === 'disconnected') onState?.(value); };
+  async function bounded<T>(work: () => Promise<T>, milliseconds: number, controller: AbortController): Promise<T> {
+    if (controller.signal.aborted) throw controller.signal.reason;
+    let timer: number | undefined;
+    let cancel = () => {};
+    const cancelled = new Promise<never>((_, reject) => {
+      cancel = () => reject(controller.signal.reason ?? new DOMException('Realtime connection interrupted.', 'AbortError'));
+      controller.signal.addEventListener('abort', cancel, { once: true });
+      timer = window.setTimeout(() => controller.abort(new Error('Realtime connection timed out.')), milliseconds);
+    });
+    try { return await Promise.race([Promise.resolve().then(work), cancelled]); }
+    finally { if (timer !== undefined) window.clearTimeout(timer); controller.signal.removeEventListener('abort', cancel); }
+  }
+  const cleanup = () => {
+    window.removeEventListener('online', interrupted); window.removeEventListener('offline', interrupted);
+    document.removeEventListener('visibilitychange', interrupted);
   };
+  async function connect() {
+    try {
+      while (!stopped && !terminal) {
+        if (!active()) { state('disconnected'); await pause(); continue; }
+        const controller = new AbortController(); attempt = controller; reconnectRequested = false;
+        let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+        const started = Date.now();
+        try {
+          state(retryDelay === 1_000 ? 'connecting' : 'reconnecting');
+          const response = await bounded(async () => {
+            let token = await waitForSession(controller.signal);
+            const open = () => {
+              if (controller.signal.aborted) throw controller.signal.reason;
+              return fetch(`${API_URL}${path}`, { method: 'GET', credentials: 'include',
+                headers: { Accept: 'text/event-stream', Authorization: `Bearer ${token}` }, cache: 'no-store', signal: controller.signal });
+            };
+            let result = await open();
+            if (result.status === 401 && !stopped) {
+              void result.body?.cancel().catch(() => {});
+              token = await refreshAccessToken(true);
+              if (controller.signal.aborted) throw controller.signal.reason;
+              result = await open();
+            }
+            return result;
+          }, 15_000, controller);
+          if ([401, 403, 404].includes(response.status)) { terminal = true; void response.body?.cancel().catch(() => {}); continue; }
+          if (!response.ok || !response.body) { void response.body?.cancel().catch(() => {}); throw new Error('Realtime stream unavailable.'); }
+          state('connected');
+          reader = response.body.getReader();
+          const decoder = new TextDecoder(); let buffer = '';
+          while (!stopped && !controller.signal.aborted) {
+            // The server sends a heartbeat every 20s. A half-open mobile socket
+            // must reconnect instead of staying marked connected indefinitely.
+            const { value, done } = await bounded(() => reader!.read(), 60_000, controller);
+            if (done) throw new Error('Realtime connection closed.');
+            if (Date.now() - started >= 20_000) retryDelay = 1_000;
+            buffer = (buffer + decoder.decode(value, { stream: true })).replaceAll('\r\n', '\n');
+            if (buffer.length > 65_536) throw new Error('Realtime frame too large.');
+            let boundary: number;
+            while ((boundary = buffer.indexOf('\n\n')) >= 0) {
+              const frame = buffer.slice(0, boundary); buffer = buffer.slice(boundary + 2);
+              let event = 'message'; const data: string[] = [];
+              for (const line of frame.split('\n')) {
+                if (line.startsWith('event:')) event = line.slice(6).trim();
+                if (line.startsWith('data:')) data.push(line.slice(5).trimStart());
+              }
+              if (data.length) {
+                const raw = data.join('\n'); let payload: unknown = raw;
+                try { payload = JSON.parse(raw); } catch { /* Text events are valid SSE. */ }
+                if (!stopped && !controller.signal.aborted) onEvent({ event, data: payload });
+              }
+            }
+          }
+        } catch (error) {
+          if ((error as { status?: number } | null)?.status === 401 || (error as { status?: number } | null)?.status === 403) terminal = true;
+        } finally {
+          controller.abort();
+          if (reader) { void reader.cancel().catch(() => {}); reader.releaseLock(); }
+          if (attempt === controller) attempt = null;
+        }
+        if (stopped || terminal) break;
+        if (!active()) continue;
+        if (reconnectRequested) continue;
+        state('reconnecting');
+        await pause(retryDelay);
+        retryDelay = Math.min(retryDelay * 2, 10_000);
+      }
+    } finally { cleanup(); state('disconnected'); }
+  }
+  window.addEventListener('online', interrupted); window.addEventListener('offline', interrupted);
+  document.addEventListener('visibilitychange', interrupted);
+  void connect();
+  return () => { stopped = true; attempt?.abort(); wake?.(); cleanup(); state('disconnected'); };
 }
 
-
-export async function getCurrentUser(): Promise<CurrentUser> {
-  const result =
-    await authenticatedRequest<{
-      success: true;
-
-      data: {
-        user:
-          CurrentUser;
-      };
-
-      error: null;
-    }>('/auth/me');
-
-  return result.data.user;
+export async function getCurrentUser(options: RequestInit = {}): Promise<CurrentUser> {
+  const signal = options.signal;
+  if (signal?.aborted) throw signal.reason ?? new DOMException('Request cancelled.', 'AbortError');
+  // Cache only this small identity projection in memory. Competition data always
+  // revalidates, and explicit freshness/header options bypass this optimization.
+  if ((options.method ?? 'GET').toUpperCase() !== 'GET' || Object.keys(options).some(key => key !== 'signal' && key !== 'method')) {
+    return (await authenticatedRequest<{ data: { user: CurrentUser } }>('/auth/me', options)).data.user;
+  }
+  if (currentUserCache?.epoch === profileEpoch && currentUserCache.expiresAt > Date.now()) return currentUserCache.user;
+  let read = currentUserRead;
+  if (!read || read.epoch !== profileEpoch) {
+    const controller = new AbortController(), epoch = profileEpoch, account = sessionEpoch;
+    const job: ProfileRead = { controller, epoch, subscribers: 0, settled: false, promise: Promise.resolve(null as unknown as CurrentUser) };
+    job.promise = authenticatedRequest<{ data: { user: CurrentUser } }>('/auth/me', { signal: controller.signal }).then(result => {
+      if (account !== sessionEpoch) throw new DOMException('The signed-in account changed.', 'AbortError');
+      if (epoch === profileEpoch) currentUserCache = { user: result.data.user, epoch, expiresAt: Date.now() + 30_000 };
+      return result.data.user;
+    }).finally(() => { job.settled = true; if (currentUserRead === job) currentUserRead = null; });
+    currentUserRead = job; read = job;
+  }
+  const job = read;
+  job.subscribers++;
+  return new Promise<CurrentUser>((resolve, reject) => {
+    let finished = false;
+    const finish = (failed: boolean, error: unknown, value?: CurrentUser) => {
+      if (finished) return;
+      finished = true; signal?.removeEventListener('abort', cancel); job.subscribers--;
+      if (!job.settled && job.subscribers === 0) {
+        if (currentUserRead === job) currentUserRead = null;
+        job.controller.abort();
+      }
+      if (failed) reject(error); else resolve(value!);
+    };
+    const cancel = () => finish(true, signal?.reason ?? new DOMException('Request cancelled.', 'AbortError'));
+    signal?.addEventListener('abort', cancel, { once: true });
+    job.promise.then(value => finish(false, null, value), error => finish(true, error));
+    if (signal?.aborted) cancel();
+  });
 }
 
 export async function logoutCurrentUser(): Promise<void> {
@@ -944,6 +787,7 @@ export async function logoutCurrentUser(): Promise<void> {
       },
     );
   } finally {
+    sessionEpoch++; invalidateCurrentUser();
     clearNotificationCache();
     if (typeof window !== "undefined") window.dispatchEvent(new Event("fc-arena:signed-out"));
     accessToken = null;

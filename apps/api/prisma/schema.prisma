@@ -333,6 +333,8 @@ enum LeagueWarResultStatus {
 }
 
 enum NotificationType {
+  TOURNAMENT_REGISTRATION_RECEIVED
+  TOURNAMENT_APPLICATION_SUBMITTED
   LEAGUE_JOIN_REQUESTED
   LEAGUE_REQUEST_APPROVED
   LEAGUE_REQUEST_REJECTED
@@ -386,6 +388,7 @@ model User {
   fullName        String          @db.VarChar(120)
   email           String          @unique @db.VarChar(255)
   phoneNumber     String?         @unique @db.VarChar(30)
+  dateOfBirth     DateTime?       @db.Date @map("date_of_birth")
   passwordHash    String          @db.VarChar(255)
   role            GlobalRole      @default(USER)
   status          UserStatus      @default(ACTIVE)
@@ -447,6 +450,14 @@ model User {
   supportTicketsCreated  SupportTicket[]          @relation("SupportTicketCreator")
   supportTicketsAssigned SupportTicket[]          @relation("SupportTicketAssignee")
   supportTicketMessages   SupportTicketMessage[]
+  experiencePreferences PlayerExperiencePreferences?
+  rewardWallet          PlayerRewardWallet?
+  arenaPosts             ArenaPost[]
+  arenaComments          ArenaComment[]
+  arenaReactions         ArenaReaction[]
+  arenaVotes             ArenaPollVote[]
+  arenaReports           ArenaReport[] @relation("ArenaReporter")
+  arenaReviewedReports   ArenaReport[] @relation("ArenaReviewer")
 
   @@index([status])
   @@map("users")
@@ -543,6 +554,7 @@ model League {
   wonLeagueWars         LeagueWar[]            @relation("LeagueWarWinnerLeague")
   leagueWarParticipants LeagueWarParticipant[]
   fairPlayEvents        FairPlayEvent[]
+  arenaPosts            ArenaPost[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -747,6 +759,7 @@ model TournamentRegistration {
   status             TournamentRegistrationStatus @default(PENDING)
   reviewedByUserId   String?                      @db.Uuid
   reviewedAt         DateTime?
+  notificationMemberIds String[]                  @default([]) @db.Uuid
   createdAt          DateTime                     @default(now())
   updatedAt          DateTime                     @updatedAt
 
@@ -873,6 +886,7 @@ model Match {
   statEvents        MatchResultStatEvent[]
   ocrExtractions    OcrExtraction[]
   disputes          MatchDispute[]
+  arenaPost         ArenaPost?
 
   @@index([tournamentId, status])
   @@index([tournamentId, status, updatedAt])
@@ -887,6 +901,8 @@ model ResultSubmission {
   ocrExtractionId   String?                @unique @db.Uuid
   homeScore         Int
   awayScore         Int
+  homePenaltyScore  Int?
+  awayPenaltyScore  Int?
   status            ResultSubmissionStatus @default(PENDING_VERIFICATION)
   reviewedByUserId  String?                @db.Uuid
   reviewedAt        DateTime?
@@ -1525,4 +1541,184 @@ model SeasonalAward {
   @@index([userId, awardedAt])
   @@index([seasonId, type])
   @@map("seasonal_awards")
+}
+
+
+enum ArenaPostKind {
+  DISCUSSION
+  QUESTION
+  NEWS
+  RUMOUR
+  RESULT
+}
+
+enum ArenaReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+model PlayerExperiencePreferences {
+  userId String @id @db.Uuid
+  frame String @default("CLASSIC") @db.VarChar(20)
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("player_experience_preferences")
+}
+
+model PlayerRewardWallet {
+  userId String @id @db.Uuid
+  balance Int @default(0)
+  currentStreak Int @default(0)
+  longestStreak Int @default(0)
+  lastClaimDay DateTime? @db.Date
+  background String @default("CLASSIC") @db.VarChar(32)
+  badge String? @db.VarChar(32)
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkIns PlayerDailyCheckIn[]
+  ledger ArenaCoinEntry[]
+  owned PlayerOwnedCosmetic[]
+  @@map("player_reward_wallets")
+}
+
+model PlayerDailyCheckIn {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  day DateTime @db.Date
+  streak Int
+  baseCoins Int
+  bonusCoins Int
+  totalCoins Int
+  createdAt DateTime @default(now())
+  wallet PlayerRewardWallet @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  @@unique([userId, day])
+  @@map("player_daily_check_ins")
+}
+
+model ArenaCoinEntry {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  kind String @db.VarChar(32)
+  reference String @db.VarChar(80)
+  delta Int
+  balanceAfter Int
+  createdAt DateTime @default(now())
+  wallet PlayerRewardWallet @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  @@unique([userId, reference])
+  @@index([userId, createdAt])
+  @@map("arena_coin_entries")
+}
+
+model PlayerOwnedCosmetic {
+  userId String @db.Uuid
+  itemId String @db.VarChar(32)
+  purchasedAt DateTime @default(now())
+  wallet PlayerRewardWallet @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  @@id([userId, itemId])
+  @@map("player_owned_cosmetics")
+}
+
+model ArenaPost {
+  id String @id @default(uuid()) @db.Uuid
+  authorUserId String? @db.Uuid
+  leagueId String? @db.Uuid
+  sourceMatchId String? @unique @db.Uuid
+  kind ArenaPostKind @default(DISCUSSION)
+  body String @db.VarChar(2000)
+  sourceUrl String? @db.VarChar(2048)
+  imageKey String? @db.VarChar(80)
+  clientRequestId String? @db.Uuid
+  requestHash String? @db.VarChar(64)
+  pollEndsAt DateTime?
+  createdAt DateTime @default(now())
+  editedAt DateTime?
+  hiddenAt DateTime?
+  author User? @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  league League? @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  sourceMatch Match? @relation(fields: [sourceMatchId], references: [id], onDelete: Cascade)
+  comments ArenaComment[]
+  reactions ArenaReaction[]
+  pollOptions ArenaPollOption[]
+  votes ArenaPollVote[]
+  reports ArenaReport[]
+  @@unique([authorUserId, clientRequestId])
+  @@index([leagueId, hiddenAt, createdAt, id])
+  @@index([authorUserId, createdAt])
+  @@map("arena_posts")
+}
+
+model ArenaComment {
+  id String @id @default(uuid()) @db.Uuid
+  postId String @db.Uuid
+  authorUserId String @db.Uuid
+  body String @db.VarChar(1000)
+  clientRequestId String @db.Uuid
+  createdAt DateTime @default(now())
+  editedAt DateTime?
+  hiddenAt DateTime?
+  post ArenaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  reports ArenaReport[]
+  @@unique([authorUserId, clientRequestId])
+  @@index([postId, hiddenAt, createdAt, id])
+  @@map("arena_comments")
+}
+
+model ArenaReaction {
+  postId String @db.Uuid
+  userId String @db.Uuid
+  createdAt DateTime @default(now())
+  post ArenaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([postId, userId])
+  @@map("arena_reactions")
+}
+
+model ArenaPollOption {
+  id String @id @default(uuid()) @db.Uuid
+  postId String @db.Uuid
+  label String @db.VarChar(100)
+  position Int
+  post ArenaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  votes ArenaPollVote[]
+  @@unique([id, postId])
+  @@unique([postId, position])
+  @@map("arena_poll_options")
+}
+
+model ArenaPollVote {
+  postId String @db.Uuid
+  userId String @db.Uuid
+  optionId String @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  post ArenaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  option ArenaPollOption @relation(fields: [optionId, postId], references: [id, postId], onDelete: Cascade)
+  @@id([postId, userId])
+  @@index([optionId, postId])
+  @@map("arena_poll_votes")
+}
+
+model ArenaReport {
+  id String @id @default(uuid()) @db.Uuid
+  reporterUserId String @db.Uuid
+  postId String @db.Uuid
+  commentId String? @db.Uuid
+  targetKey String @db.VarChar(100)
+  reason String @db.VarChar(40)
+  details String? @db.VarChar(1000)
+  status ArenaReportStatus @default(OPEN)
+  reviewedByUserId String? @db.Uuid
+  resolutionNote String? @db.VarChar(500)
+  createdAt DateTime @default(now())
+  resolvedAt DateTime?
+  reporter User @relation("ArenaReporter", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("ArenaReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  post ArenaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment ArenaComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  @@unique([reporterUserId, targetKey])
+  @@index([status, createdAt])
+  @@map("arena_reports")
 }

@@ -17,6 +17,19 @@ export function assertRoundRobinComplete(
       (fixture) => fixture.phase !== 'PLAYOFF',
     );
 
+    const expected = registrations.length * Math.min(8, Math.max(0, registrations.length - 1)) / 2;
+    const canonical = canonicalizeRoundRobinStandingsFixtures(stageFixtures.filter(isCanonicalCompletedFixture), registrations, {
+      competitionFormat: 'UCL_CUP', legType: 'SINGLE_LEG', tournamentFormat: 'ROUND_ROBIN', hasGroups: false,
+    });
+    const appearances = new Map(registrations.map(entry => [entry.id, 0]));
+    for (const fixture of canonical) for (const id of [fixture.homeRegistrationId, fixture.awayRegistrationId]) {
+      if (id && appearances.has(id)) appearances.set(id, appearances.get(id)! + 1);
+    }
+    if (canonical.length !== expected || [...appearances.values()].some(count => count !== Math.min(8, registrations.length - 1))) {
+      throw new ConflictException({ success: false, data: null, error: {
+        code: 'TOURNAMENT_MATCHES_INCOMPLETE', message: 'Complete every configured UCL league-phase pairing before completing the Tournament.',
+      } });
+    }
     if (
       stageFixtures.some(
         (fixture) => !isCanonicalCompletedFixture(fixture),

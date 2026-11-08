@@ -162,6 +162,39 @@ function assertOneAppearancePerRound(
 describe(
   'Round Robin Fixture Engine',
   () => {
+    it.each([2, 3, 4, 5, 6, 8, 13, 16, 26, 36])(
+      'balances home and away for every entry in a %i-team single round',
+      (teamCount) => {
+        const participants = ids(teamCount);
+        const fixtures = generateRoundRobinFixtures(participants);
+        for (const id of participants) {
+          const home = fixtures.filter(fixture => fixture.homeRegistrationId === id).length;
+          const away = fixtures.filter(fixture => fixture.awayRegistrationId === id).length;
+          expect(home + away).toBe(teamCount - 1);
+          expect(Math.abs(home - away)).toBe((teamCount - 1) % 2);
+        }
+      },
+    );
+
+    it.each([2, 3, 4, 5, 8, 13, 26, 36])(
+      'balances each leg and gives every entry equal home/away totals in a %i-team double round',
+      (teamCount) => {
+        const participants = ids(teamCount);
+        const fixtures = generateDoubleRoundRobinFixtures(participants);
+        const roundsPerLeg = teamCount % 2 === 0 ? teamCount - 1 : teamCount;
+        for (const id of participants) {
+          const home = fixtures.filter(fixture => fixture.homeRegistrationId === id);
+          const away = fixtures.filter(fixture => fixture.awayRegistrationId === id);
+          expect(home).toHaveLength(teamCount - 1);
+          expect(away).toHaveLength(teamCount - 1);
+          for (const leg of [0, 1]) {
+            const inLeg = (fixture: FixtureBlueprint) => Math.floor((fixture.roundNumber - 1) / roundsPerLeg) === leg;
+            expect(Math.abs(home.filter(inLeg).length - away.filter(inLeg).length)).toBe((teamCount - 1) % 2);
+          }
+        }
+      },
+    );
+
     it(
       'generates 4-team Single Round correctly',
       () => {

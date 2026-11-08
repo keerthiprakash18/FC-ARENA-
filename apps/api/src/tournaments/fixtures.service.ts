@@ -32,6 +32,7 @@ import {
   roundRobinRoundsPerLeg,
 } from '../results/standings-integrity.js';
 import { generateEliteCupSchedule } from './elite-cup-engine.js';
+import { generateUclLeaguePhase } from './ucl-engine.js';
 
 @Injectable()
 export class FixturesService {
@@ -151,7 +152,7 @@ export class FixturesService {
 
     const eliteCupSchedule =
       ['ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat)
-        ? generateEliteCupSchedule(
+        ? tournament.competitionFormat === 'UCL_CUP' ? generateUclLeaguePhase(registrationIds) : generateEliteCupSchedule(
             registrationIds,
             Math.min(8, Math.max(1, registrationIds.length - 1)),
           )
@@ -404,10 +405,9 @@ export class FixturesService {
       throw this.tournamentNotFound();
     }
 
-    await this.assertLeagueMember(
-      userId,
-      tournament.leagueId,
-    );
+    if (!(await this.authorization.canManageTournament(userId, tournamentId))) {
+      await this.assertLeagueMember(userId, tournament.leagueId);
+    }
 
     await this.ensureMatchesExist(
       tournamentId,
@@ -428,6 +428,8 @@ export class FixturesService {
                 select: {
                   homeScore: true,
                   awayScore: true,
+                  homePenaltyScore: true,
+                  awayPenaltyScore: true,
                   status: true,
                 },
               },
@@ -1976,6 +1978,8 @@ export class FixturesService {
               ? {
                   homeScore: fixture.match.confirmedResult.homeScore,
                   awayScore: fixture.match.confirmedResult.awayScore,
+                  homePenaltyScore: fixture.match.confirmedResult.homePenaltyScore,
+                  awayPenaltyScore: fixture.match.confirmedResult.awayPenaltyScore,
                   status: fixture.match.confirmedResult.status,
                 }
               : null,

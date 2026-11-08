@@ -1,8 +1,8 @@
 const RETIRED_KEY = 'fc-arena-sw-retired-v2';
 
-export async function retireNativeServiceWorker(): Promise<void> {
+export async function retireNativeServiceWorker(force = false): Promise<void> {
+  try { if (!force && sessionStorage.getItem(RETIRED_KEY)) return; } catch { /* Cleanup still works without session storage. */ }
   try {
-    if (sessionStorage.getItem(RETIRED_KEY)) return;
     const registrations = await navigator.serviceWorker.getRegistrations();
     for (const registration of registrations) {
       const worker = registration.active ?? registration.waiting ?? registration.installing;

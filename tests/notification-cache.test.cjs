@@ -10,7 +10,7 @@ const api = {API_URL:'https://test.invalid', apiRequest:async(path,options)=>{
   if((path === '/notifications' || path === '/notifications?summary=true') && (!options.method || options.method === 'GET')){reads++; await new Promise(resolve=>setTimeout(resolve,5));return {data:{unreadCount:reads}};}
   return {data:{}};
 }};
-vm.runInNewContext(code, {exports:exportsObject, require:()=>api, Date, Promise, Error, JSON, setTimeout});
+vm.runInNewContext(code, {exports:exportsObject, require:()=>api, Headers, Date, Promise, Error, JSON, setTimeout});
 (async()=>{
  exportsObject.establishLoginSession('test',3600);
  const [bell,inbox]=await Promise.all([exportsObject.authenticatedRequest('/notifications'),exportsObject.authenticatedRequest('/notifications')]);

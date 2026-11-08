@@ -6,8 +6,13 @@ import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -19,6 +24,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -26,6 +32,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +43,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class MainActivity extends Activity {
     private static final String START_URL = "https://fcarena.in/dashboard";
@@ -43,22 +52,55 @@ public final class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final String PREFS_NAME = "fc_arena_android";
     private static final String STARTUP_GUARD_KEY = "startup_guard";
+    private static final String SAFE_STARTUP_GUARD_KEY = "safe_startup_guard";
     private static final String VERSION_CHECK_AT_KEY = "version_check_at";
     private static final String FORCE_FRESH_WEB_KEY = "force_fresh_web_after_update";
     private static final String FRESH_WEB_QUERY_KEY = "fc_native_refresh";
     private static final String VERSION_CHECK_URL =
             "https://api.fcarena.in/api/mobile/android/version?versionCode=";
     private static final long VERSION_CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
+    private static final int MAX_CONNECTION_RETRIES = 5;
+    private static final long PAGE_LOAD_TIMEOUT_MS = 20_000L;
 
     private FrameLayout root;
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
     private SharedPreferences preferences;
+    private AndroidUpdateSupport playUpdates;
+    private final Runnable updateRefresh = new Runnable() {
+        @Override public void run() {
+            if (!resumed || isFinishing() || isDestroyed()) return;
+            if (playUpdates == null) {
+                try { playUpdates = new AndroidUpdateSupport(MainActivity.this); } catch (RuntimeException ignored) { }
+            }
+            if (playUpdates != null) playUpdates.check(() -> {
+                if (!isFinishing() && !isDestroyed() && !showingOfflinePage) playUpdates.publish(webView);
+            });
+            if (playUpdates != null && !showingOfflinePage) playUpdates.publish(webView);
+            root.postDelayed(this, 15L * 60L * 1000L);
+        }
+    };
 
     private int rendererCrashCount = 0;
     private boolean softwareRendering = false;
     private String lastAllowedUrl = START_URL;
+    private boolean resumed = false;
+    private boolean showingOfflinePage = false;
+    private boolean networkValidated = false;
+    private boolean pageLoadPending = false;
+    private boolean rendererRecoveryPending = false;
+    private int connectionRetries = 0;
+    private ConnectivityManager connectivityManager;
+    private ConnectivityManager.NetworkCallback networkCallback;
+    private final Runnable connectionRetry = this::retryConnection;
+    private final Runnable rendererRecovery = this::recoverRenderer;
+    private final Runnable pageLoadTimeout = () -> {
+        if (!resumed || !pageLoadPending || webView == null || showingOfflinePage) return;
+        pageLoadPending = false;
+        webView.stopLoading();
+        showOfflinePage();
+    };
 
     private final class AuthPersistenceBridge {
         @JavascriptInterface
@@ -102,23 +144,28 @@ public final class MainActivity extends Activity {
                     .putInt("installed_version_code", BuildConfig.VERSION_CODE)
                     .putBoolean(FORCE_FRESH_WEB_KEY, true)
                     .remove(STARTUP_GUARD_KEY)
+                    .remove(SAFE_STARTUP_GUARD_KEY)
                     .remove(VERSION_CHECK_AT_KEY)
                     .commit();
         }
         scheduleVersionCheck();
 
-        // If the previous process died during WebView startup, do not enter
-        // the same crash loop again. Show a native safe screen instead.
-        if (preferences.getBoolean(STARTUP_GUARD_KEY, false)) {
-            preferences.edit().putBoolean(STARTUP_GUARD_KEY, false).commit();
+        // The legacy marker also covered network loading and normal process
+        // termination. Recover automatically once instead of treating it as
+        // proof of a crash. Only an interrupted software initialization needs
+        // the native fallback to prevent a repeated native startup failure.
+        boolean interruptedStartup = preferences.getBoolean(STARTUP_GUARD_KEY, false);
+        boolean interruptedSafeStartup = preferences.getBoolean(SAFE_STARTUP_GUARD_KEY, false);
+        softwareRendering = interruptedStartup;
+        clearStartupGuard();
+        if (interruptedStartup && interruptedSafeStartup) {
             showNativeFallback(
-                    "FC Arena detected that the in-app browser failed during the previous startup. "
-                    + "Open the secure website below, or retry the in-app browser in safe mode."
+                    "The in-app browser could not finish starting in recovery mode. "
+                    + "Try again, or update Android System WebView and Chrome. "
+                    + "You can also open FC Arena in your browser."
             );
             return;
         }
-
-        preferences.edit().putBoolean(STARTUP_GUARD_KEY, true).commit();
 
         addProgressBar();
 
@@ -132,15 +179,11 @@ public final class MainActivity extends Activity {
                 // Cookies, DOM storage, push consent and user settings are preserved.
                 webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
                 webView.loadUrl(withFreshWebToken(initialUrl));
-            } else if (savedInstanceState == null) {
+            } else if (savedInstanceState == null || interruptedStartup) {
                 webView.loadUrl(initialUrl);
             } else if (webView.restoreState(savedInstanceState) == null) {
                 webView.loadUrl(initialUrl);
             }
-
-            // Startup survived. Remove the crash-loop marker after a short
-            // grace period so a native/WebView startup crash leaves it set.
-            root.postDelayed(this::clearStartupGuard, 5000L);
         } catch (Throwable error) {
             clearStartupGuard();
             showNativeFallback(
@@ -333,6 +376,15 @@ public final class MainActivity extends Activity {
     @SuppressLint("SetJavaScriptEnabled")
     private void createWebView() {
         destroyCurrentWebView();
+        showingOfflinePage = false;
+        connectionRetries = 0;
+
+        // Cover native initialization only. A slow/offline document or a normal
+        // background kill must never become a persistent startup failure.
+        preferences.edit()
+                .putBoolean(STARTUP_GUARD_KEY, true)
+                .putBoolean(SAFE_STARTUP_GUARD_KEY, softwareRendering)
+                .commit();
 
         webView = new WebView(this);
         // Cache policy: LOAD_DEFAULT enables HTTP cache for performance.
@@ -421,9 +473,13 @@ public final class MainActivity extends Activity {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                if (view != webView) return;
                 Uri uri = Uri.parse(url);
-                if (isAllowedUrl(uri)) {
+                if (!showingOfflinePage && isAllowedUrl(uri)) {
                     lastAllowedUrl = url;
+                    pageLoadPending = true;
+                    root.removeCallbacks(pageLoadTimeout);
+                    if (resumed) root.postDelayed(pageLoadTimeout, PAGE_LOAD_TIMEOUT_MS);
                 }
                 if (progressBar != null) {
                     progressBar.setVisibility(View.VISIBLE);
@@ -432,10 +488,23 @@ public final class MainActivity extends Activity {
             }
 
             @Override
+            public void onPageCommitVisible(WebView view, String url) {
+                if (view != webView) return;
+                pageLoadPending = false;
+                root.removeCallbacks(pageLoadTimeout);
+                if (progressBar != null) progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
+                if (view != webView) return;
+                pageLoadPending = false;
+                root.removeCallbacks(pageLoadTimeout);
                 Uri uri = Uri.parse(url);
-                if (isAllowedUrl(uri)) {
+                if (!showingOfflinePage && isAllowedUrl(uri)) {
                     lastAllowedUrl = url;
+                    connectionRetries = 0;
+                    root.removeCallbacks(connectionRetry);
                     if (shouldForceFreshWeb()) {
                         preferences.edit()
                                 .putBoolean(FORCE_FRESH_WEB_KEY, false)
@@ -449,7 +518,8 @@ public final class MainActivity extends Activity {
                 CookieManager.getInstance().flush();
                 clearStartupGuard();
                 super.onPageFinished(view, url);
-                if (isAllowedUrl(uri)) PushSupport.publish(MainActivity.this,view);
+                if (!showingOfflinePage && isAllowedUrl(uri)) PushSupport.publish(MainActivity.this,view);
+                if (!showingOfflinePage && playUpdates != null) playUpdates.publish(view);
             }
 
             @Override
@@ -458,7 +528,7 @@ public final class MainActivity extends Activity {
                     WebResourceRequest request,
                     WebResourceError error
             ) {
-                if (request != null && request.isForMainFrame()) {
+                if (view == webView && request != null && request.isForMainFrame()) {
                     clearStartupGuard();
                     showOfflinePage();
                 }
@@ -479,15 +549,31 @@ public final class MainActivity extends Activity {
             }
 
             @Override
+            public void onReceivedHttpError(
+                    WebView view, WebResourceRequest request,
+                    WebResourceResponse response
+            ) {
+                if (view == webView && request != null && request.isForMainFrame() && response != null
+                        && (response.getStatusCode() >= 500 || response.getStatusCode() == 408)) {
+                    clearStartupGuard();
+                    showOfflinePage();
+                }
+            }
+
+            @Override
             public boolean onRenderProcessGone(
                     WebView view,
                     RenderProcessGoneDetail detail
             ) {
+                if (view != webView) return true;
                 if (isFinishing() || isDestroyed()) {
                     destroyCurrentWebView();
                     return true;
                 }
                 rendererCrashCount++;
+                pageLoadPending = false;
+                root.removeCallbacks(pageLoadTimeout);
+                root.removeCallbacks(connectionRetry);
                 // A picker result must never be delivered to a dead renderer.
                 fileChooserCallback = null;
 
@@ -509,27 +595,8 @@ public final class MainActivity extends Activity {
 
                 if (rendererCrashCount == 1) {
                     softwareRendering = true;
-                    toast("Recovering FC Arena in safe mode…");
-
-                    root.postDelayed(() -> {
-                        if (isFinishing() || isDestroyed()) {
-                            return;
-                        }
-                        try {
-                            createWebView();
-                            webView.loadUrl(
-                                    isAllowedUrl(Uri.parse(lastAllowedUrl))
-                                            ? lastAllowedUrl
-                                            : START_URL
-                            );
-                        } catch (Throwable error) {
-                            clearStartupGuard();
-                            showNativeFallback(
-                                    "The Android WebView renderer is unstable on this device. "
-                                    + "Use the secure website button below."
-                            );
-                        }
-                    }, 250L);
+                    rendererRecoveryPending = true;
+                    if (resumed) root.postDelayed(rendererRecovery, 250L);
                 } else {
                     clearStartupGuard();
                     showNativeFallback(
@@ -591,9 +658,31 @@ public final class MainActivity extends Activity {
                 (url, userAgent, contentDisposition, mimetype, contentLength) ->
                         openExternal(Uri.parse(url))
         );
+        clearStartupGuard();
+    }
+
+    private void recoverRenderer() {
+        if (!resumed || !rendererRecoveryPending || isFinishing() || isDestroyed()) return;
+        rendererRecoveryPending = false;
+        try {
+            createWebView();
+            String target = isAllowedUrl(Uri.parse(lastAllowedUrl)) ? lastAllowedUrl : START_URL;
+            webView.loadUrl(shouldForceFreshWeb() ? withFreshWebToken(target) : target);
+        } catch (Throwable error) {
+            showNativeFallback(
+                    "The in-app browser could not restart. Try again, or update "
+                    + "Android System WebView and Chrome. You can also use your browser."
+            );
+        }
     }
 
     private void destroyCurrentWebView() {
+        if (root != null) {
+            root.removeCallbacks(connectionRetry);
+            root.removeCallbacks(rendererRecovery);
+            root.removeCallbacks(pageLoadTimeout);
+        }
+        pageLoadPending = false;
         if (webView == null) {
             return;
         }
@@ -616,6 +705,11 @@ public final class MainActivity extends Activity {
 
     private boolean handlePushAction(Uri uri) {
         if (!isAllowedUrl(uri) || webView.getUrl() == null || !isAllowedUrl(Uri.parse(webView.getUrl()))) return false;
+        if ("/native/retry-connection".equals(uri.getPath())) {
+            connectionRetries = 0;
+            retryConnection();
+            return true;
+        }
         if ("/native/push-enable".equals(uri.getPath())) { PushSupport.enable(this,webView); return true; }
         if ("/native/push-disable".equals(uri.getPath())) { PushSupport.disable(this,webView); return true; }
         return false;
@@ -681,7 +775,46 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private void openWebsiteInBrowser() {
+        // Resolve browsers using a generic URL, then target their package.
+        // An ordinary FC Arena ACTION_VIEW can resolve straight back to this
+        // Activity through verified App Links, trapping users on the fallback.
+        Intent probe = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com/"));
+        probe.addCategory(Intent.CATEGORY_BROWSABLE);
+        PackageManager manager = getPackageManager();
+        List<ResolveInfo> browsers = manager.queryIntentActivities(probe, PackageManager.MATCH_DEFAULT_ONLY);
+        ResolveInfo preferred = manager.resolveActivity(probe, PackageManager.MATCH_DEFAULT_ONLY);
+        List<Intent> choices = new ArrayList<>();
+        for (ResolveInfo browser : browsers) {
+            if (browser.activityInfo == null || getPackageName().equals(browser.activityInfo.packageName)) continue;
+            Intent target = new Intent(Intent.ACTION_VIEW, Uri.parse(START_URL));
+            target.addCategory(Intent.CATEGORY_BROWSABLE);
+            target.setPackage(browser.activityInfo.packageName);
+            if (preferred != null && preferred.activityInfo != null
+                    && browser.activityInfo.packageName.equals(preferred.activityInfo.packageName)) {
+                choices.add(0, target);
+            } else {
+                choices.add(target);
+            }
+        }
+        if (choices.isEmpty()) {
+            toast("Install or enable a web browser to open FC Arena.");
+            return;
+        }
+        for (Intent choice : choices) {
+            try {
+                startActivity(choice);
+                return;
+            } catch (ActivityNotFoundException | SecurityException ignored) {
+                // A browser may have been disabled since it was resolved.
+            }
+        }
+        toast("No browser could open FC Arena.");
+    }
+
     private void showOfflinePage() {
+        pageLoadPending = false;
+        root.removeCallbacks(pageLoadTimeout);
         if (webView == null) {
             showNativeFallback(
                     "FC Arena could not connect right now. "
@@ -689,6 +822,12 @@ public final class MainActivity extends Activity {
             );
             return;
         }
+
+        if (showingOfflinePage) {
+            scheduleConnectionRetry();
+            return;
+        }
+        showingOfflinePage = true;
 
         String html =
                 "<!doctype html><html><head>"
@@ -702,8 +841,9 @@ public final class MainActivity extends Activity {
                 + "button{background:#2ea7ff;color:white;border:0;border-radius:14px;"
                 + "padding:14px 22px;font-weight:700;font-size:16px}"
                 + "</style></head><body><div class=\"card\">"
-                + "<h2>FC ARENA</h2><p>We could not connect right now. Check your internet connection and try again.</p>"
-                + "<button onclick=\"location.href='" + START_URL + "'\">Try again</button>"
+                + "<h2>FC ARENA</h2><p>FC Arena or your connection is temporarily unavailable. "
+                + "We will retry a few times automatically. You can also try again below.</p>"
+                + "<button onclick=\"location.href='https://fcarena.in/native/retry-connection'\">Try again</button>"
                 + "</div></body></html>";
 
         webView.loadDataWithBaseURL(
@@ -713,9 +853,82 @@ public final class MainActivity extends Activity {
                 "UTF-8",
                 null
         );
+        scheduleConnectionRetry();
+    }
+
+    private boolean hasInternetConnection() {
+        if (connectivityManager == null) return true;
+        try {
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(
+                    connectivityManager.getActiveNetwork());
+            return capabilities != null
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+        } catch (RuntimeException ignored) {
+            return true;
+        }
+    }
+
+    private void scheduleConnectionRetry() {
+        root.removeCallbacks(connectionRetry);
+        if (!resumed || !showingOfflinePage || connectionRetries >= MAX_CONNECTION_RETRIES
+                || !hasInternetConnection()) return;
+        long delay = Math.min(30_000L, 2_000L << connectionRetries);
+        connectionRetries++;
+        root.postDelayed(connectionRetry, delay);
+    }
+
+    private void retryConnection() {
+        if (!resumed || !showingOfflinePage || webView == null
+                || isFinishing() || isDestroyed() || !hasInternetConnection()) return;
+        root.removeCallbacks(connectionRetry);
+        showingOfflinePage = false;
+        String target = isAllowedUrl(Uri.parse(lastAllowedUrl)) ? lastAllowedUrl : START_URL;
+        webView.loadUrl(shouldForceFreshWeb() ? withFreshWebToken(target) : target);
+    }
+
+    private void startNetworkRecovery() {
+        if (networkCallback != null) return;
+        connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) return;
+        networkValidated = false;
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onCapabilitiesChanged(Network network, NetworkCapabilities capabilities) {
+                boolean validated = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                        && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+                runOnUiThread(() -> {
+                    boolean recovered = validated && !networkValidated;
+                    networkValidated = validated;
+                    if (resumed && recovered && showingOfflinePage) {
+                        connectionRetries = 0;
+                        root.removeCallbacks(connectionRetry);
+                        root.postDelayed(connectionRetry, 500L);
+                    }
+                });
+            }
+
+            @Override
+            public void onLost(Network network) {
+                runOnUiThread(() -> networkValidated = false);
+            }
+        };
+        try { connectivityManager.registerDefaultNetworkCallback(networkCallback); }
+        catch (RuntimeException ignored) { networkCallback = null; }
+        if (showingOfflinePage) scheduleConnectionRetry();
+    }
+
+    private void stopNetworkRecovery() {
+        if (root != null) root.removeCallbacks(connectionRetry);
+        if (connectivityManager != null && networkCallback != null) {
+            try { connectivityManager.unregisterNetworkCallback(networkCallback); }
+            catch (RuntimeException ignored) { /* The Activity may already be stopped. */ }
+        }
+        networkCallback = null;
     }
 
     private void showNativeFallback(String messageText) {
+        rendererRecoveryPending = false;
         destroyCurrentWebView();
         clearStartupGuard();
 
@@ -744,11 +957,11 @@ public final class MainActivity extends Activity {
         Button openButton = new Button(this);
         openButton.setText("Open FC Arena Website");
         openButton.setOnClickListener(
-                view -> openExternal(Uri.parse(START_URL))
+                view -> openWebsiteInBrowser()
         );
 
         Button retryButton = new Button(this);
-        retryButton.setText("Retry In-App Safe Mode");
+        retryButton.setText("Try FC Arena Again");
         retryButton.setOnClickListener(view -> {
             rendererCrashCount = 0;
             softwareRendering = true;
@@ -757,8 +970,8 @@ public final class MainActivity extends Activity {
 
             try {
                 createWebView();
-                webView.loadUrl(START_URL);
-                root.postDelayed(this::clearStartupGuard, 5000L);
+                String target = isAllowedUrl(Uri.parse(lastAllowedUrl)) ? lastAllowedUrl : START_URL;
+                webView.loadUrl(shouldForceFreshWeb() ? withFreshWebToken(target) : target);
             } catch (Throwable error) {
                 showNativeFallback(
                         "The in-app browser still cannot start on this device. "
@@ -767,13 +980,22 @@ public final class MainActivity extends Activity {
             }
         });
 
+        Button updateButton = new Button(this);
+        updateButton.setText("Update Android System WebView");
+        updateButton.setOnClickListener(view -> openExternal(Uri.parse(
+                "https://play.google.com/store/apps/details?id=com.google.android.webview")));
+
         panel.addView(title);
         panel.addView(message);
-        panel.addView(openButton);
         panel.addView(retryButton);
+        panel.addView(openButton);
+        panel.addView(updateButton);
 
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.addView(panel);
         root.addView(
-                panel,
+                scroll,
                 new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,
                         FrameLayout.LayoutParams.MATCH_PARENT
@@ -783,7 +1005,10 @@ public final class MainActivity extends Activity {
 
     private void clearStartupGuard() {
         if (preferences != null) {
-            preferences.edit().putBoolean(STARTUP_GUARD_KEY, false).apply();
+            preferences.edit()
+                    .remove(STARTUP_GUARD_KEY)
+                    .remove(SAFE_STARTUP_GUARD_KEY)
+                    .commit();
         }
     }
 
@@ -810,6 +1035,9 @@ public final class MainActivity extends Activity {
             && isAllowedUrl(intent.getData())
         ) {
             lastAllowedUrl = intent.getData().toString();
+            showingOfflinePage = false;
+            connectionRetries = 0;
+            root.removeCallbacks(connectionRetry);
             webView.loadUrl(lastAllowedUrl);
         }
     }
@@ -817,12 +1045,18 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        resumed = true;
+        root.removeCallbacks(updateRefresh);
+        updateRefresh.run();
+        startNetworkRecovery();
+        if (rendererRecoveryPending) root.postDelayed(rendererRecovery, 250L);
+        if (pageLoadPending) root.postDelayed(pageLoadTimeout, PAGE_LOAD_TIMEOUT_MS);
         if (webView != null) {
             webView.onResume();
         }
         // FCM may rotate its token while the app is backgrounded or updated.
         // Publish the current token using the existing authenticated web bridge.
-        if (webView != null && webView.getUrl() != null
+        if (!showingOfflinePage && webView != null && webView.getUrl() != null
                 && isAllowedUrl(Uri.parse(webView.getUrl()))) {
             try {
                 PushSupport.publish(this, webView);
@@ -834,22 +1068,27 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+        resumed = false;
+        root.removeCallbacks(updateRefresh);
+        root.removeCallbacks(rendererRecovery);
+        root.removeCallbacks(pageLoadTimeout);
+        stopNetworkRecovery();
         if (webView != null) {
             // Pause this view's animations/location work while another app or
             // the photo picker is foregrounded. Do not pause global JS timers:
             // uploads/auth callbacks must still be allowed to complete.
             webView.onPause();
+            // No browser APIs are needed while the native fallback is showing:
+            // the WebView provider itself may be unavailable on this device.
+            // Persist the refresh cookie before Android can kill this process.
+            CookieManager.getInstance().flush();
         }
-        // Login uses an HttpOnly refresh cookie set by the SPA's fetch request.
-        // Flush WebView cookies before Android backgrounds or kills the process
-        // so the refresh session is available on the next cold launch.
-        CookieManager.getInstance().flush();
         super.onPause();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        if (webView != null) {
+        if (webView != null && !showingOfflinePage) {
             webView.saveState(outState);
         }
         super.onSaveInstanceState(outState);
@@ -886,6 +1125,8 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        root.removeCallbacks(updateRefresh);
+        stopNetworkRecovery();
         clearStartupGuard();
 
         if (fileChooserCallback != null) {

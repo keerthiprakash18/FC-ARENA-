@@ -1,6 +1,6 @@
 {
   "name": "fc-arena",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "private": true,
   "description": "FC ARENA football and esports tournament management platform",
   "packageManager": "npm@12.0.2",
@@ -24,6 +24,8 @@
     "load:test": "node scripts/load-test.mjs",
     "load:test:verify": "node --test tests/load-test.test.mjs",
     "check:data-safety": "node scripts/check-data-safety.mjs",
+    "check:availability": "node scripts/check-availability.mjs",
+    "check:availability:test": "node --test tests/availability.test.mjs",
     "check:final-release": "node scripts/final-release-gate.mjs"
   },
   "overrides": {

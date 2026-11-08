@@ -12,33 +12,8 @@ export function ServiceWorkerRegister() {
       return;
     }
 
-    const hadController =
-      Boolean(navigator.serviceWorker.controller);
-
-    const release =
-      process.env.NEXT_PUBLIC_FC_ARENA_RELEASE_SHA ??
-      'unknown';
-
-    const reloadKey =
-      `fc-arena-sw-controller-${release}`;
-
-    const onControllerChange = () => {
-      if (!hadController) return;
-
-      try {
-        if (sessionStorage.getItem(reloadKey)) return;
-        sessionStorage.setItem(reloadKey, '1');
-      } catch {
-        return;
-      }
-
-      window.location.reload();
-    };
-
-    navigator.serviceWorker.addEventListener(
-      'controllerchange',
-      onControllerChange,
-    );
+    // The worker caches icons only. Taking control must not interrupt a match,
+    // registration or login by automatically replacing the current document.
 
     const register = () => {
       void navigator.serviceWorker
@@ -59,10 +34,6 @@ export function ServiceWorkerRegister() {
 
     return () => {
       window.removeEventListener('load', register);
-      navigator.serviceWorker.removeEventListener(
-        'controllerchange',
-        onControllerChange,
-      );
     };
   }, []);
   return null;

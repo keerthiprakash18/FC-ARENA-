@@ -7,11 +7,13 @@ import { createWorker, PSM, type Page } from 'tesseract.js';
 import {
   TesseractOcrProvider,
   visualRows,
+  scoreboardRegions,
+  scoreboardDigit,
 } from './providers/tesseract-ocr.provider.js';
 
 vi.mock('tesseract.js', () => ({
   createWorker: vi.fn(),
-  PSM: { SPARSE_TEXT: '11', AUTO: '3' },
+  PSM: { SPARSE_TEXT: '11', AUTO: '3', SINGLE_LINE: '7' },
 }));
 
 const page = { text: 'Alpha 2 - 1 Beta', confidence: 95, blocks: null } as Page;
@@ -64,6 +66,9 @@ describe('OCR preprocessing and worker recovery', () => {
     expect(metadata.width).toBe(1600);
     expect(metadata.height).toBe(900);
     expect((await sharp(imagePath).metadata()).width).toBe(640);
+    expect(createWorker).toHaveBeenCalledWith('eng', undefined, expect.objectContaining({
+      errorHandler: expect.any(Function),
+    }));
   });
 
   it('retries worker initialization after a failure', async () => {
@@ -132,5 +137,27 @@ describe('OCR preprocessing and worker recovery', () => {
       'Alpha Beta',
       '2 1',
     ]);
+  });
+
+  it('crops the goals on each side of a final-time clock without reading the centre emblem', () => {
+    const regions = scoreboardRegions([{
+      text: '90:00', bbox: { x0: 1121, y0: 243, x1: 1223, y1: 272 },
+    }], 2340, 1080);
+    expect(regions).toHaveLength(2);
+    expect(regions[0].left + regions[0].width).toBeLessThan(1121);
+    expect(regions[1].left).toBeGreaterThan(1223);
+    expect(regions[0].top + regions[0].height).toBeLessThan(243);
+    expect(scoreboardRegions([{ text: '12:10' }], 2340, 1080)).toEqual([]);
+    expect(scoreboardRegions([{
+      text: '90:00', bbox: { x0: 100, y0: 20, x1: 200, y1: 40 },
+    }], 2340, 1080)).toEqual([]);
+  });
+
+  it.each([['O', 0], ['I', 1], ['10', 10], ['30', 30]])('reads isolated goal glyph %s', (text, score) => {
+    expect(scoreboardDigit({ text, confidence: 92 } as Page)).toEqual({ score, confidence: 0.92 });
+  });
+
+  it.each(['Alpha1', '90:00', '070', '31', '1 7 0', ''])('rejects non-score crop %s', (text) => {
+    expect(scoreboardDigit({ text, confidence: 99 } as Page)).toBeNull();
   });
 });

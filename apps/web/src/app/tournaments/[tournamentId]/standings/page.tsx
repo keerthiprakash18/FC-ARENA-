@@ -1,5 +1,7 @@
 'use client';
 
+import { TournamentFormatGuide, QualificationLegend } from '@/components/tournaments/tournament-format-guide';
+import type { TournamentFormatDescription, QualificationBand } from '@/lib/tournament-format-guide';
 import { ApiError } from "@/lib/api";
 import Link from 'next/link';
 
@@ -64,6 +66,7 @@ interface TournamentSummary {
   name: string;
   status: string;
   competitionFormat: string;
+  formatGuide?: TournamentFormatDescription | null;
   legType: string;
 }
 
@@ -102,60 +105,18 @@ function entryDisplayName(
 }
 
 
-function compareRows(
-  a: Standing,
-  b: Standing,
-) {
-  if (b.points !== a.points) {
-    return b.points - a.points;
-  }
-
-  if (
-    b.goalDifference !==
-    a.goalDifference
-  ) {
-    return (
-      b.goalDifference -
-      a.goalDifference
-    );
-  }
-
-  if (
-    b.goalsFor !==
-    a.goalsFor
-  ) {
-    return (
-      b.goalsFor -
-      a.goalsFor
-    );
-  }
-
-  if (
-    b.wins !==
-    a.wins
-  ) {
-    return (
-      b.wins -
-      a.wins
-    );
-  }
-
-  return a.entryName.localeCompare(
-    b.entryName,
-  );
-}
-
-
 function StandingTable({
   title,
   entries,
   standings,
   eyebrow = 'Group Standings',
+  bands = [],
 }: {
   title: string;
   entries: GroupEntry[];
   standings: Standing[];
   eyebrow?: string;
+  bands?: QualificationBand[];
 }) {
   const lookup =
     new Map(
@@ -179,6 +140,8 @@ function StandingTable({
           if (existing) {
             return {
               ...existing,
+
+              entryLogoUrl: existing.entryLogoUrl ?? entry.entryLogoUrl ?? null,
 
               entryName:
                 existing.entryName ||
@@ -217,7 +180,7 @@ function StandingTable({
         },
       )
       .sort(
-        compareRows,
+        (a, b) => (a.position || Number.MAX_SAFE_INTEGER) - (b.position || Number.MAX_SAFE_INTEGER),
       )
       .map(
         (
@@ -249,9 +212,10 @@ function StandingTable({
         </span>
       </div>
 
-      <CompactStandingsTable label={`${title} standings`} highlightedPositions={2} rows={rows.map(row => ({
+      <QualificationLegend bands={bands} />
+      <CompactStandingsTable label={`${title} standings`} qualificationBands={bands} rows={rows.map(row => ({
         ...row,
-        logoUrl: entries.find(entry => entry.id === row.registrationId)?.entryLogoUrl,
+        logoUrl: row.entryLogoUrl,
       }))} />
       <div className="hidden overflow-x-auto sm:block" tabIndex={0} role="region" aria-label={`${title} detailed standings`}>
         <table className="w-full min-w-[850px] text-sm">
@@ -315,12 +279,9 @@ function StandingTable({
                 >
                   <td className="p-4 text-left">
                     <span
-                      className={`inline-grid h-8 w-8 place-items-center rounded-xl font-black ${
-                        row.position <=
-                        2
-                          ? 'bg-emerald-400/10 text-emerald-300'
-                          : 'bg-white/[0.03] text-slate-500'
-                      }`}
+                      title={bands.find(band => row.position >= band.from && row.position <= band.to)?.label}
+                      data-qualification={bands.find(band => row.position >= band.from && row.position <= band.to)?.tone}
+                      className={`inline-grid h-8 w-8 place-items-center rounded-xl font-black ${bands.some(band => row.position >= band.from && row.position <= band.to) ? 'fc-qualification-rank' : 'bg-white/[0.03] text-slate-500'}`}
                     >
                       {
                         row.position
@@ -639,7 +600,7 @@ export default function StandingsPage() {
                 </div>
 
                 <p className="mt-3 text-sm leading-6 text-slate-500">
-                  Confirmed results update the same overall table. Win = 3 points, draw = 1 point, loss = 0 points. Ranking uses points, goal difference, goals scored and wins.
+                  Confirmed results update the same overall table. {tournament.formatGuide?.scoring || 'Win = 3 points, draw = 1 point, loss = 0 points.'} {tournament.formatGuide?.ranking || 'Ranking uses points, goal difference, goals scored and wins.'}
                 </p>
               </div>
 
@@ -648,7 +609,7 @@ export default function StandingsPage() {
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
                     {
                       tournament.status ===
-                      'COMPLETED'
+                      'COMPLETED' && ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat)
                         ? 'Champion'
                         : 'Current Leader'
                     }
@@ -676,6 +637,8 @@ export default function StandingsPage() {
           </section>
         ) : null}
 
+
+        <TournamentFormatGuide guide={tournament.formatGuide} />
 
         {statistic ? (
           <section className="premium-metrics premium-standing-metrics" aria-label="Your competition statistics">
@@ -734,6 +697,10 @@ export default function StandingsPage() {
         ) : null}
 
 
+        {groups.length > 0 && tournament.formatGuide?.qualification.source === 'OVERALL_STANDINGS' && standings.length > 0 ? (
+          <StandingTable title="Overall qualification table" eyebrow="Competition Standings" bands={tournament.formatGuide.qualification.bands}
+            entries={standings.map(row => ({ id: row.registrationId, entryName: row.entryName, entryLogoUrl: row.entryLogoUrl, members: [] }))} standings={standings} />
+        ) : null}
         {groups.length > 0 ? (
           <div className="space-y-6">
             {groups
@@ -753,6 +720,7 @@ export default function StandingsPage() {
                     key={
                       group.id
                     }
+                    bands={tournament.formatGuide?.qualification.source === 'GROUP_QUALIFIERS' ? tournament.formatGuide.qualification.bands : []}
                     title={
                       group.name
                     }
@@ -769,6 +737,7 @@ export default function StandingsPage() {
         ) : standings.length > 0 ? (
           <StandingTable
             title="Overall Standings"
+            bands={tournament.formatGuide?.qualification.source === 'OVERALL_STANDINGS' ? tournament.formatGuide.qualification.bands : []}
             eyebrow="Competition Standings"
             entries={
               standings.map(
@@ -777,6 +746,8 @@ export default function StandingsPage() {
                     standing.registrationId,
                   entryName:
                     standing.entryName,
+                  entryLogoUrl:
+                    standing.entryLogoUrl,
                   members: [],
                 }),
               )

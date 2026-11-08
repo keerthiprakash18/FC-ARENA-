@@ -22,6 +22,7 @@ const items = [
   ['Bracket', '/playoffs'],
   ['Stats', '/stats'],
   ['Summary', '/summary'],
+  ['Report', '/report'],
   ['Awards', '/achievements'],
   ['Settings', '/settings'],
   ['Manage Admins', '/admins'],

@@ -15,12 +15,17 @@ export interface FcDialogOptions {
 export function FcDialog({
   open, title, description, confirmLabel = 'Confirm', cancelLabel = 'Cancel',
   destructive = false, busy = false, onConfirm, onCancel, children,
+  hideCancel = false, confirmDisabled = false,
+  className = '',
 }: FcDialogOptions & {
   open: boolean;
   busy?: boolean;
   onConfirm: (form: HTMLFormElement) => void;
   onCancel: () => void;
   children?: ReactNode;
+  hideCancel?: boolean;
+  confirmDisabled?: boolean;
+  className?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -49,20 +54,20 @@ export function FcDialog({
       aria-describedby={descriptionId}
       aria-busy={busy}
       onCancel={event => { event.preventDefault(); if (!busy) onCancel(); }}
-      className="theme-dialog rounded-2xl border p-5"
+      className={`theme-dialog rounded-2xl border p-5 ${className}`}
     >
       <form onSubmit={event => { event.preventDefault(); if (!busy) onConfirm(event.currentTarget); }}>
         <h2 id={titleId} className="theme-text text-lg font-semibold">{title}</h2>
         <p id={descriptionId} className="theme-secondary-text mt-2 text-sm leading-6 whitespace-pre-line">{description}</p>
         {children}
         <div className="mt-6 flex flex-wrap justify-end gap-2">
-          <button
+          {!hideCancel ? <button
             type="button" disabled={busy} onClick={onCancel}
             data-initial-focus={destructive || !children ? '' : undefined}
             className="theme-secondary-button min-h-11 rounded-[10px] border px-4 text-sm font-medium"
-          >{cancelLabel}</button>
+          >{cancelLabel}</button> : null}
           <FcActionButton
-            type="submit" busy={busy} busyLabel="Working..."
+            type="submit" busy={busy} disabled={confirmDisabled} busyLabel="Working..."
             className={'min-h-11 rounded-[10px] px-4 text-sm font-semibold ' + (destructive ? 'theme-danger-button border' : 'theme-primary-button')}
           >{confirmLabel}</FcActionButton>
         </div>

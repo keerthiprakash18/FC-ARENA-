@@ -1,17 +1,16 @@
 'use client';
+import { FootballTeamPicker } from '@/components/tournaments/football-team-picker';
+import { useRouteLeague } from '@/lib/active-league';
 
-/* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
-import {
-  useParams,
-  useRouter,
-} from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import type {
   FormEvent,
 } from 'react';
 import {
-  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -24,6 +23,7 @@ import {
 } from '@/components/app/back-header';
 
 import {
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
@@ -32,6 +32,8 @@ import {
 import {
   TournamentNavigation,
 } from '@/components/tournaments/tournament-navigation';
+import { TournamentEntryLimit, type EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
+import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 
 import {
   EntryLogoUpload,
@@ -44,7 +46,8 @@ import {
 } from '@/lib/auth-client';
 
 
-interface Tournament {
+interface Tournament extends EntryLimitTournament {
+  leagueId?: string;
   id: string;
   name: string;
   code: string;
@@ -55,6 +58,9 @@ interface Tournament {
   maxEntries: number;
   approvedEntries: number;
   isLeagueAdmin: boolean;
+  canManageParticipants?: boolean;
+  pendingEntries?: number;
+  registeredEntries?: number;
 }
 
 
@@ -110,6 +116,7 @@ interface MyRegistrationResponse {
   data: {
     registration: Registration | null;
     canEdit?: boolean;
+    canEditRoster?: boolean;
     editLockReason?: string | null;
   };
 }
@@ -210,6 +217,11 @@ function memberPlayerCode(
 
 
 export default function TournamentRegistrationPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pendingOnly = searchParams.get('view') === 'pending';
+  const [registrationScope, setRegistrationScope] = useState('');
+  const initializedIdentity = useRef('');
   const {
     tournamentId,
   } =
@@ -218,8 +230,6 @@ export default function TournamentRegistrationPage() {
         string;
     }>();
 
-  const router =
-    useRouter();
 
   const [
     user,
@@ -258,6 +268,7 @@ export default function TournamentRegistrationPage() {
     );
 
   const [canEditMyRegistration, setCanEditMyRegistration] = useState(false);
+  const [canEditMyRoster, setCanEditMyRoster] = useState(false);
   const [editLockReason, setEditLockReason] = useState<string | null>(null);
 
   const [
@@ -267,6 +278,8 @@ export default function TournamentRegistrationPage() {
     useState<Registration[]>(
       [],
     );
+
+  const [registrationSaved, setRegistrationSaved] = useState(false);
 
   const [
     busy,
@@ -321,26 +334,22 @@ export default function TournamentRegistrationPage() {
         `/tournaments/${tournamentId}`,
       );
 
-    setTournament(
-      response
-        .data
-        .tournament,
-    );
-
-    return response
-      .data
-      .tournament;
+    const next = { ...response.data.tournament, canManageParticipants: response.data.tournament.canManageParticipants ?? response.data.tournament.isLeagueAdmin };
+    setTournament(next);
+    return next;
   }
 
 
   async function refreshRegistrationState(
     nextTournament:
       Tournament,
+    signal?: AbortSignal,
   ) {
     const myResponse =
       await authenticatedRequest<MyRegistrationResponse>(
-        `/tournaments/${tournamentId}/my-registration`,
+        `/tournaments/${tournamentId}/my-registration`, { signal },
       );
+    if (signal?.aborted) return;
 
     setMyRegistration(
       myResponse
@@ -348,16 +357,18 @@ export default function TournamentRegistrationPage() {
         .registration,
     );
     setCanEditMyRegistration(Boolean(myResponse.data.canEdit));
+    setCanEditMyRoster(Boolean(myResponse.data.canEditRoster));
     setEditLockReason(myResponse.data.editLockReason ?? null);
 
     if (
       nextTournament
-        .isLeagueAdmin
+        .canManageParticipants
     ) {
       const response =
         await authenticatedRequest<RegistrationsResponse>(
-          `/tournaments/${tournamentId}/registrations`,
+          `/tournaments/${tournamentId}/registrations`, { signal },
         );
+      if (signal?.aborted) return;
 
       setRegistrations(
         response
@@ -365,59 +376,29 @@ export default function TournamentRegistrationPage() {
           .registrations,
       );
     }
+    if (!signal?.aborted) setRegistrationScope(tournamentId);
   }
 
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const current =
-          await getCurrentUser();
+  useRouteLeague(user?.id, tournament?.id === tournamentId ? tournament.leagueId : null);
 
-        const response =
-          await authenticatedRequest<TournamentResponse>(
-            `/tournaments/${tournamentId}`,
-          );
-
-        const tournamentData =
-          response
-            .data
-            .tournament;
-
-        setUser(
-          current,
-        );
-
-        setTournament(
-          tournamentData,
-        );
-
-        setPlayerCodes(
-          current.player
-            ?.playerCode ??
-            '',
-        );
-
-        setGameName(
-          current.player
-            ?.identity
-            ?.inGameName ??
-            '',
-        );
-
-        await refreshRegistrationState(
-          tournamentData,
-        );
-      } catch {
-        router.replace(
-          `/tournaments/${tournamentId}`,
-        );
-      }
-    })();
-  }, [
-    router,
-    tournamentId,
-  ]);
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, response] = await Promise.all([
+      getCurrentUser({ signal }),
+      authenticatedRequest<TournamentResponse>(`/tournaments/${tournamentId}`, { signal }),
+    ]);
+    if (signal.aborted) return;
+    const data = response.data.tournament;
+    const next = { ...data, canManageParticipants: data.canManageParticipants ?? data.isLeagueAdmin };
+    if (tournament?.id !== tournamentId) setRegistrationSaved(false);
+    setUser(current); setTournament(next);
+    const identityKey = `${current.id}:${tournamentId}`;
+    if (initializedIdentity.current !== identityKey) {
+      initializedIdentity.current = identityKey;
+      setPlayerCodes(current.player?.playerCode ?? ''); setGameName(current.player?.identity?.inGameName ?? '');
+    }
+    await refreshRegistrationState(next, signal);
+  }, tournamentId);
 
 
   const pendingRegistrations =
@@ -459,7 +440,7 @@ export default function TournamentRegistrationPage() {
     event.preventDefault();
 
     if (
-      !tournament
+      !tournament || busy || registrationSaved
     ) {
       return;
     }
@@ -541,13 +522,15 @@ export default function TournamentRegistrationPage() {
           .data
           .message,
       );
+      setRegistrationSaved(true);
 
-      const updatedTournament =
-        await refreshTournament();
-
-      await refreshRegistrationState(
-        updatedTournament,
-      );
+      try {
+        const updatedTournament = await refreshTournament();
+        await refreshRegistrationState(updatedTournament);
+      } catch {
+        setMessage('Registration saved. Refreshing your entry details...');
+        initialLoad.retry();
+      }
     } catch (
       err
     ) {
@@ -583,7 +566,7 @@ export default function TournamentRegistrationPage() {
         method: 'PATCH',
         body: JSON.stringify({
           entryName: editEntryName.trim(),
-          ...(tournament.teamSize > 1 ? { playerCodes } : {}),
+          ...(tournament.teamSize > 1 && canEditMyRoster ? { playerCodes } : {}),
         }),
       });
       setMessage(response.data.message);
@@ -608,7 +591,7 @@ export default function TournamentRegistrationPage() {
   ) {
     if (
       !tournament
-        ?.isLeagueAdmin
+        ?.canManageParticipants
     ) {
       return;
     }
@@ -670,7 +653,7 @@ export default function TournamentRegistrationPage() {
   ) {
     if (
       !tournament
-        ?.isLeagueAdmin
+        ?.canManageParticipants
     ) {
       return;
     }
@@ -725,9 +708,11 @@ export default function TournamentRegistrationPage() {
   }
 
 
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
+
   if (
     !user ||
-    !tournament
+    !tournament || tournament.id !== tournamentId || registrationScope !== tournamentId
   ) {
     return (
       <FcLoadingScreen
@@ -767,7 +752,7 @@ export default function TournamentRegistrationPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-6" data-refresh-lock={busy || editBusy || reviewBusy !== null ? 'true' : undefined}>
         <BackHeader
           backHref={
             `/tournaments/${tournamentId}`
@@ -779,7 +764,7 @@ export default function TournamentRegistrationPage() {
           title="Registration"
           subtitle={
             tournament
-              .isLeagueAdmin
+              .canManageParticipants
               ? 'Manage player applications and, if you are also competing, register yourself as a Tournament participant.'
               : 'Join this Tournament with your FC ARENA identity and wait for admin approval.'
           }
@@ -804,6 +789,10 @@ export default function TournamentRegistrationPage() {
             tournamentId
           }
         />
+        <div className="theme-panel rounded-2xl border p-4 text-sm" aria-label="Registration totals">
+          <strong>{tournament.registeredEntries ?? tournament.approvedEntries + (tournament.pendingEntries ?? 0)} registered</strong>
+          {' · '}{tournament.approvedEntries} approved{' · '}{tournament.pendingEntries ?? 0} pending approval
+        </div>
 
 
         {message ? (
@@ -882,8 +871,14 @@ export default function TournamentRegistrationPage() {
         </FcPanel>
 
 
+        <TournamentFixtureStart tournament={{ ...tournament,
+          approvedEntries: approvedRegistrations.length, pendingEntries: pendingRegistrations.length }} />
+
+        <TournamentEntryLimit tournament={{ ...tournament, approvedEntries: approvedRegistrations.length }}
+          onUpdated={maxEntries => setTournament(current => current ? { ...current, maxEntries } : current)} />
+
         {tournament
-          .isLeagueAdmin ? (
+          .canManageParticipants ? (
           <FcPanel className="p-5 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -1024,7 +1019,7 @@ export default function TournamentRegistrationPage() {
 
 
         {tournament
-          .isLeagueAdmin ? (
+          .canManageParticipants ? (
           <FcPanel className="p-5 sm:p-6">
             <div className="flex flex-col gap-3 border-b border-white/[0.06] pb-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -1055,14 +1050,19 @@ export default function TournamentRegistrationPage() {
             </div>
 
 
-            <div className="mt-5 grid gap-3">
-              {registrations.length ===
+            <div id="pending-approvals" className="mt-5 scroll-mt-28">
+              <div className="mb-4 flex flex-wrap gap-2" aria-label="Registration review filter">
+                <button type="button" aria-pressed={pendingOnly} onClick={() => router.replace(`/tournaments/${tournamentId}/registration?view=pending#pending-approvals`, { scroll: false })} className={`${pendingOnly ? 'theme-primary-button' : 'theme-secondary-button'} min-h-11 rounded-xl px-4 py-2 text-sm font-bold`}>Pending ({pendingRegistrations.length})</button>
+                <button type="button" aria-pressed={!pendingOnly} onClick={() => router.replace(`/tournaments/${tournamentId}/registration#pending-approvals`, { scroll: false })} className={`${!pendingOnly ? 'theme-primary-button' : 'theme-secondary-button'} min-h-11 rounded-xl px-4 py-2 text-sm font-bold`}>All registrations ({registrations.length})</button>
+              </div>
+              <div className="grid gap-3">
+              {(pendingOnly ? pendingRegistrations : registrations).length ===
               0 ? (
                 <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 text-sm text-slate-500">
-                  No player has submitted a Tournament registration yet.
+                  {pendingOnly ? 'No registrations are waiting for approval.' : 'No player has submitted a Tournament registration yet.'}
                 </div>
               ) : (
-                registrations.map(
+                (pendingOnly ? pendingRegistrations : [...pendingRegistrations, ...registrations.filter(row => row.status !== 'PENDING')]).map(
                   (
                     registration,
                   ) => (
@@ -1212,6 +1212,7 @@ export default function TournamentRegistrationPage() {
                   ),
                 )
               )}
+              </div>
             </div>
           </FcPanel>
         ) : null}
@@ -1282,16 +1283,14 @@ export default function TournamentRegistrationPage() {
             {editingMyRegistration ? (
               <div className="mt-5 space-y-4 rounded-2xl border border-sky-400/20 bg-sky-400/[0.04] p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">Edit Your Team</p>
-                <label className="grid gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">Team Name</span>
-                  <input value={editEntryName} onChange={(event) => setEditEntryName(event.target.value)} maxLength={120} className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50" />
-                </label>
-                {tournament.teamSize > 1 ? (
+                <FootballTeamPicker tournamentId={tournamentId} excludeEntryId={myRegistration.id} value={editEntryName} onChange={setEditEntryName} disabled={editBusy} />
+                {tournament.teamSize > 1 && canEditMyRoster ? (
                   <label className="grid gap-2">
                     <span className="text-xs font-black uppercase tracking-wider text-slate-500">FC ARENA Player IDs</span>
                     <textarea value={editPlayerCodes} onChange={(event) => setEditPlayerCodes(event.target.value)} rows={Math.max(3, tournament.teamSize)} placeholder="One Player ID per line" className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 font-mono outline-none focus:border-sky-400/50" />
                   </label>
                 ) : null}
+                {!canEditMyRoster ? <p className="text-xs leading-5 text-slate-400">You can update the team name. Player changes are locked once fixtures are generated.</p> : null}
                 <div className="flex flex-wrap gap-2">
                   <button type="button" disabled={editBusy} onClick={() => void saveMyRegistration()} className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019] disabled:opacity-40">{editBusy ? 'Saving...' : 'Save Team Changes'}</button>
                   <button type="button" disabled={editBusy} onClick={() => setEditingMyRegistration(false)} className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400 disabled:opacity-40">Cancel</button>
@@ -1371,14 +1370,14 @@ export default function TournamentRegistrationPage() {
             </p>
 
             <h2 className="mt-2 text-xl font-black">
-              {tournament.isLeagueAdmin
+              {tournament.canManageParticipants
                 ? 'Join as Player'
                 : 'Join Tournament'}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-500">
               {isIndividualEntry
-                ? tournament.isLeagueAdmin
+                ? tournament.canManageParticipants
                   ? 'You are managing this Tournament, but you can also compete. Your FC ARENA Player ID is linked automatically; enter your Game Name and Team Name to register yourself as a participant.'
                   : 'Your FC ARENA Player ID is linked automatically. Enter your Game Name and Team Name, then submit for admin approval.'
                 : 'Submit the complete roster for this team entry. Every Player ID must already belong to this League.'}
@@ -1443,41 +1442,11 @@ export default function TournamentRegistrationPage() {
                   </label>
 
 
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                      Team Name
-                    </span>
-
-                    <input
-                      name="entryName"
-                      required
-                      maxLength={
-                        120
-                      }
-                      placeholder="Your in-game Team / Club name"
-                      className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                    />
-                  </label>
+                  <FootballTeamPicker tournamentId={tournamentId} disabled={busy} />
                 </>
               ) : (
                 <>
-                  <label className="grid gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                      {tournament.mode ===
-                      'DUO'
-                        ? 'Duo Name'
-                        : 'Team Name'}
-                    </span>
-
-                    <input
-                      name="entryName"
-                      required
-                      maxLength={
-                        120
-                      }
-                      className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-                    />
-                  </label>
+                  <FootballTeamPicker tournamentId={tournamentId} label={tournament.mode === 'DUO' ? 'Duo Name' : 'Team Name'} disabled={busy} />
 
 
                   <label className="grid gap-2">
@@ -1534,7 +1503,7 @@ export default function TournamentRegistrationPage() {
 
 
         {!tournament
-          .isLeagueAdmin &&
+          .canManageParticipants &&
         tournament
           .registrationMode ===
           'ADMIN_ONLY' ? (
@@ -1551,7 +1520,7 @@ export default function TournamentRegistrationPage() {
 
 
         {!tournament
-          .isLeagueAdmin &&
+          .canManageParticipants &&
         !registrationOpen &&
         !myRegistration ? (
           <FcPanel className="border-amber-400/15 p-6">

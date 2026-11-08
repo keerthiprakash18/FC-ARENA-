@@ -66,8 +66,10 @@ export function generateRoundRobinFixtures(
         continue;
       }
 
+      // Only the fixed participant alternates by round. Rotating entries
+      // already move between the two sides, including through BYE rounds.
       const alternate =
-        (roundIndex + matchIndex) % 2 === 0;
+        matchIndex !== 0 || roundIndex % 2 === 0;
 
       const homeRegistrationId = alternate
         ? left

@@ -4,6 +4,7 @@ import { MatchesModule } from '../matches/matches.module.js';
 import { ResultCorrectionService } from './result-correction.service.js';
 import { ResultsController } from './results.controller.js';
 import { ResultsService } from './results.service.js';
+import { ResultReviewService } from './result-review.service.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ResultsService } from './results.service.js';
   ],
 
   providers: [
+    ResultReviewService,
     ResultsService,
     ResultCorrectionService,
   ],

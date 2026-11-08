@@ -36,9 +36,9 @@ export const ELITE_CUP_FORMATS: Record<
     rangeLabel: 'Saved Elite Cup configuration',
   },
   UCL_CUP: {
-    label: 'UCL Cup League Phase + Playoff',
+    label: 'UCL League Phase + Two-leg Knockout',
     shortLabel: 'UCL Cup',
-    description: 'The approved field plays a partial league phase before the top-ranked teams enter the UCL Cup playoff bracket.',
+    description: '36 teams play eight opponents, then the top eight qualify directly and ranks 9–24 enter two-leg play-offs before the round of 16 and single final. Smaller fields use adapted qualification.',
     rangeLabel: 'Saved UCL Cup configuration',
   },
 };

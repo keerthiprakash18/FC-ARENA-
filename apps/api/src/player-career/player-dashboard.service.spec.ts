@@ -7,6 +7,7 @@ import type { PlayerCareerService } from './player-career.service.js';
 function setup(leagueIds = ['primary', 'secondary']) {
   const prisma = {
     tournament: { findMany: vi.fn().mockResolvedValue([]) },
+    tournamentRegistration: { groupBy: vi.fn().mockResolvedValue([]) },
     fixture: { findMany: vi.fn().mockResolvedValue([]) },
   };
   const leagues = {
@@ -37,6 +38,25 @@ function setup(leagueIds = ['primary', 'secondary']) {
 }
 
 describe('personal dashboard summary', () => {
+  it('returns approved, pending and registered counts for each tournament without mixing two leagues', async () => {
+    const { service, prisma } = setup();
+    prisma.tournament.findMany.mockResolvedValue([
+      { id: 'a', leagueId: 'primary', league: { name: 'Arena Tamil' } },
+      { id: 'b', leagueId: 'secondary', league: { name: 'Kickoff' } },
+    ]);
+    prisma.tournamentRegistration.groupBy.mockResolvedValue([
+      { tournamentId: 'a', status: 'APPROVED', _count: 1 },
+      { tournamentId: 'b', status: 'APPROVED', _count: 35 },
+      { tournamentId: 'b', status: 'PENDING', _count: 1 },
+    ]);
+    const summary = await service.getSummary('player');
+    expect(summary.data.tournaments).toEqual([
+      { id: 'a', leagueId: 'primary', leagueName: 'Arena Tamil', approvedEntries: 1, pendingEntries: 0, registeredEntries: 1 },
+      { id: 'b', leagueId: 'secondary', leagueName: 'Kickoff', approvedEntries: 35, pendingEntries: 1, registeredEntries: 36 },
+    ]);
+    expect(prisma.tournamentRegistration.groupBy).toHaveBeenCalledTimes(1);
+    expect(prisma.tournamentRegistration.groupBy.mock.calls[0][0].where).toEqual({ tournamentId: { in: ['a', 'b'] }, status: { in: ['PENDING', 'APPROVED'] } });
+  });
   it('includes both leagues and scopes every schedule query to the authenticated player', async () => {
     const { service, prisma, career } = setup();
     await service.getSummary('signed-in-player');
@@ -72,7 +92,7 @@ describe('personal dashboard summary', () => {
       Array.from({ length: 100 }, (_, index) => `league-${index}`),
     );
     await service.getSummary('player');
-    expect(prisma.fixture.findMany).toHaveBeenCalledTimes(3);
+    expect(prisma.fixture.findMany).toHaveBeenCalledTimes(4);
     for (const [query] of prisma.fixture.findMany.mock.calls)
       expect(query.take).toBe(10);
     expect(prisma.tournament.findMany.mock.calls[0][0].take).toBe(20);

@@ -1,11 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+
 import {
-  useRouter,
-} from 'next/navigation';
-import {
-  useEffect,
   useState,
 } from 'react';
 
@@ -19,6 +17,7 @@ import {
 
 import {
   FcEmptyState,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
@@ -60,9 +59,6 @@ interface ManagedTournament
 
 
 export default function FixtureManagementPage() {
-  const router =
-    useRouter();
-
   const [
     user,
     setUser,
@@ -80,73 +76,17 @@ export default function FixtureManagementPage() {
     );
 
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [current, leaguesResponse] = await Promise.all([
-          getCurrentUser(),
-          authenticatedRequest<any>('/leagues/my'),
-        ]);
-        setUser(current);
-
-        const adminLeagues:
-          Membership[] =
-          leaguesResponse
-            .data
-            .leagues
-            .filter(
-              (
-                membership:
-                  Membership,
-              ) =>
-                Boolean(
-                  membership.adminRole,
-                ),
-            );
-
-        const groups =
-          await Promise.all(
-            adminLeagues.map(
-              async (
-                membership,
-              ) => {
-                const response =
-                  await authenticatedRequest<any>(
-                    `/leagues/${membership.league.id}/tournaments`,
-                  );
-
-                return (
-                  response
-                    .data
-                    .tournaments as Tournament[]
-                ).map(
-                  (
-                    tournament,
-                  ) => ({
-                    ...tournament,
-                    leagueName:
-                      membership
-                        .league
-                        .name,
-                  }),
-                );
-              },
-            ),
-          );
-
-        setTournaments(
-          groups.flat(),
-        );
-      } catch {
-        router.replace(
-          '/fixtures',
-        );
-      }
-    })();
-  }, [
-    router,
-  ]);
-
+  const initialLoad = useRecoverableLoad(async signal => {
+    const [current, response] = await Promise.all([
+      getCurrentUser({ signal }), authenticatedRequest<{ data: { leagues: Membership[] } }>('/leagues/my', { signal }),
+    ]);
+    const groups = await Promise.all(response.data.leagues.filter(item => Boolean(item.adminRole)).map(async membership => {
+      const tournaments = await authenticatedRequest<{ data: { tournaments: Tournament[] } }>(`/leagues/${membership.league.id}/tournaments`, { signal });
+      return tournaments.data.tournaments.map(tournament => ({ ...tournament, leagueName: membership.league.name }));
+    }));
+    if (!signal.aborted) { setUser(current); setTournaments(groups.flat()); }
+  });
+  if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
 
   if (!user) {
     return (

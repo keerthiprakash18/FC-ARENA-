@@ -3,6 +3,8 @@
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
 import Link from 'next/link';
+import { confirmAction, promptAction } from '@/components/fc/confirmation-provider';
+import { useRouteLeague } from '@/lib/active-league';
 import {
   useParams,
   useRouter,
@@ -43,6 +45,7 @@ import {
 
 interface Tournament {
   id: string;
+  leagueId?: string;
   name: string;
   status: string;
   isLeagueAdmin: boolean;
@@ -90,19 +93,6 @@ interface DeadlineCase {
   };
 }
 
-
-interface FixtureResetImpact {
-  tournamentCode: string;
-  tournamentName: string;
-  groupMode: string;
-  fixtures: number;
-  matches: number;
-  scheduled: number;
-  published: number;
-  protectedMatches: number;
-  canReset: boolean;
-  reason: string | null;
-}
 
 interface Registration {
   id: string;
@@ -193,9 +183,13 @@ export default function TournamentSettingsPage() {
     setDeadlineCases,
   ] = useState<DeadlineCase[]>([]);
 
-  const [resetImpact, setResetImpact] = useState<FixtureResetImpact | null>(null);
-  const [resetConfirmation, setResetConfirmation] = useState('');
-  const [resetPanelOpen, setResetPanelOpen] = useState(false);
+  useRouteLeague(user?.id, tournament?.leagueId);
+
+  async function confirmTournamentName(name: string, title: string) {
+    return promptAction({ title, label: `Type the tournament name exactly: ${name}`,
+      confirmLabel: 'Confirm', required: true, multiline: false,
+      validate: value => value !== name ? 'Tournament name must match exactly.' : undefined });
+  }
 
 
   async function loadTournament() {
@@ -233,49 +227,6 @@ export default function TournamentSettingsPage() {
   }
 
 
-  async function loadResetImpact() {
-    try {
-      const response = await authenticatedRequest<{ data: FixtureResetImpact }>(
-        `/tournaments/${tournamentId}/fixtures/reset-impact`,
-      );
-      setResetImpact(response.data);
-    } catch {
-      setResetImpact(null);
-    }
-  }
-
-  async function resetTournamentFixtures() {
-    if (!resetImpact || !resetImpact.canReset) return;
-    const expected = `RESET ${resetImpact.tournamentCode}`;
-    if (resetConfirmation.trim() !== expected) {
-      setError('Type the exact confirmation phrase before resetting fixtures.');
-      return;
-    }
-    setBusy(true);
-    setError('');
-    setMessage('');
-    try {
-      const response = await authenticatedRequest<{ data: { message: string } }>(
-        `/tournaments/${tournamentId}/fixtures/reset`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ confirmation: expected }),
-        },
-      );
-      setResetPanelOpen(false);
-      setResetConfirmation('');
-      setMessage(response.data.message);
-      await loadTournament();
-      await loadResetImpact();
-      router.push(`/tournaments/${tournamentId}/${resetImpact.groupMode === 'MULTIPLE_GROUPS' ? 'groups' : 'wizard/fixture-settings'}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Fixture reset failed. No fixture changes were confirmed.');
-      await loadResetImpact();
-    } finally {
-      setBusy(false);
-    }
-  }
-
   useEffect(() => {
     void (async () => {
       try {
@@ -284,7 +235,6 @@ export default function TournamentSettingsPage() {
         );
 
         await loadTournament();
-        await loadResetImpact();
       } catch {
         router.replace(
           `/tournaments/${tournamentId}`,
@@ -538,7 +488,7 @@ export default function TournamentSettingsPage() {
   }
 
   async function saveTemplate() {
-    const name = window.prompt('Template name');
+    const name = await promptAction({ title: 'Save tournament template', label: 'Template name', required: true, multiline: false });
     if (!name?.trim()) return;
     setBusy(true);
     try {
@@ -549,6 +499,177 @@ export default function TournamentSettingsPage() {
       setMessage('Tournament template saved for this league.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Template could not be saved.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function restartWithExistingTeams() {
+    if (busy || !tournament) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const preview = await authenticatedRequest<{
+        data: {
+          tournamentName: string;
+          approvedTeamsToCarry: number;
+          groupsToSetUp: number;
+          historicalFixturesKept: number;
+        };
+      }>(`/tournaments/${tournamentId}/fixtures/restart-with-teams-preview`);
+
+      const message = [
+        `Old tournament: ${preview.data.tournamentName}`,
+        `Approved teams transferred: ${preview.data.approvedTeamsToCarry}`,
+        `New balanced groups: ${preview.data.groupsToSetUp}`,
+        '',
+        `Old fixtures and results preserved: ${preview.data.historicalFixturesKept} fixtures`,
+        '',
+        'A NEW tournament will be created with a NEW link and code.',
+        'The original tournament, matches, scores, disputes and awards will stay unchanged.',
+        'Teams are evenly distributed and can be edited before fixtures are generated. Share the NEW tournament link with players.',
+      ].join('\n');
+      if (!(await confirmAction({ title: 'Start Fresh Draw (Keep Results Safe)', description: message, confirmLabel: 'Continue' }))) return;
+      const confirmation = await confirmTournamentName(preview.data.tournamentName, 'Confirm fresh draw');
+      if (confirmation === null) return;
+      if (confirmation !== preview.data.tournamentName) {
+        setError('Start again cancelled: original tournament name did not match.');
+        return;
+      }
+      const result = await authenticatedRequest<{
+        data: { tournamentId: string; carriedTeams: number; groupCount: number; message: string };
+      }>(`/tournaments/${tournamentId}/fixtures/restart-with-teams`, {
+        method: 'POST',
+        body: JSON.stringify({ confirmation }),
+      });
+      router.push(`/tournaments/${result.data.tournamentId}/${tournament.groupMode === 'MULTIPLE_GROUPS' ? 'groups' : 'wizard/fixture-settings'}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not create the fresh tournament draw.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resetCompleteGroupDraw() {
+    if (busy || !tournament) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const preview = await authenticatedRequest<{
+        data: {
+          tournamentName: string;
+          allowed: boolean;
+          blocker: string | null;
+          groupCount: number;
+          assignedTeams: number;
+          approvedTeams: number;
+          fixtureCount: number;
+          matchCount: number;
+          scheduledCount: number;
+        };
+      }>(`/tournaments/${tournamentId}/fixtures/full-reset-preview`);
+
+      if (!preview.data.allowed) {
+        setError((preview.data.blocker || 'This tournament has recorded results.') +
+          ' Use Start Fresh With Existing Teams below to keep the old results and create a clean draw.');
+        return;
+      }
+
+      const summary = [
+        `Tournament: ${preview.data.tournamentName}`,
+        `Groups to remove: ${preview.data.groupCount}`,
+        `Assigned teams to unassign: ${preview.data.assignedTeams}`,
+        `Existing fixtures to delete: ${preview.data.fixtureCount}`,
+        `Schedules to clear: ${preview.data.scheduledCount}`,
+        '',
+        `Approved teams kept: ${preview.data.approvedTeams}`,
+        '',
+        'This PERMANENTLY deletes the group draw, fixtures and schedules.',
+        'It does NOT delete the tournament or registered teams.',
+        'You will start again at Group Setup.',
+      ].join('\n');
+
+      if (!(await confirmAction({ title: 'Reset All Groups & Fixtures', description: summary, confirmLabel: 'Continue', destructive: true }))) return;
+      const confirmation = await confirmTournamentName(preview.data.tournamentName, 'Confirm full draw reset');
+      if (confirmation === null) return;
+      if (confirmation !== preview.data.tournamentName) {
+        setError('Full reset cancelled: the tournament name did not match.');
+        return;
+      }
+
+      const response = await authenticatedRequest<{
+        data: { message: string; keptApprovedTeams: number };
+      }>(`/tournaments/${tournamentId}/fixtures/full-reset`, {
+        method: 'POST',
+        body: JSON.stringify({ confirmation }),
+      });
+      setMessage(response.data.message);
+      await loadTournament();
+      router.push(`/tournaments/${tournamentId}/wizard/groups`);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to reset groups and fixtures.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resetFixtureDraw() {
+    if (busy || !tournament) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      const preview = await authenticatedRequest<{
+        data: {
+          tournamentName: string;
+          allowed: boolean;
+          blocker: string | null;
+          fixtureCount: number;
+          matchCount: number;
+          scheduledCount: number;
+        };
+      }>(`/tournaments/${tournamentId}/fixtures/reset-preview`);
+
+      if (!preview.data.allowed) {
+        setError(preview.data.blocker ||
+          'Reset is blocked because this tournament has recorded activity.');
+        return;
+      }
+      if (preview.data.fixtureCount === 0) {
+        setMessage('There are no fixtures to reset.');
+        return;
+      }
+
+      const details = [
+        `Fixtures: ${preview.data.fixtureCount}`,
+        `Match records: ${preview.data.matchCount}`,
+        `Scheduled fixtures: ${preview.data.scheduledCount}`,
+        '',
+        'This permanently removes all fixtures, match records and schedules.',
+        'Tournament registrations and group assignments remain unchanged.',
+        'All participants may need a fresh schedule announcement.',
+      ].join('\n');
+      if (!(await confirmAction({ title: 'Reset fixture draw?', description: details, confirmLabel: 'Continue', destructive: true }))) return;
+      const confirmation = await confirmTournamentName(preview.data.tournamentName, 'Confirm fixture reset');
+      if (confirmation === null) return;
+      if (confirmation !== preview.data.tournamentName) {
+        setError('Reset cancelled: tournament name did not match exactly.');
+        return;
+      }
+      const response = await authenticatedRequest<{
+        data: { message: string; deletedFixtures: number };
+      }>(`/tournaments/${tournamentId}/fixtures/reset`, {
+        method: 'POST',
+        body: JSON.stringify({ confirmation }),
+      });
+      setMessage(response.data.message);
+      await loadTournament();
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to reset the fixture draw.');
     } finally {
       setBusy(false);
     }
@@ -754,6 +875,90 @@ export default function TournamentSettingsPage() {
 
 
         {tournament.isLeagueAdmin ? (
+          <FcPanel className="border border-emerald-300 bg-emerald-50 p-5 text-slate-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-slate-100">
+            <p className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-200">
+              Restart Draw Without Losing Results
+            </p>
+            <h2 className="mt-2 text-xl font-black">Start Fresh With Existing Teams</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+              Wrong groups, fixtures or tournament draw? Create a new tournament
+              with the same approved teams evenly distributed into editable groups, ready for a fresh
+              balanced draw. Works even if the previous tournament has played
+              matches, submitted results, disputes or statistics.
+            </p>
+            <p className="mt-3 rounded-xl bg-white p-3 text-sm font-semibold leading-6 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
+              No scores are deleted. The original tournament remains available
+              for history. The fresh tournament has a new code and link, so
+              players must use the new tournament going forward.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void restartWithExistingTeams()}
+              className="mt-4 min-h-12 w-full rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50 sm:w-auto"
+            >
+              {busy ? 'Preparing...' : 'Start Fresh Draw (Keep Results Safe)'}
+            </button>
+          </FcPanel>
+        ) : null}
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="border border-rose-400 bg-rose-50 p-5 text-slate-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-slate-100">
+            <p className="text-xs font-black uppercase tracking-wider text-rose-800 dark:text-rose-200">
+              Full Tournament Draw Reset
+            </p>
+            <h2 className="mt-2 text-xl font-black">Start Group Draw From Scratch</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+              Wrong groups and fixtures? Remove the entire existing group
+              draw and schedule in one action, then create a new group setup
+              and generate fresh matches.
+            </p>
+            <p className="mt-3 rounded-xl bg-white p-3 text-sm font-semibold leading-6 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
+              Keeps the tournament, all registered players and approved teams.
+              Clears group names, team assignments, fixtures, schedules and draw progress.
+            </p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-rose-800 dark:text-rose-200">
+              If scores, match results, disputes or recorded statistics exist,
+              reset is blocked to protect player history. This action is irreversible.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void resetCompleteGroupDraw()}
+              className="mt-4 min-h-12 w-full rounded-xl bg-rose-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50 sm:w-auto"
+            >
+              {busy ? 'Checking Tournament...' : 'Reset All Groups & Fixtures'}
+            </button>
+          </FcPanel>
+        ) : null}
+
+        {tournament.isLeagueAdmin ? (
+          <FcPanel className="border border-rose-300 bg-rose-50 p-5 text-slate-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-slate-100">
+            <p className="text-xs font-black uppercase tracking-wider text-rose-800 dark:text-rose-200">
+              Fixture Management
+            </p>
+            <h2 className="mt-2 text-xl font-black">Reset Fixtures &amp; Start Again</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-200">
+              Delete the existing draw and schedules, then generate fresh fixtures
+              in the Tournament Wizard. Teams, registrations and groups stay
+              intact. This action cannot be undone.
+            </p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-rose-800 dark:text-rose-200">
+              To protect player results, resets are blocked after a match starts,
+              any score or dispute is submitted, or statistics are recorded.
+            </p>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void resetFixtureDraw()}
+              className="mt-4 min-h-12 w-full rounded-xl bg-rose-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50 sm:w-auto"
+            >
+              {busy ? 'Checking...' : 'Reset Fixture Draw'}
+            </button>
+          </FcPanel>
+        ) : null}
+
+        {tournament.isLeagueAdmin ? (
           <>
             <FcPanel className="p-5 sm:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
@@ -811,95 +1016,6 @@ export default function TournamentSettingsPage() {
               </div>
             </FcPanel>
 
-
-            <section
-              aria-labelledby="fixture-reset-heading"
-              className="rounded-[26px] border border-amber-500/40 !bg-[#fff8ed] p-5 !text-[#172b3e] md:p-6"
-            >
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] !text-[#8a4a07]">
-                Tournament Settings · Fixture Management
-              </p>
-              <h2 id="fixture-reset-heading" className="mt-2 text-xl font-black !text-[#172b3e]">
-                Reset Fixtures &amp; Set Up Again
-              </h2>
-              <p className="mt-2 text-sm leading-6 !text-[#31475a]">
-                Created the wrong draw or need to change your groups? Remove all unplayed fixtures
-                and start the setup again. Approved teams, tournament settings and group names stay saved.
-              </p>
-              {resetImpact ? (
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {([
-                    ['Fixtures', resetImpact.fixtures],
-                    ['Matches', resetImpact.matches],
-                    ['Scheduled', resetImpact.scheduled],
-                    ['Published', resetImpact.published],
-                  ] as const).map(([label, count]) => (
-                    <div key={label} className="rounded-xl border border-amber-500/25 bg-white/80 p-3">
-                      <p className="text-xs font-semibold !text-[#546476]">{label}</p>
-                      <p className="mt-1 text-xl font-black !text-[#172b3e]">{count}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-4 text-sm !text-[#7f4b19]">Checking whether fixtures can be reset...</p>
-              )}
-
-              {resetImpact?.reason ? (
-                <div role="alert" className="mt-4 rounded-xl border border-red-300 !bg-[#fff1f2] p-4 text-sm font-semibold leading-6 !text-[#85232e]">
-                  {resetImpact.reason}
-                </div>
-              ) : null}
-
-              {resetImpact?.canReset ? (
-                <>
-                  {!resetPanelOpen ? (
-                    <button type="button" onClick={() => setResetPanelOpen(true)}
-                      className="mt-4 rounded-xl border border-red-700 px-4 py-3 text-sm font-black !text-[#991b1b]">
-                      Reset All Fixtures
-                    </button>
-                  ) : (
-                    <div className="mt-4 rounded-xl border border-red-300 bg-white p-4">
-                      <p className="font-black !text-[#991b1b]">Permanent fixture reset</p>
-                      <p className="mt-2 text-sm leading-6 !text-[#334155]">
-                        This deletes {resetImpact.fixtures} fixtures and {resetImpact.matches} unplayed match records,
-                        including scheduled dates and published fixture links. Players and groups are retained.
-                        Any existing match results or disputes will block this operation automatically.
-                      </p>
-                      <label className="mt-4 block text-sm font-semibold !text-[#1e293b]">
-                        Type <strong className="font-mono">RESET {resetImpact.tournamentCode}</strong> to confirm
-                        <input
-                          type="text"
-                          value={resetConfirmation}
-                          onChange={(event) => setResetConfirmation(event.target.value)}
-                          autoCapitalize="characters"
-                          autoComplete="off"
-                          spellCheck={false}
-                          className="mt-2 block w-full rounded-xl border border-slate-400 bg-white px-3 py-3 font-mono text-sm !text-[#0f172a]"
-                          placeholder={`RESET ${resetImpact.tournamentCode}`}
-                        />
-                      </label>
-                      <div className="mt-4 flex flex-wrap gap-3">
-                        <button type="button" disabled={busy || resetConfirmation.trim() !== `RESET ${resetImpact.tournamentCode}`}
-                          onClick={() => void resetTournamentFixtures()}
-                          className="rounded-xl !bg-[#b91c1c] px-4 py-3 text-sm font-bold !text-white disabled:opacity-40">
-                          {busy ? 'Resetting...' : 'Confirm Reset & Reconfigure'}
-                        </button>
-                        <button type="button" disabled={busy}
-                          onClick={() => { setResetPanelOpen(false); setResetConfirmation(''); }}
-                          className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-bold !text-[#334155]">
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : null}
-              {resetImpact?.fixtures === 0 ? (
-                <p className="mt-3 text-sm font-semibold !text-[#17603b]">
-                  No fixtures generated yet. You can already edit groups and create a new draw.
-                </p>
-              ) : null}
-            </section>
 
             <FcPanel className="p-5 sm:p-6">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">

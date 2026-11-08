@@ -864,6 +864,15 @@ export default function TournamentGroupsPage() {
             Fixtures have been generated. Admins can still rename groups,
             move teams, or rebalance the draw when affected matches have
             not been scheduled, started or reported. Other fixtures are preserved.
+            <Link
+              href={`/tournaments/${tournamentId}/settings`}
+              className="mt-3 block w-fit rounded-xl bg-sky-800 px-4 py-3 text-sm font-black text-white dark:bg-sky-200 dark:text-sky-950"
+            >
+              Need a fresh draw? Open Fixture Reset in Settings
+            </Link>
+            <p className="mt-2 text-xs font-medium">
+              Reset is allowed only before played matches, results, disputes or recorded statistics.
+            </p>
           </div>
         ) : null}
 

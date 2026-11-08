@@ -520,6 +520,33 @@ export default function TournamentGroupsPage() {
     }
   }
 
+  async function rebalanceGroups() {
+    const confirmed = await confirmAction({
+      title: 'Rebalance tournament groups?',
+      description: 'Only the minimum number of teams will move. If fixtures exist, affected unscheduled group fixtures will be regenerated; other fixtures remain unchanged. This is blocked when match activity or results exist.',
+      confirmLabel: 'Rebalance groups',
+      destructive: true,
+    });
+    if (!confirmed) return;
+
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const response = await authenticatedRequest<{
+        success: true;
+        data: { message: string; changedTeams: number; regeneratedFixtures: number };
+        error: null;
+      }>(`/tournaments/${tournamentId}/groups/rebalance`, { method: 'POST' });
+      setMessage(response.data.message);
+      await loadGroups();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to rebalance groups.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function changeGroup(
     entry:
       GroupEntry,
@@ -543,7 +570,7 @@ export default function TournamentGroupsPage() {
   async function _generateGroupFixtures() {
     const confirmed =
       (await confirmAction(
-        { title: 'Generate group fixtures?', description: 'Generate group-stage fixtures now? Group assignments will be locked after generation.', confirmLabel: 'Generate fixtures' },
+        { title: 'Generate group fixtures?', description: 'Generate group fixtures now? Admins may later correct groups only when affected matches have no activity.', confirmLabel: 'Generate fixtures' },
       ));
 
     if (!confirmed) {
@@ -620,12 +647,10 @@ export default function TournamentGroupsPage() {
     );
 
   const registrationClosed =
-    tournament.status ===
-    'REGISTRATION_CLOSED';
+    tournament.status === 'REGISTRATION_CLOSED' || tournament.status === 'ACTIVE';
 
   const canManage =
     tournament.isLeagueAdmin &&
-    !locked &&
     registrationClosed;
 
   const groupCounts =
@@ -666,7 +691,9 @@ export default function TournamentGroupsPage() {
     groups.length >= 2 &&
     unassigned.length ===
       0 &&
-    everyGroupPlayable;
+    everyGroupPlayable &&
+    balanced &&
+    !locked;
 
   return (
     <AppShell
@@ -752,11 +779,9 @@ export default function TournamentGroupsPage() {
 
         {locked ? (
           <div className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.05] p-4 text-sm leading-6 text-sky-200">
-            Fixtures have already
-            been generated.
-            Tournament groups are
-            now locked and can only
-            be viewed.
+            Fixtures have been generated. Admins can still rename groups,
+            move teams, or rebalance the draw when affected matches have
+            not been scheduled, started or reported. Other fixtures are preserved.
           </div>
         ) : null}
 
@@ -1009,6 +1034,17 @@ export default function TournamentGroupsPage() {
                   </p>
                 ) : null}
               </div>
+
+              {canManage && (!balanced || unassigned.length > 0) ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void rebalanceGroups()}
+                  className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm font-black text-emerald-300 disabled:opacity-40"
+                >
+                  Rebalance Groups (minimum moves)
+                </button>
+              ) : null}
 
               <div className="mt-5 grid gap-5 xl:grid-cols-2">
                 {groups.map(

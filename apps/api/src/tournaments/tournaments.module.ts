@@ -54,6 +54,7 @@ import {
 import {
   TournamentGroupsService,
 } from './tournament-groups.service.js';
+import { SafeGroupEditorService } from './safe-group-editor.service.js';
 
 import {
   TournamentLogoService,

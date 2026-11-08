@@ -143,6 +143,14 @@ export class TournamentGroupsAdminController {
   }
 
 
+  @Post('tournaments/:tournamentId/groups/rebalance')
+  rebalanceGroups(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+  ) {
+    return this.tournamentGroupsService.rebalanceGroups(request.user.sub, tournamentId);
+  }
+
   @Post(
     'tournaments/:tournamentId/groups/distribute',
   )

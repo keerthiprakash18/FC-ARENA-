@@ -868,7 +868,7 @@ export default function TournamentGroupsPage() {
               href={`/tournaments/${tournamentId}/settings`}
               className="mt-3 block w-fit rounded-xl bg-sky-800 px-4 py-3 text-sm font-black text-white dark:bg-sky-200 dark:text-sky-950"
             >
-              Need a fresh draw? Open Fixture Reset in Settings
+              Wrong Groups or Fixtures? Reset Entire Draw in Settings
             </Link>
             <p className="mt-2 text-xs font-medium">
               Reset is allowed only before played matches, results, disputes or recorded statistics.

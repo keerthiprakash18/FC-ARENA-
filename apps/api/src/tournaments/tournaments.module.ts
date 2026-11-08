@@ -56,6 +56,7 @@ import {
 } from './tournament-groups.service.js';
 import { SafeGroupEditorService } from './safe-group-editor.service.js';
 import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
+import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 
 import {
   TournamentLogoService,
@@ -102,6 +103,7 @@ import { TournamentToolsService } from './tournament-tools.service.js';
     TournamentGroupsService,
     SafeGroupEditorService,
     TournamentFixtureResetService,
+    TournamentDrawRestartService,
     TournamentLogoService,
     GroupFixturesService,
     PlayoffsService,

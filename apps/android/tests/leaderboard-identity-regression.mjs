@@ -13,6 +13,9 @@ try {
         const rankings = mode === 'DUO' ? [row('duo', 'Duo player', 1, 3, 'Duo team')] : [row('phase3', 'WALES player', 1, 15, 'Wales'), row('second', 'Mexico player', 2, 13, 'Mexico'), row('south', 'thowfiqsiru', 3, updated ? 15 : 12, 'South Korea')];
         return route.fulfill({ headers, json: { success: true, data: { league: { id: 'phase3', name: 'Arena League', code: 'ARENA', logoUrl: null, region: null }, filter: { mode }, summary: { members: 42, rankedPlayers: rankings.length, tournaments: 1, verifiedMatches: 5, lastUpdatedAt: null }, myPosition: mode === 'DUO' ? null : 1, rankings }, error: null } });
       },
+    }, onMutation: (route, headers) => {
+      assert.equal(new URL(route.request().url()).pathname, '/api/telemetry/web-vitals');
+      return route.fulfill({ status: 204, headers });
     } });
     try {
       await f.page.goto('https://fcarena.in/leaderboards?league=phase3');

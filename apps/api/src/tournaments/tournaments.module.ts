@@ -83,11 +83,8 @@ import { TournamentReportDownloadController } from './tournament-report-download
 import { TournamentReportDownloadService } from './tournament-report-download.service.js';
 import { TournamentGroupEditorService } from './tournament-group-editor.service.js';
 import { TournamentGroupEditorController } from './tournament-group-editor.controller.js';
+import { TournamentPlayerReplacementService } from './tournament-player-replacement.service.js';
 
-
-import { SafeGroupEditorService } from './safe-group-editor.service.js';
-import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
-import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 
 @Module({
   imports: [
@@ -110,11 +107,9 @@ import { TournamentDrawRestartService } from './tournament-draw-restart.service.
   ],
 
   providers: [
-    SafeGroupEditorService,
-    TournamentFixtureResetService,
-    TournamentDrawRestartService,
     TournamentsService,
     TournamentEntriesService,
+    TournamentPlayerReplacementService,
     TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,

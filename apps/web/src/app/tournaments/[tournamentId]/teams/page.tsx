@@ -1,5 +1,6 @@
 'use client';
 import { CompactTeamCard } from '@/components/tournaments/compact-team-card';
+import { ReplaceTournamentPlayer } from '@/components/tournaments/replace-tournament-player';
 import { TeamListExport } from '@/components/tournaments/team-list-export';
 import { FootballTeamPicker } from '@/components/tournaments/football-team-picker';
 import { useRouteLeague } from '@/lib/active-league';
@@ -669,7 +670,7 @@ export default function TournamentTeamsPage() {
             tournament.name
           }
           title="Teams"
-          subtitle="Approved Tournament participants. Admins can manage entries safely before fixtures are generated."
+          subtitle="Tournament teams and players. Admins can replace an unavailable player in the same entry, including after fixtures are generated."
           action={
             <FcStatusBadge
               label={
@@ -762,7 +763,7 @@ export default function TournamentTeamsPage() {
                 </p>
 
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-                  Add, edit or delete participants before fixtures are generated. Once fixtures exist, participant changes are locked to protect the schedule.
+                  Add or remove entries before fixtures are generated. To replace an unavailable player, open their team card and choose Replace player. The same group, fixtures, scores and team points are kept.
                 </p>
               </div>
 
@@ -797,8 +798,8 @@ export default function TournamentTeamsPage() {
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4 text-sm leading-6 text-amber-300">
             {totalFixtures >
             0
-              ? 'Participant editing is locked because fixtures already exist. Reset/remove the generated fixtures before changing Tournament participants.'
-              : 'Participant editing is locked because this Tournament is already active or completed.'}
+              ? 'Generated fixtures are protected. Use Replace player in a team card to change its player while keeping the existing schedule and results.'
+              : 'Adding or removing entries is locked after the tournament starts. Player replacement remains available until the tournament is completed or cancelled.'}
           </div>
         ) : null}
 
@@ -902,6 +903,15 @@ export default function TournamentTeamsPage() {
                           {member.user.player?.identity?.inGameName || member.user.fullName}<span className="mt-1 block text-xs font-normal text-slate-500">{member.user.player?.playerCode || 'FC Arena player'}</span>
                         </Link>) : <p className="text-xs text-slate-500">No linked players recorded.</p>}
                       </div>
+
+                      {tournament.canManageParticipants && !['COMPLETED', 'CANCELLED'].includes(tournament.status) && ['APPROVED', 'PENDING'].includes(entry.status) && entry.members.length > 0 ? (
+                        <ReplaceTournamentPlayer tournamentId={tournamentId} entry={entry} onReplaced={async notice => {
+                          await loadEntries();
+                          setMessage(notice);
+                          setError('');
+                          if (tournament.canManageAdmins) await loadMatchAdmins();
+                        }} />
+                      ) : null}
 
                       {tournament.canManageParticipants ? (
                         <div className="mt-4 border-t border-white/[0.06] pt-4">

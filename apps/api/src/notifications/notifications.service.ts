@@ -64,7 +64,7 @@ export class NotificationsService {
     summaryOnly = false,
     view = 'all',
   ) {
-    if (!['all', 'inbox', 'results', 'actions', 'history'].includes(view)) {
+    if (!['all', 'inbox', 'results', 'pending-results', 'confirmed-results', 'actions', 'history'].includes(view)) {
       throw new BadRequestException('Unknown notification view.');
     }
     await this.syncForUser(
@@ -79,6 +79,11 @@ export class NotificationsService {
       return { success: true, data: { unreadCount }, error: null };
     }
 
+    const resultStatusView = view === 'pending-results' || view === 'confirmed-results';
+    const resultNotificationIds = resultStatusView
+      ? await this.currentResultNotificationIds(userId, view)
+      : null;
+
     const [
       notifications,
       unreadCount,
@@ -87,7 +92,8 @@ export class NotificationsService {
         this.prisma.notification.findMany({
           where: {
             userId,
-            ...(view === 'all' ? {} : { readAt: view === 'history' ? { not: null } : null }),
+            ...(view === 'all' || resultStatusView ? {} : { readAt: view === 'history' ? { not: null } : null }),
+            ...(resultNotificationIds ? { id: { in: resultNotificationIds } } : {}),
             ...(view === 'results' ? { type: { in: RESULT_TYPES } } : {}),
             ...(view === 'actions' ? { type: { in: ACTION_TYPES } } : {}),
           },
@@ -118,6 +124,36 @@ export class NotificationsService {
 
       error: null,
     };
+  }
+
+  private async currentResultNotificationIds(userId: string, view: string) {
+    // Reading an alert is independent of reviewing its result. Resolve the
+    // current status before the inbox limit so old alerts cannot hide work.
+    const candidates = await this.prisma.notification.findMany({
+      where: {
+        userId,
+        entityType: 'ResultSubmission',
+        entityId: { not: null },
+        type: view === 'pending-results' ? 'RESULT_SUBMITTED' : 'RESULT_CONFIRMED',
+      },
+      select: { id: true, entityId: true },
+    });
+    if (!candidates.length) return [];
+
+    const results = await this.prisma.resultSubmission.findMany({
+      where: {
+        id: { in: [...new Set(candidates.map((item) => item.entityId!))] },
+        status: view === 'pending-results' ? 'PENDING_VERIFICATION' : 'CONFIRMED',
+        ...(view === 'pending-results'
+          ? { match: { confirmedResultSubmissionId: null } }
+          : { confirmedForMatch: { isNot: null } }),
+      },
+      select: { id: true },
+    });
+    const currentIds = new Set(results.map((result) => result.id));
+    return candidates
+      .filter((item) => currentIds.has(item.entityId!))
+      .map((item) => item.id);
   }
 
   async markAsRead(
@@ -1338,6 +1374,9 @@ export class NotificationsService {
 
           match: {
             OR: [
+              ...(adminLeagueIds.length > 0
+                ? [{ tournament: { leagueId: { in: adminLeagueIds } } }]
+                : []),
               {
                 fixture: {
                   homeRegistration: {
@@ -1427,7 +1466,7 @@ export class NotificationsService {
             'Statistics Updated',
 
           message:
-            `Your statistics and standings were updated after the confirmed result.`,
+            `Player statistics and standings were updated after the confirmed result.`,
 
           href:
             `/tournaments/${result.match.tournamentId}/standings`,

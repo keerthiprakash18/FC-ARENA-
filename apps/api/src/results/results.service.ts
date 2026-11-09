@@ -20,6 +20,7 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
 
@@ -1326,16 +1327,6 @@ export class ResultsService {
         },
       });
 
-    if (!membership) {
-      return {
-        success: true,
-        data: {
-          statistic: null,
-        },
-        error: null,
-      };
-    }
-
     const aggregate =
       this.emptyAggregate();
 
@@ -1359,8 +1350,7 @@ export class ResultsService {
       }
 
       if (
-        fixture.homeRegistrationId ===
-        membership.registrationId
+        resultPlayerIds(result, 'home', fixture.homeRegistrationId === membership?.registrationId ? [{ userId }] : []).includes(userId)
       ) {
         this.applyAggregate(
           aggregate,
@@ -1374,8 +1364,7 @@ export class ResultsService {
       }
 
       if (
-        fixture.awayRegistrationId ===
-        membership.registrationId
+        resultPlayerIds(result, 'away', fixture.awayRegistrationId === membership?.registrationId ? [{ userId }] : []).includes(userId)
       ) {
         this.applyAggregate(
           aggregate,
@@ -1390,7 +1379,7 @@ export class ResultsService {
     return {
       success: true,
       data: {
-        statistic: {
+        statistic: !membership && aggregate.played === 0 ? null : {
           tournamentId,
           userId,
 
@@ -1493,8 +1482,9 @@ export class ResultsService {
         },
 
         include: {
-          confirmedResult:
-            true,
+          confirmedResult: {
+            include: { statEvents: { where: { type: 'APPLY' }, select: { payload: true } } },
+          },
 
           fixture: {
             include: {
@@ -1647,25 +1637,25 @@ export class ResultsService {
       }
 
       for (
-        const member of
-        home.members
+        const playerId of
+        resultPlayerIds(result, 'home', home.members)
       ) {
         await this.applyPlayerStatistic(
           tx,
           tournamentId,
-          member.userId,
+          playerId,
           homeDelta,
         );
       }
 
       for (
-        const member of
-        away.members
+        const playerId of
+        resultPlayerIds(result, 'away', away.members)
       ) {
         await this.applyPlayerStatistic(
           tx,
           tournamentId,
-          member.userId,
+          playerId,
           awayDelta,
         );
       }
@@ -1712,6 +1702,7 @@ export class ResultsService {
                   status: true,
                   homeScore: true,
                   awayScore: true,
+                  statEvents: { where: { type: 'APPLY' }, select: { payload: true } },
                 },
               },
             },

@@ -39,7 +39,7 @@ interface NotificationData {
   notifications: NotificationItem[];
 }
 
-type NotificationFilter = "inbox" | "results" | "actions" | "history";
+type NotificationFilter = "inbox" | "results" | "pending-results" | "confirmed-results" | "actions" | "history";
 
 const resultTypes = [
   "RESULT_SUBMITTED",
@@ -153,6 +153,8 @@ export default function NotificationsPage() {
   });
 
   const [filter, setFilter] = useState<NotificationFilter>("inbox");
+  const resultStatusView = filter === "pending-results" || filter === "confirmed-results";
+  const resultView = filter === "results" || resultStatusView;
 
   const [loading, setLoading] = useState(true);
 
@@ -194,6 +196,8 @@ export default function NotificationsPage() {
         setData({
           ...response.data,
           notifications: response.data.notifications.filter((notification) => {
+            if (filter === "pending-results") return notification.type === "RESULT_SUBMITTED";
+            if (filter === "confirmed-results") return notification.type === "RESULT_CONFIRMED";
             if (filter === "history") return Boolean(notification.readAt);
             if (notification.readAt) return false;
             if (filter === "results")
@@ -278,9 +282,11 @@ export default function NotificationsPage() {
       setData((current) => ({
         unreadCount: Math.max(0, current.unreadCount - 1),
 
-        notifications: current.notifications.filter(
-          (notification) => notification.id !== notificationId,
-        ),
+        notifications: resultStatusView
+          ? current.notifications.map((notification) => notification.id === notificationId
+            ? { ...notification, readAt: new Date().toISOString() }
+            : notification)
+          : current.notifications.filter((notification) => notification.id !== notificationId),
       }));
 
       notifyBellChanged();
@@ -312,7 +318,9 @@ export default function NotificationsPage() {
 
       setData((current) => ({
         unreadCount: 0,
-        notifications: filter === "history" ? current.notifications : [],
+        notifications: filter === "history" || resultStatusView
+          ? current.notifications.map((notification) => ({ ...notification, readAt: notification.readAt ?? new Date().toISOString() }))
+          : [],
       }));
 
       notifyBellChanged();
@@ -386,10 +394,10 @@ export default function NotificationsPage() {
                 <button
                   key={value}
                   type="button"
-                  aria-pressed={filter === value}
+                  aria-pressed={value === "results" ? resultView : filter === value}
                   disabled={busy}
-                  onClick={() => setFilter(value)}
-                  className={`${filter === value ? "theme-primary-button" : "theme-secondary-button"} min-h-11 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50`}
+                  onClick={() => setFilter(value === "results" ? "pending-results" : value)}
+                  className={`${(value === "results" ? resultView : filter === value) ? "theme-primary-button" : "theme-secondary-button"} min-h-11 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50`}
                 >
                   {label}
                 </button>
@@ -405,10 +413,34 @@ export default function NotificationsPage() {
               {refreshing ? "Refreshing..." : "Refresh"}
             </button>
           </div>
+          {resultView ? (
+            <div className="mt-4 flex flex-wrap gap-2 border-t pt-4" aria-label="Result status filters">
+              {([
+                ["pending-results", "Pending results"],
+                ["confirmed-results", "Confirmed results"],
+                ["results", "All updates"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={filter === value}
+                  disabled={busy}
+                  onClick={() => setFilter(value)}
+                  className={`${filter === value ? "theme-primary-button" : "theme-secondary-button"} min-h-11 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </FcPanel>
 
         <p className="theme-muted text-sm" role="status">
-          {filter === "results"
+          {filter === "pending-results"
+            ? "Results still waiting for verification. Opening or clearing a notification does not verify its result."
+            : filter === "confirmed-results"
+              ? "Verified results, including notifications you have already opened or cleared."
+              : filter === "results"
             ? "Uploaded, confirmed and rejected results, plus standings updates."
             : filter === "history"
               ? "Previously opened or cleared notifications. Your match results remain available."
@@ -458,6 +490,12 @@ export default function NotificationsPage() {
                           New
                         </span>
                       ) : null}
+                      {resultStatusView ? (
+                        <FcStatusBadge
+                          label={filter === "pending-results" ? "Pending verification" : "Confirmed"}
+                          tone={filter === "pending-results" ? "amber" : "emerald"}
+                        />
+                      ) : null}
                     </div>
 
                     <p className="theme-secondary-text mt-1.5 text-sm leading-6">
@@ -481,7 +519,7 @@ export default function NotificationsPage() {
                     <button
                       type="button"
                       disabled={busy}
-                      aria-label={`Clear ${notification.title}`}
+                      aria-label={resultStatusView ? `Mark ${notification.title} as read` : `Clear ${notification.title}`}
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
@@ -490,7 +528,7 @@ export default function NotificationsPage() {
                       }}
                       className="theme-secondary-button min-h-11 shrink-0 rounded-[9px] border px-3 py-2 text-xs font-semibold disabled:opacity-50"
                     >
-                      Clear
+                      {resultStatusView ? "Mark read" : "Clear"}
                     </button>
                   ) : null}
                 </div>
@@ -503,7 +541,11 @@ export default function NotificationsPage() {
           {visibleNotifications.length === 0 ? (
             <FcEmptyState
               title={
-                filter === "history"
+                filter === "pending-results"
+                  ? "No results pending verification"
+                  : filter === "confirmed-results"
+                    ? "No confirmed results yet"
+                    : filter === "history"
                   ? "No notification history"
                   : filter === "results"
                     ? "No new result updates"
@@ -512,7 +554,11 @@ export default function NotificationsPage() {
                       : "All caught up"
               }
               description={
-                filter === "history"
+                filter === "pending-results"
+                  ? "Results awaiting verification will appear here until they are reviewed."
+                  : filter === "confirmed-results"
+                    ? "Results will appear here after verification."
+                    : filter === "history"
                   ? "Notifications you open or clear will appear here."
                   : "New activity will appear here. Cleared notifications are in History."
               }

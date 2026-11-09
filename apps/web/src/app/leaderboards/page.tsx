@@ -42,6 +42,7 @@ interface RankingRow {
   winRate: number;
   performancePoints: number;
   form: string;
+  entries?: Array<{ registrationId: string; tournamentId: string; tournamentName: string; entryName: string }>;
 }
 
 interface LeaderboardData {
@@ -74,6 +75,13 @@ function playerName(row: RankingRow) {
   return row.inGameName || row.fullName;
 }
 
+function EntryNames({ row }: { row: RankingRow }) {
+  if (!row.entries?.length) return null;
+  return <p className="theme-text-link mt-1 break-words text-xs" title={row.entries.map(entry => `${entry.entryName} · ${entry.tournamentName}`).join(', ')}>
+    {Array.from(new Set(row.entries.map(entry => entry.entryName))).join(' · ')}
+  </p>;
+}
+
 function formTone(outcome: string) {
   if (outcome === "W") {
     return "border-emerald-400/20 bg-emerald-400/10 text-emerald-300";
@@ -100,6 +108,8 @@ export default function LeaderboardsPage() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [refresh, setRefresh] = useState(0);
 
   useEffect(() => {
     void (async () => {
@@ -158,42 +168,57 @@ export default function LeaderboardsPage() {
       return;
     }
 
-    setLoading(true);
-
-    setData(null);
-
     const suffix = mode ? "?mode=" + encodeURIComponent(mode) : "";
-
-    void authenticatedRequest<{
-      success: true;
-      data: LeaderboardData;
-      error: null;
-    }>("/leagues/" + selectedLeague + "/rankings" + suffix)
-      .then((response) => {
-        setData(response.data);
-
-        setError("");
-      })
-      .catch((err) => {
-        setError(
-          err instanceof Error ? err.message : "Unable to load Leaderboard.",
+    const controller = new AbortController();
+    let version = 0;
+    async function load(silent = false) {
+      if (silent && document.visibilityState === 'hidden') return;
+      const current = ++version;
+      if (!silent) { setLoading(true); setData(null); }
+      try {
+        const response = await authenticatedRequest<{ data: LeaderboardData }>(
+          "/leagues/" + selectedLeague + "/rankings" + suffix, { signal: controller.signal },
         );
+        if (controller.signal.aborted || current !== version) return;
+        setData(response.data); setError('');
+      } catch (err) {
+        if (controller.signal.aborted || current !== version) return;
+        setError(err instanceof Error ? err.message : 'Unable to load Leaderboard.');
+      } finally {
+        if (!controller.signal.aborted && current === version) setLoading(false);
+      }
+    }
+    void load();
+    const update = () => { void load(true); };
+    const timer = window.setInterval(update, 30_000);
+    window.addEventListener('focus', update);
+    document.addEventListener('visibilitychange', update);
+    return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener('focus', update); document.removeEventListener('visibilitychange', update); };
+  }, [selectedLeague, mode, refresh]);
 
-        setData(null);
-      })
-      .finally(() => setLoading(false));
-  }, [selectedLeague, mode]);
-
-  const rankings = data?.rankings ?? [];
+  const allRankings = data?.rankings ?? [];
+  const query = search.trim().toLocaleLowerCase();
+  const rankings = query ? allRankings.filter(row => [row.fullName, row.inGameName, row.playerCode,
+    ...(row.entries ?? []).flatMap(entry => [entry.entryName, entry.tournamentName]),
+  ].some(value => value?.toLocaleLowerCase().includes(query))) : allRankings;
 
   const myPosition =
     data?.myPosition ??
-    rankings.find((row) => row.userId === userId)?.position ??
+    allRankings.find((row) => row.userId === userId)?.position ??
     null;
 
   const podiumRows = [rankings[1], rankings[0], rankings[2]].filter(
     (row): row is RankingRow => Boolean(row),
   );
+
+  function findMyRank() {
+    setSearch('');
+    window.requestAnimationFrame(() => {
+      const target = Array.from(document.querySelectorAll(`[data-player-id="${userId}"]`))
+        .find(element => (element as HTMLElement).offsetParent !== null);
+      target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
 
   return (
     <SecondaryFeaturePage
@@ -204,7 +229,7 @@ export default function LeaderboardsPage() {
       backLabel={selectedLeague ? "League" : "More"}
       action={
         myPosition ? (
-          <button className="theme-secondary-button rounded-lg px-4 py-2" onClick={() => { const targets = document.querySelectorAll(`[data-player-id="${userId}"]`); const target = Array.from(targets).find(el => (el as HTMLElement).offsetParent !== null); target?.scrollIntoView({block:"center",behavior:"smooth"}); }}>Find my rank · #{myPosition}</button>
+          <button className="theme-secondary-button rounded-lg px-4 py-2" onClick={findMyRank}>Find my rank · #{myPosition}</button>
         ) : null
       }
     >
@@ -261,6 +286,15 @@ export default function LeaderboardsPage() {
                 </select>
               </label>
             </div>
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium">Find a player or team
+                <input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="South Korea, player name or Player ID" className="theme-input min-h-11 min-w-0 rounded-xl border px-3" />
+              </label>
+              <button type="button" disabled={loading} onClick={() => setRefresh(value => value + 1)} className="theme-secondary-button min-h-11 rounded-xl border px-4 text-sm font-semibold disabled:opacity-50">Refresh leaderboard</button>
+            </div>
+            <p className="theme-muted mt-3 text-xs leading-5">Player names and their tournament teams are shown together. League ranks combine verified results across the selected tournaments; group positions are separate.</p>
+            {query && data ? <p role="status" className="theme-muted mt-2 text-xs">{rankings.length} of {allRankings.length} ranked players match. League rank numbers are preserved.</p> : null}
 
             <div className="mt-4 grid grid-cols-4 gap-2" aria-label="Leaderboard scoring rules">
               {[
@@ -359,12 +393,12 @@ export default function LeaderboardsPage() {
               <p className="theme-muted text-sm">{data.summary.comparisonCapturedAt ? `Rank movement since saved snapshot: ${new Date(data.summary.comparisonCapturedAt).toLocaleString()}` : "Rank history starts with today’s saved table. Movement appears after a later day’s visit."}</p>
               {rankings.length === 0 ? (
                 <FcEmptyState
-                  title="No ranking data yet"
-                  description="Once a Tournament match result is verified, player performance will be added to this League Leaderboard automatically."
+                  title={query ? "No matching players or teams" : "No ranking data yet"}
+                  description={query ? "Try a team name, player name or FC ARENA Player ID." : "Once a Tournament match result is verified, player performance will be added to this League Leaderboard automatically."}
                 />
               ) : (
                 <>
-                  <section className="hidden grid-cols-3 items-end gap-3 md:grid" aria-label="Top three players">
+                  <section className={query ? "hidden" : "hidden grid-cols-3 items-end gap-3 md:grid"} aria-label="Top three players">
                     {podiumRows.map((row) => {
                       const champion = row.position === 1;
 
@@ -400,6 +434,7 @@ export default function LeaderboardsPage() {
                           <h2 className="theme-text mt-3 truncate text-base font-bold">
                             {playerName(row)}
                           </h2>
+                          <EntryNames row={row} />
 
                           <p className="theme-text-link mt-3 text-3xl font-black">
                             {row.performancePoints}
@@ -433,7 +468,7 @@ export default function LeaderboardsPage() {
                     })}
                   </section>
 
-                  <section className="grid gap-3 md:hidden" aria-label="Top three players">
+                  <section className={query ? "hidden" : "grid gap-3 md:hidden"} aria-label="Top three players">
                     {rankings.slice(0, 3).map((row) => {
                       const champion = row.position === 1;
 
@@ -479,6 +514,7 @@ export default function LeaderboardsPage() {
                                   </span>
                                 ) : null}
                               </div>
+                              <EntryNames row={row} />
                               <p className="theme-muted mt-1 truncate text-[10px]">
                                 {row.tournamentsPlayed} tournaments · {row.matches} matches
                               </p>
@@ -543,7 +579,7 @@ export default function LeaderboardsPage() {
                   </section>
 
                   <div className="grid gap-3 md:hidden">
-                    {rankings.slice(3).map((row) => (
+                    {rankings.slice(query ? 0 : 3).map((row) => (
                       <FcPanel
                         key={row.userId}
                         className={
@@ -567,6 +603,7 @@ export default function LeaderboardsPage() {
                             <p className="theme-text truncate font-semibold">
                               {playerName(row)}
                             </p>
+                            <EntryNames row={row} />
 
                             <p className="theme-muted mt-0.5 text-[10px]">
                               {row.tournamentsPlayed} tournaments ·{" "}
@@ -703,6 +740,7 @@ export default function LeaderboardsPage() {
                                     <p className="theme-muted mt-0.5 text-xs">
                                       {row.playerCode || row.fullName}
                                     </p>
+                                    <EntryNames row={row} />
                                   </div>
                                 </div>
                               </td>

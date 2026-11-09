@@ -86,6 +86,10 @@ import { TournamentGroupEditorController } from './tournament-group-editor.contr
 import { TournamentPlayerReplacementService } from './tournament-player-replacement.service.js';
 
 
+import { SafeGroupEditorService } from './safe-group-editor.service.js';
+import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
+import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
+
 @Module({
   imports: [
     AuthModule,
@@ -107,6 +111,9 @@ import { TournamentPlayerReplacementService } from './tournament-player-replacem
   ],
 
   providers: [
+    SafeGroupEditorService,
+    TournamentFixtureResetService,
+    TournamentDrawRestartService,
     TournamentsService,
     TournamentEntriesService,
     TournamentPlayerReplacementService,
@@ -128,6 +135,7 @@ import { TournamentPlayerReplacementService } from './tournament-player-replacem
   exports: [
     TournamentsService,
     TournamentEntriesService,
+    TournamentPlayerReplacementService,
     TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,

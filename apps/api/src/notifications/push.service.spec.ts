@@ -245,6 +245,7 @@ describe(
 
         const prisma:
           any = {
+          user: { findUnique: vi.fn().mockResolvedValue({ notificationPreferences: null }) },
           pushDevice: {
             deleteMany:
               vi.fn()

@@ -25,6 +25,7 @@ describe('Phone delivery revalidates daily fixture reminders', () => {
         entityId: '2026-11-07:1000',
       };
       const prisma: any = {
+        user: { findUnique: vi.fn().mockResolvedValue({ notificationPreferences: null }) },
         pushDevice: {
           deleteMany: vi.fn(),
           findMany: vi.fn().mockResolvedValue([

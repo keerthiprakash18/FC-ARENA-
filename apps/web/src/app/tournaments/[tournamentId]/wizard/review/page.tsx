@@ -324,10 +324,19 @@ export default function ReviewPage() {
             </p>
 
             <p className="theme-secondary-text mt-2 text-sm">
-              Top {
-                tournament.qualifiersPerGroup
-              } from each group
+              Top {tournament.qualifiersPerGroup} from each of {review.groups.length} groups
+              ({review.groups.length * tournament.qualifiersPerGroup} direct qualifiers).
             </p>
+            {tournament.playoffQualifiersTotal >
+            review.groups.length * tournament.qualifiersPerGroup ? (
+              <p className="theme-text mt-2 text-sm font-semibold" role="status">
+                Plus the best {tournament.playoffQualifiersTotal -
+                  review.groups.length * tournament.qualifiersPerGroup}
+                {' '}next-place finishers across balanced groups: {tournament.playoffQualifiersTotal}
+                {' '}playoff teams in total. Only the direct group positions are guaranteed;
+                the extra places depend on confirmed group results.
+              </p>
+            ) : null}
 
             <p className="theme-secondary-text mt-1 text-sm">
               Pairing: {

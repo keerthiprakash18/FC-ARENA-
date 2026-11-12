@@ -8,6 +8,7 @@ try {
     const row = (userId, name, position, points, entryName) => ({ userId, fullName: name, inGameName: name, position, performancePoints: points, playerCode: `FCA-${userId}`, profileImageUrl: null, tournamentsPlayed: 1, matches: 4, wins: 4, draws: 0, losses: 0, goalsFor: 13, goalsAgainst: 3, goalDifference: 10, winRate: 100, form: 'WWWW', entries: [{ registrationId: userId, tournamentId: 'cup', tournamentName: 'International Friendlies', entryName }] });
     const f = await createUiContext(browser, { width, overrides: {
       '/api/leagues/my': { leagues: [{ membershipType: 'PRIMARY', league: { id: 'phase3', name: 'Arena League' } }] },
+      '/api/leagues/phase3/rankings/history': { source: 'OBSERVED_DAILY_SNAPSHOTS', history: [], note: 'No snapshots yet' },
       '/api/leagues/phase3/rankings': async (route, headers) => {
         const mode = new URL(route.request().url()).searchParams.get('mode');
         const rankings = mode === 'DUO' ? [row('duo', 'Duo player', 1, 3, 'Duo team')] : [row('phase3', 'WALES player', 1, 15, 'Wales'), row('second', 'Mexico player', 2, 13, 'Mexico'), row('south', 'thowfiqsiru', 3, updated ? 15 : 12, 'South Korea')];

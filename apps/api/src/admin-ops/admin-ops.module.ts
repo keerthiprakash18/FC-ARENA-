@@ -5,6 +5,7 @@ import {
 import {
   AuthModule,
 } from '../auth/auth.module.js';
+import { TelemetryModule } from '../telemetry/telemetry.module.js';
 
 import {
   AdminOpsController,
@@ -19,6 +20,7 @@ import {
 @Module({
   imports: [
     AuthModule,
+    TelemetryModule,
   ],
 
   controllers: [

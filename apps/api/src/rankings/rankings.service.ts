@@ -775,6 +775,56 @@ export class RankingsService {
   }
 
 
+  /**
+   * A private, read-only rank history endpoint.
+   * Never return the snapshot's full positions JSON (other members' private IDs).
+   * Missing snapshot ranks stay null; previous history is never fabricated.
+   */
+  async getMyLeagueRankHistory(
+    userId: string,
+    leagueId: string,
+    mode?: string,
+  ) {
+    await this.assertLeagueMember(userId, leagueId);
+    const normalized = mode?.trim().toUpperCase();
+    const scope = normalized && ['SOLO', 'DUO', 'TEAM'].includes(normalized)
+      ? normalized
+      : 'ALL';
+    const since = new Date(Date.now() - 89 * 24 * 60 * 60_000);
+    since.setUTCHours(0, 0, 0, 0);
+
+    const snapshots = await this.prisma.rankingSnapshot.findMany({
+      where: { leagueId, scope, day: { gte: since } },
+      orderBy: { day: 'asc' },
+      take: 90,
+      select: { day: true, capturedAt: true, positions: true },
+    });
+
+    const history = snapshots.map(snapshot => {
+      const positions = snapshot.positions;
+      const raw = positions && typeof positions === 'object' && !Array.isArray(positions)
+        ? (positions as Record<string, unknown>)[userId]
+        : null;
+      return {
+        day: snapshot.day.toISOString().slice(0, 10),
+        capturedAt: snapshot.capturedAt.toISOString(),
+        position: typeof raw === 'number' && Number.isInteger(raw) && raw > 0 ? raw : null,
+      };
+    });
+
+    return {
+      success: true,
+      data: {
+        leagueId,
+        scope,
+        history,
+        source: 'OBSERVED_DAILY_SNAPSHOTS',
+        note: 'Only observed daily rankings are shown. Missing days and unranked entries are not interpolated.',
+      },
+      error: null,
+    };
+  }
+
   private mapPlayer(
     statistic: any,
   ): PlayerRankingRow {

@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
+  HttpException,
 } from '@nestjs/common';
 import type {
   Request,
@@ -10,9 +11,7 @@ import type {
 import type {
   Observable,
 } from 'rxjs';
-import {
-  finalize,
-} from 'rxjs';
+import { finalize, tap } from 'rxjs';
 
 import {
   TelemetryService,
@@ -63,6 +62,14 @@ export class RequestTelemetryInterceptor
       performance.now();
 
     return next.handle().pipe(
+      tap({
+        error: (error: unknown) => {
+          // Expected validation/auth failures are not server 5xx incidents.
+          if (!(error instanceof HttpException) || error.getStatus() >= 500) {
+            this.telemetry.recordApiError();
+          }
+        },
+      }),
       finalize(
         () => {
           this.telemetry.recordApiLatency(

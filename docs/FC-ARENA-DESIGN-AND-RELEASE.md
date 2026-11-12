@@ -33,6 +33,12 @@ Start with theme-aware Tournament Wizard/Review, match evidence, player dashboar
 
 Do not merge or deploy the scheduling migration merely because the build passes. An isolated `pg_restore` rehearsal, explicit source preservation and functional verification remain mandatory.
 
+## Isolated release staging rehearsal (without production access)
+
+The GitHub Actions `Readiness Steps 11-15` integration job now validates the Prisma schema, migrates an ephemeral PostgreSQL/Redis environment, creates a custom-format backup with an actual synthetic marker row, restores into a **different, newly created disposable database**, and verifies table count, migration history and the synthetic row. This runs through `ops/verify-isolated-db-restore.sh` with an explicit loopback/CI-only guard. It never accesses `45.129.87.8` or the production PostgreSQL database.
+
+**Scope:** This verifies that the new schema and test data are restorable in CI. It is **not** proof that any production backup is restorable, that the 483 production-only source changes are reconciled, or that the full 5-phase feature set is complete. Production source inventory, independent restricted backups, and an isolated restore rehearsal of the **actual production dump** remain release blockers.
+
 ## Before any live release
 
 1. Reconcile live web/API build IDs, actual `/opt/fcarena` source, GitHub `main`, and local Windows changes. Make recoverable source/build and production database backups. Verify the destination host; historical CI host may be stale.

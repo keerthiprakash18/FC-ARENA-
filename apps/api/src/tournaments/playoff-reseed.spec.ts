@@ -8,6 +8,7 @@ import {
 import {
   PlayoffsService,
 } from './playoffs.service.js';
+import { bestThirdPlayoffSettings } from './best-third-playoffs.js';
 
 import {
   buildPlayoffSeedPlan,
@@ -218,6 +219,9 @@ function setup(
 
 
   const tx = {
+    tournament: {
+      findUnique: vi.fn(async () => tournament),
+    },
     tournamentRegistration: {
       findMany:
         vi.fn()
@@ -286,7 +290,7 @@ function setup(
     qualifiersPerGroup:
       6,
     playoffQualifiersTotal:
-      null,
+      null as number | null,
     avoidSameGroupEarly:
       true,
   };
@@ -535,6 +539,20 @@ function applyProtectedBracket(
 describe(
   'Existing playoff reseeding',
   () => {
+    it('blocks a legacy reseed when the saved format changes to best third-place qualification', async () => {
+      const { run, tx } = setup();
+      tx.tournament.findUnique.mockImplementationOnce(async () => ({
+        ...(await tx.tournament.findUnique()),
+        ...bestThirdPlayoffSettings,
+      }));
+
+      await expect(run()).rejects.toMatchObject({
+        response: { error: { code: 'PLAYOFF_FORMAT_CHANGED' } },
+      });
+      expect(tx.fixture.update).not.toHaveBeenCalled();
+      expect(tx.auditLog.create).not.toHaveBeenCalled();
+    });
+
     it(
       'preserves fixture IDs and audits a protected-bracket rewrite',
       async () => {

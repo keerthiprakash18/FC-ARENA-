@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { ForbiddenException } from '@nestjs/common';
 import { DurableTelemetryService, approximatePercentile, bucketIndex } from './durable-telemetry.service.js';
 import { TelemetryService } from './telemetry.service.js';
 import { AdminOpsService } from '../admin-ops/admin-ops.service.js';
@@ -91,7 +92,7 @@ describe('anonymous durable telemetry aggregates', () => {
       user: { findUnique: vi.fn().mockResolvedValue({ role: 'PLAYER' }) },
     };
     const service = new AdminOpsService(prisma as never, durable as never);
-    await expect(service.telemetryHistory('player-id')).rejects.toThrow('SUPER_ADMIN');
+    await expect(service.telemetryHistory('player-id')).rejects.toBeInstanceOf(ForbiddenException);
     expect(durable.recentDays).not.toHaveBeenCalled();
   });
 });

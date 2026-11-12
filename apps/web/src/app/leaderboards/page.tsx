@@ -204,7 +204,16 @@ export default function LeaderboardsPage() {
       backLabel={selectedLeague ? "League" : "More"}
       action={
         myPosition ? (
-          <button className="theme-secondary-button rounded-lg px-4 py-2" onClick={() => { const targets = document.querySelectorAll(`[data-player-id="${userId}"]`); const target = Array.from(targets).find(el => (el as HTMLElement).offsetParent !== null); target?.scrollIntoView({block:"center",behavior:"smooth"}); }}>Find my rank · #{myPosition}</button>
+          <button
+            type="button"
+            className="theme-secondary-button min-h-11 rounded-lg px-4 py-2 focus-visible:outline-2 focus-visible:outline-offset-2"
+            onClick={() => {
+              const targets = document.querySelectorAll(`[data-player-id="${userId}"]`);
+              const target = Array.from(targets).find(el => (el as HTMLElement).offsetParent !== null);
+              const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              target?.scrollIntoView({ block: "center", behavior: reduceMotion ? "instant" : "smooth" });
+            }}
+          >Find my rank · #{myPosition}</button>
         ) : null
       }
     >

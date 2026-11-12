@@ -478,6 +478,43 @@ export default function AdminAnalyticsPage() {
             </FcPanel>
           </section>
 
+           <section aria-labelledby="ops-quality-title" className="mt-5">
+             <h2 id="ops-quality-title" className="theme-text text-lg font-bold">Competition quality · operational ratios</h2>
+             <p className="theme-secondary-text mt-1 text-xs leading-5">
+               These are current operational ratios, not player retention or acquisition metrics.
+               Cancelled matches and historical closed disputes are excluded.
+             </p>
+             <div className="mt-3 grid gap-3 sm:grid-cols-3">
+               <FcPanel className="p-4">
+                 <p className="theme-secondary-text text-xs">Completed match share</p>
+                 <p className="theme-text mt-2 text-2xl font-bold">
+                   {data.totals.completedMatches + data.totals.liveMatches + data.totals.scheduledMatches > 0
+                     ? `${Math.round(100 * data.totals.completedMatches / (data.totals.completedMatches + data.totals.liveMatches + data.totals.scheduledMatches))}%`
+                     : '—'}
+                 </p>
+                 <p className="theme-secondary-text mt-1 text-xs">Completed ÷ (completed + live + scheduled)</p>
+               </FcPanel>
+               <FcPanel className="p-4">
+                 <p className="theme-secondary-text text-xs">Open disputes per 1,000 completed matches</p>
+                 <p className="theme-text mt-2 text-2xl font-bold">
+                   {data.totals.completedMatches > 0
+                     ? (data.totals.openDisputes * 1_000 / data.totals.completedMatches).toFixed(1)
+                     : '—'}
+                 </p>
+                 <p className="theme-secondary-text mt-1 text-xs">Current open disputes, not historical dispute incidence</p>
+               </FcPanel>
+               <FcPanel className="p-4">
+                 <p className="theme-secondary-text text-xs">Active tournament share</p>
+                 <p className="theme-text mt-2 text-2xl font-bold">
+                   {data.totals.tournaments > 0
+                     ? `${Math.round(100 * data.totals.activeTournaments / data.totals.tournaments)}%`
+                     : '—'}
+                 </p>
+                 <p className="theme-secondary-text mt-1 text-xs">Active, open and closed-registration tournaments ÷ total</p>
+               </FcPanel>
+             </div>
+           </section>
+
            <PremiumSection label="Operational detail" title="Competition health">
            <div className="premium-spread">
             <FcPanel className="p-5">

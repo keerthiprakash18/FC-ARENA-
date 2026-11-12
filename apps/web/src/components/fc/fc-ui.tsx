@@ -119,7 +119,7 @@ export function FcPageHeader({
       </div>
 
       {action ? (
-        <div className="shrink-0">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
           {action}
         </div>
       ) : null}
@@ -165,7 +165,7 @@ export function FcStatusBadge({
   return (
     <span
       className={
-        'theme-status-badge inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ' +
+        'theme-status-badge inline-flex max-w-full items-center rounded-full border px-2.5 py-1 text-xs font-semibold ' +
         toneClasses[tone]
       }
     >

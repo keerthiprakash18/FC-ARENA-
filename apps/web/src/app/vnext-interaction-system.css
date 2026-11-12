@@ -1,0 +1,146 @@
+/*
+ * FC ARENA vNext shared visual interaction layer.
+ * Scoped to the authenticated .fc-premium shell so public marketing and
+ * auth pages are not restyled. All colors inherit active club/theme tokens.
+ * Intentionally no new font download, runtime dependency, or heavy animation.
+ */
+
+/* Shared affordances across Dashboard / Tournament / Match / Player /
+   Leaderboards / League War / Awards / Community / Notifications / Admin. */
+.fc-premium .fc-main :is(
+  button, a[href], input, select, textarea, summary,
+  [role="button"], [tabindex="0"]
+):focus-visible,
+.fc-premium .theme-bottom-nav a:focus-visible,
+.fc-premium .theme-sidebar a:focus-visible {
+  outline: 3px solid var(--theme-primary-bright, #d9b765);
+  outline-offset: 3px;
+  scroll-margin-block: 16px;
+}
+
+.fc-premium .fc-main :is(input, select, textarea) {
+  max-width: 100%;
+  accent-color: var(--theme-primary);
+}
+
+.fc-premium .fc-main :is(button, a, input, select, textarea)[disabled],
+.fc-premium .fc-main [aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .68;
+}
+
+.fc-premium .fc-main :is(.fc-panel, .theme-card, .premium-section, .premium-hero) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fc-premium .fc-main :is(.theme-input, .theme-secondary-button, .theme-primary-button) {
+  border-radius: var(--fc-control-radius);
+  transition:
+    background-color var(--fc-motion),
+    border-color var(--fc-motion),
+    box-shadow var(--fc-motion),
+    color var(--fc-motion);
+}
+
+.fc-premium .fc-main :is(.theme-secondary-button, .theme-primary-button):not([disabled]):active {
+  transform: translateY(1px);
+}
+
+.fc-premium .fc-main :is(button, a[href], [role="button"]) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.fc-premium .fc-main :is(button, input, select, textarea) {
+  font-size: max(1rem, 16px);
+}
+
+.fc-premium .fc-main :is(.theme-primary-button, .theme-secondary-button) {
+  min-height: var(--fc-control-height, 44px);
+}
+
+.fc-premium .fc-main :is([role="alert"], .theme-danger) {
+  overflow-wrap: break-word;
+}
+
+.fc-premium .fc-main :is(table, pre) {
+  max-width: 100%;
+}
+
+.fc-premium .fc-main :is(.fc-page-heading, .premium-section-heading, .premium-hero-copy) {
+  min-width: 0;
+}
+
+.fc-premium .fc-main :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.fc-premium .fc-main :is(p, li) {
+  text-wrap: pretty;
+}
+
+/* Keyboard and switch navigation should not disappear beneath the WebView
+   safe-area controls on Android and modern phone browsers. */
+.fc-premium .fc-main :target {
+  scroll-margin-top: 6rem;
+}
+
+.fc-premium .theme-bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom), 4px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fc-premium .fc-main :is(.theme-secondary-button, .theme-primary-button):not([disabled]):hover {
+    box-shadow: var(--theme-card-shadow);
+  }
+}
+
+/* Small device guardrails used by every authenticated feature screen. */
+@media (max-width: 430px) {
+  .fc-premium .fc-main {
+    min-width: 0;
+    padding-inline: max(12px, env(safe-area-inset-left, 0px));
+  }
+
+  .fc-premium .fc-main :is(.fc-panel, .premium-section, .premium-hero, .theme-card) {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .fc-premium .fc-main :is(button, a[href])[class*="theme-"] {
+    min-height: 44px;
+  }
+
+  .fc-premium .fc-main :is(input, select, textarea) {
+    min-height: 44px;
+  }
+}
+
+/* Low-motion mode must not induce navigation jank, zoom or continuous spinners.
+   Make transitions effectively immediate without changing DOM/state logic. */
+@media (prefers-reduced-motion: reduce) {
+  .fc-premium,
+  .fc-premium .fc-main,
+  .fc-premium .fc-main *,
+  .fc-premium .fc-main *::before,
+  .fc-premium .fc-main *::after,
+  .fc-premium .theme-bottom-nav * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .fc-premium .fc-main :is(.theme-secondary-button, .theme-primary-button):active {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .fc-premium .fc-main :is(button, a[href], input, select, textarea):focus-visible {
+    outline-color: Highlight;
+  }
+  .fc-premium .fc-main :is(.theme-primary-button, .theme-secondary-button) {
+    border: 1px solid ButtonText;
+  }
+}

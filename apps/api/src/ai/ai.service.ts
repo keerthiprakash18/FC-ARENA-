@@ -645,6 +645,8 @@ export class AiService {
         .trim()
         .toLowerCase();
 
+    const tamilPrompt = /[\u0B80-\u0BFF]/u.test(rawMessage);
+
     const includesAny = (
       words: string[],
     ) =>
@@ -669,7 +671,9 @@ export class AiService {
         context.upcomingFixtures[0];
 
       if (!fixture) {
-        return 'I cannot find an upcoming fixture for you right now. Open Fixtures to check newly generated or unscheduled matches.';
+        return tamilPrompt
+          ? 'உங்களுக்கான அடுத்த போட்டி இன்னும் பதிவாகவில்லை. புதிய மேட்ச் அல்லது அட்டவணைக்கு Fixtures பக்கத்தைப் பார்க்கவும்.'
+          : 'I cannot find an upcoming fixture for you right now. Open Fixtures to check newly generated or unscheduled matches.';
       }
 
       const schedule =
@@ -683,11 +687,14 @@ export class AiService {
                   'medium',
                 timeStyle:
                   'short',
+                timeZone: 'Asia/Kolkata',
               },
             )
           : 'Schedule pending';
 
-      return `Your next recorded fixture is ${fixture.home} vs ${fixture.away} in ${fixture.tournament} · ${fixture.roundName}. ${schedule}. Open Fixtures for Match Center details.`;
+      return tamilPrompt
+        ? `உங்களுடைய அடுத்த போட்டி: ${fixture.home} vs ${fixture.away} — ${fixture.tournament} · ${fixture.roundName}. ${schedule} (IST). Match Center விவரங்களுக்கு Fixtures பக்கத்தைத் திறக்கவும்.`
+        : `Your next recorded fixture is ${fixture.home} vs ${fixture.away} in ${fixture.tournament} · ${fixture.roundName}. ${schedule} (IST). Open Fixtures for Match Center details.`;
     }
 
     if (
@@ -700,7 +707,9 @@ export class AiService {
         context.leagues.length ===
         0
       ) {
-        return 'You are not currently linked to a League. Open League to join with a League Code or create a new League.';
+        return tamilPrompt
+          ? 'நீங்கள் இன்னும் எந்த லீக்கிலும் சேரவில்லை. League Code மூலம் சேர அல்லது புதிய லீக் தொடங்க League பக்கத்தைத் திறக்கவும்.'
+          : 'You are not currently linked to a League. Open League to join with a League Code or create a new League.';
       }
 
       const leagues =
@@ -711,7 +720,9 @@ export class AiService {
           )
           .join(', ');
 
-      return `Your current FC ARENA Leagues: ${leagues}. A player can belong to a maximum of two Leagues: Primary and Secondary.`;
+      return tamilPrompt
+        ? `உங்கள் FC ARENA லீக்குகள்: ${leagues}. ஒரு வீரர் அதிகபட்சம் இரண்டு லீக்குகளில் (Primary / Secondary) மட்டும் இருக்கலாம்.`
+        : `Your current FC ARENA Leagues: ${leagues}. A player can belong to a maximum of two Leagues: Primary and Secondary.`;
     }
 
     if (

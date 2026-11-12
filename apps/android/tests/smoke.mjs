@@ -64,6 +64,7 @@ async function prepare(page) {
         case '/api/league-wars': data = { wars: [] }; break;
         case '/api/league-wars/rankings': data = { leagueRankings: [], playerRankings: [] }; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
+        case '/api/notifications/push/status': data = { configured: false, bound: false }; break;
         case '/api/telemetry/web-vitals': data = { accepted: true }; break;
         case '/api/awards/overview': data = { currentBallon: null, trophyCabinet: {}, myTournamentAwards: [], mySeasonalAwards: [], activeAwardTournaments: [], recentSeasonalWinners: [] }; break;
         default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();

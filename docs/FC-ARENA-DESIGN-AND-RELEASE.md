@@ -33,6 +33,12 @@ Start with theme-aware Tournament Wizard/Review, match evidence, player dashboar
 
 Do not merge or deploy the scheduling migration merely because the build passes. An isolated `pg_restore` rehearsal, explicit source preservation and functional verification remain mandatory.
 
+## Seven groups / forty-two approved entries / sixteen-team knockout (draft feature)
+
+For `GROUP_STAGE_KNOCKOUT` with **42 approved entries in seven balanced groups of six**, the qualification wizard can explicitly configure `qualifiersPerGroup = 2` and `playoffQualifiersTotal = 16`. This represents **14 direct group qualifiers plus the best two third-place entries**. The group engine compares each group's next-place finisher using confirmed standings: points, goal difference, goals scored, wins, entry name and stable ID. Total qualifiers are validated to prevent an accidental 14-team bracket. A protected 16-team bracket must have **eight Round-of-16 ties, 15 knockout fixtures, zero byes, no duplicate entrants**, and cross-group opponents in each opening tie when `avoidSameGroupEarly` is enabled. Draft Vitest tests cover balanced groups, mismatch rejection, seeding and rematch separation.
+
+**Scope warning:** this is a `GROUP_STAGE_KNOCKOUT` tournament option; the existing `UCL_CUP` format follows its separate official league-phase / two-leg qualification engine. Do not silently change existing UCL cups or published results to the 7-group rule. Do not activate a saved/new tournament without verifying match-level stage completion, actual group standings, at-large tie-break data and existing tournament/award history in staging.
+
 ## Isolated release staging rehearsal (without production access)
 
 The GitHub Actions `Readiness Steps 11-15` integration job now validates the Prisma schema, migrates an ephemeral PostgreSQL/Redis environment, creates a custom-format backup with an actual synthetic marker row, restores into a **different, newly created disposable database**, and verifies table count, migration history and the synthetic row. This runs through `ops/verify-isolated-db-restore.sh` with an explicit loopback/CI-only guard. It never accesses `45.129.87.8` or the production PostgreSQL database.

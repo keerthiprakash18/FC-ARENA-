@@ -37,6 +37,18 @@ async function prepare(page) {
         case '/api/matches/result-test/events': return route.fulfill({body:'event: connected\ndata: {"type":"connected"}\n\n',headers:{'content-type':'text/event-stream','access-control-allow-origin':'https://fcarena.in','access-control-allow-credentials':'true'}});
         case '/api/matches/result-test/results': data={isLeagueAdmin:false,canVerifyResult:false,confirmedResultSubmissionId:null,submissions:[]}; break;
         case '/api/matches/result-test/ocr/latest': data={extraction:null}; break;
+        case '/api/league-wars': data = { wars: [] }; break;
+        case '/api/league-wars/rankings': data = { leagueRankings: [], playerRankings: [] }; break;
+        case '/api/arena-talk/context': data = {
+          leagues: [], canModerate: false,
+          policy: { audienceNote: 'Public FC ARENA discussions' },
+        }; break;
+        case '/api/arena-talk/posts': data = { posts: [], nextCursor: null }; break;
+        case '/api/awards/overview': data = {
+          currentBallon: null, trophyCabinet: {},
+          myTournamentAwards: [], mySeasonalAwards: [],
+          activeAwardTournaments: [], recentSeasonalWinners: [],
+        }; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
         case '/api/matches/result-test/scheduling': data = { enabled: false, proposals: [] }; break;
         case '/api/telemetry/web-vitals': data = { accepted: true }; break;
@@ -66,7 +78,7 @@ try {
     await context.addInitScript(()=>localStorage.setItem('fc-arena-theme-preference','LUXURY_GOLD'));
     // Mock the user's saved selection consistently with the initial theme.
     user.themePreference='LUXURY_GOLD';
-    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/career','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
+    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
       // The shell mounts before authenticated reads finish. Measure the loaded

@@ -49,7 +49,7 @@ jobs:
         run: bash -n ops/vnext-readonly-production-audit.sh
 
       - name: FC ARENA vNext UX, tournament and release safety regressions
-        run: node --test tests/dashboard-next-actions.test.mjs tests/tournament-review-theme.test.mjs tests/tournament-create-preview.test.mjs tests/verify-live-baseline.test.mjs tests/weekly-verified-progress.test.mjs tests/dashboard-refresh-throttle.test.mjs tests/leaderboard-a11y.test.mjs tests/experience-trust-controls.test.mjs tests/owner-analytics-and-invites.test.mjs tests/rank-history-ui.test.mjs tests/vnext-production-audit.test.mjs
+        run: node --test tests/dashboard-next-actions.test.mjs tests/tournament-review-theme.test.mjs tests/tournament-create-preview.test.mjs tests/verify-live-baseline.test.mjs tests/weekly-verified-progress.test.mjs tests/dashboard-refresh-throttle.test.mjs tests/leaderboard-a11y.test.mjs tests/experience-trust-controls.test.mjs tests/owner-analytics-and-invites.test.mjs tests/rank-history-ui.test.mjs tests/vnext-production-audit.test.mjs tests/match-time-coordination.test.mjs
 
       - name: Web production build
         run: npm run build:web

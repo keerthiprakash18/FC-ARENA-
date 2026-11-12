@@ -11,6 +11,7 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { PrismaService } from '../database/prisma.service.js';
 import { NotificationsService } from './notifications.service.js';
 import { FIXTURE_DAY_REMINDER, FixtureDayRemindersService } from './fixture-day-reminders.service.js';
+import { isQuietHoursActive } from './quiet-hours.js';
 
 @Injectable()
 export class PushService implements OnModuleInit, OnModuleDestroy {
@@ -291,7 +292,26 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
             orderBy: { eventAt: 'desc' },
             take: 50,
           });
+          const settings = await this.prisma.user.findUnique({
+            where: { id: device.userId },
+            select: { notificationPreferences: true },
+          });
+          const quietHours = settings?.notificationPreferences &&
+            typeof settings.notificationPreferences === 'object' &&
+            !Array.isArray(settings.notificationPreferences)
+            ? (settings.notificationPreferences as Record<string, unknown>).quietHours
+            : undefined;
           for (const item of items) {
+            const urgent = [
+              'MATCH_REMINDER',
+              'MATCH_READY',
+              'RESULT_SUBMITTED',
+              'RESULT_REJECTED',
+              'DISPUTE_OPENED',
+            ].includes(item.type);
+            // Keep non-urgent notifications in the inbox and retry push
+            // after quiet hours. Urgent match/dispute alerts continue.
+            if (!urgent && isQuietHoursActive(quietHours, new Date())) continue;
             // Recheck consent/session immediately before delivery, including logout during a sync.
             if (
               !(await this.prisma.pushDevice.findFirst({
@@ -330,16 +350,6 @@ export class PushService implements OnModuleInit, OnModuleDestroy {
                 item.href?.startsWith('/') && !item.href.startsWith('//')
                   ? item.href
                   : '/notifications';
-              const urgent =
-                [
-                  'MATCH_REMINDER',
-                  'MATCH_READY',
-                  'RESULT_SUBMITTED',
-                  'RESULT_REJECTED',
-                  'DISPUTE_OPENED',
-                ].includes(
-                  item.type,
-                );
 
               await getMessaging(this.app).send({
                 token: device.token,

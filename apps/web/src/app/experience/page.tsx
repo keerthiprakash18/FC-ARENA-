@@ -76,7 +76,7 @@ export default function ExperiencePage() {
               <section aria-labelledby="verified-goals-title" className="mt-5 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 id="verified-goals-title" className="theme-text text-lg font-bold">This week's verified goals</h2>
+                    <h2 id="verified-goals-title" className="theme-text text-lg font-bold">This week&apos;s verified goals</h2>
                     <p className="theme-secondary-text mt-1 text-sm">
                       {new Date(weekly.start).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' })}
                       {' – '}

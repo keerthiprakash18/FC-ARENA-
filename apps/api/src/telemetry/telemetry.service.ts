@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { DurableTelemetryService } from './durable-telemetry.service.js';
 
 const MAX_SAMPLES =
@@ -25,7 +25,7 @@ type Summary = {
 @Injectable()
 export class TelemetryService {
   constructor(
-    @Optional() private readonly durable?: DurableTelemetryService,
+    @Optional() @Inject(DurableTelemetryService) private readonly durable?: DurableTelemetryService,
   ) {}
 
   recordApiError() {

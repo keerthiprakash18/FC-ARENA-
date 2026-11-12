@@ -78,7 +78,7 @@ try {
     await context.addInitScript(()=>localStorage.setItem('fc-arena-theme-preference','LUXURY_GOLD'));
     // Mock the user's saved selection consistently with the initial theme.
     user.themePreference='LUXURY_GOLD';
-    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
+    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/settings','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
       // The shell mounts before authenticated reads finish. Measure the loaded
@@ -127,6 +127,21 @@ try {
       await page.waitForURL('**/fixtures');
       await page.goBack(); await page.waitForURL('**/dashboard');
     }
+    // Language preference must survive navigation, preserve route links and
+    // avoid shrinking or overflowing the five-slot Android bottom rail.
+    await page.goto('https://fcarena.in/settings');
+    await page.getByRole('group',{name:'App language'}).getByRole('button',{name:'தமிழ்'}).click();
+    assert.equal(await page.locator('html').getAttribute('lang'),'ta');
+    assert.equal(await page.getByRole('button',{name:'தமிழ்'}).getAttribute('aria-pressed'),'true');
+    await page.goto('https://fcarena.in/dashboard');
+    assert.equal(await page.locator('html').getAttribute('lang'),'ta');
+    if (width < 1024) {
+      assert.equal(await page.locator('.theme-bottom-nav a').count(),5);
+      assert(await page.locator('.theme-bottom-nav').getByText('முகப்பு',{exact:true}).count()>0);
+    }
+    await page.goto('https://fcarena.in/settings');
+    await page.getByRole('group',{name:'App language'}).getByRole('button',{name:'English'}).click();
+    assert.equal(await page.locator('html').getAttribute('lang'),'en');
     await context.close();
     console.log('PASS UI width '+width);
   }

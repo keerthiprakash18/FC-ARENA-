@@ -102,7 +102,7 @@ describe('advisory time coordination', () => {
   });
 
   it('rejects unbound admins, late offers and completed match coordination', async () => {
-    const { service, getMatchAccess } = setup(null);
+    const { service } = setup(null);
     await expect(service.proposeMatchTime('admin', 'match-1', {
       startsAt: new Date(Date.now() + 2 * 3600_000).toISOString(),
     })).rejects.toThrow('Only match participants');
@@ -111,9 +111,9 @@ describe('advisory time coordination', () => {
       startsAt: new Date(Date.now() + 20 * 24 * 3600_000).toISOString(),
     })).rejects.toThrow('14 days');
     const completed = setup();
-    const access = await getMatchAccess();
-    (completed.getMatchAccess as unknown as { mockResolvedValue: (v: unknown) => void }).mockResolvedValue({
-      ...access, match: { ...access.match, status: 'COMPLETED' },
+    const completedAccess = await completed.getMatchAccess();
+    completed.getMatchAccess.mockResolvedValue({
+      ...completedAccess, match: { ...completedAccess.match, status: 'COMPLETED' },
     });
     await expect(completed.service.proposeMatchTime('home-user', 'match-1', {
       startsAt: new Date(Date.now() + 2 * 3600_000).toISOString(),

@@ -210,8 +210,8 @@ export class TournamentDrawRestartService {
       });
 
       // Generate the replacement groups FIRST, so each newly copied team
-      // receives a valid group FK immediately. Evenly distribute using the
-      // original approved registration ordering: 42 / 7 => six per group.
+      // receives a valid group FK immediately. Randomize approved entries and
+      // distribute them evenly: 42 / 7 => six entries per group.
       const groupRows = Array.from({ length: groupCount }, (_, index) => ({
         id: randomUUID(),
         tournamentId: fresh.id,

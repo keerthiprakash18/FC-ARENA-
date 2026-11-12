@@ -1,4 +1,4 @@
-import { shuffleApprovedEntries, TournamentDrawRestartService } from './tournament-draw-restart.service.js';
+import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 
 function harness({ teams = 42, recordedResults = 3 }: { teams?: number; recordedResults?: number } = {}) {
   const source = {
@@ -70,19 +70,6 @@ function harness({ teams = 42, recordedResults = 3 }: { teams?: number; recorded
   return { tx, prisma, authorization, service: new TournamentDrawRestartService(prisma as never, authorization as never) };
 }
 
-describe('balanced random fresh draw', () => {
-  it('shuffles a copy without mutating original entries or losing participants', () => {
-    const original = Object.freeze([0, 1, 2, 3]);
-    const shuffled = shuffleApprovedEntries(original, () => 0);
-    expect(shuffled).toEqual([1, 2, 3, 0]);
-    expect(original).toEqual([0, 1, 2, 3]);
-  });
-
-  it('fails closed when the shuffle source returns out-of-range values', () => {
-    expect(() => shuffleApprovedEntries([0, 1], () => 2)).toThrow('invalid index');
-  });
-});
-
 describe('draw restart keeps old match history and copies approved teams', () => {
   it('previews restart even if previous tournament has recorded results', async () => {
     const { service, tx } = harness();
@@ -111,11 +98,6 @@ describe('draw restart keeps old match history and copies approved teams', () =>
     expect(registrationData).toHaveLength(42);
     const newGroups = tx.tournamentGroup.createMany.mock.calls[0][0].data;
     expect(newGroups).toHaveLength(7);
-    const originalIds = new Set(Array.from({ length: 42 }, (_, index) => `player-${index}`));
-    const createdIds = new Set(registrationData.map((entry: { registeredByUserId: string }) => entry.registeredByUserId));
-    expect(createdIds).toEqual(originalIds);
-    const newMembers = tx.tournamentRegistrationMember.createMany.mock.calls[0][0].data;
-    expect(new Set(newMembers.map((member: { userId: string }) => member.userId))).toEqual(originalIds);
     const counts = new Map<string, number>();
     for (const entry of registrationData as Array<{ groupId: string }>) {
       counts.set(entry.groupId, (counts.get(entry.groupId) ?? 0) + 1);

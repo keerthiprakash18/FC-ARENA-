@@ -547,6 +547,13 @@ export default function FairPlayPage() {
                             />
                           </div>
 
+                          <div className="theme-secondary-text mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label="Appeal decision timeline">
+                            <span>Submitted: {new Date(item.appeal.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST</span>
+                            {item.appeal.resolvedAt ? (
+                              <span>Decision: {new Date(item.appeal.resolvedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST</span>
+                            ) : <span>Awaiting an admin decision</span>}
+                          </div>
+
                           {item
                             .appeal
                             .resolutionNote ? (

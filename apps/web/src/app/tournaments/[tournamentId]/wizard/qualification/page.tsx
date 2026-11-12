@@ -336,6 +336,8 @@ export default function QualificationPage() {
   ] =
     useState(8);
 
+  const [extraNextPlaces, setExtraNextPlaces] = useState(0);
+
   const [
     busy,
     setBusy,
@@ -434,6 +436,11 @@ export default function QualificationPage() {
           approved,
         ),
       );
+      setExtraNextPlaces(Math.max(
+        0,
+        (config.playoffQualifiersTotal ?? 0) -
+          groups.data.groups.length * (config.qualifiersPerGroup ?? 2),
+      ));
     }
 
     void load().catch(
@@ -497,8 +504,7 @@ export default function QualificationPage() {
       ? getEliteCupPlayoffQualifierCount(approvedEntries)
       : resolvedSource ===
     "GROUP_QUALIFIERS"
-      ? groupCount *
-        qualifiersPerGroup
+      ? groupCount * qualifiersPerGroup + extraNextPlaces
       : Math.min(
           approvedEntries,
           qualifierTotal,
@@ -577,10 +583,9 @@ export default function QualificationPage() {
               playoffQualifiersTotal:
                 competitionFormat === "ELITE_CUP" || competitionFormat === "UCL_CUP"
                   ? undefined
-                  : resolvedSource !==
-                    "GROUP_QUALIFIERS"
-                  ? qualifierTotal
-                  : undefined,
+                  : resolvedSource === "GROUP_QUALIFIERS"
+                    ? groupCount * qualifiersPerGroup + extraNextPlaces
+                    : qualifierTotal,
               avoidSameGroupEarly:
                 true,
             }),
@@ -873,6 +878,26 @@ export default function QualificationPage() {
                 />
               </label>
             )}
+
+            {resolvedSource === "GROUP_QUALIFIERS" ?               <label className="field">
+                <span>Extra best next-place qualifiers (0–{groupCount})</span>
+                <input
+                  type="number"
+                  min="0"
+                  max={Math.max(0, groupCount)}
+                  value={extraNextPlaces}
+                  onChange={event => setExtraNextPlaces(
+                    Math.min(groupCount, Math.max(0, Number(event.target.value) || 0)),
+                  )}
+                />
+                <span className="theme-secondary-text mt-2 text-xs leading-5">
+                  Top {qualifiersPerGroup} from each group = {groupCount * qualifiersPerGroup} direct.
+                  {extraNextPlaces > 0
+                    ? ` Best ${extraNextPlaces} next-place finisher(s) across equally sized groups are added; ties use points, goal difference, goals scored, wins, then entry name/ID.`
+                    : ' No cross-group next-place places are configured.'}
+                </span>
+              </label>
+ : null}
 
             <label className="field">
               <span>

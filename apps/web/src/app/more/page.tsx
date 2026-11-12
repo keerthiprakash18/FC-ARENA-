@@ -111,8 +111,9 @@ export default function MorePage() {
 
   return (
     <AppShell playerName={inGameName}>
-      <div className="space-y-6">
+      <div className="fc-more-page space-y-6">
         <FcPageHeader
+          eyebrow="YOUR FC ARENA"
           title="More"
           subtitle="Profile, career, community and account tools."
           action={
@@ -125,14 +126,14 @@ export default function MorePage() {
 
         <FcPanel className="p-5">
           <div className="flex items-center gap-4">
-            <div className="grid h-11 w-11 place-items-center rounded-xl border border-[#2B3948] bg-[#18212C] text-sm font-semibold text-[#38BDF8]">
+            <div className="theme-soft-accent grid h-11 w-11 place-items-center rounded-xl border text-sm font-semibold">
               {inGameName.slice(0, 2).toUpperCase()}
             </div>
 
             <div className="min-w-0 flex-1">
               <p className="truncate font-black">{inGameName}</p>
 
-              <p className="mt-1 font-mono text-[10px] text-sky-400">
+              <p className="theme-secondary-text mt-1 break-all font-mono text-[11px]">
                 {user.player?.playerCode || "FC ARENA Player"}
               </p>
             </div>

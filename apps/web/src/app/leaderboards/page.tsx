@@ -211,7 +211,7 @@ export default function LeaderboardsPage() {
               const targets = document.querySelectorAll(`[data-player-id="${userId}"]`);
               const target = Array.from(targets).find(el => (el as HTMLElement).offsetParent !== null);
               const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-              target?.scrollIntoView({ block: "center", behavior: reduceMotion ? "instant" : "smooth" });
+              target?.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
             }}
           >Find my rank · #{myPosition}</button>
         ) : null

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { normalizeQuietHours } from './quiet-hours.js';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   NOTIFICATION_PREFERENCE_KEYS,
@@ -213,7 +214,14 @@ export class NotificationsService {
 
     return {
       success: true,
-      data: { preferences: this.normalizedPreferences(user?.notificationPreferences) },
+      data: { preferences: {
+        ...this.normalizedPreferences(user?.notificationPreferences),
+        quietHours: normalizeQuietHours(
+          user?.notificationPreferences && typeof user.notificationPreferences === 'object'
+            ? (user.notificationPreferences as Record<string, unknown>).quietHours
+            : undefined,
+        ),
+      } },
       error: null,
     };
   }
@@ -232,9 +240,22 @@ export class NotificationsService {
         .filter((key) => typeof dto[key] === 'boolean')
         .map((key) => [key, dto[key] as boolean]),
     );
+    const existingQuietHours = normalizeQuietHours(
+      current.notificationPreferences && typeof current.notificationPreferences === 'object'
+        ? (current.notificationPreferences as Record<string, unknown>).quietHours
+        : undefined,
+    );
     const preferences = {
       ...this.normalizedPreferences(current.notificationPreferences),
       ...updates,
+      quietHours: {
+        enabled: typeof dto.quietHoursEnabled === 'boolean'
+          ? dto.quietHoursEnabled : existingQuietHours.enabled,
+        startHour: typeof dto.quietHoursStartHour === 'number'
+          ? dto.quietHoursStartHour : existingQuietHours.startHour,
+        endHour: typeof dto.quietHoursEndHour === 'number'
+          ? dto.quietHoursEndHour : existingQuietHours.endHour,
+      },
     };
     await this.prisma.user.update({
       where: { id: userId },

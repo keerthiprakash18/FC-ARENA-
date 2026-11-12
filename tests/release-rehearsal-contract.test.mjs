@@ -27,6 +27,11 @@ test('tested candidate includes hashes for safely classifying each reported sour
   assert.match(workflow,/Retain tested staging source for review only/);
   assert.match(source,/sha256/);
   assert.match(source,/commitSha/);
+  assert.match(workflow,/--source-archive \/tmp\/fcarena-staging-candidate\/source\.tar\.gz/);
+  assert.match(source,/tarfile\.open\(archive_path, "r:gz"\)/);
+  assert.match(source,/archive\.extractfile\(item\)/);
+  assert.match(source,/set\(files\) != tracked/);
+
   assert.match(source,/fileCount/);
 });
 

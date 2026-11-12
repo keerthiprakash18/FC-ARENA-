@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PlayoffsService } from './playoffs.service.js';
 import { buildPlayoffSeedPlan, separateOpeningGroupRematches } from './playoff-seeding.js';
 import { generateKnockoutFixtures } from './fixture-engine.js';
+import { buildUniversalPlayoffPlan } from './universal-playoff-engine.js';
 import { describeTournamentFormat } from './tournament-format-guide.js';
 
 function sample() {
@@ -77,6 +78,9 @@ describe('42 approved teams / seven groups / 16-team playoff field', () => {
       expect(ownerGroup.get(protectedSlots[index]!)).not.toBe(ownerGroup.get(protectedSlots[index + 1]!));
     }
     expect([...protectedSlots].filter(Boolean).sort()).toEqual([...plan.bracketSlots].filter(Boolean).sort());
+    const completePlan = buildUniversalPlayoffPlan('PROTECTED_SEED', plan.seedOrder, protectedSlots);
+    expect(completePlan).toMatchObject({ bracketSize: 16, byeCount: 0 });
+    expect(completePlan.fixtures).toHaveLength(15);
     const fixtures = generateKnockoutFixtures(plan.seedOrder, protectedSlots);
     expect(fixtures).toHaveLength(15);
     expect(fixtures.filter(fixture => fixture.roundNumber === 1)).toHaveLength(8);

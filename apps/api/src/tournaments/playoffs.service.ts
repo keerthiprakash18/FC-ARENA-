@@ -1646,6 +1646,21 @@ export class PlayoffsService {
         });
       }
 
+      if (
+        extraPlaces > 0 &&
+        input.tournament.avoidSameGroupEarly &&
+        input.tournament.playoffFormat !== 'PROTECTED_SEED'
+      ) {
+        throw new ConflictException({
+          success: false,
+          data: null,
+          error: {
+            code: 'AT_LARGE_REQUIRES_PROTECTED_SEED',
+            message: 'Use Protected Seed playoffs to prevent same-group opening rematches when best next-place qualifiers are enabled.',
+          },
+        });
+      }
+
       if (extraPlaces > 0) {
         const groupSizes = input.groups.map(
           group => input.entries.filter(entry => entry.groupId === group.id).length,

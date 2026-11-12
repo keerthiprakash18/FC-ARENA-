@@ -879,7 +879,8 @@ export default function QualificationPage() {
               </label>
             )}
 
-            {resolvedSource === "GROUP_QUALIFIERS" ?               <label className="field">
+            {resolvedSource === "GROUP_QUALIFIERS" ? (
+              <label className="field">
                 <span>Extra best next-place qualifiers (0–{groupCount})</span>
                 <input
                   type="number"
@@ -887,7 +888,7 @@ export default function QualificationPage() {
                   max={Math.max(0, groupCount)}
                   value={extraNextPlaces}
                   onChange={event => setExtraNextPlaces(
-                    Math.min(groupCount, Math.max(0, Number(event.target.value) || 0)),
+                    Math.min(groupCount, Math.max(0, Math.trunc(Number(event.target.value) || 0))),
                   )}
                 />
                 <span className="theme-secondary-text mt-2 text-xs leading-5">
@@ -897,7 +898,7 @@ export default function QualificationPage() {
                     : ' No cross-group next-place places are configured.'}
                 </span>
               </label>
- : null}
+            ) : null}
 
             <label className="field">
               <span>

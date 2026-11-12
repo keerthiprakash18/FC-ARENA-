@@ -466,15 +466,31 @@ export default function DashboardPage() {
     return () => { cancelled = true; controller.abort(); };
   }, [user?.id, retryCount]);
 
-  // Revalidate the mounted dashboard without hiding loaded cards or resetting filters.
+  // Revalidate without hiding loaded cards, running offline/background requests,
+  // or issuing duplicate requests on focus + visibility + online events.
   useEffect(() => {
     if (!user?.id) return;
-    const refresh = () => { if (navigator.onLine !== false && document.visibilityState !== 'hidden') void reloadDashboard(); };
-    const timer = window.setInterval(refresh, 30_000);
-    window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
+    let lastRefreshAt = Date.now();
+    const minimumGapMs = 15_000;
+    const refresh = () => {
+      if (navigator.onLine === false || document.visibilityState === 'hidden') return;
+      const current = Date.now();
+      if (current - lastRefreshAt < minimumGapMs) return;
+      lastRefreshAt = current;
+      void reloadDashboard();
+    };
+    // A one-minute fallback reduces background traffic while retaining
+    // prompt focus/online refreshes. Live match state is linked separately.
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refresh);
-    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh);
-      window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', refresh); };
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('online', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [user?.id, reloadDashboard]);
 
   const primaryMembership = useMemo(

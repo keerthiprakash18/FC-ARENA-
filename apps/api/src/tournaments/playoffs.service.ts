@@ -24,6 +24,7 @@ import type {
 
 import {
   buildPlayoffSeedPlan,
+  separateOpeningGroupRematches,
 } from './playoff-seeding.js';
 
 import {
@@ -346,8 +347,21 @@ export class PlayoffsService {
           ),
         );
 
+      const hasExtraNextPlaceQualifiers =
+        qualification.qualifiersPerGroup !== null &&
+        qualification.entries.length >
+          qualification.groups.length * qualification.qualifiersPerGroup;
       protectedSlots =
-        protectedPlan.bracketSlots;
+        tournament.avoidSameGroupEarly && hasExtraNextPlaceQualifiers
+          ? separateOpeningGroupRematches(
+              protectedPlan.bracketSlots,
+              qualification.groups.map(group => ({
+                id: group.id,
+                position: group.position,
+                qualifiers: group.qualifiers.map(entry => ({ id: entry.id })),
+              })),
+            )
+          : protectedPlan.bracketSlots;
     }
 
 

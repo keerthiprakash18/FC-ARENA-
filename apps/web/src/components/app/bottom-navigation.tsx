@@ -8,16 +8,18 @@ import {
 import {
   mobilePrimaryNavigation,
 } from './primary-navigation';
+import { useAppLanguage } from '@/components/i18n/app-language';
 
 export function BottomNavigation({
   active,
 }: {
   active: string;
 }) {
+  const { language, navLabel } = useAppLanguage();
   return (
     <nav
       className="theme-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t px-1 pb-[env(safe-area-inset-bottom)] lg:hidden"
-      aria-label="Primary navigation"
+      aria-label={language === 'ta' ? 'முக்கிய வழிசெலுத்தல்' : 'Primary navigation'}
     >
        <div className="premium-primary-grid mx-auto max-w-3xl">
         {mobilePrimaryNavigation.map(
@@ -66,7 +68,7 @@ export function BottomNavigation({
 
                 <span className="max-w-full truncate text-[10px] leading-tight">
                   {
-                    item.shortLabel
+                    navLabel(item.href, item.shortLabel, true)
                   }
                 </span>
               </Link>

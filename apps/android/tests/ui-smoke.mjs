@@ -38,6 +38,7 @@ async function prepare(page) {
         case '/api/matches/result-test/results': data={isLeagueAdmin:false,canVerifyResult:false,confirmedResultSubmissionId:null,submissions:[]}; break;
         case '/api/matches/result-test/ocr/latest': data={extraction:null}; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
+        case '/api/matches/result-test/scheduling': data = { enabled: false, proposals: [] }; break;
         case '/api/telemetry/web-vitals': data = { accepted: true }; break;
         default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();
       }

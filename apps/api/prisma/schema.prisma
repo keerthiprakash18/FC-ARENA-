@@ -427,6 +427,8 @@ model User {
   roleAssignments         RoleAssignment[]       @relation("AssignedRoleUser")
   rolesAssigned           RoleAssignment[]       @relation("RoleAssigner")
   auditLogs               AuditLog[]             @relation("AuditActor")
+  timeSlotsProposed      MatchTimeProposal[]   @relation("TimeProposalCreator")
+  timeSlotsConfirmed     MatchTimeProposal[]   @relation("TimeProposalConfirmer")
   raisedDisputes          MatchDispute[]         @relation("DisputeRaiser")
   resolvedDisputes        MatchDispute[]         @relation("DisputeResolver")
   createdBallonSeasons    BallonSeason[]         @relation("BallonSeasonCreator")
@@ -885,12 +887,35 @@ model Match {
   confirmedResult   ResultSubmission?      @relation("ConfirmedMatchResult", fields: [confirmedResultSubmissionId], references: [id], onDelete: SetNull)
   statEvents        MatchResultStatEvent[]
   ocrExtractions    OcrExtraction[]
+  timeProposals     MatchTimeProposal[]
   disputes          MatchDispute[]
   arenaPost         ArenaPost?
 
   @@index([tournamentId, status])
   @@index([tournamentId, status, updatedAt])
   @@map("matches")
+}
+
+model MatchTimeProposal {
+  id                String   @id @default(uuid()) @db.Uuid
+  matchId           String   @db.Uuid
+  proposedByUserId  String   @db.Uuid
+  proposedSide      String   @db.VarChar(4)
+  startsAt          DateTime
+  note              String?  @db.VarChar(240)
+  status            String   @default("PENDING") @db.VarChar(16)
+  confirmedByUserId String?  @db.Uuid
+  confirmedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  match             Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  proposedBy        User  @relation("TimeProposalCreator", fields: [proposedByUserId], references: [id], onDelete: Cascade)
+  confirmedBy       User? @relation("TimeProposalConfirmer", fields: [confirmedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([matchId, status, createdAt])
+  @@index([proposedByUserId, createdAt])
+  @@map("match_time_proposals")
 }
 
 model ResultSubmission {

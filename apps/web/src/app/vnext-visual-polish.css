@@ -16,7 +16,8 @@
 
 .fc-premium .fc-main {
   overflow-wrap: break-word;
-  overflow-x: clip;
+  /* Never clip bracket diagrams, evidence thumbnails or tournament tables.
+     Individual table wrappers own their horizontal scrolling. */
 }
 
 .fc-premium .fc-main :is(

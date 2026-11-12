@@ -28,6 +28,7 @@ describe('notification preferences', () => {
       disputeUpdates: true,
       achievements: true,
       fairPlayUpdates: true,
+      quietHours: { enabled: false, startHour: 22, endHour: 7 },
     });
 
     await service.createForUser('user-1', {
@@ -60,6 +61,18 @@ describe('notification preferences', () => {
 
     expect(prisma.notification.upsert).toHaveBeenCalledTimes(1);
     expect(prisma.notification.upsert.mock.calls[0][0].create.type).toBe('RESULT_CONFIRMED');
+  });
+
+  it('stores quiet hours without disabling urgent categories or losing existing preferences', async () => {
+    const { prisma, service } = setup({ leagueActivity: false });
+    const updated = await service.updatePreferences('user-1', {
+      quietHoursEnabled: true, quietHoursStartHour: 23, quietHoursEndHour: 6,
+    });
+    expect(updated.data.preferences.quietHours).toEqual({
+      enabled: true, startHour: 23, endHour: 6,
+    });
+    expect(updated.data.preferences.leagueActivity).toBe(false);
+    expect(prisma.user.update).toHaveBeenCalledTimes(1);
   });
 
   it('merges partial updates with existing preferences', async () => {

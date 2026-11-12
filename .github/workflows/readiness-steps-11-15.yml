@@ -126,3 +126,29 @@ jobs:
 
       - name: Diff whitespace check
         run: git diff --check
+
+      - name: Package immutable, source-only staging candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Do not distribute actual environment files in release candidates.
+          if git ls-files | grep -E '(^|/)\.env($|\.local$|\.production$|\.production\.local$)'; then
+            echo "BLOCKED: tracked environment file requires private security review." >&2
+            exit 1
+          fi
+          mkdir -p /tmp/fcarena-staging-candidate
+          git archive --format=tar.gz --output=/tmp/fcarena-staging-candidate/source.tar.gz HEAD
+          git rev-parse HEAD > /tmp/fcarena-staging-candidate/COMMIT_SHA.txt
+          (
+            cd /tmp/fcarena-staging-candidate
+            sha256sum source.tar.gz > source.tar.gz.sha256
+            sha256sum -c source.tar.gz.sha256
+          )
+
+      - name: Retain tested staging source for review only
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcarena-staging-source-${{ github.sha }}
+          path: /tmp/fcarena-staging-candidate/
+          if-no-files-found: error
+          retention-days: 7

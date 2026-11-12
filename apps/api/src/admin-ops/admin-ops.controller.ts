@@ -65,6 +65,14 @@ export class AdminOpsController {
     );
   }
 
+  @Get('telemetry')
+  telemetry(
+    @Req()
+    request: AuthenticatedRequest,
+  ) {
+    return this.adminOps.telemetryHistory(request.user.sub);
+  }
+
   @Get('system')
   system(
     @Req()

@@ -14,3 +14,11 @@ condition = "AND"
 paths = ['''^apps/api/README\.md$''']
 regexTarget = "line"
 regexes = ['''\[circleci-image\]:\s*https://img\.shields\.io/circleci/build/github/nestjs/nest/master\?token=''']
+
+[[allowlists]]
+description = "Public FC ARENA API release build SHA, documented as a release identifier (not an API credential)"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^docs/FC-ARENA-DESIGN-AND-RELEASE\.md$''']
+regexTarget = "secret"
+regexes = ['''^35ee5fa09f043d89500ce49bd5a3f13a4442cdf9$''']

@@ -81,7 +81,7 @@ export interface UclPlayoffBlueprint extends UniversalPlayoffBlueprint {
   matchday: 1 | 2 | null;
 }
 
-export function buildUclPlayoffPlan(rankedIds: string[], teamCount = rankedIds.length): UniversalPlayoffPlan & { fixtures: UclPlayoffBlueprint[] } {
+export function buildUclPlayoffPlan(rankedIds: string[], teamCount = rankedIds.length): Omit<UniversalPlayoffPlan, 'fixtures'> & { fixtures: UclPlayoffBlueprint[] } {
   const config = uclQualification(teamCount);
   const seeds = rankedIds.slice(0, config.qualifiers);
   if (seeds.length !== config.qualifiers || new Set(seeds).size !== seeds.length) throw new Error('UCL qualification requires unique ranked entries.');

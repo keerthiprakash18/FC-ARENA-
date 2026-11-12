@@ -1,6 +1,7 @@
 import type { PrismaService } from '../database/prisma.service.js';
 import { resolveEliteCupPlayoffQualifierCount } from './elite-cup-engine.js';
 import { uclQualification } from './ucl-engine.js';
+import { usesBestThirdPlayoffs } from './best-third-playoffs.js';
 
 interface FormatInput {
   name?: string;
@@ -27,6 +28,7 @@ export function describeTournamentFormat(t: FormatInput) {
   const groupCount = groups.length;
   const grouped = t.groupMode === 'MULTIPLE_GROUPS' && groupCount > 1;
   const isUcl = format === 'UCL_CUP', isElite = format === 'ELITE_CUP';
+  const bestThird = usesBestThirdPlayoffs(t);
   const isLeague = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(format);
   const isKnockout = format === 'SINGLE_ELIMINATION';
   const hasStage = !isKnockout;
@@ -57,12 +59,19 @@ export function describeTournamentFormat(t: FormatInput) {
     if (groupCount < 2 || !perGroup || perGroup < 1) {
       state = 'PENDING'; description = 'Group qualification is not ready. The organiser must save the groups and the number qualifying from each group.';
     } else {
-      total = perGroup * groupCount;
+      total = bestThird ? 16 : perGroup * groupCount;
       const unassigned = count - groups.reduce((sum, g) => sum + g.entries, 0);
       if (groups.some(g => g.entries < perGroup) || unassigned > 0) {
         state = 'PENDING'; note = 'Some groups do not yet contain enough approved entries, or entries still need a group. The organiser must complete group setup.';
       }
       description = `Top ${perGroup} from each of ${groupCount} groups advance: ${total} qualifying places in total.`;
+      if (bestThird) {
+        description = 'Group winners and runners-up advance, along with the two best third-place teams. All 16 teams enter the Round of 16.';
+        if (groupCount !== 7 || groups.some(group => group.entries !== 6)) {
+          state = 'PENDING';
+          note = 'This format requires seven groups of six approved teams.';
+        }
+      }
       if (state === 'READY') bands.push({ from: 1, to: perGroup, label: 'Qualifying places in this group', tone: 'qualify' });
     }
   } else if (count >= 2) {
@@ -108,8 +117,10 @@ export function describeTournamentFormat(t: FormatInput) {
       eliminated: state === 'READY' && total !== null && !isKnockout ? Math.max(0, count - total) : null, description, bands },
     scoring: hasStage && format !== 'CUSTOM_MANUAL' ? 'Win 3 points · Draw 1 point · Loss 0 points' : null,
     ranking: isUcl ? 'Points, goal difference, goals scored, away goals, wins, away wins, then opponents’ results; remaining ties use seed order.'
+      : bestThird ? 'Points, goal difference, goals scored, head-to-head, fair play, then draw. Across groups, third-place teams are compared on points, goal difference, goals scored, fair play, then draw.'
       : isKnockout || format === 'CUSTOM_MANUAL' ? null : 'Points, goal difference, goals scored, then wins. Follow the published table for the final tie-break order.',
     knockoutRule: isUcl ? 'Two-leg knockout ties; aggregate goals decide the winner. A tied aggregate needs penalties. The final is one match; no away-goals rule.'
+      : bestThird ? 'Open random draw with zero byes. Teams from the same group can meet. All rounds are single-leg.'
       : !isLeague && format !== 'CUSTOM_MANUAL' ? `${t.playoffFormat === 'DOUBLE_CHANCE' ? 'Double-chance playoffs include a second-chance route for eligible entries; follow the published bracket.' : t.playoffFormat === 'PROTECTED_SEED' ? 'Protected-seed playoffs use the published seeded bracket.' : 'Global seeded playoffs use the published knockout bracket.'} Any bye means direct entry to the next bracket round.` : null,
     note, provisional: !['COMPLETED', 'CANCELLED'].includes(t.status),
   };

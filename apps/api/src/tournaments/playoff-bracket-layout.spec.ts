@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildUniversalPlayoffPlan, type UniversalPlayoffBlueprint } from './universal-playoff-engine.js';
 import { buildUclPlayoffPlan } from './ucl-engine.js';
-import { BRACKET_CARD, buildPlayoffBracket, layoutPlayoffBracket } from '../../../web/src/lib/playoff-bracket';
+import { BRACKET_CARD, buildPlayoffBracket, layoutPlayoffBracket } from '../../../web/src/lib/playoff-bracket.js';
 
 function renderPlan(plan: { fixtures: UniversalPlayoffBlueprint[] }) {
   const entry = (id: string | null) => id ? { id, entryName: id, entryLogoUrl: null, members: [] } : null;

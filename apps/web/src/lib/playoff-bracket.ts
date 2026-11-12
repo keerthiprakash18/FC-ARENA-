@@ -1,4 +1,4 @@
-import type { FixtureForUi, FixtureEntryForUi } from '../components/tournaments/fixture-card';
+import type { FixtureForUi, FixtureEntryForUi } from './fixture-types.js';
 
 export interface BracketTie {
   id: string;

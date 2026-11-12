@@ -134,6 +134,7 @@ interface Tournament {
   approvedEntries: number;
   pendingEntries?: number;
   registeredEntries?: number;
+  canManageParticipants?: boolean;
   maxEntries: number;
   startAt: string | null;
 }
@@ -385,16 +386,16 @@ function SectionTitle({
   linkLabel?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0">
+      <div className="flex min-w-0 items-center gap-2.5">
         <span
-          className="theme-soft-accent grid h-10 w-10 place-items-center rounded-xl border"
+          className="theme-soft-accent grid h-8 w-8 shrink-0 place-items-center rounded-lg border sm:h-9 sm:w-9"
           aria-hidden="true"
         >
-          <FcIcon name={icon} size={19} />
+          <FcIcon name={icon} size={17} />
         </span>
 
-        <h2 className="theme-text fc-display text-[19px] font-semibold">
+        <h2 className="home-section-title theme-text fc-display font-semibold">
           {title}
         </h2>
       </div>
@@ -658,6 +659,15 @@ export default function DashboardPage() {
   const isVisible = (section: DashboardSection) => !hiddenSections.includes(section);
   const showNextMatch = isVisible("nextMatch") && Boolean(nextFixture);
   const showLeague = isVisible("league") && Boolean(selectedMembership);
+  const showTournament = isVisible("activeTournament") && Boolean(activeTournament);
+  const showRegistrationSummary = activeTournament && (
+    activeTournament.canManageParticipants ||
+    (activeTournament.pendingEntries ?? 0) > 0 ||
+    (activeTournament.registeredEntries ?? activeTournament.approvedEntries) > activeTournament.approvedEntries
+  );
+  const tournamentFixture = showNextMatch && nextFixture?.id === activeTournamentNextFixture?.id
+    ? null
+    : activeTournamentNextFixture;
   const hasProfile = Boolean(career.profile.identity || user.player?.identity);
   const heroAction = nextFixture
     ? showNextMatch
@@ -668,6 +678,12 @@ export default function DashboardPage() {
       : !selectedMembership
         ? { href: "/leagues", label: "Join a League →", jump: false }
         : { href: activeTournament ? "/fixtures" : "/tournaments", label: activeTournament ? "View Fixtures →" : "Browse Tournaments →", jump: false };
+  const emptyUpdates = [
+    ...(isVisible("league") && !selectedMembership ? [{ key: "league", icon: "league" as FcIconName, title: "My League", description: "No active League", href: "/leagues", action: "Find a league" }] : []),
+    ...(isVisible("activeTournament") && !activeTournament ? [{ key: "tournament", icon: "tournament" as FcIconName, title: "Active Tournament", description: "No active tournament", href: "/tournaments", action: "Browse cups" }] : []),
+    ...(isVisible("nextMatch") && !nextFixture ? [{ key: "fixture", icon: "fixtures" as FcIconName, title: "Next Match", description: "No upcoming matches scheduled", href: "/fixtures", action: "Fixtures" }] : []),
+  ];
+
   const nextActions = [
     ...(!hasProfile ? [{
       id: 'profile',
@@ -697,95 +713,44 @@ export default function DashboardPage() {
     }] : []),
   ].slice(0, 3);
 
-  const emptyUpdates = [
-    ...(isVisible("league") && !selectedMembership ? [{ key: "league", icon: "league" as FcIconName, title: "My League", description: "No active League", href: "/leagues", action: "Find a league" }] : []),
-    ...(isVisible("activeTournament") && !activeTournament ? [{ key: "tournament", icon: "tournament" as FcIconName, title: "Active Tournament", description: "No active tournament", href: "/tournaments", action: "Browse cups" }] : []),
-    ...(isVisible("nextMatch") && !nextFixture ? [{ key: "fixture", icon: "fixtures" as FcIconName, title: "Next Match", description: "No upcoming matches scheduled", href: "/fixtures", action: "Fixtures" }] : []),
-  ];
-
   return (
     <AppShell
       currentUser={user}
       playerName={inGameName}
       playerRole={selectedMembership?.adminRole || "Player"}
     >
-      <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-6">
+      <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5">
         {error ? (
           <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
             {error}
           </div>
         ) : null}
 
-        <section className="fc-dashboard-hero fc-stadium-surface relative min-h-[220px] overflow-hidden rounded-2xl border premium-home-hero">
-          <div className="fc-hero-right hidden lg:block" />
-
-          <div className="home-hero-layout relative z-10 grid min-h-[220px] gap-6 px-6 py-6 sm:px-7 lg:grid-cols-[auto_minmax(0,1fr)_300px] sm:py-6 lg:items-center lg:px-8">
-            <div className="home-hero-avatar">
-              <div className="theme-hero-avatar-ring grid h-[68px] w-[68px] place-items-center rounded-full border-[3px] sm:h-[82px] sm:w-[82px] lg:h-[86px] lg:w-[86px]">
-                <FcCrest
-                  name={inGameName}
-                  imageUrl={career.profile.profileImageUrl}
-                  size="lg"
-                />
-              </div>
-            </div>
-
-            <div className="home-hero-copy min-w-0 lg:pr-5">
-              <p className="theme-hero-kicker fc-dashboard-kicker text-[12px] font-bold tracking-[0.16em]">
-                <span className="fc-dashboard-live-dot" aria-hidden="true" />
-                FC ARENA MATCHDAY
-              </p>
-
-              <h1 className="theme-text mt-2 break-words text-[30px] font-bold leading-[1.02] tracking-[-0.035em] sm:text-[42px] lg:text-[48px]">
+        <section className="fc-dashboard-hero premium-home-hero" data-has-match={showNextMatch}>
+          <div className="home-hero-layout relative grid items-center">
+            <div className="min-w-0">
+              <h1 className="theme-text break-words font-bold tracking-[-0.025em]">
                 <span className="home-welcome">Welcome back, </span><span className="home-player-name">{inGameName}</span>
               </h1>
 
-              <p className="home-hero-description theme-secondary-text mt-3 max-w-2xl text-[14px] leading-6">
-                {nextFixture ? "Your next fixture is ready. Get match ready." : selectedMembership ? "Your league, fixtures and season at a glance." : "Join your first league and get match ready."}
-              </p>
-
-              <div className="home-hero-tags mt-4 flex flex-wrap items-center gap-2">
-                <span className="theme-soft-accent rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold">
+              <div className="home-hero-tags mt-1.5 flex flex-wrap items-center gap-2">
+                <span className="theme-secondary-text font-mono text-[11px] font-semibold">
                   {playerCode}
                 </span>
 
-                <FcStatusBadge label={user.status} tone="emerald" />
+                {user.status !== "ACTIVE" ? <FcStatusBadge label={user.status} tone="amber" /> : null}
 
                 {career.profile.identity?.isVerified ? (
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
-
-                <Link
-                  href={heroAction.href}
-                  className={`${heroAction.jump ? "home-hero-jump" : "theme-primary-button"} home-hero-action inline-flex min-h-11 items-center justify-center rounded-[10px] px-4 text-xs font-semibold`}
-                >
-                  {heroAction.label}
-                </Link>
               </div>
             </div>
-
-            <div className="theme-hero-side-copy relative hidden h-full min-h-[168px] lg:block">
-              <div className="absolute right-2 top-2 text-right">
-                <p className="theme-hero-slogan rotate-[-5deg] text-[21px] font-semibold italic leading-[0.95] tracking-[-0.025em]">
-                  More Than
-                  <br />A Game
-                </p>
-              </div>
-
-              <div className="absolute bottom-1 right-2 text-right">
-                <p className="theme-hero-side-label text-[10px] font-semibold tracking-[0.18em]">
-                  PLAY
-                  <br />
-                  COMPETE
-                  <br />
-                  BELONG
-                </p>
-
-                <p className="theme-hero-side-code mt-3 font-mono text-[10px] tracking-[0.08em]">
-                  {playerCode}
-                </p>
-              </div>
-            </div>
+            <Link
+              href={heroAction.href}
+              className={`${heroAction.jump ? "home-hero-jump" : "theme-primary-button"} home-hero-action inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-center text-sm font-semibold`}
+            >
+              {heroAction.label}
+            </Link>
           </div>
         </section>
 
@@ -806,12 +771,9 @@ export default function DashboardPage() {
           </section>
         ) : null}
 
-        {showNextMatch || showLeague ? (
-        <section id="dashboard-next-match" tabIndex={-1} aria-label="Match and league overview" className={`fc-dashboard-section grid items-start gap-4 sm:gap-6 ${showNextMatch && showLeague ? "xl:grid-cols-[minmax(0,1.75fr)_minmax(0,0.95fr)]" : ""}`}>
-          {showNextMatch ? <FcPanel className="fc-next-match-panel premium-home-next relative overflow-hidden p-5 sm:p-6">
-            <div className="theme-match-art pointer-events-none absolute inset-x-0 bottom-0 h-[72%]" />
-
-            <div className="relative">
+        {showNextMatch ? (
+          <section id="dashboard-next-match" tabIndex={-1} aria-label="Match overview">
+            <FcPanel className="fc-next-match-panel premium-home-next p-4 sm:p-5">
               <SectionTitle
                 icon="fixtures"
                 title={
@@ -832,7 +794,7 @@ export default function DashboardPage() {
 
               {nextFixture ? (
                 <>
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
                     <FcStatusBadge
                       label={
                         nextFixtureKind === "LIVE"
@@ -862,20 +824,20 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <div className="premium-match-sides mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
+                  <div className="premium-match-sides home-matchup">
                     <FixtureTeamButton entry={nextFixture.home} name={entryName(nextFixture.home)} side="HOME" stacked size="lg" />
 
-                    <div className={`theme-neutral-block grid h-12 w-12 place-items-center rounded-xl border text-xs font-semibold ${nextFixtureKind === "LIVE" ? "border-red-400/30 text-red-500" : ""}`}>
-                      {nextFixtureKind === "LIVE" ? "LIVE" : "VS"}
+                    <div className="home-match-separator">
+                      vs
                     </div>
 
                     <FixtureTeamButton entry={nextFixture.away} name={entryName(nextFixture.away)} side="AWAY" stacked size="lg" />
                   </div>
 
-                  <div className="premium-match-footer mt-6 flex flex-col gap-3 border-t border-[var(--theme-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="premium-match-footer">
                     <div>
                       <p className="theme-muted text-xs font-semibold">
-                        {nextFixture.leagueName} · {nextFixture.matchday ? `Matchday ${nextFixture.matchday}` : nextFixture.roundName}
+                        {nextFixture.leagueName}
                       </p>
 
                       <p className="theme-secondary-text mt-1 text-sm font-medium">
@@ -901,214 +863,200 @@ export default function DashboardPage() {
                           ? `/matches/${nextFixture.match.id}`
                           : `/tournaments/${nextFixture.tournamentId}/fixtures`
                       }
-                      className="theme-primary-button inline-flex min-h-12 items-center justify-center rounded-[10px] px-5 text-sm font-semibold"
+                      className="theme-primary-button inline-flex min-h-11 items-center justify-center rounded-[10px] px-4 text-sm font-semibold"
                     >
                       {nextFixtureKind === "LIVE" ? "Open Live Match →" : "View Match →"}
                     </Link>
                   </div>
                 </>
               ) : null}
-            </div>
-          </FcPanel> : null}
+            </FcPanel>
+          </section>
+        ) : null}
 
-          {showLeague ? <FcPanel className="fc-league-panel p-5 sm:p-6">
-            <SectionTitle
-              icon="league"
-              title="My League"
-              href="/leagues"
-              linkLabel="All Leagues →"
-            />
+        {showLeague || showTournament ? (
+          <div className={`home-competition-grid grid items-start gap-4 sm:gap-5 ${showLeague && showTournament ? "lg:grid-cols-2" : ""}`}>
+            {showTournament && activeTournament ? <FcPanel className="fc-tournament-panel p-4 sm:p-5">
+              <SectionTitle
+                icon="tournament"
+                title="Active Tournament"
+                href="/tournaments"
+              />
 
-            {selectedMembership ? (
-              <>
-                {memberships.length > 1 ? (
-                  <div className="theme-soft-accent mt-5 rounded-xl border p-4">
-                    <label
-                      htmlFor="dashboard-league-context"
-                      className="theme-text block text-xs font-semibold uppercase tracking-[0.12em]"
-                    >
-                      Dashboard league context
-                    </label>
+              {memberships.length > 1 ? <label className="mt-2 grid gap-1 text-xs font-semibold theme-muted">League
+                <select aria-label="Active tournament league" value={selectedLeagueId} onChange={event => setSelectedLeagueId(event.target.value)}
+                  className="theme-field min-h-11 w-full rounded-xl border px-3 py-2 text-sm">
+                  {memberships.map(membership => <option key={membership.league.id} value={membership.league.id}>{membership.league.name}</option>)}
+                </select>
+              </label> : null}
 
-                    <select
-                      id="dashboard-league-context"
-                      aria-label="Dashboard league context"
-                      value={selectedMembership.league.id}
-                      onChange={(event) => setSelectedLeagueId(event.target.value)}
-                      className="theme-input mt-2 min-h-11 w-full rounded-lg border px-3 text-sm font-semibold"
-                    >
-                      {memberships.map((membership) => (
-                        <option key={membership.league.id} value={membership.league.id}>
-                          {membership.league.name}
-                        </option>
-                      ))}
-                    </select>
+              {activeTournament ? (
+                <>
+                  <div className="mt-3 flex items-center gap-3">
+                    <FcCrest
+                      name={activeTournament.name}
+                      imageUrl={activeTournament.logoUrl}
+                      size="md"
+                    />
 
-                    <p className="theme-muted mt-2 text-xs">
-                      Match and tournament cards use the selected League.
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="theme-text truncate text-lg font-semibold">
+                        {activeTournament.name}
+                      </h3>
+                      <p className="theme-secondary-text mt-1 break-words text-xs font-semibold">{activeTournament.leagueName || selectedMembership?.league.name} · {activeTournament.code}</p>
+
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <FcStatusBadge
+                          label={activeTournament.status}
+                          tone="emerald"
+                        />
+                        <span className="theme-muted text-xs">
+                          {(activeTournament.competitionFormat || activeTournament.format).replaceAll("_", " ")}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                ) : null}
 
-                <div className="mt-6 flex items-center gap-4">
-                  <FcCrest
-                    name={selectedMembership.league.name}
-                    imageUrl={leagueLogo}
-                    size="lg"
-                  />
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="theme-muted">Approved places</span>
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="theme-text truncate text-lg font-semibold">
-                      {selectedMembership.league.name}
-                    </h3>
+                      <span className="theme-secondary-text font-medium">
+                        {activeTournament.approvedEntries}/
+                        {activeTournament.maxEntries} entries
+                      </span>
+                    </div>
 
-                    <p className="theme-warning-text mt-1 font-mono text-xs font-semibold">
-                      {selectedMembership.league.code}
-                    </p>
-
-                    <div className="mt-2">
-                      <FcStatusBadge
-                        label={selectedMembership.membershipType}
-                        tone="cyan"
+                    <div className="theme-progress-track mt-2 h-2 overflow-hidden rounded-full">
+                      <div
+                        className="theme-progress-bar h-full rounded-full"
+                        style={{
+                          width: `${progress}%`,
+                        }}
                       />
                     </div>
                   </div>
-                </div>
+                  {showRegistrationSummary ? (
+                    <div className="mt-3"><TournamentRegistrationSummary tournament={activeTournament} /></div>
+                  ) : null}
 
-                <div className="mt-5 grid grid-cols-3 gap-2">
-                  <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="theme-muted text-xs">Region</p>
+                  {tournamentFixture ? (
+                    <div className="mt-3 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-3">
+                      <p className="theme-muted text-xs">Next fixture</p>
 
-                    <p className="theme-text mt-1 truncate text-sm font-medium">
-                      {selectedMembership.league.region || "Global"}
-                    </p>
+                      <div className="mt-2 grid gap-2 text-sm font-medium">
+                        <p className="theme-text min-w-0 break-words">
+                          <span className="theme-secondary-text mr-2 text-[11px] font-bold uppercase">Home</span>
+                          {entryName(tournamentFixture.home)}
+                        </p>
+                        <p className="theme-text min-w-0 break-words">
+                          <span className="theme-secondary-text mr-2 text-[11px] font-bold uppercase">Away</span>
+                          {entryName(tournamentFixture.away)}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <Link
+                    href={`/tournaments/${activeTournament.id}`}
+                    className="theme-secondary-button mt-3 flex min-h-11 w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold transition"
+                  >
+                    View Tournament →
+                  </Link>
+                </>
+              ) : null}
+            </FcPanel> : null}
+            {showLeague ? <FcPanel className="fc-league-panel p-4 sm:p-5">
+              <SectionTitle
+                icon="league"
+                title="My League"
+                href="/leagues"
+                linkLabel="All Leagues →"
+              />
+
+              {selectedMembership ? (
+                <>
+                  {memberships.length > 1 ? (
+                    <div className="theme-soft-accent mt-2 rounded-xl border p-3">
+                      <label
+                        htmlFor="dashboard-league-context"
+                        className="theme-text block text-xs font-semibold uppercase tracking-[0.12em]"
+                      >
+                        Dashboard league context
+                      </label>
+
+                      <select
+                        id="dashboard-league-context"
+                        aria-label="Dashboard league context"
+                        value={selectedMembership.league.id}
+                        onChange={(event) => setSelectedLeagueId(event.target.value)}
+                        className="theme-input mt-2 min-h-11 w-full rounded-lg border px-3 text-sm font-semibold"
+                      >
+                        {memberships.map((membership) => (
+                          <option key={membership.league.id} value={membership.league.id}>
+                            {membership.league.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <p className="theme-muted mt-2 text-xs">
+                        Match and tournament cards use the selected League.
+                      </p>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 flex items-center gap-3">
+                    <FcCrest
+                      name={selectedMembership.league.name}
+                      imageUrl={leagueLogo}
+                      size="md"
+                    />
+
+                    <div className="min-w-0 flex-1">
+                      <h3 className="theme-text truncate text-lg font-semibold">
+                        {selectedMembership.league.name}
+                      </h3>
+
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="theme-warning-text font-mono text-xs font-semibold">
+                          {selectedMembership.league.code}
+                        </span>
+                        <FcStatusBadge
+                          label={selectedMembership.membershipType}
+                          tone="cyan"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="theme-muted text-xs">Members</p>
+                  <dl className="home-league-facts">
+                    <div>
+                      <dt>Region</dt>
+                      <dd>{selectedMembership.league.region || "Global"}</dd>
+                    </div>
+                    <div>
+                      <dt>Members</dt>
+                      <dd>{selectedMembership.league.members}</dd>
+                    </div>
+                    <div>
+                      <dt>Role</dt>
+                      <dd>{selectedMembership.adminRole || "Player"}</dd>
+                    </div>
+                  </dl>
 
-                    <p className="theme-text mt-1 text-sm font-medium">
-                      {selectedMembership.league.members}
-                    </p>
-                  </div>
-
-                  <div className="fc-luxury-info rounded-xl p-3">
-                    <p className="theme-muted text-xs">Role</p>
-
-                    <p className="theme-text mt-1 truncate text-sm font-medium">
-                      {selectedMembership.adminRole || "Player"}
-                    </p>
-                  </div>
-                </div>
-
-                <Link
-                  href={`/leagues/${selectedMembership.league.id}`}
-                  className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
-                >
-                  Open League →
-                </Link>
-              </>
-            ) : null}
-          </FcPanel> : null}
-        </section>
+                  <Link
+                    href={`/leagues/${selectedMembership.league.id}`}
+                    className="theme-secondary-button mt-3 flex min-h-11 w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold transition"
+                  >
+                    Open League →
+                  </Link>
+                </>
+              ) : null}
+            </FcPanel> : null}
+          </div>
         ) : null}
 
         <PlayerOnboarding userId={user.id} profile={hasProfile} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
-
-        {isVisible("activeTournament") && activeTournament ? <section className="fc-dashboard-section grid gap-5">
-          <FcPanel className="fc-tournament-panel p-5 sm:p-6">
-            <SectionTitle
-              icon="tournament"
-              title="Active Tournament"
-              href="/tournaments"
-            />
-
-            {memberships.length > 1 ? <label className="mt-4 grid gap-2 text-xs font-semibold theme-muted">League
-              <select aria-label="Active tournament league" value={selectedLeagueId} onChange={event => setSelectedLeagueId(event.target.value)}
-                className="theme-field min-h-11 w-full rounded-xl border px-3 py-2 text-sm">
-                {memberships.map(membership => <option key={membership.league.id} value={membership.league.id}>{membership.league.name}</option>)}
-              </select>
-            </label> : null}
-
-            {activeTournament ? (
-              <>
-                <div className="mt-6 flex items-center gap-4">
-                  <FcCrest
-                    name={activeTournament.name}
-                    imageUrl={activeTournament.logoUrl}
-                    size="lg"
-                  />
-
-                  <div className="min-w-0 flex-1">
-                    <h3 className="theme-text truncate text-lg font-semibold">
-                      {activeTournament.name}
-                    </h3>
-                    <p className="theme-secondary-text mt-1 break-words text-xs font-semibold">{activeTournament.leagueName || selectedMembership?.league.name} · {activeTournament.code}</p>
-
-                    <p className="theme-muted mt-1 text-xs">
-                      {(
-                        activeTournament.competitionFormat ||
-                        activeTournament.format
-                      ).replaceAll("_", " ")}
-                    </p>
-
-                    <div className="mt-2">
-                      <FcStatusBadge
-                        label={activeTournament.status}
-                        tone="emerald"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="theme-muted">Approved places</span>
-
-                    <span className="theme-secondary-text font-medium">
-                      {activeTournament.approvedEntries}/
-                      {activeTournament.maxEntries} entries
-                    </span>
-                  </div>
-
-                  <div className="theme-progress-track mt-2 h-2 overflow-hidden rounded-full">
-                    <div
-                      className="theme-progress-bar h-full rounded-full"
-                      style={{
-                        width: `${progress}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="mt-3"><TournamentRegistrationSummary tournament={activeTournament} /></div>
-
-                {activeTournamentNextFixture ? (
-                  <div className="mt-5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-4">
-                    <p className="theme-muted text-xs">Next fixture</p>
-
-                    <div className="mt-2 grid gap-2 text-sm font-medium">
-                      <p className="theme-text min-w-0 break-words">
-                        <span className="theme-secondary-text mr-2 text-[11px] font-bold uppercase">Home</span>
-                        {entryName(activeTournamentNextFixture.home)}
-                      </p>
-                      <p className="theme-text min-w-0 break-words">
-                        <span className="theme-secondary-text mr-2 text-[11px] font-bold uppercase">Away</span>
-                        {entryName(activeTournamentNextFixture.away)}
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-
-                <Link
-                  href={`/tournaments/${activeTournament.id}`}
-                  className="theme-secondary-button mt-5 flex min-h-12 w-full items-center justify-center rounded-xl border px-5 text-sm font-semibold transition"
-                >
-                  View Tournament →
-                </Link>
-              </>
-            ) : null}
-          </FcPanel>
-        </section> : null}
 
         {emptyUpdates.length ? <section aria-label="Competition updates">
           <FcPanel className="home-empty-overview">
@@ -1163,7 +1111,7 @@ export default function DashboardPage() {
         <div className={`fc-quick-actions-panel ${!isVisible("quickActions") ? "hidden" : ""}`}>
           <SectionTitle icon="activity" title="Quick Actions" />
 
-          <div className="home-core-actions mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="home-core-actions mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
             <FcQuickActionTile
               href="/leagues"
               icon="+"
@@ -1207,7 +1155,7 @@ export default function DashboardPage() {
           </div>
           <details className="home-more-tools">
             <summary className="theme-secondary-text">More tools <span aria-hidden="true">⌄</span></summary>
-            <div className="home-more-tools-grid grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <div className="home-more-tools-grid grid grid-cols-2 gap-2 lg:grid-cols-3">
             <FcQuickActionTile
               href="/profile"
               icon="◎"
@@ -1220,7 +1168,7 @@ export default function DashboardPage() {
             </div>
           </details>
         </div>
-        <FcPanel className={`fc-activity-panel p-5 sm:p-6 ${!isVisible("activity") ? "hidden" : ""}`}>
+        <FcPanel className={`fc-activity-panel p-4 sm:p-5 ${!isVisible("activity") ? "hidden" : ""}`}>
           <SectionTitle
             icon="history"
             title="Latest Activity"
@@ -1229,12 +1177,12 @@ export default function DashboardPage() {
           />
 
           {recentActivity.length > 0 ? (
-            <div className="mt-5 divide-y divide-[#203141]">
+            <div className="mt-2 divide-y divide-[#203141]">
               {recentActivity.map((activity) => (
                 <Link
                   key={activity.id}
                   href={`/matches/${activity.id}`}
-                  className="flex flex-col gap-3 py-4 transition first:pt-0 last:pb-0 hover:bg-white/[0.012] sm:flex-row sm:items-center sm:justify-between"
+                  className="flex min-h-11 flex-col gap-1.5 py-2.5 transition last:pb-0 hover:bg-white/[0.012] sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span

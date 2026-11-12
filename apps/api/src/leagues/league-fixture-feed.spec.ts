@@ -19,6 +19,7 @@ function fixture(count = 1) {
 describe('League fixture feed', () => {
   it.each([1, 20])('uses a fixed query budget for %i tournaments and exposes only the roster projection', async count => {
     const f = fixture(count), response = await f.service.getFeed('member', 'league');
+    if (response.data.unchanged) throw new Error('Initial feed must include the schedule.');
     expect(f.prisma.leagueMember.findUnique).toHaveBeenCalledTimes(1);
     expect(f.prisma.tournament.findMany).toHaveBeenCalledTimes(1); expect(f.prisma.fixture.findMany).toHaveBeenCalledTimes(1);
     expect(response.data.fixtures).toHaveLength(count); expect(Object.keys(response.data.entries!)).toHaveLength(count * 2);
@@ -53,6 +54,7 @@ describe('League fixture feed', () => {
     const f = fixture();
     f.rows.push(...Array.from({ length: 7 }, (_, i) => ({ ...f.rows[0], id: `extra-${i}`, sequence: i + 2, roundNumber: i + 2, matchday: i + 2, phase: 'PLAYOFF' })));
     const response = await f.service.getFeed('member', 'league');
+    if (response.data.unchanged) throw new Error('Initial feed must include the schedule.');
     expect(response.data.fixtures).toHaveLength(8); expect(Object.keys(response.data.entries!)).toHaveLength(2);
   });
 

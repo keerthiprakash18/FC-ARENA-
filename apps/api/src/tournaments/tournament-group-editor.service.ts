@@ -5,6 +5,7 @@ import type { Prisma } from '../generated/prisma/client.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import { planGroupFixtureChanges, isProtectedGroupFixture } from './group-fixture-reconciliation.js';
 import type { GroupChangePreview, GroupEditInput, GroupEditorState } from './group-editor.types.js';
+import { usesBestThirdPlayoffs } from './best-third-playoffs.js';
 
 type Client = Prisma.TransactionClient;
 const fail = (code: string, message: string) => new ConflictException({ success: false, data: null, error: { code, message } });
@@ -18,6 +19,7 @@ export class TournamentGroupEditorService {
     const tournament = await client.tournament.findUnique({ where: { id: tournamentId }, select: {
       id: true, name: true, code: true, leagueId: true, status: true, groupMode: true, format: true, competitionFormat: true,
       legType: true, maxEntries: true, qualifiersPerGroup: true, playoffQualifiersTotal: true, playoffSource: true,
+      playoffFormat: true, playoffSeedingBasis: true,
       fixturesGeneratedAt: true, fixturesPublishedAt: true, updatedAt: true,
     } });
     if (!tournament) throw new NotFoundException('Tournament could not be found.');
@@ -88,6 +90,9 @@ export class TournamentGroupEditorService {
     if (membershipChanged) {
       if (!policy.canChangeMembership) throw fail('GROUP_MEMBERSHIP_PROTECTED', policy.membershipReason!);
       const sizes = desired.map(g => g.registrationIds.length);
+      if (usesBestThirdPlayoffs(s.tournament) && (sizes.length !== 7 || sizes.some(size => size !== 6))) {
+        throw fail('GROUP_QUALIFICATION_INVALID', 'The Round of 16 format requires seven groups of six teams.');
+      }
       if (Math.min(...sizes) < 2 || Math.max(...sizes) - Math.min(...sizes) > 1) throw fail('GROUPS_UNBALANCED', 'Use Auto-balance: each group needs at least two teams and group sizes may differ by at most one.');
       if (s.tournament.playoffSource === 'GROUP_QUALIFIERS' && s.tournament.qualifiersPerGroup && desired.some(g => g.registrationIds.length < s.tournament.qualifiersPerGroup!)) throw fail('GROUP_QUALIFICATION_INVALID', 'Each group must contain at least the configured number of qualifiers. Update Qualification settings before using fewer teams per group.');
       if (newGroups.length && await client.tournamentGroup.count({ where: { id: { in: newGroups.map(g => g.id) } } })) throw new BadRequestException('New group IDs must be unique to this tournament.');
@@ -161,7 +166,7 @@ export class TournamentGroupEditorService {
         const old = s.groups.find(g => g.id === group.id)!;
         if (old.name !== group.name || old.position !== group.position) await tx.tournamentGroup.update({ where: { id: group.id }, data: { name: group.name, position: group.position } });
       }
-      if (preview.membershipChanged && s.tournament.playoffSource === 'GROUP_QUALIFIERS' && s.tournament.qualifiersPerGroup) {
+      if (preview.membershipChanged && s.tournament.playoffSource === 'GROUP_QUALIFIERS' && s.tournament.qualifiersPerGroup && !usesBestThirdPlayoffs(s.tournament)) {
         await tx.tournament.update({ where: { id: tournamentId }, data: { playoffQualifiersTotal: desired.length * s.tournament.qualifiersPerGroup } });
       }
       await tx.auditLog.create({ data: { actorUserId: userId, action: 'TOURNAMENT_GROUPS_REORGANIZED',

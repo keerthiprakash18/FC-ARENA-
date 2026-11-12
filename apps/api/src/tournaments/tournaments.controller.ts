@@ -678,6 +678,11 @@ export class TournamentsController {
   }
 
 
+  @Post('tournaments/:tournamentId/playoffs/best-third-round-of-16')
+  applyBestThirdFormat(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string) {
+    return this.playoffsService.applyBestThirdFormat(request.user.sub, tournamentId);
+  }
+
   @Post('tournaments/:tournamentId/playoffs/reseed')
   reseedPlayoffs(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string) {
     return this.playoffsService.generatePlayoffs(request.user.sub, tournamentId, { qualifiersPerGroup: 1 }, true);

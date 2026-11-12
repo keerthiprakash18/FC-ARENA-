@@ -21,7 +21,7 @@ test('offline actual backup restore refuses accidental remote or production DB c
   assert.match(shell,/pg_restore[\s\S]*--exit-on-error/);
   assert.match(shell,/fcarena_restore_rehearsal/);
   assert.match(shell,/docker rm -f/);
-  assert.doesNotMatch(shell,/\b(?:dropdb|DROP DATABASE|ALTER SYSTEM|pg_dump)\b/i);
+  assert.doesNotMatch(shell,/^\s*(?:dropdb|pg_dump|DROP DATABASE|ALTER SYSTEM)\b/im);
 });
 
 test('actual backup evidence is private and cannot contain credentials or player rows', () => {

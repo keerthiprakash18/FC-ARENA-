@@ -25,6 +25,7 @@ import {
 import {
   SetMatchReadyDto,
 } from './dto/set-match-ready.dto.js';
+import { ProposeMatchTimeDto } from './dto/propose-match-time.dto.js';
 
 import {
   MatchRealtimeService,
@@ -134,6 +135,41 @@ export class MatchesController {
     request.on('aborted', cleanup);
     if (response.destroyed || request.aborted) cleanup();
 
+  }
+
+  @Get(':matchId/scheduling')
+  listTimeProposals(
+    @Req() request: AuthenticatedRequest,
+    @Param('matchId') matchId: string,
+  ) {
+    return this.matchesService.getTimeProposals(request.user.sub, matchId);
+  }
+
+  @Post(':matchId/scheduling')
+  proposeTime(
+    @Req() request: AuthenticatedRequest,
+    @Param('matchId') matchId: string,
+    @Body() dto: ProposeMatchTimeDto,
+  ) {
+    return this.matchesService.proposeMatchTime(request.user.sub, matchId, dto);
+  }
+
+  @Post(':matchId/scheduling/:proposalId/accept')
+  acceptTime(
+    @Req() request: AuthenticatedRequest,
+    @Param('matchId') matchId: string,
+    @Param('proposalId') proposalId: string,
+  ) {
+    return this.matchesService.acceptMatchTime(request.user.sub, matchId, proposalId);
+  }
+
+  @Post(':matchId/scheduling/:proposalId/cancel')
+  cancelTime(
+    @Req() request: AuthenticatedRequest,
+    @Param('matchId') matchId: string,
+    @Param('proposalId') proposalId: string,
+  ) {
+    return this.matchesService.cancelMatchTime(request.user.sub, matchId, proposalId);
   }
 
   @Post(':matchId/ready')

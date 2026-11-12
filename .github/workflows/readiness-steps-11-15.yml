@@ -84,6 +84,19 @@ jobs:
         working-directory: apps/api
         run: npx prisma migrate deploy --schema=prisma/schema.prisma
 
+      - name: Disposable PostgreSQL backup and isolated restore rehearsal
+        env:
+          CI: "true"
+          FC_ARENA_ISOLATED_RESTORE: "1"
+          PGHOST: "127.0.0.1"
+          PGPORT: "5432"
+          PGUSER: "postgres"
+          PGPASSWORD: "postgres"
+          PGDATABASE: "fcarena_test"
+        run: |
+          bash -n ops/verify-isolated-db-restore.sh
+          bash ops/verify-isolated-db-restore.sh
+
       - name: Verify Step 11 indexes
         run: node scripts/verify-step11-indexes.mjs
 

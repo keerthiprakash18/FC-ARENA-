@@ -49,6 +49,19 @@ export class RankingsController {
     );
   }
 
+  @Get('leagues/:leagueId/rankings/history')
+  myRankHistory(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId') leagueId: string,
+    @Query('mode') mode?: string,
+  ): Promise<unknown> {
+    return this.rankingsService.getMyLeagueRankHistory(
+      request.user.sub,
+      leagueId,
+      mode,
+    );
+  }
+
   @Get(
     'leagues/:leagueId/rankings',
   )

@@ -1,7 +1,7 @@
 "use client";
 
 import { confirmAction } from "@/components/fc/confirmation-provider";
-import { FcNotice } from "@/components/fc/fc-ui";
+import { FcNotice, FcPageHeader, FcStatusBadge } from "@/components/fc/fc-ui";
 import { ProfilePhotoEditor } from "@/components/profile/profile-photo-editor";
 import { PlayerJourney } from "@/components/experience/player-journey";
 import Link from "next/link";
@@ -390,8 +390,20 @@ export default function ProfilePage() {
 
   return (
     <AppShell playerName={playerName}>
-      <div className="space-y-6">
-        <h1 className="theme-text text-2xl font-bold">Your player profile</h1>
+      <div className="fc-profile-page space-y-6">
+        <FcPageHeader
+          eyebrow="PLAYER IDENTITY / CAREER"
+          title="Your player profile"
+          subtitle="Your verified football identity, season journey and career in one place."
+          action={
+            <div className="flex flex-wrap items-center gap-2">
+              <FcStatusBadge label={identity?.isVerified ? "Verified Player" : "Verification Pending"} tone={identity?.isVerified ? "emerald" : "amber"} />
+              <Link href="/career" className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold">
+                Career statistics ↗
+              </Link>
+            </div>
+          }
+        />
         <section className="profile-photo-settings theme-panel" aria-label="Profile photo">
           <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" className="sr-only" onChange={event => { const selected = event.target.files?.[0]; event.target.value = ""; if (selected) { setImageError(""); setImageMessage(""); setPhotoFile(selected); } }} />
           <button type="button" className="profile-photo-current" disabled={imageBusy} onClick={() => imageInputRef.current?.click()} aria-label="Choose profile photo">

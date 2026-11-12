@@ -117,3 +117,21 @@ describe('read-only personal rank history', () => {
     expect(result.data.source).toBe('OBSERVED_DAILY_SNAPSHOTS');
   });
 });
+
+describe('stable league ties', () => {
+  it('sorts identical names and scores using immutable player IDs', async () => {
+    const { service, prisma } = setup(null);
+    const sameStats = (id: string) => ({
+      userId: id,
+      user: { id, fullName: 'Same Name', player: null },
+      matches: 1, wins: 1, draws: 0, losses: 0,
+      goalsFor: 1, goalsAgainst: 0, goalDifference: 1,
+      form: 'W', updatedAt: new Date('2026-11-12T00:00:00Z'),
+    });
+    prisma.playerTournamentStatistic.findMany.mockResolvedValue([
+      sameStats('two'), sameStats('one'),
+    ]);
+    const result = await service.getLeagueRankings('one', 'league');
+    expect(result.data.rankings.map(row => row.userId)).toEqual(['one', 'two']);
+  });
+});

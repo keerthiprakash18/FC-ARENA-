@@ -262,60 +262,9 @@ export class TournamentWizardFinalizeService {
         });
       }
 
-      const directQualifiers = groups.length * qualifiersPerGroup;
-      const requestedTotal =
-        dto.playoffQualifiersTotal ??
-        tournament.playoffQualifiersTotal ??
-        directQualifiers;
-      const extraNextPlace = requestedTotal - directQualifiers;
-      if (
-        !Number.isInteger(requestedTotal) ||
-        extraNextPlace < 0 ||
-        extraNextPlace > groups.length ||
-        requestedTotal > approvedEntries
-      ) {
-        throw new BadRequestException({
-          success: false,
-          data: null,
-          error: {
-            code: 'GROUP_QUALIFICATION_TOTAL_MISMATCH',
-            message: `Use between ${directQualifiers} and ${Math.min(approvedEntries, directQualifiers + groups.length)} playoff places: top ${qualifiersPerGroup} per group plus at most one next-place entry per group.`,
-          },
-        });
-      }
-      if (
-        extraNextPlace > 0 &&
-        (dto.avoidSameGroupEarly ?? true) &&
-        dto.playoffFormat !== 'PROTECTED_SEED'
-      ) {
-        throw new BadRequestException({
-          success: false,
-          data: null,
-          error: {
-            code: 'AT_LARGE_REQUIRES_PROTECTED_SEED',
-            message: 'Choose Protected Seed playoffs for best next-place qualifiers when avoiding same-group opening ties.',
-          },
-        });
-      }
-      if (extraNextPlace > 0) {
-        const sizes = groups.map(group => group._count.registrations);
-        if (
-          new Set(sizes).size !== 1 ||
-          sizes.reduce((sum, size) => sum + size, 0) !== approvedEntries ||
-          sizes.some(size => size <= qualifiersPerGroup!)
-        ) {
-          throw new ConflictException({
-            success: false,
-            data: null,
-            error: {
-              code: 'GROUPS_MUST_BE_BALANCED_FOR_EXTRA_QUALIFIERS',
-              message: 'Best next-place qualification requires all approved entries assigned to equally sized groups, with an eligible next-place finisher in every group.',
-            },
-          });
-        }
-      }
-      totalQualifiers = requestedTotal;
-      playoffQualifiersTotal = requestedTotal;
+      totalQualifiers =
+        groups.length *
+        qualifiersPerGroup;
     } else {
       playoffQualifiersTotal =
         tournament.competitionFormat === 'UCL_CUP' ? uclQualification(approvedEntries).qualifiers :

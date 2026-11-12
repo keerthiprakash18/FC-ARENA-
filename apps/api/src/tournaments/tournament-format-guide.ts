@@ -82,7 +82,7 @@ export function describeTournamentFormat(t: FormatInput) {
       } else {
         description = `Top ${perGroup} from each of ${groupCount} groups advance: ${total} qualifying places in total.`;
       }
-      if (state === 'READY') bands.push({ from: 1, to: perGroup, label: 'Direct group qualifying places', tone: 'qualify' });
+      if (state === 'READY') bands.push({ from: 1, to: perGroup, label: extraTotal > 0 ? 'Direct group qualifying places' : 'Qualifying places in this group', tone: 'qualify' });
     }
   } else if (count >= 2) {
     total = t.playoffQualifiersTotal ?? (isElite ? resolveEliteCupPlayoffQualifierCount(count) : count);

@@ -51,7 +51,7 @@ def category(relative: str) -> str:
             or filename.startswith(".env")
             or filename == "id_ed25519"
             or filename == "id_rsa"
-            or filename.endswith(".secret")
+            or any(word in filename for word in ("secret", "credential", "password", "token"))
             or Path(filename).suffix in RESTRICTED_EXTENSIONS):
         return "restricted"
     if any(part in SKIPPED_PARTS for part in parts):
@@ -62,6 +62,8 @@ def category(relative: str) -> str:
 def safe_detail(relative: str, kind: str) -> dict:
     # Reject references outside root, symlinks and nonregular files.
     path = ROOT / relative
+    if not path.resolve(strict=False).is_relative_to(ROOT.resolve()):
+        return {"kind": kind, "state": "outside_root_skipped"}
     try:
         info = path.lstat()
     except FileNotFoundError:

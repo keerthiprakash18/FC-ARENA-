@@ -684,7 +684,8 @@ export class RankingsService {
           a.goalsFor ||
         a.fullName.localeCompare(
           b.fullName,
-        ),
+        ) ||
+        a.userId.localeCompare(b.userId),
     );
 
     const rankedRows =

@@ -42,10 +42,13 @@ interface ChatMessage {
     | 'user'
     | 'assistant';
   content: string;
+  engine?: 'PROVIDER' | 'LOCAL_FALLBACK';
 }
 
 const quickQuestions = [
   'What is my next match?',
+  'எனது அடுத்த மேட்ச் எப்போது?',
+  'எனது லீக் என்ன?',
   'Show my current leagues.',
   'Explain my recent stats.',
   'How do I submit a match result?',
@@ -202,6 +205,7 @@ export default function AiPage() {
             answer: string;
             generatedAt: string;
             mode: 'READ_ONLY';
+            engine: 'PROVIDER' | 'LOCAL_FALLBACK';
           };
           error: null;
         }>('/ai/chat', {
@@ -226,6 +230,7 @@ export default function AiPage() {
               'assistant',
             content:
               response.data.answer,
+            engine: response.data.engine,
           },
         ],
       );
@@ -357,6 +362,11 @@ export default function AiPage() {
                             : 'theme-panel max-w-[92%] rounded-2xl border px-4 py-3 text-sm leading-6'
                         }
                       >
+                        {message.role === 'assistant' ? (
+                          <p className="theme-secondary-text mb-1 text-[11px] font-semibold" aria-label="Answer source">
+                            {message.engine === 'PROVIDER' ? 'AI provider · Read-only' : 'Built-in help · Read-only'}
+                          </p>
+                        ) : null}
                         <p className="whitespace-pre-wrap">
                           {
                             message.content

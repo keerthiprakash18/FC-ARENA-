@@ -26,7 +26,9 @@
     "check:data-safety": "node scripts/check-data-safety.mjs",
     "check:availability": "node scripts/check-availability.mjs",
     "check:availability:test": "node --test tests/availability.test.mjs",
-    "check:final-release": "node scripts/final-release-gate.mjs"
+    "check:final-release": "node scripts/final-release-gate.mjs",
+    "verify:live-baseline": "node scripts/verify-live-baseline.mjs",
+    "verify:live-baseline:test": "node --test tests/verify-live-baseline.test.mjs"
   },
   "overrides": {
     "mysql2": "3.24.5",

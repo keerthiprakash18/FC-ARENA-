@@ -1,6 +1,5 @@
-import {
-  Injectable,
-} from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
+import { DurableTelemetryService } from './durable-telemetry.service.js';
 
 const MAX_SAMPLES =
   500;
@@ -25,6 +24,14 @@ type Summary = {
 
 @Injectable()
 export class TelemetryService {
+  constructor(
+    @Optional() private readonly durable?: DurableTelemetryService,
+  ) {}
+
+  recordApiError() {
+    this.durable?.recordApiFailure();
+  }
+
   private readonly apiLatencySamples:
     number[] =
     [];
@@ -45,10 +52,9 @@ export class TelemetryService {
   recordApiLatency(
     durationMs: number,
   ): void {
-    this.push(
-      this.apiLatencySamples,
-      durationMs,
-    );
+    if (this.push(this.apiLatencySamples, durationMs)) {
+      this.durable?.record('API_MS', durationMs);
+    }
   }
 
   recordWebVital(
@@ -70,10 +76,9 @@ export class TelemetryService {
 
     if (!samples) return;
 
-    this.push(
-      samples,
-      value,
-    );
+    if (this.push(samples, value)) {
+      this.durable?.record(name as WebVitalName, value);
+    }
   }
 
   snapshot() {
@@ -111,13 +116,13 @@ export class TelemetryService {
   private push(
     target: number[],
     value: number,
-  ): void {
+  ): boolean {
     if (
       !Number.isFinite(value) ||
       value < 0 ||
       value > 120_000
     ) {
-      return;
+      return false;
     }
 
     target.push(
@@ -136,6 +141,7 @@ export class TelemetryService {
           MAX_SAMPLES,
       );
     }
+    return true;
   }
 
   private summarize(

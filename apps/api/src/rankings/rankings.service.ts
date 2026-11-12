@@ -26,6 +26,7 @@ interface LeaguePlayerRankingRow
   extends PlayerRankingRow {
   profileImageUrl: string | null;
   tournamentsPlayed: number;
+  entries: Array<{ registrationId: string; tournamentId: string; tournamentName: string; entryName: string }>;
 }
 
 @Injectable()
@@ -449,6 +450,7 @@ export class RankingsService {
       statistics,
       tournamentCount,
       verifiedMatches,
+      registrations,
     ] =
       await Promise.all([
         this.prisma.league.findUnique({
@@ -527,6 +529,12 @@ export class RankingsService {
             },
           },
         }),
+        this.prisma.tournamentRegistrationMember.findMany({
+          where: { tournament: tournamentFilter, registration: { status: 'APPROVED' } },
+          select: { userId: true, registrationId: true, registration: { select: {
+            entryName: true, tournamentId: true, tournament: { select: { name: true } },
+          } } },
+        }),
       ]);
 
     if (!league) {
@@ -559,6 +567,16 @@ export class RankingsService {
         string,
         LeaguePlayerRankingRow
       >();
+
+    const playedEntries = new Set(statistics.filter(row => row.matches > 0).map(row => `${row.userId}:${row.tournamentId}`));
+    const entriesByPlayer = new Map<string, LeaguePlayerRankingRow['entries']>();
+    for (const member of registrations) {
+      const entry = member.registration;
+      if (!entry.entryName || !playedEntries.has(`${member.userId}:${entry.tournamentId}`)) continue;
+      const labels = entriesByPlayer.get(member.userId) ?? [];
+      labels.push({ registrationId: member.registrationId, tournamentId: entry.tournamentId, tournamentName: entry.tournament.name, entryName: entry.entryName });
+      entriesByPlayer.set(member.userId, labels);
+    }
 
     let lastUpdatedAt:
       Date | null =
@@ -614,6 +632,7 @@ export class RankingsService {
               null,
 
             tournamentsPlayed,
+            entries: entriesByPlayer.get(mapped.userId) ?? [],
           },
         );
 
@@ -689,12 +708,7 @@ export class RankingsService {
     );
 
     const rankedRows =
-      this.withPositions(
-        rows.slice(
-          0,
-          100,
-        ),
-      );
+      this.withPositions(rows);
 
     const day = new Date();
     day.setUTCHours(0, 0, 0, 0);

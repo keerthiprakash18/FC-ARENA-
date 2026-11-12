@@ -173,8 +173,6 @@
 .fc-premium .fc-context-nav-link[data-active="true"] { background: var(--fc-gold-soft); border-color: var(--premium-gold); }
 
 /* Each flagship uses its own composition inside the shared brand system. */
-.premium-home-hero { align-items: stretch; }
-.premium-home-hero h1 { font-size: 42px !important; line-height: 1.05 !important; }
 .premium-home-context { display: flex; align-items: center; gap: 14px; margin-top: 28px; }
 .premium-home-context > div { min-width: 0; }
 .premium-home-context strong { display: block; font-size: 15px; font-weight: 650; overflow-wrap: anywhere; }
@@ -188,73 +186,64 @@
 .fc-premium .fc-main .fc-panel .premium-home-empty :is(h2, h3) { overflow-wrap: normal !important; word-break: normal !important; }
 .premium-home-empty p { max-width: 520px; color: #c4d0dd; font-size: 14px; line-height: 1.65; margin-block: 12px 22px; }
 .premium-home-empty > a { flex-shrink: 0; }
-/* The Home hero is a matchday surface in every club/mode. Local text tokens
-   keep legacy utility classes readable inside it without recoloring normal cards. */
 .fc-premium .fc-main .premium-home-hero {
-  --theme-text: var(--theme-matchday-text);
-  --theme-text-secondary: var(--theme-matchday-muted);
-  --theme-text-muted: var(--theme-matchday-muted);
+  border: 0;
+  padding: 0;
+}
+.fc-premium .fc-main .premium-home-hero[data-has-match="false"] {
+  --theme-text: #f8fbff;
+  --theme-text-secondary: #d1dfec;
+  --theme-text-muted: #c9d7e5;
   --theme-primary: var(--theme-matchday-accent);
   --theme-on-primary: var(--theme-on-matchday-accent);
-  padding: 0;
-  border-color: #35526a;
-  border-top-color: var(--theme-matchday-accent);
-  background: linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end)) !important;
-  color: var(--theme-matchday-text);
-  box-shadow: 0 10px 24px rgb(10 28 46 / 10%);
+  border-radius: var(--fc-card-radius);
+  background: linear-gradient(90deg, #102338 0%, rgb(16 35 56 / 90%) 45%, rgb(16 35 56 / 50%) 100%),
+    #102338 url('/brand/dashboard-stadium.webp') center 53% / cover no-repeat;
 }
-.fc-dashboard-page .premium-home-hero::after {
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  inset: auto -8% -44% 42%;
-  height: 80%;
-  border: 1px solid rgb(255 255 255 / 15%);
-  border-radius: 50%;
-  box-shadow: 0 0 0 24px rgb(255 255 255 / 3%), 0 0 0 56px rgb(255 255 255 / 2%);
-  transform: perspective(700px) rotateX(62deg);
-}
-.fc-premium .premium-home-hero .theme-hero-avatar-ring {
-  border-color: var(--theme-matchday-accent);
-  background: rgb(255 255 255 / 6%);
-}
-.fc-premium .premium-home-hero .theme-crest {
-  border-color: #48627a;
-  background: #17364f;
-  color: var(--theme-matchday-text);
-}
-.fc-premium .premium-home-hero :is(.theme-hero-kicker, .theme-hero-slogan, .theme-hero-side-copy, .theme-hero-side-code) {
-  color: var(--theme-matchday-muted);
-}
-.fc-premium .premium-home-hero .theme-soft-accent {
-  border-color: #496175;
-  background: #17364f;
-  color: var(--theme-matchday-accent);
-}
-.fc-premium .fc-main .premium-home-hero .theme-primary-button {
-  border-color: var(--theme-matchday-accent);
-  background: var(--theme-matchday-accent) !important;
-  color: var(--theme-on-matchday-accent) !important;
-}
-.fc-premium .fc-main .premium-home-hero .theme-primary-button:hover {
-  background: color-mix(in srgb, var(--theme-matchday-accent) 88%, white) !important;
+.fc-premium .fc-main .premium-home-hero[data-has-match="false"] .theme-primary-button {
+  border-color: var(--theme-primary);
+  background: var(--theme-primary) !important;
+  color: var(--theme-on-primary) !important;
 }
 .fc-dashboard-page .premium-home-next {
-  /* This is a grid card, not the half-width inset used on the landing page. */
   width: 100%;
   align-self: start;
-  border-top: 3px solid var(--premium-gold);
+  border-top-width: 1px;
   background: var(--theme-surface);
 }
-.fc-dashboard-page .premium-home-next .premium-match-sides {
-  margin-block: 22px;
+.fc-dashboard-page .premium-home-next .home-matchup {
+  gap: 12px;
+  margin-block: 14px;
+  padding: 16px 14px;
+  border-radius: 14px;
+  color: #f8fbff;
+  background: linear-gradient(180deg, rgb(6 19 33 / 45%), rgb(6 19 33 / 82%)),
+    #12283e url('/brand/dashboard-stadium.webp') center 60% / cover no-repeat;
 }
-.fc-dashboard-page .premium-home-next .premium-match-sides > div {
+.home-matchup > :is(button, div) {
   min-width: 0;
+  color: inherit;
 }
-.fc-dashboard-page .premium-home-next .premium-crest {
-  width: 68px;
-  height: 76px;
+.fc-dashboard-page .home-matchup .premium-crest {
+  width: 52px;
+  height: 52px;
+  background: rgb(5 18 31 / 80%);
+  color: #f8fbff;
+  border-color: rgb(225 239 251 / 42%);
+}
+.home-matchup > :is(button, div) > .theme-neutral-block {
+  color: #eef6ff;
+  background: rgb(5 18 31 / 82%);
+  border-color: rgb(225 239 251 / 34%);
+}
+.home-match-separator {
+  font-size: 12px;
+  font-weight: 650;
+  opacity: .85;
+}
+.fc-dashboard-page .premium-home-next .premium-match-footer {
+  gap: 10px 14px;
+  padding-top: 12px;
 }
 .fc-dashboard-page .premium-home-next .premium-home-empty {
   background: var(--theme-secondary-background);
@@ -274,25 +263,13 @@
   word-break: normal;
 }
 @media (max-width: 639px) {
-  .fc-dashboard-page .premium-home-hero {
-    min-height: 0;
-  }
-  .fc-dashboard-page .premium-home-hero::after {
-    inset: auto -30% -46% 18%;
-  }
-  .fc-dashboard-page .premium-home-next {
-    padding: 20px;
-  }
-  .fc-dashboard-page .premium-home-next .premium-match-sides {
+  .fc-dashboard-page .premium-home-next .home-matchup {
     gap: 8px;
+    padding: 12px 8px;
   }
-  .fc-dashboard-page .premium-home-next .premium-crest {
-    width: 56px;
-    height: 64px;
-  }
-  .fc-dashboard-page .premium-home-next .premium-match-sides p {
-    font-size: 12px;
-    line-height: 1.3;
+  .fc-dashboard-page .home-matchup .premium-crest {
+    width: 46px;
+    height: 46px;
   }
   .fc-dashboard-page .premium-home-next .premium-match-footer {
     align-items: stretch;
@@ -301,10 +278,6 @@
     width: 100%;
   }
 }
-.premium-dashboard .fc-tournament-panel { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); column-gap: 32px; }
-.premium-dashboard .fc-tournament-panel > * { min-width: 0; }
-.premium-dashboard .fc-tournament-panel > :first-child, .premium-dashboard .fc-tournament-panel > [class*="border-dashed"] { grid-column: 1 / -1; }
-.premium-dashboard .fc-tournament-panel > a { align-self: end; }
 .premium-prestige-gateway, .premium-rivalry-gateway { display: flex; gap: 24px; align-items: start; border-radius: 14px; padding: 28px; min-width: 0; }
 .premium-prestige-gateway { background: var(--fc-gold-soft); border: 1px solid var(--theme-border); }
 .premium-rivalry-gateway { background: #0d263d; color: #fffefa; border: 1px solid #294357; }
@@ -477,13 +450,6 @@
   /* Keep the dashboard welcome and next action together on small screens.
      Scope this to the home hero so tournament and match headers keep their layout. */
   .premium-dashboard { gap: 16px; }
-  .premium-home-hero { padding: 18px 16px; gap: 16px; }
-  .premium-home-hero .premium-eyebrow { font-size: 11px; line-height: 1.4; letter-spacing: .06em; }
-  .premium-home-hero h1 { font-size: clamp(28px, 7vw, 32px) !important; }
-  .premium-home-hero h1 br { display: none; }
-  .premium-home-hero .premium-hero-description { margin-top: 10px; font-size: 14px; line-height: 1.5; }
-  .premium-home-hero .premium-hero-tags { margin-top: 12px; gap: 6px 10px; font-size: 11px; }
-  .premium-home-hero .premium-hero-tags > span:last-child { border-right: 0; padding-inline-end: 0; }
   .premium-home-next { width: 100%; }
   .premium-home-context { margin-top: 14px; gap: 10px; }
   .premium-home-context p { font-size: 12px; line-height: 1.4; }
@@ -495,7 +461,6 @@
   .premium-home-empty > a { align-self: flex-start; margin-top: 16px; }
   .premium-home-next .premium-match { padding: 16px; }
   .premium-home-next .premium-match-sides { margin-block: 14px; }
-  .premium-dashboard .fc-tournament-panel { grid-template-columns: 1fr; }
   .premium-prestige-gateway, .premium-rivalry-gateway { padding: 22px; gap: 18px; }
   .premium-prestige-gateway > .premium-award-emblem { width: 58px; height: 70px; }
   .premium-quick-actions, .premium-hub-links, .premium-public-fixtures, .premium-public-leaders { grid-template-columns: 1fr; }
@@ -509,10 +474,43 @@
 }
 
 /* Home puts the next task first; empty competitions share compact rows. */
-.fc-premium .home-welcome { display: block; font-size: 15px; line-height: 1.5; font-weight: 500; letter-spacing: 0; }
-.fc-premium .home-player-name { display: block; }
-.fc-premium .home-hero-jump { border: 1px solid #657d92; color: var(--theme-matchday-text); background: rgb(255 255 255 / 5%); }
-.fc-premium .home-hero-jump:hover { background: rgb(255 255 255 / 11%); }
+.fc-premium .fc-main .home-section-title { font-size: clamp(17px, 2vw, 20px); letter-spacing: -.02em; }
+.fc-premium .fc-main .premium-home-hero .home-hero-layout {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 0;
+  gap: 12px;
+  padding: 6px 4px;
+}
+.fc-premium .fc-main .premium-home-hero[data-has-match="false"] .home-hero-layout {
+  padding: 20px;
+}
+.fc-premium .home-welcome { display: block; color: var(--theme-text-secondary); font-size: 14px; line-height: 1.5; font-weight: 500; letter-spacing: 0; }
+.fc-premium .home-player-name { display: block; font-size: clamp(26px, 4vw, 34px); line-height: 1.12; }
+.fc-premium .home-hero-jump { color: var(--theme-primary); }
+.fc-premium .home-hero-jump:hover { text-decoration: underline; text-underline-offset: .2em; }
+.home-league-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  padding-block: 10px;
+  border-block: 1px solid var(--theme-border);
+}
+.home-league-facts dt { color: var(--theme-text-secondary); font-size: 12px; }
+.home-league-facts dd { margin-top: 2px; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.home-competition-grid .theme-crest {
+  background: var(--theme-secondary-background);
+  color: var(--theme-text);
+}
+.fc-premium .fc-main .home-core-actions {
+  gap: 1px;
+  padding: 1px;
+  overflow: hidden;
+  border-radius: var(--fc-card-radius);
+  background: var(--theme-border);
+}
+.fc-premium .fc-main .home-core-actions > a { border: 0; border-radius: 0 !important; box-shadow: none; }
+.home-core-actions > a:focus-visible { outline-offset: -3px; }
 #dashboard-next-match { scroll-margin-top: calc(80px + env(safe-area-inset-top, 0px)); }
 .fc-premium .fc-main .home-onboarding { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; padding: 12px 16px; border: 1px solid var(--theme-border); }
 .home-onboarding summary { cursor: pointer; list-style: none; min-height: 44px; display: flex; align-items: center; }
@@ -537,38 +535,32 @@
 .home-overview-stats > a + a { border-left: 1px solid var(--theme-border); }
 .fc-premium .fc-main .home-overview-stats .theme-stat-card { min-height: 0; padding: 16px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .fc-premium .fc-main .home-overview-stats.hidden { display: none; }
-.home-more-tools { margin-top: 12px; }
+.home-more-tools { margin-top: 4px; }
 .home-more-tools > summary { display: flex; justify-content: space-between; align-items: center; min-height: 44px; cursor: pointer; padding: 6px 4px; font-size: 13px; font-weight: 600; list-style: none; }
 .home-more-tools > summary::-webkit-details-marker { display: none; }
 .home-more-tools[open] > summary { margin-bottom: 8px; }
-.home-activity-empty { display: grid; gap: 4px; padding-top: 16px; }
+.home-activity-empty { display: grid; gap: 3px; padding-top: 6px; }
 @media (max-width: 639px) {
-  .fc-premium .fc-main .premium-home-hero .home-hero-layout { grid-template-columns: 44px minmax(0, 1fr); min-height: 0; gap: 12px; padding: 16px; }
-  .fc-premium .home-hero-avatar { align-self: start; margin-top: 22px; }
-  .fc-premium .home-hero-avatar .theme-hero-avatar-ring { width: 44px; height: 44px; border-width: 2px; }
-  .fc-premium .home-hero-avatar .theme-crest { width: 32px; height: 32px; font-size: 12px; }
-  .fc-premium .home-hero-copy h1 { margin-top: 6px; }
-  .fc-premium .home-welcome { font-size: 12px; }
-  .fc-premium .home-player-name { font-size: 24px; line-height: 1.15; }
-  .fc-premium .home-hero-copy .fc-dashboard-kicker { font-size: 10px; letter-spacing: .07em; }
-  .fc-premium .home-hero-description { margin-top: 8px; font-size: 12px; line-height: 1.5; }
-  .fc-premium .home-hero-tags { margin-top: 10px; gap: 6px; }
+  .fc-premium .fc-main .premium-home-hero .home-hero-layout { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .fc-premium .home-welcome { font-size: 13px; }
   .fc-premium .home-hero-tags .theme-status-badge { padding: 3px 8px; font-size: 10px; }
-  .fc-premium .home-hero-action { width: 100%; margin-top: 4px; }
+  .fc-premium .home-hero-jump { justify-self: start; padding-inline: 0; }
+  .fc-premium .fc-main .premium-home-hero[data-has-match="false"] .home-hero-layout { gap: 14px; padding: 16px; }
+  .fc-premium .premium-home-hero[data-has-match="false"] .home-hero-action { justify-self: start; }
   .fc-premium .fc-main .home-onboarding { gap: 8px; padding: 10px 12px; }
   .fc-premium .fc-main .home-onboarding h2 { font-size: 13px; }
   .home-onboarding nav { grid-template-columns: minmax(0, 1fr); }
-  .home-empty-row { grid-template-columns: 28px minmax(0, 1fr) auto; min-height: 68px; gap: 8px; padding: 12px; }
+  .home-empty-row { grid-template-columns: 28px minmax(0, 1fr) auto; min-height: 58px; gap: 8px; padding: 8px 10px; }
   .home-empty-icon { height: 28px; }
   .home-empty-action { font-size: 11px; }
   .fc-premium .fc-main .home-overview-stats .theme-stat-card { padding: 12px 10px; }
   .home-overview-stats .theme-stat-card > div > span, .home-overview-stats .theme-stat-card > p { display: none; }
   .fc-premium .home-overview-stats .theme-stat-card .fc-display-strong { font-size: 23px; line-height: 1.2; }
   .home-overview-stats .theme-stat-card .theme-secondary-text { font-size: 11px; white-space: nowrap; }
-  .fc-premium .home-core-actions > a, .fc-premium .home-more-tools-grid > a { padding: 12px; min-height: 84px; gap: 10px; }
-  .home-core-actions .fc-quick-action-tile > span:first-child, .home-more-tools-grid .fc-quick-action-tile > span:first-child { width: 32px; height: 32px; }
-  .home-core-actions .fc-quick-action-tile .theme-action-chevron, .home-more-tools-grid .fc-quick-action-tile .theme-action-chevron { display: none; }
-  .home-core-actions .fc-quick-action-tile .theme-text, .home-more-tools-grid .fc-quick-action-tile .theme-text { font-size: 13px; }
+  .fc-premium :is(.home-core-actions, .home-more-tools-grid) > .fc-quick-action-tile { flex-direction: row; align-items: center; min-height: 52px; gap: 8px; padding: 8px; }
+  :is(.home-core-actions, .home-more-tools-grid) .fc-quick-action-tile > span:first-child { width: 28px; height: 28px; }
+  :is(.home-core-actions, .home-more-tools-grid) .fc-quick-action-tile :is(.theme-action-chevron, .theme-muted) { display: none; }
+  :is(.home-core-actions, .home-more-tools-grid) .fc-quick-action-tile .theme-text { font-size: 12px; line-height: 1.25; overflow-wrap: anywhere; }
 }
 
 /* Shared product-wide finish: every authenticated route uses the same

@@ -35,6 +35,14 @@ import { resolveEliteCupPlayoffQualifierCount } from './elite-cup-engine.js';
 import { buildUclPlayoffPlan, uclQualification } from './ucl-engine.js';
 import { rankUclEntries } from './ucl-ranking.js';
 import { isCanonicalCompletedFixture } from './fixture-deduplication.js';
+import type { Prisma } from '../generated/prisma/client.js';
+import {
+  bestThirdPlayoffSettings,
+  coversSingleRoundRobin,
+  loadGroupFairPlay,
+  rankBestThirdGroups,
+  usesBestThirdPlayoffs,
+} from './best-third-playoffs.js';
 
 
 interface RankedEntry {
@@ -99,6 +107,121 @@ export class PlayoffsService {
       AuthorizationService,
   ) {}
 
+  async applyBestThirdFormat(userId: string, tournamentId: string) {
+    return this.saveBestThirdPlayoffs(userId, tournamentId, true);
+  }
+
+  private async saveBestThirdPlayoffs(userId: string, tournamentId: string, applyFormat: boolean) {
+    return this.prisma.$transactionWithRetry(async tx => {
+      const tournament = await tx.tournament.findUnique({ where: { id: tournamentId } });
+      if (!tournament) throw this.tournamentNotFound();
+
+      const authorization = new AuthorizationService(tx as PrismaService);
+      if (applyFormat) {
+        await authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
+      }
+      await authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_FIXTURES');
+
+      const configured = usesBestThirdPlayoffs(tournament);
+      const reject = (code: string, message: string): never => {
+        throw new ConflictException({ success: false, data: null, error: { code, message } });
+      };
+      if (!['DRAFT', 'REGISTRATION_CLOSED', 'ACTIVE'].includes(tournament.status) || (!applyFormat && !configured)) {
+        reject('PLAYOFF_SETUP_LOCKED', 'This tournament is no longer eligible for a Round of 16 draw. Reload the playoff setup.');
+      }
+      if (tournament.competitionFormat !== 'GROUP_STAGE_KNOCKOUT' ||
+          tournament.groupMode !== 'MULTIPLE_GROUPS' || tournament.legType !== 'SINGLE_LEG') {
+        reject('ROUND_OF_16_FORMAT_INVALID', 'Round of 16 with best third-place teams requires a single-leg group stage.');
+      }
+
+      const [groups, entries, stageFixtures, playoffs] = await Promise.all([
+        tx.tournamentGroup.findMany({ where: { tournamentId }, select: { id: true } }),
+        tx.tournamentRegistration.findMany({
+          where: { tournamentId, status: 'APPROVED' },
+          select: { id: true, groupId: true, members: { select: { userId: true } } },
+        }),
+        tx.fixture.findMany({
+          where: { tournamentId, phase: 'STAGE' },
+          include: { match: { include: { confirmedResult: true } } },
+        }),
+        tx.fixture.findMany({
+          where: { tournamentId, phase: 'PLAYOFF' },
+          include: { deadlineCase: true, match: { include: {
+            arenaPost: { select: { id: true } },
+            _count: { select: { resultSubmissions: true, statEvents: true, disputes: true, ocrExtractions: true } },
+          } } },
+        }),
+      ]);
+      if (groups.length !== 7 || entries.length !== 42 ||
+          groups.some(group => entries.filter(entry => entry.groupId === group.id).length !== 6)) {
+        reject('ROUND_OF_16_GROUPS_INVALID', 'Assign 42 approved entries to seven groups of six before using this format.');
+      }
+
+      const summary = {
+        totalQualifiers: bestThirdPlayoffSettings.playoffQualifiersTotal,
+        byes: 0, bracketSize: 16, secondChanceMatches: 0, playInMatches: 0,
+      };
+      if (playoffs.length && configured && applyFormat) {
+        return { success: true, data: { ...summary, fixtures: playoffs.length, message: 'Round of 16 is already configured.' }, error: null };
+      }
+      if (playoffs.length && !applyFormat) {
+        reject('PLAYOFFS_ALREADY_GENERATED', 'Playoff fixtures have already been generated.');
+      }
+      if (playoffs.some(fixture => fixture.status !== 'UNSCHEDULED' || fixture.scheduledAt ||
+          fixture.resultDeadlineAt || fixture.deadlineCase || (fixture.match &&
+            (fixture.match.status !== 'UNSCHEDULED' || fixture.match.confirmedResultSubmissionId ||
+              fixture.match.homeReadyAt || fixture.match.awayReadyAt || fixture.match.arenaPost ||
+              Object.values(fixture.match._count).some(count => count > 0))))) {
+        reject('ROUND_OF_16_PLAYOFFS_STARTED', 'The current bracket has scheduled fixtures or match activity and cannot be redrawn.');
+      }
+
+      if (stageFixtures.length && !coversSingleRoundRobin(entries, stageFixtures)) {
+        reject('ROUND_OF_16_STAGE_INVALID', 'This format requires one stage fixture for each same-group pairing (105 fixtures).');
+      }
+      const stageComplete = stageFixtures.length > 0 && stageFixtures.every(isCanonicalCompletedFixture);
+      if (!stageComplete && (!applyFormat || playoffs.length)) {
+        reject('STAGE_NOT_COMPLETED', 'Confirm all 105 group-stage results before drawing the Round of 16.');
+      }
+
+      let fixtures = 0;
+      let qualifiers: string[] = [];
+      let bestThird: string[] = [];
+      if (stageComplete) {
+        const results = stageFixtures.map(fixture => ({
+          homeId: fixture.homeRegistrationId!, awayId: fixture.awayRegistrationId!,
+          homeScore: fixture.match!.confirmedResult!.homeScore, awayScore: fixture.match!.confirmedResult!.awayScore,
+        }));
+        const fairPlay = await loadGroupFairPlay(tx, tournament, entries);
+        const ranked = rankBestThirdGroups(tournamentId, entries, results, fairPlay);
+        bestThird = ranked.thirdPlace.slice(0, 2).map(entry => entry.id);
+        qualifiers = [...ranked.groups.values()].flatMap(group => group.slice(0, 2).map(entry => entry.id)).concat(bestThird);
+        const plan = buildUniversalPlayoffPlan('GLOBAL_SEEDED', this.shuffle(qualifiers));
+        if (playoffs.length) await tx.fixture.deleteMany({ where: { tournamentId, phase: 'PLAYOFF' } });
+        const publishedAt = playoffs.find(fixture => fixture.publishedAt)?.publishedAt ?? undefined;
+        await this.createPlayoffFixtures(tx, tournamentId, plan.fixtures, publishedAt);
+        fixtures = plan.fixtures.length;
+      }
+      if (applyFormat && !configured) {
+        await tx.tournament.update({ where: { id: tournamentId }, data: bestThirdPlayoffSettings });
+      }
+      await tx.auditLog.create({
+        data: {
+          actorUserId: userId, action: fixtures ? 'PLAYOFFS_GENERATED' : 'PLAYOFF_FORMAT_UPDATED',
+          targetType: 'Tournament', targetId: tournamentId, scopeType: 'TOURNAMENT', scopeId: tournamentId,
+          afterData: { ...bestThirdPlayoffSettings, qualifiers, bestThird, fixtures, replacedFixtures: playoffs.map(fixture => fixture.id) },
+        },
+      });
+
+      return {
+        success: true,
+        data: { ...summary, fixtures, message: fixtures
+          ? 'Round of 16 drawn with the top two from each group and the two best third-place teams.'
+          : 'Round of 16 saved. The draw opens after all group-stage results are confirmed.' },
+        error: null,
+      };
+    }, { isolationLevel: 'Serializable', timeout: 15_000 });
+  }
+
 
   async generatePlayoffs(
     userId: string,
@@ -124,6 +247,10 @@ export class PlayoffsService {
       userId,
       tournamentId,
     );
+
+    if (usesBestThirdPlayoffs(tournament) && !reseed) {
+      return this.saveBestThirdPlayoffs(userId, tournamentId, false);
+    }
 
 
     if (
@@ -392,6 +519,12 @@ export class PlayoffsService {
         async (
           tx,
         ) => {
+          const currentTournament = await tx.tournament.findUnique({ where: { id: tournamentId } });
+          if (!currentTournament || usesBestThirdPlayoffs(currentTournament)) {
+            throw new ConflictException({ success: false, data: null, error: {
+              code: 'PLAYOFF_FORMAT_CHANGED', message: 'Playoff settings changed. Reload before generating the bracket.',
+            } });
+          }
           const currentEntries =
             await this.loadApprovedEntries(
               tx,
@@ -501,92 +634,7 @@ export class PlayoffsService {
           }
 
 
-          const latestFixture =
-            await tx.fixture.findFirst({
-              where: {
-                tournamentId,
-              },
-              orderBy: {
-                sequence:
-                  'desc',
-              },
-              select: {
-                sequence:
-                  true,
-              },
-            });
-
-
-          let sequence =
-            (
-              latestFixture
-                ?.sequence ??
-              0
-            ) +
-            1;
-
-
-          const fixtureIds =
-            new Map<
-              string,
-              string
-            >();
-
-
-          for (
-            const blueprint
-            of blueprints
-          ) {
-            const fixture =
-              await tx.fixture.create({
-                data: {
-                  fixtureCode:
-                    this.createFixtureCode(),
-                  tournamentId,
-                  groupId:
-                    null,
-                  sequence,
-                  matchday: 'matchday' in blueprint ? blueprint.matchday as number | null : null,
-                  roundNumber:
-                    blueprint.roundNumber,
-                  roundName:
-                    blueprint.roundName,
-                  bracketPosition:
-                    blueprint.bracketPosition,
-                  phase:
-                    'PLAYOFF',
-                  homeRegistrationId:
-                    blueprint.homeRegistrationId,
-                  awayRegistrationId:
-                    blueprint.awayRegistrationId,
-                },
-              });
-
-
-            await this.createMatchForFixture(
-              tx,
-              tournamentId,
-              fixture.id,
-            );
-
-
-            fixtureIds.set(
-              blueprint.key,
-              fixture.id,
-            );
-
-
-            await this.connectSources(
-              tx,
-              blueprint,
-              fixture.id,
-              fixtureIds,
-            );
-
-
-            sequence++;
-          }
-
+          await this.createPlayoffFixtures(tx, tournamentId, blueprints);
 
           await tx.auditLog.create({
             data: {
@@ -711,6 +759,35 @@ export class PlayoffsService {
     };
   }
 
+
+  private async createPlayoffFixtures(
+    tx: Prisma.TransactionClient,
+    tournamentId: string,
+    blueprints: UniversalPlayoffBlueprint[],
+    publishedAt?: Date,
+  ) {
+    const latest = await tx.fixture.findFirst({
+      where: { tournamentId }, orderBy: { sequence: 'desc' }, select: { sequence: true },
+    });
+    let sequence = (latest?.sequence ?? 0) + 1;
+    const fixtureIds = new Map<string, string>();
+
+    for (const blueprint of blueprints) {
+      const fixture = await tx.fixture.create({
+        data: {
+          fixtureCode: this.createFixtureCode(), tournamentId, sequence: sequence++,
+          matchday: 'matchday' in blueprint ? blueprint.matchday as number | null : null,
+          roundNumber: blueprint.roundNumber, roundName: blueprint.roundName,
+          bracketPosition: blueprint.bracketPosition, phase: 'PLAYOFF', publishedAt,
+          homeRegistrationId: blueprint.homeRegistrationId,
+          awayRegistrationId: blueprint.awayRegistrationId,
+        },
+      });
+      await this.createMatchForFixture(tx, tournamentId, fixture.id);
+      fixtureIds.set(blueprint.key, fixture.id);
+      await this.connectSources(tx, blueprint, fixture.id, fixtureIds);
+    }
+  }
 
   private async reseedExisting(
     tx: any,

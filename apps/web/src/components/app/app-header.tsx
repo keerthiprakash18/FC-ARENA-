@@ -15,9 +15,7 @@ import {
   FcIcon,
 } from '@/components/fc/fc-icons';
 
-import {
-  FC_ARENA_LOGO_DATA_URI,
-} from '@/lib/brand-assets';
+import { MobileAppMenu } from './mobile-app-menu';
 
 import {
   useTheme,
@@ -297,26 +295,7 @@ export function AppHeader({
   return (
     <header className="theme-top-header sticky top-0 z-30 border-b">
       <div className="fc-header-layout mx-auto flex h-[68px] w-full max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link
-          href="/dashboard"
-          aria-label="FC Arena Home"
-          className="fc-header-brand flex shrink-0 items-center gap-2 lg:hidden"
-        >
-          <span
-            className="theme-brand-mark grid h-9 w-9 place-items-center overflow-hidden rounded-xl border"
-            aria-hidden="true"
-          >
-            <img
-              src={FC_ARENA_LOGO_DATA_URI}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          </span>
-
-          <span className="fc-header-wordmark fc-display text-lg font-semibold tracking-[-0.02em]">
-            FC <span className="theme-brand-accent">ARENA</span>
-          </span>
-        </Link>
+        <MobileAppMenu playerName={playerName} playerRole={playerRole} playerImageUrl={playerImageUrl} />
 
 
         <div className="fc-header-search relative hidden min-w-0 w-full max-w-[440px] lg:block" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setSearchOpen(false); }}>
@@ -517,7 +496,7 @@ export function AppHeader({
           <Link
             href="/profile"
             aria-label="Your profile"
-            className="fc-header-profile theme-profile-chip flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
+            className="fc-header-profile theme-profile-chip hidden lg:flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
           >
             <span className="theme-avatar grid h-9 w-9 place-items-center overflow-hidden rounded-full border text-xs font-semibold">
               {playerImageUrl ? (

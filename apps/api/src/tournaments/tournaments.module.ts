@@ -83,6 +83,7 @@ import { TournamentReportDownloadController } from './tournament-report-download
 import { TournamentReportDownloadService } from './tournament-report-download.service.js';
 import { TournamentGroupEditorService } from './tournament-group-editor.service.js';
 import { TournamentGroupEditorController } from './tournament-group-editor.controller.js';
+import { TournamentPlayerReplacementService } from './tournament-player-replacement.service.js';
 
 
 import { SafeGroupEditorService } from './safe-group-editor.service.js';
@@ -115,6 +116,7 @@ import { TournamentDrawRestartService } from './tournament-draw-restart.service.
     TournamentDrawRestartService,
     TournamentsService,
     TournamentEntriesService,
+    TournamentPlayerReplacementService,
     TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,
@@ -133,6 +135,7 @@ import { TournamentDrawRestartService } from './tournament-draw-restart.service.
   exports: [
     TournamentsService,
     TournamentEntriesService,
+    TournamentPlayerReplacementService,
     TournamentEntryLogoService,
     FixturesService,
     TournamentGroupsService,

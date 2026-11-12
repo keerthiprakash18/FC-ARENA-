@@ -1,3 +1,4 @@
+import { resultPlayerIds } from '../results/result-roster.js';
 import {
   BadRequestException,
   ConflictException,
@@ -405,6 +406,12 @@ export class PlayerCareerService {
           ...(leagueId ? { tournament: { leagueId } } : {}),
 
           OR: [
+            { confirmedResult: { is: { statEvents: { some: {
+              type: 'APPLY', OR: [
+                { payload: { path: ['home', 'userIds'], array_contains: [userId] } },
+                { payload: { path: ['away', 'userIds'], array_contains: [userId] } },
+              ],
+            } } } } },
             {
               fixture: {
                 homeRegistration: {
@@ -461,6 +468,7 @@ export class PlayerCareerService {
               source: true,
               reviewedAt: true,
               updatedAt: true,
+              statEvents: { where: { type: 'APPLY' }, select: { payload: true } },
             },
           },
 
@@ -626,19 +634,10 @@ export class PlayerCareerService {
               ?.members ??
             [];
 
-          const isHome =
-            homeMembers.some(
-              (member) =>
-                member.userId ===
-                userId,
-            );
-
-          const isAway =
-            awayMembers.some(
-              (member) =>
-                member.userId ===
-                userId,
-            );
+          const homePlayerIds = resultPlayerIds(result, 'home', homeMembers);
+          const awayPlayerIds = resultPlayerIds(result, 'away', awayMembers);
+          const isHome = homePlayerIds.includes(userId);
+          const isAway = awayPlayerIds.includes(userId);
 
           if (
             !isHome &&
@@ -680,7 +679,7 @@ export class PlayerCareerService {
 
             outcome,
             opponent: {
-              key: (isHome ? awayMembers : homeMembers).map(member => member.userId).sort().join(':'),
+              key: (isHome ? awayPlayerIds : homePlayerIds).toSorted().join(':'),
               name: this.registrationName(isHome ? match.fixture.awayRegistration : match.fixture.homeRegistration),
             },
 

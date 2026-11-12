@@ -533,7 +533,7 @@ describe('Player progress and Arena Talk with real PostgreSQL', () => {
   });
   it('keeps cursor pages stable at matching timestamps and enforces posting limits', async () => {
     const at = new Date(Date.now() + 60000);
-    const ids = Array.from({ length: 26 }, () => randomUUID());
+    const ids: string[] = Array.from({ length: 26 }, () => randomUUID());
     await db.arenaPost.createMany({
       data: ids.map((id) => ({
         id,

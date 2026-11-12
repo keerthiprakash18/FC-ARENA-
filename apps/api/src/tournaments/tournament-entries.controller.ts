@@ -55,6 +55,8 @@ import {
 import {
   TournamentEntryLogoService,
 } from './tournament-entry-logo.service.js';
+import { ReplaceTournamentPlayerDto } from './dto/replace-tournament-player.dto.js';
+import { TournamentPlayerReplacementService } from './tournament-player-replacement.service.js';
 
 
 type AuthenticatedRequest =
@@ -75,7 +77,18 @@ export class TournamentEntriesController {
 
     private readonly tournamentEntryLogoService:
       TournamentEntryLogoService,
+    private readonly playerReplacement: TournamentPlayerReplacementService,
   ) {}
+
+  @Post('tournaments/:tournamentId/entries/:registrationId/replacement-preview')
+  previewReplacement(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string, @Param('registrationId') registrationId: string, @Body() dto: ReplaceTournamentPlayerDto) {
+    return this.playerReplacement.preview(request.user.sub, tournamentId, registrationId, dto);
+  }
+
+  @Post('tournaments/:tournamentId/entries/:registrationId/replace-player')
+  replacePlayer(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string, @Param('registrationId') registrationId: string, @Body() dto: ReplaceTournamentPlayerDto) {
+    return this.playerReplacement.replace(request.user.sub, tournamentId, registrationId, dto);
+  }
 
 
   @Get(

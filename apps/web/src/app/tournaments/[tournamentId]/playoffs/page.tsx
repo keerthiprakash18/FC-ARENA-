@@ -76,6 +76,11 @@ interface Tournament {
     | "RANDOM";
   qualifiersPerGroup: number | null;
   playoffQualifiersTotal: number | null;
+  legType: string;
+  status: string;
+  approvedEntries: number;
+  canManageSettings: boolean;
+  canManageFixtures: boolean;
   isLeagueAdmin: boolean;
 }
 
@@ -125,6 +130,20 @@ const formatCopy:
         "Elite seeds can survive one qualifying-final loss and enter a second-chance path.",
     },
   };
+
+const roundOf16Format = {
+  title: "Round of 16",
+  badge: "16 QUALIFIERS",
+  description: "The top two teams from each group and the two best third-place teams enter a random, single-leg knockout draw with zero byes.",
+};
+
+function usesRoundOf16(tournament: Tournament) {
+  return tournament.competitionFormat === "GROUP_STAGE_KNOCKOUT" &&
+    tournament.playoffSource === "GROUP_QUALIFIERS" &&
+    tournament.playoffFormat === "GLOBAL_SEEDED" &&
+    tournament.playoffSeedingBasis === "RANDOM" &&
+    tournament.qualifiersPerGroup === 2 && tournament.playoffQualifiersTotal === 16;
+}
 
 
 function displayValue(
@@ -575,7 +594,9 @@ export default function PlayoffsPage() {
         title:
           "Generate playoff stage?",
         description:
-          `Generate ${formatCopy[tournament.playoffFormat].title} using the Playoff Setup saved for this Tournament?`,
+          usesRoundOf16(tournament)
+            ? "Draw the eight Round of 16 matches from the 16 qualified teams?"
+            : `Generate ${formatCopy[tournament.playoffFormat].title} using the Playoff Setup saved for this Tournament?`,
         confirmLabel:
           "Generate playoffs",
       });
@@ -625,9 +646,8 @@ export default function PlayoffsPage() {
           },
         );
 
-      setMessage(
-        `${response.data.message} ${response.data.totalQualifiers} entries · ${response.data.fixtures} fixtures · ${response.data.byes} BYEs${response.data.secondChanceMatches > 0 ? ` · ${response.data.secondChanceMatches} second-chance matches` : ""}.`,
-      );
+      setMessage(usesRoundOf16(tournament) ? response.data.message :
+        `${response.data.message} ${response.data.totalQualifiers} entries · ${response.data.fixtures} fixtures · ${response.data.byes} BYEs${response.data.secondChanceMatches > 0 ? ` · ${response.data.secondChanceMatches} second-chance matches` : ""}.`);
 
       await loadFixtures();
     } catch (
@@ -642,6 +662,39 @@ export default function PlayoffsPage() {
       setBusy(
         false,
       );
+    }
+  }
+
+  async function applyRoundOf16() {
+    if (!tournament || busy) return;
+    const confirmed = await confirmAction({
+      title: "Use the Round of 16 format?",
+      description: playoffFixtures.length
+        ? "Replace the current unplayed playoff bracket with a 16-team random draw. This replaces its fixture links."
+        : "Advance each group’s top two teams plus the two best third-place teams. The draw uses confirmed group-stage results.",
+      confirmLabel: "Apply Round of 16",
+    });
+    if (!confirmed) return;
+
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await authenticatedRequest<{ data: { message: string } }>(
+        `/tournaments/${tournamentId}/playoffs/best-third-round-of-16`,
+        { method: "POST" },
+      );
+      setTournament({
+        ...tournament, qualifiersPerGroup: 2, playoffQualifiersTotal: 16,
+        playoffSource: "GROUP_QUALIFIERS", playoffFormat: "GLOBAL_SEEDED", playoffSeedingBasis: "RANDOM",
+      });
+      setSelectedRound("ALL");
+      setMessage(response.data.message);
+      await loadFixtures();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to apply the Round of 16 format.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -680,11 +733,13 @@ export default function PlayoffsPage() {
   }
 
 
-  const format =
-    formatCopy[
-      tournament
-        .playoffFormat
-    ];
+  const roundOf16 = usesRoundOf16(tournament);
+  const format = roundOf16 ? roundOf16Format : formatCopy[tournament.playoffFormat];
+  const canApplyRoundOf16 = !roundOf16 && tournament.canManageSettings && tournament.canManageFixtures &&
+    tournament.competitionFormat === "GROUP_STAGE_KNOCKOUT" && tournament.legType === "SINGLE_LEG" &&
+    ["DRAFT", "REGISTRATION_CLOSED", "ACTIVE"].includes(tournament.status) &&
+    groupCount === 7 && tournament.approvedEntries === 42 &&
+    playoffFixtures.every(fixture => fixture.status === "UNSCHEDULED" && !fixture.scheduledAt);
 
 
   const canReapply =
@@ -879,7 +934,7 @@ export default function PlayoffsPage() {
                     tournament.playoffSeedingBasis,
                   )
                 }
-                {tournament.qualifiersPerGroup
+                {roundOf16 ? " · Top 2 / group + 2 best third-place teams" : tournament.qualifiersPerGroup
                   ? ` · Top ${tournament.qualifiersPerGroup} / group`
                   : tournament.playoffQualifiersTotal
                     ? ` · ${tournament.playoffQualifiersTotal} entries`
@@ -905,6 +960,18 @@ export default function PlayoffsPage() {
               </button>
             ) : null}
           </div>
+          {canApplyRoundOf16 ? (
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--theme-border)] pt-4">
+              <div>
+                <h3 className="theme-text font-semibold">Round of 16 with best third-place teams</h3>
+                <p className="theme-muted mt-1 text-sm">Seven group winners, seven runners-up and two third-place teams. Eight opening matches and zero byes.</p>
+              </div>
+              <button type="button" className="theme-primary-button min-h-11 rounded-xl px-4 font-semibold"
+                disabled={busy} onClick={() => void applyRoundOf16()}>
+                Apply Round of 16
+              </button>
+            </div>
+          ) : null}
         </section>
 
         {playoffFixtures.length ===

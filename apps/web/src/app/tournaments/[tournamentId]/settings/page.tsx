@@ -35,6 +35,8 @@ import {
 import {
   TournamentNavigation,
 } from '@/components/tournaments/tournament-navigation';
+import { TournamentEntryLimit, type EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
+import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 
 import {
   authenticatedRequest,
@@ -43,7 +45,7 @@ import {
 } from '@/lib/auth-client';
 
 
-interface Tournament {
+interface Tournament extends EntryLimitTournament {
   id: string;
   leagueId?: string;
   name: string;
@@ -875,6 +877,11 @@ export default function TournamentSettingsPage() {
           ) : null}
          </FcPanel>
 
+
+        <TournamentFixtureStart tournament={tournament} />
+
+        <TournamentEntryLimit tournament={tournament}
+          onUpdated={maxEntries => setTournament(current => current ? { ...current, maxEntries } : current)} />
 
         {tournament.isLeagueAdmin ? (
           <FcPanel className="border border-emerald-300 bg-emerald-50 p-5 text-slate-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-slate-100">

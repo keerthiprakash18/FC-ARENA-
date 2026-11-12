@@ -217,7 +217,43 @@ function setup(
     );
 
 
+  const tournament = {
+    id:
+      't',
+    leagueId:
+      'l',
+    status:
+      'ACTIVE',
+    competitionFormat:
+      'GROUP_STAGE_KNOCKOUT',
+    groupMode:
+      'MULTIPLE_GROUPS',
+    playoffFormat:
+      overrides.playoffFormat ??
+      'PROTECTED_SEED',
+    playoffSource:
+      'GROUP_QUALIFIERS',
+    playoffSeedingBasis:
+      overrides.playoffSeedingBasis ??
+      'GROUP_POSITION',
+    qualifiersPerGroup:
+      6,
+    playoffQualifiersTotal:
+      null,
+    avoidSameGroupEarly:
+      true,
+  };
+
+
   const tx = {
+    tournament: {
+      findUnique:
+        vi.fn()
+          .mockResolvedValue(
+            tournament,
+          ),
+    },
+
     tournamentRegistration: {
       findMany:
         vi.fn()
@@ -261,34 +297,6 @@ function setup(
             {},
           ),
     },
-  };
-
-
-  const tournament = {
-    id:
-      't',
-    leagueId:
-      'l',
-    status:
-      'ACTIVE',
-    competitionFormat:
-      'GROUP_STAGE_KNOCKOUT',
-    groupMode:
-      'MULTIPLE_GROUPS',
-    playoffFormat:
-      overrides.playoffFormat ??
-      'PROTECTED_SEED',
-    playoffSource:
-      'GROUP_QUALIFIERS',
-    playoffSeedingBasis:
-      overrides.playoffSeedingBasis ??
-      'GROUP_POSITION',
-    qualifiersPerGroup:
-      6,
-    playoffQualifiersTotal:
-      null,
-    avoidSameGroupEarly:
-      true,
   };
 
 

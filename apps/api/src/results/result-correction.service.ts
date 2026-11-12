@@ -17,6 +17,7 @@ import {
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg, assertUclFirstLegMutable } from './ucl-ties.js';
 
 type Outcome = 'W' | 'D' | 'L';
@@ -96,7 +97,7 @@ export class ResultCorrectionService {
             },
           },
 
-              confirmedResult: true,
+              confirmedResult: { include: { statEvents: { where: { type: 'APPLY' }, select: { payload: true } } } },
 
               fixture: {
                 include: {
@@ -386,10 +387,7 @@ export class ResultCorrectionService {
                 },
 
                 userIds:
-                  home.members.map(
-                    (member) =>
-                      member.userId,
-                  ),
+                  resultPlayerIds(oldResult, 'home', home.members),
               },
 
               away: {
@@ -426,10 +424,7 @@ export class ResultCorrectionService {
                 },
 
                 userIds:
-                  away.members.map(
-                    (member) =>
-                      member.userId,
-                  ),
+                  resultPlayerIds(oldResult, 'away', away.members),
               },
             },
           },
@@ -889,8 +884,9 @@ export class ResultCorrectionService {
         },
 
         include: {
-          confirmedResult:
-            true,
+          confirmedResult: {
+            include: { statEvents: { where: { type: 'APPLY' }, select: { payload: true } } },
+          },
 
           fixture: {
             include: {
@@ -1045,25 +1041,25 @@ export class ResultCorrectionService {
       }
 
       for (
-        const member of
-        home.members
+        const playerId of
+        resultPlayerIds(result, 'home', home.members)
       ) {
         await this.applyPlayerStatistic(
           tx,
           tournamentId,
-          member.userId,
+          playerId,
           homeDelta,
         );
       }
 
       for (
-        const member of
-        away.members
+        const playerId of
+        resultPlayerIds(result, 'away', away.members)
       ) {
         await this.applyPlayerStatistic(
           tx,
           tournamentId,
-          member.userId,
+          playerId,
           awayDelta,
         );
       }

@@ -20,8 +20,10 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
+import { loadGroupFairPlay, rankBestThirdGroups, usesBestThirdPlayoffs } from '../tournaments/best-third-playoffs.js';
 
 type Outcome = 'W' | 'D' | 'L';
 
@@ -1234,6 +1236,18 @@ export class ResultsService {
         .map(fixture => ({ homeId: fixture.homeRegistrationId!, awayId: fixture.awayRegistrationId!,
           homeScore: fixture.match!.confirmedResult!.homeScore, awayScore: fixture.match!.confirmedResult!.awayScore })),
     ).map((entry, index) => [entry.id, index])) : null;
+    const groupPositions = usesBestThirdPlayoffs(tournament) ? new Map(
+      [...rankBestThirdGroups(tournamentId, registrations, standingsFixtures.flatMap(fixture => {
+        const result = fixture.match?.confirmedResult;
+        if (fixture.phase !== 'STAGE' || !fixture.homeRegistrationId || !fixture.awayRegistrationId || !result) return [];
+        return [{
+          homeId: fixture.homeRegistrationId, awayId: fixture.awayRegistrationId,
+          homeScore: result.homeScore, awayScore: result.awayScore,
+        }];
+      }), await loadGroupFairPlay(this.prisma, tournament, registrations)).groups.values()]
+        .flatMap(group => group.map((entry, index) => [entry.id, index] as const)),
+    ) : null;
+    const groupsByEntry = new Map(registrations.map(entry => [entry.id, entry.groupId]));
     rows.sort(
       (a, b) =>
         (uclPositions ? uclPositions.get(a.registrationId)! - uclPositions.get(b.registrationId)! : 0) ||
@@ -1243,6 +1257,10 @@ export class ResultsService {
           a.goalDifference ||
         b.goalsFor -
           a.goalsFor ||
+        (groupPositions
+          ? (groupsByEntry.get(a.registrationId) ?? '').localeCompare(groupsByEntry.get(b.registrationId) ?? '') ||
+            (groupPositions.get(a.registrationId) ?? 0) - (groupPositions.get(b.registrationId) ?? 0)
+          : 0) ||
         b.wins -
           a.wins ||
         a.entryName.localeCompare(
@@ -1326,16 +1344,6 @@ export class ResultsService {
         },
       });
 
-    if (!membership) {
-      return {
-        success: true,
-        data: {
-          statistic: null,
-        },
-        error: null,
-      };
-    }
-
     const aggregate =
       this.emptyAggregate();
 
@@ -1359,8 +1367,7 @@ export class ResultsService {
       }
 
       if (
-        fixture.homeRegistrationId ===
-        membership.registrationId
+        resultPlayerIds(result, 'home', fixture.homeRegistrationId === membership?.registrationId ? [{ userId }] : []).includes(userId)
       ) {
         this.applyAggregate(
           aggregate,
@@ -1374,8 +1381,7 @@ export class ResultsService {
       }
 
       if (
-        fixture.awayRegistrationId ===
-        membership.registrationId
+        resultPlayerIds(result, 'away', fixture.awayRegistrationId === membership?.registrationId ? [{ userId }] : []).includes(userId)
       ) {
         this.applyAggregate(
           aggregate,
@@ -1390,7 +1396,7 @@ export class ResultsService {
     return {
       success: true,
       data: {
-        statistic: {
+        statistic: !membership && aggregate.played === 0 ? null : {
           tournamentId,
           userId,
 
@@ -1493,8 +1499,9 @@ export class ResultsService {
         },
 
         include: {
-          confirmedResult:
-            true,
+          confirmedResult: {
+            include: { statEvents: { where: { type: 'APPLY' }, select: { payload: true } } },
+          },
 
           fixture: {
             include: {
@@ -1647,25 +1654,25 @@ export class ResultsService {
       }
 
       for (
-        const member of
-        home.members
+        const playerId of
+        resultPlayerIds(result, 'home', home.members)
       ) {
         await this.applyPlayerStatistic(
           tx,
           tournamentId,
-          member.userId,
+          playerId,
           homeDelta,
         );
       }
 
       for (
-        const member of
-        away.members
+        const playerId of
+        resultPlayerIds(result, 'away', away.members)
       ) {
         await this.applyPlayerStatistic(
           tx,
           tournamentId,
-          member.userId,
+          playerId,
           awayDelta,
         );
       }
@@ -1712,6 +1719,7 @@ export class ResultsService {
                   status: true,
                   homeScore: true,
                   awayScore: true,
+                  statEvents: { where: { type: 'APPLY' }, select: { payload: true } },
                 },
               },
             },

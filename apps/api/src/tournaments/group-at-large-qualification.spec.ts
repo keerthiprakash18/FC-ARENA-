@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PlayoffsService } from './playoffs.service.js';
-import { buildPlayoffSeedPlan } from './playoff-seeding.js';
+import { buildPlayoffSeedPlan, separateOpeningGroupRematches } from './playoff-seeding.js';
 import { generateKnockoutFixtures } from './fixture-engine.js';
 import { describeTournamentFormat } from './tournament-format-guide.js';
 
@@ -69,7 +69,15 @@ describe('42 approved teams / seven groups / 16-team playoff field', () => {
     expect(plan.byeCount).toBe(0);
     expect(plan.seedOrder).toHaveLength(16);
     expect(new Set(plan.seedOrder).size).toBe(16);
-    const fixtures = generateKnockoutFixtures(plan.seedOrder, plan.bracketSlots);
+    const protectedSlots = separateOpeningGroupRematches(plan.bracketSlots, result.groups);
+    const ownerGroup = new Map(result.groups.flatMap(group =>
+      group.qualifiers.map(entry => [entry.id, group.id] as const),
+    ));
+    for (let index = 0; index < protectedSlots.length; index += 2) {
+      expect(ownerGroup.get(protectedSlots[index]!)).not.toBe(ownerGroup.get(protectedSlots[index + 1]!));
+    }
+    expect([...protectedSlots].filter(Boolean).sort()).toEqual([...plan.bracketSlots].filter(Boolean).sort());
+    const fixtures = generateKnockoutFixtures(plan.seedOrder, protectedSlots);
     expect(fixtures).toHaveLength(15);
     expect(fixtures.filter(fixture => fixture.roundNumber === 1)).toHaveLength(8);
   });
@@ -124,5 +132,23 @@ describe('42 approved teams / seven groups / 16-team playoff field', () => {
     expect(guide.qualification.bands).toHaveLength(1);
     expect(guide.qualification.bands[0]).toMatchObject({ from: 1, to: 2 });
     expect(guide.note).toContain('Best next-place selection');
+  });
+});
+
+describe('protected opening group separation with at-large entrants', () => {
+  it('keeps already safe bracket slots unchanged', () => {
+    const groups = [
+      { id: 'G1', position: 1, qualifiers: [{ id: 'A' }, { id: 'D' }] },
+      { id: 'G2', position: 2, qualifiers: [{ id: 'B' }, { id: 'C' }] },
+    ];
+    const safe = ['A', 'B', 'C', 'D'];
+    expect(separateOpeningGroupRematches(safe, groups)).toEqual(safe);
+  });
+  it('rejects an impossible same-group-only draw rather than publishing it', () => {
+    expect(() => separateOpeningGroupRematches(['A', 'B', 'C', 'D'], [
+      { id: 'G1', position: 1, qualifiers: [
+        { id: 'A' }, { id: 'B' }, { id: 'C' }, { id: 'D' },
+      ] },
+    ])).toThrow('Unable to avoid a first-round rematch');
   });
 });

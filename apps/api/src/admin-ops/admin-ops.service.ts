@@ -1,7 +1,9 @@
 import {
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
+  Optional,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -38,7 +40,7 @@ export class AdminOpsService {
   constructor(
     private readonly prisma:
       PrismaService,
-    @Optional() private readonly durableTelemetry?: DurableTelemetryService,
+    @Optional() @Inject(DurableTelemetryService) private readonly durableTelemetry?: DurableTelemetryService,
   ) {}
 
   async telemetryHistory(userId: string) {

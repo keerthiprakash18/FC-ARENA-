@@ -137,6 +137,14 @@ jobs:
           node verify-version.mjs
           gradle :app:lintRelease :app:assembleDebug :app:compileReleaseJavaWithJavac :app:processReleaseResources --stacktrace
 
+      - name: Rehearse release source rollback in disposable CI tree
+        env:
+          CI: "true"
+          FC_ARENA_ROLLBACK_REHEARSAL: "1"
+        run: |
+          bash -n ops/rehearse-source-rollback-ci.sh
+          bash ops/rehearse-source-rollback-ci.sh
+
       - name: Validate rollback preflight syntax
         run: bash -n ops/rollback/check-readiness.sh
 

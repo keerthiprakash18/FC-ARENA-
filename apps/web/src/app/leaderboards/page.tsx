@@ -334,6 +334,22 @@ export default function LeaderboardsPage() {
                 </div>
               </FcPanel>
 
+              <details className="mb-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4">
+                <summary className="theme-text cursor-pointer text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2">
+                  How FC ARENA League rankings work · புள்ளிகள் விதிமுறை
+                </summary>
+                <p className="theme-secondary-text mt-3 text-sm leading-6">
+                  Only confirmed Tournament results count. Performance Points = 3 for a win + 1 for a draw.
+                  Ties are sorted by wins, win rate, goal difference, goals scored, then player name and ID.
+                  Daily ranking movement compares your position with the previous recorded league snapshot;
+                  a new league or mode may not yet have previous history.
+                </p>
+                <p className="theme-secondary-text mt-2 text-xs">
+                  உறுதிப்படுத்தப்பட்ட போட்டி முடிவுகள் மட்டுமே கணக்கில் கொள்ளப்படும்.
+                  வெற்றி 3 புள்ளிகள், டிரா 1 புள்ளி.
+                </p>
+              </details>
+
               <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <FcStatCard
                   label="Ranked Players"

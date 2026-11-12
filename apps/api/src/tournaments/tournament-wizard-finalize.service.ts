@@ -283,6 +283,20 @@ export class TournamentWizardFinalizeService {
           },
         });
       }
+      if (
+        extraNextPlace > 0 &&
+        (dto.avoidSameGroupEarly ?? true) &&
+        dto.playoffFormat !== 'PROTECTED_SEED'
+      ) {
+        throw new BadRequestException({
+          success: false,
+          data: null,
+          error: {
+            code: 'AT_LARGE_REQUIRES_PROTECTED_SEED',
+            message: 'Choose Protected Seed playoffs for best next-place qualifiers when avoiding same-group opening ties.',
+          },
+        });
+      }
       if (extraNextPlace > 0) {
         const sizes = groups.map(group => group._count.registrations);
         if (

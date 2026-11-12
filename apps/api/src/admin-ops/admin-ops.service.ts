@@ -26,6 +26,7 @@ import type {
 import type {
   UpdateAndroidReleaseDto,
 } from './dto/update-android-release.dto.js';
+import { DurableTelemetryService } from '../telemetry/durable-telemetry.service.js';
 
 interface AdminScope {
   superAdmin: boolean;
@@ -37,7 +38,28 @@ export class AdminOpsService {
   constructor(
     private readonly prisma:
       PrismaService,
+    @Optional() private readonly durableTelemetry?: DurableTelemetryService,
   ) {}
+
+  async telemetryHistory(userId: string) {
+    await this.assertSuperAdmin(userId);
+    try {
+      return {
+        success: true,
+        data: this.durableTelemetry
+          ? await this.durableTelemetry.recentDays(7)
+          : { enabled: false, source: 'not_configured', days: [] },
+        error: null,
+      };
+    } catch {
+      // Never leak internal Redis connection metadata to admin clients.
+      return {
+        success: true,
+        data: { enabled: false, source: 'temporarily_unavailable', days: [] },
+        error: null,
+      };
+    }
+  }
 
   async overview(
     userId: string,

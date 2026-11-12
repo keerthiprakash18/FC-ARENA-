@@ -5,6 +5,7 @@ import { useAppRefresh } from '@/lib/app-refresh';
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
 import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
+import { MatchTimeCoordination } from '@/components/matches/match-time-coordination';
 import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import { useResultDraft } from "@/lib/result-draft";
 import { ApiError } from "@/lib/api";
@@ -1051,6 +1052,13 @@ function MatchRoom() {
     <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
       <div className="premium-match-center space-y-6">
         <TournamentFormatGuide guide={match.tournament.formatGuide} compact />
+        {!returnLegLocked ? (
+          <MatchTimeCoordination
+            matchId={match.id}
+            isParticipant={match.isParticipant}
+            status={match.status}
+          />
+        ) : null}
         {returnLegLocked ? (
           <section className="theme-card rounded-2xl border p-5" role="status" aria-label="Second leg locked">
             <h2 className="theme-text font-bold">Second leg locked · first-leg verification required</h2>

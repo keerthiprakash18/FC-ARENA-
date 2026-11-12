@@ -1,0 +1,260 @@
+/*
+ * FC ARENA cohesive experience surfaces
+ *
+ * Last visual layer; consumes the canonical theme tokens so all eleven club
+ * palettes and both modes remain authoritative. No tournament logic or
+ * color-mode overrides. Composition only: visual hierarchy, touch, overflow,
+ * keyboard access, reduced motion and small WebView screens.
+ */
+.fc-premium {
+  --fc-vnext-panel-radius: clamp(14px, 1.6vw, 20px);
+  --fc-vnext-hero-radius: clamp(18px, 2vw, 26px);
+  --fc-vnext-row-gap: clamp(14px, 1.4vw, 24px);
+  --fc-vnext-hairline: color-mix(in srgb, var(--theme-border) 76%, transparent);
+  --fc-vnext-panel-shadow: 0 10px 34px color-mix(in srgb, var(--theme-text) 5%, transparent);
+}
+
+.fc-premium .fc-main {
+  overflow-wrap: break-word;
+  overflow-x: clip;
+}
+
+.fc-premium .fc-main :is(
+  .fc-profile-page,
+  .premium-page,
+  .community-page,
+  .fc-league-war-page
+) {
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Unified editorial headings used throughout Admin, Profile, Notifications,
+   Dashboard and Tournament pages. Preserve existing heading semantics. */
+.fc-premium .fc-main .fc-page-heading {
+  min-width: 0;
+  position: relative;
+  padding-block: 2px 6px;
+}
+
+.fc-premium .fc-main .fc-page-heading h1 {
+  max-width: 24ch;
+  line-height: 1.13;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.fc-premium .fc-main .fc-page-heading :is(a, button) {
+  min-height: 44px;
+}
+
+.fc-premium .fc-main :is(
+  .fc-section-heading,
+  .premium-section-heading
+) {
+  border-bottom: 1px solid var(--fc-vnext-hairline);
+  padding-bottom: 13px;
+}
+
+/* Content elevation: one surface family across every signed-in route.
+   Existing color tokens still choose light, dark and club brand hues. */
+.fc-premium .fc-main :is(
+  .fc-panel,
+  .theme-panel,
+  .theme-stat-card,
+  .theme-card,
+  .premium-war-preview,
+  .premium-section
+) {
+  min-width: 0;
+  border-radius: var(--fc-vnext-panel-radius);
+  border-color: var(--fc-vnext-hairline);
+}
+
+.fc-premium .fc-main :is(
+  .theme-stat-card,
+  .theme-action-row
+) {
+  box-shadow: var(--fc-vnext-panel-shadow);
+}
+
+.fc-premium .fc-main .theme-stat-card :is(p, span) {
+  overflow-wrap: anywhere;
+}
+
+.fc-premium .fc-main .theme-action-row {
+  min-width: 0;
+  display: block;
+  border-radius: var(--fc-vnext-panel-radius);
+  transition:
+    border-color var(--fc-motion),
+    box-shadow var(--fc-motion),
+    transform var(--fc-motion);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fc-premium .fc-main a.theme-action-row:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--theme-card-shadow-hover, var(--fc-vnext-panel-shadow));
+    border-color: var(--theme-primary);
+  }
+}
+
+/* Profile: the identity card is visually distinct but fully theme-aware.
+   Buttons remain legible for light and dark palettes. */
+.fc-premium .fc-main .fc-profile-page .profile-photo-settings {
+  position: relative;
+  padding: clamp(16px, 3vw, 32px);
+  border: 1px solid var(--fc-vnext-hairline);
+  border-radius: var(--fc-vnext-hero-radius);
+  background:
+    radial-gradient(ellipse at 98% 0%, var(--theme-primary-soft), transparent 53%),
+    var(--theme-surface);
+  box-shadow: var(--fc-vnext-panel-shadow);
+}
+
+.fc-premium .fc-main .fc-profile-page .profile-photo-settings :is(
+  button, input, a
+):focus-visible {
+  outline: 3px solid var(--theme-focus);
+  outline-offset: 3px;
+}
+
+.fc-premium .fc-main .fc-profile-page .profile-photo-settings h2 {
+  color: var(--theme-text);
+  overflow-wrap: anywhere;
+}
+
+/* Arena Talk: keep the separate feed/sidebar layout but make the audience
+   choice and community guidance read like the rest of the FC ARENA app. */
+.fc-premium .fc-main .community-page .community-heading {
+  padding: clamp(18px, 3vw, 32px);
+  border: 1px solid var(--fc-vnext-hairline);
+  border-radius: var(--fc-vnext-hero-radius);
+  background:
+    radial-gradient(ellipse at 96% 4%, var(--theme-primary-soft), transparent 62%),
+    var(--theme-surface);
+  box-shadow: var(--fc-vnext-panel-shadow);
+}
+
+.fc-premium .fc-main .community-page .community-heading h1 {
+  color: var(--theme-text);
+  font-size: clamp(30px, 4vw, 42px);
+}
+
+.fc-premium .fc-main .community-page .arena-tabs {
+  min-width: 0;
+  border-radius: var(--fc-vnext-panel-radius);
+}
+
+.fc-premium .fc-main .community-page .arena-tabs button {
+  min-height: 52px;
+  overflow-wrap: anywhere;
+}
+
+.fc-premium .fc-main .community-page .arena-layout > * {
+  min-width: 0;
+}
+
+.fc-premium .fc-main .community-page .arena-sidebar {
+  border-radius: var(--fc-vnext-panel-radius);
+  align-self: start;
+}
+
+.fc-premium .fc-main .community-page :is(
+  .community-button,
+  .arena-tabs button,
+  .arena-league-select select
+):focus-visible {
+  outline: 3px solid var(--theme-focus);
+  outline-offset: 3px;
+}
+
+/* Match, rankings, awards, war and admin cards share safe tabular stats.
+   On phones the card should shrink, never widen the viewport. */
+.fc-premium .fc-main :is(
+  .premium-war-preview,
+  .premium-awards-leader,
+  .theme-stat-card
+) {
+  min-width: 0;
+}
+
+.fc-premium .fc-main :is(
+  .premium-war-preview,
+  .premium-awards-leader
+) :is(h2, h3, p) {
+  overflow-wrap: anywhere;
+}
+
+.fc-premium .fc-main :is(
+  .theme-input,
+  .arena-league-select select
+) {
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  border-color: var(--theme-control-border);
+}
+
+/* Long standings tables must remain horizontally scrollable rather than
+   clipping a player name or forcing Android WebView horizontal scrolling. */
+.fc-premium .fc-main :is(
+  .standings-table-wrapper,
+  .fc-table-scroll,
+  [data-table-scroll]
+) {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+/* Finger targets and tiny-device guards; maintain 16px editable inputs to
+   avoid automatic WebKit focus zoom on iOS and Android zoom-font devices. */
+@media (max-width: 640px) {
+  .fc-premium .fc-main .fc-page-heading {
+    gap: 12px;
+  }
+  .fc-premium .fc-main .fc-page-heading h1 {
+    font-size: clamp(25px, 7vw, 34px);
+  }
+  .fc-premium .fc-main .fc-profile-page .profile-photo-settings,
+  .fc-premium .fc-main .community-page .community-heading {
+    padding: 18px;
+  }
+  .fc-premium .fc-main .fc-profile-page .profile-photo-settings {
+    gap: 16px;
+  }
+  .fc-premium .fc-main .community-page .community-heading {
+    align-items: start;
+  }
+  .fc-premium .fc-main :is(
+    .theme-primary-button,
+    .theme-secondary-button,
+    .community-button
+  ) {
+    min-height: 44px;
+  }
+  .fc-premium .fc-main :is(input:not([type="checkbox"]), select, textarea) {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-premium .fc-main a.theme-action-row:hover {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .fc-premium .fc-main .fc-profile-page .profile-photo-settings,
+  .fc-premium .fc-main .community-page .community-heading {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+}

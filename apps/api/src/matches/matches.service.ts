@@ -513,6 +513,15 @@ export class MatchesService {
     if (pending >= 3) {
       throw new ConflictException('Cancel an existing pending time before proposing another.');
     }
+    const lastHour = await this.prisma.matchTimeProposal.count({
+      where: {
+        proposedByUserId: userId,
+        createdAt: { gte: new Date(Date.now() - 60 * 60_000) },
+      },
+    });
+    if (lastHour >= 10) {
+      throw new ConflictException('Too many time proposals. Try again later.');
+    }
     const record = await this.prisma.$transaction(async tx => {
       const created = await tx.matchTimeProposal.create({
         data: {
@@ -555,6 +564,9 @@ export class MatchesService {
     if (!proposal) throw new NotFoundException('Time proposal not found.');
     if (proposal.proposedSide === side) {
       throw new ForbiddenException('Your side cannot accept its own time proposal.');
+    }
+    if (proposal.startsAt.getTime() <= Date.now() + 10 * 60_000) {
+      throw new ConflictException('This proposed time has expired. Request another slot.');
     }
     const result = await this.prisma.$transaction(async tx => {
       const changed = await tx.matchTimeProposal.updateMany({

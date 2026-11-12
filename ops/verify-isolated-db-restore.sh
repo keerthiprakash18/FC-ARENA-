@@ -42,15 +42,15 @@ psql -X -Atq -d "$source_db" -c "SELECT 1 FROM information_schema.tables WHERE t
 
 echo "Starting isolated PostgreSQL custom-format backup rehearsal (no production data)."
 # Prove that an actual synthetic record survives the round trip, not just DDL.
-psql -X -v ON_ERROR_STOP=1 -q -d "$source_db" -c '
+psql -X -v ON_ERROR_STOP=1 -q -d "$source_db" <<'SQL'
   CREATE TABLE IF NOT EXISTS public.fc_arena_ci_restore_marker (
     id INTEGER PRIMARY KEY,
     payload TEXT NOT NULL
   );
   INSERT INTO public.fc_arena_ci_restore_marker (id, payload)
-    VALUES (1, ''fc-arena-isolated-backup-sentinel'')
+    VALUES (1, 'fc-arena-isolated-backup-sentinel')
     ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload;
-'
+SQL
 pg_dump --no-password --format=custom --file="$temp_dir/staging.dump" -d "$source_db"
 pg_restore --list "$temp_dir/staging.dump" >"$temp_dir/archive-toc.txt"
 

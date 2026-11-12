@@ -38,6 +38,13 @@ test('brand and multi-mode colors come from existing theme tokens', () => {
   assert.match(tokens, /\[data-mode="dark"\]/);
 });
 
+test('shared page headings and status labels remain usable at 360px', () => {
+  const ui = read('apps/web/src/components/fc/fc-ui.tsx');
+  assert.match(ui, /w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto/);
+  assert.match(ui, /inline-flex max-w-full items-center rounded-full/);
+  assert.match(ui, /className="fc-page-heading flex flex-col/);
+});
+
 test('UI foundation cannot alter back-end records or require an API', () => {
   assert.doesNotMatch(styles, /https?:\/\//);
   assert.doesNotMatch(styles, /\b(fetch|axios|POST|DELETE|PATCH)\b/i);

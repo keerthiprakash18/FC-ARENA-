@@ -36,6 +36,23 @@ interface BackupView {
   errorMessage: string | null;
 }
 
+interface DurableTelemetryView {
+  enabled: boolean;
+  source: string;
+  droppedSamples?: number;
+  percentileType?: string;
+  days: Array<{
+    day: string;
+    metrics: Record<string, {
+      samples?: number;
+      p75UpperBound?: number | null;
+      p95UpperBound?: number | null;
+      events?: number;
+      unit?: string;
+    }>;
+  }>;
+}
+
 interface SystemData {
   status: 'HEALTHY' | 'DEGRADED';
   checkedAt: string;
@@ -213,6 +230,7 @@ export default function AdminSystemPage() {
     setError,
   ] =
     useState('');
+  const [telemetry, setTelemetry] = useState<DurableTelemetryView | null>(null);
 
   async function load() {
     try {
@@ -226,6 +244,14 @@ export default function AdminSystemPage() {
       setData(
         response.data,
       );
+      // Optional aggregate metrics must not prevent normal system/backup status.
+      void authenticatedRequest<{ data: DurableTelemetryView }>('/admin/ops/telemetry')
+        .then(result => setTelemetry(result.data))
+        .catch(() => setTelemetry({
+          enabled: false,
+          source: 'temporarily_unavailable',
+          days: [],
+        }));
 
       setError(
         '',
@@ -291,6 +317,62 @@ export default function AdminSystemPage() {
             error
           }
         />
+      ) : null}
+
+      {data && telemetry ? (
+        <FcPanel className="mt-4 p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="theme-text text-xl font-semibold">Historical performance · last 7 days</h2>
+              <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
+                Anonymous aggregate API timings, Web Vitals and HTTP 5xx only.
+                Percentiles are upper bounds of histogram buckets, not exact measurements.
+                No player identities, paths, addresses or query parameters are stored.
+              </p>
+            </div>
+            <FcStatusBadge
+              label={telemetry.enabled ? 'Redis history enabled' : 'Historical metrics not configured'}
+              tone={telemetry.enabled ? 'emerald' : 'amber'}
+            />
+          </div>
+          {telemetry.enabled ? (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+                <caption className="sr-only">Daily API timings, client LCP, HTTP 5xx</caption>
+                <thead className="theme-secondary-text border-b border-[var(--theme-border)] text-xs">
+                  <tr>
+                    <th scope="col" className="p-3">UTC day</th>
+                    <th scope="col" className="p-3">API samples</th>
+                    <th scope="col" className="p-3">API p95 max</th>
+                    <th scope="col" className="p-3">LCP p75 max</th>
+                    <th scope="col" className="p-3">HTTP 5xx</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {telemetry.days.map(row => (
+                    <tr key={row.day} className="border-b border-[var(--theme-border)]">
+                      <th scope="row" className="theme-text p-3 font-semibold">{row.day}</th>
+                      <td className="p-3 tabular-nums">{row.metrics.API_MS?.samples ?? 0}</td>
+                      <td className="p-3 tabular-nums">{row.metrics.API_MS?.p95UpperBound == null ? '—' : `${row.metrics.API_MS.p95UpperBound} ms`}</td>
+                      <td className="p-3 tabular-nums">{row.metrics.LCP?.p75UpperBound == null ? '—' : `${row.metrics.LCP.p75UpperBound} ms`}</td>
+                      <td className="p-3 tabular-nums">{row.metrics.API_5XX?.events ?? 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {telemetry.droppedSamples ? (
+                <p role="status" className="theme-secondary-text mt-3 text-xs">
+                  {telemetry.droppedSamples} sample(s) dropped due to bounded memory queue.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="theme-secondary-text mt-4 text-sm">
+              Enable TELEMETRY_DURABLE_ENABLED with the existing Redis configuration
+              after staging validation. Live API monitoring continues to work without historical storage.
+            </p>
+          )}
+        </FcPanel>
       ) : null}
 
       {data ? (

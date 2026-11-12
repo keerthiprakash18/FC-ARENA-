@@ -22,6 +22,7 @@ import {
 import {
   useTheme,
 } from '@/components/theme/theme-provider';
+import { useAppLanguage } from '@/components/i18n/app-language';
 
 import {
   NotificationBell,
@@ -123,6 +124,8 @@ export function AppHeader({
   const router =
     useRouter();
 
+  const { language, navLabel } = useAppLanguage();
+
   const {
     resolvedDark,
     setDisplayMode,
@@ -222,19 +225,14 @@ export function AppHeader({
           (
             item,
           ) =>
-            item.label
-              .toLowerCase()
-              .includes(
-                value,
-              ) ||
+            (item.label.toLowerCase().includes(value) ||
+              navLabel(item.href, item.label).toLowerCase().includes(value)) ||
             item.keywords.includes(
               value,
             ),
         );
       },
-      [
-        query,
-      ],
+      [query, navLabel],
     );
 
   const hasGlobalSearch = query.trim().length >= 2;
@@ -352,13 +350,13 @@ export function AppHeader({
                }
                onKeyDown={handleSearchKeyDown}
                role="combobox"
-               aria-label="Search app sections"
+               aria-label={language === 'ta' ? 'பக்கங்களைத் தேடுங்கள்' : 'Search app sections'}
                aria-controls="fc-search-results"
                aria-expanded={searchOpen}
                aria-autocomplete="list"
                aria-haspopup="listbox"
                aria-activedescendant={searchOpen && optionCount > 0 ? `fc-search-option-${highlightedIndex}` : undefined}
-              placeholder="Search FC Arena or jump to a section..."
+              placeholder={language === 'ta' ? 'FC ARENA பக்கங்களைத் தேடுங்கள்…' : 'Search FC Arena or jump to a section...'}
               className="theme-search-input min-w-0 flex-1 bg-transparent text-xs outline-none"
             />
 
@@ -429,7 +427,7 @@ export function AppHeader({
                       >
                         <span>
                           {
-                            item.label
+                            navLabel(item.href, item.label)
                           }
                         </span>
 

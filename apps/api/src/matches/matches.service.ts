@@ -1,10 +1,12 @@
 import { loadTournamentFormatGuide } from '../tournaments/tournament-format-guide.js';
 import { getUclReturnLegAccess } from '../results/ucl-ties.js';
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 
 import {
@@ -14,6 +16,7 @@ import {
 import type {
   SetMatchReadyDto,
 } from './dto/set-match-ready.dto.js';
+import type { ProposeMatchTimeDto } from './dto/propose-match-time.dto.js';
 
 import {
   MatchRealtimeService,
@@ -437,6 +440,206 @@ export class MatchesService {
     if (!member) throw new ForbiddenException({ success: false, data: null, error: {
       code: 'LEAGUE_MEMBERSHIP_REQUIRED', message: 'You must be a League member to access this Match Room.',
     } });
+  }
+
+  /**
+   * Advisory participant-coordinated times. These NEVER mutate the official
+   * fixture schedule or match status; an authorized admin must schedule it.
+   */
+  async getTimeProposals(userId: string, matchId: string) {
+    const access = await this.getMatchAccess(userId, matchId);
+    if (!access.participantSide && !access.admin) {
+      throw new ForbiddenException('Match participants or league admins only.');
+    }
+    if (process.env.MATCH_TIME_PROPOSALS_ENABLED !== 'true') {
+      return { success: true, data: { enabled: false, proposals: [] }, error: null };
+    }
+
+    const proposals = await this.prisma.matchTimeProposal.findMany({
+      where: { matchId },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+      select: {
+        id: true,
+        proposedByUserId: true,
+        proposedSide: true,
+        startsAt: true,
+        note: true,
+        status: true,
+        createdAt: true,
+        confirmedAt: true,
+      },
+    });
+    return {
+      success: true,
+      data: {
+        enabled: true,
+        officialScheduledAt: access.match.fixture.scheduledAt,
+        proposals: proposals.map(proposal => ({
+          id: proposal.id,
+          proposedSide: proposal.proposedSide,
+          startsAt: proposal.startsAt,
+          note: proposal.note,
+          status: proposal.status,
+          createdAt: proposal.createdAt,
+          confirmedAt: proposal.confirmedAt,
+          canAccept: Boolean(
+            access.participantSide && access.participantSide !== proposal.proposedSide
+              && proposal.status === 'PENDING',
+          ),
+          canCancel: proposal.proposedByUserId === userId && proposal.status === 'PENDING',
+        })),
+      },
+      error: null,
+    };
+  }
+
+  async proposeMatchTime(userId: string, matchId: string, dto: ProposeMatchTimeDto) {
+    this.assertTimeCoordinationEnabled();
+    const access = await this.getMatchAccess(userId, matchId);
+    const side = access.participantSide;
+    if (!side) {
+      throw new ForbiddenException('Only match participants can propose a time.');
+    }
+    this.assertMatchCanCoordinate(access.match);
+    const startsAt = new Date(dto.startsAt);
+    const advanceMs = startsAt.getTime() - Date.now();
+    if (!Number.isFinite(advanceMs) || advanceMs < 10 * 60_000 || advanceMs > 14 * 24 * 3600_000) {
+      throw new BadRequestException('Proposed time must be 10 minutes to 14 days from now.');
+    }
+    const pending = await this.prisma.matchTimeProposal.count({
+      where: { matchId, proposedByUserId: userId, status: 'PENDING' },
+    });
+    if (pending >= 3) {
+      throw new ConflictException('Cancel an existing pending time before proposing another.');
+    }
+    const record = await this.prisma.$transaction(async tx => {
+      const created = await tx.matchTimeProposal.create({
+        data: {
+          matchId,
+          proposedByUserId: userId,
+          proposedSide: side,
+          startsAt,
+          note: dto.note?.trim() || null,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorUserId: userId,
+          action: 'MATCH_TIME_PROPOSED',
+          targetType: 'Match',
+          targetId: matchId,
+          scopeType: 'LEAGUE',
+          scopeId: access.match.tournament.leagueId,
+          metadata: { proposalId: created.id, proposedSide: side, startsAt: startsAt.toISOString() },
+        },
+      });
+      return created;
+    });
+    return {
+      success: true,
+      data: { proposalId: record.id, status: 'PENDING', officialScheduleUnchanged: true },
+      error: null,
+    };
+  }
+
+  async acceptMatchTime(userId: string, matchId: string, proposalId: string) {
+    this.assertTimeCoordinationEnabled();
+    const access = await this.getMatchAccess(userId, matchId);
+    const side = access.participantSide;
+    if (!side) throw new ForbiddenException('Only the opposing match participant can accept.');
+    this.assertMatchCanCoordinate(access.match);
+    const proposal = await this.prisma.matchTimeProposal.findFirst({
+      where: { id: proposalId, matchId },
+    });
+    if (!proposal) throw new NotFoundException('Time proposal not found.');
+    if (proposal.proposedSide === side) {
+      throw new ForbiddenException('Your side cannot accept its own time proposal.');
+    }
+    const result = await this.prisma.$transaction(async tx => {
+      const changed = await tx.matchTimeProposal.updateMany({
+        where: { id: proposalId, matchId, status: 'PENDING', proposedSide: { not: side } },
+        data: {
+          status: 'ACCEPTED',
+          confirmedByUserId: userId,
+          confirmedAt: new Date(),
+        },
+      });
+      if (changed.count !== 1) throw new ConflictException('Time proposal is no longer pending.');
+      await tx.auditLog.create({
+        data: {
+          actorUserId: userId,
+          action: 'MATCH_TIME_ACCEPTED',
+          targetType: 'Match',
+          targetId: matchId,
+          scopeType: 'LEAGUE',
+          scopeId: access.match.tournament.leagueId,
+          metadata: { proposalId, acceptedBySide: side },
+        },
+      });
+      return changed;
+    });
+    return {
+      success: true,
+      data: {
+        accepted: result.count === 1,
+        officialScheduleUnchanged: true,
+        message: 'Both sides agreed. Ask an authorized admin to update the official fixture schedule.',
+      },
+      error: null,
+    };
+  }
+
+  async cancelMatchTime(userId: string, matchId: string, proposalId: string) {
+    this.assertTimeCoordinationEnabled();
+    const access = await this.getMatchAccess(userId, matchId);
+    if (!access.participantSide) {
+      throw new ForbiddenException('Only the proposing participant may cancel a time.');
+    }
+    const changed = await this.prisma.$transaction(async tx => {
+      const result = await tx.matchTimeProposal.updateMany({
+        where: { id: proposalId, matchId, proposedByUserId: userId, status: 'PENDING' },
+        data: { status: 'CANCELLED' },
+      });
+      if (result.count !== 1) throw new ConflictException('Proposal is not pending or not yours.');
+      await tx.auditLog.create({
+        data: {
+          actorUserId: userId,
+          action: 'MATCH_TIME_CANCELLED',
+          targetType: 'Match',
+          targetId: matchId,
+          scopeType: 'LEAGUE',
+          scopeId: access.match.tournament.leagueId,
+          metadata: { proposalId },
+        },
+      });
+      return result;
+    });
+    return { success: true, data: { cancelled: changed.count === 1 }, error: null };
+  }
+
+  private assertTimeCoordinationEnabled() {
+    if (process.env.MATCH_TIME_PROPOSALS_ENABLED !== 'true') {
+      throw new ServiceUnavailableException('Match time coordination is not enabled.');
+    }
+  }
+
+  private assertMatchCanCoordinate(match: {
+    status: string;
+    confirmedResultSubmissionId: string | null;
+    fixture: {
+      homeRegistration: unknown | null;
+      awayRegistration: unknown | null;
+    };
+  }) {
+    if (
+      !['UNSCHEDULED', 'SCHEDULED', 'POSTPONED'].includes(match.status) ||
+      match.confirmedResultSubmissionId ||
+      !match.fixture.homeRegistration ||
+      !match.fixture.awayRegistration
+    ) {
+      throw new ConflictException('Time coordination is locked for this match.');
+    }
   }
 
   private async getMatchAccess(

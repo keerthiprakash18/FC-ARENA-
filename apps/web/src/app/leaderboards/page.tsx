@@ -44,6 +44,12 @@ interface RankingRow {
   form: string;
 }
 
+interface PersonalRankHistory {
+  source: 'OBSERVED_DAILY_SNAPSHOTS';
+  history: Array<{ day: string; capturedAt: string; position: number | null }>;
+  note: string;
+}
+
 interface LeaderboardData {
   league: {
     id: string;
@@ -96,6 +102,8 @@ export default function LeaderboardsPage() {
   const [data, setData] = useState<LeaderboardData | null>(null);
 
   const [userId, setUserId] = useState("");
+  const [rankHistory, setRankHistory] = useState<PersonalRankHistory | null>(null);
+  const [historyError, setHistoryError] = useState("");
 
   const [loading, setLoading] = useState(true);
 
@@ -183,6 +191,28 @@ export default function LeaderboardsPage() {
       })
       .finally(() => setLoading(false));
   }, [selectedLeague, mode]);
+
+  useEffect(() => {
+    if (!selectedLeague || !userId) {
+      setRankHistory(null);
+      return;
+    }
+    const controller = new AbortController();
+    setRankHistory(null);
+    setHistoryError("");
+    const suffix = mode ? "?mode=" + encodeURIComponent(mode) : "";
+    void authenticatedRequest<{ success: true; data: PersonalRankHistory; error: null }>(
+      "/leagues/" + selectedLeague + "/rankings/history" + suffix,
+      { signal: controller.signal },
+    ).then(result => {
+      if (!controller.signal.aborted) setRankHistory(result.data);
+    }).catch(err => {
+      if (!controller.signal.aborted) setHistoryError(
+        err instanceof Error ? err.message : "Ranking history is unavailable.",
+      );
+    });
+    return () => controller.abort();
+  }, [selectedLeague, mode, userId]);
 
   const rankings = data?.rankings ?? [];
 
@@ -349,6 +379,30 @@ export default function LeaderboardsPage() {
                   வெற்றி 3 புள்ளிகள், டிரா 1 புள்ளி.
                 </p>
               </details>
+
+              <section aria-labelledby="my-ranking-history-title" className="mb-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
+                <h2 id="my-ranking-history-title" className="theme-text text-base font-bold">My rank history · கடந்த தரவரிசை</h2>
+                <p className="theme-secondary-text mt-1 text-xs leading-5">
+                  Last 90 days of actual saved daily league snapshots in this competition mode.
+                  Missing dates and unranked days are never estimated.
+                </p>
+                {historyError ? (
+                  <p role="status" className="theme-secondary-text mt-3 text-sm">History temporarily unavailable. Current rankings still work.</p>
+                ) : rankHistory?.history.length ? (
+                  <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                    {rankHistory.history.slice(-14).map(point => (
+                      <li key={point.day} className="theme-soft-accent rounded-xl border px-3 py-3 text-center">
+                        <span className="theme-secondary-text block text-xs">{new Date(point.day + 'T12:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}</span>
+                        <span className="theme-text mt-1 block text-lg font-bold">{point.position === null ? '—' : `#${point.position}`}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p role="status" className="theme-secondary-text mt-3 text-sm">
+                    {rankHistory ? 'No historical daily snapshots recorded yet.' : 'Loading previous ranks…'}
+                  </p>
+                )}
+              </section>
 
               <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <FcStatCard

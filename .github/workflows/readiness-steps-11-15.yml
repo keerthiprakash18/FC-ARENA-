@@ -139,7 +139,7 @@ jobs:
           mkdir -p /tmp/fcarena-staging-candidate
           git archive --format=tar.gz --output=/tmp/fcarena-staging-candidate/source.tar.gz HEAD
           git rev-parse HEAD > /tmp/fcarena-staging-candidate/COMMIT_SHA.txt
-          CI=true python3 ops/build-staging-source-manifest.py --output /tmp/fcarena-staging-candidate/SOURCE_MANIFEST.json
+          CI=true python3 ops/build-staging-source-manifest.py --source-archive /tmp/fcarena-staging-candidate/source.tar.gz --output /tmp/fcarena-staging-candidate/SOURCE_MANIFEST.json
           (
             cd /tmp/fcarena-staging-candidate
             sha256sum source.tar.gz > source.tar.gz.sha256

@@ -52,7 +52,7 @@ jobs:
         run: python3 -m py_compile ops/vnext-production-source-inventory.py
 
       - name: FC ARENA vNext UX, tournament and release safety regressions
-        run: node --test tests/dashboard-next-actions.test.mjs tests/tournament-review-theme.test.mjs tests/tournament-create-preview.test.mjs tests/verify-live-baseline.test.mjs tests/weekly-verified-progress.test.mjs tests/dashboard-refresh-throttle.test.mjs tests/leaderboard-a11y.test.mjs tests/experience-trust-controls.test.mjs tests/owner-analytics-and-invites.test.mjs tests/rank-history-ui.test.mjs tests/vnext-production-audit.test.mjs tests/match-time-coordination.test.mjs tests/vnext-unified-design.test.mjs tests/isolated-db-restore.test.mjs tests/vnext-source-inventory.test.mjs
+        run: node --test tests/dashboard-next-actions.test.mjs tests/tournament-review-theme.test.mjs tests/tournament-create-preview.test.mjs tests/verify-live-baseline.test.mjs tests/weekly-verified-progress.test.mjs tests/dashboard-refresh-throttle.test.mjs tests/leaderboard-a11y.test.mjs tests/experience-trust-controls.test.mjs tests/owner-analytics-and-invites.test.mjs tests/rank-history-ui.test.mjs tests/vnext-production-audit.test.mjs tests/match-time-coordination.test.mjs tests/vnext-unified-design.test.mjs tests/isolated-db-restore.test.mjs tests/vnext-source-inventory.test.mjs tests/group-at-large-wizard.test.mjs
 
       - name: Web production build
         run: npm run build:web

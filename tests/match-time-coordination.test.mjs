@@ -11,7 +11,7 @@ test('safe scheduling is invisible unless enabled and never updates fixture or r
   const component = read('apps/web/src/components/matches/match-time-coordination.tsx');
   const service = read('apps/api/src/matches/matches.service.ts');
   assert.match(component, /if \(!data\?\.enabled\) return null/);
-  assert.match(component, /official.*fixture/);
+  assert.match(component, /Only an authorized admin can reschedule the fixture/);
   assert.match(component, /datetime-local/);
   assert.match(component, /timeZone: 'Asia\/Kolkata'/);
   assert.match(service, /MATCH_TIME_PROPOSALS_ENABLED !== 'true'/);

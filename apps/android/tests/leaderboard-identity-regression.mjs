@@ -32,7 +32,7 @@ try {
       const identity = width >= 768 ? f.page.locator('tbody tr').filter({ hasText: 'South Korea' }) : f.page.locator('[data-player-id="south"]').filter({ visible: true });
       assert(await identity.getByText('thowfiqsiru', { exact: true }).isVisible());
       assert((await identity.innerText()).includes('#3'), 'search must preserve the actual league rank');
-      assert((await identity.innerText()).includes('12'), 'team search must retain its verified points');
+      assert(await identity.getByText('12 pts', { exact: true }).isVisible(), 'team search must retain its verified points');
       await checkLayout(f.page, `leaderboard team search ${width}`);
       await search.fill('does not exist');
       await f.page.getByText('No matching players or teams', { exact: true }).waitFor();
@@ -42,8 +42,7 @@ try {
       await f.page.getByRole('status').filter({ hasText: '1 of 3 ranked players match' }).waitFor();
       updated = true;
       await f.page.getByRole('button', { name: 'Refresh leaderboard', exact: true }).click();
-      await identity.getByText('15', { exact: true }).waitFor();
-      assert((await identity.innerText()).includes('15'), 'refresh must update the points');
+      await identity.getByText('15 pts', { exact: true }).waitFor();
       await search.fill('');
       await f.page.getByRole('combobox', { name: 'Competition mode', exact: true }).selectOption('DUO');
       await f.page.getByText('Duo team', { exact: true }).filter({ visible: true }).first().waitFor();

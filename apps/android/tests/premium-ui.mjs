@@ -102,7 +102,7 @@ async function audit(options) {
         if (contrast.length) findings.push({ route, ...options, contrast });
         if (options.width < 1024 && !route.startsWith('/public/')) {
           const rail = page.getByRole('navigation', { name: 'Primary navigation' });
-          assert.equal(await rail.getByRole('link').count(), 7);
+          assert.equal(await rail.getByRole('link').count(), 5);
           await page.waitForFunction(() => {
             const rail = document.querySelector('[aria-label="Primary navigation"]');
             const active = rail?.querySelector('[aria-current="page"]');

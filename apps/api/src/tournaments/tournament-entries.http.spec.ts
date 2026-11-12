@@ -11,10 +11,13 @@ import { TournamentEntriesService } from './tournament-entries.service.js';
 import { TournamentEntryLogoService } from './tournament-entry-logo.service.js';
 import { TournamentPlayerReplacementService } from './tournament-player-replacement.service.js';
 
-it('serves replacement data as JSON even when a player name contains HTML characters', async () => {
+it.each([
+  ['replacement-preview', 'preview'],
+  ['replace-player', 'replace'],
+])('%s serves JSON even when a player name contains HTML characters', async (endpoint, method) => {
   const userId = randomUUID();
   const playerName = '<img src=x onerror=alert(1)>';
-  const replace = vi.fn().mockResolvedValue({
+  const replacement = vi.fn().mockResolvedValue({
     success: true,
     data: { replacement: { name: playerName }, message: 'Player replaced.' },
     error: null,
@@ -24,7 +27,7 @@ it('serves replacement data as JSON even when a player name contains HTML charac
     providers: [
       { provide: TournamentEntriesService, useValue: {} },
       { provide: TournamentEntryLogoService, useValue: {} },
-      { provide: TournamentPlayerReplacementService, useValue: { replace } },
+      { provide: TournamentPlayerReplacementService, useValue: { [method]: replacement } },
     ],
   }).overrideGuard(JwtAuthGuard).useValue({
     canActivate(context: ExecutionContext) {
@@ -37,7 +40,7 @@ it('serves replacement data as JSON even when a player name contains HTML charac
     configureHttpSecurity(app);
     await app.listen(0, '127.0.0.1');
     const response = await request(app.getHttpServer())
-      .post(`/api/tournaments/${randomUUID()}/entries/${randomUUID()}/replace-player`)
+      .post(`/api/tournaments/${randomUUID()}/entries/${randomUUID()}/${endpoint}`)
       .set('Accept', 'text/html')
       .send({ outgoingUserId: randomUUID(), replacementPlayerCode: 'FCA-01' })
       .expect(201)

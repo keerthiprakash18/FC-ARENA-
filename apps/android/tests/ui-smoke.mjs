@@ -1,12 +1,14 @@
 // UI regression checks. API data is intercepted; no production account is used.
 // Run after build with a local production server listening on 127.0.0.1:3000.
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
 import { phaseData, tournament } from './phase-ui-fixtures.mjs';
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
-const output = process.env.SMOKE_OUTPUT || '/tmp/fcarena-ui';
+const output = process.env.SMOKE_OUTPUT || mkdtempSync(join(tmpdir(), 'fcarena-ui-'));
 const axeScript = process.env.AXE_CORE_SCRIPT;
 mkdirSync(output, {recursive:true});
 const errors = [], results = [], accessibility = [];
@@ -214,7 +216,10 @@ try {
         assert.equal(await page.locator('.fc-compact-standings-table').isVisible(),width<640);
         assert(await page.getByText('Manchester Champions With A Very Long Name',{exact:true}).count()>0);
       }
-      if(width===390||width===1440) await page.screenshot({path:output+'/'+path.replaceAll('/','_')+'-'+width+'.png',fullPage:true,animations:'disabled'});
+      if (width === 390 || width === 1440) {
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+        await page.screenshot({path:output+'/'+path.replaceAll('/','_')+'-'+width+'.png',fullPage:true,animations:'disabled'});
+      }
       if (axeScript && (width === 390 || width === 1440) && reviewPaths.has(path)) {
         await checkDesign(page, path, width);
       }

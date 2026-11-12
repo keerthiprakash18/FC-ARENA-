@@ -3,11 +3,12 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
+  HttpStatus,
   Param,
   Patch,
   Post,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -23,6 +24,7 @@ import {
 
 import type {
   Request,
+  Response,
 } from 'express';
 
 import type {
@@ -82,15 +84,27 @@ export class TournamentEntriesController {
   ) {}
 
   @Post('tournaments/:tournamentId/entries/:registrationId/replacement-preview')
-  @Header('Content-Type', 'application/json; charset=utf-8')
-  previewReplacement(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string, @Param('registrationId') registrationId: string, @Body() dto: ReplaceTournamentPlayerDto) {
-    return this.playerReplacement.preview(request.user.sub, tournamentId, registrationId, dto);
+  async previewReplacement(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Param('registrationId') registrationId: string,
+    @Body() dto: ReplaceTournamentPlayerDto,
+    @Res() response: Response,
+  ) {
+    const result = await this.playerReplacement.preview(request.user.sub, tournamentId, registrationId, dto);
+    response.status(HttpStatus.CREATED).json(result);
   }
 
   @Post('tournaments/:tournamentId/entries/:registrationId/replace-player')
-  @Header('Content-Type', 'application/json; charset=utf-8')
-  replacePlayer(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string, @Param('registrationId') registrationId: string, @Body() dto: ReplaceTournamentPlayerDto) {
-    return this.playerReplacement.replace(request.user.sub, tournamentId, registrationId, dto);
+  async replacePlayer(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Param('registrationId') registrationId: string,
+    @Body() dto: ReplaceTournamentPlayerDto,
+    @Res() response: Response,
+  ) {
+    const result = await this.playerReplacement.replace(request.user.sub, tournamentId, registrationId, dto);
+    response.status(HttpStatus.CREATED).json(result);
   }
 
 

@@ -60,7 +60,7 @@ export function BottomNavigation({
                   />
                 </span>
 
-                <span className="max-w-full truncate text-[10px] leading-tight">
+                <span className="max-w-full truncate text-[11px] leading-tight">
                   {
                     item.shortLabel
                   }

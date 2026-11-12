@@ -28,6 +28,7 @@ import './player-community.css';
 import './daily-rewards.css';
 import './competition-clarity.css';
 import './native-android.css';
+import './vnext-interaction-system.css';
 
 export const metadata: Metadata = {
   metadataBase:

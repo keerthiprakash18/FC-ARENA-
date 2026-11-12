@@ -159,6 +159,8 @@ export default function LeagueTournamentsPage() {
       'LEAGUE_ROUND_ROBIN',
     );
 
+  const [entryCount, setEntryCount] = useState('16');
+
   const [
     showCreate,
     setShowCreate,
@@ -249,6 +251,7 @@ export default function LeagueTournamentsPage() {
       setCompetitionFormat(
         requestedFormat,
       );
+      setEntryCount(requestedFormat === 'UCL_CUP' ? '36' : '16');
     }
 
     if (
@@ -479,6 +482,18 @@ export default function LeagueTournamentsPage() {
       league?.adminRole,
     );
 
+  const previewEntries = Number(entryCount);
+  const validPreviewEntries = Number.isInteger(previewEntries) && previewEntries >= 2 && previewEntries <= 128;
+  const estimatedFixtureCount = validPreviewEntries
+    ? competitionFormat === 'LEAGUE_ROUND_ROBIN'
+      ? previewEntries * (previewEntries - 1) / 2
+      : competitionFormat === 'DOUBLE_ROUND_ROBIN'
+        ? previewEntries * (previewEntries - 1)
+        : competitionFormat === 'SINGLE_ELIMINATION'
+          ? previewEntries - 1
+          : null
+    : null;
+
 
   if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user || !league || league.id !== leagueId) {
@@ -588,11 +603,11 @@ export default function LeagueTournamentsPage() {
 
                   <input
                     name="maxEntries"
-                    key={competitionFormat}
                     type="number"
                     min="2"
                     max="128"
-                    defaultValue={competitionFormat === 'UCL_CUP' ? 36 : 16}
+                    value={entryCount}
+                    onChange={(event) => setEntryCount(event.target.value)}
                     required
                     className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                   />
@@ -674,11 +689,11 @@ export default function LeagueTournamentsPage() {
                           value
                         }
                         type="button"
-                        onClick={() =>
-                          setCompetitionFormat(
-                            value,
-                          )
-                        }
+                        onClick={() => {
+                          setCompetitionFormat(value);
+                          setEntryCount(value === 'UCL_CUP' ? '36' : '16');
+                        }}
+                        aria-pressed={competitionFormat === value}
                         className={`rounded-2xl border p-4 text-left transition duration-200 ${
                           competitionFormat ===
                           value
@@ -702,8 +717,20 @@ export default function LeagueTournamentsPage() {
                   )}
                 </div>
 
-                <p className="mt-3 text-xs text-slate-600">
-                  Selected Competition Format: <span className="font-semibold text-sky-300">{competitionLabel(competitionFormat)}</span>. You can still fine-tune it on the next Setup screen.
+                <section aria-live="polite" aria-label="Quick tournament estimate" className="mt-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-primary-soft)] p-4">
+                  <p className="theme-text text-sm font-bold">Quick format preview</p>
+                  <p className="theme-secondary-text mt-1 text-sm leading-6">
+                    {templateId
+                      ? 'A saved template is selected. Its settings will apply when you create the draft.'
+                      : !validPreviewEntries
+                        ? 'Choose between 2 and 128 entries to see an estimate.'
+                        : estimatedFixtureCount === null
+                          ? `${previewEntries} entries. Groups, qualifications and total matches will be calculated in the builder.`
+                          : `${previewEntries} entries · ${estimatedFixtureCount} ${competitionFormat === 'SINGLE_ELIMINATION' ? 'elimination matches' : 'league matches'} (estimate; the builder confirms final fixtures).`}
+                  </p>
+                </section>
+                <p className="theme-secondary-text mt-3 text-xs">
+                  Selected: <span className="theme-text font-semibold">{competitionLabel(competitionFormat)}</span>. You can fine-tune it on Setup.
                 </p>
               </div>
 

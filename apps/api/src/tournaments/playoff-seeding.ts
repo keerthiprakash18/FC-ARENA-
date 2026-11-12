@@ -97,3 +97,71 @@ export function buildPlayoffSeedPlan(
     playInMatches: byeCount > 0 ? remaining.length / 2 : 0,
   };
 }
+
+/**
+ * Keep each upper seed in its protected bracket branch while reassigning
+ * lower opponents if extra cross-group qualifiers create a first-round
+ * rematch (e.g. 7 x top-2 + 2 best third-place).
+ *
+ * Existing byes are untouched. Any unsatisfiable constraint blocks fixture
+ * generation instead of silently pairing same-group participants.
+ */
+export function separateOpeningGroupRematches(
+  slots: ReadonlyArray<string | null>,
+  groups: ReadonlyArray<PlayoffSeedGroup>,
+): Array<string | null> {
+  if (slots.length % 2 !== 0) {
+    throw new Error('Invalid bracket slot count.');
+  }
+  const membership = new Map<string, string>();
+  for (const group of groups) {
+    for (const entrant of group.qualifiers) {
+      if (membership.has(entrant.id)) throw new Error('Duplicate group qualifier detected.');
+      membership.set(entrant.id, group.id);
+    }
+  }
+
+  const active = Array.from({ length: slots.length / 2 }, (_, pair) => pair)
+    .filter(pair => slots[2 * pair] !== null && slots[2 * pair + 1] !== null);
+  const upper = active.map(pair => slots[2 * pair]!);
+  const lower = active.map(pair => slots[2 * pair + 1]!);
+
+  for (const id of [...upper, ...lower]) {
+    if (!membership.has(id)) throw new Error('Bracket qualifier has no group.');
+  }
+
+  if (upper.every((id, index) => membership.get(id) !== membership.get(lower[index]))) {
+    return [...slots];
+  }
+
+  const assignedLowerToUpper = Array(lower.length).fill(-1);
+  function assign(upperIndex: number, seen: Set<number>): boolean {
+    for (let offset = 0; offset < lower.length; offset++) {
+      const lowerIndex = (upperIndex + offset) % lower.length;
+      if (
+        seen.has(lowerIndex) ||
+        membership.get(upper[upperIndex]) === membership.get(lower[lowerIndex])
+      ) continue;
+      seen.add(lowerIndex);
+      const previous = assignedLowerToUpper[lowerIndex];
+      if (previous === -1 || assign(previous, seen)) {
+        assignedLowerToUpper[lowerIndex] = upperIndex;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  for (let upperIndex = 0; upperIndex < upper.length; upperIndex++) {
+    if (!assign(upperIndex, new Set())) {
+      throw new Error('Unable to avoid a first-round rematch between group opponents.');
+    }
+  }
+
+  const result = [...slots];
+  for (let lowerIndex = 0; lowerIndex < lower.length; lowerIndex++) {
+    const target = assignedLowerToUpper[lowerIndex];
+    result[2 * active[target] + 1] = lower[lowerIndex];
+  }
+  return result;
+}

@@ -68,6 +68,15 @@ type AuthenticatedRequest =
       AccessTokenPayload;
   };
 
+function sendReplacementJson(response: Response, result: unknown) {
+  // Escape HTML metacharacters in the JSON bytes while preserving parsed names.
+  const body = JSON.stringify(result).replace(/[<>&]/g, (character) =>
+    '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0'),
+  );
+  response.status(HttpStatus.CREATED);
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.send(body);
+}
 
 @Controller()
 @UseGuards(
@@ -92,7 +101,7 @@ export class TournamentEntriesController {
     @Res() response: Response,
   ) {
     const result = await this.playerReplacement.preview(request.user.sub, tournamentId, registrationId, dto);
-    response.status(HttpStatus.CREATED).json(result);
+    sendReplacementJson(response, result);
   }
 
   @Post('tournaments/:tournamentId/entries/:registrationId/replace-player')
@@ -104,7 +113,7 @@ export class TournamentEntriesController {
     @Res() response: Response,
   ) {
     const result = await this.playerReplacement.replace(request.user.sub, tournamentId, registrationId, dto);
-    response.status(HttpStatus.CREATED).json(result);
+    sendReplacementJson(response, result);
   }
 
 

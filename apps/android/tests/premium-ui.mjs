@@ -18,9 +18,15 @@ const rows = [1, 2, 3].map(position => ({
   fullName: ['Arjun Roy', 'Rahul Shah', 'Daniel Thomas'][position - 1],
   rating: [93.4, 89.2, 86.7][position - 1],
 }));
-const competition = { ...tournament, status: 'PUBLISHED' };
+const competition = {
+  ...tournament,
+  status: 'PUBLISHED',
+  playoffFormat: 'PROTECTED_SEED',
+  playoffSource: 'GROUP_QUALIFIERS',
+  playoffSeedingBasis: 'GROUP_POSITION',
+};
 const schedule = phaseData['/api/tournaments/phase3/fixtures'].fixtures.map(fixture => ({
-  ...fixture, scheduledAt: '2027-01-01T12:00:00Z',
+  ...fixture, phase: 'PLAYOFF', scheduledAt: '2027-01-01T12:00:00Z',
   match: { id: 'phase3', matchCode: 'M-P3', status: 'SCHEDULED' },
 }));
 const dashboardFixture = {
@@ -91,7 +97,9 @@ async function audit(options) {
   try {
     for (const route of routes) {
       await page.goto(`https://fcarena.in${route}`);
-      await page.locator('h1, .fc-main').first().waitFor();
+      await page.locator('h1, .fc-main').filter({ visible: true }).first().waitFor().catch(error => {
+        throw new Error(`No visible page content for ${route} at ${options.width}px (${page.url()})`, { cause: error });
+      });
       await page.waitForTimeout(160);
       assert.equal(new URL(page.url()).pathname, route);
       assert.equal(await page.getByText('FC ARENA could not load this screen', { exact: true }).count(), 0);

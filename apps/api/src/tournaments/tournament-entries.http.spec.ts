@@ -47,6 +47,8 @@ it.each([
       .expect('Content-Type', /application\/json/i)
       .expect('X-Content-Type-Options', 'nosniff');
     expect(response.body.data.replacement.name).toBe(playerName);
+    expect(response.text).toContain('\\u003cimg');
+    expect(response.text).not.toContain('<img');
   } finally {
     await app.close();
   }

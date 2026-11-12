@@ -894,7 +894,7 @@ export default function QualificationPage() {
                 <span className="theme-secondary-text mt-2 text-xs leading-5">
                   Top {qualifiersPerGroup} from each group = {groupCount * qualifiersPerGroup} direct.
                   {extraNextPlaces > 0
-                    ? ` Best ${extraNextPlaces} next-place finisher(s) across equally sized groups are added; ties use points, goal difference, goals scored, wins, then entry name/ID.`
+                    ? ` Best ${extraNextPlaces} next-place finisher(s) across equally sized groups are added; ties use points, goal difference, goals scored, wins, then entry name/ID. Choose Protected Seed to avoid same-group opening ties.`
                     : ' No cross-group next-place places are configured.'}
                 </span>
               </label>

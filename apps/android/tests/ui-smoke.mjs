@@ -50,6 +50,24 @@ async function prepare(page) {
           activeAwardTournaments: [], recentSeasonalWinners: [],
         }; break;
         case '/api/notifications': data = { notifications: [], unreadCount: 0 }; break;
+        case '/api/admin/ops/system': data = {
+          status:'HEALTHY', checkedAt:new Date().toISOString(),
+          runtime: { environment:'staging-smoke', node:'24', uptimeSeconds:86400,
+            memory:{rssMb:64,heapUsedMb:40,heapTotalMb:90} },
+          database:{connected:true,latencyMs:12}, auth:{activeSessions:12},
+          push:{configured:false,devices:0,pendingDeliveries:0,failedDeliveries:0},
+          moderation:{openDisputes:1,pendingResults:2},
+          backup:{reportingConfigured:true,healthy:true,ageHours:3,
+            latest:null,latestSuccess:null,latestFailure:null},
+        }; break;
+        case '/api/admin/ops/telemetry': data = {
+          enabled:true, source:'staging-mocked-anonymous-histograms', droppedSamples:0,
+          days:[{day:'2026-11-12',metrics:{
+            API_MS:{samples:12,p75UpperBound:100,p95UpperBound:250,unit:'ms'},
+            LCP:{samples:10,p75UpperBound:2000,p95UpperBound:5000,unit:'ms'},
+            API_5XX:{events:0},
+          }}],
+        }; break;
         case '/api/matches/result-test/scheduling': data = { enabled: false, proposals: [] }; break;
         case '/api/telemetry/web-vitals': data = { accepted: true }; break;
         default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();
@@ -78,7 +96,8 @@ try {
     await context.addInitScript(()=>localStorage.setItem('fc-arena-theme-preference','LUXURY_GOLD'));
     // Mock the user's saved selection consistently with the initial theme.
     user.themePreference='LUXURY_GOLD';
-    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/settings','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
+    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/settings','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/admin/system','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
+      user.role = path.startsWith('/admin/') ? 'SUPER_ADMIN' : 'PLAYER';
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
       // The shell mounts before authenticated reads finish. Measure the loaded
@@ -92,6 +111,11 @@ try {
       }
       if(['/login','/register','/forgot-password','/reset-password'].includes(path)) assert.equal(await page.locator('.field label').evaluateAll(labels=>labels.filter(label=>!label.control).length),0,'Every auth field label must target an input');
       if(path.includes('standings')) await page.getByText('Group A',{exact:true}).waitFor();
+      if (path === '/admin/system') {
+        await page.getByText('Historical performance · last 7 days').waitFor();
+        await page.getByRole('table',{name:'Daily API timings, client LCP, HTTP 5xx'}).waitFor();
+        assert(await page.getByText('Redis history enabled').isVisible());
+      }
       if(path === '/leagues/invite-test') {
         await page.getByRole('button',{name:'Show QR',exact:true}).click();
         await page.getByAltText('Scan to join Arena Test League').waitFor();

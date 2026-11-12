@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export const NOTIFICATION_PREFERENCE_KEYS = [
   'matchReminders',
@@ -52,4 +52,20 @@ export class UpdateNotificationPreferencesDto {
   @IsOptional()
   @IsBoolean()
   fairPlayUpdates?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  quietHoursEnabled?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  quietHoursStartHour?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  quietHoursEndHour?: number;
 }

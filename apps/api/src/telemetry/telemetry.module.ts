@@ -14,6 +14,7 @@ import {
 import {
   TelemetryService,
 } from './telemetry.service.js';
+import { DurableTelemetryService } from './durable-telemetry.service.js';
 
 @Module({
   controllers: [
@@ -21,6 +22,7 @@ import {
   ],
   providers: [
     TelemetryService,
+    DurableTelemetryService,
     {
       provide:
         APP_INTERCEPTOR,
@@ -30,6 +32,7 @@ import {
   ],
   exports: [
     TelemetryService,
+    DurableTelemetryService,
   ],
 })
 export class TelemetryModule {}

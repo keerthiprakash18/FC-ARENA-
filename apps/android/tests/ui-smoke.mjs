@@ -131,9 +131,11 @@ try {
     // avoid shrinking or overflowing the five-slot Android bottom rail.
     await page.goto('https://fcarena.in/settings');
     await page.getByRole('group',{name:'App language'}).getByRole('button',{name:'தமிழ்'}).click();
+    await page.waitForFunction(() => document.documentElement.lang === 'ta');
     assert.equal(await page.locator('html').getAttribute('lang'),'ta');
     assert.equal(await page.getByRole('button',{name:'தமிழ்'}).getAttribute('aria-pressed'),'true');
     await page.goto('https://fcarena.in/dashboard');
+    await page.waitForFunction(() => document.documentElement.lang === 'ta');
     assert.equal(await page.locator('html').getAttribute('lang'),'ta');
     if (width < 1024) {
       assert.equal(await page.locator('.theme-bottom-nav a').count(),5);
@@ -141,6 +143,7 @@ try {
     }
     await page.goto('https://fcarena.in/settings');
     await page.getByRole('group',{name:'App language'}).getByRole('button',{name:'English'}).click();
+    await page.waitForFunction(() => document.documentElement.lang === 'en');
     assert.equal(await page.locator('html').getAttribute('lang'),'en');
     await context.close();
     console.log('PASS UI width '+width);

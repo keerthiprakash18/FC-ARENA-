@@ -24,6 +24,15 @@ Use FC ARENA's existing navy/gold branding, official logo assets and `apps/web/s
 
 Start with theme-aware Tournament Wizard/Review, match evidence, player dashboard and notifications. Pilot new scheduling, weekly missions, league chat, tournament formats and AI assistance behind feature flags. Check each role and mobile/desktop/Android WebView, including slow network and reduced motion.
 
+
+## Additive vNext features requiring staging validation
+
+- **Private ranking history:** `GET /api/leagues/:leagueId/rankings/history?mode=SOLO|DUO|TEAM` returns only the authenticated member's observed positions for up to 90 days, not the full ranking snapshot. Absent days remain absent; this endpoint does not invent historical ranks or alter snapshots.
+- **Match time coordination:** the migration `20261112100000_match_time_proposals` adds an isolated table for participant-originated time proposals. `MATCH_TIME_PROPOSALS_ENABLED` defaults **OFF**; only enable after staging schema migration and permission tests. Participants can propose, opponents can accept, proposers can withdraw pending offers. Acceptance is **advisory**, not an official fixture update; league admins must use existing scheduling controls. No match status, deadlines, scores, standings or result records are changed by these endpoints. Test the flag enabled *and* disabled against a disposable database, and review confirmed-match lock tests.
+- **VPS audit:** `ops/vnext-readonly-production-audit.sh` performs read-only current-host checks, service status, source change counts, public health and the latest PostgreSQL backup SHA256/TOC verification. It does **not** restore backups, reconcile the 483 server-only entries, or deploy code. It must run only on VCCLHosting `45.129.87.8`, never the retired host.
+
+Do not merge or deploy the scheduling migration merely because the build passes. An isolated `pg_restore` rehearsal, explicit source preservation and functional verification remain mandatory.
+
 ## Before any live release
 
 1. Reconcile live web/API build IDs, actual `/opt/fcarena` source, GitHub `main`, and local Windows changes. Make recoverable source/build and production database backups. Verify the destination host; historical CI host may be stale.

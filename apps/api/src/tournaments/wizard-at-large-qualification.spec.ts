@@ -68,6 +68,14 @@ describe('wizard persists balanced group + best next-place qualification', () =>
     expect(setupResult.prisma.tournament.update).not.toHaveBeenCalled();
   });
 
+  it('prevents extra cross-group places when bracket cannot avoid early same-group ties', async () => {
+    const candidate = setup();
+    await expect(candidate.service.saveQualification('admin-1', 'tour-1', {
+      ...candidate.dto, playoffFormat: 'GLOBAL_SEEDED',
+    })).rejects.toThrow('Protected Seed playoffs');
+    expect(candidate.prisma.tournament.update).not.toHaveBeenCalled();
+  });
+
   it('keeps backward compatible direct-only group settings', async () => {
     const { service, prisma, dto } = setup();
     const result = await service.saveQualification('admin-1', 'tour-1', {

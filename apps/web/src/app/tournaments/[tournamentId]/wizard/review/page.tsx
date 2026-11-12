@@ -205,9 +205,9 @@ export default function ReviewPage() {
         <FcNotice tone="error">{error}</FcNotice>
 
 
-        <section className="rounded-[24px] border border-sky-400/20 bg-sky-400/[0.03] p-6">
+        <section className="rounded-[24px] border border-[var(--theme-border)] bg-[var(--theme-elevated)] p-6">
 
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+          <p className="theme-secondary-text text-xs font-bold uppercase tracking-[0.12em]">
             {
               tournament.code
             }
@@ -221,8 +221,8 @@ export default function ReviewPage() {
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 
-            <div className="rounded-xl bg-black/20 p-4">
-              <p className="text-xs text-slate-600">
+            <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4">
+              <p className="theme-secondary-text text-xs">
                 Teams
               </p>
               <p className="mt-1 text-2xl font-black">
@@ -232,8 +232,8 @@ export default function ReviewPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-black/20 p-4">
-              <p className="text-xs text-slate-600">
+            <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4">
+              <p className="theme-secondary-text text-xs">
                 Groups
               </p>
               <p className="mt-1 text-2xl font-black">
@@ -243,8 +243,8 @@ export default function ReviewPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-black/20 p-4">
-              <p className="text-xs text-slate-600">
+            <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4">
+              <p className="theme-secondary-text text-xs">
                 Fixtures
               </p>
               <p className="mt-1 text-2xl font-black">
@@ -254,8 +254,8 @@ export default function ReviewPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-black/20 p-4">
-              <p className="text-xs text-slate-600">
+            <div className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4">
+              <p className="theme-secondary-text text-xs">
                 Format
               </p>
               <p className="mt-1 text-sm font-black">
@@ -293,7 +293,7 @@ export default function ReviewPage() {
                     key={
                       group.id
                     }
-                    className="rounded-xl border border-white/10 p-4"
+                    className="rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4"
                   >
                     <p className="font-black">
                       {
@@ -301,7 +301,7 @@ export default function ReviewPage() {
                       }
                     </p>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="theme-secondary-text mt-1 text-sm">
                       {
                         group.teams
                       } Teams
@@ -317,19 +317,19 @@ export default function ReviewPage() {
 
 
         {tournament.qualifiersPerGroup ? (
-          <section className="mt-6 rounded-xl border border-white/10 p-5">
+          <section className="mt-6 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5">
 
             <p className="font-black">
               Qualification
             </p>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="theme-secondary-text mt-2 text-sm">
               Top {
                 tournament.qualifiersPerGroup
               } from each group
             </p>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="theme-secondary-text mt-1 text-sm">
               Pairing: {
                 tournament
                   .playoffPairingMethod
@@ -344,7 +344,13 @@ export default function ReviewPage() {
         ) : null}
 
 
-        <p className="theme-secondary-text mt-6 text-sm">Publishing makes this tournament active. Check the teams, format and fixture count above before continuing.</p>
+        <section aria-labelledby="publish-checklist-title" className="mt-6 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-primary-soft)] p-5">
+          <h3 id="publish-checklist-title" className="theme-text text-base font-bold">Before you publish</h3>
+          <p className="theme-secondary-text mt-2 text-sm leading-6">
+            Review the approved entries, group sizes, fixture count and qualification rules above.
+            Publishing activates the tournament for players. To revise the setup, use Back or the builder steps.
+          </p>
+        </section>
         <div className="fc-workflow-actions mt-8 flex justify-between border-t pt-5">
 
           <button
@@ -352,7 +358,7 @@ export default function ReviewPage() {
             onClick={() =>
               router.back()
             }
-            className="rounded-xl border border-white/10 px-5 py-3 font-black text-slate-400"
+            className="theme-text-link rounded-xl border border-[var(--theme-border)] px-5 py-3 font-semibold"
           >
             ← Back
           </button>
@@ -365,7 +371,7 @@ export default function ReviewPage() {
             onClick={() =>
               void publish()
             }
-            className="rounded-xl bg-emerald-400 px-7 py-3 font-black text-[#041019] disabled:opacity-40"
+            className="theme-primary-button rounded-xl px-7 py-3 font-semibold disabled:opacity-40"
           >
             {busy
               ? 'Publishing...'

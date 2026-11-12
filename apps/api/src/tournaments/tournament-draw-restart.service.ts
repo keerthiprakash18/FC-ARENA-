@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
@@ -7,6 +7,26 @@ const FULL_PERMISSIONS = [
   'MANAGE_FIXTURES', 'MANAGE_RESULTS', 'VERIFY_SCORES',
   'MANAGE_PARTICIPANTS', 'MANAGE_SETTINGS', 'VIEW_REPORTS',
 ] as const;
+
+/**
+ * Cryptographically shuffle a copy of the approved entry set before the balanced
+ * round-robin group assignment. Injecting a draw function makes this testable.
+ * The original registration order and tournament records are never mutated.
+ */
+export function shuffleApprovedEntries<T>(
+  entries: readonly T[],
+  drawIndex: (maxExclusive: number) => number = randomInt,
+): T[] {
+  const shuffled = [...entries];
+  for (let index = shuffled.length - 1; index > 0; index--) {
+    const swapIndex = drawIndex(index + 1);
+    if (!Number.isInteger(swapIndex) || swapIndex < 0 || swapIndex > index) {
+      throw new RangeError('The draw function returned an invalid index.');
+    }
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
+}
 
 /**
  * Keep the original tournament/fixtures/results intact.
@@ -202,7 +222,9 @@ export class TournamentDrawRestartService {
         await tx.tournamentGroup.createMany({ data: groupRows });
       }
 
-      const entries = source.registrations.map((entry, index) => ({
+      // A fresh draw must not simply recreate the old registration-order groups.
+      const randomizedApprovedEntries = shuffleApprovedEntries(source.registrations);
+      const entries = randomizedApprovedEntries.map((entry, index) => ({
         id: randomUUID(),
         tournamentId: fresh.id,
         registeredByUserId: entry.registeredByUserId,
@@ -213,7 +235,7 @@ export class TournamentDrawRestartService {
         groupId: groupRows.length ? groupRows[index % groupRows.length].id : null,
       }));
       await tx.tournamentRegistration.createMany({ data: entries });
-      const members = source.registrations.flatMap((entry, index) =>
+      const members = randomizedApprovedEntries.flatMap((entry, index) =>
         entry.members.map(member => ({
           registrationId: entries[index].id,
           userId: member.userId,
@@ -240,6 +262,7 @@ export class TournamentDrawRestartService {
           preservedPreviousTournament: true,
           carriedTeams: entries.length,
           groupCount,
+          drawAlgorithm: 'CRYPTO_FISHER_YATES_BALANCED',
         },
       } });
       return {

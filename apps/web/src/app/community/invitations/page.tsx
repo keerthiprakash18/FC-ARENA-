@@ -123,7 +123,7 @@ export default function InvitationsPage() {
                       className="theme-primary-button min-h-11 rounded-lg px-4 text-sm font-semibold"
                       onClick={() => void copyInvite(membership.league.code, membership.league.name)}
                     >
-                      Copy secure join link
+                      Copy league join link
                     </button>
                   ) : null}
                 </div>

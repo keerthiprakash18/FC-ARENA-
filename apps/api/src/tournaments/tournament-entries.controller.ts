@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Patch,
   Post,
@@ -81,11 +82,13 @@ export class TournamentEntriesController {
   ) {}
 
   @Post('tournaments/:tournamentId/entries/:registrationId/replacement-preview')
+  @Header('Content-Type', 'application/json; charset=utf-8')
   previewReplacement(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string, @Param('registrationId') registrationId: string, @Body() dto: ReplaceTournamentPlayerDto) {
     return this.playerReplacement.preview(request.user.sub, tournamentId, registrationId, dto);
   }
 
   @Post('tournaments/:tournamentId/entries/:registrationId/replace-player')
+  @Header('Content-Type', 'application/json; charset=utf-8')
   replacePlayer(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string, @Param('registrationId') registrationId: string, @Body() dto: ReplaceTournamentPlayerDto) {
     return this.playerReplacement.replace(request.user.sub, tournamentId, registrationId, dto);
   }

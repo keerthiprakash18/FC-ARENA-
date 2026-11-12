@@ -347,7 +347,7 @@ export default function NotificationsPage() {
 
   return (
     <AppShell playerName={playerName}>
-      <div className="space-y-6">
+      <div className="fc-notification-page space-y-6">
         <FcPageHeader
           eyebrow="FC ARENA Activity"
           title="Notifications"
@@ -362,9 +362,7 @@ export default function NotificationsPage() {
               >
                 {busy ? "Updating..." : "Clear all"}
               </button>
-            ) : (
-              <FcStatusBadge label="All caught up" tone="emerald" />
-            )
+            ) : null
           }
         />
 
@@ -382,7 +380,7 @@ export default function NotificationsPage() {
 
         <FcPanel className="p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="fc-segmented" role="group" aria-label="Notification filters">
               {(
                 [
                   ["inbox", `Inbox (${data.unreadCount})`],
@@ -397,7 +395,7 @@ export default function NotificationsPage() {
                   aria-pressed={value === "results" ? resultView : filter === value}
                   disabled={busy}
                   onClick={() => setFilter(value === "results" ? "pending-results" : value)}
-                  className={`${(value === "results" ? resultView : filter === value) ? "theme-primary-button" : "theme-secondary-button"} min-h-11 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50`}
+                  className="disabled:opacity-50"
                 >
                   {label}
                 </button>
@@ -456,11 +454,8 @@ export default function NotificationsPage() {
 
             const content = (
               <article
-                className={
-                  unread
-                    ? "theme-action-row rounded-2xl border p-4 transition sm:p-5"
-                    : "theme-panel rounded-2xl border p-4 opacity-80 transition sm:p-5"
-                }
+                data-unread={unread}
+                className="fc-notification-item theme-panel rounded-2xl border p-4 sm:p-5"
               >
                 <div className="flex items-start gap-4">
                   <span className="theme-soft-accent grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-base font-semibold">

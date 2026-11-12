@@ -645,8 +645,6 @@ export class AiService {
         .trim()
         .toLowerCase();
 
-    const tamilPrompt = /[\u0B80-\u0BFF]/u.test(rawMessage);
-
     const includesAny = (
       words: string[],
     ) =>
@@ -663,17 +661,13 @@ export class AiService {
         'upcoming match',
         'next fixture',
         'fixture',
-        'அடுத்த மேட்ச்',
-        'அடுத்த match',
       ])
     ) {
       const fixture =
         context.upcomingFixtures[0];
 
       if (!fixture) {
-        return tamilPrompt
-          ? 'உங்களுக்கான அடுத்த போட்டி இன்னும் பதிவாகவில்லை. புதிய மேட்ச் அல்லது அட்டவணைக்கு Fixtures பக்கத்தைப் பார்க்கவும்.'
-          : 'I cannot find an upcoming fixture for you right now. Open Fixtures to check newly generated or unscheduled matches.';
+        return 'I cannot find an upcoming fixture for you right now. Open Fixtures to check newly generated or unscheduled matches.';
       }
 
       const schedule =
@@ -692,24 +686,19 @@ export class AiService {
             )
           : 'Schedule pending';
 
-      return tamilPrompt
-        ? `உங்களுடைய அடுத்த போட்டி: ${fixture.home} vs ${fixture.away} — ${fixture.tournament} · ${fixture.roundName}. ${schedule} (IST). Match Center விவரங்களுக்கு Fixtures பக்கத்தைத் திறக்கவும்.`
-        : `Your next recorded fixture is ${fixture.home} vs ${fixture.away} in ${fixture.tournament} · ${fixture.roundName}. ${schedule} (IST). Open Fixtures for Match Center details.`;
+      return `Your next recorded fixture is ${fixture.home} vs ${fixture.away} in ${fixture.tournament} · ${fixture.roundName}. ${schedule} (IST). Open Fixtures for Match Center details.`;
     }
 
     if (
       includesAny([
         'league',
-        'லீக்',
       ])
     ) {
       if (
         context.leagues.length ===
         0
       ) {
-        return tamilPrompt
-          ? 'நீங்கள் இன்னும் எந்த லீக்கிலும் சேரவில்லை. League Code மூலம் சேர அல்லது புதிய லீக் தொடங்க League பக்கத்தைத் திறக்கவும்.'
-          : 'You are not currently linked to a League. Open League to join with a League Code or create a new League.';
+        return 'You are not currently linked to a League. Open League to join with a League Code or create a new League.';
       }
 
       const leagues =
@@ -720,16 +709,12 @@ export class AiService {
           )
           .join(', ');
 
-      return tamilPrompt
-        ? `உங்கள் FC ARENA லீக்குகள்: ${leagues}. ஒரு வீரர் அதிகபட்சம் இரண்டு லீக்குகளில் (Primary / Secondary) மட்டும் இருக்கலாம்.`
-        : `Your current FC ARENA Leagues: ${leagues}. A player can belong to a maximum of two Leagues: Primary and Secondary.`;
+      return `Your current FC ARENA Leagues: ${leagues}. A player can belong to a maximum of two Leagues: Primary and Secondary.`;
     }
 
     if (
       includesAny([
         'tournament',
-        'டோர்னமெண்ட்',
-        'டூர்னமெண்ட்',
       ])
     ) {
       if (
@@ -737,7 +722,6 @@ export class AiService {
           'create',
           'setup',
           'how',
-          'எப்படி',
         ])
       ) {
         return 'League admins can create a Tournament and complete it through Setup → Teams → Groups when required → Fixture Settings → Fixture Preview → Qualification when required → Review → Publish.';
@@ -773,7 +757,6 @@ export class AiService {
         'loss',
         'goal',
         'form',
-        'ஸ்டாட்',
       ])
     ) {
       if (
@@ -827,7 +810,6 @@ export class AiService {
         'score',
         'ocr',
         'screenshot',
-        'ரிசல்ட்',
       ])
     ) {
       return 'Open the relevant Match from Fixtures. A permitted participant or admin can submit the score manually or upload a result screenshot for OCR. Standings and player statistics update only after the normal admin verification flow.';
@@ -836,7 +818,6 @@ export class AiService {
     if (
       includesAny([
         'group',
-        'குரூப்',
       ])
     ) {
       return 'Tournament groups are admin-controlled. Admins can create, rename and delete groups, move teams between groups, or use supported even/random distribution before generating group fixtures.';
@@ -845,7 +826,6 @@ export class AiService {
     if (
       includesAny([
         'poster',
-        'போஸ்டர்',
       ])
     ) {
       return 'Open a Tournament and choose Auto Poster. FC ARENA can generate share graphics from real Fixture, Result, Standings and Champion data.';
@@ -857,7 +837,6 @@ export class AiService {
         'admin',
         'permission',
         'audit',
-        'ரோல்',
       ])
     ) {
       return 'League admins can open League Settings → Roles & Audit to assign supported scoped roles and review recorded permission changes. Tournament Admin and Match Admin permissions are enforced by the backend.';
@@ -892,7 +871,7 @@ export class AiService {
         'You are strictly READ ONLY. Never claim to create, update, delete, approve, verify, schedule, submit, publish or otherwise change FC ARENA data.',
         'You may explain how the user can perform supported actions in the app.',
         'Use only the supplied FC ARENA context for personal match, league, tournament and statistics facts. If data is absent, say it is not currently available instead of guessing.',
-        'Reply in the language/style used by the user when practical, including Tamil or Tanglish. Keep answers concise and useful.',
+        'Reply in concise, clear English.',
         'Core FC ARENA rules: a player can belong to at most two leagues (Primary and Secondary); tournament setup uses separate setup/teams/groups/fixture settings/preview/review steps; fixtures are previewed before save; confirmed results drive standings/statistics; OCR result submissions require the normal verification flow.',
         'Do not expose internal IDs unless they are directly useful for navigation or support.',
         'Current authenticated user context follows as JSON:',

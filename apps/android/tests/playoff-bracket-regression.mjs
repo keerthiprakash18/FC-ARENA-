@@ -52,7 +52,13 @@ try {
         assert.equal(animation === 'none', width === 390, 'bracket respects the device motion preference');
         await page.getByRole('button', { name: 'Fit bracket', exact: true }).click();
         await bracket.locator('button[aria-pressed]').first().click();
-        assert.equal(await bracket.locator('button[aria-pressed="true"]').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(17, 29, 45)');
+        const selected = await bracket.locator('button[aria-pressed="true"]').evaluate(element => ({
+          background: getComputedStyle(element).backgroundColor,
+          surface: getComputedStyle(element.closest('[data-bracket-layout]')).backgroundColor,
+          focused: getComputedStyle(element).outlineStyle === 'solid',
+        }));
+        assert.equal(selected.background, selected.surface, 'selected ties use the current theme surface');
+        assert.equal(selected.focused, true, 'the selected tie has a visible outline');
         await page.getByRole('region', { name: 'Selected tie details' }).waitFor();
         if (label === 'ucl') {
           assert.match(await page.getByRole('region', { name: 'Selected tie details' }).innerText(), /Leg 1[\s\S]*Leg 2/);

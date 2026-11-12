@@ -99,7 +99,7 @@ export function MatchTimeCoordination({
     <section aria-labelledby="match-time-coordination-title" className="theme-panel mt-5 rounded-2xl border border-[var(--theme-border)] p-4 sm:p-5">
       <div>
         <h2 id="match-time-coordination-title" className="theme-text text-lg font-bold">
-          Match time coordination · மேட்ச் நேரம்
+          Match time coordination
         </h2>
         <p className="theme-secondary-text mt-1 text-sm leading-6">
           Suggest and agree on a time with the other side. This does not change the official

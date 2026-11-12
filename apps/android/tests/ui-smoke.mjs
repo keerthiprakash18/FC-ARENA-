@@ -4,10 +4,80 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
+import { phaseData, tournament } from './phase-ui-fixtures.mjs';
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
 const output = process.env.SMOKE_OUTPUT || '/tmp/fcarena-ui';
+const axeScript = process.env.AXE_CORE_SCRIPT;
 mkdirSync(output, {recursive:true});
-const errors = [], results = [];
+const errors = [], results = [], accessibility = [];
+const reviewPaths = new Set([
+  '/dashboard', '/profile', '/career', '/leaderboards', '/tournaments',
+  '/tournaments/ui-test/standings', '/tournaments/phase3/wizard/setup', '/tournaments/phase3/fixtures',
+  '/matches/result-test', '/league-war', '/league-war/phase3', '/awards',
+  '/notifications', '/arena-talk', '/admin/system',
+]);
+const themes = ['luxury-gold', 'classic-blue', 'city-sky', 'london-red', 'mersey-red', 'madrid-royal', 'catalan-nights', 'munich-red', 'paris-night', 'milan-blue', 'milan-red', 'turin-mono'];
+
+async function checkDesign(page, path, width) {
+  const screenshot = path.replaceAll('/', '_');
+  const html = page.locator('html');
+  const original = await html.evaluate(element => ({theme:element.dataset.theme,mode:element.dataset.mode}));
+  await page.evaluate(() => {
+    const style = document.createElement('style');
+    style.id = 'contrast-measurement';
+    style.nonce = document.querySelector('script[nonce]')?.nonce ?? '';
+    style.textContent = '*, *::before, *::after { transition: none !important; }';
+    document.head.append(style);
+  });
+  const failures = await page.evaluate(themes => {
+    const root = document.documentElement;
+    const states = [];
+    for (const theme of themes) for (const mode of ['light', 'dark']) {
+      root.dataset.theme = theme;
+      root.dataset.mode = mode;
+      if (root.scrollWidth > innerWidth + 1) states.push({theme,mode,scrollWidth:root.scrollWidth});
+    }
+    return states;
+  }, themes);
+  assert.deepEqual(failures, [], `${path} ${width}: theme layout overflow`);
+
+  for (const mode of ['light', 'dark']) {
+    await html.evaluate((element, {theme,mode}) => {
+      element.dataset.theme = theme;
+      element.dataset.mode = mode;
+    }, {theme:original.theme,mode});
+    if (mode === 'dark') {
+      await page.screenshot({path:`${output}/${screenshot}-dark-${width}.png`,fullPage:true,animations:'disabled'});
+    }
+    const violations = await page.evaluate(async () => (await window.axe.run(document, {
+      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
+    })).violations.map(rule => ({
+      id: rule.id, impact: rule.impact,
+      nodes: rule.nodes.map(node => ({target: node.target, reason: node.failureSummary})),
+    })));
+    accessibility.push({path,width,mode,violations});
+  }
+  await html.evaluate((element, {theme,mode}) => {
+    element.dataset.theme = theme;
+    element.dataset.mode = mode;
+    document.getElementById('contrast-measurement').remove();
+  }, original);
+}
+
+async function dragDrawer(page, from, to, afterMove) {
+  const session = await page.context().newCDPSession(page);
+  try {
+    const touch = x => [{ x, y: 240, id: 1 }];
+    await session.send('Input.dispatchTouchEvent', {type:'touchStart', touchPoints:touch(from)});
+    for (let step = 1; step <= 6; step++) {
+      await session.send('Input.dispatchTouchEvent', {type:'touchMove', touchPoints:touch(from + (to - from) * step / 6)});
+    }
+    await afterMove();
+    await session.send('Input.dispatchTouchEvent', {type:'touchEnd', touchPoints:[]});
+  } finally {
+    await session.detach();
+  }
+}
 const user = { id: 'smoke', fullName: 'Android Scroll Validation Long Player Name', email: 'smoke@example.invalid', role: 'PLAYER', status: 'ACTIVE', themePreference: 'CLASSIC_BLUE', player: { playerCode: 'TEST01', profileImageUrl: null, identity: { inGameName: 'LongAndroidPlayerNameForLayoutValidation', gameUid: '123', isVerified: true } } };
 const career = { profile: { ...user.player, primaryLeague: null, secondaryLeague: null }, lifetimeStatistics: { matches: 20, wins: 10, draws: 5, losses: 5, goalsFor: 40, goalsAgainst: 20, goalDifference: 20, winRate: 50, form: ['W','D','L'], tournaments: 2, achievements: 0 }, matchHistory: [], tournamentHistory: [], leagueHistory: [], achievements: [] };
 async function prepare(page) {
@@ -28,6 +98,7 @@ async function prepare(page) {
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
         case '/api/leagues/my': data = { leagues: [] }; break;
+        case '/api/tournaments/phase3': data = { tournament: {...tournament, isLeagueAdmin:user.role === 'SUPER_ADMIN'} }; break;
         case '/api/tournaments/ui-test/standings': data = {tournament: {name:'Arena Championship'}, standings: [{position:1,registrationId:'team1',entryName:'Manchester Champions With A Very Long Name',played:10,wins:7,draws:2,losses:1,goalsFor:23,goalsAgainst:11,goalDifference:12,points:23,form:'WWDLW'}]}; break;
         case '/api/tournaments/ui-test/groups': data = {groups:[{id:'g1',name:'Group A',position:1,entries:[{id:'team1',entryName:'Manchester Champions With A Very Long Name',members:[]}]}]}; break;
         case '/api/tournaments/ui-test/my-statistics': data={statistic:null}; break;
@@ -70,7 +141,9 @@ async function prepare(page) {
         }; break;
         case '/api/matches/result-test/scheduling': data = { enabled: false, proposals: [] }; break;
         case '/api/telemetry/web-vitals': data = { accepted: true }; break;
-        default: errors.push(`Unmocked API: ${url.pathname}`); return route.abort();
+        default:
+          data = phaseData[url.pathname];
+          if (!data) { errors.push(`Unmocked API: ${url.pathname}`); return route.abort(); }
       }
       return route.fulfill({ json: { success: true, data, error: null }, headers: { 'access-control-allow-origin': 'https://fcarena.in', 'access-control-allow-credentials': 'true' } });
     }
@@ -90,14 +163,15 @@ async function prepare(page) {
 const browser = await chromium.launch({headless:true, executablePath:process.env.CHROMIUM_PATH || undefined,args:['--no-sandbox']});
 try {
   for (const width of [360,375,390,412,430,768,1440]) {
-    const context=await browser.newContext({viewport:{width,height:850},serviceWorkers:'block'});
+    const context=await browser.newContext({viewport:{width,height:850},serviceWorkers:'block',hasTouch:width < 1024});
+    if (axeScript) await context.addInitScript({path:axeScript});
     const page=await context.newPage();
     await prepare(page);
     await context.addInitScript(()=>localStorage.setItem('fc-arena-theme-preference','LUXURY_GOLD'));
     // Mock the user's saved selection consistently with the initial theme.
     user.themePreference='LUXURY_GOLD';
-    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/settings','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/admin/system','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test']) {
-      user.role = path.startsWith('/admin/') ? 'SUPER_ADMIN' : 'PLAYER';
+    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/settings','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/admin/system','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test','/tournaments/phase3/wizard/setup','/tournaments/phase3/fixtures','/league-war/phase3']) {
+      user.role = path.startsWith('/admin/') || path.includes('/wizard/') ? 'SUPER_ADMIN' : 'PLAYER';
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
       // The shell mounts before authenticated reads finish. Measure the loaded
@@ -111,6 +185,9 @@ try {
       }
       if(['/login','/register','/forgot-password','/reset-password'].includes(path)) assert.equal(await page.locator('.field label').evaluateAll(labels=>labels.filter(label=>!label.control).length),0,'Every auth field label must target an input');
       if(path.includes('standings')) await page.getByText('Group A',{exact:true}).waitFor();
+      if (path.includes('/wizard/')) await page.getByRole('navigation', {name:'Tournament builder steps'}).waitFor();
+      if (path === '/tournaments/phase3/fixtures') await page.getByRole('navigation', {name:'Tournament sections'}).waitFor();
+      if (path === '/league-war/phase3') await page.getByRole('group', {name:'League War scoreboard'}).waitFor();
       if (path === '/admin/system') {
         await page.getByText('Historical performance · last 7 days').waitFor();
         await page.getByRole('table',{name:'Daily API timings, client LCP, HTTP 5xx'}).waitFor();
@@ -138,6 +215,9 @@ try {
         assert(await page.getByText('Manchester Champions With A Very Long Name',{exact:true}).count()>0);
       }
       if(width===390||width===1440) await page.screenshot({path:output+'/'+path.replaceAll('/','_')+'-'+width+'.png',fullPage:true,animations:'disabled'});
+      if (axeScript && (width === 390 || width === 1440) && reviewPaths.has(path)) {
+        await checkDesign(page, path, width);
+      }
       results.push({path,width,...metrics});
     }
     // Display mode, route navigation, and browser back remain functional.
@@ -151,28 +231,49 @@ try {
       await page.waitForURL('**/fixtures');
       await page.goBack(); await page.waitForURL('**/dashboard');
     }
-    // Language preference must survive navigation, preserve route links and
-    // avoid shrinking or overflowing the five-slot Android bottom rail.
-    await page.goto('https://fcarena.in/settings');
-    await page.getByRole('group',{name:'App language'}).getByRole('button',{name:'தமிழ்'}).click();
-    await page.waitForFunction(() => document.documentElement.lang === 'ta');
-    assert.equal(await page.locator('html').getAttribute('lang'),'ta');
-    assert.equal(await page.getByRole('button',{name:'தமிழ்'}).getAttribute('aria-pressed'),'true');
-    await page.goto('https://fcarena.in/dashboard');
-    await page.waitForFunction(() => document.documentElement.lang === 'ta');
-    assert.equal(await page.locator('html').getAttribute('lang'),'ta');
+    // Older installations can still have a saved locale when they upgrade.
+    await page.evaluate(() => localStorage.setItem('fc-arena-ui-language', 'ta'));
+    await page.reload();
+    await page.locator('.fc-main').waitFor();
+    assert.equal(await page.locator('html').getAttribute('lang'),'en');
     if (width < 1024) {
       assert.equal(await page.locator('.theme-bottom-nav a').count(),5);
-      assert(await page.locator('.theme-bottom-nav').getByText('முகப்பு',{exact:true}).count()>0);
+      assert.equal(await page.locator('.theme-bottom-nav').getByText('Home',{exact:true}).count(),1);
+      const trigger = page.getByRole('button', {name: 'Open navigation menu'});
+      await trigger.click();
+      const menu = page.getByRole('dialog', {name: 'FC Arena navigation'});
+      await menu.waitFor({state: 'visible'});
+      assert.equal(await menu.getByRole('link', {name: 'Dashboard', exact: true}).getAttribute('aria-current'), 'page');
+      if (width === 390) {
+        await menu.screenshot({path:output+'/navigation-drawer-390.png',animations:'disabled'});
+      }
+      await page.keyboard.press('Escape');
+      await menu.waitFor({state: 'hidden'});
+      await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Open navigation menu');
+      if (width === 390) {
+        await page.emulateMedia({reducedMotion:'no-preference'});
+        await trigger.click();
+        await page.waitForFunction(() => Math.abs(document.querySelector('dialog[open]').getBoundingClientRect().left) < 1);
+        await dragDrawer(page, 255, 55, async () => {
+          assert((await menu.boundingBox()).x < -120, 'Drawer must track the finger before release');
+        });
+        await menu.waitFor({state:'hidden'});
+        assert.equal(new URL(page.url()).pathname, '/dashboard');
+      }
     }
     await page.goto('https://fcarena.in/settings');
-    await page.getByRole('group',{name:'App language'}).getByRole('button',{name:'English'}).click();
-    await page.waitForFunction(() => document.documentElement.lang === 'en');
+    await page.getByRole('heading', {name: 'Settings', exact: true}).waitFor();
+    assert.equal(await page.getByRole('group',{name:'App language'}).count(),0);
     assert.equal(await page.locator('html').getAttribute('lang'),'en');
     await context.close();
     console.log('PASS UI width '+width);
   }
   assert.deepEqual(errors,[]);
-  writeFileSync(output+'/results.json',JSON.stringify({results,errors},null,2));
+  writeFileSync(output+'/results.json',JSON.stringify({results,errors,accessibility},null,2));
+  if (axeScript) {
+    assert(accessibility.length > 0, 'The requested accessibility scans must run');
+    assert.deepEqual(accessibility.filter(({violations}) => violations.length > 0), []);
+    console.log('PASS '+accessibility.length+' axe accessibility scans');
+  }
   console.log('PASS '+results.length+' route/viewport checks');
 } finally {await browser.close();}

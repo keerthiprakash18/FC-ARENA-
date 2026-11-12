@@ -47,9 +47,9 @@ export function PlayoffBracket({ fixtures, tournamentName, format, readOnly = fa
   return (
     <section className={styles.bracket} aria-label="Tournament championship bracket" data-bracket-layout={graph.mirrored ? 'mirrored' : 'progression'}>
       <div className={styles.heading}>
-        <div><p className={styles.eyebrow}>ROAD TO THE TROPHY</p><h3>{tournamentName}</h3>
+        <div><p className={styles.eyebrow}>Playoff bracket</p><h3>{tournamentName}</h3>
           <p>{format === 'UCL_CUP' ? 'Two legs · aggregate winner advances · single-match final' : format === 'DOUBLE_CHANCE' ? 'Qualifying, elimination and second-chance paths' : 'Follow every tie from qualification to the final'}</p></div>
-        <div className={styles.trophy}><FcIcon name="trophy" size={42} /><span>{winner ? 'CHAMPION' : 'THE FINAL AWAITS'}</span>{winner ? <strong>{bracketEntryName(winner)}</strong> : null}</div>
+        {winner ? <div className={styles.trophy}><FcIcon name="trophy" size={42} /><span>Champion</span><strong>{bracketEntryName(winner)}</strong></div> : null}
       </div>
       <div className={styles.toolbar}>
         <div className={styles.legend}><span><i />Winner advances</span>{graph.edges.some(edge => edge.outcome === 'LOSER') ? <span><i className={styles.loserKey} />Second chance</span> : null}<span><FcIcon name="check" size={13} />Verified scores</span></div>
@@ -60,7 +60,7 @@ export function PlayoffBracket({ fixtures, tournamentName, format, readOnly = fa
           <button type="button" onClick={fit}>Fit bracket</button><button type="button" onClick={() => setZoom(1)}>Reset</button>
         </div>
       </div>
-      <p className={styles.hint}>Swipe or scroll to explore. Select a tie to follow its path and view the legs.</p>
+      <p className={styles.hint}>Select a tie to highlight its path and open match details.</p>
       <div ref={viewport} className={styles.viewport} tabIndex={0} role="region" aria-label="Interactive playoff bracket">
         <div style={{ width: graph.width * zoom, height: graph.height * zoom }} className={styles.scaledBoard}>
           <div className={styles.board} style={{ width: graph.width, height: graph.height, transform: `scale(${zoom})` }}>

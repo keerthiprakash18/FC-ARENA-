@@ -47,8 +47,6 @@ interface ChatMessage {
 
 const quickQuestions = [
   'What is my next match?',
-  'எனது அடுத்த மேட்ச் எப்போது?',
-  'எனது லீக் என்ன?',
   'Show my current leagues.',
   'Explain my recent stats.',
   'How do I submit a match result?',

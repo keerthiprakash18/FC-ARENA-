@@ -598,15 +598,6 @@
   font-weight: 700;
   letter-spacing: -.045em;
 }
-.fc-premium .fc-main .fc-page-heading::before {
-  content: '';
-  display: block;
-  width: 42px;
-  height: 3px;
-  margin-bottom: -4px;
-  border-radius: 999px;
-  background: var(--premium-gold);
-}
 .fc-premium .fc-main :where(input, select, textarea) {
   border-color: var(--theme-control-border) !important;
   background: var(--theme-surface);
@@ -835,13 +826,10 @@
   .fc-premium .fc-main {
     padding-inline: 12px;
   }
-  .fc-premium .fc-main .fc-page-heading::before {
-    margin-bottom: -2px;
-  }
-  .fc-premium .fc-main .fc-page-heading > div:last-child {
+  .fc-premium .fc-main .fc-page-heading-actions {
     width: 100%;
   }
-  .fc-premium .fc-main .fc-page-heading > div:last-child :where(a, button) {
+  .fc-premium .fc-main .fc-page-heading-actions :where(a, button) {
     width: 100%;
   }
   .fc-public-home-header {

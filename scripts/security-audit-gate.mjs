@@ -2,9 +2,13 @@ import { parseAuditResult } from './security-audit-report.mjs';
 import { spawnSync } from 'node:child_process';
 
 const includeDev = process.argv.includes('--include-dev');
+const auditArgs = ['audit', ...(includeDev ? [] : ['--omit=dev']), '--json'];
+const isWindows = process.platform === 'win32';
+// Windows cannot spawn .cmd files directly through child_process. Run npm via
+// cmd.exe there; on POSIX, invoke npm directly as before.
 const result = spawnSync(
-  process.platform === 'win32' ? 'npm.cmd' : 'npm',
-  ['audit', ...(includeDev ? [] : ['--omit=dev']), '--json'],
+  isWindows ? process.env.ComSpec || 'cmd.exe' : 'npm',
+  isWindows ? ['/d', '/s', '/c', `npm ${auditArgs.join(' ')}`] : auditArgs,
   { encoding: 'utf8' },
 );
 

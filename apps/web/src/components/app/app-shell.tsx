@@ -1,6 +1,5 @@
 'use client';
 
-import { useAppLanguage } from '@/components/i18n/app-language';
 import { useLeagueRole } from '@/lib/use-league-role';
 
 import { PushSync } from '@/components/notifications/phone-push';
@@ -685,7 +684,6 @@ export function AppShell({
   }
 
 
-  const { language, navLabel } = useAppLanguage();
 
   const initials =
     (
@@ -737,7 +735,7 @@ export function AppShell({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           <p className="theme-sidebar-label px-1 text-[11px] font-semibold uppercase tracking-[0.06em]">
-            {language === 'ta' ? 'முதன்மை' : 'Main'}
+            Main
           </p>
 
           <nav className="mt-3 space-y-2">
@@ -753,7 +751,7 @@ export function AppShell({
                     item.href
                   }
                   label={
-                    navLabel(item.href, item.shortLabel)
+                    item.shortLabel
                   }
                   icon={
                     mainIconForHref(
@@ -774,7 +772,7 @@ export function AppShell({
 
 
           <p className="theme-sidebar-label px-1 text-[11px] font-semibold uppercase tracking-[0.06em]">
-            {language === 'ta' ? 'விரைவு செயல்கள்' : 'Quick Actions'}
+            Quick Actions
           </p>
 
           <div className="mt-3 space-y-2">

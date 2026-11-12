@@ -10,7 +10,8 @@ import {
 } from '@/components/admin/admin-navigation';
 
 import {
-  FcEmptyState,
+  FcErrorState,
+  FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
@@ -289,6 +290,7 @@ export default function AdminSystemPage() {
     <SecondaryFeaturePage
       eyebrow="Super Admin"
       title="System Monitoring"
+      className="fc-admin-system"
       subtitle="API runtime, database latency, push delivery, moderation queues and production backup health."
       backHref="/more"
       backLabel="More"
@@ -311,73 +313,14 @@ export default function AdminSystemPage() {
       <AdminNavigation />
 
       {error ? (
-        <FcEmptyState
-          title="System status unavailable"
-          description={
-            error
-          }
-        />
+        <FcErrorState title="System status unavailable" message={error} onRetry={() => void load()} />
       ) : null}
 
-      {data && telemetry ? (
-        <FcPanel className="mt-4 p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="theme-text text-xl font-semibold">Historical performance · last 7 days</h2>
-              <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
-                Anonymous aggregate API timings, Web Vitals and HTTP 5xx only.
-                Percentiles are upper bounds of histogram buckets, not exact measurements.
-                No player identities, paths, addresses or query parameters are stored.
-              </p>
-            </div>
-            <FcStatusBadge
-              label={telemetry.enabled ? 'Redis history enabled' : 'Historical metrics not configured'}
-              tone={telemetry.enabled ? 'emerald' : 'amber'}
-            />
-          </div>
-          {telemetry.enabled ? (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[560px] border-collapse text-left text-sm">
-                <caption className="sr-only">Daily API timings, client LCP, HTTP 5xx</caption>
-                <thead className="theme-secondary-text border-b border-[var(--theme-border)] text-xs">
-                  <tr>
-                    <th scope="col" className="p-3">UTC day</th>
-                    <th scope="col" className="p-3">API samples</th>
-                    <th scope="col" className="p-3">API p95 max</th>
-                    <th scope="col" className="p-3">LCP p75 max</th>
-                    <th scope="col" className="p-3">HTTP 5xx</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {telemetry.days.map(row => (
-                    <tr key={row.day} className="border-b border-[var(--theme-border)]">
-                      <th scope="row" className="theme-text p-3 font-semibold">{row.day}</th>
-                      <td className="p-3 tabular-nums">{row.metrics.API_MS?.samples ?? 0}</td>
-                      <td className="p-3 tabular-nums">{row.metrics.API_MS?.p95UpperBound == null ? '—' : `${row.metrics.API_MS.p95UpperBound} ms`}</td>
-                      <td className="p-3 tabular-nums">{row.metrics.LCP?.p75UpperBound == null ? '—' : `${row.metrics.LCP.p75UpperBound} ms`}</td>
-                      <td className="p-3 tabular-nums">{row.metrics.API_5XX?.events ?? 0}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {telemetry.droppedSamples ? (
-                <p role="status" className="theme-secondary-text mt-3 text-xs">
-                  {telemetry.droppedSamples} sample(s) dropped due to bounded memory queue.
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <p className="theme-secondary-text mt-4 text-sm">
-              Enable TELEMETRY_DURABLE_ENABLED with the existing Redis configuration
-              after staging validation. Live API monitoring continues to work without historical storage.
-            </p>
-          )}
-        </FcPanel>
-      ) : null}
+      {!data && !error ? <FcLoadingScreen label="Loading system health…" embedded /> : null}
 
       {data ? (
         <>
-          <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <section className="fc-admin-health" aria-label="System health summary">
             {[
               [
                 'Database',
@@ -456,6 +399,62 @@ export default function AdminSystemPage() {
               ),
             )}
           </section>
+
+          {telemetry ? (
+            <FcPanel className="mt-4 p-5 sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="theme-text text-xl font-semibold">Historical performance · last 7 days</h2>
+                  <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
+                    Anonymous aggregate API timings, Web Vitals and HTTP 5xx only.
+                    Percentiles are upper bounds of histogram buckets, not exact measurements.
+                    No player identities, paths, addresses or query parameters are stored.
+                  </p>
+                </div>
+                <FcStatusBadge
+                  label={telemetry.enabled ? 'Redis history enabled' : 'Historical metrics not configured'}
+                  tone={telemetry.enabled ? 'emerald' : 'amber'}
+                />
+              </div>
+              {telemetry.enabled ? (
+                  <div className="fc-scroll-region mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Historical performance table">
+                  <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+                    <caption className="sr-only">Daily API timings, client LCP, HTTP 5xx</caption>
+                    <thead className="theme-secondary-text border-b border-[var(--theme-border)] text-xs">
+                      <tr>
+                        <th scope="col" className="p-3">UTC day</th>
+                        <th scope="col" className="p-3">API samples</th>
+                        <th scope="col" className="p-3">API p95 max</th>
+                        <th scope="col" className="p-3">LCP p75 max</th>
+                        <th scope="col" className="p-3">HTTP 5xx</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {telemetry.days.map(row => (
+                        <tr key={row.day} className="border-b border-[var(--theme-border)]">
+                          <th scope="row" className="theme-text p-3 font-semibold">{row.day}</th>
+                          <td className="p-3 tabular-nums">{row.metrics.API_MS?.samples ?? 0}</td>
+                          <td className="p-3 tabular-nums">{row.metrics.API_MS?.p95UpperBound == null ? '—' : `${row.metrics.API_MS.p95UpperBound} ms`}</td>
+                          <td className="p-3 tabular-nums">{row.metrics.LCP?.p75UpperBound == null ? '—' : `${row.metrics.LCP.p75UpperBound} ms`}</td>
+                          <td className="p-3 tabular-nums">{row.metrics.API_5XX?.events ?? 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {telemetry.droppedSamples ? (
+                    <p role="status" className="theme-secondary-text mt-3 text-xs">
+                      {telemetry.droppedSamples} sample(s) dropped due to bounded memory queue.
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="theme-secondary-text mt-4 text-sm">
+                  Enable TELEMETRY_DURABLE_ENABLED with the existing Redis configuration
+                  after staging validation. Live API monitoring continues to work without historical storage.
+                </p>
+              )}
+            </FcPanel>
+          ) : null}
 
           <section className="grid gap-4 lg:grid-cols-2">
             <FcPanel className="p-5">

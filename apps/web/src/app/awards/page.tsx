@@ -763,12 +763,13 @@ export default function AwardsPage() {
     <SecondaryFeaturePage
       eyebrow="Hall of Honours"
       title="Awards"
+      className="fc-awards-page"
       subtitle="Verified tournament honours, live award races and the FC Arena Ballon seasonal ranking."
       backHref="/dashboard"
       backLabel="Home"
       action={
-        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-300">
-          {error ? 'Refresh failed' : loading ? 'Loading honours…' : 'Updated · 15s'}
+        <span className="theme-tone-success rounded-full border px-3 py-1.5 text-xs font-semibold">
+          {error ? 'Refresh failed' : loading ? 'Loading honours…' : 'Updated'}
           {lastUpdated
             ? ` · ${lastUpdated.toLocaleTimeString([], {
                 hour: '2-digit',

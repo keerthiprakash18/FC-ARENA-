@@ -118,7 +118,7 @@ export default function NotificationPreferencesPage() {
         </FcPanel>
 
         <FcPanel className="p-5 sm:p-6">
-          <h2 className="theme-text text-lg font-bold">Phone push quiet hours · அமைதி நேரம்</h2>
+          <h2 className="theme-text text-lg font-bold">Phone push quiet hours</h2>
           <p className="theme-secondary-text mt-2 text-sm leading-6">
             Optional quiet hours are calculated in India Standard Time. Non-urgent phone pushes
             wait until the window ends; urgent match and dispute alerts continue.

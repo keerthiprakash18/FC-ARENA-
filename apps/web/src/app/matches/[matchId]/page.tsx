@@ -1304,18 +1304,10 @@ function MatchRoom() {
         {canSubmit ? (
           <details
             id="result-update"
-            className="scroll-mt-24 rounded-[26px] border border-sky-400/20 bg-[#0a1018] p-6"
+            className="fc-result-evidence scroll-mt-24"
           >
             <summary className="cursor-pointer text-lg font-semibold">Upload a screenshot instead</summary>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-              AI Result Scanner
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black">
-              Upload Match Screenshot
-            </h2>
-
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+            <p className="theme-secondary-text mt-3 max-w-3xl text-sm leading-6">
               Upload the FC Mobile result screenshot. FC ARENA scans the score
               and in-game names, matches them only against the players
               registered in this Match, and prepares the result for
@@ -1339,7 +1331,7 @@ function MatchRoom() {
                   }
                   draft.setFile(file);
                 }}
-                className="rounded-xl border border-dashed border-white/15 bg-black/10 p-4 text-sm"
+                className="theme-input rounded-xl border border-dashed p-4 text-sm"
               />
 
               {draft.file ? <p className="theme-muted break-words text-sm">Selected screenshot: {draft.file.name} · {(draft.file.size / 1024).toFixed(0)} KB</p> : null}
@@ -1351,20 +1343,13 @@ function MatchRoom() {
                     <span>{uploadProgress}%</span>
                   </div>
 
-                  <div className="h-2 overflow-hidden rounded-full bg-white/5">
-                    <div
-                      className="h-full bg-sky-400 transition-all"
-                      style={{
-                        width: `${uploadProgress}%`,
-                      }}
-                    />
-                  </div>
+                  <progress className="fc-upload-progress w-full" value={uploadProgress} max={100} aria-label="Screenshot upload progress" />
                 </div>
               ) : null}
 
               <button
                 disabled={busy || ocrProcessing || !draft.ready}
-                className="rounded-xl bg-sky-400 px-5 py-3 font-black text-[#041019] disabled:opacity-50"
+                className="theme-primary-button rounded-xl px-5 py-3 font-semibold disabled:opacity-50"
               >
                 {ocrProcessing
                   ? "Processing Match Result..."
@@ -1375,7 +1360,7 @@ function MatchRoom() {
         ) : null}
 
         {latestOcr ? (
-          <section className="rounded-[26px] border border-white/10 bg-[#0a1018] p-6">
+          <section className="fc-result-evidence">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
@@ -1608,16 +1593,12 @@ function MatchRoom() {
         ) : null}
 
         {canSubmit ? (
-          <section id="result-entry" className="scroll-mt-24 rounded-[24px] border border-white/10 bg-[#0a1018] p-6">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-              Quick score entry
-            </p>
-
-            <h2 className="mt-2 text-2xl font-black">Enter Result Manually</h2>
+          <section id="result-entry" className="fc-result-evidence scroll-mt-24">
+            <h2 className="theme-text text-2xl font-semibold">Enter Result Manually</h2>
 
             <form
               onSubmit={submitManualResult}
-              className="mt-6 grid grid-cols-[1fr_auto_1fr] items-end gap-4"
+              className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 sm:gap-4"
             >
               <label className="grid gap-2 text-sm font-bold">
                 {home}
@@ -1632,11 +1613,11 @@ function MatchRoom() {
                   min="0"
                   max="99"
                   required
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                  className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                 />
               </label>
 
-              <span className="pb-4 font-black text-slate-600">-</span>
+              <span className="theme-secondary-text pb-4 font-semibold" aria-hidden="true">–</span>
 
               <label className="grid gap-2 text-sm font-bold">
                 {away}
@@ -1651,7 +1632,7 @@ function MatchRoom() {
                   min="0"
                   max="99"
                   required
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                  className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                 />
               </label>
 

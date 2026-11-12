@@ -3,7 +3,7 @@
   width: 44px;
   height: 44px;
   place-items: center;
-  border-radius: 50%;
+  border-radius: var(--fc-control-radius);
   color: var(--theme-text);
 }
 
@@ -19,24 +19,28 @@
 }
 
 .drawer {
+  --drawer-x: 0px;
+  --drawer-scrim: 0.46;
   position: fixed;
-  inset: 0 auto auto 0;
+  inset: 0 auto 0 0;
   margin: 0;
-  width: min(380px, calc(100% - 32px));
+  width: min(370px, calc(100% - 30px));
   max-width: none;
-  max-height: calc(100dvh - 8px);
+  max-height: 100dvh;
   padding: 0;
   color: var(--theme-text);
   background: var(--theme-surface);
   border: 1px solid var(--theme-border);
-  border-radius: 0 22px 22px 0;
-  box-shadow: 12px 0 50px rgb(0 0 0 / 26%);
+  border-radius: 0 var(--fc-card-radius) var(--fc-card-radius) 0;
+  box-shadow: 18px 0 64px rgb(8 21 34 / 22%);
   overflow: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
+  transform: translate3d(var(--drawer-x), 0, 0);
 }
 
 .drawer::backdrop {
-  background: rgb(0 0 0 / 60%);
+  background: rgb(6 18 30 / var(--drawer-scrim));
 }
 
 :global(html):has(.drawer[open]) {
@@ -44,13 +48,13 @@
 }
 
 .content {
-  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
 }
 
 .account {
   position: relative;
   border: 1px solid var(--theme-border);
-  border-radius: 18px;
+  border-radius: var(--fc-card-radius);
   overflow: hidden;
   background: var(--theme-secondary-background);
 }
@@ -64,7 +68,7 @@
   place-items: center;
   border-radius: 10px;
   font-size: 25px;
-  color: var(--theme-muted);
+  color: var(--theme-text-secondary);
 }
 
 .profile,
@@ -110,7 +114,7 @@
 .career small {
   display: block;
   margin-top: 2px;
-  color: var(--theme-muted);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
 }
 
@@ -126,11 +130,11 @@
 }
 
 .navigation {
-  margin-top: 6px;
+  margin-top: 14px;
 }
 
 .navigation ul {
-  padding: 4px 0;
+  padding: 7px 0;
 }
 
 .navigation ul + ul {
@@ -140,15 +144,39 @@
 .navigation a {
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
   gap: 12px;
   padding: 6px 11px;
-  border-radius: 10px;
+  border-radius: var(--fc-control-radius);
   font-size: 0.94rem;
   font-weight: 500;
 }
 
-.navigation a:hover,
+.shortcutChevron {
+  margin-inline-start: auto;
+  opacity: 0.68;
+}
+
+.navigation a[aria-current="page"] {
+  color: var(--theme-text);
+  background: var(--theme-primary-soft);
+  font-weight: 650;
+}
+
+.navigation a:not([aria-current="page"]):hover,
 .close:hover {
   background: var(--theme-secondary-background);
+}
+
+.drawer :is(a, button):focus-visible,
+.trigger:focus-visible {
+  outline: 2px solid var(--theme-focus);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .navigation a[aria-current="page"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
 }

@@ -40,9 +40,10 @@ test('brand and multi-mode colors come from existing theme tokens', () => {
 
 test('shared page headings and status labels remain usable at 360px', () => {
   const ui = read('apps/web/src/components/fc/fc-ui.tsx');
-  assert.match(ui, /w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto/);
+  const css = read('apps/web/src/app/vnext-visual-polish.css');
+  assert.match(css, /\.fc-page-heading-actions\s*\{[^}]*min-width: 0;[^}]*flex-wrap: wrap;/);
   assert.match(ui, /inline-flex max-w-full items-center rounded-full/);
-  assert.match(ui, /className="fc-page-heading flex flex-col/);
+  assert.match(ui, /<header className="fc-page-heading">/);
 });
 
 test('UI foundation cannot alter back-end records or require an API', () => {

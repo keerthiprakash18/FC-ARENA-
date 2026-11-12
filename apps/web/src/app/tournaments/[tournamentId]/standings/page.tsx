@@ -573,7 +573,7 @@ export default function StandingsPage() {
         <Link
           href={`/tournaments/${params.tournamentId}`}
           scroll
-          className="text-sm font-bold text-slate-500 hover:text-white"
+          className="theme-text-link min-h-11 text-sm font-semibold"
         >
           ← Back to
           Tournament

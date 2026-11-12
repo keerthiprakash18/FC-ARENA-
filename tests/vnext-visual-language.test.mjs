@@ -32,26 +32,21 @@ test('profile and league-war design follow shared hierarchy and themed controls'
   assert.match(war, /theme-input border-\[var\(--theme-control-border\)\]/);
 });
 
-test('language switch persists only a non-sensitive local preference and updates document lang', () => {
-  const provider = read('apps/web/src/components/i18n/app-language.tsx');
+test('the English interface declares its language without loading a language preference', () => {
   const layout = read('apps/web/src/app/layout.tsx');
   const settings = read('apps/web/src/app/settings/page.tsx');
-  assert.match(provider, /fc-arena-ui-language/);
-  assert.match(provider, /document\.documentElement\.lang/);
-  assert.match(provider, /storage/);
-  assert.match(provider, /'ta'/);
-  assert.match(layout, /<AppLanguageProvider>/);
-  assert.match(settings, /aria-pressed=\{language === 'ta'\}/);
-  assert.match(settings, /Untranslated screens remain in English/);
+  assert.match(layout, /lang="en"/);
+  assert.doesNotMatch(layout, /AppLanguageProvider|fc-arena-ui-language/);
+  assert.doesNotMatch(settings, /App language|useAppLanguage/);
 });
 
-test('navigation routes and active state are preserved in Tamil', () => {
+test('navigation exposes English labels and current-page semantics', () => {
   const bottom = read('apps/web/src/components/app/bottom-navigation.tsx');
   const shell = read('apps/web/src/components/app/app-shell.tsx');
   const search = read('apps/web/src/components/app/app-header.tsx');
-  assert.match(bottom, /navLabel\(item\.href, item\.shortLabel, true\)/);
+  assert.match(bottom, /item\.shortLabel/);
   assert.match(bottom, /aria-current/);
-  assert.match(shell, /navLabel\(item\.href, item\.shortLabel\)/);
-  assert.match(search, /navLabel\(item\.href, item\.label\)/);
-  assert.match(search, /பக்கங்களைத் தேடுங்கள்/);
+  assert.match(shell, /item\.shortLabel/);
+  assert.match(search, /Search app sections/);
+  assert.doesNotMatch(bottom + shell + search, /[\u0B80-\u0BFF]/u);
 });

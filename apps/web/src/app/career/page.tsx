@@ -109,8 +109,8 @@ export default function CareerPage() {
         <CareerNavigation />
         <CareerLeagueFilter data={career} />
 
-        <FcPanel className="p-5 sm:p-6">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+        <FcPanel className="fc-career-identity">
+          <div className="fc-player-identity">
             <FcCrest
               name={ign}
               imageUrl={
@@ -121,11 +121,11 @@ export default function CareerPage() {
             />
 
             <div className="min-w-0">
-              <h2 className="truncate text-2xl font-black">
+              <h2 className="theme-text">
                 {ign}
               </h2>
 
-              <p className="mt-1 font-mono text-xs text-sky-400">
+              <p className="theme-secondary-text mt-1 font-mono text-sm">
                 {career.profile.playerCode ||
                   'FC ARENA ID pending'}
               </p>

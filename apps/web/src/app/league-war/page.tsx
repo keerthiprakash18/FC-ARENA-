@@ -544,14 +544,16 @@ export default function LeagueWarPage() {
     >
       <div className="premium-page fc-league-war-page">
         <PremiumHero
-          eyebrow="FC Arena · League against league"
+          eyebrow="Competition"
           title="League War"
-          description="Your badge. Your roster. Your rivalry. League battles decided by verified results and live War Points."
+          description="Follow league challenges, rosters and points from verified matches."
           action={
             adminLeagues.length >
             0 ? (
               <button
                 type="button"
+                aria-expanded={showCreate}
+                aria-controls={showCreate ? "create-league-war" : undefined}
                 onClick={() =>
                   setShowCreate(
                     (
@@ -575,14 +577,10 @@ export default function LeagueWarPage() {
         {showCreate &&
         adminLeagues.length >
           0 ? (
-          <FcPanel className="p-5 sm:p-6">
+          <FcPanel id="create-league-war" className="fc-war-setup p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-300">
-                  New Challenge
-                </p>
-
-                <h2 className="mt-1 text-2xl font-black">
+                <h2 className="theme-text text-2xl font-semibold">
                   Create League War
                 </h2>
 

@@ -82,6 +82,6 @@ export class TournamentPlayerReplacementService {
       } });
       return { id: player.userId, name: player.identity?.inGameName || player.user.fullName, playerCode: player.playerCode };
     }, { isolationLevel: 'Serializable', timeout: 15000 });
-    return { success: true, data: { replacement, message: `${replacement.name} replaced the player in the same entry. Groups, fixtures, scores and team points are preserved.` }, error: null };
+    return { success: true, data: { replacement, message: 'Player replaced. Groups, fixtures, scores and team points are preserved.' }, error: null };
   }
 }

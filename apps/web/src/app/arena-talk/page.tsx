@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth-client";
 import { errorMessage, type ApiData } from "@/lib/player-experience";
 import type { ArenaContext } from "@/lib/arena-talk";
+import { FcErrorState, FcLoadingScreen, FcPageHeader } from "@/components/fc/fc-ui";
 import { confirmAction } from "@/components/fc/confirmation-provider";
 export default function ArenaTalkPage() {
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -54,28 +55,13 @@ export default function ArenaTalkPage() {
   }
   return (
     <AppShell currentUser={user || undefined}>
-      <main className="community-page">
-        <div className="community-heading">
-          <div>
-            <span className="community-eyebrow">
-              THE CONVERSATION CONTINUES
-            </span>
-            <h1>
-              Arena Talk<span className="community-dot">.</span>
-            </h1>
-            <p>Your league. The beautiful game. A place to talk football.</p>
-          </div>
-          <Link href="/experience" className="community-button">
-            My player journey ↗
-          </Link>
-        </div>
-        {error && (
-          <div role="alert" className="community-error">
-            {error}
-            <button onClick={() => void load()}>Try again</button>
-            <Link href="/login">Sign in</Link>
-          </div>
-        )}
+      <div className="community-page">
+        <FcPageHeader
+          title="Arena Talk"
+          subtitle="Discuss matches with FC ARENA members or in your league’s private feed."
+          action={<Link href="/experience" className="community-button">My player journey</Link>}
+        />
+        {error ? <FcErrorState title="Arena Talk unavailable" message={error} onRetry={() => void load()} /> : null}
         {context ? (
           <>
             <div
@@ -134,16 +120,7 @@ export default function ArenaTalkPage() {
                 }
               />
               <aside className="community-panel arena-sidebar">
-                <span className="community-eyebrow">A BETTER MATCHDAY</span>
-                <h2>
-                  Good football.
-                  <br />
-                  Good conversation.
-                </h2>
-                <p>
-                  Share an opinion, celebrate a result or ask your league a
-                  question.
-                </p>
+                <h2>Community guidelines</h2>
                 <ul>
                   <li>Debate the game. Respect the player.</li>
                   <li>Add a source when sharing news.</li>
@@ -162,9 +139,9 @@ export default function ArenaTalkPage() {
             </div>
           </>
         ) : (
-          !error && <p role="status">Opening Arena Talk…</p>
+          !error && <FcLoadingScreen label="Loading Arena Talk…" embedded />
         )}
-      </main>
+      </div>
     </AppShell>
   );
 }

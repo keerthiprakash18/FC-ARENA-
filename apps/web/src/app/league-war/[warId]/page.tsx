@@ -1133,18 +1133,18 @@ export default function LeagueWarDetailPage() {
         <section className="premium-hero premium-war-board">
           <PremiumPitch />
 
-          <div className="relative text-center">
+          <div className="relative">
             <p className="premium-eyebrow">
               FC Arena League War
             </p>
 
-            <h1 className="mt-2 text-2xl font-black sm:text-4xl">
+            <h1 className="mt-2 text-2xl font-semibold sm:text-4xl">
               {
                 war.name
               }
             </h1>
 
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="fc-war-caption mt-2 text-sm">
               {
                 war.playerCount
               }v{
@@ -1166,7 +1166,7 @@ export default function LeagueWarDetailPage() {
             </p>
           </div>
 
-          <div className="fc-league-war-scoreboard relative mt-7 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="fc-league-war-scoreboard relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4" role="group" aria-label="League War scoreboard">
             <div className="min-w-0 text-center">
               <div className="mx-auto flex justify-center">
                 <FcCrest
@@ -1182,7 +1182,7 @@ export default function LeagueWarDetailPage() {
                 />
               </div>
 
-              <p className="mt-3 truncate text-sm font-black sm:text-lg">
+              <p className="mt-3 break-words text-sm font-semibold sm:text-lg">
                 {
                   war.homeLeague
                     .name

@@ -294,6 +294,7 @@ export default function ProfilePage() {
   const playerName = identity?.inGameName || career.profile.fullName;
 
   const stats = career.lifetimeStatistics;
+  const joinedAt = Date.parse(career.profile.joinedAt);
 
   async function saveProfile() {
     const fullName = profileForm.fullName.trim();
@@ -392,9 +393,9 @@ export default function ProfilePage() {
     <AppShell playerName={playerName}>
       <div className="fc-profile-page space-y-6">
         <FcPageHeader
-          eyebrow="PLAYER IDENTITY / CAREER"
+          eyebrow="Player"
           title="Your player profile"
-          subtitle="Your verified football identity, season journey and career in one place."
+          subtitle="Manage your identity, profile photo and player card."
           action={
             <div className="flex flex-wrap items-center gap-2">
               <FcStatusBadge label={identity?.isVerified ? "Verified Player" : "Verification Pending"} tone={identity?.isVerified ? "emerald" : "amber"} />
@@ -404,8 +405,8 @@ export default function ProfilePage() {
             </div>
           }
         />
-        <section className="profile-photo-settings theme-panel" aria-label="Profile photo">
-          <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" className="sr-only" onChange={event => { const selected = event.target.files?.[0]; event.target.value = ""; if (selected) { setImageError(""); setImageMessage(""); setPhotoFile(selected); } }} />
+        <section className="profile-photo-settings fc-player-identity theme-panel" aria-label="Profile photo">
+          <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" hidden onChange={event => { const selected = event.target.files?.[0]; event.target.value = ""; if (selected) { setImageError(""); setImageMessage(""); setPhotoFile(selected); } }} />
           <button type="button" className="profile-photo-current" disabled={imageBusy} onClick={() => imageInputRef.current?.click()} aria-label="Choose profile photo">
             {career.profile.profileImageUrl ? <img src={career.profile.profileImageUrl} alt={`${playerName} profile`} /> : <span>{playerName.slice(0, 2).toUpperCase()}</span>}
             <small>Edit photo</small>
@@ -415,8 +416,6 @@ export default function ProfilePage() {
           {imageError && !photoFile && <p className="community-error" role="alert">{imageError}</p>}
         </section>
         {photoFile && <ProfilePhotoEditor file={photoFile} busy={imageBusy} progress={imageProgress} error={imageError} onSave={uploadProfileImage} onCancel={() => { if (!imageBusy) setPhotoFile(null); }} onChoose={selected => { setImageError(""); setPhotoFile(selected); }} />}
-
-        <PlayerJourney player={{ name: playerName, code: career.profile.playerCode, avatar: career.profile.profileImageUrl, verified: identity?.isVerified || false, matches: career.lifetimeStatistics.matches, wins: career.lifetimeStatistics.wins, goals: career.lifetimeStatistics.goalsFor, winRate: career.lifetimeStatistics.winRate }} />
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
@@ -578,7 +577,7 @@ export default function ProfilePage() {
                 <input
                   name="email"
                   value={career.profile.email}
-                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal opacity-70"
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal"
                   readOnly
                   aria-readonly="true"
                 />
@@ -600,8 +599,8 @@ export default function ProfilePage() {
               <label className="theme-text text-sm font-semibold">
                 Member Since
                 <input
-                  value={new Date(career.profile.joinedAt).toLocaleDateString()}
-                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal opacity-70"
+                  value={Number.isFinite(joinedAt) ? new Date(joinedAt).toLocaleDateString() : "—"}
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal"
                   readOnly
                 />
               </label>
@@ -676,6 +675,8 @@ export default function ProfilePage() {
             </Link>
           ))}
         </section>
+
+        <PlayerJourney player={{ name: playerName, code: career.profile.playerCode, avatar: career.profile.profileImageUrl, verified: identity?.isVerified || false, matches: career.lifetimeStatistics.matches, wins: career.lifetimeStatistics.wins, goals: career.lifetimeStatistics.goalsFor, winRate: career.lifetimeStatistics.winRate }} />
       </div>
     </AppShell>
   );

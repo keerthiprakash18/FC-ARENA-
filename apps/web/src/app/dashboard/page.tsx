@@ -16,6 +16,7 @@ import { FcIcon } from "@/components/fc/fc-icons";
 
 import {
   FcCrest,
+  FcErrorState,
   FcLoadingScreen,
   FcPanel,
   FcQuickActionTile,
@@ -609,11 +610,9 @@ export default function DashboardPage() {
   }, [activeTournament, personalRelevantFixtures]);
 
   if (error) return (
-    <AppShell><FcPanel className="p-6">
-      <h1 className="theme-text text-lg font-semibold">Dashboard unavailable</h1>
-      <p role="alert" className="theme-muted mt-2">{error}</p>
-      <button disabled={loading} className="theme-primary-button mt-4 min-h-11 rounded-lg px-5" onClick={() => setRetryCount(count => count + 1)}>Retry</button>
-    </FcPanel></AppShell>
+    <AppShell>
+      <FcErrorState title="Dashboard unavailable" message={error} busy={loading} onRetry={() => setRetryCount(count => count + 1)} />
+    </AppShell>
   );
 
   if (loading || !user || !career) {
@@ -711,7 +710,7 @@ export default function DashboardPage() {
       description: `${activeTournament.pendingEntries} registration(s) awaiting review.`,
       href: `/tournaments/${activeTournament.id}/teams`,
     }] : []),
-  ].slice(0, 3);
+  ].filter(action => action.href !== heroAction.href).slice(0, 3);
 
   return (
     <AppShell
@@ -720,12 +719,6 @@ export default function DashboardPage() {
       playerRole={selectedMembership?.adminRole || "Player"}
     >
       <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5">
-        {error ? (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm text-red-300">
-            {error}
-          </div>
-        ) : null}
-
         <section className="fc-dashboard-hero premium-home-hero" data-has-match={showNextMatch}>
           <div className="home-hero-layout relative grid items-center">
             <div className="min-w-0">
@@ -753,23 +746,6 @@ export default function DashboardPage() {
             </Link>
           </div>
         </section>
-
-        {nextActions.length > 0 ? (
-          <section aria-labelledby="dashboard-actions-title" className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 id="dashboard-actions-title" className="theme-text text-base font-bold">Your next steps</h2>
-              <span className="theme-secondary-text text-xs">Based on your current league and fixtures</span>
-            </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {nextActions.map((action) => (
-                <Link key={action.id} href={action.href} className="theme-secondary-button flex min-h-11 flex-col justify-center rounded-xl border border-[var(--theme-border)] px-4 py-3 focus-visible:outline-2 focus-visible:outline-offset-2">
-                  <span className="theme-text text-sm font-semibold">{action.label} <span aria-hidden="true">→</span></span>
-                  <span className="theme-secondary-text mt-1 text-xs leading-5">{action.description}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
 
         {showNextMatch ? (
           <section id="dashboard-next-match" tabIndex={-1} aria-label="Match overview">
@@ -874,8 +850,25 @@ export default function DashboardPage() {
           </section>
         ) : null}
 
+        {nextActions.length > 0 ? (
+          <section aria-labelledby="dashboard-actions-title" className="fc-dashboard-queue theme-panel border">
+            <h2 id="dashboard-actions-title" className="theme-text text-lg font-semibold">Your next steps</h2>
+            <div className="fc-dashboard-queue-list">
+              {nextActions.map((action) => (
+                <Link key={action.id} href={action.href} className="fc-dashboard-queue-item focus-visible:outline-2">
+                  <span>
+                    <span className="block font-semibold">{action.label}</span>
+                    <span className="theme-secondary-text block text-sm">{action.description}</span>
+                  </span>
+                  <FcIcon name="chevronRight" size={18} />
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {showLeague || showTournament ? (
-          <div className={`home-competition-grid grid items-start gap-4 sm:gap-5 ${showLeague && showTournament ? "lg:grid-cols-2" : ""}`}>
+          <div className={`home-competition-grid grid items-start gap-4 sm:gap-5 ${showLeague && showTournament ? "lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]" : ""}`}>
             {showTournament && activeTournament ? <FcPanel className="fc-tournament-panel p-4 sm:p-5">
               <SectionTitle
                 icon="tournament"

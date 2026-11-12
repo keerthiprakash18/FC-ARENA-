@@ -15,10 +15,12 @@ export function FcContextNav({
   items,
   ariaLabel,
   className = '',
+  current = 'page',
 }: {
   items: readonly FcContextNavItem[];
   ariaLabel: string;
   className?: string;
+  current?: 'page' | 'step';
 }) {
   const navRef = useRef<HTMLElement>(null);
   const [overflow, setOverflow] = useState(false);
@@ -29,7 +31,7 @@ export function FcContextNav({
     if (!nav) return;
     const update = () => {
       setOverflow(nav.scrollWidth > nav.clientWidth + 1);
-      const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+      const active = nav.querySelector<HTMLElement>('[aria-current]');
       if (active) {
         // Scroll only the tab rail: never move the document or native WebView.
         const left = active.getBoundingClientRect().left - nav.getBoundingClientRect().left + nav.scrollLeft;
@@ -57,7 +59,7 @@ export function FcContextNav({
           <Link
             key={`${String(item.label)}-${item.href}`}
             href={item.disabled ? '#' : item.href}
-            aria-current={item.active ? 'page' : undefined}
+            aria-current={item.active ? current : undefined}
             aria-disabled={item.disabled ? 'true' : undefined}
             tabIndex={item.disabled ? -1 : undefined}
             onClick={event => { if (item.disabled) event.preventDefault(); }}

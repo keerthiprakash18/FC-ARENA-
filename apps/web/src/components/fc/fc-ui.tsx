@@ -70,13 +70,16 @@ function renderIcon(
 export function FcPanel({
   children,
   className = '',
+  id,
 }: {
   children:
     ReactNode;
   className?: string;
+  id?: string;
 }) {
   return (
     <section
+      id={id}
       className={
         'fc-panel theme-panel min-w-0 rounded-2xl border ' +
         className
@@ -99,27 +102,27 @@ export function FcPageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="fc-page-heading flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div>
+    <header className="fc-page-heading">
+      <div className="fc-page-heading-copy">
         {eyebrow ? (
-          <p className="theme-muted text-xs font-medium">
+          <p className="fc-page-kicker">
             {eyebrow}
           </p>
         ) : null}
 
-        <h1 className="theme-text fc-display-strong tabular-nums mt-1 text-[28px] leading-tight sm:text-[34px]">
+        <h1 className="theme-text fc-display-strong">
           {title}
         </h1>
 
         {subtitle ? (
-          <p className="theme-secondary-text mt-2 max-w-2xl text-sm leading-6">
+          <p className="fc-page-summary">
             {subtitle}
           </p>
         ) : null}
       </div>
 
       {action ? (
-        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+        <div className="fc-page-heading-actions">
           {action}
         </div>
       ) : null}
@@ -210,14 +213,14 @@ export function FcStatCard({
             : 'activity';
 
   return (
-    <article className="theme-stat-card h-full min-h-[120px] rounded-2xl border p-5 transition duration-200">
+    <article className="fc-metric theme-stat-card h-full rounded-2xl border">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="theme-secondary-text fc-display text-[13px] font-medium">
+          <p className="fc-metric-label">
             {label}
           </p>
 
-          <p className="theme-text fc-display-strong tabular-nums mt-1 text-[28px] leading-none sm:text-[30px]">
+          <p className="fc-metric-value theme-text tabular-nums">
             {value}
           </p>
         </div>
@@ -237,7 +240,7 @@ export function FcStatCard({
       </div>
 
       {detail ? (
-        <p className="theme-muted mt-3 text-xs leading-5">
+        <p className="theme-secondary-text mt-3 text-xs leading-5">
           {detail}
         </p>
       ) : null}
@@ -329,32 +332,16 @@ export function FcEmptyState({
     >[0]['name'];
 }) {
   return (
-    <FcPanel className="fc-empty-state p-6 text-center sm:p-8">
-      <div className="theme-soft-accent mx-auto grid h-12 w-12 place-items-center rounded-xl border">
-        <FcIcon
-          name={
-            icon
-          }
-          size={22}
-        />
+    <FcPanel className="fc-empty-state fc-feedback">
+      <div className="fc-feedback-mark" aria-hidden="true">
+        <FcIcon name={icon} size={23} />
       </div>
-
-      <h3 className="theme-text mt-4 text-lg font-semibold">
-        {title}
-      </h3>
-
-      <p className="theme-secondary-text mx-auto mt-2 max-w-lg text-sm leading-6">
-        {description}
-      </p>
-
-      {actionLabel &&
-      actionHref ? (
-        <Link
-          href={
-            actionHref
-          }
-          className="theme-primary-button mt-5 inline-flex min-h-11 items-center rounded-[10px] px-4 text-sm font-semibold transition"
-        >
+      <div className="fc-feedback-copy">
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      {actionLabel && actionHref ? (
+        <Link href={actionHref} className="theme-primary-button fc-feedback-action">
           {actionLabel}
         </Link>
       ) : null}
@@ -388,15 +375,11 @@ export function FcLoadingScreen({
 }) {
   return (
     <div
-      className={embedded ? 'w-full' : 'theme-app-background min-h-screen p-4 sm:p-6 lg:p-8'}
+      className={embedded ? 'fc-loading-state w-full' : 'fc-loading-state theme-app-background min-h-dvh p-4 sm:p-6 lg:p-8'}
       role="status"
       aria-live="polite"
     >
-      <span className="sr-only">
-        {label}
-      </span>
-
-      <div className="mx-auto w-full max-w-[1180px] space-y-6">
+      <div className="mx-auto w-full max-w-[1180px] space-y-6" aria-hidden="true">
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-3">
             <FcSkeleton className="h-3 w-28" />
@@ -451,10 +434,8 @@ export function FcLoadingScreen({
           )}
         </div>
 
-        <p className="theme-muted text-center text-xs">
-          {label}
-        </p>
       </div>
+      <p className="fc-loading-label">{label}</p>
     </div>
   );
 }
@@ -575,18 +556,21 @@ export function FcErrorState({
 }) {
   return (
     <div
-      className="theme-error-box rounded-2xl border p-4 text-sm"
+      className="fc-feedback fc-feedback-error theme-error-box"
       role="alert"
     >
-      <h2 className="font-semibold">{title}</h2>
-      <p className="mt-1">{message}</p>
+      <span className="fc-feedback-mark" aria-hidden="true"><FcIcon name="alert" size={23} /></span>
+      <div className="fc-feedback-copy">
+        <h2>{title}</h2>
+        <p>{message}</p>
+      </div>
 
       {onRetry ? (
         <button
           type="button"
           disabled={busy}
           onClick={onRetry}
-          className="theme-secondary-button mt-3 min-h-10 rounded-[10px] border px-4 text-sm font-semibold disabled:opacity-50"
+          className="theme-secondary-button fc-feedback-action disabled:opacity-50"
         >
           {busy
             ? 'Retrying...'
@@ -607,7 +591,11 @@ export function legFormatLabel(legType?: string, competitionFormat?: string) {
 }
 
 export function FcNotice({ children, tone = 'success' }: { children: ReactNode; tone?: 'success' | 'error' }) {
-  return <div role={tone === 'error' ? 'alert' : 'status'} aria-live={tone === 'error' ? 'assertive' : 'polite'} aria-atomic="true" data-tone={tone} className={children ? 'fc-notice' : 'sr-only'}>{children}</div>;
+  return (
+    <div role={tone === 'error' ? 'alert' : 'status'} aria-atomic="true" data-tone={tone} className={children ? 'fc-notice' : 'sr-only'}>
+      {children ? <><span className="fc-notice-mark" aria-hidden="true"><FcIcon name={tone === 'error' ? 'alert' : 'check'} size={14} /></span><div>{children}</div></> : null}
+    </div>
+  );
 }
 
 export function FcUnauthorizedState({ forbidden = false }: { forbidden?: boolean }) {

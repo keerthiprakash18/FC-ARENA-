@@ -12,7 +12,6 @@ import {
   ThemeProvider,
 } from '@/components/theme/theme-provider';
 
-import { AppLanguageProvider } from '@/components/i18n/app-language';
 import { ConfirmationProvider } from '@/components/fc/confirmation-provider';
 import { AndroidUpdateNotice } from '@/components/app/android-update-notice';
 import { WebReleaseNotice } from '@/components/app/web-release-notice';
@@ -158,14 +157,12 @@ export default async function RootLayout({
         data-web-release={process.env.NEXT_PUBLIC_FC_ARENA_RELEASE_SHA ?? 'unknown'}
       >
         <ThemeProvider>
-          <AppLanguageProvider>
           <ConfirmationProvider />
           <ServiceWorkerRegister />
           <WebVitalsReporter />
           <AndroidUpdateNotice />
           <WebReleaseNotice />
           <AppRefreshProvider>{children}</AppRefreshProvider>
-          </AppLanguageProvider>
         </ThemeProvider>
       </body>
     </html>

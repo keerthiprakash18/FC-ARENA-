@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createUiContext, checkLayout } from './phase-ui-harness.mjs';
+import { join } from 'node:path';
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
 try {
   for (const width of [320, 390, 1280]) {
@@ -22,6 +23,10 @@ try {
       await f.page.goto('https://fcarena.in/leaderboards?league=phase3');
       const search = f.page.getByRole('searchbox', { name: 'Find a player or team', exact: true });
       await search.waitFor();
+      if (process.env.SMOKE_OUTPUT && width !== 320) {
+        await f.page.getByRole('list', { name: 'Top three players' }).waitFor();
+        await f.page.screenshot({path:join(process.env.SMOKE_OUTPUT, `populated-leaderboard-${width}.png`),fullPage:true,animations:'disabled'});
+      }
       await search.fill('south korea');
       await f.page.getByRole('status').filter({ hasText: '1 of 3 ranked players match' }).waitFor();
       const identity = width >= 768 ? f.page.locator('tbody tr').filter({ hasText: 'South Korea' }) : f.page.locator('[data-player-id="south"]').filter({ visible: true });
@@ -37,7 +42,7 @@ try {
       await f.page.getByRole('status').filter({ hasText: '1 of 3 ranked players match' }).waitFor();
       updated = true;
       await f.page.getByRole('button', { name: 'Refresh leaderboard', exact: true }).click();
-      await f.page.getByRole('status').filter({ hasText: '1 of 3 ranked players match' }).waitFor();
+      await identity.getByText('15', { exact: true }).waitFor();
       assert((await identity.innerText()).includes('15'), 'refresh must update the points');
       await search.fill('');
       await f.page.getByRole('combobox', { name: 'Competition mode', exact: true }).selectOption('DUO');

@@ -237,10 +237,6 @@ export default function LeaderboardsPage() {
     allRankings.find((row) => row.userId === userId)?.position ??
     null;
 
-  const podiumRows = [rankings[1], rankings[0], rankings[2]].filter(
-    (row): row is RankingRow => Boolean(row),
-  );
-
   function findMyRank() {
     setSearch('');
     window.requestAnimationFrame(() => {
@@ -255,6 +251,7 @@ export default function LeaderboardsPage() {
     <SecondaryFeaturePage
       eyebrow="Competition"
       title="League Leaderboards"
+      className="fc-leaderboard-page"
       subtitle="League-wide player performance combined automatically from verified FC ARENA Tournament results."
       backHref={selectedLeague ? "/leagues/" + selectedLeague : "/more"}
       backLabel={selectedLeague ? "League" : "More"}
@@ -396,7 +393,7 @@ export default function LeaderboardsPage() {
 
               <details className="mb-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4">
                 <summary className="theme-text cursor-pointer text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2">
-                  How FC ARENA League rankings work · புள்ளிகள் விதிமுறை
+                  How FC ARENA League rankings work
                 </summary>
                 <p className="theme-secondary-text mt-3 text-sm leading-6">
                   Only confirmed Tournament results count. Performance Points = 3 for a win + 1 for a draw.
@@ -404,14 +401,10 @@ export default function LeaderboardsPage() {
                   Daily ranking movement compares your position with the previous recorded league snapshot;
                   a new league or mode may not yet have previous history.
                 </p>
-                <p className="theme-secondary-text mt-2 text-xs">
-                  உறுதிப்படுத்தப்பட்ட போட்டி முடிவுகள் மட்டுமே கணக்கில் கொள்ளப்படும்.
-                  வெற்றி 3 புள்ளிகள், டிரா 1 புள்ளி.
-                </p>
               </details>
 
               <section aria-labelledby="my-ranking-history-title" className="mb-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
-                <h2 id="my-ranking-history-title" className="theme-text text-base font-bold">My rank history · கடந்த தரவரிசை</h2>
+                <h2 id="my-ranking-history-title" className="theme-text text-base font-bold">My rank history</h2>
                 <p className="theme-secondary-text mt-1 text-xs leading-5">
                   Last 90 days of actual saved daily league snapshots in this competition mode.
                   Missing dates and unranked days are never estimated.
@@ -473,185 +466,43 @@ export default function LeaderboardsPage() {
                 />
               ) : (
                 <>
-                  <section className={query ? "hidden" : "hidden grid-cols-3 items-end gap-3 md:grid"} aria-label="Top three players">
-                    {podiumRows.map((row) => {
-                      const champion = row.position === 1;
-
-                      return (
-                        <FcPanel
-                          key={row.userId}
-                          className={
-                            "relative overflow-hidden p-5 text-center " +
-                            (champion
-                              ? "min-h-[250px] border-amber-400/25 theme-soft-accent"
-                              : "min-h-[220px]")
-                          }
-                        >
-                          <span
-                            className={
-                              "mx-auto grid h-10 w-10 place-items-center rounded-full border text-sm font-black " +
-                              (champion
-                                ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
-                                : "theme-tone-premium")
-                            }
-                          >
-                            #{row.position}
-                          </span>
-
-                          <div className="mt-3 flex justify-center">
-                            <FcCrest
-                              name={playerName(row)}
-                              imageUrl={row.profileImageUrl}
-                              size="sm"
-                            />
-                          </div>
-
-                          <h2 className="theme-text mt-3 truncate text-base font-bold">
-                            {playerName(row)}
-                          </h2>
-                          <EntryNames row={row} />
-
-                          <p className="theme-text-link mt-3 text-3xl font-black">
-                            {row.performancePoints}
-                          </p>
-                          <p className="theme-muted text-[9px] font-semibold uppercase tracking-[0.1em]">
-                            points
-                          </p>
-
-                          <div className="mt-3 grid grid-cols-2 gap-1 text-center">
-                            <div className="theme-soft-accent rounded-lg border px-1 py-1.5">
-                              <p className="theme-muted text-[9px]">W</p>
-                              <p className="theme-text text-xs font-bold">{row.wins}</p>
-                            </div>
-                            <div className="theme-soft-accent rounded-lg border px-1 py-1.5">
-                              <p className="theme-muted text-[9px]">WIN%</p>
-                              <p className="theme-text text-xs font-bold">{row.winRate}%</p>
-                            </div>
-                          </div>
-
-                          {row.rankChange != null ? (
-                            <p className="theme-muted mt-2 text-[10px]">
-                              {row.rankChange > 0
-                                ? `↑ ${row.rankChange} places`
-                                : row.rankChange < 0
-                                  ? `↓ ${Math.abs(row.rankChange)} places`
-                                  : "No rank change"}
-                            </p>
-                          ) : null}
-                        </FcPanel>
-                      );
-                    })}
-                  </section>
-
-                  <section className={query ? "hidden" : "grid gap-3 md:hidden"} aria-label="Top three players">
-                    {rankings.slice(0, 3).map((row) => {
-                      const champion = row.position === 1;
-
-                      return (
-                        <FcPanel
-                          key={row.userId}
-                          className={
-                            "relative overflow-hidden p-4 " +
-                            (champion
-                              ? "border-amber-400/25 theme-soft-accent"
-                              : "")
-                          }
-                        >
-                          <div
-                            data-player-id={row.userId}
-                            className="flex min-w-0 items-center gap-3"
-                          >
-                            <span
-                              className={
-                                "grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-sm font-black " +
-                                (champion
-                                  ? "border-amber-400/30 bg-amber-400/10 text-amber-300"
-                                  : "theme-tone-premium")
-                              }
-                            >
-                              #{row.position}
-                            </span>
-
-                            <FcCrest
-                              name={playerName(row)}
-                              imageUrl={row.profileImageUrl}
-                              size="sm"
-                            />
-
-                            <div className="min-w-0 flex-1">
-                              <div className="flex min-w-0 items-center gap-2">
-                                <p className="theme-text min-w-0 truncate text-base font-bold">
-                                  {playerName(row)}
-                                </p>
-                                {champion ? (
-                                  <span className="shrink-0 rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-amber-300">
-                                    Leader
-                                  </span>
-                                ) : null}
+                  {!query ? (
+                    <ol className="fc-rank-podium" aria-label="Top three players">
+                      {rankings.slice(0, 3).map(row => (
+                        <li key={row.userId} data-position={row.position} data-player-id={row.userId}>
+                          <FcPanel className={row.position === 1 ? "fc-rank-card fc-rank-spotlight" : "fc-rank-card"}>
+                            <div className="fc-rank-identity">
+                              <span className="fc-rank-medal" aria-label={'Rank ' + row.position}>#{row.position}</span>
+                              <FcCrest name={playerName(row)} imageUrl={row.profileImageUrl} size="sm" />
+                              <div className="min-w-0">
+                                <h2 className="theme-text font-semibold">{playerName(row)}</h2>
+                                <EntryNames row={row} />
                               </div>
-                              <EntryNames row={row} />
-                              <p className="theme-muted mt-1 truncate text-[10px]">
-                                {row.tournamentsPlayed} tournaments · {row.matches} matches
-                              </p>
+                              <div className="fc-rank-score">
+                                <strong>{row.performancePoints}</strong>
+                                <span>Points</span>
+                              </div>
                             </div>
-
-                            <div className="shrink-0 text-right">
-                              <p className="theme-text-link text-xl font-black leading-none">
-                                {row.performancePoints}
-                              </p>
-                              <p className="theme-muted mt-1 text-[9px] font-semibold uppercase tracking-[0.08em]">
-                                pts
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                            <div className="theme-soft-accent rounded-lg border px-2 py-2">
-                              <p className="theme-muted text-[9px] uppercase tracking-[0.08em]">
-                                Wins
-                              </p>
-                              <p className="theme-text mt-1 text-sm font-black">
-                                {row.wins}
-                              </p>
-                            </div>
-                            <div className="theme-soft-accent rounded-lg border px-2 py-2">
-                              <p className="theme-muted text-[9px] uppercase tracking-[0.08em]">
-                                Win %
-                              </p>
-                              <p className="theme-text mt-1 text-sm font-black">
-                                {row.winRate}%
-                              </p>
-                            </div>
-                            <div className="theme-soft-accent rounded-lg border px-2 py-2">
-                              <p className="theme-muted text-[9px] uppercase tracking-[0.08em]">
-                                GD
-                              </p>
-                              <p className="theme-text mt-1 text-sm font-black">
-                                {row.goalDifference > 0
-                                  ? "+" + row.goalDifference
-                                  : row.goalDifference}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="mt-3 flex items-center justify-between gap-3">
-                            <p className="theme-muted text-[10px]">
+                            <dl className="fc-rank-stats">
+                              <div><dt>Wins</dt><dd>{row.wins}</dd></div>
+                              <div><dt>Win rate</dt><dd>{row.winRate}%</dd></div>
+                              <div><dt>Goal difference</dt><dd>{row.goalDifference > 0 ? "+" : ""}{row.goalDifference}</dd></div>
+                            </dl>
+                            <p className="theme-secondary-text text-xs">
+                              {row.matches} matches · {row.tournamentsPlayed} tournaments · {row.goalsFor} GF · {row.goalsAgainst} GA
                               {row.rankChange == null
-                                ? "No previous rank"
+                                ? " · No previous rank"
                                 : row.rankChange > 0
-                                  ? `↑ ${row.rankChange} places`
+                                  ? ' · Up ' + row.rankChange + ' places'
                                   : row.rankChange < 0
-                                    ? `↓ ${Math.abs(row.rankChange)} places`
-                                    : "No rank change"}
+                                    ? ' · Down ' + Math.abs(row.rankChange) + ' places'
+                                    : " · No rank change"}
                             </p>
-                            <p className="theme-muted text-[10px]">
-                              {row.goalsFor} GF · {row.goalsAgainst} GA
-                            </p>
-                          </div>
-                        </FcPanel>
-                      );
-                    })}
-                  </section>
+                          </FcPanel>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : null}
 
                   <div className="grid gap-3 md:hidden">
                     {rankings.slice(query ? 0 : 3).map((row) => (
@@ -750,8 +601,8 @@ export default function LeaderboardsPage() {
                   </div>
 
                   <FcPanel className="hidden overflow-hidden md:block">
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[980px] text-sm">
+                    <div className="fc-scroll-region overflow-x-auto" tabIndex={0} role="region" aria-label="League leaderboard table">
+                      <table className="fc-ranked-table w-full min-w-[900px] text-sm">
                         <thead className="theme-soft-accent text-left">
                           <tr className="theme-muted">
                             <th className="px-4 py-3">Rank</th>

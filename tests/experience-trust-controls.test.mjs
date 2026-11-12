@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 
-test('AI messages label provider vs built-in fallback, including Tamil help', () => {
+test('AI messages label provider and built-in fallback', () => {
   const page = source('apps/web/src/app/ai/page.tsx');
   assert.match(page, /engine: 'PROVIDER' \| 'LOCAL_FALLBACK'/);
   assert.match(page, /Built-in help · Read-only/);
   assert.match(page, /AI provider · Read-only/);
-  assert.match(page, /எனது அடுத்த மேட்ச்/);
+  assert.doesNotMatch(page, /[\u0B80-\u0BFF]/u);
 });
 
 test('League leaderboard explains accurate scoring order and visible rule summary', () => {

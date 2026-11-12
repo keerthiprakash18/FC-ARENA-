@@ -114,6 +114,7 @@ export function AdminNavigation() {
   return (
     <FcContextNav
       ariaLabel="Admin sections"
+      className="fc-admin-nav"
       items={items.map(([label, href]) => ({
         label,
         href,

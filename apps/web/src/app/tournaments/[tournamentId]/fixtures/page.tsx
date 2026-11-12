@@ -21,6 +21,8 @@ import type {
 } from 'react';
 
 import { AppShell } from '@/components/app/app-shell';
+import { BackHeader } from '@/components/app/back-header';
+import { TournamentNavigation } from '@/components/tournaments/tournament-navigation';
 
 import {
   FixtureCard,
@@ -32,7 +34,7 @@ import {
   type CurrentUser,
   getCurrentUser,
 } from '@/lib/auth-client';
-import { FcNotice } from '@/components/fc/fc-ui';
+import { FcLoadingScreen, FcNotice } from '@/components/fc/fc-ui';
 import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 import type { EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
 
@@ -734,9 +736,9 @@ export default function TournamentFixturesPage() {
     !tournament
   ) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#05080d] text-sm font-black text-slate-500">
-        Loading Fixture Center...
-      </div>
+      <AppShell currentUser={user ?? undefined}>
+        <FcLoadingScreen label="Loading fixtures…" embedded />
+      </AppShell>
     );
   }
 
@@ -750,97 +752,24 @@ export default function TournamentFixturesPage() {
           ?.inGameName
       }
     >
-      <div className="space-y-6">
-
-        <button
-          type="button"
-          onClick={() =>
-            router.back()
-          }
-          className="text-sm font-black text-slate-500 transition hover:text-white"
-        >
-          ← Back
-        </button>
-
-
+      <div className="fc-tournament-fixtures space-y-6">
+        <BackHeader
+          backHref={'/tournaments/' + tournamentId}
+          backLabel="Tournament overview"
+          eyebrow="Fixture center"
+          title={tournament.name}
+          subtitle={competitionLabel + (isDoubleLeg ? ' · Both legs count toward the standings' : '')}
+        />
+        <TournamentNavigation tournamentId={tournamentId} />
         <TournamentFixtureStart tournament={tournament} />
         <TournamentFormatGuide guide={tournament.formatGuide} compact />
-
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-6 md:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-            Fixture Center
-          </p>
-
-          <h1 className="mt-2 text-3xl font-black tracking-[-0.04em] md:text-5xl">
-            {
-              tournament.name
-            }
-          </h1>
-
-          <p className="mt-2 font-mono text-xs text-slate-600">
-            {
-              tournament.code
-            }
-          </p>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className="rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3 py-2 text-xs font-black text-sky-300">
-              {
-                competitionLabel
-              }
-            </span>
-
-            {isDoubleLeg ? (
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-400">
-                Both legs count toward the overall standings
-              </span>
-            ) : null}
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-
-            <Link
-              href={`/tournaments/${tournamentId}`}
-              scroll
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
-            >
-              Overview
-            </Link>
-
-            <Link
-              href={`/tournaments/${tournamentId}/groups`}
-              scroll
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
-            >
-              Groups
-            </Link>
-
-            <Link
-              href={`/tournaments/${tournamentId}/standings`}
-              scroll
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
-            >
-              Standings
-            </Link>
-            <Link
-              href={`/tournaments/${tournamentId}/playoffs`}
-              scroll
-              className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
-            >
-              Playoffs
-            </Link>
-
-
-          </div>
-        </section>
-
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
 
 
         {tournament.isLeagueAdmin ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-5">
+          <section className="theme-panel rounded-2xl border p-5">
 
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-400">
@@ -870,7 +799,7 @@ export default function TournamentFixturesPage() {
                     tournament.dailyMatchLimit
                   }
                   required
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-sm text-white"
+                  className="theme-input min-h-11 rounded-xl border px-4 text-sm"
                 />
               </label>
 
@@ -887,7 +816,7 @@ export default function TournamentFixturesPage() {
                     tournament.matchesPerParticipantPerDay
                   }
                   required
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-sm text-white"
+                  className="theme-input min-h-11 rounded-xl border px-4 text-sm"
                 />
               </label>
 
@@ -904,7 +833,7 @@ export default function TournamentFixturesPage() {
                     tournament.matchDurationMinutes
                   }
                   required
-                  className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-sm text-white"
+                  className="theme-input min-h-11 rounded-xl border px-4 text-sm"
                 />
               </label>
 
@@ -914,7 +843,7 @@ export default function TournamentFixturesPage() {
                 disabled={
                   busy
                 }
-                className="rounded-xl bg-white px-4 py-3 text-sm font-black text-black disabled:opacity-50 md:col-span-3"
+                className="theme-primary-button min-h-11 rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-50 md:col-span-3"
               >
                 Save Scheduling Rules
               </button>
@@ -924,7 +853,7 @@ export default function TournamentFixturesPage() {
         ) : null}
 
 
-        <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-5">
+        <section className="theme-panel rounded-2xl border p-5">
 
           <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
             Group Filter
@@ -989,6 +918,7 @@ export default function TournamentFixturesPage() {
 
               <button
                 type="button"
+                aria-pressed={selectedMatchday === 'ALL'}
                 onClick={() =>
                   setSelectedMatchday(
                     'ALL',
@@ -997,8 +927,8 @@ export default function TournamentFixturesPage() {
                 className={`shrink-0 rounded-xl px-4 py-2 text-xs font-black ${
                   selectedMatchday ===
                   'ALL'
-                    ? 'bg-white text-black'
-                    : 'border border-white/10 text-slate-500'
+                    ? 'theme-primary-button'
+                    : 'theme-secondary-button'
                 }`}
               >
                 All
@@ -1014,6 +944,7 @@ export default function TournamentFixturesPage() {
                       matchday
                     }
                     type="button"
+                    aria-pressed={selectedMatchday === String(matchday)}
                     onClick={() =>
                       setSelectedMatchday(
                         String(
@@ -1026,8 +957,8 @@ export default function TournamentFixturesPage() {
                       String(
                         matchday,
                       )
-                        ? 'bg-white text-black'
-                        : 'border border-white/10 text-slate-500'
+                        ? 'theme-primary-button'
+                        : 'theme-secondary-button'
                     }`}
                   >
                     MD {
@@ -1045,7 +976,7 @@ export default function TournamentFixturesPage() {
 
         <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
 
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-4">
+          <article className="theme-panel rounded-2xl border p-4">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
               Fixtures
             </p>
@@ -1058,7 +989,7 @@ export default function TournamentFixturesPage() {
           </article>
 
 
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-4">
+          <article className="theme-panel rounded-2xl border p-4">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
               Groups
             </p>
@@ -1072,7 +1003,7 @@ export default function TournamentFixturesPage() {
           </article>
 
 
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-4">
+          <article className="theme-panel rounded-2xl border p-4">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
               Scheduled
             </p>
@@ -1090,7 +1021,7 @@ export default function TournamentFixturesPage() {
           </article>
 
 
-          <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-4">
+          <article className="theme-panel rounded-2xl border p-4">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
               Completed
             </p>
@@ -1197,7 +1128,7 @@ export default function TournamentFixturesPage() {
                           key={
                             matchday
                           }
-                          className="rounded-[26px] border border-white/10 bg-[#0a1018] p-5 md:p-6"
+                          className="theme-panel rounded-2xl border p-5 md:p-6"
                         >
 
                           <div className="flex items-center justify-between gap-4">

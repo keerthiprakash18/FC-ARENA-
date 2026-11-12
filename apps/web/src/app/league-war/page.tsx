@@ -586,7 +586,7 @@ export default function LeagueWarPage() {
                   Create League War
                 </h2>
 
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
+                <p className="mt-2 max-w-3xl text-sm leading-6 theme-secondary-text">
                   Opponent admin must accept. Both sides must lock a full roster and mark Ready before Start War unlocks.
                 </p>
               </div>
@@ -598,7 +598,8 @@ export default function LeagueWarPage() {
                     false,
                   )
                 }
-                className="text-xl text-slate-500"
+                aria-label="Close Create League War form"
+                className="theme-secondary-button grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-xl"
               >
                 ×
               </button>
@@ -610,12 +611,12 @@ export default function LeagueWarPage() {
               }
               className="mt-6 grid gap-4 lg:grid-cols-2"
             >
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Your League
                 <select
                   name="homeLeagueId"
                   required
-                  className="min-h-12 rounded-xl border border-white/10 bg-[#101923] px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 >
                   {adminLeagues.map(
                     (
@@ -644,27 +645,27 @@ export default function LeagueWarPage() {
                 </select>
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Opponent League Code
                 <input
                   name="opponentLeagueCode"
                   required
                   maxLength={20}
                   placeholder="e.g. KVN-1234"
-                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 font-mono uppercase outline-none focus:border-rose-400/40"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 font-mono uppercase outline-none focus:border-[var(--theme-primary)]"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 War Name
                 <input
                   name="name"
                   placeholder="Friday Night League War"
-                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 outline-none focus:border-rose-400/40"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none focus:border-[var(--theme-primary)]"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Players per League
                 <input
                   name="playerCount"
@@ -673,16 +674,16 @@ export default function LeagueWarPage() {
                   max={30}
                   defaultValue={5}
                   required
-                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Match Format
                 <select
                   name="legType"
                   defaultValue="SINGLE_LEG"
-                  className="min-h-12 rounded-xl border border-white/10 bg-[#101923] px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 >
                   <option value="SINGLE_LEG">
                     One Leg
@@ -693,12 +694,12 @@ export default function LeagueWarPage() {
                 </select>
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Pairing
                 <select
                   name="pairingMode"
                   defaultValue="SLOT"
-                  className="min-h-12 rounded-xl border border-white/10 bg-[#101923] px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 >
                   <option value="SLOT">
                     Auto Slot Pairing
@@ -711,13 +712,13 @@ export default function LeagueWarPage() {
                   </option>
                 </select>
 
-                <span className="text-[11px] font-medium leading-5 text-slate-600">
+                <span className="text-[11px] font-medium leading-5 theme-secondary-text">
                   Manual uses the roster order chosen by each admin. Random shuffles the opponent roster when the War starts.
                 </span>
               </label>
 
               <div>
-                <p className="text-sm font-bold text-slate-300">
+                <p className="text-sm font-bold theme-text">
                   War Points
                 </p>
 
@@ -740,7 +741,7 @@ export default function LeagueWarPage() {
                             field,
                           )
                         }
-                        className="grid gap-1 text-[10px] font-black uppercase tracking-wider text-slate-600"
+                        className="grid gap-1 text-[10px] font-black uppercase tracking-wider theme-secondary-text"
                       >
                         {
                           label
@@ -759,7 +760,7 @@ export default function LeagueWarPage() {
                               value,
                             )
                           }
-                          className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-slate-200 outline-none"
+                          className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-3 text-sm text-slate-200 outline-none"
                         />
                       </label>
                     ),
@@ -767,12 +768,12 @@ export default function LeagueWarPage() {
                 </div>
               </div>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Challenge Expiry
                 <select
                   name="challengeExpiryHours"
                   defaultValue="48"
-                  className="min-h-12 rounded-xl border border-white/10 bg-[#101923] px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 >
                   <option value="24">
                     24 Hours
@@ -789,30 +790,30 @@ export default function LeagueWarPage() {
                 </select>
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 Scheduled Start (optional)
                 <input
                   name="scheduledStartAt"
                   type="datetime-local"
-                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 />
               </label>
 
-              <label className="grid gap-2 text-sm font-bold text-slate-300">
+              <label className="grid gap-2 text-sm font-bold theme-text">
                 War Deadline (optional)
                 <input
                   name="deadlineAt"
                   type="datetime-local"
-                  className="min-h-12 rounded-xl border border-white/10 bg-black/20 px-4 outline-none"
+                  className="min-h-12 rounded-xl border theme-input border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-4 outline-none"
                 />
               </label>
 
               <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 lg:col-span-2">
-                <p className="text-xs font-black text-slate-300">
+                <p className="text-xs font-black theme-text">
                   Fair-play rules
                 </p>
 
-                <p className="mt-2 text-xs leading-5 text-slate-500">
+                <p className="mt-2 text-xs leading-5 theme-secondary-text">
                   Result submitted → opponent confirmation → official War Points. Proof URL, dispute and walkover use the same confirmation flow. Winner: War Points → GD → Goals Scored → Wins → Draw.
                 </p>
               </div>

@@ -652,6 +652,35 @@ export default function DashboardPage() {
       : !selectedMembership
         ? { href: "/leagues", label: "Join a League →", jump: false }
         : { href: activeTournament ? "/fixtures" : "/tournaments", label: activeTournament ? "View Fixtures →" : "Browse Tournaments →", jump: false };
+  const nextActions = [
+    ...(!hasProfile ? [{
+      id: 'profile',
+      label: 'Complete player profile',
+      description: 'Finish your player identity before joining competitions.',
+      href: '/profile',
+    }] : []),
+    ...(!selectedMembership ? [{
+      id: 'join',
+      label: 'Join a league',
+      description: 'Find or join a league to see fixtures and rankings.',
+      href: '/leagues',
+    }] : []),
+    ...(nextFixture ? [{
+      id: 'match',
+      label: nextFixtureKind === 'LIVE' ? 'Open live match' : nextFixtureKind === 'PENDING' ? 'Check pending fixture' : 'See your next fixture',
+      description: `${nextFixture.tournamentName} · ${nextFixture.roundName}`,
+      href: nextFixture.match?.id
+        ? `/matches/${nextFixture.match.id}`
+        : `/tournaments/${nextFixture.tournamentId}/fixtures`,
+    }] : []),
+    ...(isLeagueAdmin && activeTournament && (activeTournament.pendingEntries ?? 0) > 0 ? [{
+      id: 'approvals',
+      label: 'Review tournament entries',
+      description: `${activeTournament.pendingEntries} registration(s) awaiting review.`,
+      href: `/tournaments/${activeTournament.id}/teams`,
+    }] : []),
+  ].slice(0, 3);
+
   const emptyUpdates = [
     ...(isVisible("league") && !selectedMembership ? [{ key: "league", icon: "league" as FcIconName, title: "My League", description: "No active League", href: "/leagues", action: "Find a league" }] : []),
     ...(isVisible("activeTournament") && !activeTournament ? [{ key: "tournament", icon: "tournament" as FcIconName, title: "Active Tournament", description: "No active tournament", href: "/tournaments", action: "Browse cups" }] : []),
@@ -743,6 +772,23 @@ export default function DashboardPage() {
             </div>
           </div>
         </section>
+
+        {nextActions.length > 0 ? (
+          <section aria-labelledby="dashboard-actions-title" className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="dashboard-actions-title" className="theme-text text-base font-bold">Your next steps</h2>
+              <span className="theme-secondary-text text-xs">Based on your current league and fixtures</span>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {nextActions.map((action) => (
+                <Link key={action.id} href={action.href} className="theme-secondary-button flex min-h-11 flex-col justify-center rounded-xl border border-[var(--theme-border)] px-4 py-3 focus-visible:outline-2 focus-visible:outline-offset-2">
+                  <span className="theme-text text-sm font-semibold">{action.label} <span aria-hidden="true">→</span></span>
+                  <span className="theme-secondary-text mt-1 text-xs leading-5">{action.description}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {showNextMatch || showLeague ? (
         <section id="dashboard-next-match" tabIndex={-1} aria-label="Match and league overview" className={`fc-dashboard-section grid items-start gap-4 sm:gap-6 ${showNextMatch && showLeague ? "xl:grid-cols-[minmax(0,1.75fr)_minmax(0,0.95fr)]" : ""}`}>

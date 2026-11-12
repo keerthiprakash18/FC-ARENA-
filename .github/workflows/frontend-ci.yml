@@ -82,3 +82,14 @@ jobs:
           done
           SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/ui-smoke.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-group-editor-regression.mjs
+
+      - name: Upload complete UI verification screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcarena-ux-review-${{ github.sha }}
+          path: |
+            /tmp/fcarena-mobile-ui/*.png
+            /tmp/fcarena-mobile-ui/results.json
+          if-no-files-found: warn
+          retention-days: 7

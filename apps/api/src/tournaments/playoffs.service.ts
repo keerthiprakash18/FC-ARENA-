@@ -24,7 +24,6 @@ import type {
 
 import {
   buildPlayoffSeedPlan,
-  separateOpeningGroupRematches,
 } from './playoff-seeding.js';
 
 import {
@@ -347,21 +346,8 @@ export class PlayoffsService {
           ),
         );
 
-      const hasExtraNextPlaceQualifiers =
-        qualification.qualifiersPerGroup !== null &&
-        qualification.entries.length >
-          qualification.groups.length * qualification.qualifiersPerGroup;
       protectedSlots =
-        tournament.avoidSameGroupEarly && hasExtraNextPlaceQualifiers
-          ? separateOpeningGroupRematches(
-              protectedPlan.bracketSlots,
-              qualification.groups.map(group => ({
-                id: group.id,
-                position: group.position,
-                qualifiers: group.qualifiers.map(entry => ({ id: entry.id })),
-              })),
-            )
-          : protectedPlan.bracketSlots;
+        protectedPlan.bracketSlots;
     }
 
 
@@ -1623,88 +1609,6 @@ export class PlayoffsService {
           },
         );
 
-
-      // Per-group direct places can be topped up by the best *next-place*
-      // finishers (e.g. seven groups x top two = 14, plus best two third
-      // places = 16). This is opt-in via the saved total, never implicit.
-      const directPlaces = rankedGroups.length * qualifiersPerGroup;
-      const requestedPlaces = input.tournament.playoffQualifiersTotal ?? directPlaces;
-      const extraPlaces = requestedPlaces - directPlaces;
-
-      if (
-        !Number.isInteger(requestedPlaces) ||
-        extraPlaces < 0 ||
-        extraPlaces > rankedGroups.length
-      ) {
-        throw new BadRequestException({
-          success: false,
-          data: null,
-          error: {
-            code: 'GROUP_QUALIFICATION_TOTAL_MISMATCH',
-            message: `Saved playoff places must be between ${directPlaces} and ${directPlaces + rankedGroups.length} for top ${qualifiersPerGroup} per group plus optional next-place qualifiers.`,
-          },
-        });
-      }
-
-      if (
-        extraPlaces > 0 &&
-        input.tournament.avoidSameGroupEarly &&
-        input.tournament.playoffFormat !== 'PROTECTED_SEED'
-      ) {
-        throw new ConflictException({
-          success: false,
-          data: null,
-          error: {
-            code: 'AT_LARGE_REQUIRES_PROTECTED_SEED',
-            message: 'Use Protected Seed playoffs to prevent same-group opening rematches when best next-place qualifiers are enabled.',
-          },
-        });
-      }
-
-      if (extraPlaces > 0) {
-        const groupSizes = input.groups.map(
-          group => input.entries.filter(entry => entry.groupId === group.id).length,
-        );
-        if (
-          new Set(groupSizes).size !== 1 ||
-          input.entries.length !== groupSizes.reduce((sum, size) => sum + size, 0)
-        ) {
-          throw new ConflictException({
-            success: false,
-            data: null,
-            error: {
-              code: 'UNEQUAL_GROUPS_FOR_CROSS_GROUP_QUALIFICATION',
-              message: 'Best next-place qualification requires equally sized groups and all approved entries assigned to a group.',
-            },
-          });
-        }
-
-        const nextPlaces = input.groups.map(group => {
-          const ranked = input.entries
-            .filter(entry => entry.groupId === group.id)
-            .sort((left, right) => this.comparePerformance(left, right));
-          const candidate = ranked[qualifiersPerGroup];
-          if (!candidate) {
-            throw new ConflictException({
-              success: false,
-              data: null,
-              error: {
-                code: 'NOT_ENOUGH_NEXT_PLACE_CANDIDATES',
-                message: 'Every group needs one additional ranked entry for best next-place qualification.',
-              },
-            });
-          }
-          return candidate;
-        }).sort((left, right) => this.comparePerformance(left, right));
-
-        const additional = new Map(
-          nextPlaces.slice(0, extraPlaces).map(entry => [entry.groupId, entry]),
-        );
-        for (const group of rankedGroups) {
-          const selected = additional.get(group.id);
-          if (selected) group.qualifiers.push(selected);
-        }
-      }
 
       return {
         entries:

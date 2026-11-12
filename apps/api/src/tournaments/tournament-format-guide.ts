@@ -62,27 +62,8 @@ export function describeTournamentFormat(t: FormatInput) {
       if (groups.some(g => g.entries < perGroup) || unassigned > 0) {
         state = 'PENDING'; note = 'Some groups do not yet contain enough approved entries, or entries still need a group. The organiser must complete group setup.';
       }
-      const directTotal = total;
-      const requestedTotal = t.playoffQualifiersTotal ?? directTotal;
-      const extraTotal = requestedTotal - directTotal;
-      if (!Number.isInteger(requestedTotal) || extraTotal < 0 || extraTotal > groupCount) {
-        state = 'PENDING';
-        note = `Saved playoff total must be between ${directTotal} and ${directTotal + groupCount} for top ${perGroup} per group with optional best next-place qualifiers.`;
-        description = `Group qualification cannot be finalized until the organizer corrects the playoff total (${requestedTotal}).`;
-      } else if (extraTotal > 0) {
-        if (new Set(groups.map(group => group.entries)).size !== 1) {
-          state = 'PENDING';
-          note = 'Best next-place selection requires equally sized groups; rebalance before publishing.';
-        }
-        total = requestedTotal;
-        description = `Top ${perGroup} from each of ${groupCount} groups qualify directly (${directTotal} places), plus the best ${extraTotal} next-place finishers across those groups: ${total} playoff places.`;
-        note = state === 'READY'
-          ? 'Only direct places are highlighted in group tables. Best next-place selection is decided from confirmed results across all groups; ties use points, goal difference, goals scored, wins, then entry name and ID.'
-          : note;
-      } else {
-        description = `Top ${perGroup} from each of ${groupCount} groups advance: ${total} qualifying places in total.`;
-      }
-      if (state === 'READY') bands.push({ from: 1, to: perGroup, label: extraTotal > 0 ? 'Direct group qualifying places' : 'Qualifying places in this group', tone: 'qualify' });
+      description = `Top ${perGroup} from each of ${groupCount} groups advance: ${total} qualifying places in total.`;
+      if (state === 'READY') bands.push({ from: 1, to: perGroup, label: 'Qualifying places in this group', tone: 'qualify' });
     }
   } else if (count >= 2) {
     total = t.playoffQualifiersTotal ?? (isElite ? resolveEliteCupPlayoffQualifierCount(count) : count);

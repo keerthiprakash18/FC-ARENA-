@@ -27,6 +27,7 @@ function setup(side: 'HOME' | 'AWAY' | null = 'HOME') {
         proposedByUserId: 'home-user',
         proposedSide: 'HOME',
         status: 'PENDING',
+        startsAt: new Date(Date.now() + 2 * 3600_000),
       }),
     },
     $transaction: vi.fn(async (action: (tx: typeof transaction) => Promise<unknown>) => action(transaction)),
@@ -118,6 +119,26 @@ describe('advisory time coordination', () => {
     await expect(completed.service.proposeMatchTime('home-user', 'match-1', {
       startsAt: new Date(Date.now() + 2 * 3600_000).toISOString(),
     })).rejects.toThrow('locked');
+  });
+
+  it('blocks stale acceptance and more than ten proposals in an hour', async () => {
+    const stale = setup('AWAY');
+    stale.prisma.matchTimeProposal.findFirst.mockResolvedValue({
+      id: 'offer-1',
+      matchId: 'match-1',
+      proposedSide: 'HOME',
+      status: 'PENDING',
+      startsAt: new Date(Date.now() - 1000),
+    });
+    await expect(stale.service.acceptMatchTime('away-user', 'match-1', 'offer-1'))
+      .rejects.toThrow('expired');
+
+    const flooding = setup('HOME');
+    flooding.prisma.matchTimeProposal.count.mockResolvedValueOnce(0).mockResolvedValueOnce(10);
+    await expect(flooding.service.proposeMatchTime('home-user', 'match-1', {
+      startsAt: new Date(Date.now() + 2 * 3600_000).toISOString(),
+    })).rejects.toThrow('Too many time proposals');
+    expect(flooding.transaction.matchTimeProposal.create).not.toHaveBeenCalled();
   });
 
   it('cancels only the proposing participant while retaining audit', async () => {

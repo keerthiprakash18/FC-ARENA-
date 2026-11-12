@@ -41,6 +41,16 @@ psql -X -Atq -d "$source_db" -c "SELECT 1 FROM information_schema.tables WHERE t
   grep -q '^1$' || { echo "BLOCKED: schema migrations have not run." >&2; exit 2; }
 
 echo "Starting isolated PostgreSQL custom-format backup rehearsal (no production data)."
+# Prove that an actual synthetic record survives the round trip, not just DDL.
+psql -X -v ON_ERROR_STOP=1 -q -d "$source_db" -c '
+  CREATE TABLE IF NOT EXISTS public.fc_arena_ci_restore_marker (
+    id INTEGER PRIMARY KEY,
+    payload TEXT NOT NULL
+  );
+  INSERT INTO public.fc_arena_ci_restore_marker (id, payload)
+    VALUES (1, ''fc-arena-isolated-backup-sentinel'')
+    ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload;
+'
 pg_dump --no-password --format=custom --file="$temp_dir/staging.dump" -d "$source_db"
 pg_restore --list "$temp_dir/staging.dump" >"$temp_dir/archive-toc.txt"
 
@@ -57,6 +67,12 @@ fi
 
 source_migrations="$(psql -X -Atq -d "$source_db" -c 'SELECT count(*) FROM "_prisma_migrations" WHERE "finished_at" IS NOT NULL')"
 restored_migrations="$(psql -X -Atq -d "$restore_db" -c 'SELECT count(*) FROM "_prisma_migrations" WHERE "finished_at" IS NOT NULL')"
+restored_marker="$(psql -X -Atq -d "$restore_db" -c "SELECT payload FROM public.fc_arena_ci_restore_marker WHERE id = 1")"
+if [[ "$restored_marker" != "fc-arena-isolated-backup-sentinel" ]]; then
+  echo "BLOCKED: synthetic restore marker did not survive the backup round trip." >&2
+  exit 1
+fi
+
 if [[ "$source_migrations" != "$restored_migrations" ]]; then
   echo "BLOCKED: Prisma migration history did not survive restore." >&2
   exit 1

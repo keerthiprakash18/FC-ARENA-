@@ -375,7 +375,7 @@ export default function NotificationsPage() {
                 onClick={() => void markAllAsRead()}
                 className="theme-primary-button min-h-11 rounded-[10px] px-4 text-sm font-semibold transition disabled:opacity-50"
               >
-                {busy ? "Updating..." : "Clear all"}
+                {busy ? "Marking as read..." : "Mark all as read"}
               </button>
             ) : null
           }

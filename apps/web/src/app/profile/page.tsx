@@ -564,6 +564,8 @@ export default function ProfilePage() {
               <label className="theme-text text-sm font-semibold">
                 Full Name
                 <input
+                  type="text"
+                  autoComplete="name"
                   name="fullName"
                   value={profileForm.fullName}
                   onChange={(event) => setProfileForm((current) => ({ ...current, fullName: event.target.value }))}
@@ -576,6 +578,8 @@ export default function ProfilePage() {
               <label className="theme-text text-sm font-semibold">
                 Email
                 <input
+                  type="email"
+                  autoComplete="email"
                   name="email"
                   value={career.profile.email}
                   className="theme-input mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-normal"
@@ -588,6 +592,8 @@ export default function ProfilePage() {
               <label className="theme-text text-sm font-semibold">
                 Phone
                 <input
+                  type="tel"
+                  autoComplete="tel"
                   name="phoneNumber"
                   value={profileForm.phoneNumber}
                   onChange={(event) => setProfileForm((current) => ({ ...current, phoneNumber: event.target.value }))}
@@ -621,7 +627,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => void saveProfile()}
                   disabled={profileBusy}
-                  className="theme-primary-button min-h-10 rounded-[10px] px-4 text-xs font-semibold disabled:opacity-50"
+                  className="theme-primary-button min-h-11 rounded-[10px] px-4 text-xs font-semibold disabled:opacity-50"
                 >
                   {profileBusy ? "Saving…" : "Save profile"}
                 </button>

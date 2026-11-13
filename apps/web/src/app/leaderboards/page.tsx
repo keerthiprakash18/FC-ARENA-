@@ -179,9 +179,22 @@ export default function LeaderboardsPage() {
     const suffix = mode ? "?mode=" + encodeURIComponent(mode) : "";
     const controller = new AbortController();
     let version = 0;
+    let inFlight = false;
+    let lastRequestedAt = 0;
+
     async function load(silent = false) {
-      if (silent && document.visibilityState === 'hidden') return;
+      if (controller.signal.aborted) return;
+      // Do not poll a hidden tab or an offline Android WebView. Window focus,
+      // visibility and online events can fire together; one request is enough.
+      if (silent && (
+        document.visibilityState !== 'visible' ||
+        navigator.onLine === false ||
+        inFlight ||
+        Date.now() - lastRequestedAt < 15_000
+      )) return;
       const current = ++version;
+      inFlight = true;
+      lastRequestedAt = Date.now();
       if (!silent) { setLoading(true); setData(null); }
       try {
         const response = await authenticatedRequest<{ data: LeaderboardData }>(
@@ -193,15 +206,25 @@ export default function LeaderboardsPage() {
         if (controller.signal.aborted || current !== version) return;
         setError(err instanceof Error ? err.message : 'Unable to load Leaderboard.');
       } finally {
-        if (!controller.signal.aborted && current === version) setLoading(false);
+        if (current === version) {
+          inFlight = false;
+          if (!controller.signal.aborted) setLoading(false);
+        }
       }
     }
     void load();
     const update = () => { void load(true); };
-    const timer = window.setInterval(update, 30_000);
+    const timer = window.setInterval(update, 60_000);
     window.addEventListener('focus', update);
+    window.addEventListener('online', update);
     document.addEventListener('visibilitychange', update);
-    return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener('focus', update); document.removeEventListener('visibilitychange', update); };
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+      window.removeEventListener('focus', update);
+      window.removeEventListener('online', update);
+      document.removeEventListener('visibilitychange', update);
+    };
   }, [selectedLeague, mode, refresh]);
 
   useEffect(() => {

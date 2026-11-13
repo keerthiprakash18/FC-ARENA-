@@ -62,3 +62,18 @@ test('Android exposes a narrow auth cookie flush bridge for SPA login and refres
   assert.match(mainActivity, /"FC_ARENA_ANDROID_AUTH"/);
   assert.match(mainActivity, /CookieManager\.getInstance\(\)\.flush\(\)/);
 });
+
+test('Android file picker reports cancellation when a document provider is unavailable', () => {
+  const chooserStart = mainActivity.indexOf('public boolean onShowFileChooser(');
+  const chooserEnd = mainActivity.indexOf('webView.setDownloadListener(', chooserStart);
+  assert.ok(chooserStart > 0 && chooserEnd > chooserStart);
+  const chooser = mainActivity.slice(chooserStart, chooserEnd);
+  for (const failure of ['Unable to open file picker.', 'No file picker is available on this device.']) {
+    const errorIndex = chooser.indexOf(failure);
+    assert.ok(errorIndex > 0, `Missing file-picker feedback: ${failure}`);
+    assert.match(chooser.slice(Math.max(0, errorIndex - 260), errorIndex),
+      /ValueCallback<Uri\[]> callback = fileChooserCallback;[\s\S]*fileChooserCallback = null;[\s\S]*callback\.onReceiveValue\(null\)/,
+      'Provider failure must resolve the pending WebView upload callback');
+  }
+  assert.match(mainActivity, /WebChromeClient\.FileChooserParams\.parseResult\(/);
+});

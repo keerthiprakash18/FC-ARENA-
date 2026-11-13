@@ -10,10 +10,10 @@ const warPage = fs.readFileSync(
   'utf8',
 );
 
-test('League War status filters remain readable and scrollable on narrow Android screens', () => {
+test('League War status filters remain fully visible on narrow Android screens', () => {
   assert.match(warPage, /aria-label="Filter League Wars by status"/);
-  assert.match(warPage, /overflow-x-auto overscroll-x-contain/);
-  assert.match(warPage, /min-w-max/);
+  assert.match(warPage, /grid grid-cols-2 gap-2 sm:grid-cols-4/);
+  assert.match(warPage, /min-w-0/);
   assert.match(warPage, /whitespace-nowrap/);
   assert.match(warPage, /min-h-11/);
   assert.match(warPage, /aria-pressed=\{filter === value\}/);

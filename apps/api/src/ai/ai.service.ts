@@ -425,16 +425,16 @@ export class AiService {
             },
           },
 
-          orderBy: {
-            updatedAt:
-              'desc',
-          },
-
-          take: 10,
+          orderBy: [
+            { scheduledAt: { sort: 'asc', nulls: 'last' } },
+            { sequence: 'asc' },
+            { id: 'asc' },
+          ],
+          take: 5,
         }),
       ]);
 
-    const sortedFixtures =
+    const upcomingFixtures =
       fixtures
         .map((fixture) => ({
           id:
@@ -469,40 +469,7 @@ export class AiService {
           matchStatus:
             fixture.match?.status ??
             null,
-        }))
-        .sort((a, b) => {
-          if (
-            a.scheduledAt &&
-            b.scheduledAt
-          ) {
-            return (
-              new Date(
-                a.scheduledAt,
-              ).getTime() -
-              new Date(
-                b.scheduledAt,
-              ).getTime()
-            );
-          }
-
-          if (
-            a.scheduledAt
-          ) {
-            return -1;
-          }
-
-          if (
-            b.scheduledAt
-          ) {
-            return 1;
-          }
-
-          return 0;
-        })
-        .slice(
-          0,
-          5,
-        );
+        }));
 
     return {
       player: {
@@ -585,8 +552,7 @@ export class AiService {
           }),
         ),
 
-      upcomingFixtures:
-        sortedFixtures,
+      upcomingFixtures,
     };
   }
 

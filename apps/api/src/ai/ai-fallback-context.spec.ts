@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AiService } from './ai.service.js';
 
 const context = {
@@ -27,5 +27,26 @@ describe('FC ARENA local fallback', () => {
   });
   it('describes the player’s recorded league membership', () => {
     expect(answer('What is my league?')).toContain('Arena League (PRIMARY)');
+  });
+
+  it('orders upcoming fixtures by schedule before taking the first five', async () => {
+    const fixtures = vi.fn().mockResolvedValue([]);
+    const service = new AiService({
+      user: { findUnique: vi.fn().mockResolvedValue(null) },
+      leagueMember: { findMany: vi.fn().mockResolvedValue([]) },
+      tournamentRegistrationMember: { findMany: vi.fn().mockResolvedValue([]) },
+      playerTournamentStatistic: { findMany: vi.fn().mockResolvedValue([]) },
+      fixture: { findMany: fixtures },
+    } as never);
+
+    await (service as unknown as { buildContext: (userId: string) => Promise<unknown> }).buildContext('user-1');
+    expect(fixtures).toHaveBeenCalledWith(expect.objectContaining({
+      orderBy: [
+        { scheduledAt: { sort: 'asc', nulls: 'last' } },
+        { sequence: 'asc' },
+        { id: 'asc' },
+      ],
+      take: 5,
+    }));
   });
 });

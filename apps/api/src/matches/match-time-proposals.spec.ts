@@ -12,6 +12,7 @@ afterEach(() => {
 function setup(side: 'HOME' | 'AWAY' | null = 'HOME') {
   const transaction = {
     matchTimeProposal: {
+      count: vi.fn().mockResolvedValue(0),
       create: vi.fn().mockResolvedValue({ id: 'offer-1' }),
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
@@ -19,7 +20,6 @@ function setup(side: 'HOME' | 'AWAY' | null = 'HOME') {
   };
   const prisma = {
     matchTimeProposal: {
-      count: vi.fn().mockResolvedValue(0),
       findMany: vi.fn().mockResolvedValue([]),
       findFirst: vi.fn().mockResolvedValue({
         id: 'offer-1',
@@ -31,6 +31,7 @@ function setup(side: 'HOME' | 'AWAY' | null = 'HOME') {
       }),
     },
     $transaction: vi.fn(async (action: (tx: typeof transaction) => Promise<unknown>) => action(transaction)),
+    $transactionWithRetry: vi.fn(async (action: (tx: typeof transaction) => Promise<unknown>) => action(transaction)),
     fixture: { update: vi.fn() },
     match: { update: vi.fn() },
   };
@@ -81,6 +82,10 @@ describe('advisory time coordination', () => {
       }),
     });
     expect(transaction.auditLog.create).toHaveBeenCalledOnce();
+    expect(prisma.$transactionWithRetry).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: 'Serializable' });
+    expect(transaction.matchTimeProposal.count).toHaveBeenNthCalledWith(1, {
+      where: { matchId: 'match-1', proposedByUserId: 'home-user', status: 'PENDING', startsAt: { gt: expect.any(Date) } },
+    });
     expect(prisma.fixture.update).not.toHaveBeenCalled();
     expect(prisma.match.update).not.toHaveBeenCalled();
   });
@@ -96,7 +101,7 @@ describe('advisory time coordination', () => {
     expect(result.data.accepted).toBe(true);
     expect(result.data.officialScheduleUnchanged).toBe(true);
     expect(other.transaction.matchTimeProposal.updateMany).toHaveBeenCalledWith({
-      where: { id: 'offer-1', matchId: 'match-1', status: 'PENDING', proposedSide: { not: 'AWAY' } },
+      where: { id: 'offer-1', matchId: 'match-1', status: 'PENDING', proposedSide: { not: 'AWAY' }, startsAt: { gt: expect.any(Date) } },
       data: expect.objectContaining({ status: 'ACCEPTED', confirmedByUserId: 'away-user' }),
     });
     expect(other.prisma.fixture.update).not.toHaveBeenCalled();
@@ -134,11 +139,25 @@ describe('advisory time coordination', () => {
       .rejects.toThrow('expired');
 
     const flooding = setup('HOME');
-    flooding.prisma.matchTimeProposal.count.mockResolvedValueOnce(0).mockResolvedValueOnce(10);
+    flooding.transaction.matchTimeProposal.count.mockResolvedValueOnce(0).mockResolvedValueOnce(10);
     await expect(flooding.service.proposeMatchTime('home-user', 'match-1', {
       startsAt: new Date(Date.now() + 2 * 3600_000).toISOString(),
     })).rejects.toThrow('Too many time proposals');
     expect(flooding.transaction.matchTimeProposal.create).not.toHaveBeenCalled();
+  });
+
+  it('displays expired proposals without actions and keeps upcoming proposals actionable', async () => {
+    const { service, prisma } = setup('AWAY');
+    const proposal = { proposedByUserId: 'home-user', proposedSide: 'HOME', status: 'PENDING' };
+    prisma.matchTimeProposal.findMany.mockResolvedValue([
+      { ...proposal, id: 'old', startsAt: new Date(Date.now() + 5 * 60_000) },
+      { ...proposal, id: 'upcoming', startsAt: new Date(Date.now() + 60 * 60_000) },
+    ]);
+    const response = await service.getTimeProposals('away-user', 'match-1');
+    expect(response.data.proposals).toMatchObject([
+      { id: 'old', status: 'EXPIRED', canAccept: false, canCancel: false },
+      { id: 'upcoming', status: 'PENDING', canAccept: true, canCancel: false },
+    ]);
   });
 
   it('cancels only the proposing participant while retaining audit', async () => {

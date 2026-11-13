@@ -22,6 +22,8 @@ import {
   MatchRealtimeService,
 } from './match-realtime.service.js';
 
+const MINIMUM_PROPOSAL_LEAD_MS = 10 * 60_000;
+
 @Injectable()
 export class MatchesService {
   constructor(
@@ -470,25 +472,27 @@ export class MatchesService {
         confirmedAt: true,
       },
     });
+    const acceptanceCutoff = Date.now() + MINIMUM_PROPOSAL_LEAD_MS;
     return {
       success: true,
       data: {
         enabled: true,
         officialScheduledAt: access.match.fixture.scheduledAt,
-        proposals: proposals.map(proposal => ({
-          id: proposal.id,
-          proposedSide: proposal.proposedSide,
-          startsAt: proposal.startsAt,
-          note: proposal.note,
-          status: proposal.status,
-          createdAt: proposal.createdAt,
-          confirmedAt: proposal.confirmedAt,
-          canAccept: Boolean(
-            access.participantSide && access.participantSide !== proposal.proposedSide
-              && proposal.status === 'PENDING',
-          ),
-          canCancel: proposal.proposedByUserId === userId && proposal.status === 'PENDING',
-        })),
+        proposals: proposals.map(proposal => {
+          const expired = proposal.status === 'PENDING' && proposal.startsAt.getTime() <= acceptanceCutoff;
+          const actionable = proposal.status === 'PENDING' && !expired;
+          return {
+            id: proposal.id,
+            proposedSide: proposal.proposedSide,
+            startsAt: proposal.startsAt,
+            note: proposal.note,
+            status: expired ? 'EXPIRED' : proposal.status,
+            createdAt: proposal.createdAt,
+            confirmedAt: proposal.confirmedAt,
+            canAccept: actionable && !!access.participantSide && access.participantSide !== proposal.proposedSide,
+            canCancel: actionable && proposal.proposedByUserId === userId,
+          };
+        }),
       },
       error: null,
     };
@@ -503,26 +507,29 @@ export class MatchesService {
     }
     this.assertMatchCanCoordinate(access.match);
     const startsAt = new Date(dto.startsAt);
-    const advanceMs = startsAt.getTime() - Date.now();
-    if (!Number.isFinite(advanceMs) || advanceMs < 10 * 60_000 || advanceMs > 14 * 24 * 3600_000) {
-      throw new BadRequestException('Proposed time must be 10 minutes to 14 days from now.');
-    }
-    const pending = await this.prisma.matchTimeProposal.count({
-      where: { matchId, proposedByUserId: userId, status: 'PENDING' },
-    });
-    if (pending >= 3) {
-      throw new ConflictException('Cancel an existing pending time before proposing another.');
-    }
-    const lastHour = await this.prisma.matchTimeProposal.count({
-      where: {
-        proposedByUserId: userId,
-        createdAt: { gte: new Date(Date.now() - 60 * 60_000) },
-      },
-    });
-    if (lastHour >= 10) {
-      throw new ConflictException('Too many time proposals. Try again later.');
-    }
-    const record = await this.prisma.$transaction(async tx => {
+    const record = await this.prisma.$transactionWithRetry(async tx => {
+      const now = Date.now();
+      const advanceMs = startsAt.getTime() - now;
+      if (!Number.isFinite(advanceMs) || advanceMs <= MINIMUM_PROPOSAL_LEAD_MS || advanceMs > 14 * 24 * 3600_000) {
+        throw new BadRequestException('Proposed time must be 10 minutes to 14 days from now.');
+      }
+      const pending = await tx.matchTimeProposal.count({
+        where: {
+          matchId,
+          proposedByUserId: userId,
+          status: 'PENDING',
+          startsAt: { gt: new Date(now + MINIMUM_PROPOSAL_LEAD_MS) },
+        },
+      });
+      if (pending >= 3) {
+        throw new ConflictException('Cancel an existing pending time before proposing another.');
+      }
+      const lastHour = await tx.matchTimeProposal.count({
+        where: { proposedByUserId: userId, createdAt: { gte: new Date(now - 60 * 60_000) } },
+      });
+      if (lastHour >= 10) {
+        throw new ConflictException('Too many time proposals. Try again later.');
+      }
       const created = await tx.matchTimeProposal.create({
         data: {
           matchId,
@@ -544,7 +551,7 @@ export class MatchesService {
         },
       });
       return created;
-    });
+    }, { isolationLevel: 'Serializable' });
     return {
       success: true,
       data: { proposalId: record.id, status: 'PENDING', officialScheduleUnchanged: true },
@@ -565,12 +572,15 @@ export class MatchesService {
     if (proposal.proposedSide === side) {
       throw new ForbiddenException('Your side cannot accept its own time proposal.');
     }
-    if (proposal.startsAt.getTime() <= Date.now() + 10 * 60_000) {
+    if (proposal.startsAt.getTime() <= Date.now() + MINIMUM_PROPOSAL_LEAD_MS) {
       throw new ConflictException('This proposed time has expired. Request another slot.');
     }
     const result = await this.prisma.$transaction(async tx => {
       const changed = await tx.matchTimeProposal.updateMany({
-        where: { id: proposalId, matchId, status: 'PENDING', proposedSide: { not: side } },
+        where: {
+          id: proposalId, matchId, status: 'PENDING', proposedSide: { not: side },
+          startsAt: { gt: new Date(Date.now() + MINIMUM_PROPOSAL_LEAD_MS) },
+        },
         data: {
           status: 'ACCEPTED',
           confirmedByUserId: userId,

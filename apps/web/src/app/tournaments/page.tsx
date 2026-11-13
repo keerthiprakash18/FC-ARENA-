@@ -271,7 +271,7 @@ export default function TournamentsPage() {
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/tournaments/history"
-                className="inline-flex min-h-11 items-center rounded-[10px] border border-white/10 px-4 text-sm font-semibold text-slate-300 transition hover:border-sky-400/25 hover:text-sky-300"
+                className="theme-secondary-button inline-flex min-h-11 items-center rounded-[10px] border px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
               >
                 Tournament History
               </Link>
@@ -279,7 +279,7 @@ export default function TournamentsPage() {
               {selectedMembership?.adminRole ? (
                 <Link
                   href={`/leagues/${selectedMembership.league.id}/tournaments`}
-                  className="inline-flex min-h-11 items-center rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] transition hover:bg-[#0EA5E9]"
+                  className="theme-primary-button inline-flex min-h-11 items-center rounded-[10px] px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
                 >
                   + Create Tournament
                 </Link>
@@ -301,18 +301,18 @@ export default function TournamentsPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div role="group" aria-label="Select tournament league" className="flex flex-wrap gap-2">
                 {memberships.map((membership) => (
                   <button
                     key={membership.league.id}
                     type="button"
                     onClick={() => choose('leagueId', membership.league.id)}
                     aria-pressed={selectedLeagueId === membership.league.id}
-                    className={`rounded-xl border px-4 py-2.5 text-left text-sm font-black transition ${
-                      selectedLeagueId === membership.league.id
-                        ? "border-sky-400/30 bg-sky-400/[0.08] text-sky-300"
-                        : "border-white/10 bg-white/[0.025] text-slate-500 hover:text-white"
-                    }`}
+                    className={`min-h-11 rounded-xl border px-4 py-2.5 text-left text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)] ${
+                       selectedLeagueId === membership.league.id
+                         ? "border-[var(--theme-primary)] bg-[var(--theme-primary-soft)] text-[var(--theme-text)]"
+                         : "border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text)]"
+                     }`}
                   >
                     {membership.league.name}
                     <span className="ml-2 text-[9px] text-slate-600">
@@ -338,12 +338,12 @@ export default function TournamentsPage() {
         ) : tournamentLoad.error ? <FcErrorState message={tournamentLoad.error} onRetry={tournamentLoad.retry} /> : (
           <>
             <FcPanel className="overflow-hidden">
-              <div className="flex flex-col gap-5 border-b border-[#253140] bg-[#151C26] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="flex flex-col gap-5 border-b border-[var(--theme-border)] bg-[var(--theme-elevated)] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <div className="flex items-center gap-4">
                   <FcCrest name={selectedMembership.league.name} size="lg" />
 
                   <div>
-                    <p className="font-mono text-[10px] font-black tracking-wider text-sky-400">
+                    <p className="font-mono text-[10px] font-bold tracking-wider text-[var(--theme-primary)]">
                       {selectedMembership.league.code}
                     </p>
 
@@ -351,7 +351,7 @@ export default function TournamentsPage() {
                       {selectedMembership.league.name}
                     </h2>
 
-                    <p className="mt-1 text-xs text-slate-600">
+                    <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
                       {selectedMembership.adminRole
                         ? `${selectedMembership.adminRole} access`
                         : "Player access"}
@@ -361,24 +361,25 @@ export default function TournamentsPage() {
 
                 <Link
                   href={`/leagues/${selectedMembership.league.id}`}
-                  className="text-sm font-black text-sky-300"
+                  className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--theme-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
                 >
                   League Overview →
                 </Link>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 p-3 sm:p-4">
+              <div role="group" aria-label="Filter tournaments by status" className="flex gap-2 overflow-x-auto overscroll-x-contain p-3 sm:p-4">
                 {(["ACTIVE", "UPCOMING", "COMPLETED"] as Filter[]).map(
                   (value) => (
                     <button
                       key={value}
                       type="button"
                       onClick={() => setFilter(value)}
-                      className={`rounded-xl border px-3 py-3 text-xs font-black transition sm:text-sm ${
-                        filter === value
-                          ? "border-sky-400/30 bg-sky-400/[0.09] text-sky-300"
-                          : "border-white/[0.07] bg-white/[0.02] text-slate-500 hover:text-white"
-                      }`}
+                       aria-pressed={filter === value}
+                       className={`min-h-11 min-w-max flex-1 shrink-0 whitespace-nowrap rounded-xl border px-4 py-3 text-xs font-semibold transition sm:text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)] ${
+                         filter === value
+                           ? "border-[var(--theme-primary)] bg-[var(--theme-primary-soft)] text-[var(--theme-text)]"
+                           : "border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text)]"
+                       }`}
                     >
                       {value.charAt(0) + value.slice(1).toLowerCase()}
                       <span className="ml-1.5 text-[10px] text-slate-600">

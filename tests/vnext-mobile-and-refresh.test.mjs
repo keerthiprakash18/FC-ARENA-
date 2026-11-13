@@ -69,10 +69,11 @@ test('Player Journey keeps one main landmark and announces completed-goal counts
 
 test('the long profile offers a keyboard-accessible compact Player Journey', () => {
   const source = read('apps/web/src/app/profile/page.tsx');
-  assert.match(source, /<details className="group rounded-2xl/);
+  assert.match(source, /<details onToggle=\{event => setJourneyExpanded\(event\.currentTarget\.open\)\} className="group rounded-2xl/);
   assert.match(source, /<summary className="theme-text flex min-h-11/);
   assert.match(source, /Player Journey, missions &amp; XP/);
   assert.match(source, /<PlayerJourney player=/);
+  assert.match(source, /journeyExpanded \? <PlayerJourney player=/);
   assert.match(source, /group-open:hidden/);
   assert.match(source, /focus-visible:outline-offset-2/);
 });

@@ -676,7 +676,16 @@ export default function ProfilePage() {
           ))}
         </section>
 
-        <PlayerJourney player={{ name: playerName, code: career.profile.playerCode, avatar: career.profile.profileImageUrl, verified: identity?.isVerified || false, matches: career.lifetimeStatistics.matches, wins: career.lifetimeStatistics.wins, goals: career.lifetimeStatistics.goalsFor, winRate: career.lifetimeStatistics.winRate }} />
+        <details className="group rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)]">
+          <summary className="theme-text flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-5 py-4 text-base font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)] [&::-webkit-details-marker]:hidden">
+            <span>Player Journey, missions &amp; XP</span>
+            <span className="theme-secondary-text shrink-0 text-sm group-open:hidden">Expand ↓</span>
+            <span className="theme-secondary-text hidden shrink-0 text-sm group-open:inline">Collapse ↑</span>
+          </summary>
+          <div className="border-t border-[var(--theme-border)] px-3 py-4 sm:px-5">
+            <PlayerJourney player={{ name: playerName, code: career.profile.playerCode, avatar: career.profile.profileImageUrl, verified: identity?.isVerified || false, matches: career.lifetimeStatistics.matches, wins: career.lifetimeStatistics.wins, goals: career.lifetimeStatistics.goalsFor, winRate: career.lifetimeStatistics.winRate }} />
+          </div>
+        </details>
       </div>
     </AppShell>
   );

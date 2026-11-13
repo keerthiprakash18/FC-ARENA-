@@ -638,7 +638,12 @@ public final class MainActivity extends Activity {
                     chooserIntent = fileChooserParams.createIntent();
                     chooserIntent.addCategory(Intent.CATEGORY_OPENABLE);
                 } catch (Exception error) {
+                    // Complete the WebView's pending request. Clearing the
+                    // reference without notifying it can leave file inputs
+                    // stuck after an unavailable document provider.
+                    ValueCallback<Uri[]> callback = fileChooserCallback;
                     fileChooserCallback = null;
+                    if (callback != null) callback.onReceiveValue(null);
                     toast("Unable to open file picker.");
                     return false;
                 }
@@ -647,7 +652,9 @@ public final class MainActivity extends Activity {
                     startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST);
                     return true;
                 } catch (ActivityNotFoundException | SecurityException error) {
+                    ValueCallback<Uri[]> callback = fileChooserCallback;
                     fileChooserCallback = null;
+                    if (callback != null) callback.onReceiveValue(null);
                     toast("No file picker is available on this device.");
                     return false;
                 }

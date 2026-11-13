@@ -117,6 +117,27 @@
   }
 }
 
+/* Real 390px UI smoke screenshots exposed a narrow profile-name column
+   beside the avatar. Keep the complete player name readable, including
+   long unbroken in-game names, without truncating identity information. */
+@media (max-width: 430px) {
+  .fc-premium .fc-main .fc-profile-page .profile-photo-settings {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .fc-premium .fc-main .fc-profile-page .profile-photo-settings > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .fc-premium .fc-main .fc-profile-page .profile-photo-settings h2 {
+    font-size: clamp(1.125rem, 4.8vw, 1.4rem);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* Low-motion mode must not induce navigation jank, zoom or continuous spinners.
    Make transitions effectively immediate without changing DOM/state logic. */
 @media (prefers-reduced-motion: reduce) {

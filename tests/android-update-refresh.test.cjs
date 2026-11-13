@@ -74,6 +74,8 @@ test('Android file picker reports cancellation when a document provider is unava
     assert.match(chooser.slice(Math.max(0, errorIndex - 260), errorIndex),
       /ValueCallback<Uri\[]> callback = fileChooserCallback;[\s\S]*fileChooserCallback = null;[\s\S]*callback\.onReceiveValue\(null\)/,
       'Provider failure must resolve the pending WebView upload callback');
+    assert.match(chooser.slice(errorIndex, errorIndex + 260), /return true;/,
+      'A completed WebChromeClient callback must return true to prevent default cancellation');
   }
   assert.match(mainActivity, /WebChromeClient\.FileChooserParams\.parseResult\(/);
 });

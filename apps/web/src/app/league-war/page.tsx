@@ -1024,7 +1024,7 @@ export default function LeagueWarPage() {
         </details>
 
         <FcPanel className="p-2">
-          <div role="group" aria-label="Filter League Wars by status" className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1">
+          <div role="group" aria-label="Filter League Wars by status" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(
               [
                 'ALL',
@@ -1050,8 +1050,8 @@ export default function LeagueWarPage() {
                   className={
                     filter ===
                     value
-                      ? 'min-h-11 min-w-max flex-1 shrink-0 whitespace-nowrap rounded-xl bg-[var(--theme-primary)] px-4 py-3 text-xs font-bold text-[var(--theme-on-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]'
-                      : 'min-h-11 min-w-max flex-1 shrink-0 whitespace-nowrap rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 py-3 text-xs font-bold text-[var(--theme-text-secondary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]'
+                      ? 'min-h-11 min-w-0 whitespace-nowrap rounded-xl bg-[var(--theme-primary)] px-4 py-3 text-xs font-bold text-[var(--theme-on-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]'
+                      : 'min-h-11 min-w-0 whitespace-nowrap rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 py-3 text-xs font-bold text-[var(--theme-text-secondary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]'
                   }
                 >
                   {

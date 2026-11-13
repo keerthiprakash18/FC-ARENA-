@@ -246,12 +246,27 @@ export default function NotificationsPage() {
     }
 
     void loadNotifications();
-    const timer = window.setInterval(
-      () => void loadNotifications(true),
-      30_000,
-    );
+    let lastAutoRefreshAt = Date.now();
+    const autoRefresh = () => {
+      // Focus, visibility and network recovery may all fire on the same frame.
+      // Manual post-mutation refreshes bypass this poll-only throttle.
+      if (
+        document.visibilityState !== "visible" ||
+        navigator.onLine === false ||
+        Date.now() - lastAutoRefreshAt < 15_000
+      ) return;
+      lastAutoRefreshAt = Date.now();
+      void loadNotifications(true);
+    };
+    const timer = window.setInterval(autoRefresh, 60_000);
+    window.addEventListener("focus", autoRefresh);
+    window.addEventListener("online", autoRefresh);
+    document.addEventListener("visibilitychange", autoRefresh);
     return () => {
       window.clearInterval(timer);
+      window.removeEventListener("focus", autoRefresh);
+      window.removeEventListener("online", autoRefresh);
+      document.removeEventListener("visibilitychange", autoRefresh);
       invalidateRequests();
     };
   }, [user, loadNotifications, invalidateRequests]);

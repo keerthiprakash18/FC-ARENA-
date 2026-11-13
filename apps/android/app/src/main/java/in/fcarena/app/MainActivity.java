@@ -645,7 +645,9 @@ public final class MainActivity extends Activity {
                     fileChooserCallback = null;
                     if (callback != null) callback.onReceiveValue(null);
                     toast("Unable to open file picker.");
-                    return false;
+                    // We completed filePathCallback above, so WebView must
+                    // not also run its default cancellation callback.
+                    return true;
                 }
 
                 try {
@@ -656,7 +658,9 @@ public final class MainActivity extends Activity {
                     fileChooserCallback = null;
                     if (callback != null) callback.onReceiveValue(null);
                     toast("No file picker is available on this device.");
-                    return false;
+                    // We completed filePathCallback above, so WebView must
+                    // not also run its default cancellation callback.
+                    return true;
                 }
             }
         });

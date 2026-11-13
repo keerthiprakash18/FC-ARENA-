@@ -212,6 +212,21 @@ try {
       if(metrics.scrollWidth>width+1) { console.log(await page.evaluate(()=>Array.from(document.querySelectorAll('body *')).filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,text:e.textContent?.slice(0,60)})))); await page.screenshot({path:output+'/overflow.png',fullPage:true,animations:'disabled'}); }
       assert(metrics.scrollWidth<=width+1,`${path} ${width}: horizontal overflow ${metrics.scrollWidth}`);
       assert.equal(metrics.animations,0,`${path}: idle continuous animation`);
+      if (path === '/league-war' && width === 390) {
+        const filters = page.getByRole('group', {name: 'Filter League Wars by status'});
+        const buttons = filters.locator('button');
+        assert.equal(await buttons.count(), 4, 'All four League War filters must be reachable');
+        const bounds = await buttons.evaluateAll((nodes) =>
+          nodes.map((node) => {
+            const rect = node.getBoundingClientRect();
+            return {left: rect.left, right: rect.right, height: rect.height};
+          }),
+        );
+        assert(
+          bounds.every((rect) => rect.left >= 0 && rect.right <= width + 1 && rect.height >= 44),
+          'League War filter labels should be fully visible and touch targets at least 44px: ' + JSON.stringify(bounds),
+        );
+      }
       if(path.includes('standings')) {
         assert.equal(await page.locator('.fc-compact-standings-table').isVisible(),width<640);
         assert(await page.getByText('Manchester Champions With A Very Long Name',{exact:true}).count()>0);

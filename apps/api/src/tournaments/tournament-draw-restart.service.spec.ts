@@ -145,17 +145,17 @@ describe('draw restart keeps old match history and copies approved teams', () =>
   it('reuses an already generated restart link on repeated clicks', async () => {
     const { service, tx } = harness();
     tx.auditLog.findFirst.mockResolvedValueOnce({
-      afterData: { newTournamentId: 'new-id' },
+      afterData: { newTournamentId: 'new-id', carriedTeams: 42, groupCount: 7 },
     });
     tx.tournament.findUnique.mockResolvedValueOnce({
       id: 'old-tournament', name: 'INTERNATIONAL FRIENDLIES', code: 'FCA-T-OLD',
-      admins: [], registrations: Array.from({ length: 42 }, (_, i) => ({
-        id: String(i), members: [], sortOrder: i, registeredByUserId: `user-${i}`,
-      })), groups: Array.from({ length: 7 }, (_, i) => ({ id: String(i) })),
+      admins: [], registrations: [], groups: [],
     }).mockResolvedValueOnce({ id: 'new-id', name: 'New Draw', code: 'FCA-T-NEW' });
     const result = await service.restart('admin', 'old-tournament', 'INTERNATIONAL FRIENDLIES');
     expect(result.data.alreadyCreated).toBe(true);
     expect(result.data.tournamentId).toBe('new-id');
+    expect(result.data.carriedTeams).toBe(42);
+    expect(result.data.groupCount).toBe(7);
     expect(tx.tournament.create).not.toHaveBeenCalled();
   });
 });

@@ -90,9 +90,6 @@ export class TournamentDrawRestartService {
       if (source.name !== confirmation) {
         throw new BadRequestException('Tournament name confirmation does not match.');
       }
-      if (source.registrations.length === 0) {
-        throw new BadRequestException('No approved teams exist to carry to the new draw.');
-      }
 
       // Never modify or delete the source tournament, its awards or recorded results.
       // This produces a distinct URL and tournament code; the old one remains a record.
@@ -105,23 +102,29 @@ export class TournamentDrawRestartService {
         orderBy: { createdAt: 'desc' },
         select: { afterData: true },
       });
-      if (duplicate && duplicate.afterData && typeof duplicate.afterData === 'object' &&
-        'newTournamentId' in duplicate.afterData &&
-        typeof duplicate.afterData.newTournamentId === 'string') {
+      const restart = duplicate?.afterData;
+      if (restart && typeof restart === 'object' && !Array.isArray(restart) &&
+        typeof restart.newTournamentId === 'string') {
         const alreadyExists = await tx.tournament.findUnique({
-          where: { id: duplicate.afterData.newTournamentId },
-          select: { id: true, name: true, code: true },
+          where: { id: restart.newTournamentId },
+          select: { id: true, name: true, code: true, _count: { select: {
+            registrations: { where: { status: 'APPROVED' } }, groups: true,
+          } } },
         });
         if (alreadyExists) {
           return {
             tournamentId: alreadyExists.id,
             tournamentName: alreadyExists.name,
             tournamentCode: alreadyExists.code,
-            carriedTeams: source.registrations.length,
-            groupCount: source.groups.length,
+            carriedTeams: typeof restart.carriedTeams === 'number' ? restart.carriedTeams : alreadyExists._count.registrations,
+            groupCount: typeof restart.groupCount === 'number' ? restart.groupCount : alreadyExists._count.groups,
             alreadyCreated: true,
           };
         }
+      }
+
+      if (source.registrations.length === 0) {
+        throw new BadRequestException('No approved teams exist to carry to the new draw.');
       }
 
       const freshId = randomUUID();

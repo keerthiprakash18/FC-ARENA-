@@ -50,7 +50,7 @@ export default function ExperiencePage() {
   }, [user, career]);
   return (
     <AppShell currentUser={user || undefined}>
-      <main className="community-page">
+      <div className="community-page">
         <div className="community-heading">
           <div>
             <span className="community-eyebrow">PLAYER PROGRESS</span>
@@ -67,7 +67,7 @@ export default function ExperiencePage() {
         {error ? (
           <div className="community-error" role="alert">
             {error}
-            <button onClick={() => void load()}>Try again</button>
+            <button type="button" onClick={() => void load()}>Try again</button>
             <Link href="/login">Sign in</Link>
           </div>
         ) : user && career ? (
@@ -93,7 +93,7 @@ export default function ExperiencePage() {
                         <h3 className="theme-text text-sm font-semibold">{goal.label}</h3>
                         <span className="theme-secondary-text whitespace-nowrap text-xs">{goal.value}/{goal.target}</span>
                       </div>
-                      <progress aria-label={goal.label} value={goal.value} max={goal.target} className="mt-3 h-2 w-full accent-[var(--theme-primary)]" />
+                      <progress aria-label={`${goal.label}: ${goal.value} of ${goal.target}`} value={goal.value} max={goal.target} className="mt-3 h-2 w-full accent-[var(--theme-primary)]" />
                       <p className="theme-secondary-text mt-1 text-xs">{goal.value === goal.target ? 'Completed' : 'Keep playing verified matches'}</p>
                     </div>
                   ))}
@@ -117,7 +117,7 @@ export default function ExperiencePage() {
         ) : (
           <p role="status">Loading your player journey…</p>
         )}
-      </main>
+      </div>
     </AppShell>
   );
 }

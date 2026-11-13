@@ -56,7 +56,7 @@ try {
 
       available = false;
       await page.reload();
-      await page.getByRole('button', { name: 'Retry', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Try again', exact: true }).waitFor();
       assert.equal(await home.count(), 0);
       await context.setOffline(true);
       available = true;

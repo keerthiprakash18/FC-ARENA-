@@ -481,15 +481,18 @@ export default function DashboardPage() {
       lastRefreshAt = current;
       void reloadDashboard();
     };
+    const markOffline = () => { lastRefreshAt = 0; };
     // A one-minute fallback reduces background traffic while retaining
     // prompt focus/online refreshes. Live match state is linked separately.
     const timer = window.setInterval(refresh, 60_000);
     window.addEventListener('focus', refresh);
+    window.addEventListener('offline', markOffline);
     window.addEventListener('online', refresh);
     document.addEventListener('visibilitychange', refresh);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener('focus', refresh);
+      window.removeEventListener('offline', markOffline);
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', refresh);
     };

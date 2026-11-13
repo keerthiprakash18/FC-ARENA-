@@ -88,7 +88,11 @@ try {
       '/api/arena-talk/moderation/reports': (route, headers) => route.fulfill({ headers, json: { success: true, data: { reports: reviewed ? [] : [report] }, error: null } }),
     }, onMutation: (route, headers) => { if (new URL(route.request().url()).pathname.includes('/moderation/reports/')) reviewed = true; return route.fulfill({ headers, json: { success: true, data: {}, error: null } }); } });
     try {
-      await extra.page.goto('https://fcarena.in/profile'); await extra.page.getByRole('heading', { name: 'Your player profile' }).waitFor(); await extra.page.locator('.mission').first().waitFor(); await checkLayout(extra.page, `Profile ${width}`);
+      await extra.page.goto('https://fcarena.in/profile');
+      await extra.page.getByRole('heading', { name: 'Your player profile' }).waitFor();
+      await extra.page.getByText('Player Journey, missions & XP', { exact: true }).click();
+      await extra.page.locator('.mission').first().waitFor();
+      await checkLayout(extra.page, `Profile ${width}`);
       await extra.page.getByRole('button', { name: 'Choose profile photo', exact: true }).waitFor();
       await extra.page.goto('https://fcarena.in/discover/players/public-player'); await extra.page.locator('.public-player-edition .edition-level').waitFor(); await extra.page.waitForFunction(() => document.querySelector('.public-player-edition .edition-level')?.textContent.includes('3')); await checkLayout(extra.page, `Public player ${width}`);
       await extra.page.goto('https://fcarena.in/admin/community');

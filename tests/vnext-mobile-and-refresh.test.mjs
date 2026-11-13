@@ -58,3 +58,11 @@ test('FC ARENA stays English-only as requested; no new language toggles introduc
   assert.match(layout, /lang="en"/);
   assert.doesNotMatch(settings, /useAppLanguage|App language|fc-arena-ui-language/);
 });
+
+test('Player Journey keeps one main landmark and announces completed-goal counts', () => {
+  const source = read('apps/web/src/app/experience/page.tsx');
+  assert.doesNotMatch(source, /<main className="community-page">/);
+  assert.match(source, /<div className="community-page">/);
+  assert.match(source, /aria-label=\{`\$\{goal\.label\}: \$\{goal\.value\} of \$\{goal\.target\}`\}/);
+  assert.match(source, /<button type="button" onClick=\{\(\) => void load\(\)\}>Try again<\/button>/);
+});

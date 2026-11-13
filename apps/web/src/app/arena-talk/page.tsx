@@ -70,12 +70,14 @@ export default function ArenaTalkPage() {
               aria-label="Conversation audience"
             >
               <button
+                type="button"
                 aria-pressed={scope === "PUBLIC"}
                 onClick={() => void switchScope("PUBLIC")}
               >
                 Football Talk <small>All FC ARENA members</small>
               </button>
               <button
+                type="button"
                 disabled={!context.leagues.length}
                 aria-pressed={scope !== "PUBLIC"}
                 onClick={() =>
@@ -105,7 +107,7 @@ export default function ArenaTalkPage() {
                 </select>
               </label>
             )}
-            <p className="community-muted arena-audience-note">
+            <p className="community-muted arena-audience-note" role="status" aria-live="polite">
               {context.policy.audienceNote}
             </p>
             <div className="arena-layout">

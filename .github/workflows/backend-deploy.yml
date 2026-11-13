@@ -10,6 +10,18 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/backend-deploy.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "apps/android/**"
+      - "packages/**"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/backend-deploy.yml"
   workflow_dispatch:
 
 permissions:

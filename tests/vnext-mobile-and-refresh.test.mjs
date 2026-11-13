@@ -85,3 +85,10 @@ test('profile contact form exposes native mobile keyboard/autofill affordances',
   assert.match(source, /type="text"\s+autoComplete="name"\s+name="fullName"/);
   assert.match(source, /theme-primary-button min-h-11 rounded-\[10px\]/);
 });
+
+test('small Android screens give full width to long player identities', () => {
+  const styles = read('apps/web/src/app/vnext-interaction-system.css');
+  assert.match(styles, /@media \(max-width: 430px\)[\s\S]*\.fc-profile-page \.profile-photo-settings/);
+  assert.match(styles, /\.fc-profile-page \.profile-photo-settings\s*\{\s*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(styles, /\.profile-photo-settings h2\s*\{[\s\S]*overflow-wrap: anywhere/);
+});

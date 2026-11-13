@@ -77,3 +77,11 @@ test('the long profile offers a keyboard-accessible compact Player Journey', () 
   assert.match(source, /group-open:hidden/);
   assert.match(source, /focus-visible:outline-offset-2/);
 });
+
+test('profile contact form exposes native mobile keyboard/autofill affordances', () => {
+  const source = read('apps/web/src/app/profile/page.tsx');
+  assert.match(source, /type="email"\s+autoComplete="email"\s+name="email"/);
+  assert.match(source, /type="tel"\s+autoComplete="tel"\s+name="phoneNumber"/);
+  assert.match(source, /type="text"\s+autoComplete="name"\s+name="fullName"/);
+  assert.match(source, /theme-primary-button min-h-11 rounded-\[10px\]/);
+});

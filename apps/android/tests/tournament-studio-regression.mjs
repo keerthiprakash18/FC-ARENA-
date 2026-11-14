@@ -11,11 +11,11 @@ const league = { id: 'studio-league-' + testId, name: 'KICKOFF FC', code: 'KF-X3
 const leagueB = { id: 'studio-league-b-' + testId, name: 'FC ARENA TAMIL', code: 'FCAT' };
 const tournament = {
   id: 'studio-demo-' + testId, leagueId: league.id, name: 'Friday Night Cup', mode: 'DUO', competitionFormat: 'LEAGUE_ROUND_ROBIN',
-  status: 'DRAFT', groupMode: 'SINGLE_GROUP', legType: 'SINGLE_LEG', fixtureMode: 'AUTOMATIC', registrationMode: 'ADMIN_ONLY',
+  status: 'DRAFT', duoAggregateEnabled: true, groupMode: 'SINGLE_GROUP', legType: 'SINGLE_LEG', fixtureMode: 'AUTOMATIC', registrationMode: 'ADMIN_ONLY',
   maxEntries: 8, teamSize: 2, description: '', qualifiersPerGroup: null, playoffQualifiersTotal: null, groups: [], _count: { fixtures: 0, matches: 0 },
 };
 const pool = ['Vinod FC', 'Raja United', 'Mithun', 'Gokul', 'Aadhi', 'Sriram', 'Hari FC',
-  ...Array.from({ length: 35 }, (_, index) => 'League player ' + (index + 8))].map((name, index) => ({ id: 'p' + index, name, avatar: null }));
+  ...Array.from({ length: 35 }, (_, index) => 'League player ' + (index + 8))].map((name, index) => ({ id: 'p' + index, name, fullName: name, playerCode: 'FC' + (1000 + index), avatar: null }));
 const listRows = [
   { ...tournament, status: 'ACTIVE', name: 'KICKOFF Championship', id: 'live-demo', startAt: '2026-11-23', code: 'KFC-DEMO', approvedEntries: 8, canManageSettings: true },
   { ...tournament, code: 'DRAFT01', approvedEntries: 0, startAt: null, canManageSettings: true },
@@ -30,7 +30,7 @@ try {
   if (output) await mkdir(output, { recursive: true });
   const widths = physical ? ['android'] : [360, 390, 430, 1440];
   for (const width of widths) {
-    const studio = { tournament: structuredClone(tournament), entries: [], fixtures: [], history: [], publishedFixtureCount: 0, revision: 'a'.repeat(64), editable: true, availablePlayers: [...pool] };
+    const studio = { tournament: structuredClone(tournament), selectedLeague: { ...league, memberCount: pool.length }, eligiblePlayerCount: pool.length, unavailableMembers: [], entries: [], fixtures: [], history: [], publishedFixtureCount: 0, revision: 'a'.repeat(64), editable: true, availablePlayers: [...pool] };
     const respond = (route, data) => route.fulfill({ json: { success: true, data, error: null } });
     let playerDrawRequests = 0;
     const auth = await createUiContext(browser, {

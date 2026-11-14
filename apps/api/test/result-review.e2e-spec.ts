@@ -318,4 +318,81 @@ describe('Result review queue with authenticated HTTP and real PostgreSQL', () =
         .confirmedResultSubmissionId,
     ).toBe(results[2]);
   }, 30000);
+
+  it('aggregates two Duo games while retaining individual goals through admin correction', async () => {
+    const leagueId = leagues[0]!;
+    await db.leagueMember.createMany({ data: [2,3,4,5,6].map(i => ({
+      leagueId, userId: users[i]!, type: 'SECONDARY' as const,
+    })), skipDuplicates: true });
+    const cup = await db.tournament.create({ data: {
+      leagueId, createdByUserId: users[0]!, name: 'Aggregate Duo', code: 'DU' + run,
+      mode: 'DUO', duoAggregateEnabled: true, format: 'ROUND_ROBIN',
+      maxEntries: 2, teamSize: 2, status: 'ACTIVE',
+    } });
+    const registration = async (ids: string[], sortOrder: number) => db.tournamentRegistration.create({
+      data: { tournamentId: cup.id, registeredByUserId: ids[0]!,
+        status: 'APPROVED', sortOrder, entryName: 'Duo ' + sortOrder,
+        members: { create: ids.map(userId => ({ tournamentId: cup.id, userId })) },
+      },
+    });
+    const home = await registration([users[2]!, users[3]!], 1);
+    const away = await registration([users[4]!, users[5]!], 2);
+    await db.tournamentAdmin.create({ data: {
+      tournamentId: cup.id, userId: users[6]!, permissions: ['VERIFY_SCORES'],
+    } });
+    const fixture = await db.fixture.create({ data: {
+      tournamentId: cup.id, fixtureCode: 'DU' + run + '-1', sequence: 1,
+      roundNumber: 1, roundName: 'Round 1', bracketPosition: 1,
+      homeRegistrationId: home.id, awayRegistrationId: away.id,
+    } });
+    const match = await db.match.create({ data: { tournamentId: cup.id, fixtureId: fixture.id } });
+    const games = [
+      { homePlayerId: users[2]!, awayPlayerId: users[4]!, homeGoals: 2, awayGoals: 1 },
+      { homePlayerId: users[3]!, awayPlayerId: users[5]!, homeGoals: 0, awayGoals: 3 },
+    ];
+    const submit = (body: object) => request(app.getHttpServer())
+      .post('/api/matches/' + match.id + '/results')
+      .set('Authorization', 'Bearer ' + token(users[2]!)).send(body);
+    await submit({ homeScore: 2, awayScore: 4 }).expect(400);
+    await submit({ homeScore: 5, awayScore: 4, duoGames: games }).expect(400);
+    await submit({ homeScore: 2, awayScore: 4, duoGames: [
+      games[0], { ...games[1], awayPlayerId: users[6] },
+    ] }).expect(400);
+
+    const response = await submit({ homeScore: 2, awayScore: 4, duoGames: games }).expect(201);
+    await post(users[6]!, response.body.data.submission.id, 'confirm').expect(201);
+    const standings = await db.tournamentStanding.findMany({ where: { tournamentId: cup.id } });
+    expect(standings.find(row => row.registrationId === home.id)).toMatchObject({
+      played: 1, goalsFor: 2, goalsAgainst: 4,
+    });
+    expect(standings.find(row => row.registrationId === away.id)).toMatchObject({
+      played: 1, goalsFor: 4, goalsAgainst: 2,
+    });
+    const stat = (userId: string) => db.playerTournamentStatistic.findUniqueOrThrow({
+      where: { tournamentId_userId: { tournamentId: cup.id, userId } },
+    });
+    expect(await stat(users[2]!)).toMatchObject({ matches: 1, goalsFor: 2, goalsAgainst: 1 });
+    expect(await stat(users[3]!)).toMatchObject({ matches: 1, goalsFor: 0, goalsAgainst: 3 });
+    expect(await stat(users[4]!)).toMatchObject({ matches: 1, goalsFor: 1, goalsAgainst: 2 });
+    expect(await stat(users[5]!)).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 0 });
+
+    const correctedGames = [
+      { ...games[0], homeGoals: 3 },
+      { ...games[1], homeGoals: 2, awayGoals: 2 },
+    ];
+    await request(app.getHttpServer()).post('/api/matches/' + match.id + '/results/correct')
+      .set('Authorization', 'Bearer ' + token(users[6]!))
+      .send({ homeScore: 5, awayScore: 3, duoGames: correctedGames, reason: 'Verified both individual game results' })
+      .expect(201);
+    expect(await stat(users[2]!)).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 1 });
+    expect(await stat(users[3]!)).toMatchObject({ matches: 1, goalsFor: 2, goalsAgainst: 2 });
+    const correctedStandings = await db.tournamentStanding.findMany({ where: { tournamentId: cup.id } });
+    expect(correctedStandings.find(row => row.registrationId === home.id)).toMatchObject({
+      played: 1, goalsFor: 5, goalsAgainst: 3,
+    });
+    const finalMatch = await db.match.findUniqueOrThrow({
+      where: { id: match.id }, include: { confirmedResult: true },
+    });
+    expect(finalMatch.confirmedResult?.duoGames).toEqual(correctedGames);
+  }, 30000);
 });

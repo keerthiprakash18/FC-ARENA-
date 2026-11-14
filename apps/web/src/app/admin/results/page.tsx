@@ -187,7 +187,7 @@ export default function AdminResultsPage() {
     } else if (
       !(await confirmAction({
         title: "Verify this result?",
-        description: `${entryName(item.match.fixture.homeRegistration)} ${item.homeScore} – ${item.awayScore} ${entryName(item.match.fixture.awayRegistration)}${item.homePenaltyScore != null ? ` (penalties ${item.homePenaltyScore} – ${item.awayPenaltyScore})` : ""}. ${item.duoGames?.length === 2 ? duoBreakdown(item) + ". " : ""}Verification updates standings and player statistics.`,
+        description: `${entryName(item.match.fixture.homeRegistration)} ${item.homeScore} – ${item.awayScore} ${entryName(item.match.fixture.awayRegistration)}${item.homePenaltyScore != null ? ` (penalties ${item.homePenaltyScore} – ${item.awayPenaltyScore})` : ""}. ${Boolean(item.duoGames?.length) ? duoBreakdown(item) + ". " : ""}Verification updates standings and player statistics.`,
         confirmLabel: "Verify result",
       }))
     )
@@ -379,11 +379,11 @@ export default function AdminResultsPage() {
                     {entryName(item.match.fixture.awayRegistration)}
                   </span>
                 </div>
-                {item.duoGames?.length === 2 && (
+                {Boolean(item.duoGames?.length) && (
                   <section aria-label="Duo game breakdown" className="rounded-xl border border-amber-400/25 bg-amber-400/[.05] p-4">
                     <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-300">Duo aggregate · Individual games</p>
                     <ol className="grid gap-2 text-sm">
-                      {item.duoGames.map((game, index) => <li key={index} className="flex flex-wrap items-start justify-between gap-2">
+                      {item.duoGames?.map((game, index) => <li key={index} className="flex flex-wrap items-start justify-between gap-2">
                         <span className="break-words">Game {index + 1} · {duoPlayerName(item.match.fixture.homeRegistration, game.homePlayerId)}
                           {' vs '}{duoPlayerName(item.match.fixture.awayRegistration, game.awayPlayerId)}</span>
                         <strong className="tabular-nums">{game.homeGoals} – {game.awayGoals}</strong>

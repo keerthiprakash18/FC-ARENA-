@@ -20,7 +20,7 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
-import { duoGamesJson, duoPlayerDelta, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
+import { duoGamesJson, duoPlayerDelta, duoSideGoals, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
@@ -1388,11 +1388,11 @@ export class ResultsService {
 
       if (tournament.duoAggregateEnabled) {
         const games = parseDuoGames(result.duoGames);
-        if (!games) throw new ConflictException('This verified Duo result is missing its two individual games.');
-        const homeGame = games.find(game => game.homePlayerId === userId);
-        const awayGame = games.find(game => game.awayPlayerId === userId);
-        if (homeGame) this.applyAggregate(aggregate, duoPlayerDelta(this.calculateDelta(result.homeScore, result.awayScore), homeGame.homeGoals, homeGame.awayGoals));
-        if (awayGame) this.applyAggregate(aggregate, duoPlayerDelta(this.calculateDelta(result.awayScore, result.homeScore), awayGame.awayGoals, awayGame.homeGoals));
+        if (!games) throw new ConflictException('This verified Duo result is missing its individual games.');
+        const homeGoals = duoSideGoals(games, true).get(userId);
+        const awayGoals = duoSideGoals(games, false).get(userId);
+        if (homeGoals) this.applyAggregate(aggregate, duoPlayerDelta(this.calculateDelta(result.homeScore, result.awayScore), homeGoals.scored, homeGoals.conceded));
+        if (awayGoals) this.applyAggregate(aggregate, duoPlayerDelta(this.calculateDelta(result.awayScore, result.homeScore), awayGoals.scored, awayGoals.conceded));
         continue;
       }
       if (
@@ -1686,9 +1686,11 @@ export class ResultsService {
       if (tournament.duoAggregateEnabled) {
         const games = parseDuoGames(result.duoGames);
         if (!games) throw new ConflictException('A confirmed Duo result has no valid individual-game breakdown.');
-        for (const game of games) {
-          await this.applyPlayerStatistic(tx, tournamentId, game.homePlayerId, duoPlayerDelta(homeDelta, game.homeGoals, game.awayGoals));
-          await this.applyPlayerStatistic(tx, tournamentId, game.awayPlayerId, duoPlayerDelta(awayDelta, game.awayGoals, game.homeGoals));
+        for (const [playerId, goals] of duoSideGoals(games, true)) {
+          await this.applyPlayerStatistic(tx, tournamentId, playerId, duoPlayerDelta(homeDelta, goals.scored, goals.conceded));
+        }
+        for (const [playerId, goals] of duoSideGoals(games, false)) {
+          await this.applyPlayerStatistic(tx, tournamentId, playerId, duoPlayerDelta(awayDelta, goals.scored, goals.conceded));
         }
         continue;
       }

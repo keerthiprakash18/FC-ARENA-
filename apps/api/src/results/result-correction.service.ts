@@ -17,7 +17,7 @@ import {
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
-import { duoGamesJson, duoPlayerDelta, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
+import { duoGamesJson, duoPlayerDelta, duoSideGoals, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg, assertUclFirstLegMutable } from './ucl-ties.js';
 
@@ -1048,9 +1048,11 @@ export class ResultCorrectionService {
       if (tournament.duoAggregateEnabled) {
         const games = parseDuoGames(result.duoGames);
         if (!games) throw new ConflictException('A confirmed Duo result has no valid individual-game breakdown.');
-        for (const game of games) {
-          await this.applyPlayerStatistic(tx, tournamentId, game.homePlayerId, duoPlayerDelta(homeDelta, game.homeGoals, game.awayGoals));
-          await this.applyPlayerStatistic(tx, tournamentId, game.awayPlayerId, duoPlayerDelta(awayDelta, game.awayGoals, game.homeGoals));
+        for (const [playerId, goals] of duoSideGoals(games, true)) {
+          await this.applyPlayerStatistic(tx, tournamentId, playerId, duoPlayerDelta(homeDelta, goals.scored, goals.conceded));
+        }
+        for (const [playerId, goals] of duoSideGoals(games, false)) {
+          await this.applyPlayerStatistic(tx, tournamentId, playerId, duoPlayerDelta(awayDelta, goals.scored, goals.conceded));
         }
         continue;
       }

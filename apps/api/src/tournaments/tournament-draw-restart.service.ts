@@ -145,6 +145,7 @@ export class TournamentDrawRestartService {
           rules: source.rules,
           mode: source.mode,
           duoAggregateEnabled: source.duoAggregateEnabled,
+          duoGamesPerFixture: source.duoGamesPerFixture,
           format: source.format,
           competitionFormat: source.competitionFormat,
           groupMode: source.groupMode,

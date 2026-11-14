@@ -107,6 +107,7 @@ export class TournamentsService {
         mode: dto.mode,
         // New Duo tournaments aggregate the two member games, while legacy Duo results remain untouched.
         duoAggregateEnabled: dto.mode === 'DUO',
+        duoGamesPerFixture: dto.mode === 'DUO' ? 4 : 2,
 
         format:
           this.resolveLegacyFormat(
@@ -1557,7 +1558,7 @@ export class TournamentsService {
         }
         // Existing DRAFT Duo setups may adopt aggregate scoring only when there
         // is no result history to reinterpret. Active/historical cups are untouched.
-        const resultHistory = nextMode === 'DUO' && !current.duoAggregateEnabled
+        const resultHistory = nextMode === 'DUO' && (!current.duoAggregateEnabled || current.duoGamesPerFixture !== 4)
           ? await tx.resultSubmission.findFirst({
               where: { match: { tournamentId } }, select: { id: true },
             })
@@ -1599,6 +1600,7 @@ export class TournamentsService {
           mode:
             dto.mode,
           duoAggregateEnabled,
+          duoGamesPerFixture: duoAggregateEnabled && !resultHistory ? 4 : current.duoGamesPerFixture,
 
           competitionFormat,
 

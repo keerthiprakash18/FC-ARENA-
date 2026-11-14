@@ -152,6 +152,7 @@ export class MatchesService {
             mode:
               match.tournament.mode,
             duoAggregateEnabled: match.tournament.duoAggregateEnabled,
+            duoGamesPerFixture: match.tournament.duoGamesPerFixture,
 
             format:
               match.tournament.format,

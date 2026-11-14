@@ -670,6 +670,7 @@ model Tournament {
   mode                        TournamentMode
   // New DUO tournaments use two verified individual games to determine each aggregate result.
   // False by default to preserve historical Duo results and their scoring contract.
+  duoGamesPerFixture          Int                         @default(2)
   duoAggregateEnabled         Boolean                     @default(false)
   format                      TournamentFormat
   competitionFormat           TournamentCompetitionFormat @default(LEAGUE_ROUND_ROBIN)

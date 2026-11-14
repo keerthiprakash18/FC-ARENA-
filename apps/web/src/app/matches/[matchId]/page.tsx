@@ -78,6 +78,7 @@ interface MatchCenter {
     name: string;
     mode: string;
     duoAggregateEnabled: boolean;
+    duoGamesPerFixture?: number;
     format: string;
     competitionFormat?: string;
     formatGuide?: TournamentFormatDescription | null;
@@ -608,7 +609,7 @@ function MatchRoom() {
 
     try {
       const payload = match?.tournament.duoAggregateEnabled
-        ? readDuoAggregateForm(data, match.fixture.home, match.fixture.away, 'manual')
+        ? readDuoAggregateForm(data, match.fixture.home, match.fixture.away, 'manual', match.tournament.duoGamesPerFixture)
         : { homeScore: Number(data.get('homeScore')), awayScore: Number(data.get('awayScore')) };
       const response = await authenticatedRequest<{
         success: true;
@@ -896,8 +897,8 @@ function MatchRoom() {
 
     let duoPayload: ReturnType<typeof readDuoAggregateForm> | undefined;
     if (match?.tournament.duoAggregateEnabled) {
-      try { duoPayload = readDuoAggregateForm(data, match.fixture.home, match.fixture.away, 'corrected'); }
-      catch (cause) { setError(cause instanceof Error ? cause.message : 'Complete the two Duo games.'); return; }
+      try { duoPayload = readDuoAggregateForm(data, match.fixture.home, match.fixture.away, 'corrected', match.tournament.duoGamesPerFixture); }
+      catch (cause) { setError(cause instanceof Error ? cause.message : 'Complete all Duo games.'); return; }
     }
 
     const homeScore = duoPayload?.homeScore ?? Number(data.get("correctedHomeScore"));
@@ -1615,7 +1616,7 @@ function MatchRoom() {
               className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 sm:gap-4"
             >
               {match.tournament.duoAggregateEnabled ? (
-                <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="manual" disabled={busy || !draft.ready} />
+                <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="manual" gameCount={match.tournament.duoGamesPerFixture} disabled={busy || !draft.ready} />
               ) : (<>
               <label className="grid gap-2 text-sm font-bold">
                 {home}
@@ -1680,7 +1681,7 @@ function MatchRoom() {
 
             <form onSubmit={correctResult} className="mt-6 grid gap-4">
               {match.tournament.duoAggregateEnabled ? (
-                <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="corrected"
+                <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="corrected" gameCount={match.tournament.duoGamesPerFixture}
                   initial={confirmed.duoGames} disabled={busy} />
               ) : (<div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
                 <label className="grid gap-2 text-sm font-bold">
@@ -1714,7 +1715,7 @@ function MatchRoom() {
                 </label>
               </div>)}
 
-              {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} prefix="corrected" homeScore={confirmed.homePenaltyScore} awayScore={confirmed.awayPenaltyScore} /> : null}
+              {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} prefix="corrected" gameCount={match.tournament.duoGamesPerFixture} homeScore={confirmed.homePenaltyScore} awayScore={confirmed.awayPenaltyScore} /> : null}
               <label className="fc-field-label">Correction reason <span className="theme-muted">Required · at least 3 characters</span>
               <textarea
                 name="correctionReason"
@@ -1804,11 +1805,11 @@ function MatchRoom() {
                           submission.submittedBy.fullName}
                       </p>
 
-                      {submission.duoGames?.length === 2 && (
+                      {Boolean(submission.duoGames?.length) && (
                         <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[.05] p-3">
                           <p className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-300">Verified Duo game breakdown</p>
                           <ol className="grid gap-2">
-                            {submission.duoGames.map((game, index) => <li key={index} className="flex flex-wrap justify-between gap-2 text-sm">
+                            {submission.duoGames?.map((game, index) => <li key={index} className="flex flex-wrap justify-between gap-2 text-sm">
                               <span className="break-words">{duoMemberName(match.fixture.home, game.homePlayerId)} vs {duoMemberName(match.fixture.away, game.awayPlayerId)}</span>
                               <strong className="tabular-nums">{game.homeGoals} – {game.awayGoals}</strong>
                             </li>)}

@@ -146,9 +146,9 @@ try {
     await page.getByRole('heading', { name: 'Participants', exact: true }).waitFor();
     await snap('studio-participants');
     await page.getByRole('button', { name: 'Create draft', exact: true }).click();
-    await page.getByRole('button', { name: 'Select eligible players' }).click();
+    await page.getByRole('button', { name: 'Select up to 40 eligible players' }).click();
     await page.getByText('Selected 40 of 40 players', { exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Confirm player pool' }).click();
+    await page.getByRole('button', { name: 'Confirm 40 selected players' }).click();
     await page.getByText('40 players remain in this pool', { exact: true }).waitFor();
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByText('40 players remain in this pool', { exact: true }).waitFor();

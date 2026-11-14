@@ -52,7 +52,7 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
   const fallback: Settings = {
     name: '', mode: Object.hasOwn(modes, initialMode) ? initialMode as Settings['mode'] : 'SOLO',
     competitionFormat: Object.hasOwn(formats, initialFormat) ? initialFormat as Format : 'LEAGUE_ROUND_ROBIN',
-    maxEntries: 16, teamSize: 4, registrationMode: 'ADMIN_ONLY', description: '',
+    maxEntries: initialMode === "DUO" ? 20 : 16, teamSize: 4, registrationMode: 'ADMIN_ONLY', description: '',
   };
   useEffect(() => {
     let mounted = true;
@@ -222,7 +222,7 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
           {settings.mode === 'TEAM' && <label>Players per team<input required type="number" min={3} max={11} disabled={modeLocked} value={settings.teamSize || ''} onChange={event => update({ teamSize: Number(event.target.value) })} /></label>}
         </div>
         <p className={styles.muted}>{settings.mode === 'DUO'
-          ? `${settings.maxEntries || 0} Duo teams × 2 players = ${(settings.maxEntries || 0) * 2} players for a full draw.`
+          ? `${settings.maxEntries || 0} Duo teams × 2 players = ${(settings.maxEntries || 0) * 2} players for a full draw. Each player faces both opponents in a four-game fixture.`
           : `${teamSize(settings)} ${teamSize(settings) === 1 ? 'player' : 'players'} per entry.`} League members need an active account and a saved game identity.</p>
         <label>Registration
           <select value={settings.competitionFormat === 'ELITE_CUP' ? 'ADMIN_ONLY' : settings.registrationMode} disabled={settings.competitionFormat === 'ELITE_CUP'}

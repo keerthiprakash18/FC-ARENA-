@@ -61,7 +61,9 @@ export function StudioReview({ studio, endpoint, reload, onBack }: {
       <div className={styles.notice} role="note">
         <strong>{tournament.duoAggregateEnabled ? 'Aggregate Duo scoring' : 'Legacy Duo scoring'}</strong>
         <p>{tournament.duoAggregateEnabled
-          ? 'Each Duo contains two players. Each player plays one game. Both members\' goals are added together for the team score, then the combined goals decide the match winner. The scores of both games must be verified.'
+          ? tournament.duoGamesPerFixture === 4
+            ? 'Each player faces both opponents. Enter all four scores and add the goals on each side to decide the team result.'
+            : 'Each Duo contains two players. Each player plays one game. Both members\' goals are added together for the team score, then the combined goals decide the match winner. The scores of both games must be verified.'
           : 'This existing Duo tournament retains its original scoring rules; historical results will not be recalculated under new aggregate rules.'}</p>
       </div>
     )}

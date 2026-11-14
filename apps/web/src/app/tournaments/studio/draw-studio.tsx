@@ -217,7 +217,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
           </details>}
         </> : <>
           <div className={styles.formStack}>
-            <h3>Select players for the wheel</h3>
+            <h3>Select players from the tournament league</h3>
             <p className={styles.muted}>{remainingEntries} open {tournament.mode === 'DUO' ? 'Duo teams' : 'entries'} × {tournament.teamSize} {tournament.teamSize === 1 ? 'player' : 'players'}. Select up to {poolLimit} eligible players. You can draw a smaller pool in complete teams and add more later.</p>
           </div>
           <label>Find players for the wheel<input type="search" value={query} onChange={event => { setQuery(event.target.value); setVisible(24); }} /></label>
@@ -226,7 +226,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
             <div className={styles.inlineActions}>
               <button type="button" className={styles.subButton} disabled={poolIds.length >= poolLimit || !matchingPool.some(player => !selectedPool.has(player.id))}
                 onClick={() => updatePool([...poolIds, ...matchingPool.filter(player => !selectedPool.has(player.id)).slice(0, poolLimit - poolIds.length).map(player => player.id)])}>
-                {search ? 'Select matching players' : 'Select eligible players'}
+                {search ? 'Select matching players' : 'Select up to ' + poolLimit + ' eligible players'}
               </button>
               {poolIds.length > 0 && <button type="button" className={styles.subButton} onClick={() => updatePool([])}>Clear selection</button>}
             </div>
@@ -235,7 +235,8 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
             {!matchingPool.length && <p className={styles.muted}>No eligible players found.</p>}
             {matchingPool.length > visible && <button type="button" className={styles.subButton} onClick={() => setVisible(count => count + 24)}>Show more players</button>}
           </fieldset>
-          <button className={styles.goldButton} type="button" disabled={!canConfirmPool} onClick={() => update({ pool: poolIds, poolLocked: true })}>Confirm player pool</button>
+          <p className={styles.muted}>{poolIds.length} selected · {Math.floor(poolIds.length / tournament.teamSize)} complete {tournament.mode === "DUO" ? "Duo teams" : "entries"}</p>
+          <button className={styles.goldButton} type="button" disabled={!canConfirmPool} onClick={() => update({ pool: poolIds, poolLocked: true })}>Confirm {poolIds.length} selected players</button>
           {poolIds.length > 0 && !canConfirmPool && <p className={styles.muted}>Choose players in sets of {tournament.teamSize} to form complete entries.</p>}
         </>}
       </section>}

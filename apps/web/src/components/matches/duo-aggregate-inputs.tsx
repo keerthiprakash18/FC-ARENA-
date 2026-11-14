@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-/** One competitive game per Duo player. Both game results are added for the team winner. */
+/** Individual games contribute to one combined team score. */
 export type DuoGame = {
   homePlayerId: string;
   awayPlayerId: string;
@@ -19,25 +19,31 @@ const members = (entry: DuoEntry | null) =>
 const label = (member: { inGameName: string | null; fullName: string }) =>
   member.inGameName || member.fullName;
 
+function fixturePairings(home: ReturnType<typeof members>, away: ReturnType<typeof members>, crossPlay: boolean, swap = false) {
+  return home.flatMap((player, index) => (crossPlay ? away : [away[swap ? 1 - index : index]!])
+    .map(opponent => ({ player, opponent })));
+}
+
 export function readDuoAggregateForm(
   data: FormData,
   home: DuoEntry | null,
   away: DuoEntry | null,
   prefix: string,
+  gameCount = 2,
 ): { homeScore: number; awayScore: number; duoGames: DuoGame[] } {
   const homePlayers = members(home);
   const awayPlayers = members(away);
   if (homePlayers.length !== 2 || awayPlayers.length !== 2) {
     throw new Error('Both Duo teams must contain exactly two players before submitting.');
   }
-  const games = homePlayers.map((player, index) => {
+  const games = fixturePairings(homePlayers, awayPlayers, gameCount === 4).map(({ player, opponent }, index) => {
     const homeInput = data.get(prefix + 'Home' + index);
     const awayInput = data.get(prefix + 'Away' + index);
-    const awayPlayerId = data.get(prefix + 'AwayPlayer' + index);
+    const awayPlayerId = gameCount === 4 ? opponent.id : data.get(prefix + 'AwayPlayer' + index);
     if (typeof homeInput !== 'string' || !/^\d{1,2}$/.test(homeInput) ||
         typeof awayInput !== 'string' || !/^\d{1,2}$/.test(awayInput) ||
         typeof awayPlayerId !== 'string' || !awayPlayers.some(member => member.id === awayPlayerId)) {
-      throw new Error('Enter a valid score for each of the two Duo games.');
+      throw new Error('Enter a valid score for each Duo game.');
     }
     return {
       homePlayerId: player.id,
@@ -46,7 +52,7 @@ export function readDuoAggregateForm(
       awayGoals: Number(awayInput),
     };
   });
-  if (new Set(games.map(game => game.awayPlayerId)).size !== 2) {
+  if (gameCount !== 4 && new Set(games.map(game => game.awayPlayerId)).size !== 2) {
     throw new Error('Each away-side Duo player must play exactly one game.');
   }
   const homeScore = games.reduce((sum, game) => sum + game.homeGoals, 0);
@@ -58,23 +64,26 @@ export function readDuoAggregateForm(
 }
 
 export function DuoAggregateInputs({
-  home, away, prefix, initial, disabled = false,
+  home, away, prefix, initial, gameCount = 2, disabled = false,
 }: {
   home: DuoEntry | null;
   away: DuoEntry | null;
   prefix: string;
   initial?: DuoGame[] | null;
+  gameCount?: number;
   disabled?: boolean;
 }) {
   const homePlayers = members(home);
   const awayPlayers = members(away);
-  const initialByHome = new Map((initial ?? []).map(game => [game.homePlayerId, game]));
-  const [scores, setScores] = useState(() => homePlayers.map(player => ({
-    home: initialByHome.get(player.id)?.homeGoals.toString() ?? '',
-    away: initialByHome.get(player.id)?.awayGoals.toString() ?? '',
-  })));
+  const crossPlay = gameCount === 4;
   const [swapAway, setSwapAway] = useState(() =>
-    Boolean(homePlayers[0] && initialByHome.get(homePlayers[0].id)?.awayPlayerId === awayPlayers[1]?.id));
+    Boolean(homePlayers[0] && initial?.find(game => game.homePlayerId === homePlayers[0].id)?.awayPlayerId === awayPlayers[1]?.id));
+  const pairings = homePlayers.length === 2 && awayPlayers.length === 2
+    ? fixturePairings(homePlayers, awayPlayers, crossPlay, swapAway) : [];
+  const [scores, setScores] = useState(() => pairings.map(({ player, opponent }) => {
+    const game = initial?.find(item => item.homePlayerId === player.id && item.awayPlayerId === opponent.id);
+    return { home: game?.homeGoals.toString() ?? '', away: game?.awayGoals.toString() ?? '' };
+  }));
   if (homePlayers.length !== 2 || awayPlayers.length !== 2) {
     return <p className="theme-danger" role="alert">Both Duo entries need exactly two verified players before results can be submitted.</p>;
   }
@@ -89,17 +98,16 @@ export function DuoAggregateInputs({
 
   return <div className="col-span-full grid min-w-0 gap-4 rounded-2xl border border-amber-400/20 bg-black/10 p-4 sm:p-5">
     <header className="space-y-1">
-      <p className="text-xs font-bold uppercase tracking-widest text-amber-300">Duo aggregate · Two games</p>
-      <h3 className="theme-text text-lg font-semibold">Each player plays one game</h3>
-      <p className="theme-secondary-text text-sm">The two individual scores are added. The higher combined goal total wins this fixture.</p>
+      <p className="text-xs font-bold uppercase tracking-widest text-amber-300">Duo aggregate · {gameCount} games</p>
+      <h3 className="theme-text text-lg font-semibold">{crossPlay ? "Each player faces both opponents" : "Each player plays one game"}</h3>
+      <p className="theme-secondary-text text-sm">The individual scores are added. The higher combined goal total wins this fixture.</p>
     </header>
-    <button type="button" disabled={disabled} onClick={() => setSwapAway(current => !current)}
+    {!crossPlay && <button type="button" disabled={disabled} onClick={() => setSwapAway(current => !current)}
       className="theme-secondary-button min-h-11 justify-self-start rounded-xl border px-4 py-2 text-sm font-semibold">
       Swap opponent pairings
-    </button>
-    {homePlayers.map((player, index) => {
-      const opponent = awayPlayers[swapAway ? 1 - index : index]!;
-      return <div key={player.id} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">
+    </button>}
+    {pairings.map(({ player, opponent }, index) => {
+      return <div key={player.id + ":" + opponent.id} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">
         <p className="text-xs font-bold text-amber-300">Game {index + 1}</p>
         <p className="break-words text-sm font-semibold">{label(player)} vs {label(opponent)}</p>
         <input type="hidden" name={prefix + 'AwayPlayer' + index} value={opponent.id} />

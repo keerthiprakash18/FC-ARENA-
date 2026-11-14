@@ -23,6 +23,7 @@ export type Settings = {
 export type Tournament = Settings & {
   id: string; leagueId: string; status: string; groupMode: string; legType: string;
   duoAggregateEnabled: boolean;
+  duoGamesPerFixture?: number;
   fixtureMode: string; qualifiersPerGroup: number | null; playoffQualifiersTotal: number | null;
   groups: { id: string; name: string }[];
   _count: { fixtures: number; matches: number };

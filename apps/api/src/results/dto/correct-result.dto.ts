@@ -21,7 +21,7 @@ export class CorrectResultDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(2)
-  @ArrayMaxSize(2)
+  @ArrayMaxSize(4)
   @ValidateNested({ each: true })
   @Type(() => DuoGameDto)
   duoGames?: DuoGameDto[];

@@ -6,6 +6,7 @@ import { useAppRefresh } from '@/lib/app-refresh';
 
 import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
 import { MatchTimeCoordination } from '@/components/matches/match-time-coordination';
+import { DuoAggregateInputs, readDuoAggregateForm, type DuoGame } from '@/components/matches/duo-aggregate-inputs';
 import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import { useResultDraft } from "@/lib/result-draft";
 import { ApiError } from "@/lib/api";
@@ -76,6 +77,7 @@ interface MatchCenter {
     id: string;
     name: string;
     mode: string;
+    duoAggregateEnabled: boolean;
     format: string;
     competitionFormat?: string;
     formatGuide?: TournamentFormatDescription | null;
@@ -109,6 +111,7 @@ interface ResultSubmission {
   id: string;
   homeScore: number;
   awayScore: number;
+  duoGames?: DuoGame[] | null;
   homePenaltyScore?: number | null;
   awayPenaltyScore?: number | null;
   status: string;
@@ -206,6 +209,11 @@ function entryName(entry: MatchEntry | null, source: string | null) {
   }
 
   return "TBD";
+}
+
+function duoMemberName(entry: MatchEntry | null, userId: string) {
+  const member = entry?.members.find(item => item.id === userId);
+  return member?.inGameName || member?.fullName || 'Player';
 }
 
 function supportsPenaltyScores(match: MatchCenter) {
@@ -599,6 +607,9 @@ function MatchRoom() {
     setError("");
 
     try {
+      const payload = match?.tournament.duoAggregateEnabled
+        ? readDuoAggregateForm(data, match.fixture.home, match.fixture.away, 'manual')
+        : { homeScore: Number(data.get('homeScore')), awayScore: Number(data.get('awayScore')) };
       const response = await authenticatedRequest<{
         success: true;
 
@@ -614,12 +625,7 @@ function MatchRoom() {
       }>(`/matches/${params.matchId}/results`, {
         method: "POST",
 
-        body: JSON.stringify({
-          homeScore: Number(data.get("homeScore")),
-
-          awayScore: Number(data.get("awayScore")),
-          ...readPenaltyScores(data),
-        }),
+        body: JSON.stringify({ ...payload, ...readPenaltyScores(data) }),
       });
 
       draft.clear();
@@ -888,9 +894,15 @@ function MatchRoom() {
 
     const data = new FormData(event.currentTarget);
 
-    const homeScore = Number(data.get("correctedHomeScore"));
+    let duoPayload: ReturnType<typeof readDuoAggregateForm> | undefined;
+    if (match?.tournament.duoAggregateEnabled) {
+      try { duoPayload = readDuoAggregateForm(data, match.fixture.home, match.fixture.away, 'corrected'); }
+      catch (cause) { setError(cause instanceof Error ? cause.message : 'Complete the two Duo games.'); return; }
+    }
 
-    const awayScore = Number(data.get("correctedAwayScore"));
+    const homeScore = duoPayload?.homeScore ?? Number(data.get("correctedHomeScore"));
+
+    const awayScore = duoPayload?.awayScore ?? Number(data.get("correctedAwayScore"));
 
     const reason = String(data.get("correctionReason") ?? "").trim();
 
@@ -925,6 +937,7 @@ function MatchRoom() {
         body: JSON.stringify({
           homeScore,
           awayScore,
+          ...(duoPayload ? { duoGames: duoPayload.duoGames } : {}),
           reason,
           ...readPenaltyScores(data, 'corrected'),
         }),
@@ -1031,6 +1044,7 @@ function MatchRoom() {
 
   const canSubmitOcr =
     canSubmit &&
+    !match.tournament.duoAggregateEnabled &&
     latestOcr?.status === "COMPLETED" &&
     !latestOcr.resultSubmission &&
     !confirmedId;
@@ -1301,7 +1315,7 @@ function MatchRoom() {
         </section>
         </details>
 
-        {canSubmit ? (
+        {canSubmit && !match.tournament.duoAggregateEnabled ? (
           <details
             id="result-update"
             className="fc-result-evidence scroll-mt-24"

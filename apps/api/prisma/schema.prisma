@@ -668,6 +668,9 @@ model Tournament {
   description                 String?                     @db.Text
   rules                       String?                     @db.Text
   mode                        TournamentMode
+  // New DUO tournaments use two verified individual games to determine each aggregate result.
+  // False by default to preserve historical Duo results and their scoring contract.
+  duoAggregateEnabled         Boolean                     @default(false)
   format                      TournamentFormat
   competitionFormat           TournamentCompetitionFormat @default(LEAGUE_ROUND_ROBIN)
   groupMode                   TournamentGroupMode         @default(SINGLE_GROUP)
@@ -970,6 +973,7 @@ model ResultSubmission {
   ocrExtractionId   String?                @unique @db.Uuid
   homeScore         Int
   awayScore         Int
+  duoGames          Json?
   homePenaltyScore  Int?
   awayPenaltyScore  Int?
   status            ResultSubmissionStatus @default(PENDING_VERIFICATION)

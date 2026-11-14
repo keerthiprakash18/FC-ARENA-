@@ -492,7 +492,6 @@ export function AppHeader({
 
           <Link
             href="/profile"
-            aria-label={[(playerImageUrl ? null : initials), playerName || "Player", playerRole || "Player", "Your profile"].filter(Boolean).join(" · ")}
             className="fc-header-profile theme-profile-chip hidden lg:flex h-11 items-center gap-3 rounded-xl px-2 transition duration-200"
           >
             <span className="theme-avatar grid h-9 w-9 place-items-center overflow-hidden rounded-full border text-xs font-semibold">
@@ -501,11 +500,7 @@ export function AppHeader({
                   src={
                     playerImageUrl
                   }
-                  alt={
-                    (playerName ||
-                      'Player') +
-                    ' profile'
-                  }
+                  alt=""
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -531,6 +526,7 @@ export function AppHeader({
                 size={15}
               />
             </span>
+            <span className="sr-only">Your profile</span>
           </Link>
         </div>
       </div>

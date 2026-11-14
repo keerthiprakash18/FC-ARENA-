@@ -409,9 +409,10 @@ export default function ProfilePage() {
         />
         <section className="profile-photo-settings fc-player-identity theme-panel" aria-label="Profile photo">
           <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" hidden onChange={event => { const selected = event.target.files?.[0]; event.target.value = ""; if (selected) { setImageError(""); setImageMessage(""); setPhotoFile(selected); } }} />
-          <button type="button" className="profile-photo-current" disabled={imageBusy} onClick={() => imageInputRef.current?.click()} aria-label={career.profile.profileImageUrl ? "Edit photo · Choose profile photo" : playerName.slice(0, 2).toUpperCase() + " · Edit photo · Choose profile photo"}>
+          <button type="button" className="profile-photo-current" disabled={imageBusy} onClick={() => imageInputRef.current?.click()}>
             {career.profile.profileImageUrl ? <img src={career.profile.profileImageUrl} alt="" /> : <span>{playerName.slice(0, 2).toUpperCase()}</span>}
             <small>Edit photo</small>
+            <span className="sr-only">Choose profile photo</span>
           </button>
           <div><span className="community-eyebrow">YOUR PROFILE PHOTO</span><h2>{playerName}</h2><p className="community-muted">Preview, move, zoom and rotate your photo before saving.</p><div className="community-actions"><button type="button" className="community-button primary" disabled={imageBusy} onClick={() => imageInputRef.current?.click()}>{career.profile.profileImageUrl ? "Change photo" : "Add profile photo"}</button>{career.profile.profileImageUrl && <button type="button" className="community-button" disabled={imageBusy} onClick={() => void removeProfileImage()}>Remove photo</button>}</div></div>
           {imageMessage && <p className="community-success" role="status">{imageMessage}</p>}

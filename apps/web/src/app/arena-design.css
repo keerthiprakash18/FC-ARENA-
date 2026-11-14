@@ -9,7 +9,7 @@
   --arena-ivory: #f6f2e9;
   --arena-muted: #b5c1d1;
   --arena-hero-surface: linear-gradient(115deg, #14253c, var(--arena-deep) 75%);
-  --arena-stadium: linear-gradient(90deg, #091421 12%, #0b1929ea 52%, #101b2b7d), url('/brand/dashboard-stadium.webp') 62% 51% / cover;
+  --arena-stadium: linear-gradient(90deg, #091421 12%, #0b1929ea 52%, #101b2b7d), url('/brand/dashboard-stadium.webp') 62% 51% / cover var(--arena-deep);
   --arena-hero-radius: 20px;
   --arena-card-radius: 15px;
   --arena-heading-padding: clamp(16px, 3vw, 32px);
@@ -31,7 +31,7 @@
   padding: var(--arena-heading-padding);
   border: 1px solid var(--arena-line);
   border-radius: var(--arena-hero-radius);
-  background: var(--arena-hero-surface) !important;
+  background: var(--arena-hero-surface) var(--arena-navy) !important;
   color: var(--arena-ivory);
   box-shadow: none;
 }
@@ -268,5 +268,12 @@
 .fc-premium .fc-app-shell .fc-main .premium-scoreboard .fc-match-room-score-grid .fc-match-versus {
   background: var(--arena-deep) !important;
   border-color: #69778c !important;
+  color: var(--arena-ivory) !important;
+}
+
+
+.fc-premium .fc-app-shell .fc-main .fc-match-list-score .premium-crest {
+  background: var(--arena-raised) !important;
+  border-color: var(--arena-line) !important;
   color: var(--arena-ivory) !important;
 }

@@ -400,7 +400,7 @@ export default function ProfilePage() {
           subtitle="Manage your identity, profile photo and player card."
           action={
             <div className="flex flex-wrap items-center gap-2">
-              <FcStatusBadge label={identity?.isVerified ? "Verified Player" : "Verification Pending"} tone={identity?.isVerified ? "emerald" : "amber"} />
+              {identity?.isVerified && <FcStatusBadge label="Verified game identity" tone="emerald" />}
               <Link href="/career" className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold">
                 Career statistics ↗
               </Link>
@@ -469,13 +469,14 @@ export default function ProfilePage() {
               <Detail label="Game UID" value={identity?.gameUid} />
 
               <Detail
-                label="Verification"
-                value={
-                  identity?.isVerified
-                    ? "Verified & locked"
-                    : "Not yet verified"
-                }
+                label="Game identity status"
+                value={identity?.isVerified ? "Verified" : "Unverified game identity"}
               />
+              {!identity?.isVerified && (
+                <p className="theme-muted mt-3 text-sm">
+                  This status applies to your in-game name and Game UID. You can still use your FC ARENA account.
+                </p>
+              )}
             </div>
           </FcPanel>
 
@@ -621,7 +622,7 @@ export default function ProfilePage() {
                   <p className="theme-text text-sm font-semibold">Player identity</p>
                   <p className="theme-muted mt-1 text-xs">
                     {identityLocked
-                      ? "Verified identity is locked and cannot be edited."
+                      ? "These game identity details are locked."
                       : "Use the identity shown in your FC ARENA competitions."}
                   </p>
                 </div>

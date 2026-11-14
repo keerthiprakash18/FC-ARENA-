@@ -53,7 +53,7 @@ export function MobileAppMenu({ playerName, playerRole, playerImageUrl }: {
   }, []);
 
   return (
-    <div className="flex shrink-0 items-center gap-2 lg:hidden">
+    <div className="flex shrink-0 items-center gap-1 lg:hidden">
       <button
         ref={trigger}
         type="button"

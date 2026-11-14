@@ -161,7 +161,10 @@
 .error { border-color: #a65c68; background: #4d2838; color: #ffd6db; }
 .notice :is(a,button) { margin-block-start: .45rem; }
 .drawOverview { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .4rem; color: var(--cup-muted); font-size: .82rem; }
-.drawOverview strong { color: var(--cup-gold); }
+.drawOverview strong,.poolCount strong { color: var(--cup-gold); }
+.poolCount { font-size: .92rem; }
+.remainingPlayers { max-height: 14rem; overflow: auto; margin: .25rem 0 .75rem; padding-inline-start: 1.75rem; list-style: decimal; }
+.remainingPlayers li { padding: .3rem 0; overflow-wrap: anywhere; }
 .drawTools { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .4rem; }
 .drawTools button[aria-pressed=true],.drawOverview button[aria-pressed=true] { color: var(--cup-gold); border-color: var(--cup-gold); }
 .playerList { list-style: none; display: grid; gap: .35rem; padding: 0; margin: 0 0 .5rem; max-height: 14rem; overflow: auto; }
@@ -180,9 +183,13 @@
 .checklist { padding-left: 1.2rem; list-style: disc; }
 .publishBox { display: grid; gap: .75rem; background: #f3ce7f0b; border: 1px solid #816936; border-radius: .7rem; padding: .75rem; }
 .publishBox label { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: .55rem; }
-.reveal { position: relative; overflow: hidden; display: grid; justify-items: center; gap: .65rem; background: linear-gradient(155deg, #172e47, #091322 70%); border: 1px solid #786649; border-radius: .85rem; padding: .8rem; text-align: center; }
+.reveal { scroll-margin-block: 5rem; position: relative; overflow: hidden; display: grid; justify-items: center; gap: .65rem; background: linear-gradient(155deg, #172e47, #091322 70%); border: 1px solid #786649; border-radius: .85rem; padding: .8rem; text-align: center; }
 .reveal > div:not(.wheelFrame) { width: 100%; }
 .reveal p { color: var(--cup-muted); font-size: .8rem; }
+.wheelAnnouncement { min-height: 3.2rem; display: grid; place-items: center; }
+.priorWinners,.revealedPlayers { display: grid; gap: .6rem; padding: 0; list-style: none; margin: 0; }
+.priorWinners { color: var(--cup-muted); overflow-wrap: anywhere; font-size: .8rem; }
+.revealedPlayers .winner { justify-content: flex-start; }
 .wheelFrame { position: relative; width: min(16.5rem, 100%); aspect-ratio: 1; display: grid; place-items: center; }
 .wheel { position: absolute; inset: 0; border: 3px solid var(--cup-gold); border-radius: 50%; contain: layout paint; }
 .wheelSlot { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; gap: .1rem; padding-top: 5%; font-size: .62rem; line-height: 1.1; }

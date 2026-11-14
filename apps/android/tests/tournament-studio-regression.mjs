@@ -14,7 +14,8 @@ const tournament = {
   status: 'DRAFT', groupMode: 'SINGLE_GROUP', legType: 'SINGLE_LEG', fixtureMode: 'AUTOMATIC', registrationMode: 'ADMIN_ONLY',
   maxEntries: 8, teamSize: 2, description: '', qualifiersPerGroup: null, playoffQualifiersTotal: null, groups: [], _count: { fixtures: 0, matches: 0 },
 };
-const pool = ['Vinod FC', 'Raja United', 'Mithun', 'Gokul', 'Aadhi', 'Sriram', 'Hari FC'].map((name, index) => ({ id: 'p' + index, name, avatar: null }));
+const pool = ['Vinod FC', 'Raja United', 'Mithun', 'Gokul', 'Aadhi', 'Sriram', 'Hari FC',
+  ...Array.from({ length: 35 }, (_, index) => 'League player ' + (index + 8))].map((name, index) => ({ id: 'p' + index, name, avatar: null }));
 const listRows = [
   { ...tournament, status: 'ACTIVE', name: 'KICKOFF Championship', id: 'live-demo', startAt: '2026-11-23', code: 'KFC-DEMO', approvedEntries: 8, canManageSettings: true },
   { ...tournament, code: 'DRAFT01', approvedEntries: 0, startAt: null, canManageSettings: true },
@@ -50,9 +51,20 @@ try {
           return respond(route, { tournament: studio.tournament });
         }
         if (path.endsWith('/studio/draw')) {
-          const members = body.kind === 'MANUAL' ? studio.availablePlayers.filter(player => body.playerIds.includes(player.id)) : studio.availablePlayers.slice(0, 2);
+          if (body.kind === 'CLUB') {
+            const entry = studio.entries.find(item => item.id === body.entryId);
+            assert(entry);
+            assert(!body.clubs.some(club => studio.entries.some(item => item.name === club)));
+            entry.name = body.clubs[0];
+            const outcome = { kind: 'CLUB', entryId: entry.id, winner: entry.name, options: body.clubs };
+            studio.history.unshift({ requestId: body.requestId, outcome });
+            return respond(route, outcome);
+          }
+          const options = body.kind === 'MANUAL' ? studio.availablePlayers :
+            studio.availablePlayers.filter(player => body.poolPlayerIds.includes(player.id));
+          const members = body.kind === 'MANUAL' ? options.filter(player => body.playerIds.includes(player.id)) : options.slice(0, 2);
           const entry = { id: 'entry-' + studio.entries.length, name: body.name || null, captainId: members[0].id, members, valid: true, status: 'APPROVED', groupId: null, logo: null };
-          const outcome = { kind: body.kind, entries: [entry], options: [...studio.availablePlayers], unassigned: studio.availablePlayers.length - members.length };
+          const outcome = { kind: body.kind, entries: [entry], options, unassigned: options.length - members.length };
           studio.entries.push(entry);
           studio.availablePlayers = studio.availablePlayers.filter(player => !members.includes(player));
           studio.history.unshift({ requestId: body.requestId, outcome });
@@ -117,9 +129,9 @@ try {
     await snap('studio-basics');
     await name.press('Enter');
     await page.waitForFunction(() => document.activeElement?.textContent === 'Participants');
-    await page.getByLabel('Duo teams').fill('8');
+    await page.getByLabel('Duo teams').fill('20');
     await page.reload({ waitUntil: 'domcontentloaded' });
-    assert.equal(await page.getByLabel('Duo teams').inputValue(), '8');
+    assert.equal(await page.getByLabel('Duo teams').inputValue(), '20');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('heading', { name: 'Basics', exact: true }).waitFor();
     assert.equal(await name.inputValue(), 'Friday Night Cup');
@@ -127,16 +139,17 @@ try {
     await page.getByRole('heading', { name: 'Participants', exact: true }).waitFor();
     await snap('studio-participants');
     await page.getByRole('button', { name: 'Create draft', exact: true }).click();
-    await page.getByRole('checkbox', { name: 'Vinod FC' }).check();
-    await page.getByRole('checkbox', { name: 'Raja United' }).check();
-    await page.getByLabel('Captain', { exact: true }).selectOption('p1');
-    await page.getByRole('button', { name: 'Add entry' }).click();
-    await page.getByRole('heading', { name: 'Duo confirmed' }).waitFor();
-    await page.getByRole('button', { name: 'Player wheel' }).click();
+    await page.getByRole('button', { name: 'Select eligible players' }).click();
+    await page.getByText('Selected 40 of 40 players', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Confirm player pool' }).click();
+    await page.getByText('40 players remain in this pool', { exact: true }).waitFor();
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByText('40 players remain in this pool', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Spin player wheel' }).click();
     if (physical) {
       const motion = await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
       if (!motion) {
+        await page.getByText('40 players on this wheel', { exact: true }).waitFor();
         await page.getByRole('button', { name: 'Skip animation' }).waitFor();
         const intervals = await page.evaluate(() => new Promise(resolve => {
           const timeline = [];
@@ -158,13 +171,37 @@ try {
         await page.getByRole('button', { name: 'Skip animation' }).click();
       }
     } else if (width !== 360) {
-      await page.getByRole('button', { name: 'Skip animation' }).waitFor();
+      await page.getByText('40 players on this wheel', { exact: true }).waitFor();
       await checkLayout(page, 'wheel ' + width);
+      if (width === 390) {
+        await page.getByText('Player 1 selected', { exact: false }).waitFor();
+        await page.getByText('39 players on this wheel', { exact: true }).waitFor();
+        await page.getByText('Player 2 selected', { exact: false }).waitFor();
+      }
       if (output) await page.screenshot({ path: output + '/studio-player-wheel-' + width + '.png' });
       await page.getByRole('button', { name: 'Skip animation' }).click();
     }
     await page.getByRole('heading', { name: 'Duo confirmed' }).waitFor();
+    await page.getByText('38 players remain in this pool', { exact: true }).waitFor();
+    await page.locator('summary').filter({ hasText: 'Remaining players' }).click();
+    const remaining = page.getByRole('list').filter({ has: page.getByText('Mithun', { exact: true }) }).first();
+    assert.equal(await remaining.getByText('Vinod FC', { exact: true }).count(), 0);
+    await page.locator('summary').filter({ hasText: 'Remaining players' }).click();
     await snap('studio-draw');
+    await page.getByRole('button', { name: 'Spin player wheel' }).click();
+    if (width !== 360) await page.getByRole('button', { name: 'Skip animation' }).click();
+    await page.getByText('36 players remain in this pool', { exact: true }).waitFor();
+    assert.equal(new Set(studio.entries.flatMap(entry => entry.members.map(player => player.id))).size, 4);
+    await page.getByRole('button', { name: 'Club wheel' }).click();
+    await page.getByLabel('Club names, one per line').fill('Club North\nClub South');
+    await page.getByRole('button', { name: 'Spin club wheel' }).click();
+    if (width !== 360) await page.getByRole('button', { name: 'Skip animation' }).click();
+    await page.getByRole('heading', { name: 'Club assigned' }).waitFor();
+    assert.equal(studio.entries[0].name, 'Club North');
+    await page.getByRole('button', { name: 'Spin club wheel' }).click();
+    if (width !== 360) await page.getByRole('button', { name: 'Skip animation' }).click();
+    await page.getByRole('heading', { name: 'Club assigned' }).waitFor();
+    assert.equal(studio.entries[1].name, 'Club South');
     await page.getByRole('button', { name: 'Review tournament' }).click();
     await page.getByRole('button', { name: 'Generate fixture preview' }).click();
     const publish = page.getByRole('button', { name: 'Publish tournament' });

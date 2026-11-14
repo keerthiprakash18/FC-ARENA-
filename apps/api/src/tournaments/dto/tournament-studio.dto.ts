@@ -1,4 +1,4 @@
-import { ArrayMaxSize, ArrayUnique, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Matches, Min } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, ArrayUnique, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Matches, Min } from 'class-validator';
 import { CreateTournamentDto } from './create-tournament.dto.js';
 
 export class CreateStudioDraftDto extends CreateTournamentDto {
@@ -19,6 +19,14 @@ export class TournamentDrawDto {
   @ArrayMaxSize(11)
   @IsUUID('4', { each: true })
   playerIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayUnique()
+  @ArrayMaxSize(128 * 11)
+  @IsUUID('4', { each: true })
+  poolPlayerIds?: string[];
 
   @IsOptional()
   @IsUUID('4')

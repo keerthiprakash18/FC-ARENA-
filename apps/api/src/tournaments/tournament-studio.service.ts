@@ -158,6 +158,9 @@ export class TournamentStudioService {
   async draw(userId: string, id: string, dto: TournamentDrawDto) {
     await this.auth.assertCanManageTournamentPermission(userId, id, 'MANAGE_PARTICIPANTS');
     if (dto.kind === 'GROUP') await this.auth.assertCanManageFixtures(userId, id);
+    if (dto.poolPlayerIds && dto.kind !== 'PLAYER' && dto.kind !== 'AUTO') {
+      throw new BadRequestException('The player pool is only used for random player draws.');
+    }
     const fingerprint = JSON.stringify(Object.entries(dto).filter(([, value]) => value !== undefined).sort(([a], [b]) => a.localeCompare(b)));
     const result = await this.prisma.$transactionWithRetry(async tx => {
       await tx.$queryRaw`SELECT id FROM tournaments WHERE id = ${id}::uuid FOR UPDATE`;
@@ -212,7 +215,7 @@ export class TournamentStudioService {
   ): Promise<Prisma.InputJsonObject> {
     const reserved = new Set(entries.filter(item => item.id !== entry?.id).flatMap(item => item.members.map(member => member.userId)));
     const playerMap = new Map(players.filter(player => !reserved.has(player.id)).map(player => [player.id, toPlayer(player)]));
-    const available = [...playerMap.keys()];
+    const available = dto.poolPlayerIds ?? [...playerMap.keys()];
     const remaining = tournament.maxEntries - liveEntries(entries).length;
     if (!entry && remaining < 1) throw new ConflictException('Registration capacity is full. Increase the entry limit or remove an entry first.');
     const size = tournament.teamSize;
@@ -224,6 +227,12 @@ export class TournamentStudioService {
       squads = [requested];
     } else {
       if (requested.length) throw new BadRequestException('Clear manual picks before drawing from the available players.');
+      if (dto.poolPlayerIds) {
+        if (available.length > remaining * size) throw new BadRequestException('The selected pool exceeds the remaining entry capacity.');
+        if (available.some(id => !playerMap.has(id))) {
+          throw new ConflictException('Some selected players are already assigned or no longer eligible. Refresh the pool and try again.');
+        }
+      }
       const shuffled = shuffle(available);
       const count = Math.min(dto.kind === 'PLAYER' ? 1 : remaining, Math.floor(shuffled.length / size));
       if (!count) throw new BadRequestException('The draw needs ' + size + ' available players to complete an entry.');

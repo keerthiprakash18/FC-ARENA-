@@ -123,6 +123,7 @@
 .career {
   border-top: 1px solid var(--theme-border);
   background: var(--theme-primary-soft);
+  color: var(--theme-text);
 }
 
 .career svg,
@@ -184,7 +185,9 @@
 }
 
 
-.account :is(.profile, .career) { color: var(--arena-ivory); }
-.account :is(.profile, .career) :is(strong, span) { color: inherit; }
+.account .profile { color: var(--arena-ivory); }
+.account .profile .identity span { color: var(--arena-muted); }
 .account .profile .avatar { color: var(--arena-gold); background: var(--arena-raised); }
-.account :is(.profile, .career, .close):focus-visible { outline-color: var(--arena-gold) !important; outline-offset: -3px !important; }
+.account :is(.profile, .close):focus-visible { outline-color: var(--arena-gold); outline-offset: -3px; }
+.account .career:focus-visible { outline-color: var(--theme-focus); outline-offset: -3px; }
+.account .close:hover { background: var(--arena-raised); }

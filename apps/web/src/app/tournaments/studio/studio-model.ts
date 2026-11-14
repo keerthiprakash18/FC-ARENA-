@@ -47,7 +47,7 @@ export type Fixture = {
   awayRegistrationId: string | null;
 };
 export type DrawCommand = {
-  kind: Outcome['kind']; playerIds?: string[]; captainId?: string; name?: string;
+  kind: Outcome['kind']; playerIds?: string[]; poolPlayerIds?: string[]; captainId?: string; name?: string;
   entryId?: string; reason?: string; groupCount?: number; clubs?: string[];
 };
 

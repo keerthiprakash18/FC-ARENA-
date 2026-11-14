@@ -201,7 +201,9 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
           <label>{settings.mode === 'DUO' ? 'Duo teams' : 'Entry capacity'}<input required type="number" min={2} max={128} value={settings.maxEntries || ''} onChange={event => update({ maxEntries: Number(event.target.value) })} /></label>
           {settings.mode === 'TEAM' && <label>Players per team<input required type="number" min={3} max={11} disabled={modeLocked} value={settings.teamSize || ''} onChange={event => update({ teamSize: Number(event.target.value) })} /></label>}
         </div>
-        <p className={styles.muted}>{teamSize(settings)} {teamSize(settings) === 1 ? 'player' : 'players'} per entry. League members need an active account and a saved game identity.</p>
+        <p className={styles.muted}>{settings.mode === 'DUO'
+          ? `${settings.maxEntries || 0} Duo teams × 2 players = ${(settings.maxEntries || 0) * 2} players for a full draw.`
+          : `${teamSize(settings)} ${teamSize(settings) === 1 ? 'player' : 'players'} per entry.`} League members need an active account and a saved game identity.</p>
         <label>Registration
           <select value={settings.competitionFormat === 'ELITE_CUP' ? 'ADMIN_ONLY' : settings.registrationMode} disabled={settings.competitionFormat === 'ELITE_CUP'}
             onChange={event => update({ registrationMode: event.target.value as Settings['registrationMode'] })}>
@@ -223,7 +225,7 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
     </form>
   );
   else if (step === 2 && studio) panel = <>
-    <DrawStudio studio={studio} endpoint={endpoint} storageKey={key + ':draw'} reload={reload} />
+    <DrawStudio key={studio.tournament.id} studio={studio} endpoint={endpoint} storageKey={key + ':draw'} reload={reload} />
     <div className={styles.footerActions}>
       <button type="button" className={styles.subButton} onClick={() => move(1)}>Back</button>
       <button type="button" className={styles.goldButton} onClick={() => move(3)}>Review tournament <FcIcon name="chevronRight" /></button>

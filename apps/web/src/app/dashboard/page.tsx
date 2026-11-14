@@ -731,7 +731,7 @@ export default function DashboardPage() {
               </h1>
 
               <div className="home-hero-tags mt-1.5 flex flex-wrap items-center gap-2">
-                <span className="theme-secondary-text font-mono text-[11px] font-semibold">
+                <span className="home-player-code font-mono text-xs font-semibold">
                   {playerCode}
                 </span>
 

@@ -250,6 +250,15 @@
   gap: 12px;
 }
 .fc-premium .fc-app-shell .fc-main .premium-home-hero .home-hero-action { padding-inline: 16px; }
+.fc-premium .fc-app-shell .fc-main .premium-home-hero .home-player-name {
+  color: var(--arena-ivory);
+  line-height: 1.18;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.fc-premium .fc-app-shell .fc-main .premium-home-hero :is(.home-welcome, .home-player-code) {
+  color: var(--arena-muted) !important;
+}
 
 
 .fc-app-shell {

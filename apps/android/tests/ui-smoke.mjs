@@ -277,11 +277,19 @@ try {
     if (width < 1024) {
       assert.equal(await page.locator('.theme-bottom-nav a').count(),5);
       assert.equal(await page.locator('.theme-bottom-nav').getByText('Home',{exact:true}).count(),1);
+      const wordmark = page.locator('.fc-header-wordmark');
+      assert(await wordmark.isVisible(), 'The mobile FC ARENA wordmark must remain visible');
       const trigger = page.getByRole('button', {name: 'Open navigation menu'});
       await trigger.click();
       const menu = page.getByRole('dialog', {name: 'FC Arena navigation'});
       await menu.waitFor({state: 'visible'});
       assert.equal(await menu.getByRole('link', {name: 'Dashboard', exact: true}).getAttribute('aria-current'), 'page');
+      assert(await menu.getByRole('link', {name: /My career/}).isVisible());
+      if (process.env.AXE_CORE_SCRIPT && width === 390) {
+        await page.addScriptTag({path:process.env.AXE_CORE_SCRIPT});
+        const violations = await page.evaluate(async () => (await axe.run('dialog[open]', {runOnly:['color-contrast']})).violations.map(({id}) => id));
+        assert.deepEqual(violations, [], 'Navigation drawer lettering meets contrast requirements');
+      }
       if (width === 390) {
         await menu.screenshot({path:output+'/navigation-drawer-390.png',animations:'disabled'});
       }

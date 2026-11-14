@@ -9,10 +9,11 @@
   .fc-header-profile > :not(:first-child),.fc-header-actions > .theme-divider { display:none; }
 }
 @container fc-header (max-width:560px) {
-  .fc-header-wordmark { display:none; }
-  .fc-header-actions { gap:6px; }
+  .fc-header-layout { gap:4px; padding-inline:8px; }
+  .fc-header-wordmark { font-size:clamp(.72rem,3.35vw,.95rem); white-space:nowrap; }
+  .fc-header-actions { gap:4px; }
 }
-@container fc-header (max-width:379px) { .fc-header-actions { gap:4px; } }
+@container fc-header (max-width:340px) { .fc-header-wordmark { display:none; } }
 @container fc-header (max-width:359px) {
   .fc-header-brand { display:none; }
   .fc-header-actions { width:100%; justify-content:space-between; }

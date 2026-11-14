@@ -96,6 +96,31 @@ describe('Tournament Studio against PostgreSQL', () => {
     await create({ ...body, name: 'Different Cup' }).expect(409);
   });
 
+  it('draws 20 Duo teams from 40 selected players and excludes the rest of the league', async () => {
+    const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 20 })).expect(201)).body.data.tournament.id;
+    const selected = players.slice(0, 40);
+    await draw(cup, { kind: 'PLAYER', poolPlayerIds: players }).expect(400);
+    await draw(cup, { kind: 'PLAYER', poolPlayerIds: [selected[0], selected[0]] }).expect(400);
+    await draw(cup, { kind: 'PLAYER', poolPlayerIds: [selected[0], outsider] }).expect(409);
+    const spin = { kind: 'PLAYER', poolPlayerIds: selected, requestId: randomUUID() };
+    const [first, duplicate] = await Promise.all([draw(cup, spin).expect(201), draw(cup, spin).expect(201)]);
+    expect(first.body.data).toEqual(duplicate.body.data);
+    const { entries, options, unassigned } = first.body.data;
+    expect(options.map((option: { id: string }) => option.id)).toEqual(selected);
+    expect(unassigned).toBe(38);
+    const winners = new Set(entries[0].members.map((player: { id: string }) => player.id));
+    expect(winners.size).toBe(2);
+    const left = selected.filter(id => !winners.has(id));
+    await draw(cup, { kind: 'PLAYER', poolPlayerIds: [left[0], entries[0].members[0].id] }).expect(409);
+    const paired = (await draw(cup, { kind: 'AUTO', poolPlayerIds: left }).expect(201)).body.data;
+    expect(paired.entries).toHaveLength(19);
+    expect(paired.unassigned).toBe(0);
+    const roster = await state(cup);
+    expect(roster.entries).toHaveLength(20);
+    expect(new Set(roster.entries.flatMap((entry: { members: { id: string }[] }) => entry.members.map(member => member.id)))).toEqual(new Set(selected));
+    expect(roster.availablePlayers).toHaveLength(3);
+  });
+
   it('allocates distinct Duo teams, handles odd players and reconnects to the persisted wheel outcome', async () => {
     const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 128 })).expect(201)).body.data.tournament.id;
     const command = { kind: 'PLAYER', requestId: randomUUID() };

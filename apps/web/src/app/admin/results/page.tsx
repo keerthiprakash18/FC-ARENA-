@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { DuoGame } from '@/components/matches/duo-aggregate-inputs';
 import { useEffect, useState } from "react";
 import { AdminNavigation } from "@/components/admin/admin-navigation";
 import { AppShell } from "@/components/app/app-shell";
@@ -23,13 +24,14 @@ import { useRecoverableLoad } from "@/lib/use-recoverable-load";
 
 type Entry = {
   entryName: string | null;
-  members: Array<{ user: { fullName: string } }>;
+  members: Array<{ user: { id: string; fullName: string; player: { identity: { inGameName: string } | null } | null } }>;
 } | null;
 interface Submission {
   id: string;
   status: string;
   homeScore: number;
   awayScore: number;
+  duoGames?: DuoGame[] | null;
   homePenaltyScore: number | null;
   awayPenaltyScore: number | null;
   createdAt: string;
@@ -61,6 +63,13 @@ interface Queue {
     league: { name: string };
   }>;
 }
+const duoPlayerName = (entry: Entry, id: string) => {
+  const user = entry?.members.find(member => member.user.id === id)?.user;
+  return user?.player?.identity?.inGameName || user?.fullName || 'Player';
+};
+const duoBreakdown = (item: Submission) => (item.duoGames ?? []).map((game, index) =>
+  `Game ${index + 1}: ${duoPlayerName(item.match.fixture.homeRegistration, game.homePlayerId)} ${game.homeGoals}–${game.awayGoals} ${duoPlayerName(item.match.fixture.awayRegistration, game.awayPlayerId)}`
+).join('; ');
 const entryName = (entry: Entry) =>
   entry?.entryName ||
   entry?.members.map((member) => member.user.fullName).join(" / ") ||
@@ -178,7 +187,7 @@ export default function AdminResultsPage() {
     } else if (
       !(await confirmAction({
         title: "Verify this result?",
-        description: `${entryName(item.match.fixture.homeRegistration)} ${item.homeScore} – ${item.awayScore} ${entryName(item.match.fixture.awayRegistration)}${item.homePenaltyScore != null ? ` (penalties ${item.homePenaltyScore} – ${item.awayPenaltyScore})` : ""}. Verification updates standings and player statistics.`,
+        description: `${entryName(item.match.fixture.homeRegistration)} ${item.homeScore} – ${item.awayScore} ${entryName(item.match.fixture.awayRegistration)}${item.homePenaltyScore != null ? ` (penalties ${item.homePenaltyScore} – ${item.awayPenaltyScore})` : ""}. ${item.duoGames?.length === 2 ? duoBreakdown(item) + ". " : ""}Verification updates standings and player statistics.`,
         confirmLabel: "Verify result",
       }))
     )
@@ -370,6 +379,19 @@ export default function AdminResultsPage() {
                     {entryName(item.match.fixture.awayRegistration)}
                   </span>
                 </div>
+                {item.duoGames?.length === 2 && (
+                  <section aria-label="Duo game breakdown" className="rounded-xl border border-amber-400/25 bg-amber-400/[.05] p-4">
+                    <p className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-300">Duo aggregate · Individual games</p>
+                    <ol className="grid gap-2 text-sm">
+                      {item.duoGames.map((game, index) => <li key={index} className="flex flex-wrap items-start justify-between gap-2">
+                        <span className="break-words">Game {index + 1} · {duoPlayerName(item.match.fixture.homeRegistration, game.homePlayerId)}
+                          {' vs '}{duoPlayerName(item.match.fixture.awayRegistration, game.awayPlayerId)}</span>
+                        <strong className="tabular-nums">{game.homeGoals} – {game.awayGoals}</strong>
+                      </li>)}
+                    </ol>
+                    <p className="theme-muted mt-2 text-xs">Confirm both games before verifying the combined result.</p>
+                  </section>
+                )}
                 {item.homePenaltyScore != null ? (
                   <p className="theme-muted text-center text-sm">
                     Penalties {item.homePenaltyScore} – {item.awayPenaltyScore}

@@ -1,4 +1,5 @@
 "use client";
+import { FcPageHeader } from '@/components/fc/fc-ui';
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/app-shell";
@@ -51,19 +52,12 @@ export default function ExperiencePage() {
   return (
     <AppShell currentUser={user || undefined}>
       <div className="community-page">
-        <div className="community-heading">
-          <div>
-            <span className="community-eyebrow">PLAYER PROGRESS</span>
-            <h1>Your game. Your journey.</h1>
-            <p>
-              Play verified matches, complete missions and build your player
-              identity.
-            </p>
-          </div>
-          <Link href="/profile" className="community-button">
-            Profile settings
-          </Link>
-        </div>
+        <FcPageHeader
+          title="Player Journey"
+          icon="activity"
+          subtitle="Play verified matches, complete missions and build your player identity."
+          action={<Link href="/profile" className="theme-secondary-button inline-flex min-h-11 items-center border px-4 text-sm">Profile settings</Link>}
+        />
         {error ? (
           <div className="community-error" role="alert">
             {error}

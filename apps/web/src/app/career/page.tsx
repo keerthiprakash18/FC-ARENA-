@@ -94,6 +94,7 @@ export default function CareerPage() {
           backLabel="More"
           eyebrow="Player"
           title="Career Stats"
+          icon="chart"
           subtitle="View your overall career or choose a league to see its verified performance."
           action={
             career.profile.identity

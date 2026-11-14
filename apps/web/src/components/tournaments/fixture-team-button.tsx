@@ -23,7 +23,7 @@ export function FixtureTeamButton({ entry, name, side, stacked = false, reverse 
   size?: 'sm' | 'lg';
 }) {
   const [open, setOpen] = useState(false);
-  const crest = <FcCrest name={name} imageUrl={entry?.entryLogoUrl} size={size} />;
+  const crest = <span aria-hidden="true"><FcCrest name={name} imageUrl={entry?.entryLogoUrl} size={size} /></span>;
   const sideLabel = side ? <span className="theme-neutral-block theme-text inline-flex w-fit items-center justify-center rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.12em]">{side === 'HOME' ? 'Home' : 'Away'}</span> : null;
   const label = <span className={`min-w-0 ${stacked ? 'text-center' : reverse ? 'text-right' : 'text-left'}`}>
     {!stacked ? sideLabel : null}
@@ -35,10 +35,10 @@ export function FixtureTeamButton({ entry, name, side, stacked = false, reverse 
   if (!entry) return <div className={classes}>{content}</div>;
 
   return <>
-    <button type="button" aria-label={`View players representing ${name}`} aria-description={side ? `${side === 'HOME' ? 'Home' : 'Away'} team` : undefined} aria-haspopup="dialog"
+    <button type="button" aria-description={side ? `${side === 'HOME' ? 'Home' : 'Away'} team` : undefined} aria-haspopup="dialog"
       onClick={() => setOpen(true)}
       className={`${classes} transition hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400`}>
-      {content}
+      {content}<span className="sr-only"> · View players representing {name}</span>
     </button>
     <FcDialog open={open} title={`${name} — Players`}
       description={entry.members.length ? 'Registered players representing this team.' : 'No player account is linked to this team yet. Ask the tournament admin to link the player.'}

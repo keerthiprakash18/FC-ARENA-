@@ -27,7 +27,7 @@ try {
       if (kind === 'Pending Match') fixture = { ...fixture, status: 'SCHEDULED', scheduledAt: new Date(Date.now() - 2 * 86400000).toISOString(), match: { id: 'phase3', status: 'SCHEDULED' } };
       if (kind === 'Fixture Ready') fixture = { ...fixture, status: 'UNSCHEDULED', scheduledAt: null, match: { id: 'phase3', status: 'UNSCHEDULED' } };
       await page.goto('https://fcarena.in/dashboard');
-      const opponent = page.getByRole('button', { name: 'View players representing Opponent Club', exact: true });
+      const opponent = page.getByRole('button', { name: 'View players representing Opponent Club' });
       await opponent.click();
       const dialog = page.getByRole('dialog', { name: 'Opponent Club — Players', exact: true });
       await dialog.getByText('Ravi Kumar', { exact: true }).waitFor();
@@ -38,7 +38,7 @@ try {
       await checkLayout(page, `${kind} opponent ${width}`);
       await dialog.getByRole('button', { name: 'Close', exact: true }).click();
       assert.equal(await opponent.evaluate(el => document.activeElement === el), true);
-      await page.getByRole('button', { name: 'View players representing My Club', exact: true }).click();
+      await page.getByRole('button', { name: 'View players representing My Club' }).click();
       await page.getByRole('dialog').getByText('Home Player', { exact: true }).waitFor();
       await page.keyboard.press('Escape');
     }

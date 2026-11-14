@@ -76,6 +76,7 @@ export default function SettingsPage() {
     >
       <div className="space-y-6">
         <FcPageHeader
+          icon="settings"
           eyebrow="Account"
           title="Settings"
           subtitle="Manage appearance and account preferences."

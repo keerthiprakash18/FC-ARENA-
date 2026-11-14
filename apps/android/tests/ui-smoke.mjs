@@ -7,13 +7,14 @@ import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
 import { phaseData, tournament } from './phase-ui-fixtures.mjs';
+import { makeFixtureFeed } from './fixture-feed-fixtures.mjs';
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
 const output = process.env.SMOKE_OUTPUT || mkdtempSync(join(tmpdir(), 'fcarena-ui-'));
 const axeScript = process.env.AXE_CORE_SCRIPT;
 mkdirSync(output, {recursive:true});
 const errors = [], results = [], accessibility = [];
 const reviewPaths = new Set([
-  '/dashboard', '/profile', '/career', '/leaderboards', '/tournaments',
+  '/dashboard', '/leagues', '/matches', '/profile', '/settings', '/more', '/career', '/leaderboards', '/tournaments',
   '/tournaments/ui-test/standings', '/tournaments/phase3/wizard/setup', '/tournaments/phase3/fixtures',
   '/matches/result-test', '/league-war', '/league-war/phase3', '/awards',
   '/notifications', '/arena-talk', '/admin/system',
@@ -99,7 +100,16 @@ async function prepare(page) {
         case '/api/experience/me': data = emptyExperience; break;
         case '/api/players/me/career': data = career; break;
         case '/api/players/me/dashboard': data = { career, memberships: [], tournaments: [], fixtures: [] }; break;
-        case '/api/leagues/my': data = { leagues: [] }; break;
+        case '/api/leagues/my': data = new URL(page.url()).pathname === '/matches'
+          ? phaseData['/api/leagues/my'] : { leagues: [] }; break;
+        case '/api/leagues/phase3/fixture-feed': {
+          const fixture = phaseData['/api/tournaments/phase3/fixtures'].fixtures[0];
+          const competition = { ...tournament, status: 'ACTIVE' };
+          data = makeFixtureFeed('phase3', [competition], {
+            [competition.id]: [{ ...fixture, match: { id: 'result-test', matchCode: 'M-TEST', status: 'SCHEDULED' } }],
+          }, 'Arena Test League');
+          break;
+        }
         case '/api/tournaments/phase3': data = { tournament: {...tournament, isLeagueAdmin:user.role === 'SUPER_ADMIN'} }; break;
         case '/api/tournaments/ui-test/standings': data = {tournament: {name:'Arena Championship'}, standings: [{position:1,registrationId:'team1',entryName:'Manchester Champions With A Very Long Name',played:10,wins:7,draws:2,losses:1,goalsFor:23,goalsAgainst:11,goalDifference:12,points:23,form:'WWDLW'}]}; break;
         case '/api/tournaments/ui-test/groups': data = {groups:[{id:'g1',name:'Group A',position:1,entries:[{id:'team1',entryName:'Manchester Champions With A Very Long Name',members:[]}]}]}; break;
@@ -175,7 +185,7 @@ try {
     await context.addInitScript(()=>localStorage.setItem('fc-arena-theme-preference','LUXURY_GOLD'));
     // Mock the user's saved selection consistently with the initial theme.
     user.themePreference='LUXURY_GOLD';
-    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/profile','/settings','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/admin/system','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test','/tournaments/phase3/wizard/setup','/tournaments/phase3/fixtures','/league-war/phase3']) {
+    for (const path of ['/login','/register','/forgot-password','/reset-password','/dashboard','/leagues','/tournaments','/fixtures','/matches','/profile','/settings','/more','/career','/experience','/leaderboards','/league-war','/awards','/notifications','/arena-talk','/admin/system','/tournaments/ui-test/standings','/leagues/invite-test','/matches/result-test','/tournaments/phase3/wizard/setup','/tournaments/phase3/fixtures','/league-war/phase3']) {
       user.role = path.startsWith('/admin/') || path.includes('/wizard/') ? 'SUPER_ADMIN' : 'PLAYER';
       await page.goto('https://fcarena.in'+path);
       await page.locator(['/login','/register','/forgot-password','/reset-password'].includes(path) ? '.auth-form' : '.fc-main').waitFor();
@@ -202,6 +212,11 @@ try {
         await page.getByRole('button',{name:'Show invite QR',exact:true}).click();
         await page.getByAltText('Scan to join Arena Test League').waitFor();
         assert((await page.getByAltText('Scan to join Arena Test League').getAttribute('src')).startsWith('data:image/png;base64,'));
+      }
+      if (path === '/matches') {
+        const matchLink = page.getByRole('link', { name: /Open match/ });
+        await matchLink.waitFor();
+        assert.equal(await matchLink.getAttribute('href'), '/matches/result-test');
       }
       if(path === '/matches/result-test') {
         await page.getByText('Match Room active',{exact:true}).waitFor();
@@ -272,7 +287,7 @@ try {
       }
       await page.keyboard.press('Escape');
       await menu.waitFor({state: 'hidden'});
-      await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Open navigation menu');
+      await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label')?.endsWith('Open navigation menu'));
       if (width === 390) {
         await page.emulateMedia({reducedMotion:'no-preference'});
         await trigger.click();

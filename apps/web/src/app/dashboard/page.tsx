@@ -644,9 +644,10 @@ export default function DashboardPage() {
         ? career.profile.secondaryLeague.league.logoUrl
         : null);
 
-  const createTournamentHref = selectedMembership
-    ? `/leagues/${selectedMembership.league.id}/tournaments`
-    : "/leagues";
+  const cupHref = selectedMembership ? '/tournaments?leagueId=' + selectedMembership.league.id : '/tournaments';
+  const createTournamentHref = isLeagueAdmin && selectedMembership
+    ? '/tournaments/studio?leagueId=' + selectedMembership.league.id
+    : cupHref;
 
   const progress =
     activeTournament && activeTournament.maxEntries > 0

@@ -45,7 +45,7 @@ try {
     try {
       await context.addCookies([{ name: 'network-test-session', value: 'preserve-me', url: origin }]);
       await page.goto(`${origin}/dashboard`);
-      const home = page.getByRole('button', { name: 'View players representing Home Club', exact: true });
+      const home = page.getByRole('button', { name: 'View players representing Home Club' });
       await home.waitFor();
       await preferencesSeen;
       assert(pendingPreferences.length > 0, 'Home must render while preferences are still pending');
@@ -70,7 +70,7 @@ try {
       fixture.away.entryName = 'Recovered Opponent';
       await context.setOffline(false);
       await home.waitFor();
-      await page.getByRole('button', { name: 'View players representing Recovered Opponent', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'View players representing Recovered Opponent' }).waitFor();
       assert.equal(dashboardReads, before + 1, 'reconnect must issue one background dashboard read');
       assert((await context.cookies()).some(cookie => cookie.name === 'network-test-session' && cookie.value === 'preserve-me'));
       await checkLayout(page, `network recovery ${width}px`);

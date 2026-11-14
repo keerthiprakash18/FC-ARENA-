@@ -1,5 +1,6 @@
 'use client';
-import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
+import { PremiumHero } from '@/components/fc/premium-ui';
+import { FcCrest, competitionLabel, FcEmptyState, FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
 import { CompactStandingsTable } from '@/components/tournaments/compact-standings-table';
 
 import Link from 'next/link';
@@ -273,40 +274,13 @@ export default function RankingsPage() {
           </Link>
         </div>
 
-        <section className="rounded-[30px] border border-white/10 bg-[#0a1018] p-7 md:p-10">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-            FC ARENA Rankings
-          </p>
-
-          <h1 className="mt-3 text-4xl font-black md:text-6xl">
-            {data.tournament.name}
-          </h1>
-
-          <div className="mt-6 flex flex-wrap gap-2">
-            <span className="rounded-full bg-sky-400/10 px-3 py-1 text-xs font-black text-sky-300">
-              {data.tournament.mode}
-            </span>
-
-            <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-black text-slate-400">
-              {data.tournament.format.replaceAll(
-                '_',
-                ' ',
-              )}
-            </span>
+        <PremiumHero title={data.tournament.name} eyebrow="Tournament Rankings">
+          <div className="premium-hero-tags">
+            <span>{competitionLabel(data.tournament.mode)}</span>
+            <span>{competitionLabel(data.tournament.format)}</span>
+            {data.myPosition ? <span>My ranking #{data.myPosition}</span> : null}
           </div>
-
-          {data.myPosition ? (
-            <div className="mt-8 inline-block rounded-2xl border border-sky-400/20 bg-sky-400/5 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500">
-                My Ranking
-              </p>
-
-              <p className="mt-2 text-4xl font-black text-sky-400">
-                #{data.myPosition}
-              </p>
-            </div>
-          ) : null}
-        </section>
+        </PremiumHero>
 
         <div className="flex gap-2 overflow-x-auto pb-1">
           {[

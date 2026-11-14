@@ -31,7 +31,7 @@ try {
       fixture.away = away;
       away.members = [opponent];
       await page.goto(`https://fcarena.in${url}`);
-      const trigger = page.getByRole('button', { name: 'View players representing Opponent Club', exact: true });
+      const trigger = page.getByRole('button', { name: 'View players representing Opponent Club' });
       await trigger.locator('img').click();
       const dialog = page.getByRole('dialog', { name: 'Opponent Club — Players', exact: true });
       await dialog.waitFor();
@@ -47,7 +47,7 @@ try {
       if (output && url === '/fixtures') await page.screenshot({ path: path.join(output, `opponent-${width}.png`) });
       await dialog.getByRole('button', { name: 'Close', exact: true }).click();
       assert.equal(await trigger.evaluate(element => document.activeElement === element), true);
-      await page.getByRole('button', { name: 'View players representing Home Club', exact: true }).focus();
+      await page.getByRole('button', { name: 'View players representing Home Club' }).focus();
       await page.keyboard.press('Enter');
       const homeDialog = page.getByRole('dialog', { name: 'Home Club — Players', exact: true });
       await homeDialog.getByText('Home Captain', { exact: true }).waitFor();
@@ -63,14 +63,14 @@ try {
     }
     away.members = [];
     await page.goto('https://fcarena.in/fixtures');
-    await page.getByRole('button', { name: 'View players representing Opponent Club', exact: true }).click();
+    await page.getByRole('button', { name: 'View players representing Opponent Club' }).click();
     await page.getByRole('dialog').getByText('No player account is linked to this team yet. Ask the tournament admin to link the player.', { exact: true }).waitFor();
     assert.equal(await page.getByRole('dialog').locator('li').count(), 0);
     await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
     fixture.away = null;
     await page.reload();
-    await page.getByRole('button', { name: 'View players representing Home Club', exact: true }).waitFor();
-    assert.equal(await page.getByRole('button', { name: 'View players representing TBD', exact: true }).count(), 0);
+    await page.getByRole('button', { name: 'View players representing Home Club' }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'View players representing TBD' }).count(), 0);
     assert.deepEqual(errors, []);
     assert(mutations.every(mutation => mutation.path === '/api/telemetry/web-vitals'));
     await context.close();

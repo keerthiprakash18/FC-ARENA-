@@ -76,9 +76,10 @@ export default function ArenaTalkPage() {
     <AppShell currentUser={user || undefined}>
       <div className="community-page">
         <FcPageHeader
+          icon="announcement"
           title="Arena Talk"
           subtitle="Discuss matches with FC ARENA members or in your league’s private feed."
-          action={<Link href="/experience" className="community-button">My player journey</Link>}
+          action={<Link href="/experience" className="theme-secondary-button inline-flex min-h-11 items-center border px-4 text-sm">My player journey</Link>}
         />
         {error ? <FcErrorState title="Arena Talk unavailable" message={error} onRetry={() => void load()} /> : null}
         {context ? (

@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
 import Link from 'next/link';
+import { PremiumHero } from '@/components/fc/premium-ui';
 import {
   useParams,
 } from 'next/navigation';
@@ -524,61 +525,34 @@ export default function AchievementsPage() {
           }
         />
 
-        <section className="relative overflow-hidden rounded-[30px] border border-amber-400/20 bg-[#0a1018] p-6 sm:p-8">
-          <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-amber-300/10 blur-3xl" />
-
-          <div className="relative">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
-              Tournament Honours
-            </p>
-
-            <h1 className="mt-3 text-3xl font-black sm:text-5xl">
-              {
-                data.tournament
-                  .name
-              }
-            </h1>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-xs font-black text-sky-300">
-                {
-                  data.tournament
-                    .mode
-                }
-              </span>
-
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-black text-slate-400">
-                {
-                  data.tournament
-                    .status
-                }
-              </span>
-            </div>
-
-            {data.isLeagueAdmin &&
-            !isCompleted &&
-            data.tournament
-              .status !==
-              'CANCELLED' ? (
-              <button
-                type="button"
-                disabled={
-                  busy
-                }
-                onClick={() =>
-                  void completeTournament()
-                }
-                className="mt-7 rounded-xl bg-amber-300 px-5 py-3 text-sm font-black text-[#151006] disabled:opacity-50"
-              >
-                {
-                  busy
-                    ? 'Generating...'
-                    : 'Complete Tournament & Generate Awards'
-                }
-              </button>
-            ) : null}
+        <PremiumHero title={data.tournament.name} eyebrow="Tournament Honours">
+          <div className="premium-hero-tags">
+            <span>{data.tournament.mode}</span>
+            <span>{data.tournament.status.replaceAll('_', ' ')}</span>
           </div>
-        </section>
+          {data.isLeagueAdmin &&
+          !isCompleted &&
+          data.tournament
+            .status !==
+            'CANCELLED' ? (
+            <button
+              type="button"
+              disabled={
+                busy
+              }
+              onClick={() =>
+                void completeTournament()
+              }
+              className="theme-primary-button mt-5 min-h-11 border px-4 py-2 text-sm"
+            >
+              {
+                busy
+                  ? 'Generating...'
+                  : 'Complete Tournament & Generate Awards'
+              }
+            </button>
+          ) : null}
+        </PremiumHero>
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>

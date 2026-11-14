@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { FcIconName } from '@/components/fc/fc-icons';
 import { FcPageHeader } from '@/components/fc/fc-ui';
 
 export function BackHeader({
@@ -10,6 +11,7 @@ export function BackHeader({
   title,
   subtitle,
   action,
+  icon,
 }: {
   backHref: string;
   backLabel: string;
@@ -17,6 +19,7 @@ export function BackHeader({
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  icon?: FcIconName;
 }) {
   return (
     <div className="fc-back-header space-y-4">
@@ -28,7 +31,7 @@ export function BackHeader({
         <span>{backLabel}</span>
       </Link>
 
-      <FcPageHeader eyebrow={eyebrow} title={title} subtitle={subtitle} action={action} />
+      <FcPageHeader eyebrow={eyebrow} title={title} subtitle={subtitle} action={action} icon={icon} />
     </div>
   );
 }

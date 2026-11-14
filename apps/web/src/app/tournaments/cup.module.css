@@ -1,11 +1,11 @@
 .center,.studio {
-  --cup-navy: #0d192a;
-  --cup-deep: #08121e;
-  --cup-panel: #132338;
-  --cup-line: #314158;
-  --cup-gold: #f3ce7f;
-  --cup-white: #f6f2e9;
-  --cup-muted: #b5c1d1;
+  --cup-navy: var(--arena-navy);
+  --cup-deep: var(--arena-deep);
+  --cup-panel: var(--arena-raised);
+  --cup-line: var(--arena-line);
+  --cup-gold: var(--arena-gold);
+  --cup-white: var(--arena-ivory);
+  --cup-muted: var(--arena-muted);
   width: min(100%, 61rem);
   margin-inline: auto;
   min-width: 0;
@@ -21,15 +21,15 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: linear-gradient(90deg, #091421 16%, #0b1929e8 49%, #101b2b4d), url('/brand/dashboard-stadium.webp') 62% 51% / cover;
+  background: var(--arena-stadium);
   border: 1px solid #39465a;
-  border-radius: 1.25rem;
+  border-radius: var(--arena-hero-radius);
   padding: clamp(1.2rem, 4vw, 2.6rem);
   min-height: 13rem;
   display: flex;
   align-items: end;
 }
-.heroBody { position: relative; z-index: 1; animation: cupEnter .38s ease-out both; }
+.heroBody { position: relative; z-index: 1; animation: cupEnter var(--arena-reveal) both; }
 .hero h1,.studio h1 { margin: 0; font-size: clamp(2.1rem, 7vw, 4rem); font-weight: 720; line-height: 1; letter-spacing: -.062em; }
 .hero p { max-width: 24ch; font-size: .9rem; color: var(--cup-muted); margin: .65rem 0 1rem; }
 .heroTrophy {

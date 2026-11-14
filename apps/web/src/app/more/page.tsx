@@ -113,6 +113,7 @@ export default function MorePage() {
     <AppShell playerName={inGameName}>
       <div className="fc-more-page space-y-6">
         <FcPageHeader
+          icon="more"
           eyebrow="YOUR FC ARENA"
           title="More"
           subtitle="Profile, career, community and account tools."

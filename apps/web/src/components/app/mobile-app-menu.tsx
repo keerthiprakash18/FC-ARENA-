@@ -57,7 +57,7 @@ export function MobileAppMenu({ playerName, playerRole, playerImageUrl }: {
       <button
         ref={trigger}
         type="button"
-        aria-label="Open navigation menu"
+        aria-label={photo ? "Open navigation menu" : initials + " · Open navigation menu"}
         aria-haspopup="dialog"
         aria-controls={id}
         aria-expanded={open}

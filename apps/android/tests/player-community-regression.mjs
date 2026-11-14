@@ -93,7 +93,7 @@ try {
       await extra.page.getByText('Player Journey, missions & XP', { exact: true }).click();
       await extra.page.locator('.mission').first().waitFor();
       await checkLayout(extra.page, `Profile ${width}`);
-      await extra.page.getByRole('button', { name: 'Choose profile photo', exact: true }).waitFor();
+      await extra.page.getByRole('button', { name: 'Choose profile photo' }).waitFor();
       await extra.page.goto('https://fcarena.in/discover/players/public-player'); await extra.page.locator('.public-player-edition .edition-level').waitFor(); await extra.page.waitForFunction(() => document.querySelector('.public-player-edition .edition-level')?.textContent.includes('3')); await checkLayout(extra.page, `Public player ${width}`);
       await extra.page.goto('https://fcarena.in/admin/community');
       if (!reviewed) { await extra.page.getByText('Reported community content', { exact: true }).waitFor(); await checkLayout(extra.page, `Moderation ${width}`); await extra.page.getByLabel('Review note (required)').fill('Removed for spam after review.'); await extra.page.getByRole('button', { name: 'Remove content', exact: true }).click(); }

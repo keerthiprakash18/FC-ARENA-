@@ -1142,7 +1142,7 @@ function MatchRoom() {
             </div>
 
             <div className="text-center">
-              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-3 font-black text-slate-500">
+              <div className="fc-match-versus rounded-full border px-4 py-3 font-semibold">
                 {confirmed ? "FT" : "VS"}
               </div>
 

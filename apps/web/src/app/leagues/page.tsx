@@ -313,17 +313,18 @@ export default function LeaguesPage() {
       <div className="space-y-6">
         <FcPageHeader
           title="Leagues"
+          icon="league"
           subtitle="Manage your League memberships and join or create a competition."
           action={
             <div className="flex flex-wrap gap-2">
-              <Link href="/leagues/explore" className="inline-flex min-h-11 items-center rounded-[10px] border border-sky-400/25 px-4 text-sm font-semibold text-sky-300">
+              <Link href="/leagues/explore" className="theme-secondary-button inline-flex min-h-11 items-center border px-4 text-sm">
                 Explore Leagues
               </Link>
               <button
                 type="button"
                 disabled={atLimit}
                 onClick={() => setShowCreate((value) => !value)}
-                className="min-h-11 rounded-[10px] bg-[#38BDF8] px-4 text-sm font-semibold text-[#071018] hover:bg-[#0EA5E9] disabled:cursor-not-allowed disabled:opacity-40"
+                className="theme-primary-button min-h-11 border px-4 text-sm"
               >
                 + Add League
               </button>
@@ -358,7 +359,7 @@ export default function LeaguesPage() {
               {leagues.map((item) => (
                 <article
                   key={item.league.id}
-                  className="rounded-2xl border border-[#203141] bg-[#101923] p-5 transition duration-200 hover:border-[#2D4356] hover:bg-[#121D28]"
+                  className="fc-arena-card"
                 >
                   <Link
                     href={`/leagues/${item.league.id}`}
@@ -394,37 +395,37 @@ export default function LeaguesPage() {
                           {item.league.name}
                         </h2>
 
-                        <p className="mt-1 text-xs text-[#6F7B8A]">
+                        <p className="theme-secondary-text mt-1 text-xs">
                           {item.league.region || "Region not specified"}
                           {" · "}
                           {item.league.members}/{item.league.maxMembers} members
                         </p>
                       </div>
 
-                      <span className="text-xl text-[#536273] transition group-hover:translate-x-1 group-hover:text-[#19B7FF]">
+                      <span className="theme-secondary-text text-xl">
                         ›
                       </span>
                     </div>
 
-                    <div className="mt-5 border-t border-[#203141] pt-4">
-                      <p className="line-clamp-2 text-sm leading-6 text-[#A7B0BE]">
+                    <div className="mt-4 border-t border-[var(--theme-border)] pt-3">
+                      <p className="theme-secondary-text line-clamp-2 text-sm leading-6">
                         {item.league.description ||
                           "Open the League for overview, standings, fixtures, members, teams and settings."}
                       </p>
                     </div>
                   </Link>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#203141] pt-4">
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--theme-border)] pt-3">
                     <Link
                       href={`/leagues/${item.league.id}`}
-                      className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#284154] bg-[#14212D] px-4 text-sm font-medium text-[#F8FAFC] transition hover:border-[#19B7FF]/35"
+                      className="theme-primary-button inline-flex min-h-11 items-center justify-center border px-4 text-sm"
                     >
                       Open League
                     </Link>
 
                     <Link
                       href={`/leagues/${item.league.id}/settings`}
-                      className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-medium text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
+                      className="theme-secondary-button inline-flex min-h-11 items-center justify-center border px-4 text-sm"
                     >
                       Manage
                     </Link>
@@ -435,7 +436,7 @@ export default function LeaguesPage() {
                           type="button"
                           disabled={busy}
                           onClick={() => void deleteLeague(item)}
-                          className="min-h-10 rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
+                          className="theme-danger-button min-h-11 border px-4 text-sm"
                         >
                           Delete League
                         </button>
@@ -444,7 +445,7 @@ export default function LeaguesPage() {
                           type="button"
                           disabled={busy}
                           onClick={() => void leaveLeague(item)}
-                          className="min-h-10 rounded-[10px] border border-red-400/20 px-4 text-sm font-medium text-red-300 transition hover:bg-red-400/[0.06] disabled:opacity-40"
+                          className="theme-danger-button min-h-11 border px-4 text-sm"
                         >
                           Leave League
                         </button>
@@ -463,11 +464,11 @@ export default function LeaguesPage() {
 
             {atLimit ? (
               <div className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/[0.05] p-4">
-                <p className="font-black text-amber-300">
+                <p className="font-semibold text-[var(--theme-warning)]">
                   Two-League limit reached
                 </p>
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className="mt-2 text-sm leading-6 theme-secondary-text">
                   Leave one current League before joining another.
                 </p>
               </div>
@@ -480,22 +481,22 @@ export default function LeaguesPage() {
                   aria-label="League invite code"
                   required
                   placeholder="LEAGUE CODE"
-                  className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 font-mono uppercase outline-none focus:border-sky-400/50"
+                  className="theme-field min-w-0 flex-1 border px-4 py-3 font-mono uppercase"
                 />
 
-                <button className="rounded-xl border border-sky-400/25 bg-sky-400/[0.07] px-5 text-sm font-black text-sky-300">
+                <button className="theme-primary-button min-h-11 border px-4 text-sm">
                   Find
                 </button>
               </form>
             )}
 
             {preview ? (
-              <div className="mt-5 rounded-2xl border border-white/10 bg-[#0a1520] p-5">
+              <div className="fc-arena-card mt-5">
                 <div className="flex items-center gap-4">
                   <FcCrest name={preview.name} imageUrl={preview.logoUrl} />
 
                   <div className="min-w-0">
-                    {preview.code ? <p className="font-mono text-[10px] font-black text-sky-400">
+                    {preview.code ? <p className="font-mono text-[10px] font-black theme-secondary-text">
                       {preview.code}
                     </p> : null}
 
@@ -503,7 +504,7 @@ export default function LeaguesPage() {
                       {preview.name}
                     </h3>
 
-                    <p className="mt-1 text-xs text-slate-600">
+                    <p className="mt-1 text-xs theme-secondary-text">
                       {preview.members}/{preview.maxMembers} members
                     </p>
                   </div>
@@ -512,7 +513,7 @@ export default function LeaguesPage() {
                 {preview.alreadyMember ? (
                   <Link
                     href={`/leagues/${preview.id}`}
-                    className="mt-4 inline-flex rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
+                    className="theme-primary-button mt-4 inline-flex min-h-11 items-center border px-4 text-sm"
                   >
                     Open League
                   </Link>
@@ -525,7 +526,7 @@ export default function LeaguesPage() {
                     type="button"
                     disabled={busy || atLimit}
                     onClick={() => void requestJoin()}
-                    className="mt-4 rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019] disabled:opacity-40"
+                    className="theme-primary-button mt-4 min-h-11 border px-4 text-sm"
                   >
                     Request to Join
                   </button>
@@ -539,7 +540,7 @@ export default function LeaguesPage() {
 
             {!showCreate ? (
               <div className="mt-5">
-                <p className="text-sm leading-6 text-slate-500">
+                <p className="text-sm leading-6 theme-secondary-text">
                   Bring your players together. Create a league, share its invite
                   code and start your first tournament.
                 </p>
@@ -548,7 +549,7 @@ export default function LeaguesPage() {
                   type="button"
                   disabled={atLimit}
                   onClick={() => setShowCreate(true)}
-                  className="mt-5 rounded-xl border border-sky-400/20 px-5 py-3 text-sm font-black text-sky-300 disabled:opacity-40"
+                  className="theme-secondary-button mt-5 min-h-11 border px-4 text-sm"
                 >
                   Create League
                 </button>
@@ -561,7 +562,7 @@ export default function LeaguesPage() {
                     name="name"
                     required
                     placeholder="League name"
-                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                    className="theme-field border px-4 py-3"
                   />
                 </label>
 
@@ -570,7 +571,7 @@ export default function LeaguesPage() {
                   <input
                     name="region"
                     placeholder="Region"
-                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                    className="theme-field border px-4 py-3"
                   />
                 </label>
 
@@ -580,7 +581,7 @@ export default function LeaguesPage() {
                     name="description"
                     rows={3}
                     placeholder="Description"
-                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                    className="theme-field border px-4 py-3"
                   />
                 </label>
 
@@ -590,7 +591,7 @@ export default function LeaguesPage() {
                     name="rules"
                     rows={3}
                     placeholder="Rules"
-                    className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
+                    className="theme-field border px-4 py-3"
                   />
                 </label>
 
@@ -598,14 +599,14 @@ export default function LeaguesPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreate(false)}
-                    className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-400"
+                    className="theme-secondary-button min-h-11 border px-4 text-sm"
                   >
                     Cancel
                   </button>
 
                   <button
                     disabled={busy}
-                    className="rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-[#031019] disabled:opacity-40"
+                    className="theme-primary-button min-h-11 border px-4 text-sm"
                   >
                     {busy ? "Creating..." : "Create"}
                   </button>

@@ -61,7 +61,7 @@ export function TournamentWizardShell({
 
   return (
     <div className="fc-wizard-shell grid">
-      <BackHeader backHref="/tournaments" backLabel="Tournaments" eyebrow="Tournament builder" title={title} subtitle={description} />
+      <BackHeader backHref="/tournaments" backLabel="Tournaments" eyebrow="Tournament builder" icon="trophy" title={title} subtitle={description} />
 
       <section className="fc-wizard-progress theme-panel rounded-xl p-4" aria-label="Tournament builder progress">
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">

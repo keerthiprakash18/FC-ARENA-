@@ -572,6 +572,10 @@ export function AppShell({
   const pathname =
     usePathname();
 
+  const rootRoute = pathname.split('/')[1];
+  const arenaArea = ['leagues', 'tournaments', 'elite-cup', 'ucl-cup', 'league-war', 'fixtures', 'matches'].includes(rootRoute)
+    ? 'competition' : ['awards', 'leaderboards'].includes(rootRoute) ? 'honours' : undefined;
+
   const router =
     useRouter();
 
@@ -698,7 +702,7 @@ export function AppShell({
 
 
   return (
-    <div className="fc-app-shell min-h-screen">
+    <div className="fc-app-shell min-h-screen" data-arena-area={arenaArea}>
       <PullToRefresh />
       <PushSync />
       {!loggingOut&&rewardUserId&&<DailyRewards key={rewardUserId} userId={rewardUserId} />}

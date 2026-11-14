@@ -1,0 +1,272 @@
+/* Cup Center palette, reused for prominent surfaces across the signed-in app. */
+:root {
+  --arena-navy: #0d192a;
+  --arena-deep: #08121e;
+  --arena-raised: #132338;
+  --arena-line: #314158;
+  --arena-gold: #f3ce7f;
+  --arena-on-gold: #191809;
+  --arena-ivory: #f6f2e9;
+  --arena-muted: #b5c1d1;
+  --arena-hero-surface: linear-gradient(115deg, #14253c, var(--arena-deep) 75%);
+  --arena-stadium: linear-gradient(90deg, #091421 12%, #0b1929ea 52%, #101b2b7d), url('/brand/dashboard-stadium.webp') 62% 51% / cover;
+  --arena-hero-radius: 20px;
+  --arena-card-radius: 15px;
+  --arena-heading-padding: clamp(16px, 3vw, 32px);
+  --arena-reveal: 270ms cubic-bezier(.22,.68,.35,1);
+  --arena-press: 130ms cubic-bezier(.2,.75,.25,1);
+  --arena-divider: color-mix(in srgb, var(--theme-border) 87%, var(--theme-text));
+  --arena-accent-text: color-mix(in srgb, var(--theme-text) 70%, var(--theme-primary));
+  --arena-hover-surface: color-mix(in srgb, var(--theme-primary) 5%, var(--theme-surface));
+}
+
+.fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero) {
+  --theme-text: var(--arena-ivory);
+  --theme-text-secondary: var(--arena-muted);
+  --theme-text-muted: var(--arena-muted);
+  --theme-border: var(--arena-line);
+  --theme-focus: var(--arena-gold);
+  --fc-readable-accent: var(--arena-gold);
+  isolation: isolate;
+  padding: var(--arena-heading-padding);
+  border: 1px solid var(--arena-line);
+  border-radius: var(--arena-hero-radius);
+  background: var(--arena-hero-surface) !important;
+  color: var(--arena-ivory);
+  box-shadow: none;
+}
+.fc-premium .fc-app-shell .fc-main .premium-home-hero,
+.fc-premium .fc-app-shell[data-arena-area="competition"] .fc-main :is(.premium-hero, .fc-page-heading),
+.fc-premium .fc-app-shell[data-arena-area="honours"] .fc-main :is(.premium-hero, .fc-page-heading) {
+  background: var(--arena-stadium) !important;
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero) h1 {
+  color: var(--arena-ivory) !important;
+  font-size: clamp(1.9rem, 4.2vw, 3.25rem);
+  font-weight: 735;
+  line-height: 1.06;
+  letter-spacing: -.052em;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-summary,
+.fc-premium .fc-app-shell .fc-main .premium-hero-description { color: var(--arena-muted) !important; }
+.fc-premium .fc-app-shell .fc-main :is(.fc-page-kicker, .premium-hero .premium-eyebrow) {
+  color: var(--arena-gold) !important;
+  letter-spacing: .04em;
+  font-size: .75rem;
+  font-weight: 650;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading-copy { position: relative; z-index: 1; flex-basis: 20rem; }
+.fc-premium .fc-app-shell .fc-main .fc-page-heading-actions { position: relative; z-index: 1; }
+.fc-premium .fc-app-shell .fc-main .fc-heading-mark {
+  position: absolute;
+  color: var(--arena-gold);
+  opacity: .48;
+  right: clamp(14px, 4vw, 44px);
+  top: 50%;
+  width: clamp(62px, 13vw, 126px);
+  height: auto;
+  stroke-width: 1;
+  transform: translateY(-50%) rotate(-9deg);
+  pointer-events: none;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading:has(.fc-heading-mark) .fc-page-heading-copy {
+  padding-inline-end: clamp(3.2rem, 12vw, 8rem);
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero)
+  :is(.theme-primary-button, .premium-primary, .home-hero-jump) {
+  background: var(--arena-gold) !important;
+  border-color: var(--arena-gold) !important;
+  color: var(--arena-on-gold) !important;
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero)
+  :is(.theme-secondary-button, .premium-quiet) {
+  background: var(--arena-raised) !important;
+  border-color: #69778c !important;
+  color: var(--arena-ivory) !important;
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero)
+  :is(a,button):focus-visible { outline-color: var(--arena-gold) !important; }
+.fc-premium .fc-app-shell .fc-main .premium-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+.fc-premium .fc-app-shell .fc-main .premium-hero-tags > span {
+  padding: 5px 9px;
+  border: 1px solid #69778c;
+  border-radius: 999px;
+  background: var(--arena-deep);
+  color: var(--arena-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.fc-premium .fc-app-shell .fc-main :is(.fc-panel, .theme-panel, .theme-stat-card, .fc-arena-card, .premium-match, .premium-destination.is-featured) {
+  border-radius: var(--arena-card-radius);
+  border-color: var(--arena-divider);
+}
+.fc-premium .fc-app-shell .fc-main .fc-arena-card {
+  display: block;
+  min-width: 0;
+  padding: clamp(14px,2.2vw,22px);
+  border: 1px solid var(--arena-divider);
+  border-radius: var(--arena-card-radius);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  overflow-wrap: anywhere;
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-section-heading, .premium-section-heading) {
+  border-bottom-color: var(--arena-divider);
+  padding-bottom: 10px;
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-section-heading, .premium-section-heading) h2 {
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 720;
+  line-height: 1.18;
+  letter-spacing: -.032em;
+}
+.fc-premium .fc-app-shell .fc-main .fc-empty-state {
+  border: 1px solid var(--arena-divider);
+  background: var(--theme-surface);
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-feedback-mark, .fc-quick-action-tile > span:first-child) {
+  border-radius: 11px;
+}
+.fc-premium .fc-app-shell .fc-main .fc-quick-action-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 74px;
+  padding: clamp(10px, 2vw, 16px);
+  border: 1px solid var(--arena-divider);
+  border-radius: var(--arena-card-radius);
+  background: var(--theme-surface);
+}
+.fc-premium .fc-app-shell .fc-main :is(.theme-primary-button, .theme-secondary-button, .theme-danger-button, .community-button) {
+  font-weight: 670;
+  border-radius: 11px;
+}
+.fc-premium .fc-app-shell .fc-main :is(.theme-input, .theme-field, .fc-field-label input, .fc-field-label select, .fc-field-label textarea) {
+  border-radius: 11px;
+}
+.fc-premium .fc-app-shell .theme-top-header {
+  border-bottom-color: var(--arena-divider);
+}
+.fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"] {
+  background: color-mix(in srgb, var(--arena-gold) 22%, var(--theme-surface));
+  color: color-mix(in srgb, var(--theme-text) 88%, var(--theme-primary));
+}
+.fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 35% 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--theme-primary);
+  pointer-events: none;
+}
+.fc-premium .theme-dialog {
+  border-radius: var(--arena-hero-radius, 20px);
+  border-color: var(--theme-control-border);
+  padding: clamp(16px, 3.6vw, 26px);
+}
+.fc-premium .fc-app-shell .fc-match-list-score { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 430px) {
+  .fc-premium .fc-app-shell .fc-main .fc-page-heading { gap: 12px; }
+  .fc-premium .fc-app-shell .fc-main .fc-page-heading-actions { width: 100%; }
+  .fc-premium .fc-app-shell .fc-main .fc-quick-action-tile { gap: 8px; min-height: 62px; }
+  .fc-premium .fc-app-shell .fc-main .fc-quick-action-tile > span:first-child { width: 34px; height: 34px; }
+  .fc-premium .fc-app-shell .fc-main .fc-quick-action-tile .theme-action-chevron { flex-shrink: 0; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .fc-premium .fc-app-shell .fc-main :is(a.fc-arena-card, a.fc-quick-action-tile, a.premium-destination):hover {
+    border-color: var(--theme-control-border);
+    background: var(--arena-hover-surface);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading-copy, .premium-hero-copy, .home-hero-layout, .fc-feedback) {
+    animation: arena-content-in var(--arena-reveal) both;
+  }
+  .fc-premium .theme-dialog[open] { animation: arena-content-in var(--arena-reveal, 270ms ease-out) both; }
+  .fc-premium .fc-app-shell .fc-main :is(a.fc-arena-card, a.fc-quick-action-tile, a.premium-destination, .theme-primary-button, .theme-secondary-button) {
+    transition: transform var(--arena-press), background-color var(--fc-motion), border-color var(--fc-motion);
+  }
+  .fc-premium .fc-app-shell .fc-main :is(a.fc-arena-card, a.fc-quick-action-tile, a.premium-destination, .theme-primary-button, .theme-secondary-button):not(:disabled):active {
+    transform: translateY(1px) scale(.985);
+  }
+  .fc-premium .fc-app-shell .theme-bottom-icon { transition: transform var(--arena-press); }
+  .fc-premium .fc-app-shell .theme-bottom-item[data-active="true"]::after { animation: arena-tab-in 170ms ease-out both; }
+}
+@keyframes arena-content-in {
+  from { opacity: .76; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes arena-tab-in {
+  from { opacity: .5; transform: scaleX(.6); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+@media (forced-colors: active) {
+  .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero) {
+    background: Canvas !important;
+    color: CanvasText !important;
+  }
+  .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero) :is(h1, .fc-page-summary, .premium-hero-description, .fc-page-kicker, .premium-eyebrow) {
+    color: CanvasText !important;
+  }
+  .fc-premium .fc-app-shell .fc-main .fc-heading-mark { display: none; }
+  .fc-premium .fc-app-shell .fc-main .fc-page-heading:has(.fc-heading-mark) .fc-page-heading-copy { padding-inline-end: 0; }
+}
+
+.fc-premium .fc-app-shell .fc-main .fc-context-nav {
+  border: 1px solid var(--arena-divider);
+  border-radius: 13px;
+  padding: 4px;
+  background: var(--theme-elevated);
+}
+.fc-premium .fc-app-shell .fc-main .fc-context-nav-link {
+  border-radius: 8px;
+  min-height: 44px;
+  padding-block: 8px;
+}
+.fc-premium .fc-app-shell .fc-main .fc-context-nav-link[data-active="true"] {
+  border-color: var(--theme-control-border);
+  background: var(--theme-surface);
+  box-shadow: inset 0 -2px var(--fc-gold);
+  color: var(--arena-accent-text);
+}
+.fc-premium .fc-app-shell .fc-main .fc-career-identity {
+  background: linear-gradient(145deg, var(--arena-hover-surface), var(--theme-surface) 68%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fc-premium .fc-app-shell .fc-main .fc-context-nav-link { transition: background-color var(--arena-press), border-color var(--arena-press); }
+  .fc-premium .fc-app-shell .fc-main .fc-context-nav-link:not([aria-disabled="true"]):active { transform: translateY(1px) scale(.985); }
+}
+
+
+.fc-premium .fc-app-shell .fc-main .premium-home-hero .home-hero-layout {
+  padding: 0;
+  gap: 12px;
+}
+.fc-premium .fc-app-shell .fc-main .premium-home-hero .home-hero-action { padding-inline: 16px; }
+
+
+.fc-app-shell {
+  --arena-body-text: var(--theme-text);
+  --arena-body-secondary: var(--theme-text-secondary);
+  --arena-body-muted: var(--theme-text-muted);
+  --arena-body-border: var(--theme-border);
+}
+.fc-premium .fc-app-shell .fc-main .premium-hero .fc-panel {
+  --theme-text: var(--arena-body-text);
+  --theme-text-secondary: var(--arena-body-secondary);
+  --theme-text-muted: var(--arena-body-muted);
+  --theme-border: var(--arena-body-border);
+  color: var(--theme-text);
+}
+.fc-premium .fc-app-shell .fc-main .premium-scoreboard .fc-match-room-score-grid .fc-match-versus {
+  background: var(--arena-deep) !important;
+  border-color: #69778c !important;
+  color: var(--arena-ivory) !important;
+}

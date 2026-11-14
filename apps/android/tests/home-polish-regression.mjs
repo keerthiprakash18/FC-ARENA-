@@ -100,7 +100,7 @@ try {
       const target = await f.page.locator('#dashboard-next-match').boundingBox();
       const header = await f.page.locator('.theme-top-header').boundingBox();
       assert(target.y >= header.y + header.height - 1, 'Sticky header must not hide the next-match anchor');
-      await match.getByRole('button', { name: 'View players representing Away Club', exact: true }).click();
+      await match.getByRole('button', { name: 'View players representing Away Club' }).click();
       await f.page.getByRole('dialog').getByText('Away Player', { exact: true }).waitFor();
       await f.page.keyboard.press('Escape');
       assert.equal(await f.page.locator('.home-empty-row').count(), 0);

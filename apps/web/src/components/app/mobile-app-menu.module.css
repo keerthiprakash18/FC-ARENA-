@@ -31,7 +31,7 @@
   color: var(--theme-text);
   background: var(--theme-surface);
   border: 1px solid var(--theme-border);
-  border-radius: 0 var(--fc-card-radius) var(--fc-card-radius) 0;
+  border-radius: 0 var(--arena-hero-radius) var(--arena-hero-radius) 0;
   box-shadow: 18px 0 64px rgb(8 21 34 / 22%);
   overflow: auto;
   overscroll-behavior: contain;
@@ -54,9 +54,11 @@
 .account {
   position: relative;
   border: 1px solid var(--theme-border);
-  border-radius: var(--fc-card-radius);
+  border-radius: var(--arena-card-radius);
   overflow: hidden;
-  background: var(--theme-secondary-background);
+  background: var(--arena-hero-surface);
+  color: var(--arena-ivory);
+  border-color: var(--arena-line);
 }
 
 .close {
@@ -68,7 +70,7 @@
   place-items: center;
   border-radius: 10px;
   font-size: 25px;
-  color: var(--theme-text-secondary);
+  color: var(--arena-ivory);
 }
 
 .profile,
@@ -180,3 +182,9 @@
     outline-offset: -2px;
   }
 }
+
+
+.account :is(.profile, .career) { color: var(--arena-ivory); }
+.account :is(.profile, .career) :is(strong, span) { color: inherit; }
+.account .profile .avatar { color: var(--arena-gold); background: var(--arena-raised); }
+.account :is(.profile, .career, .close):focus-visible { outline-color: var(--arena-gold) !important; outline-offset: -3px !important; }

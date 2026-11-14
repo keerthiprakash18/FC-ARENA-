@@ -95,14 +95,17 @@ export function FcPageHeader({
   title,
   subtitle,
   action,
+  icon,
 }: {
   eyebrow?: string;
   title: string;
   subtitle?: string;
   action?: ReactNode;
+  icon?: Parameters<typeof FcIcon>[0]['name'];
 }) {
   return (
     <header className="fc-page-heading">
+      {icon && <FcIcon className="fc-heading-mark" name={icon} />}
       <div className="fc-page-heading-copy">
         {eyebrow ? (
           <p className="fc-page-kicker">

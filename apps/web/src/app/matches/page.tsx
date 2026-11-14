@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/api';
 import { loadFixtureFeed, hydrateFixtureFeed } from '@/lib/fixture-feed';
-import { FcErrorState, FcLoadingScreen } from '@/components/fc/fc-ui';
+import { FcCrest, FcEmptyState, FcErrorState, FcLoadingScreen, FcPageHeader, FcStatusBadge, competitionLabel } from '@/components/fc/fc-ui';
 import { useEffect, useState } from 'react';
+import { FcIcon } from '@/components/fc/fc-icons';
 import { AppShell } from '@/components/app/app-shell';
 import {
   authenticatedRequest,
@@ -120,73 +121,40 @@ export default function MatchesPage() {
       }
     >
       <div className="space-y-7">
-        <section>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-            Competition
-          </p>
+        <FcPageHeader title="Match Center" icon="football" subtitle="Find your matches, submit scores and follow verified results." />
 
-          <h1 className="mt-2 text-4xl font-black tracking-[-0.05em] md:text-5xl">
-            Match Center
-          </h1>
-
-          <p className="mt-3 text-sm text-slate-500">
-            Open matches, submit results and follow
-            match status.
-          </p>
-        </section>
-
-        {error ? <FcErrorState message={error} onRetry={() => setRetry(value => value + 1)} /> : null}
-        {matches.length === 0 && !error ? (
-          <div className="rounded-[24px] border border-dashed border-white/10 p-10 text-center text-slate-500">
-            No matches available yet.
-          </div>
+        {error && <FcErrorState message={error} onRetry={() => setRetry(value => value + 1)} />}
+        {!matches.length && !error ? (
+          <FcEmptyState title="No matches yet" description="Matches will appear here when fixtures are published." icon="fixtures"
+            actionLabel="Browse fixtures" actionHref="/fixtures" />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {matches.slice(0, renderLimit).map((fixture) => (
-              <Link
-                key={fixture.id}
-                href={`/matches/${fixture.match!.id}`}
-                scroll
-                className="rounded-[24px] border border-white/10 bg-[#0a1018] p-5 transition hover:border-sky-400/30"
-              >
-                <p className="text-[10px] font-black uppercase tracking-widest text-sky-400">
-                  {fixture.tournamentName}
-                </p>
-
-                <p className="mt-1 text-xs text-slate-600">
-                  {fixture.leagueName} ·{' '}
-                  {fixture.roundName}
-                </p>
-
-                <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                  <p className="text-right font-black">
-                    {entryName(fixture.home)}
-                  </p>
-
-                  <span className="text-xs font-black text-sky-400">
-                    VS
-                  </span>
-
-                  <p className="font-black">
-                    {entryName(fixture.away)}
-                  </p>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {matches.slice(0, renderLimit).map(fixture => {
+              const home = entryName(fixture.home);
+              const away = entryName(fixture.away);
+              return <Link key={fixture.id} href={'/matches/' + fixture.match!.id} className="fc-arena-card">
+                <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="theme-text text-sm font-semibold">{fixture.tournamentName}</p>
+                    <p className="theme-secondary-text mt-0.5 text-xs">{fixture.leagueName} · {fixture.roundName}</p>
+                  </div>
+                  {fixture.match?.status && <FcStatusBadge label={competitionLabel(fixture.match.status)} tone={fixture.match.status === 'LIVE' ? 'emerald' : 'slate'} />}
                 </div>
-
-                <div className="mt-5 flex justify-between text-xs">
-                  <span className="text-slate-600">
-                    {fixture.match?.matchCode ||
-                      'MATCH'}
-                  </span>
-
-                  <span className="font-black text-slate-400">
-                    {fixture.match?.status.replaceAll(
-                      '_',
-                      ' ',
-                    )}
-                  </span>
+                <div className="fc-match-list-score my-4 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 text-center">
+                  <div className="grid min-w-0 justify-items-center gap-1 text-sm font-semibold">
+                    <FcCrest name={home} size="sm" /><span>{home}</span>
+                  </div>
+                  <span className="theme-secondary-text text-xs font-semibold">vs</span>
+                  <div className="grid min-w-0 justify-items-center gap-1 text-sm font-semibold">
+                    <FcCrest name={away} size="sm" /><span>{away}</span>
+                  </div>
                 </div>
-              </Link>
-            ))}
+                <div className="theme-secondary-text flex items-center justify-between gap-2 border-t border-[var(--theme-border)] pt-3 text-xs">
+                  <span>{fixture.match?.matchCode || 'Match'}</span>
+                  <span className="flex items-center gap-1 font-semibold">Open match <FcIcon name="chevronRight" size={15} /></span>
+                </div>
+              </Link>;
+            })}
           </div>
         )}
         {matches.length > renderLimit ? <button type="button" onClick={() => setRenderLimit(limit => limit + 40)} className="theme-secondary-button min-h-11 w-full rounded-xl border px-4 py-3 font-semibold">Show more matches ({matches.length - renderLimit} remaining)</button> : null}

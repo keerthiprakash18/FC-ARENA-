@@ -364,6 +364,7 @@ export default function NotificationsPage() {
     <AppShell playerName={playerName}>
       <div className="fc-notification-page space-y-6">
         <FcPageHeader
+          icon="bell"
           eyebrow="FC ARENA Activity"
           title="Notifications"
           subtitle="Results, reminders and league activity. Cleared notifications stay in History."

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/lib/api";
+import { FcPageHeader } from "@/components/fc/fc-ui";
 import { AppShell } from "@/components/app/app-shell";
 import {
   authenticatedRequest,
@@ -51,20 +52,11 @@ export default function CommunityModerationPage() {
   }, []);
   return (
     <AppShell currentUser={user || undefined}>
-      <main className="community-page">
-        <div className="community-heading">
-          <div>
-            <span className="community-eyebrow">COMMUNITY MODERATION</span>
-            <h1>Keep the conversation fair.</h1>
-            <p>
-              Review the oldest 50 open reports. Removing content also resolves
-              other open reports for that content.
-            </p>
-          </div>
-          <Link href="/arena-talk" className="community-button">
-            Back to Arena Talk
-          </Link>
-        </div>
+      <div className="community-page">
+        <FcPageHeader title="Community moderation" icon="shield"
+          subtitle="Review the oldest 50 open reports. Removing content also resolves other open reports for that content."
+          action={<Link href="/arena-talk" className="theme-secondary-button inline-flex min-h-11 items-center border px-4 text-sm">Back to Arena Talk</Link>}
+        />
         {error && (
           <div className="community-error" role="alert">
             {error}
@@ -88,7 +80,7 @@ export default function CommunityModerationPage() {
             {!ready && !error && <p role="status">Loading report queue…</p>}
           </div>
         )}
-      </main>
+      </div>
     </AppShell>
   );
 }

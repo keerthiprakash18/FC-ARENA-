@@ -30,6 +30,7 @@ import './competition-clarity.css';
 import './native-android.css';
 import './vnext-interaction-system.css';
 import './vnext-visual-polish.css';
+import './arena-design.css';
 
 export const metadata: Metadata = {
   metadataBase:

@@ -70,9 +70,10 @@ export function CompactStandingsTable({
                   <tr className="fc-compact-team-row" data-highlighted={qualificationBands ? !!band : row.position <= highlightedPositions} data-qualification={band?.tone}>
                     <td className="fc-compact-rank" title={band?.label}>{row.position}{band ? <span className="sr-only"> · {band.label}</span> : null}</td>
                     <th scope="row" className="fc-compact-team-cell">
-                      <button type="button" className="fc-compact-team-button" aria-label={`${row.entryName}, ${expanded ? 'hide' : 'show'} statistics`} aria-expanded={expanded} aria-controls={detailId} onClick={() => setExpandedId(expanded ? null : row.registrationId)}>
+                      <button type="button" className="fc-compact-team-button" aria-expanded={expanded} aria-controls={detailId} onClick={() => setExpandedId(expanded ? null : row.registrationId)}>
                         <span aria-hidden="true"><FcCrest name={row.entryName} imageUrl={row.logoUrl} size="sm" /></span>
                         <span className="fc-compact-team-name" title={row.entryName}>{row.entryName}</span>
+                        <span className="sr-only">, {expanded ? "hide" : "show"} statistics</span>
                       </button>
                     </th>
                     <td>{row.played}</td>

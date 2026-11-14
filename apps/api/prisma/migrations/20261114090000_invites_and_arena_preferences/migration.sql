@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE "league_invites" (
     "id" UUID PRIMARY KEY,
     "leagueId" UUID NOT NULL REFERENCES "leagues"("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -26,3 +28,5 @@ CREATE TABLE "arena_player_mutes" (
 );
 CREATE INDEX "arena_player_mutes_mutedUserId_idx" ON "arena_player_mutes"("mutedUserId");
 CREATE INDEX "refresh_sessions_createdAt_userId_idx" ON "refresh_sessions"("createdAt", "userId");
+
+COMMIT;

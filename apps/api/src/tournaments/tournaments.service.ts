@@ -105,6 +105,8 @@ export class TournamentsService {
         name: dto.name.trim(),
         code,
         mode: dto.mode,
+        // New Duo tournaments aggregate the two member games, while legacy Duo results remain untouched.
+        duoAggregateEnabled: dto.mode === 'DUO',
 
         format:
           this.resolveLegacyFormat(
@@ -1587,6 +1589,9 @@ export class TournamentsService {
 
           mode:
             dto.mode,
+          duoAggregateEnabled: nextMode === 'DUO'
+            ? (current.duoAggregateEnabled || current.mode !== 'DUO')
+            : false,
 
           competitionFormat,
 

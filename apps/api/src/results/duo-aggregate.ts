@@ -82,3 +82,20 @@ export function validateDuoAggregate(
 export function duoGamesJson(games?: DuoGameScore[]): Prisma.InputJsonValue | undefined {
   return games as Prisma.InputJsonValue | undefined;
 }
+
+/**
+ * In a Duo team competition both players share the TEAM's W/D/L outcome,
+ * but each player's goals/goal difference come from their own game.
+ */
+export function duoPlayerDelta<T extends { goalsFor: number; goalsAgainst: number; goalDifference: number }>(
+  teamDelta: T,
+  individualGoalsFor: number,
+  individualGoalsAgainst: number,
+): T {
+  return {
+    ...teamDelta,
+    goalsFor: individualGoalsFor,
+    goalsAgainst: individualGoalsAgainst,
+    goalDifference: individualGoalsFor - individualGoalsAgainst,
+  };
+}

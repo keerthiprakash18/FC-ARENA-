@@ -263,7 +263,7 @@ export default function TournamentsPage() {
 
   const leagueId = selectedMembership?.league.id;
   const studioHref = '/tournaments/studio?leagueId=' + leagueId;
-  const manageHref = '/leagues/' + leagueId + '/tournaments';
+  const manageHref = '/leagues/' + leagueId + '/tournaments?create=1';
   const canCreate = Boolean(selectedMembership?.adminRole);
   const statusLabels = { ACTIVE: 'Live', UPCOMING: 'Upcoming', COMPLETED: 'Completed' };
   const stageLabel = statusLabels[filter];
@@ -290,13 +290,13 @@ export default function TournamentsPage() {
               <FcCrest name={selectedMembership.league.name} size="sm" />
               <label>
                 <span>League</span>
-                <select aria-label="Tournament league" value={selectedLeagueId ?? ''} onChange={event => choose('leagueId', event.target.value)}>
+                <select aria-label="Select tournament league" value={selectedLeagueId ?? ''} onChange={event => choose('leagueId', event.target.value)}>
                   {memberships.map(({ league }) => <option value={league.id} key={league.id}>{league.name}</option>)}
                 </select>
               </label>
               <Link href={'/leagues/' + leagueId} aria-label="League overview"><FcIcon name="chevronRight" /></Link>
             </div>
-            <div role="group" aria-label="Tournament status" className={styles.statusBar}>
+            <div role="group" aria-label="Filter tournaments by status" className={styles.statusBar}>
               {(['ACTIVE', 'UPCOMING', 'COMPLETED'] as const).map(value => (
                 <button key={value} type="button" onClick={() => setFilter(value)} aria-pressed={filter === value}>
                   {value === 'ACTIVE' && <span className={styles.liveDot} aria-hidden="true" />}

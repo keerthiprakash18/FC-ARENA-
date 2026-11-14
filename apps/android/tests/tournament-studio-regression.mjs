@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { _android, chromium } from 'playwright';
 import { checkLayout, createUiContext } from './phase-ui-harness.mjs';
 
 const output = process.env.FC_STUDIO_SCREENSHOTS;
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
-const league = { id: 'studio-league', name: 'KICKOFF FC', code: 'KF-X3MU' };
-const leagueB = { id: 'studio-league-b', name: 'FC ARENA TAMIL', code: 'FCAT' };
+const testId = randomUUID().slice(0, 8);
+const league = { id: 'studio-league-' + testId, name: 'KICKOFF FC', code: 'KF-X3MU' };
+const leagueB = { id: 'studio-league-b-' + testId, name: 'FC ARENA TAMIL', code: 'FCAT' };
 const tournament = {
-  id: 'studio-demo', leagueId: league.id, name: 'Friday Night Cup', mode: 'DUO', competitionFormat: 'LEAGUE_ROUND_ROBIN',
+  id: 'studio-demo-' + testId, leagueId: league.id, name: 'Friday Night Cup', mode: 'DUO', competitionFormat: 'LEAGUE_ROUND_ROBIN',
   status: 'DRAFT', groupMode: 'SINGLE_GROUP', legType: 'SINGLE_LEG', fixtureMode: 'AUTOMATIC', registrationMode: 'ADMIN_ONLY',
   maxEntries: 8, teamSize: 2, description: '', qualifiersPerGroup: null, playoffQualifiersTotal: null, groups: [], _count: { fixtures: 0, matches: 0 },
 };
@@ -72,12 +74,26 @@ try {
       },
     });
     const { page, context, errors } = auth;
+    if (physical) await context.route(/^https:\/\/fcarena\.in\/(?:icons\/icon-(?:192|512)-v3\.png|favicon\.ico)$/, async route => {
+      const asset = await fetch(origin + new URL(route.request().url()).pathname);
+      return route.fulfill({ status: asset.status, contentType: asset.headers.get('content-type') ?? 'image/png', body: Buffer.from(await asset.arrayBuffer()) });
+    });
     const failedRequests = [];
     page.on('requestfailed', request => failedRequests.push(request.failure()?.errorText + ' ' + request.url()));
     page.on('console', message => { if (message.type() === 'error') failedRequests.push(message.text()); });
     const snap = async name => {
       await checkLayout(page, name + ' ' + width);
       if (output) await page.screenshot({ path: output + '/' + name + '-' + width + '.png', animations: 'disabled' });
+      if (!physical && width === 390 && process.env.FC_STUDIO_AXE) {
+        await page.addScriptTag({ path: process.env.FC_STUDIO_AXE });
+        const result = await page.evaluate(async () => {
+          const heading = document.querySelector('main h1');
+          const container = heading?.closest('header')?.parentElement || heading?.parentElement?.parentElement || document.querySelector('main');
+          const tested = await axe.run(container, { runOnly: { type: 'tag', values: ['wcag2a','wcag2aa','wcag21a','wcag21aa'] } });
+          return tested.violations.map(({ id, nodes }) => ({ id, nodes: nodes.map(({ target }) => target) }));
+        });
+        assert.deepEqual(result, [], 'Automated accessibility violations on ' + name);
+      }
     };
     await page.goto((physical ? 'https://studio-test.fcarena.in' : origin) + '/tournaments?leagueId=' + league.id, { waitUntil: 'domcontentloaded' });
     try { await page.getByRole('heading', { name: 'KICKOFF Championship' }).waitFor({ timeout: 16000 }); }
@@ -89,9 +105,9 @@ try {
     await snap('cup-center');
     await page.getByRole('button', { name: /^Completed/ }).click();
     await page.getByRole('heading', { name: 'International Friendlies' }).waitFor();
-    await page.getByRole('combobox', { name: 'Tournament league' }).selectOption(leagueB.id);
+    await page.getByRole('combobox', { name: 'Select tournament league' }).selectOption(leagueB.id);
     await page.getByRole('heading', { name: 'No completed tournaments' }).waitFor();
-    await page.getByRole('combobox', { name: 'Tournament league' }).selectOption(league.id);
+    await page.getByRole('combobox', { name: 'Select tournament league' }).selectOption(league.id);
     await page.waitForURL(new RegExp('leagueId=' + league.id + '(&|$)'));
     await page.getByRole('heading', { name: 'International Friendlies' }).waitFor();
     await page.getByRole('link', { name: 'Duo 2 players' }).click();
@@ -100,6 +116,7 @@ try {
     assert(await page.getByRole('radio', { name: /Duo/ }).isChecked());
     await snap('studio-basics');
     await name.press('Enter');
+    await page.waitForFunction(() => document.activeElement?.textContent === 'Participants');
     await page.getByLabel('Duo teams').fill('8');
     await page.reload({ waitUntil: 'domcontentloaded' });
     assert.equal(await page.getByLabel('Duo teams').inputValue(), '8');
@@ -135,7 +152,7 @@ try {
         const mean = intervals.reduce((sum, value) => sum + value, 0) / intervals.length;
         console.log('Android player wheel rAF', { samples: intervals.length, meanMs: mean.toFixed(1), p95Ms: p95.toFixed(1) });
         assert(p95 < 28, 'Android draw frame pacing exceeded 28ms at p95');
-        await snap('studio-player-wheel');
+        if (output) await page.screenshot({ path: output + '/studio-player-wheel-android.png' });
         await page.getByRole('button', { name: 'Skip animation' }).click();
       }
     } else if (width !== 360) {
@@ -157,6 +174,6 @@ try {
     await page.getByText('Tournament published.').waitFor();
     assert.deepEqual(errors.filter(error => !error.startsWith('Unmocked API: ')), []);
     if (!physical) await context.close();
-    console.log('Cup and Studio pass at ' + width + 'px');
+    console.log('Cup and Studio pass at ' + (physical ? 'the physical Android WebView' : width + 'px'));
   }
 } finally { await browser?.close(); await device?.close(); }

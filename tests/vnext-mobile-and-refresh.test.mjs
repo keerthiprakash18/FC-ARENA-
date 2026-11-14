@@ -30,17 +30,16 @@ test('notification polling avoids hidden/offline requests without delaying mutat
   assert.match(source, /window\.removeEventListener\("online", autoRefresh\)/);
 });
 
-test('tournament controls use the existing brand theme and scroll safely at narrow widths', () => {
+test('Cup controls use the existing brand palette and fit narrow widths', () => {
   const source = read('apps/web/src/app/tournaments/page.tsx');
+  const css = read('apps/web/src/app/tournaments/cup.module.css');
   assert.match(source, /aria-label="Select tournament league"/);
   assert.match(source, /aria-label="Filter tournaments by status"/);
   assert.match(source, /aria-pressed=\{filter === value\}/);
-  assert.match(source, /overflow-x-auto overscroll-x-contain/);
-  assert.match(source, /whitespace-nowrap/);
-  assert.match(source, /min-h-11/);
-  assert.match(source, /theme-primary-button/);
-  assert.match(source, /theme-secondary-button/);
-  assert.match(source, /var\(--theme-border\)/);
+  assert.match(css, /\.statusBar\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.statusBar button\s*\{[^}]*min-height:\s*44px/);
+  assert.match(css, /var\(--cup-gold\)/);
+  assert.match(css, /var\(--theme-text/);
 });
 
 test('Arena Talk audience controls are explicit buttons with announced audience information', () => {

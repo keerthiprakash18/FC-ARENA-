@@ -35,13 +35,15 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
   const editing = approved.find(entry => entry.id === form.entryId);
   const players = [...availablePlayers, ...(editing?.members.filter(member => member.name !== 'Ineligible player') ?? [])];
   const search = query.trim().toLocaleLowerCase();
-  const matching = players.filter(player => player.name.toLocaleLowerCase().includes(search));
+  const matchesSearch = (player: Player) => [player.name, player.fullName, player.playerCode || '']
+    .some(value => value.toLocaleLowerCase().includes(search));
+  const matching = players.filter(matchesSearch);
   const remainingEntries = Math.max(0, tournament.maxEntries - entries.length);
   const poolLimit = remainingEntries * tournament.teamSize;
   const selectedPool = new Set(form.pool);
   const remainingPool = availablePlayers.filter(player => selectedPool.has(player.id));
   const poolIds = remainingPool.map(player => player.id);
-  const matchingPool = availablePlayers.filter(player => player.name.toLocaleLowerCase().includes(search));
+  const matchingPool = availablePlayers.filter(matchesSearch);
   const canRandomize = form.poolLocked && poolIds.length >= tournament.teamSize && poolIds.length <= poolLimit;
   const canStartLive = canRandomize && poolIds.length % tournament.teamSize === 0;
   const canConfirmPool = poolIds.length >= tournament.teamSize && poolIds.length <= poolLimit &&
@@ -128,9 +130,15 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
 
   return <div className={styles.formStack}>
     <div className={styles.drawOverview}>
+      <p><strong>League: {studio.selectedLeague.name}</strong> · {studio.selectedLeague.memberCount} joined members · {studio.eligiblePlayerCount} eligible for drawing. Only this league's players can be selected.</p>
       <p><strong>{approved.length}/{tournament.maxEntries}</strong> {tournament.mode === 'DUO' ? 'Duo teams formed' : 'approved entries'} · {availablePlayers.length} eligible players available</p>
       <button className={styles.subButton} type="button" aria-pressed={sound} onClick={() => setSound(value => !value)}>Sound {sound ? 'on' : 'off'}</button>
     </div>
+    {studio.unavailableMembers.length > 0 && <details className={styles.formatList}>
+      <summary>{studio.unavailableMembers.length} league member(s) unavailable for drawing</summary>
+      <p className={styles.muted}>These members belong to {studio.selectedLeague.name} but need to complete their FC ARENA game identity or reactivate their account before they can join the draw.</p>
+      <ul className={styles.remainingPlayers}>{studio.unavailableMembers.map(member => <li key={member.id}>{member.name} · {member.playerCode || 'No player code'} · {member.reason}</li>)}</ul>
+    </details>}
     {error && <p role="alert" className={styles.error}>{error}</p>}
     {refreshRequired && <button type="button" className={styles.subButton} onClick={async () => {
       try { await reload(); setRefreshRequired(false); setError(''); }
@@ -170,7 +178,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
                   const next = selected ? form.players.filter(id => id !== player.id) : [...form.players, player.id];
                   update({ players: next, captain: next.includes(form.captain) ? form.captain : next[0] || '' });
                 }} />
-                <span aria-hidden="true"><FcCrest name={player.name} imageUrl={player.avatar} size="sm" /></span><span>{player.name}</span>
+                <span aria-hidden="true"><FcCrest name={player.name} imageUrl={player.avatar} size="sm" /></span><span>{player.name}{player.playerCode ? ` · ${player.playerCode}` : ''}{player.fullName !== player.name ? ` · ${player.fullName}` : ''}</span>
               </label></li>;
             })}
           </ul>

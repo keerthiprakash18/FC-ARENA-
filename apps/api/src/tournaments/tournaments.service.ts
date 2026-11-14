@@ -1555,6 +1555,15 @@ export class TournamentsService {
           const approvedEntries = await tx.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } });
           assertEntryLimitFits(dto.maxEntries, approvedEntries);
         }
+        // Existing DRAFT Duo setups may adopt aggregate scoring only when there
+        // is no result history to reinterpret. Active/historical cups are untouched.
+        const resultHistory = nextMode === 'DUO' && !current.duoAggregateEnabled
+          ? await tx.resultSubmission.findFirst({
+              where: { match: { tournamentId } }, select: { id: true },
+            })
+          : null;
+        const duoAggregateEnabled = nextMode === 'DUO'
+          && (current.duoAggregateEnabled || !resultHistory);
         return tx.tournament.update({
         where: {
           id: tournamentId,
@@ -1589,9 +1598,7 @@ export class TournamentsService {
 
           mode:
             dto.mode,
-          duoAggregateEnabled: nextMode === 'DUO'
-            ? (current.duoAggregateEnabled || current.mode !== 'DUO')
-            : false,
+          duoAggregateEnabled,
 
           competitionFormat,
 

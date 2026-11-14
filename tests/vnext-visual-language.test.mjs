@@ -27,7 +27,9 @@ test('profile and league-war design follow shared hierarchy and themed controls'
   assert.match(profile, /fc-profile-page space-y-6/);
   assert.match(profile, /<FcPageHeader/);
   assert.match(profile, /aria-label="Profile photo"/);
-  assert.match(profile, /Verified Player/);
+  assert.match(profile, /Verified game identity/);
+  assert.match(profile, /Game identity status/);
+  assert.doesNotMatch(profile, /Verification Pending/);
   assert.match(war, /aria-label="Close Create League War form"/);
   assert.match(war, /theme-input border-\[var\(--theme-control-border\)\]/);
 });

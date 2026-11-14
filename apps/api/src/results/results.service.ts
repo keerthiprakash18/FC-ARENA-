@@ -20,7 +20,7 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
-import { duoGamesJson, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
+import { duoGamesJson, duoPlayerDelta, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
@@ -1391,8 +1391,8 @@ export class ResultsService {
         if (!games) throw new ConflictException('This verified Duo result is missing its two individual games.');
         const homeGame = games.find(game => game.homePlayerId === userId);
         const awayGame = games.find(game => game.awayPlayerId === userId);
-        if (homeGame) this.applyAggregate(aggregate, this.calculateDelta(homeGame.homeGoals, homeGame.awayGoals));
-        if (awayGame) this.applyAggregate(aggregate, this.calculateDelta(awayGame.awayGoals, awayGame.homeGoals));
+        if (homeGame) this.applyAggregate(aggregate, duoPlayerDelta(this.calculateDelta(result.homeScore, result.awayScore), homeGame.homeGoals, homeGame.awayGoals));
+        if (awayGame) this.applyAggregate(aggregate, duoPlayerDelta(this.calculateDelta(result.awayScore, result.homeScore), awayGame.awayGoals, awayGame.homeGoals));
         continue;
       }
       if (
@@ -1687,8 +1687,8 @@ export class ResultsService {
         const games = parseDuoGames(result.duoGames);
         if (!games) throw new ConflictException('A confirmed Duo result has no valid individual-game breakdown.');
         for (const game of games) {
-          await this.applyPlayerStatistic(tx, tournamentId, game.homePlayerId, this.calculateDelta(game.homeGoals, game.awayGoals));
-          await this.applyPlayerStatistic(tx, tournamentId, game.awayPlayerId, this.calculateDelta(game.awayGoals, game.homeGoals));
+          await this.applyPlayerStatistic(tx, tournamentId, game.homePlayerId, duoPlayerDelta(homeDelta, game.homeGoals, game.awayGoals));
+          await this.applyPlayerStatistic(tx, tournamentId, game.awayPlayerId, duoPlayerDelta(awayDelta, game.awayGoals, game.homeGoals));
         }
         continue;
       }

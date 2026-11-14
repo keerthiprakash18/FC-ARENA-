@@ -371,8 +371,8 @@ describe('Result review queue with authenticated HTTP and real PostgreSQL', () =
     const stat = (userId: string) => db.playerTournamentStatistic.findUniqueOrThrow({
       where: { tournamentId_userId: { tournamentId: cup.id, userId } },
     });
-    expect(await stat(users[2]!)).toMatchObject({ matches: 1, goalsFor: 2, goalsAgainst: 1 });
-    expect(await stat(users[3]!)).toMatchObject({ matches: 1, goalsFor: 0, goalsAgainst: 3 });
+    expect(await stat(users[2]!)).toMatchObject({ matches: 1, wins: 0, losses: 1, goalsFor: 2, goalsAgainst: 1 });
+    expect(await stat(users[3]!)).toMatchObject({ matches: 1, wins: 0, losses: 1, goalsFor: 0, goalsAgainst: 3 });
     expect(await stat(users[4]!)).toMatchObject({ matches: 1, goalsFor: 1, goalsAgainst: 2 });
     expect(await stat(users[5]!)).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 0 });
 
@@ -384,8 +384,8 @@ describe('Result review queue with authenticated HTTP and real PostgreSQL', () =
       .set('Authorization', 'Bearer ' + token(users[6]!))
       .send({ homeScore: 5, awayScore: 3, duoGames: correctedGames, reason: 'Verified both individual game results' })
       .expect(201);
-    expect(await stat(users[2]!)).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 1 });
-    expect(await stat(users[3]!)).toMatchObject({ matches: 1, goalsFor: 2, goalsAgainst: 2 });
+    expect(await stat(users[2]!)).toMatchObject({ matches: 1, wins: 1, losses: 0, goalsFor: 3, goalsAgainst: 1 });
+    expect(await stat(users[3]!)).toMatchObject({ matches: 1, wins: 1, losses: 0, goalsFor: 2, goalsAgainst: 2 });
     const correctedStandings = await db.tournamentStanding.findMany({ where: { tournamentId: cup.id } });
     expect(correctedStandings.find(row => row.registrationId === home.id)).toMatchObject({
       played: 1, goalsFor: 5, goalsAgainst: 3,

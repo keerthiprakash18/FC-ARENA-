@@ -130,7 +130,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
 
   return <div className={styles.formStack}>
     <div className={styles.drawOverview}>
-      <p><strong>League: {studio.selectedLeague.name}</strong> · {studio.selectedLeague.memberCount} joined members · {studio.eligiblePlayerCount} eligible for drawing. Only this league's players can be selected.</p>
+      <p><strong>League: {studio.selectedLeague.name}</strong> · {studio.selectedLeague.memberCount} joined members · {studio.eligiblePlayerCount} eligible for drawing. Only this league&apos;s players can be selected.</p>
       <p><strong>{approved.length}/{tournament.maxEntries}</strong> {tournament.mode === 'DUO' ? 'Duo teams formed' : 'approved entries'} · {availablePlayers.length} eligible players available</p>
       <button className={styles.subButton} type="button" aria-pressed={sound} onClick={() => setSound(value => !value)}>Sound {sound ? 'on' : 'off'}</button>
     </div>

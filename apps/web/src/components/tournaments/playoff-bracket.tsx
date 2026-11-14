@@ -38,6 +38,18 @@ export function PlayoffBracket({ fixtures, tournamentName, format, readOnly = fa
   const winner = champion?.winnerId ? (champion.home?.id === champion.winnerId ? champion.home : champion.away) : null;
   if (!graph.nodes.length) return null;
 
+  function showFinal() {
+    const final = graph.nodes.find(node => node.id === graph.finalId);
+    const board = viewport.current;
+    if (!final || !board) return;
+    setSelectedId(final.id);
+    board.scrollTo({
+      left: Math.max(0, (final.x + BRACKET_CARD.width / 2) * zoom - board.clientWidth / 2),
+      top: Math.max(0, final.y * zoom - 10),
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    });
+  }
+
   function fit() {
     const available = viewport.current?.clientWidth ?? graph.width;
     setZoom(Math.max(.15, Math.min(1, (available - 16) / graph.width)));
@@ -57,7 +69,7 @@ export function PlayoffBracket({ fixtures, tournamentName, format, readOnly = fa
           <button type="button" onClick={() => setZoom(value => Math.max(.15, +(value - .15).toFixed(2)))} aria-label="Zoom out" disabled={zoom <= .15}>−</button>
           <output aria-label="Bracket zoom">{Math.round(zoom * 100)}%</output>
           <button type="button" onClick={() => setZoom(value => Math.min(1.5, +(value + .15).toFixed(2)))} aria-label="Zoom in" disabled={zoom >= 1.5}>+</button>
-          <button type="button" onClick={fit}>Fit bracket</button><button type="button" onClick={() => setZoom(1)}>Reset</button>
+          <button type="button" onClick={fit}>Fit bracket</button>{graph.finalId && <button type="button" onClick={showFinal}>Go to final</button>}<button type="button" onClick={() => setZoom(1)}>Reset</button>
         </div>
       </div>
       <p className={styles.hint}>Select a tie to highlight its path and open match details.</p>

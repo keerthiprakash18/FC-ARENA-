@@ -8,6 +8,7 @@ import {
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
 
@@ -563,11 +564,14 @@ export class TournamentWizardFinalizeService {
   async publishTournament(
     userId: string,
     tournamentId: string,
+    transaction?: Prisma.TransactionClient,
   ) {
+    const db = transaction ?? this.prisma;
     const tournament =
       await this.getAdminTournament(
         userId,
         tournamentId,
+        db,
       );
 
     if (
@@ -592,7 +596,7 @@ export class TournamentWizardFinalizeService {
       });
     }
 
-    const publicationInputs = await readGroupInputs(this.prisma, tournamentId);
+    const publicationInputs = await readGroupInputs(db, tournamentId);
     const approvedEntries = publicationInputs.entries.length;
 
     if (
@@ -614,7 +618,7 @@ export class TournamentWizardFinalizeService {
     }
 
     const fixtureCount =
-      await this.prisma.fixture.count({
+      await db.fixture.count({
         where: {
           tournamentId,
 
@@ -656,7 +660,7 @@ export class TournamentWizardFinalizeService {
       )
     ) {
       const groups =
-        await this.prisma.tournamentGroup.count({
+        await db.tournamentGroup.count({
           where: {
             tournamentId,
           },
@@ -715,7 +719,7 @@ export class TournamentWizardFinalizeService {
     const now =
       new Date();
 
-    const updated = await this.prisma.$transactionWithRetry(async tx => {
+    const publish = async (tx: Prisma.TransactionClient) => {
       const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
       const fields = ['status', 'competitionFormat', 'groupMode', 'legType', 'fixtureMode', 'playoffSource', 'playoffFormat', 'qualifiersPerGroup', 'playoffQualifiersTotal'] as const;
       const freshInputs = await readGroupInputs(tx, tournamentId);
@@ -724,7 +728,8 @@ export class TournamentWizardFinalizeService {
       const currentFixtures = await tx.fixture.count({ where: { tournamentId, publishedAt: { not: null } } });
       if (!currentFixtures) throw new ConflictException({ success: false, data: null, error: { code: 'FIXTURES_NOT_PUBLISHED', message: 'Publish the fixture preview before publishing the Tournament.' } });
       return tx.tournament.update({ where: { id: tournamentId }, data: { status: 'ACTIVE', publishedAt: now, wizardStep: 'PUBLISHED' } });
-    }, { isolationLevel: 'Serializable' });
+    };
+    const updated = transaction ? await publish(transaction) : await this.prisma.$transactionWithRetry(publish, { isolationLevel: 'Serializable' });
 
     return {
       success: true,
@@ -748,9 +753,10 @@ export class TournamentWizardFinalizeService {
 
     tournamentId:
       string,
+    db: Prisma.TransactionClient = this.prisma,
   ) {
     const tournament =
-      await this.prisma.tournament.findUnique({
+      await db.tournament.findUnique({
         where: {
           id:
             tournamentId,

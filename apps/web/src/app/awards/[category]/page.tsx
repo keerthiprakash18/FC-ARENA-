@@ -1,5 +1,6 @@
 'use client';
 
+import { AwardCeremony } from '@/components/fc/award-ceremony';
 import Link from 'next/link';
 import {
   useParams,
@@ -807,6 +808,11 @@ export default function AwardCategoryPage() {
           <h2 className="mt-1 text-2xl font-black">
             Seasonal Honours
           </h2>
+          {recentSeasonal[0] && <AwardCeremony
+            title={recentSeasonal[0].title}
+            variant={recentSeasonal[0].title.toLowerCase().includes('ballon') ? 'ballon' : recentSeasonal[0].title.toLowerCase().includes('golden boot') ? 'boot' : 'season'}
+            winner={recentSeasonal[0].player.inGameName || recentSeasonal[0].player.fullName}
+          />}
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {recentSeasonal.map(

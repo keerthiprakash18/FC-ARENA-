@@ -12,6 +12,7 @@ import {
 import {
   PrismaService,
 } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 
 import { assertBalancedGroups } from './group-balance.js';
@@ -458,11 +459,14 @@ export class TournamentFixturePreviewService {
     tournamentId: string,
     dto:
       PublishFixturePreviewDto = {},
+    transaction?: Prisma.TransactionClient,
   ) {
+    const db = transaction ?? this.prisma;
     const tournament =
       await this.getAdminTournament(
         userId,
         tournamentId,
+        db,
       );
 
     this.assertDraft(
@@ -479,7 +483,7 @@ export class TournamentFixturePreviewService {
     }
 
     const fixtures =
-      await this.prisma.fixture.findMany({
+      await db.fixture.findMany({
         where: {
           tournamentId,
 
@@ -527,13 +531,13 @@ export class TournamentFixturePreviewService {
     if (tournament.groupMode === 'MULTIPLE_GROUPS' &&
       !['ELITE_CUP', 'UCL_CUP', 'SINGLE_ELIMINATION'].includes(tournament.competitionFormat)) {
       const [groups, approvedTotal] = await Promise.all([
-        this.prisma.tournamentGroup.findMany({
+        db.tournamentGroup.findMany({
           where: { tournamentId },
           select: { id: true, name: true, registrations: {
             where: { status: 'APPROVED' }, select: { id: true },
           } },
         }),
-        this.prisma.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
+        db.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
       ]);
       assertBalancedGroups(groups, approvedTotal);
     }
@@ -545,15 +549,13 @@ export class TournamentFixturePreviewService {
       tournament.competitionFormat,
       dto.registrationIds,
       dto.groupId,
+      db,
     );
 
     const publishedAt =
       new Date();
 
-    await this.prisma.$transaction(
-      async (
-        tx,
-      ) => {
+    const publish = async (tx: Prisma.TransactionClient) => {
         for (
           const fixture
           of fixtures
@@ -750,8 +752,9 @@ export class TournamentFixturePreviewService {
                 }),
           },
         });
-      },
-    );
+    };
+    if (transaction) await publish(transaction);
+    else await this.prisma.$transaction(publish);
 
     return {
       success: true,
@@ -805,6 +808,7 @@ export class TournamentFixturePreviewService {
 
     selectedGroupId?:
       string,
+    db: Prisma.TransactionClient = this.prisma,
   ) {
     const exactPairs =
       new Set<string>();
@@ -1033,6 +1037,7 @@ export class TournamentFixturePreviewService {
             participantIds,
           ),
         selectedGroupId,
+        db,
       );
 
     if (competitionFormat === 'UCL_CUP') {
@@ -1222,6 +1227,7 @@ export class TournamentFixturePreviewService {
 
     selectedGroupId?:
       string,
+    db: Prisma.TransactionClient = this.prisma,
   ) {
     const unique =
       [
@@ -1231,7 +1237,7 @@ export class TournamentFixturePreviewService {
       ];
 
     const registrations =
-      await this.prisma.tournamentRegistration.findMany({
+      await db.tournamentRegistration.findMany({
         where: {
           tournamentId,
 
@@ -1668,9 +1674,10 @@ export class TournamentFixturePreviewService {
 
     tournamentId:
       string,
+    db: Prisma.TransactionClient = this.prisma,
   ) {
     const tournament =
-      await this.prisma.tournament.findUnique({
+      await db.tournament.findUnique({
         where: {
           id:
             tournamentId,

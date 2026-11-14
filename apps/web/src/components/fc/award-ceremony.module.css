@@ -1,0 +1,11 @@
+.ceremony { display: flex; flex-wrap: wrap; gap: .35rem .7rem; align-items: center; justify-content: space-between; min-width: 0; border-radius: .85rem; background: #0c1728; border: 1px solid #736550; color: #f6f2e9; padding: .7rem; margin-block: .75rem; }
+.medal { display: flex; align-items: center; gap: .7rem; overflow-wrap: anywhere; min-width: 0; }
+.medal svg { color: #f3ce7f; flex: none; }
+.medal span { color: #f3ce7f; font-size: .74rem; }
+.medal strong { display: block; }
+.ceremony button { min-height: 44px; padding-inline: .55rem; font-size: .8rem; text-decoration: underline; text-underline-offset: .2em; }
+.ceremony button:focus-visible { outline: 2px solid #f3ce7f; outline-offset: 2px; }
+.ceremony[data-variant=ballon] { background: linear-gradient(115deg,#30263a,#0c1728 62%); }
+.ceremony[data-variant=boot] { background: linear-gradient(115deg,#1e332b,#0c1728 62%); }
+.ceremony[data-variant=season] { background: linear-gradient(115deg,#253348,#0c1728 62%); }
+@media (prefers-reduced-motion: reduce) { .ceremony button { display: none; } }

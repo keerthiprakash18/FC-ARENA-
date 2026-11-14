@@ -1,5 +1,6 @@
 'use client';
 
+import { AwardCeremony } from '@/components/fc/award-ceremony';
 import Link from 'next/link';
 import {
   useParams,
@@ -459,6 +460,7 @@ export default function TournamentSummaryPage() {
             </Link>
           </div>
 
+          {summary.placements.champion && <AwardCeremony variant="champion" title="Champion" winner={summary.placements.champion.name} />}
           <div className="grid gap-4 md:grid-cols-3 md:items-end">
             <PodiumCard
               label="Runner-Up"
@@ -519,6 +521,8 @@ export default function TournamentSummaryPage() {
             Individual Awards
           </h2>
 
+          {summary.awards.goldenBoot.length > 0 && <AwardCeremony variant="boot" title="Golden Boot"
+            winner={summary.awards.goldenBoot.map(winner => winner.name).join(' · ')} />}
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <AwardCard
               icon="⚽"

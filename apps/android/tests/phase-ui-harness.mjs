@@ -14,8 +14,8 @@ export const career = {
   matchHistory: [], tournamentHistory: [], leagueHistory: [], achievements: [],
 };
 
-export async function createUiContext(browser, { width, native = false, direct = false, reducedMotion = 'reduce', theme = 'LUXURY_GOLD', mode = 'LIGHT', role = 'SUPER_ADMIN', overrides = {}, onMutation } = {}) {
-  const context = await browser.newContext({
+export async function createUiContext(browser, { width, native = false, direct = false, reducedMotion = 'reduce', theme = 'LUXURY_GOLD', mode = 'LIGHT', role = 'SUPER_ADMIN', overrides = {}, onMutation, existingPage, allowedHost = 'fcarena.in' } = {}) {
+  const context = existingPage?.context() ?? await browser.newContext({
     viewport: { width, height: 850 }, serviceWorkers: 'block', reducedMotion,
     ...(native ? { userAgent: 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36 FC-Arena-Android/1.0' } : {}),
   });
@@ -33,6 +33,7 @@ export async function createUiContext(browser, { width, native = false, direct =
       if (url.pathname === '/api/matches/phase3/events') return route.fulfill({ headers: { ...headers, 'content-type': 'text/event-stream' }, body: 'event: connected\ndata: {"type":"connected"}\n\n' });
       if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
       if (!['GET', 'HEAD'].includes(request.method()) && url.pathname !== '/api/auth/refresh') {
+        if (url.pathname === '/api/telemetry/web-vitals') return route.fulfill({ headers, json: { success: true, data: { accepted: true }, error: null } });
         mutations.push({ method: request.method(), path: url.pathname, body: request.postData() });
         if (onMutation) return onMutation(route, headers);
         errors.push(`Unexpected mutation: ${request.method()} ${url.pathname}`);
@@ -61,7 +62,7 @@ export async function createUiContext(browser, { width, native = false, direct =
       return route.fulfill({ headers, json: { success: true, data, error: null } });
     }
     if (direct && url.origin === new URL(origin).origin) return route.continue();
-    if (url.hostname !== 'fcarena.in') { errors.push(`Unexpected request: ${url.origin}${url.pathname}`); return route.abort(); }
+    if (url.hostname !== allowedHost) { errors.push(`Unexpected request: ${url.origin}${url.pathname}`); return route.abort(); }
     try {
       const response = await fetch(`${origin}${url.pathname}${url.search}`, { headers: { ...request.headers(), host: new URL(origin).host } });
       const headers = Object.fromEntries(response.headers);
@@ -69,7 +70,7 @@ export async function createUiContext(browser, { width, native = false, direct =
       return route.fulfill({ status: response.status, headers, body: Buffer.from(await response.arrayBuffer()) });
     } catch (error) { errors.push(String(error)); return route.abort(); }
   });
-  const page = await context.newPage();
+  const page = existingPage ?? await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' && message.text().includes('FC ARENA route error')) errors.push(message.text()); });
   return { context, page, errors, mutations };

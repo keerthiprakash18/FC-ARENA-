@@ -1090,7 +1090,7 @@ function MatchRoom() {
           </Link>
         </div>
 
-        <section className="premium-hero premium-scoreboard">
+        <section className="premium-hero premium-scoreboard fc-scoreboard-enter">
           <PremiumPitch />
 
           <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -1103,7 +1103,7 @@ function MatchRoom() {
                 {match.tournament.name}
               </h1>
 
-              <div className="premium-match-context"><span>{match.fixture.roundName}</span><span>{match.status.replaceAll("_", " ")}</span><span>{match.matchCode || match.fixture.fixtureCode}</span></div>
+              <div className="premium-match-context"><span>{match.fixture.roundName}</span><span key={match.status} className="fc-match-status-enter" role="status">{match.status.replaceAll("_", " ")}</span><span>{match.matchCode || match.fixture.fixtureCode}</span></div>
             </div>
 
             <div className="premium-countdown rounded-2xl border px-4 py-3 text-right">
@@ -1135,7 +1135,7 @@ function MatchRoom() {
               </p>
 
               {confirmed ? (
-                <p className="mt-5 text-5xl font-black text-sky-400 md:text-6xl">
+                <p className="mt-5 fc-match-status-enter text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.homeScore}
                 </p>
               ) : null}
@@ -1171,7 +1171,7 @@ function MatchRoom() {
               </p>
 
               {confirmed ? (
-                <p className="mt-5 text-5xl font-black text-sky-400 md:text-6xl">
+                <p className="mt-5 fc-match-status-enter text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.awayScore}
                 </p>
               ) : null}

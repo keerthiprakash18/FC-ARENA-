@@ -21,12 +21,12 @@
 .scaledBoard { position: relative; min-width: 1px; margin-inline: auto; }
 .board { position: relative; transform-origin: top left; }
 .connections { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
-.connection { stroke: var(--bracket-blue); fill: none; stroke-width: 1.8; opacity: .65; stroke-linejoin: round; stroke-dasharray: 1400; stroke-dashoffset: 0; animation: draw-path 900ms ease-out both; }
+.connection { stroke: var(--bracket-blue); fill: none; stroke-width: 1.8; opacity: .65; stroke-linejoin: round; stroke-dasharray: 1400; stroke-dashoffset: 0; animation: draw-path 700ms ease-out both; transition: opacity .17s ease, stroke-width .17s ease; }
 .rightConnection { stroke: var(--bracket-pink); }
 .connection.loser { stroke: var(--bracket-accent); stroke-dasharray: 5 5; animation: none; }
 .connection[data-active="false"] { opacity: .15; }
 .connection[data-active="true"] { opacity: 1; stroke-width: 2.8; }
-.tie { position: absolute; display: block; text-align: left; color: var(--theme-text); background: var(--theme-surface); border: 1px solid var(--theme-border); border-left: 3px solid var(--bracket-blue); border-radius: 12px; padding: 0; box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-text) 12%, transparent); cursor: pointer; animation: enter-tie 450ms ease-out both; animation-delay: var(--tie-delay); transition: border-color 150ms, box-shadow 150ms; }
+.tie { position: absolute; display: block; text-align: left; color: var(--theme-text); background: var(--theme-surface); border: 1px solid var(--theme-border); border-left: 3px solid var(--bracket-blue); border-radius: 12px; padding: 0; box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-text) 12%, transparent); cursor: pointer; animation: enter-tie 450ms ease-out both; animation-delay: var(--tie-delay); transition: border-color 150ms, box-shadow 150ms, opacity 150ms; }
 .tie[data-side="right"] { border-left-color: var(--bracket-pink); border-color: var(--theme-border); }
 .tie[data-final="true"] { border-color: var(--bracket-accent); border-left-color: var(--bracket-accent); background: linear-gradient(150deg, var(--theme-primary-soft), var(--theme-elevated) 70%); }
 .tie[data-selected="true"] { outline: 2px solid var(--bracket-accent); outline-offset: 3px; box-shadow: 0 0 24px var(--theme-primary-soft); }

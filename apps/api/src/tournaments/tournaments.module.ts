@@ -90,6 +90,9 @@ import { SafeGroupEditorService } from './safe-group-editor.service.js';
 import { TournamentFixtureResetService } from './tournament-fixture-reset.service.js';
 import { TournamentDrawRestartService } from './tournament-draw-restart.service.js';
 
+import { TournamentStudioController } from './tournament-studio.controller.js';
+import { TournamentStudioService } from './tournament-studio.service.js';
+
 @Module({
   imports: [
     AuthModule,
@@ -100,6 +103,7 @@ import { TournamentDrawRestartService } from './tournament-draw-restart.service.
   ],
 
   controllers: [
+    TournamentStudioController,
     TournamentsController,
     TournamentEntriesController,
     TournamentGroupsAdminController,
@@ -111,6 +115,7 @@ import { TournamentDrawRestartService } from './tournament-draw-restart.service.
   ],
 
   providers: [
+    TournamentStudioService,
     SafeGroupEditorService,
     TournamentFixtureResetService,
     TournamentDrawRestartService,

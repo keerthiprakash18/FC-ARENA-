@@ -52,6 +52,7 @@ export class TournamentsService {
     userId: string,
     leagueId: string,
     dto: CreateTournamentDto,
+    studioRequestId?: string,
   ) {
     await this.authorizationService.assertLeaguePermission(userId, leagueId, 'MANAGE_TOURNAMENTS');
 
@@ -61,6 +62,8 @@ export class TournamentsService {
         : dto.mode === 'DUO'
           ? 2
           : dto.teamSize ?? 4;
+
+    if (studioRequestId && dto.name.trim().length < 3) throw new BadRequestException('Enter a tournament name of at least three characters.');
 
     if (dto.mode === 'TEAM' && !dto.teamSize) {
       throw new BadRequestException({
@@ -77,6 +80,24 @@ export class TournamentsService {
     const code = await this.generateTournamentCode();
 
     const tournament = await this.prisma.$transaction(async (tx) => {
+      const draftRequest = studioRequestId ? {
+        action: 'TOURNAMENT_STUDIO_DRAFT_CREATED', targetType: 'TournamentStudioDraft', targetId: studioRequestId,
+        scopeType: 'LEAGUE', scopeId: leagueId,
+      } : undefined;
+      const fingerprint = JSON.stringify(Object.entries(dto).filter(([, value]) => value !== undefined).sort(([a], [b]) => a.localeCompare(b)));
+      if (draftRequest) {
+        await tx.$queryRaw`SELECT id FROM leagues WHERE id = ${leagueId}::uuid FOR UPDATE`;
+        const prior = await tx.auditLog.findFirst({ where: draftRequest });
+        if (prior) {
+          const priorData = prior.afterData as { tournamentId?: string; fingerprint?: string } | null;
+          if (prior.actorUserId !== userId || priorData?.fingerprint !== fingerprint || !priorData?.tournamentId) {
+            throw new ConflictException('This draft request was already used for a different tournament.');
+          }
+          const saved = await tx.tournament.findUnique({ where: { id: priorData.tournamentId } });
+          if (!saved) throw new ConflictException('This tournament draft was deleted. Open Cup Center to start a new draft.');
+          return saved;
+        }
+      }
       const created = await tx.tournament.create({
         data: {
         leagueId,
@@ -198,6 +219,11 @@ export class TournamentsService {
         },
       });
 
+      if (draftRequest) {
+        await tx.auditLog.create({ data: {
+          ...draftRequest, actorUserId: userId, afterData: { tournamentId: created.id, fingerprint },
+        } });
+      }
       return created;
     });
 

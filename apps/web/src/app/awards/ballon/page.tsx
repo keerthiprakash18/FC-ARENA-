@@ -1,5 +1,6 @@
 'use client';
 
+import { AwardCeremony } from '@/components/fc/award-ceremony';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -171,6 +172,8 @@ export default function BallonSeasonsPage() {
     };
   }, []);
 
+  const latestWinner = seasons.find(season => season.winner && ['LOCKED', 'ARCHIVED'].includes(season.status));
+
   return (
     <SecondaryFeaturePage
       eyebrow="Hall of Honours"
@@ -203,6 +206,7 @@ export default function BallonSeasonsPage() {
         />
       </div>
 
+      {latestWinner?.winner && <AwardCeremony variant="ballon" title={latestWinner.name} winner={nameFor(latestWinner.winner)} />}
       <FcPanel className="p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">

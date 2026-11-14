@@ -6,7 +6,7 @@ import { ResumeWizard } from "@/components/tournaments/resume-wizard";
 import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { confirmNamedDeletion } from "@/components/fc/confirmation-provider";
 import Link from "next/link";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/app-shell";
@@ -18,9 +18,6 @@ import {
   FcErrorState,
   FcLoadingScreen,
   FcNotice,
-  FcPageHeader,
-  FcPanel,
-  FcSectionHeading,
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
@@ -29,6 +26,10 @@ import {
   type CurrentUser,
   getCurrentUser,
 } from "@/lib/auth-client";
+
+
+import { FcIcon, type FcIconName } from '@/components/fc/fc-icons';
+import styles from './cup.module.css';
 
 interface Membership {
   membershipType: "PRIMARY" | "SECONDARY";
@@ -110,7 +111,6 @@ function toneForStatus(status: string) {
 }
 
 export default function TournamentsPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<CurrentUser | null>(null);
 
@@ -124,9 +124,9 @@ export default function TournamentsPage() {
   const formatFilter = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'SINGLE_ELIMINATION', 'GROUP_STAGE_KNOCKOUT', 'ELITE_CUP', 'UCL_CUP'].includes(requestedFormat ?? '') ? requestedFormat as CompetitionFormat : null;
   function choose(key: string, value: string | null) {
     if (key === 'leagueId' && value) selectLeague(value);
-    const next = new URLSearchParams(searchParams.toString());
+    const next = new URLSearchParams(window.location.search);
     if (value) next.set(key, value); else next.delete(key);
-    router.replace(`/tournaments${next.size ? `?${next}` : ''}`, { scroll: false });
+    window.history.replaceState(null, '', '/tournaments' + (next.size ? '?' + next : ''));
   }
   const setFilter = (value: Filter) => choose('view', value === 'ACTIVE' ? null : value);
   const setFormatFilter = (value: CompetitionFormat | null) => choose('format', value);
@@ -261,522 +261,129 @@ export default function TournamentsPage() {
     return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Tournaments..." embedded /></AppShell>;
   }
 
+  const leagueId = selectedMembership?.league.id;
+  const studioHref = '/tournaments/studio?leagueId=' + leagueId;
+  const manageHref = '/leagues/' + leagueId + '/tournaments';
+  const canCreate = Boolean(selectedMembership?.adminRole);
+  const statusLabels = { ACTIVE: 'Live', UPCOMING: 'Upcoming', COMPLETED: 'Completed' };
+  const stageLabel = statusLabels[filter];
+
   return (
     <AppShell currentUser={user} playerName={user.player?.identity?.inGameName} playerRole={selectedMembership?.adminRole || 'Player'}>
-      <div className="space-y-6">
-        <FcPageHeader
-          title="Tournaments"
-          subtitle="Create, follow and manage competitions in your selected League."
-          action={
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/tournaments/history"
-                className="theme-secondary-button inline-flex min-h-11 items-center rounded-[10px] border px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
-              >
-                Tournament History
-              </Link>
-
-              {selectedMembership?.adminRole ? (
-                <Link
-                  href={`/leagues/${selectedMembership.league.id}/tournaments`}
-                  className="theme-primary-button inline-flex min-h-11 items-center rounded-[10px] px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
-                >
-                  + Create Tournament
-                </Link>
-              ) : null}
-            </div>
-          }
-        />
-
-        {memberships.length > 0 ? (
-          <FcPanel className="p-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
-                  Current League
-                </p>
-
-                <p className="mt-1 text-sm font-black text-slate-300">
-                  Tournament data is scoped to this league.
-                </p>
-              </div>
-
-              <div role="group" aria-label="Select tournament league" className="flex flex-wrap gap-2">
-                {memberships.map((membership) => (
-                  <button
-                    key={membership.league.id}
-                    type="button"
-                    onClick={() => choose('leagueId', membership.league.id)}
-                    aria-pressed={selectedLeagueId === membership.league.id}
-                    className={`min-h-11 rounded-xl border px-4 py-2.5 text-left text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)] ${
-                       selectedLeagueId === membership.league.id
-                         ? "border-[var(--theme-primary)] bg-[var(--theme-primary-soft)] text-[var(--theme-text)]"
-                         : "border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text)]"
-                     }`}
-                  >
-                    {membership.league.name}
-                    <span className="ml-2 text-[9px] text-slate-600">
-                      {membership.membershipType}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </FcPanel>
-        ) : null}
+      <div className={styles.center}>
+        <header className={styles.hero}>
+          <div className={styles.heroBody}>
+            <h1>Cup Center</h1>
+            <p>Follow your league’s tournaments, draws and champions.</p>
+            {canCreate && <Link className={styles.goldButton} href={studioHref}><FcIcon name="plus" /> Create tournament</Link>}
+          </div>
+          <div className={styles.heroTrophy} aria-hidden="true"><FcIcon name="trophy" /></div>
+        </header>
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
-
         {!selectedMembership ? (
-          <FcEmptyState
-            title="Join a League first"
-            description="Tournaments belong to a League. Join with a code or create a League to unlock the competition hub."
-            actionLabel="Open Leagues"
-            actionHref="/leagues"
-          />
-        ) : tournamentLoad.error ? <FcErrorState message={tournamentLoad.error} onRetry={tournamentLoad.retry} /> : (
+          <FcEmptyState title="Join a league" description="Join or create a league to access its tournaments." actionLabel="Open leagues" actionHref="/leagues" />
+        ) : (
           <>
-            <FcPanel className="overflow-hidden">
-              <div className="flex flex-col gap-5 border-b border-[var(--theme-border)] bg-[var(--theme-elevated)] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-                <div className="flex items-center gap-4">
-                  <FcCrest name={selectedMembership.league.name} size="lg" />
+            <div className={styles.leagueBar}>
+              <FcCrest name={selectedMembership.league.name} size="sm" />
+              <label>
+                <span>League</span>
+                <select aria-label="Tournament league" value={selectedLeagueId ?? ''} onChange={event => choose('leagueId', event.target.value)}>
+                  {memberships.map(({ league }) => <option value={league.id} key={league.id}>{league.name}</option>)}
+                </select>
+              </label>
+              <Link href={'/leagues/' + leagueId} aria-label="League overview"><FcIcon name="chevronRight" /></Link>
+            </div>
+            <div role="group" aria-label="Tournament status" className={styles.statusBar}>
+              {(['ACTIVE', 'UPCOMING', 'COMPLETED'] as const).map(value => (
+                <button key={value} type="button" onClick={() => setFilter(value)} aria-pressed={filter === value}>
+                  {value === 'ACTIVE' && <span className={styles.liveDot} aria-hidden="true" />}
+                  {statusLabels[value]} <strong>{counts[value]}</strong>
+                </button>
+              ))}
+            </div>
 
-                  <div>
-                    <p className="font-mono text-[10px] font-bold tracking-wider text-[var(--theme-primary)]">
-                      {selectedMembership.league.code}
-                    </p>
-
-                    <h2 className="mt-1 text-2xl font-black">
-                      {selectedMembership.league.name}
-                    </h2>
-
-                    <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
-                      {selectedMembership.adminRole
-                        ? `${selectedMembership.adminRole} access`
-                        : "Player access"}
-                    </p>
-                  </div>
-                </div>
-
-                <Link
-                  href={`/leagues/${selectedMembership.league.id}`}
-                  className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--theme-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
-                >
-                  League Overview →
-                </Link>
+            <section aria-labelledby="cup-stage">
+              <div className={styles.sectionHead}>
+                <h2 id="cup-stage">{stageLabel} tournaments</h2>
+                {filter !== 'COMPLETED' && !filtered.length && counts.COMPLETED > 0 && <button type="button" onClick={() => setFilter('COMPLETED')}>View completed</button>}
               </div>
-
-              <div role="group" aria-label="Filter tournaments by status" className="flex gap-2 overflow-x-auto overscroll-x-contain p-3 sm:p-4">
-                {(["ACTIVE", "UPCOMING", "COMPLETED"] as Filter[]).map(
-                  (value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setFilter(value)}
-                       aria-pressed={filter === value}
-                       className={`min-h-11 min-w-max flex-1 shrink-0 whitespace-nowrap rounded-xl border px-4 py-3 text-xs font-semibold transition sm:text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)] ${
-                         filter === value
-                           ? "border-[var(--theme-primary)] bg-[var(--theme-primary-soft)] text-[var(--theme-text)]"
-                           : "border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] hover:text-[var(--theme-text)]"
-                       }`}
-                    >
-                      {value.charAt(0) + value.slice(1).toLowerCase()}
-                      <span className="ml-1.5 text-[10px] text-slate-600">
-                        {counts[value]}
-                      </span>
-                    </button>
-                  ),
-                )}
-              </div>
-            </FcPanel>
-
-            {filter === "COMPLETED" ? (
-              <Link
-                href="/tournaments/history"
-                className="group block rounded-2xl border border-amber-300/20 bg-amber-300/[0.035] p-4 transition hover:border-amber-300/35 hover:bg-amber-300/[0.06] sm:p-5"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
-                      🏆 Tournament Archive
-                    </p>
-                    <h2 className="mt-1 text-lg font-black text-[#F8FAFC]">
-                      Tournament History & Final Summaries
-                    </h2>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">
-                      Open champions, runner-up, third place, Golden Boot, Golden Glove and Player of the Tournament records.
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-sm font-black text-amber-200">
-                    Open →
-                  </span>
-                </div>
-              </Link>
-            ) : null}
-
-            <section>
-              <FcSectionHeading
-                eyebrow={selectedMembership.league.name}
-                title={
-                  formatFilter
-                    ? `${competitionLabel(formatFilter)} · ${filter.charAt(0)}${filter
-                        .slice(1)
-                        .toLowerCase()}`
-                    : `${filter.charAt(0)}${filter
-                        .slice(1)
-                        .toLowerCase()} Tournaments`
-                }
-                action={
-                  formatFilter ? (
-                    <button
-                      type="button"
-                      onClick={() => setFormatFilter(null)}
-                      className="rounded-[10px] border border-[#203141] bg-[#101923] px-3 py-2 text-xs font-semibold text-[#A7B0BE] transition hover:border-[#2D4356] hover:text-[#F8FAFC]"
-                    >
-                      Clear Format
-                    </button>
-                  ) : null
-                }
-              />
-
-              {loading || record?.leagueId !== selectedLeagueId ? (
-                <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                  {[0, 1].map((item) => (
-                    <div
-                      key={item}
-                      className="h-64 animate-pulse rounded-[24px] border border-white/10 bg-white/[0.025]"
-                    />
+              {formatFilter && <button className={styles.filterClear} type="button" onClick={() => setFormatFilter(null)}>{competitionLabel(formatFilter)} <span aria-hidden="true">×</span><span className="sr-only">, clear format filter</span></button>}
+              {tournamentLoad.error ? <FcErrorState message={tournamentLoad.error} onRetry={tournamentLoad.retry} /> : loading || record?.leagueId !== leagueId ? (
+                <div className={styles.skeleton} role="status"><span className="sr-only">Loading tournaments</span></div>
+              ) : filtered.length ? (
+                <div className={styles.tournamentList} key={filter + (formatFilter ?? '')}>
+                  {filtered.map((tournament, index) => (
+                    <article key={tournament.id} className={index === 0 ? styles.feature : styles.tournamentRow}>
+                      <Link href={'/tournaments/' + tournament.id} className={styles.tournamentLink}>
+                        <FcCrest name={tournament.name} imageUrl={tournament.logoUrl} size="lg" />
+                        <div className={styles.tournamentMeta}>
+                          <p>{competitionLabel(tournament.competitionFormat || tournament.format)}</p>
+                          <h3>{tournament.name}</h3>
+                          <p>{tournament.approvedEntries}/{tournament.maxEntries} approved · {tournament.startAt ? new Date(tournament.startAt).toLocaleDateString('en-GB') : 'Date to be set'}</p>
+                        </div>
+                        <FcIcon name="chevronRight" />
+                      </Link>
+                      <div className={styles.cardActions}>
+                        <FcStatusBadge label={competitionLabel(tournament.status)} tone={toneForStatus(tournament.status)} />
+                        {tournament.status === 'DRAFT' && (tournament.canManageSettings ?? canCreate) && (
+                          <Link href={studioHref + '&draft=' + tournament.id}>Resume draft</Link>
+                        )}
+                        {tournament.status === 'COMPLETED' && <Link href={'/tournaments/' + tournament.id + '/summary'}>View summary</Link>}
+                        <details>
+                          <summary>Details</summary>
+                          <TournamentRegistrationSummary tournament={tournament} />
+                          {tournament.status === 'DRAFT' && (tournament.canManageSettings ?? canCreate) && <ResumeWizard tournamentId={tournament.id} />}
+                          {(tournament.canManageSettings ?? canCreate) && <button className={styles.danger} type="button" disabled={deletingTournamentId === tournament.id} onClick={() => void deleteTournament(tournament)}>Delete tournament</button>}
+                        </details>
+                      </div>
+                    </article>
                   ))}
                 </div>
-              ) : filtered.length === 0 ? (
-                <div className="mt-4">
-                  <FcEmptyState
-                    title={`No ${filter.toLowerCase()} tournaments`}
-                    description={
-                      selectedMembership.adminRole
-                        ? "Create a competition for this League or switch to another tournament status."
-                        : "Nothing is available in this status yet."
-                    }
-                    actionLabel={
-                      selectedMembership.adminRole
-                        ? "Manage Tournaments"
-                        : "Open League"
-                    }
-                    actionHref={
-                      selectedMembership.adminRole
-                        ? `/leagues/${selectedMembership.league.id}/tournaments`
-                        : `/leagues/${selectedMembership.league.id}`
-                    }
-                  />
-                </div>
               ) : (
-                <div className="mt-4 grid gap-4 xl:grid-cols-2">
-                  {filtered.map((tournament) => {
-                    const format =
-                      tournament.competitionFormat || tournament.format;
-
-                    const progress =
-                      tournament.maxEntries > 0
-                        ? Math.min(
-                            100,
-                            (tournament.approvedEntries /
-                              tournament.maxEntries) *
-                              100,
-                          )
-                        : 0;
-
-                    return (
-                      <article
-                        key={tournament.id}
-                        className="group overflow-hidden rounded-2xl border border-[#253140] bg-[#121821] transition duration-200 hover:border-[#334155] hover:bg-[#151C26]"
-                      >
-                        <Link
-                          href={`/tournaments/${tournament.id}`}
-                          className="block"
-                        >
-                          <div className="relative min-h-28 border-b border-[#253140] bg-[#151C26] p-5">
-                            <div className="flex items-start justify-between gap-4">
-                              <FcCrest
-                                name={tournament.name}
-                                imageUrl={tournament.logoUrl}
-                                size="lg"
-                              />
-
-                              <FcStatusBadge
-                                label={tournament.status}
-                                tone={toneForStatus(tournament.status)}
-                              />
-                            </div>
-
-                            <h3 className="mt-4 text-xl font-semibold tracking-[-0.02em] text-[#F8FAFC]">
-                              {tournament.name}
-                            </h3>
-
-                            <p className="mt-1 font-mono text-[10px] text-slate-600">
-                              {tournament.code}
-                            </p>
-                            <p className="mt-2 text-xs font-semibold text-sky-300">{selectedMembership.league.name}</p>
-                          </div>
-
-                          <div className="p-5 pb-3">
-                            <div className="grid grid-cols-3 gap-2">
-                              <div className="rounded-xl bg-white/[0.025] p-3">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Format
-                                </p>
-                                <p className="mt-1 truncate text-xs font-black">
-                                  {competitionLabel(format)}
-                                </p>
-                              </div>
-
-                              <div className="rounded-xl bg-white/[0.025] p-3">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Registered
-                                </p>
-                                <p className="mt-1 text-xs font-black">
-                                  {tournament.registeredEntries ?? tournament.approvedEntries + (tournament.pendingEntries ?? 0)}/
-                                  {tournament.maxEntries}
-                                </p>
-                              </div>
-
-                              <div className="rounded-xl bg-white/[0.025] p-3">
-                                <p className="text-[9px] font-black uppercase tracking-wider text-slate-600">
-                                  Stage
-                                </p>
-                                <p className="mt-1 truncate text-xs font-black text-sky-300">
-                                  {competitionLabel(tournament.status)}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="mt-4">
-                              <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-600">
-                                <span>Approved places</span>
-                                <span>{Math.round(progress)}%</span>
-                              </div>
-
-                              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
-                                <div
-                                  className="h-full rounded-full bg-gradient-to-r from-sky-400 to-emerald-400"
-                                  style={{
-                                    width: `${progress}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                        <div className="px-5 pb-4"><TournamentRegistrationSummary tournament={tournament} /></div>
-
-                        <div className="flex flex-col gap-2 border-t border-white/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
-                          <p className="text-xs text-slate-600">
-                            {tournament.startAt
-                              ? new Date(
-                                  tournament.startAt,
-                                ).toLocaleDateString()
-                              : "Start date TBD"}
-                          </p>
-
-                          <div className="flex flex-wrap gap-2">
-                            {tournament.status === "COMPLETED" ? (
-                              <Link
-                                href={`/tournaments/${tournament.id}/summary`}
-                                className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-amber-300/30 bg-amber-300/[0.06] px-4 text-sm font-semibold text-amber-200 transition hover:bg-amber-300/[0.1]"
-                              >
-                                🏆 View Summary
-                              </Link>
-                            ) : null}
-
-                            <Link
-                              href={`/tournaments/${tournament.id}`}
-                              className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-4 text-sm font-semibold text-[#A7B0BE] transition hover:bg-[#151C26]"
-                            >
-                              View Details
-                            </Link>
-
-                            {selectedMembership?.adminRole && tournament.status === "DRAFT" && <ResumeWizard tournamentId={tournament.id} />}
-                            {(tournament.canManageSettings ?? Boolean(selectedMembership?.adminRole)) ? (
-                              <button
-                                type="button"
-                                disabled={
-                                  deletingTournamentId === tournament.id
-                                }
-                                onClick={() =>
-                                  void deleteTournament(tournament)
-                                }
-                                className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-red-400/30 bg-red-400/[0.04] px-4 text-sm font-semibold text-red-300 transition hover:bg-red-400/[0.08] disabled:opacity-40"
-                              >
-                                {deletingTournamentId === tournament.id
-                                  ? "Deleting..."
-                                  : "Delete Tournament"}
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
+                <div className={styles.empty} key={filter + (formatFilter ?? '')}>
+                  <span aria-hidden="true"><FcIcon name="trophy" /></span>
+                  <div><h3>No {stageLabel.toLowerCase()} tournaments</h3><p>{formatFilter ? 'Clear the format filter to see more tournaments.' : filter === 'ACTIVE' ? 'Live tournaments will appear here once they start.' : 'This league has no tournaments in this view.'}</p></div>
                 </div>
               )}
             </section>
 
-            <FcPanel className="p-5 sm:p-6">
-              <FcSectionHeading
-                eyebrow="Formats"
-                title="Supported Competition Structures"
-                action={
-                  formatFilter ? (
-                    <span className="rounded-full border border-[#19B7FF]/20 bg-[#19B7FF]/[0.06] px-3 py-1.5 text-xs font-semibold text-[#19B7FF]">
-                      Filter Active
-                    </span>
-                  ) : null
-                }
-              />
+            {canCreate && (
+              <section aria-labelledby="cup-create">
+                <div className={styles.sectionHead}><h2 id="cup-create">Start a tournament</h2></div>
+                <div className={styles.modeGrid}>
+                  {([
+                    ['SOLO', 'Solo', '1 player', 'profile'],
+                    ['DUO', 'Duo', '2 players', 'team'],
+                    ['TEAM', 'Team', '3–11 players', 'football'],
+                  ] satisfies [string, string, string, FcIconName][]).map(([value, label, description, icon]) => (
+                    <Link href={studioHref + '&mode=' + value} key={value}>
+                      <FcIcon name={icon} /><strong>{label}</strong><span>{description}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6F7B8A]">
-                These are real FC ARENA tournament modes. Filter the current
-                list by structure, or start a new tournament with the selected
-                format already configured.
-              </p>
-
-               <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-                {(
-                  [
-                    {
-                      value: "LEAGUE_ROUND_ROBIN",
-                      title: "League / Round Robin",
-                      description: "Every team meets every opponent once.",
-                      icon: "↻",
-                      meta: "Single leg · Auto fixtures",
-                    },
-                    {
-                      value: "DOUBLE_ROUND_ROBIN",
-                      title: "Double Round Robin",
-                      description: "Every pairing is played home and away.",
-                      icon: "⇄",
-                      meta: "Home & away · 2 legs",
-                    },
-                    {
-                      value: "SINGLE_ELIMINATION",
-                      title: "Knockout",
-                      description:
-                        "Single-elimination bracket with automatic progression.",
-                      icon: "◇",
-                      meta: "Bracket · Winner advances",
-                    },
-                    {
-                      value: "GROUP_STAGE_KNOCKOUT",
-                      title: "Group + Knockout",
-                      description:
-                        "Group stage, qualification rules and playoff bracket.",
-                      icon: "▦",
-                      meta: "Groups · Qualifiers · Playoffs",
-                    },
-                    {
-                      value: "ELITE_CUP",
-                      title: "Elite Cup",
-                      description:
-                        "Admin-managed teams with a dynamic league phase and playoffs.",
-                      icon: "★",
-                      meta: "Dynamic teams · Shared rankings",
-                    },
-                    {
-                      value: "UCL_CUP",
-                      title: "UCL Cup",
-                      description:
-                        "Champions League-style league phase with qualification and playoffs.",
-                      icon: "✦",
-                      meta: "League phase · Qualification · Final",
-                    },
-                  ] as Array<{
-                    value: CompetitionFormat;
-                    title: string;
-                    description: string;
-                    icon: string;
-                    meta: string;
-                  }>
-                ).map((item) => {
-                  const selected = formatFilter === item.value;
-
-                  return (
-                    <article
-                      key={item.value}
-                      className={`group flex min-h-[230px] flex-col rounded-2xl border p-4 transition duration-200 ${
-                        selected
-                          ? "border-[#19B7FF]/35 bg-[#19B7FF]/[0.055] shadow-[0_10px_28px_rgba(25,183,255,0.06)]"
-                          : "border-[#203141] bg-[#101923] hover:-translate-y-0.5 hover:border-[#2D4356] hover:bg-[#121D28]"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <span
-                          className={`grid h-11 w-11 place-items-center rounded-xl border text-lg ${
-                            selected
-                              ? "border-[#19B7FF]/25 bg-[#19B7FF]/[0.08] text-[#19B7FF]"
-                              : "border-[#203141] bg-[#14212D] text-[#A7B0BE]"
-                          }`}
-                        >
-                          {item.icon}
-                        </span>
-
-                        <FcStatusBadge label="Ready" tone="emerald" />
-                      </div>
-
-                      <h3 className="mt-4 text-base font-semibold text-[#F8FAFC]">
-                        {item.title}
-                      </h3>
-
-                      <p className="mt-2 text-xs leading-5 text-[#6F7B8A]">
-                        {item.description}
-                      </p>
-
-                      <p className="mt-3 text-[11px] font-medium text-[#8290A0]">
-                        {item.meta}
-                      </p>
-
-                      <div className="mt-auto grid gap-2 pt-5">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormatFilter(selected ? null : item.value);
-
-                            window.scrollTo({
-                              top: 420,
-                              behavior: "smooth",
-                            });
-                          }}
-                          className={`min-h-10 rounded-[10px] border px-3 text-sm font-semibold transition ${
-                            selected
-                              ? "border-[#19B7FF]/30 bg-[#19B7FF]/[0.08] text-[#19B7FF]"
-                              : "border-[#203141] bg-[#0B1118] text-[#A7B0BE] hover:border-[#2D4356] hover:text-[#F8FAFC]"
-                          }`}
-                        >
-                          {selected
-                            ? "Showing This Format"
-                            : "Show Tournaments"}
-                        </button>
-
-                        {selectedMembership.adminRole ? (
-                          <Link
-                            href={`/leagues/${selectedMembership.league.id}/tournaments?create=1&format=${item.value}`}
-                            className="inline-flex min-h-10 items-center justify-center rounded-[10px] bg-[#19B7FF] px-3 text-sm font-semibold text-[#071019] transition hover:bg-[#21C3FF]"
-                          >
-                            Create with this Format →
-                          </Link>
-                        ) : (
-                          <Link
-                            href={`/leagues/${selectedMembership.league.id}/tournaments`}
-                            className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-[#203141] px-3 text-sm font-medium text-[#A7B0BE] transition hover:bg-[#151C26] hover:text-[#F8FAFC]"
-                          >
-                            Open League Tournaments →
-                          </Link>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
+            <section aria-labelledby="cup-library">
+              <div className={styles.sectionHead}><h2 id="cup-library">Competition library</h2></div>
+              <div className={styles.library}>
+                <button type="button" aria-pressed={formatFilter === 'ELITE_CUP'} onClick={() => setFormatFilter(formatFilter === 'ELITE_CUP' ? null : 'ELITE_CUP')}><FcIcon name="trophy" /> Elite Cup</button>
+                <button type="button" aria-pressed={formatFilter === 'UCL_CUP'} onClick={() => setFormatFilter(formatFilter === 'UCL_CUP' ? null : 'UCL_CUP')}><FcIcon name="football" /> UCL Cup</button>
+                {canCreate && <Link href={manageHref}><FcIcon name="fixtures" /> Templates</Link>}
+                <Link href="/tournaments/history"><FcIcon name="history" /> History</Link>
               </div>
-            </FcPanel>
+              <details className={styles.formatList}>
+                <summary>More competition formats</summary>
+                <div className={styles.library}>
+                  {(['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'SINGLE_ELIMINATION', 'GROUP_STAGE_KNOCKOUT'] as const).map(format => (
+                    <button key={format} type="button" aria-pressed={formatFilter === format} onClick={() => setFormatFilter(formatFilter === format ? null : format)}>{competitionLabel(format)}</button>
+                  ))}
+                </div>
+              </details>
+            </section>
           </>
         )}
       </div>

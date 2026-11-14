@@ -103,6 +103,8 @@ interface Access {
   leagueIds: string[];
   adminLeagueIds: string[];
   blockedIds: string[];
+  mutedIds: string[];
+  subscribedLeagueIds: string[];
 }
 
 function displayAuthor(author: Author | null) {
@@ -148,6 +150,8 @@ export class ArenaService {
         leagueMemberships: { select: { leagueId: true } },
         leagueAdminRoles: { select: { leagueId: true } },
         createdLeagues: { select: { id: true } },
+        arenaLeagueSubscriptions: { select: { leagueId: true } },
+        arenaMutes: { select: { mutedUserId: true } },
       },
     });
     if (!user || user.status !== 'ACTIVE')
@@ -178,6 +182,8 @@ export class ArenaService {
         ]),
       ],
       blockedIds: blocked.map((row) => row.userId),
+      mutedIds: user.arenaMutes.map(row => row.mutedUserId),
+      subscribedLeagueIds: user.arenaLeagueSubscriptions.map(row => row.leagueId),
     };
   }
 
@@ -197,14 +203,14 @@ export class ArenaService {
       throw new NotFoundException('League could not be found.');
   }
 
-  private visible(access: Access): Prisma.ArenaPostWhereInput {
+  private visible(access: Access, hideMuted = false): Prisma.ArenaPostWhereInput {
     return {
       hiddenAt: null,
       AND: [
         {
           OR: [
             { authorUserId: null },
-            { author: { status: 'ACTIVE', id: { notIn: access.blockedIds } } },
+            { author: { status: 'ACTIVE', id: { notIn: hideMuted ? [...access.blockedIds, ...access.mutedIds] : access.blockedIds } } },
           ],
         },
         {
@@ -225,7 +231,7 @@ export class ArenaService {
               {
                 OR: [
                   { leagueId: null },
-                  { leagueId: { in: access.leagueIds } },
+                  { leagueId: { in: access.leagueIds.filter(id => access.subscribedLeagueIds.includes(id)) } },
                 ],
               },
             ]),
@@ -260,7 +266,14 @@ export class ArenaService {
     return {
       success: true,
       data: {
-        leagues,
+        leagues: leagues.map(league => ({
+          ...league, subscribed: access.subscribedLeagueIds.includes(league.id),
+        })),
+        mutedPlayers: await this.prisma.user.findMany({
+          where: { id: { in: access.mutedIds } },
+          select: { id: true, fullName: true },
+          orderBy: { fullName: 'asc' },
+        }),
         canModerate: access.superAdmin,
         policy: {
           postCharacters: 2000,
@@ -272,6 +285,31 @@ export class ArenaService {
       },
       error: null,
     };
+  }
+
+  async setSubscription(userId: string, leagueId: string, subscribed: boolean) {
+    const access = await this.access(userId);
+    await this.league(access, leagueId);
+    const where = { userId, leagueId };
+    if (subscribed) await this.prisma.arenaLeagueSubscription.createMany({ data: where, skipDuplicates: true });
+    else await this.prisma.arenaLeagueSubscription.deleteMany({ where });
+    return { success: true, data: { subscribed }, error: null };
+  }
+
+  async setMute(userId: string, mutedUserId: string, muted: boolean) {
+    await this.access(userId);
+    if (userId === mutedUserId) throw new BadRequestException('You cannot mute your own account.');
+    const where = { userId, mutedUserId };
+    if (muted) {
+      const target = await this.prisma.user.findUnique({
+        where: { id: mutedUserId, status: 'ACTIVE' }, select: { id: true },
+      });
+      if (!target) throw new NotFoundException('Player unavailable.');
+      await this.prisma.arenaPlayerMute.createMany({ data: where, skipDuplicates: true });
+    } else {
+      await this.prisma.arenaPlayerMute.deleteMany({ where });
+    }
+    return { success: true, data: { muted }, error: null };
   }
 
   private async resultPosts(leagueId: string) {
@@ -417,6 +455,9 @@ export class ArenaService {
       if (!leagueId)
         throw new BadRequestException('Choose a league to view its feed.');
       await this.league(access, leagueId);
+      if (!access.superAdmin && !access.subscribedLeagueIds.includes(leagueId)) {
+        throw new ForbiddenException('Join this Arena Talk room to view its feed.');
+      }
       await this.resultPosts(leagueId);
     } else if (leagueId)
       throw new BadRequestException(
@@ -425,7 +466,7 @@ export class ArenaService {
     const cursor = decodeArenaCursor(rawCursor);
     const posts = await this.prisma.arenaPost.findMany({
       where: {
-        ...this.visible(access),
+        ...this.visible(access, true),
         leagueId: audience === 'LEAGUE' ? leagueId : null,
         ...(cursor
           ? {
@@ -481,6 +522,9 @@ export class ArenaService {
       if (!dto.leagueId)
         throw new BadRequestException('Choose a league before posting.');
       await this.league(access, dto.leagueId);
+      if (!access.superAdmin && !access.subscribedLeagueIds.includes(dto.leagueId)) {
+        throw new ForbiddenException('Join this Arena Talk room before posting.');
+      }
     } else if (dto.leagueId)
       throw new BadRequestException(
         'A public post cannot include a private league audience.',
@@ -530,7 +574,12 @@ export class ArenaService {
       const outcome = await this.prisma.$transactionWithRetry(
         async (db) => {
           const currentAccess = await this.access(viewer.sub, db);
-          if (leagueId) await this.league(currentAccess, leagueId, db);
+          if (leagueId) {
+            await this.league(currentAccess, leagueId, db);
+            if (!currentAccess.superAdmin && !currentAccess.subscribedLeagueIds.includes(leagueId)) {
+              throw new ForbiddenException('Join this Arena Talk room before posting.');
+            }
+          }
           const existing = await db.arenaPost.findUnique({
             where: {
               authorUserId_clientRequestId: {
@@ -724,7 +773,7 @@ export class ArenaService {
       where: {
         postId,
         hiddenAt: null,
-        author: { status: 'ACTIVE', id: { notIn: access.blockedIds } },
+        author: { status: 'ACTIVE', id: { notIn: [...access.blockedIds, ...access.mutedIds] } },
         ...(cursor
           ? {
               OR: [

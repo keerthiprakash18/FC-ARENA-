@@ -17,6 +17,9 @@ import { ArenaService } from '../src/arena/arena.service.js';
 import { ArenaMediaService } from '../src/arena/arena-media.service.js';
 import { AuditService } from '../src/security/audit.service.js';
 import { SafetyService } from '../src/security/safety.service.js';
+import { AuthorizationService } from '../src/security/authorization.service.js';
+import { LeaguesService } from '../src/leagues/leagues.service.js';
+import { AdminOpsService } from '../src/admin-ops/admin-ops.service.js';
 
 describe('Player progress and Arena Talk with real PostgreSQL', () => {
   let db: PrismaService,
@@ -93,12 +96,16 @@ describe('Player progress and Arena Talk with real PostgreSQL', () => {
         },
       })
     ).id;
+    await db.leagueAdmin.create({ data: { leagueId, userId: owner, role: 'OWNER' } });
     await db.leagueMember.createMany({
       data: [owner, member].map((userId) => ({
         userId,
         leagueId,
         type: 'PRIMARY',
       })),
+    });
+    await db.arenaLeagueSubscription.createMany({
+      data: [owner, member].map(userId => ({ userId, leagueId })),
     });
     tournamentId = (
       await db.tournament.create({
@@ -120,6 +127,52 @@ describe('Player progress and Arena Talk with real PostgreSQL', () => {
     await db?.$disconnect();
   });
   const viewer = () => ({ sub: member });
+  it('attributes approved invite applications, rejects expired tokens and restricts aggregate analytics', async () => {
+    const authorization = new AuthorizationService(db);
+    const leagues = new LeaguesService(db, new SafetyService(db, new AuditService(db)), authorization);
+    const adminOps = new AdminOpsService(db);
+    const candidate = await db.user.create({
+      data: { fullName: 'Invite Player', email: `invite-${run}@example.invalid`, passwordHash: 'synthetic-test-record' },
+    });
+    try {
+      await expect(leagues.createInvite(member, leagueId)).rejects.toMatchObject({ status: 403 });
+      await expect(adminOps.playerActivity(member)).rejects.toMatchObject({ status: 403 });
+      const before = (await adminOps.playerActivity(admin)).data;
+      const sessionNow = new Date();
+      await db.refreshSession.create({
+        data: { id: randomUUID(), userId: candidate.id, tokenHash: randomUUID(), expiresAt: new Date(Date.now() + 3600_000) },
+      });
+      expect((await adminOps.playerActivity(admin, new Date(sessionNow.getTime() + 60_000))).data.weekly).toBe(before.weekly + 1);
+      const { data: invite } = await leagues.createInvite(owner, leagueId);
+      const preview = (await leagues.previewByCode(candidate.id, '', invite.token)).data.league;
+      expect(preview).toMatchObject({ id: leagueId, code: null, alreadyMember: false });
+      const applied = await leagues.requestToJoin(candidate.id, '', invite.token);
+      await leagues.approveApplication(owner, leagueId, applied.data.application.id);
+      const after = (await adminOps.playerActivity(admin)).data;
+      expect(after.inviteApplications).toBe(before.inviteApplications + 1);
+      expect(after.inviteApprovals).toBe(before.inviteApprovals + 1);
+      await db.leagueInvite.update({ where: { id: applied.data.application.inviteId! }, data: { expiresAt: new Date(0) } });
+      await expect(leagues.previewByCode(outsider, '', invite.token)).rejects.toMatchObject({ status: 404 });
+      await expect(leagues.requestToJoin(outsider, '', invite.token)).rejects.toMatchObject({ status: 404 });
+    } finally {
+      await db.user.delete({ where: { id: candidate.id } });
+    }
+  });
+  it('requires an explicit room opt-in and applies one-way mutes without changing access', async () => {
+    await arena.setSubscription(member, leagueId, false);
+    await expect(arena.feed(viewer(), 'LEAGUE', leagueId)).rejects.toMatchObject({ status: 403 });
+    await expect(arena.setSubscription(outsider, leagueId, true)).rejects.toMatchObject({ status: 404 });
+    await arena.setSubscription(member, leagueId, true);
+    const published = await post();
+    expect((await arena.feed(viewer(), 'LEAGUE', leagueId)).data.posts.some(item => item.id === published.id)).toBe(true);
+    await arena.setMute(member, owner, true);
+    expect((await arena.context(member)).data.mutedPlayers.map(player => player.id)).toContain(owner);
+    expect((await arena.context(owner)).data.mutedPlayers.map(player => player.id)).not.toContain(member);
+    expect((await arena.feed(viewer(), 'LEAGUE', leagueId)).data.posts.some(item => item.author?.id === owner)).toBe(false);
+    await arena.setMute(member, owner, false);
+    expect((await arena.context(member)).data.mutedPlayers).toEqual([]);
+    expect((await arena.feed(viewer(), 'LEAGUE', leagueId)).data.posts.some(item => item.id === published.id)).toBe(true);
+  });
   async function post(author = owner, league = true, extra = {}) {
     return (
       await arena.create(

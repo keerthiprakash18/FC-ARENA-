@@ -17,6 +17,25 @@ export default function ArenaTalkPage() {
   const [context, setContext] = useState<ArenaContext | null>(null);
   const [scope, setScope] = useState("PUBLIC");
   const [error, setError] = useState("");
+  const [preferencesBusy, setPreferencesBusy] = useState(false);
+  const [feedRevision, setFeedRevision] = useState(0);
+  const league = context?.leagues.find(item => item.id === scope);
+  const canReadRoom = scope === "PUBLIC" || context?.canModerate || league?.subscribed !== false;
+
+  async function updatePreference(path: string, body: object) {
+    setPreferencesBusy(true);
+    setError("");
+    try {
+      await authenticatedRequest(path, { method: "PUT", body: JSON.stringify(body) });
+      const { data } = await authenticatedRequest<ApiData<ArenaContext>>("/arena-talk/context");
+      setContext(data);
+      if ("muted" in body) setFeedRevision(value => value + 1);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setPreferencesBusy(false);
+    }
+  }
   async function load() {
     setError("");
     try {
@@ -111,8 +130,8 @@ export default function ArenaTalkPage() {
               {context.policy.audienceNote}
             </p>
             <div className="arena-layout">
-              <ArenaFeed
-                key={scope}
+              {canReadRoom ? <ArenaFeed
+                key={`${scope}:${feedRevision}`}
                 leagueId={scope === "PUBLIC" ? null : scope}
                 leagueName={
                   scope === "PUBLIC"
@@ -120,8 +139,38 @@ export default function ArenaTalkPage() {
                     : context.leagues.find((l) => l.id === scope)?.name ||
                       "My League"
                 }
-              />
+                onMuted={async () => {
+                  const { data } = await authenticatedRequest<ApiData<ArenaContext>>("/arena-talk/context");
+                  setContext(data);
+                }}
+              /> : <section className="community-panel">
+                <h2>{league?.name}</h2>
+                <p>Join this private Arena Talk room to read and post. You can leave the room at any time.</p>
+                <button type="button" className="community-button" disabled={preferencesBusy}
+                  onClick={() => void updatePreference(`/arena-talk/leagues/${scope}/subscription`, { subscribed: true })}>
+                  Join room
+                </button>
+              </section>}
               <aside className="community-panel arena-sidebar">
+                {league?.subscribed === true ? (
+                  <button type="button" className="community-button" disabled={preferencesBusy}
+                    onClick={async () => {
+                      if (await confirmAction({ title: "Leave this room?", description: "You can rejoin at any time. Your league membership and posts are retained.", confirmLabel: "Leave room" })) {
+                        await updatePreference(`/arena-talk/leagues/${scope}/subscription`, { subscribed: false });
+                      }
+                    }}>
+                    Leave room
+                  </button>
+                ) : null}
+                {context.mutedPlayers?.length ? <details>
+                  <summary>Muted players</summary>
+                  <ul>{context.mutedPlayers.map(player => <li key={player.id}>
+                    {player.fullName} <button type="button" className="community-button" disabled={preferencesBusy}
+                      onClick={() => void updatePreference(`/arena-talk/mutes/${player.id}`, { muted: false })}>
+                      Unmute {player.fullName}
+                    </button>
+                  </li>)}</ul>
+                </details> : null}
                 <h2>Community guidelines</h2>
                 <ul>
                   <li>Debate the game. Respect the player.</li>

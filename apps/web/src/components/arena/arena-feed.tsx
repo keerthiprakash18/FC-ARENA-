@@ -373,11 +373,13 @@ function PostCard({
   update,
   remove,
   refresh,
+  onMuted,
 }: {
   post: ArenaPost;
   update: (p: ArenaPost) => void;
   remove: () => void;
   refresh: () => void;
+  onMuted?: () => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -428,6 +430,23 @@ function PostCard({
         body: JSON.stringify({ targetInGameName: post.author.inGameName }),
       });
       refresh();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function mute() {
+    if (busy || !post.author) return;
+    setBusy(true);
+    setError("");
+    try {
+      await authenticatedRequest(`/arena-talk/mutes/${post.author.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ muted: true }),
+      });
+      refresh();
+      await onMuted?.();
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -655,6 +674,11 @@ function PostCard({
             {post.canReport && (
               <ReportForm path={`${path}/report`} done={() => undefined} />
             )}
+            {post.canReport && post.author && onMuted ? (
+              <button type="button" className="community-button" disabled={busy} onClick={() => void mute()}>
+                Mute player
+              </button>
+            ) : null}
             {post.canReport && post.author?.inGameName && (
               <button
                 className="community-button"
@@ -686,9 +710,11 @@ function PostCard({
 export function ArenaFeed({
   leagueId,
   leagueName,
+  onMuted,
 }: {
   leagueId: string | null;
   leagueName: string;
+  onMuted?: () => Promise<void>;
 }) {
   const [posts, setPosts] = useState<ArenaPost[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -1016,6 +1042,7 @@ export function ArenaFeed({
           post={post}
           update={update}
           refresh={() => void load()}
+          onMuted={onMuted}
           remove={() => setPosts((old) => old.filter((p) => p.id !== post.id))}
         />
       ))}

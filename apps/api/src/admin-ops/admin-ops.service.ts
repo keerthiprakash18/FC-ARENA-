@@ -63,6 +63,62 @@ export class AdminOpsService {
     }
   }
 
+  async playerActivity(userId: string, now = new Date()) {
+    await this.assertSuperAdmin(userId);
+    const day = 86_400_000;
+    const ist = 330 * 60_000;
+    const today = new Date(Math.floor((now.getTime() + ist) / day) * day - ist);
+    const weekStart = new Date(today.getTime() - 6 * day);
+    const cohortStart = new Date(today.getTime() - 28 * day);
+    const matureD7 = new Date(today.getTime() - 7 * day);
+    const matureD1 = new Date(today.getTime() - day);
+    const [activity, invites] = await Promise.all([
+      this.prisma.$queryRaw<Array<{
+        daily: number; weekly: number; signups: number;
+        day1Eligible: number; day1Returned: number; day7Eligible: number; day7Returned: number;
+      }>>`
+        WITH cohort AS (
+          SELECT id, date_trunc('day', "createdAt" + INTERVAL '330 minutes') - INTERVAL '330 minutes' AS signup_day
+          FROM users WHERE "createdAt" >= ${cohortStart} AND "createdAt" < ${today}
+        ), active AS (
+          SELECT COUNT(DISTINCT s."userId")::int AS weekly,
+                 COUNT(DISTINCT s."userId") FILTER (WHERE s."createdAt" >= ${today})::int AS daily
+          FROM refresh_sessions s JOIN users u ON u.id = s."userId"
+          WHERE s."createdAt" >= ${weekStart} AND s."createdAt" <= ${now} AND u.status = 'ACTIVE'
+        ), retention AS (
+          SELECT COUNT(*)::int AS signups,
+                 COUNT(*) FILTER (WHERE signup_day < ${matureD1})::int AS "day1Eligible",
+                 COUNT(*) FILTER (WHERE signup_day < ${matureD1} AND EXISTS (
+                   SELECT 1 FROM refresh_sessions s WHERE s."userId" = cohort.id
+                   AND s."createdAt" >= signup_day + INTERVAL '1 day'
+                   AND s."createdAt" < signup_day + INTERVAL '2 days'
+                 ))::int AS "day1Returned",
+                 COUNT(*) FILTER (WHERE signup_day < ${matureD7})::int AS "day7Eligible",
+                 COUNT(*) FILTER (WHERE signup_day < ${matureD7} AND EXISTS (
+                   SELECT 1 FROM refresh_sessions s WHERE s."userId" = cohort.id
+                   AND s."createdAt" >= signup_day + INTERVAL '7 days'
+                   AND s."createdAt" < signup_day + INTERVAL '8 days'
+                 ))::int AS "day7Returned"
+          FROM cohort
+        ) SELECT active.*, retention.* FROM active CROSS JOIN retention
+      `,
+      this.prisma.leagueApplication.groupBy({
+        by: ['status'],
+        where: { invite: { is: { createdAt: { gte: cohortStart, lte: now } } } },
+        _count: { _all: true },
+      }),
+    ]);
+    return {
+      success: true,
+      data: {
+        ...activity[0],
+        inviteApplications: invites.reduce((total, row) => total + row._count._all, 0),
+        inviteApprovals: invites.find(row => row.status === 'APPROVED')?._count._all ?? 0,
+      },
+      error: null,
+    };
+  }
+
   async overview(
     userId: string,
   ) {

@@ -1,5 +1,7 @@
 'use client';
 
+import { leagueInviteQuery } from '@/lib/league-invite';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
@@ -96,9 +98,10 @@ export default function LoginPage() {
           .themePreference,
       );
 
-      router.replace(
-        response.data.user.dateOfBirth === null ? '/profile/date-of-birth' : '/dashboard',
-      );
+      const invite = leagueInviteQuery(window.location.search);
+      const destination = invite ? `/leagues${invite}` : '/dashboard';
+      const profileSetup = `/profile/date-of-birth${invite}`;
+      router.replace(response.data.user.dateOfBirth === null ? profileSetup : destination);
       sessionStorage.removeItem(
         'fc_auth_registration_notice',
       );
@@ -201,7 +204,13 @@ export default function LoginPage() {
 
       <div className="link-row">
         New player?{' '}
-        <Link className="text-link" href="/register">
+        <Link className="text-link" href="/register" onClick={event => {
+          const invite = leagueInviteQuery(window.location.search);
+          if (invite) {
+            event.preventDefault();
+            router.push(`/register${invite}`);
+          }
+        }}>
           Create account
         </Link>
       </div>

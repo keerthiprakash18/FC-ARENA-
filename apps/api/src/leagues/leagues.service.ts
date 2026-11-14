@@ -5,8 +5,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomInt } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import { SafetyService } from '../security/safety.service.js';
 import type { CreateLeagueDto } from './dto/create-league.dto.js';
@@ -137,6 +138,7 @@ export class LeaguesService {
               where: { userId },
               select: {
                 role: true,
+                permissions: true,
               },
             },
             _count: {
@@ -161,6 +163,8 @@ export class LeaguesService {
           membershipType: membership.type,
           joinedAt: membership.joinedAt,
           adminRole: membership.league.admins[0]?.role ?? null,
+          canManageMembers: membership.league.admins[0]?.role === 'OWNER' ||
+            (membership.league.admins[0]?.permissions?.includes('MANAGE_MEMBERS') ?? false),
           league: {
             id: membership.league.id,
             name: membership.league.name,
@@ -337,11 +341,35 @@ export class LeaguesService {
     };
   }
 
-  async previewByCode(userId: string, rawCode: string) {
+  async createInvite(userId: string, leagueId: string) {
+    await this.authorization.assertLeaguePermission(userId, leagueId, 'MANAGE_MEMBERS');
+    const token = randomBytes(24).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 86_400_000);
+    await this.prisma.leagueInvite.create({
+      data: { leagueId, tokenHash: createHash('sha256').update(token).digest('hex'), expiresAt },
+    });
+    return { success: true, data: { token, expiresAt }, error: null };
+  }
+
+  private async resolveInvite(token: string, db: Prisma.TransactionClient = this.prisma) {
+    const invite = /^[a-f0-9]{48}$/.test(token)
+      ? await db.leagueInvite.findUnique({
+          where: { tokenHash: createHash('sha256').update(token).digest('hex') },
+          select: { id: true, leagueId: true, expiresAt: true },
+        })
+      : null;
+    if (!invite || invite.expiresAt.getTime() <= Date.now()) {
+      throw new NotFoundException('This League invite is invalid or has expired.');
+    }
+    return invite;
+  }
+
+  async previewByCode(userId: string, rawCode: string, token?: string) {
     const code = rawCode.trim().toUpperCase();
+    const invite = token ? await this.resolveInvite(token) : undefined;
 
     const league = await this.prisma.league.findUnique({
-      where: { code },
+      where: invite ? { id: invite.leagueId } : { code },
       include: {
         _count: {
           select: {
@@ -381,7 +409,7 @@ export class LeaguesService {
         league: {
           id: league.id,
           name: league.name,
-          code: league.code,
+          code: invite ? null : league.code,
           logoUrl: league.logoUrl,
           description: league.description,
           region: league.region,
@@ -396,11 +424,12 @@ export class LeaguesService {
     };
   }
 
-  async requestToJoin(userId: string, rawCode: string) {
+  async requestToJoin(userId: string, rawCode: string, token?: string) {
     const code = rawCode.trim().toUpperCase();
+    const invite = token ? await this.resolveInvite(token) : undefined;
 
     const league = await this.prisma.league.findUnique({
-      where: { code },
+      where: invite ? { id: invite.leagueId } : { code },
       include: {
         _count: {
           select: {
@@ -503,24 +532,39 @@ export class LeaguesService {
       });
     }
 
-    const application = existingApplication
-      ? await this.prisma.leagueApplication.update({
+    const application = await this.prisma.$transactionWithRetry(async tx => {
+      // Resolve expiry again at submission, including after a transaction retry.
+      const inviteId = token ? (await this.resolveInvite(token, tx)).id : null;
+      if (existingApplication) {
+        const result = await tx.leagueApplication.updateMany({
           where: {
             id: existingApplication.id,
+            status: existingApplication.status,
           },
           data: {
             status: 'PENDING',
             reviewedAt: null,
             reviewedByUserId: null,
+            inviteId,
           },
-        })
-      : await this.prisma.leagueApplication.create({
+        });
+        if (!result.count) throw new ConflictException('League application changed. Refresh and try again.');
+      } else {
+        const result = await tx.leagueApplication.createMany({
           data: {
             leagueId: league.id,
             userId,
             status: 'PENDING',
+            inviteId,
           },
+          skipDuplicates: true,
         });
+        if (!result.count) throw new ConflictException('A League join request already exists.');
+      }
+      return tx.leagueApplication.findUniqueOrThrow({
+        where: { leagueId_userId: { leagueId: league.id, userId } },
+      });
+    }, { isolationLevel: 'Serializable' });
 
     return {
       success: true,

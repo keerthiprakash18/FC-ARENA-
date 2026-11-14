@@ -14,6 +14,14 @@ import {
 
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
+
+export class ArenaSubscriptionDto {
+  @IsBoolean() subscribed!: boolean;
+}
+
+export class ArenaMuteDto {
+  @IsBoolean() muted!: boolean;
+}
 export const ARENA_KINDS = [
   'DISCUSSION',
   'QUESTION',

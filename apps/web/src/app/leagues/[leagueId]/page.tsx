@@ -199,7 +199,8 @@ export default function LeagueOverviewPage() {
             </Link>
           ))}
         </section>
-        <LeagueInvite code={league.code} name={league.name} />
+        <LeagueInvite leagueId={leagueId} code={league.code} name={league.name}
+          canInvite={league.canManageMembers ?? league.adminRole === "OWNER"} />
 
         <FcPanel className="p-5">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">

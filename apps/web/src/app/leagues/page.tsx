@@ -47,7 +47,7 @@ interface MyLeague {
 interface LeaguePreview {
   id: string;
   name: string;
-  code: string;
+  code: string | null;
   logoUrl?: string | null;
   description: string | null;
   region: string | null;
@@ -59,13 +59,26 @@ interface LeaguePreview {
 
 export default function LeaguesPage() {
   const [inviteCode, setInviteCode] = useState("");
-  useEffect(() => { try { const code = new URLSearchParams(window.location.search).get("code") || sessionStorage.getItem("fc-league-invite"); if (code && /^[a-zA-Z0-9-]{1,40}$/.test(code)) { setInviteCode(code); sessionStorage.setItem("fc-league-invite", code); } } catch {} }, []);
+  const [inviteToken, setInviteToken] = useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("invite") || "";
+    if (/^[a-f0-9]{48}$/.test(token)) setInviteToken(token);
+    try {
+      const code = new URLSearchParams(window.location.search).get("code") || sessionStorage.getItem("fc-league-invite");
+      if (code && /^[a-zA-Z0-9-]{1,40}$/.test(code)) {
+        setInviteCode(code);
+        sessionStorage.setItem("fc-league-invite", code);
+      }
+    } catch {}
+  }, []);
 
   const [user, setUser] = useState<CurrentUser | null>(null);
 
   const [leagues, setLeagues] = useState<MyLeague[]>([]);
 
   const [preview, setPreview] = useState<LeaguePreview | null>(null);
+  const [previewInvite, setPreviewInvite] = useState("");
 
   const [showCreate, setShowCreate] = useState(false);
 
@@ -92,7 +105,22 @@ export default function LeaguesPage() {
     ]);
     if (signal.aborted) return;
     setUser(current); setLeagues(response.data.leagues);
-  });
+  }, '', { preserveLeagueInvite: true });
+
+  useEffect(() => {
+    if (!user || !inviteToken) return;
+    const controller = new AbortController();
+    void authenticatedRequest<{ data: { league: LeaguePreview } }>(
+      `/leagues/invites/${encodeURIComponent(inviteToken)}`, { signal: controller.signal },
+    ).then(({ data }) => {
+      if (controller.signal.aborted) return;
+      setPreview(data.league);
+      setPreviewInvite(inviteToken);
+    }).catch(err => {
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Unable to read this invite.");
+    });
+    return () => controller.abort();
+  }, [inviteToken, user]);
 
   async function createLeague(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -144,6 +172,8 @@ export default function LeaguesPage() {
     setMessage("");
 
     setPreview(null);
+    setPreviewInvite("");
+    setInviteToken("");
 
     const form = new FormData(event.currentTarget);
 
@@ -175,9 +205,7 @@ export default function LeaguesPage() {
       const response = await authenticatedRequest<any>("/leagues/join", {
         method: "POST",
 
-        body: JSON.stringify({
-          code: preview.code,
-        }),
+        body: JSON.stringify(previewInvite ? { invite: previewInvite } : { code: preview.code }),
       });
 
       setMessage(response.data.message);
@@ -467,9 +495,9 @@ export default function LeaguesPage() {
                   <FcCrest name={preview.name} imageUrl={preview.logoUrl} />
 
                   <div className="min-w-0">
-                    <p className="font-mono text-[10px] font-black text-sky-400">
+                    {preview.code ? <p className="font-mono text-[10px] font-black text-sky-400">
                       {preview.code}
-                    </p>
+                    </p> : null}
 
                     <h3 className="mt-1 truncate text-lg font-black">
                       {preview.name}

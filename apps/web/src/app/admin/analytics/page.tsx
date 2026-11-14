@@ -92,6 +92,61 @@ interface OverviewData {
   }>;
 }
 
+interface PlayerActivityData {
+  daily: number;
+  weekly: number;
+  signups: number;
+  day1Eligible: number;
+  day1Returned: number;
+  day7Eligible: number;
+  day7Returned: number;
+  inviteApplications: number;
+  inviteApprovals: number;
+}
+
+function PlayerActivity() {
+  const [activity, setActivity] = useState<PlayerActivityData | null>(null);
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    void authenticatedRequest<{ data: PlayerActivityData }>('/admin/ops/player-activity', { signal: controller.signal })
+      .then(({ data }) => { if (!controller.signal.aborted) setActivity(data); })
+      .catch(() => { if (!controller.signal.aborted) setError(true); });
+    return () => controller.abort();
+  }, []);
+  const rate = (numerator: number, denominator: number) =>
+    denominator ? `${Math.round(numerator / denominator * 100)}% (${numerator}/${denominator})` : '—';
+  return (
+    <section aria-labelledby="player-activity-heading" className="mt-5">
+      <h2 id="player-activity-heading" className="theme-text text-lg font-bold">Player activity and invite conversion</h2>
+      <p className="theme-secondary-text mt-1 text-sm">
+        Activity counts unique accounts with a login or refresh session, using IST calendar days.
+        Retention uses the last 28 signup days and includes only cohorts with a complete return day.
+      </p>
+      {error ? <p role="alert">Player activity is temporarily unavailable.</p> : activity ? (
+        <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ['Active today', activity.daily],
+            ['Active in the last 7 days', activity.weekly],
+            ['Signups in the last 28 complete days', activity.signups],
+            ['Day 1 retention', rate(activity.day1Returned, activity.day1Eligible)],
+            ['Day 7 retention', rate(activity.day7Returned, activity.day7Eligible)],
+            ['Invite applications approved', rate(activity.inviteApprovals, activity.inviteApplications)],
+          ].map(([label, value]) => (
+            <FcPanel key={label} className="p-4">
+              <dt className="theme-secondary-text text-sm">{label}</dt>
+              <dd className="theme-text mt-2 text-xl font-bold">{value}</dd>
+            </FcPanel>
+          ))}
+        </dl>
+      ) : <p role="status">Loading player activity…</p>}
+      <p className="theme-secondary-text mt-2 text-sm">
+        Invite conversion counts approved membership applications from links created in the last 28 complete days and today.
+      </p>
+    </section>
+  );
+}
+
 function humanize(
   value:
     string,
@@ -478,6 +533,7 @@ export default function AdminAnalyticsPage() {
             </FcPanel>
           </section>
 
+           {data.scope.global ? <PlayerActivity /> : null}
            <section aria-labelledby="ops-quality-title" className="mt-5">
              <h2 id="ops-quality-title" className="theme-text text-lg font-bold">Competition quality · operational ratios</h2>
              <p className="theme-secondary-text mt-1 text-xs leading-5">

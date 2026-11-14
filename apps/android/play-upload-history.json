@@ -2,8 +2,8 @@
   "packageName": "in.fcarena.app",
   "highestKnownUploadedVersionCode": 17,
   "highestKnownUploadedVersionName": "1.0.15",
-  "nextCandidateVersionCode": 20,
-  "nextCandidateVersionName": "1.0.18",
+  "nextCandidateVersionCode": 21,
+  "nextCandidateVersionName": "1.0.19",
   "lastReviewed": "2026-11-07",
   "note": "The last confirmed Play upload remains version code 17 / version 1.0.15. Signed builds 18 and 19 exist locally; their upload status is unconfirmed. The owner confirmed build 20 was not yet uploaded, so version 1.0.18 / code 20 was rebuilt with Firebase project fc-arena-102a1, automatic fixture reminders and Play update detection. Its Play upload is not yet confirmed."
 }

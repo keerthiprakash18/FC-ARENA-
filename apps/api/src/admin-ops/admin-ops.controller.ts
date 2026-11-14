@@ -73,6 +73,11 @@ export class AdminOpsController {
     return this.adminOps.telemetryHistory(request.user.sub);
   }
 
+  @Get('player-activity')
+  playerActivity(@Req() request: AuthenticatedRequest) {
+    return this.adminOps.playerActivity(request.user.sub);
+  }
+
   @Get('system')
   system(
     @Req()

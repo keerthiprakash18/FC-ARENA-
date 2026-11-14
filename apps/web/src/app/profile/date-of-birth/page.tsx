@@ -11,12 +11,18 @@ import {
 import { DateOfBirthForm } from "@/components/profile/date-of-birth-form";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth-client";
 import { useRecoverableLoad } from "@/lib/use-recoverable-load";
+import { leagueInviteQuery } from "@/lib/league-invite";
 
 export default function DateOfBirthPage() {
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const [next, setNext] = useState("/dashboard");
   const initialLoad = useRecoverableLoad(async (signal) => {
     const current = await getCurrentUser({ signal });
-    if (!signal.aborted) setUser(current);
+    if (!signal.aborted) {
+      const invite = leagueInviteQuery(window.location.search);
+      if (invite) setNext(`/leagues${invite}`);
+      setUser(current);
+    }
   });
   if (initialLoad.error)
     return (
@@ -48,10 +54,10 @@ export default function DateOfBirthPage() {
         />
         <div className="flex flex-wrap gap-5">
           <Link
-            href="/dashboard"
+            href={next}
             className="theme-text inline-flex min-h-11 items-center text-sm font-bold"
           >
-            {user.dateOfBirth ? "Continue to home" : "I'll add it later"}
+            {next !== "/dashboard" ? "Continue to league invite" : user.dateOfBirth ? "Continue to home" : "I'll add it later"}
           </Link>
           <Link
             href="/settings"

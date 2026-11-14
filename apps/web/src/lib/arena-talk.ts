@@ -52,7 +52,8 @@ export interface ArenaPost {
   } | null;
 }
 export interface ArenaContext {
-  leagues: { id: string; name: string }[];
+  leagues: { id: string; name: string; subscribed?: boolean }[];
+  mutedPlayers?: { id: string; fullName: string }[];
   canModerate: boolean;
   policy: { audienceNote: string };
 }

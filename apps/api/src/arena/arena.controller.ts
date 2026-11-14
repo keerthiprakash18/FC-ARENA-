@@ -27,6 +27,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { ArenaService } from './arena.service.js';
 import {
   ArenaHideDto,
+  ArenaMuteDto,
+  ArenaSubscriptionDto,
   ArenaReactionDto,
   ArenaReportDto,
   ArenaVoteDto,
@@ -54,6 +56,20 @@ export class ArenaController {
   constructor(private readonly arena: ArenaService) {}
   @Get('context') context(@Req() request: AuthenticatedRequest) {
     return this.arena.context(request.user.sub);
+  }
+  @Put('leagues/:leagueId/subscription') subscribe(
+    @Req() request: AuthenticatedRequest,
+    @Param('leagueId', new ParseUUIDPipe()) leagueId: string,
+    @Body() dto: ArenaSubscriptionDto,
+  ) {
+    return this.arena.setSubscription(request.user.sub, leagueId, dto.subscribed);
+  }
+  @Put('mutes/:userId') mute(
+    @Req() request: AuthenticatedRequest,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() dto: ArenaMuteDto,
+  ) {
+    return this.arena.setMute(request.user.sub, userId, dto.muted);
   }
   @Get('posts') feed(
     @Req() request: AuthenticatedRequest,

@@ -20,9 +20,9 @@ test('admin invite link opens normal membership preview, never auto-approves', (
   const page = source('apps/web/src/app/community/invitations/page.tsx');
   const join = source('apps/web/src/app/leagues/page.tsx');
   assert.match(page, /const url = new URL\('\/leagues', window\.location\.origin\)/);
-  assert.match(page, /url\.searchParams\.set\('code', code\)/);
+  assert.match(page, /url\.searchParams\.set\('invite', data\.token\)/);
   assert.match(page, /membership\.adminRole/);
-  assert.match(page, /Copy league join link/);
+  assert.match(page, /Copy 7-day invite link/);
   assert.match(join, /new URLSearchParams\(window\.location\.search\)\.get\("code"\)/);
   assert.match(join, /\/leagues\/join/);
 });

@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError } from './api';
 import { registerAppRefresh } from './app-refresh';
+import { leagueInviteQuery } from './league-invite';
 
 /** Initial reads recover in place; refresh keeps the successfully loaded page mounted. */
-export function useRecoverableLoad(load: (signal: AbortSignal) => Promise<void>, scope = '') {
+export function useRecoverableLoad(load: (signal: AbortSignal) => Promise<void>, scope = '', { preserveLeagueInvite = false } = {}) {
   const router = useRouter();
   const currentLoad = useRef(load);
   const runner = useRef<() => Promise<boolean>>(() => Promise.resolve(false));
@@ -32,7 +33,11 @@ export function useRecoverableLoad(load: (signal: AbortSignal) => Promise<void>,
         return true;
       } catch (caught) {
         if (controller.signal.aborted) return false;
-        if (caught instanceof ApiError && caught.status === 401) { router.replace('/login'); return false; }
+        if (caught instanceof ApiError && caught.status === 401) {
+          const invite = preserveLeagueInvite ? leagueInviteQuery(window.location.search) : '';
+          router.replace(`/login${invite}`);
+          return false;
+        }
         failed = true;
         transient = caught instanceof ApiError && [0, 408, 429, 500, 502, 503, 504].includes(caught.status);
         const message = caught instanceof Error ? caught.message : 'Unable to load this page. Please retry.';
@@ -59,7 +64,7 @@ export function useRecoverableLoad(load: (signal: AbortSignal) => Promise<void>,
       window.removeEventListener('online', resume); window.removeEventListener('focus', resume);
       document.removeEventListener('visibilitychange', resume);
     };
-  }, [scope, attempt, router]);
+  }, [scope, attempt, router, preserveLeagueInvite]);
 
   const reload = useCallback(() => runner.current(), []);
   const retry = useCallback(() => { setError(''); setAttempt(value => value + 1); }, []);

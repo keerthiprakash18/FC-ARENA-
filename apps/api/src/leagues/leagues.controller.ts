@@ -91,8 +91,19 @@ export class LeaguesController {
   ) {
     return this.leaguesService.requestToJoin(
       request.user.sub,
-      dto.code,
+      dto.code ?? '',
+      dto.invite,
     );
+  }
+
+  @Get('invites/:token')
+  previewInvite(@Req() request: AuthenticatedRequest, @Param('token') token: string) {
+    return this.leaguesService.previewByCode(request.user.sub, '', token);
+  }
+
+  @Post(':leagueId/invites')
+  createInvite(@Req() request: AuthenticatedRequest, @Param('leagueId') leagueId: string) {
+    return this.leaguesService.createInvite(request.user.sub, leagueId);
   }
 
   @Post(':leagueId/join-request')

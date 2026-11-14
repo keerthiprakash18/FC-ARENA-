@@ -12,6 +12,7 @@ import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
 import { authenticatedRequest } from '@/lib/auth-client';
 
 interface Membership {
+  canManageMembers?: boolean;
   adminRole:
     | 'OWNER'
     | 'ADMIN'
@@ -36,14 +37,23 @@ export default function InvitationsPage() {
 
   const [copyStatus, setCopyStatus] = useState('');
 
-  async function copyInvite(code: string, leagueName: string) {
-    const url = new URL('/leagues', window.location.origin);
-    url.searchParams.set('code', code);
+  const [copying, setCopying] = useState(false);
+
+  async function copyInvite(leagueId: string, leagueName: string) {
+    if (copying) return;
+    setCopying(true);
     try {
+      const { data } = await authenticatedRequest<{ data: { token: string } }>(
+        `/leagues/${leagueId}/invites`, { method: 'POST' },
+      );
+      const url = new URL('/leagues', window.location.origin);
+      url.searchParams.set('invite', data.token);
       await navigator.clipboard.writeText(url.toString());
-      setCopyStatus(`Copied invite link for ${leagueName}.`);
-    } catch {
-      setCopyStatus('Clipboard unavailable. Open Leagues and share your league code manually.');
+      setCopyStatus(`Copied 7-day invite link for ${leagueName}.`);
+    } catch (error) {
+      setCopyStatus(error instanceof Error ? error.message : 'Unable to copy the league invitation.');
+    } finally {
+      setCopying(false);
     }
   }
 
@@ -117,13 +127,14 @@ export default function InvitationsPage() {
                   >
                     Review requests
                   </Link>
-                  {membership.league.code ? (
+                  {(membership.canManageMembers ?? membership.adminRole === 'OWNER') ? (
                     <button
                       type="button"
                       className="theme-primary-button min-h-11 rounded-lg px-4 text-sm font-semibold"
-                      onClick={() => void copyInvite(membership.league.code, membership.league.name)}
+                      disabled={copying}
+                      onClick={() => void copyInvite(membership.league.id, membership.league.name)}
                     >
-                      Copy league join link
+                      Copy 7-day invite link
                     </button>
                   ) : null}
                 </div>

@@ -402,6 +402,9 @@ model User {
   player                     Player?
   authOtps                   AuthOtp[]
   refreshSessions            RefreshSession[]
+  arenaLeagueSubscriptions   ArenaLeagueSubscription[]
+  arenaMutes                 ArenaPlayerMute[] @relation("ArenaMutingUser")
+  mutedByInArena             ArenaPlayerMute[] @relation("ArenaMutedUser")
   createdLeagues             League[]                       @relation("LeagueCreator")
   leagueMemberships          LeagueMember[]
   leagueApplications         LeagueApplication[]            @relation("LeagueApplicant")
@@ -526,6 +529,7 @@ model RefreshSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, expiresAt])
+  @@index([createdAt, userId])
   @@map("refresh_sessions")
 }
 
@@ -557,6 +561,8 @@ model League {
   leagueWarParticipants LeagueWarParticipant[]
   fairPlayEvents        FairPlayEvent[]
   arenaPosts            ArenaPost[]
+  arenaSubscriptions    ArenaLeagueSubscription[]
+  invites               LeagueInvite[]
 
   @@index([creatorUserId])
   @@index([name])
@@ -583,6 +589,7 @@ model LeagueApplication {
   id               String                  @id @default(uuid()) @db.Uuid
   leagueId         String                  @db.Uuid
   userId           String                  @db.Uuid
+  inviteId         String?                 @db.Uuid
   status           LeagueApplicationStatus @default(PENDING)
   reviewedByUserId String?                 @db.Uuid
   reviewedAt       DateTime?
@@ -592,11 +599,48 @@ model LeagueApplication {
   league     League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   user       User   @relation("LeagueApplicant", fields: [userId], references: [id], onDelete: Cascade)
   reviewedBy User?  @relation("LeagueApplicationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  invite     LeagueInvite? @relation(fields: [inviteId], references: [id], onDelete: SetNull)
 
   @@unique([leagueId, userId])
   @@index([leagueId, status])
   @@index([userId, status])
+  @@index([inviteId, status])
   @@map("league_applications")
+}
+
+model LeagueInvite {
+  id           String @id @default(uuid()) @db.Uuid
+  leagueId     String @db.Uuid
+  tokenHash    String @unique @db.VarChar(64)
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  league       League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  applications LeagueApplication[]
+
+  @@index([leagueId, createdAt])
+  @@map("league_invites")
+}
+
+model ArenaLeagueSubscription {
+  userId   String @db.Uuid
+  leagueId String @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league   League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@id([userId, leagueId])
+  @@index([leagueId])
+  @@map("arena_league_subscriptions")
+}
+
+model ArenaPlayerMute {
+  userId      String @db.Uuid
+  mutedUserId String @db.Uuid
+  user        User   @relation("ArenaMutingUser", fields: [userId], references: [id], onDelete: Cascade)
+  mutedUser   User   @relation("ArenaMutedUser", fields: [mutedUserId], references: [id], onDelete: Cascade)
+
+  @@id([userId, mutedUserId])
+  @@index([mutedUserId])
+  @@map("arena_player_mutes")
 }
 
 model LeagueAdmin {

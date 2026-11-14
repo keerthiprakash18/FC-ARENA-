@@ -151,6 +151,7 @@ export class MatchesService {
 
             mode:
               match.tournament.mode,
+            duoAggregateEnabled: match.tournament.duoAggregateEnabled,
 
             format:
               match.tournament.format,

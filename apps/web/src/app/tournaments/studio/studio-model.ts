@@ -26,7 +26,7 @@ export type Tournament = Settings & {
   groups: { id: string; name: string }[];
   _count: { fixtures: number; matches: number };
 };
-export type Player = { id: string; name: string; avatar: string | null };
+export type Player = { id: string; name: string; fullName: string; playerCode: string | null; avatar: string | null };
 export type Entry = {
   id: string; name: string | null; logo: string | null; groupId: string | null;
   members: Player[]; captainId: string; status: string; valid: boolean;
@@ -41,6 +41,9 @@ export type Outcome =
 export type Studio = {
   tournament: Tournament; editable: boolean; publishedFixtureCount: number;
   revision: string; fixtures: Fixture[];
+  selectedLeague: { id: string; name: string; code: string; memberCount: number };
+  eligiblePlayerCount: number;
+  unavailableMembers: Array<{ id: string; name: string; playerCode: string | null; reason: string }>;
   availablePlayers: Player[]; entries: Entry[]; history: { requestId: string; outcome: Outcome }[];
 };
 export type Fixture = {

@@ -132,7 +132,7 @@ export function LivePlayerWheel({ entries, players, duo, audio, onComplete }: {
       <button type="button" className={styles.subButton} onClick={() => setPaused(value => !value)}>{paused ? 'Resume reveal' : 'Pause reveal'}</button>
       <button type="button" className={styles.subButton} onClick={() => setSkipped(true)}>Show all results</button>
     </div>}
-    {completedEntries.length > 0 && <ol className={styles.liveDrawPairs} aria-label={duo ? 'Revealed Duo teams' : 'Revealed entries'}>
+    {completedEntries.length > 0 && <ol className={styles.liveDrawPairs} tabIndex={0} aria-label={duo ? 'Revealed Duo teams' : 'Revealed entries'}>
       {completedEntries.map((entry, index) => <li key={entry.id}>
         <b>{duo ? 'Duo' : 'Entry'} {index + 1}</b>
         <span>{entry.members.map(player => player.name).join(' + ')}</span>

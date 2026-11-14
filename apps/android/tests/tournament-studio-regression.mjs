@@ -32,6 +32,7 @@ try {
   for (const width of widths) {
     const studio = { tournament: structuredClone(tournament), entries: [], fixtures: [], history: [], publishedFixtureCount: 0, revision: 'a'.repeat(64), editable: true, availablePlayers: [...pool] };
     const respond = (route, data) => route.fulfill({ json: { success: true, data, error: null } });
+    let playerDrawRequests = 0;
     const auth = await createUiContext(browser, {
       width, native: physical || width < 500, direct: !physical, existingPage, allowedHost: physical ? "studio-test.fcarena.in" : undefined, reducedMotion: width === 360 ? 'reduce' : 'no-preference',
       overrides: {
@@ -62,11 +63,17 @@ try {
           }
           const options = body.kind === 'MANUAL' ? studio.availablePlayers :
             studio.availablePlayers.filter(player => body.poolPlayerIds.includes(player.id));
-          const members = body.kind === 'MANUAL' ? options.filter(player => body.playerIds.includes(player.id)) : options.slice(0, 2);
-          const entry = { id: 'entry-' + studio.entries.length, name: body.name || null, captainId: members[0].id, members, valid: true, status: 'APPROVED', groupId: null, logo: null };
-          const outcome = { kind: body.kind, entries: [entry], options, unassigned: options.length - members.length };
-          studio.entries.push(entry);
-          studio.availablePlayers = studio.availablePlayers.filter(player => !members.includes(player));
+          if (body.kind === 'PLAYER' || body.kind === 'AUTO') playerDrawRequests++;
+          assert(!Object.hasOwn(body, 'live'));
+          const selected = body.kind === 'MANUAL' ? options.filter(player => body.playerIds.includes(player.id))
+            : body.kind === 'AUTO' ? options : options.slice(0, 2);
+          const entries = Array.from({ length: selected.length / 2 }, (_, index) => {
+            const members = selected.slice(index * 2, index * 2 + 2);
+            return { id: 'entry-' + (studio.entries.length + index), name: body.name || null, captainId: members[0].id, members, valid: true, status: 'APPROVED', groupId: null, logo: null };
+          });
+          const outcome = { kind: body.kind, entries, ...(body.kind === 'PLAYER' ? { options } : {}), unassigned: options.length - selected.length };
+          studio.entries.push(...entries);
+          studio.availablePlayers = studio.availablePlayers.filter(player => !selected.includes(player));
           studio.history.unshift({ requestId: body.requestId, outcome });
           return respond(route, outcome);
         }
@@ -145,61 +152,66 @@ try {
     await page.getByText('40 players remain in this pool', { exact: true }).waitFor();
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByText('40 players remain in this pool', { exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Spin player wheel' }).click();
-    if (physical) {
-      const motion = await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
-      if (!motion) {
-        await page.getByText('40 players on this wheel', { exact: true }).waitFor();
-        await page.getByRole('button', { name: 'Skip animation' }).waitFor();
+    await page.getByRole('button', { name: 'Start live draw' }).click();
+    const reveal = page.getByRole('region', { name: 'Live player draw' });
+    await reveal.waitFor();
+    const motion = await page.evaluate(() => !matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (motion) {
+      const rotor = reveal.locator('[class*="liveWheelRotor"]');
+      await rotor.waitFor();
+      const initialRotor = await rotor.elementHandle();
+      assert(initialRotor);
+      await reveal.getByText('Drawing player 1 of 40…', { exact: true }).waitFor();
+      await reveal.getByRole('button', { name: 'Pause reveal' }).click();
+      const pausedTransform = await rotor.getAttribute('style');
+      await page.waitForTimeout(250);
+      assert.equal(await rotor.getAttribute('style'), pausedTransform);
+      await reveal.getByRole('button', { name: 'Resume reveal' }).click();
+      await checkLayout(page, 'live wheel ' + width);
+      if (physical || width === 390) {
         const intervals = await page.evaluate(() => new Promise(resolve => {
           const timeline = [];
           let previous = performance.now();
           const record = now => {
             timeline.push(now - previous);
             previous = now;
-            if (timeline.length === 75) resolve(timeline); else requestAnimationFrame(record);
+            if (timeline.length === 75) resolve(timeline.slice(1)); else requestAnimationFrame(record);
           };
           requestAnimationFrame(record);
         }));
-        intervals.shift();
-        const sorted = [...intervals].sort((a, b) => a - b);
-        const p95 = sorted[Math.floor(sorted.length * .95)];
-        const mean = intervals.reduce((sum, value) => sum + value, 0) / intervals.length;
-        console.log('Android player wheel rAF', { samples: intervals.length, meanMs: mean.toFixed(1), p95Ms: p95.toFixed(1) });
-        assert(p95 < 28, 'Android draw frame pacing exceeded 28ms at p95');
-        if (output) await page.screenshot({ path: output + '/studio-player-wheel-android.png' });
-        await page.getByRole('button', { name: 'Skip animation' }).click();
+        if (physical) {
+          const sorted = intervals.toSorted((a, b) => a - b);
+          assert(sorted[Math.floor(sorted.length * .95)] < 28, 'Android draw frame pacing exceeded 28ms at p95');
+        }
+        await reveal.getByText('1 of 40 players revealed · 39 remaining', { exact: true }).waitFor();
+        await reveal.getByText('Drawing player 2 of 40…', { exact: true }).waitFor();
+        assert(await rotor.evaluate((element, first) => element === first, initialRotor), 'The same wheel stays mounted between players');
+        await reveal.getByText('2 of 40 players revealed · 38 remaining', { exact: true }).waitFor();
+        await reveal.getByRole('list', { name: 'Revealed Duo teams' }).getByText('Vinod FC + Raja United').waitFor();
+        await reveal.getByText('Drawing player 3 of 40…', { exact: true }).waitFor();
       }
-    } else if (width !== 360) {
-      await page.getByText('40 players on this wheel', { exact: true }).waitFor();
-      await checkLayout(page, 'wheel ' + width);
-      if (width === 390) {
-        await page.getByText('Player 1 selected', { exact: false }).waitFor();
-        await page.getByText('39 players on this wheel', { exact: true }).waitFor();
-        await page.getByText('Player 2 selected', { exact: false }).waitFor();
-      }
-      if (output) await page.screenshot({ path: output + '/studio-player-wheel-' + width + '.png' });
-      await page.getByRole('button', { name: 'Skip animation' }).click();
+      if (output) await reveal.screenshot({ path: output + '/studio-player-wheel-' + width + '.png' });
+      await reveal.getByRole('button', { name: 'Show all results' }).click();
     }
-    await page.getByRole('heading', { name: 'Duo confirmed' }).waitFor();
-    await page.getByText('38 players remain in this pool', { exact: true }).waitFor();
-    await page.locator('summary').filter({ hasText: 'Remaining players' }).click();
-    const remaining = page.getByRole('list').filter({ has: page.getByText('Mithun', { exact: true }) }).first();
-    assert.equal(await remaining.getByText('Vinod FC', { exact: true }).count(), 0);
-    await page.locator('summary').filter({ hasText: 'Remaining players' }).click();
+    await reveal.getByText('Duo draw complete', { exact: true }).waitFor();
+    assert.equal(await reveal.getByRole('listitem').count(), 20);
+    assert.equal(playerDrawRequests, 1, 'The continuous reveal uses a single transaction');
+    assert.equal(new Set(studio.entries.flatMap(entry => entry.members.map(player => player.id))).size, 40);
     await snap('studio-draw');
-    await page.getByRole('button', { name: 'Spin player wheel' }).click();
-    if (width !== 360) await page.getByRole('button', { name: 'Skip animation' }).click();
-    await page.getByText('36 players remain in this pool', { exact: true }).waitFor();
-    assert.equal(new Set(studio.entries.flatMap(entry => entry.members.map(player => player.id))).size, 4);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.locator('summary').filter({ hasText: 'Last saved draw' }).click();
+    await page.getByRole('button', { name: 'Replay saved player draw' }).click();
+    if (motion) await page.getByRole('button', { name: 'Show all results' }).click();
+    await page.getByText('Duo draw complete', { exact: true }).waitFor();
+    assert.equal(playerDrawRequests, 1, 'Replaying never redraws players');
     await page.getByRole('button', { name: 'Club wheel' }).click();
     await page.getByLabel('Club names, one per line').fill('Club North\nClub South');
     await page.getByRole('button', { name: 'Spin club wheel' }).click();
-    if (width !== 360) await page.getByRole('button', { name: 'Skip animation' }).click();
+    if (motion) await page.getByRole('button', { name: 'Skip animation' }).click();
     await page.getByRole('heading', { name: 'Club assigned' }).waitFor();
     assert.equal(studio.entries[0].name, 'Club North');
     await page.getByRole('button', { name: 'Spin club wheel' }).click();
-    if (width !== 360) await page.getByRole('button', { name: 'Skip animation' }).click();
+    if (motion) await page.getByRole('button', { name: 'Skip animation' }).click();
     await page.getByRole('heading', { name: 'Club assigned' }).waitFor();
     assert.equal(studio.entries[1].name, 'Club South');
     await page.getByRole('button', { name: 'Review tournament' }).click();

@@ -7,11 +7,12 @@ import { FootballTeamPicker } from '@/components/tournaments/football-team-picke
 import { ApiError } from '@/lib/api';
 import { authenticatedRequest } from '@/lib/auth-client';
 import { DrawReveal } from './draw-reveal';
+import { LivePlayerWheel } from './live-player-wheel';
 import { entryName, readStored, storeLocally, type DrawCommand, type Outcome, type Player, type Studio } from './studio-model';
 import styles from '../cup.module.css';
 
 type Tool = 'MANUAL' | 'PLAYER' | 'CLUB' | 'GROUP';
-type Pending = DrawCommand & { requestId: string };
+type Pending = DrawCommand & { requestId: string; live?: true };
 type Form = { tool: Tool; players: string[]; pool: string[]; poolLocked: boolean; name: string; captain: string; entryId: string; reason: string; clubs: string; groups: number | '' };
 const initial: Form = { tool: 'PLAYER', players: [], pool: [], poolLocked: false, name: '', captain: '', entryId: '', reason: '', clubs: '', groups: '' };
 const tools: [Tool, string][] = [['PLAYER', 'Player wheel'], ['CLUB', 'Club wheel'], ['GROUP', 'Group draw'], ['MANUAL', 'Manual']];
@@ -19,7 +20,7 @@ const tools: [Tool, string][] = [['PLAYER', 'Player wheel'], ['CLUB', 'Club whee
 export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: Studio; endpoint: string; storageKey: string; reload: () => Promise<Studio> }) {
   const [form, setForm] = useState(() => ({ ...initial, ...readStored<Partial<Form>>(storageKey + ':form') }));
   const [pending, setPending] = useState(() => readStored<Pending>(storageKey));
-  const [result, setResult] = useState<{ id: string; outcome: Outcome; audio?: AudioContext }>();
+  const [result, setResult] = useState<{ id: string; outcome: Outcome; audio?: AudioContext; live?: true }>();
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   const [revealing, setRevealing] = useState(false);
@@ -42,6 +43,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
   const poolIds = remainingPool.map(player => player.id);
   const matchingPool = availablePlayers.filter(player => player.name.toLocaleLowerCase().includes(search));
   const canRandomize = form.poolLocked && poolIds.length >= tournament.teamSize && poolIds.length <= poolLimit;
+  const canStartLive = canRandomize && poolIds.length % tournament.teamSize === 0;
   const canConfirmPool = poolIds.length >= tournament.teamSize && poolIds.length <= poolLimit &&
     poolIds.length % tournament.teamSize === 0;
   const clubKey = (name: string) => name.normalize('NFKC').trim().replace(/\s+/gu, ' ').toLowerCase();
@@ -70,7 +72,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
     setVisible(24);
     setForm(current => ({ ...current, tool, entryId: '', reason: '' }));
   }
-  async function run(command?: DrawCommand) {
+  async function run(command?: DrawCommand & { live?: true }) {
     if (lock.current) return;
     const intent = pending ?? (command ? { ...command, requestId: crypto.randomUUID() } : null);
     if (!intent) return;
@@ -88,13 +90,14 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
     storeLocally(storageKey, intent);
     setPending(intent);
     try {
-      const response = await authenticatedRequest<{ data: Outcome }>(endpoint + '/studio/draw', { method: 'POST', body: JSON.stringify(intent) });
+      const { live, ...body } = intent;
+      const response = await authenticatedRequest<{ data: Outcome }>(endpoint + '/studio/draw', { method: 'POST', body: JSON.stringify(body) });
       storeLocally(storageKey, null);
       setPending(null);
       const outcome = response.data;
       const assignedIds = new Set('entries' in outcome ? outcome.entries.flatMap(entry => entry.members.map(player => player.id)) : []);
-      setRevealing(outcome.kind === 'PLAYER' || outcome.kind === 'CLUB' || outcome.kind === 'GROUP');
-      setResult({ id: intent.requestId, outcome, audio: context });
+      setRevealing(Boolean(live) || outcome.kind === 'PLAYER' || outcome.kind === 'CLUB' || outcome.kind === 'GROUP');
+      setResult({ id: intent.requestId, outcome, audio: context, live });
       setForm(current => ({
         ...current, pool: current.pool.filter(id => !assignedIds.has(id)),
         players: [], captain: '', name: '', entryId: '', reason: '',
@@ -117,8 +120,11 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
 
   function updatePool(ids: string[]) { update({ pool: ids }); }
 
-  const currentResult = result && <DrawReveal key={result.id} outcome={result.outcome} entries={entries}
-    audio={sound ? result.audio : undefined} onComplete={() => setRevealing(false)} />;
+  const currentResult = result && ((result.live && result.outcome.kind === 'AUTO') || result.outcome.kind === 'PLAYER'
+    ? <LivePlayerWheel key={result.id} entries={result.outcome.entries} players={result.outcome.options} duo={tournament.mode === 'DUO'}
+        audio={sound ? result.audio : undefined} onComplete={() => setRevealing(false)} />
+    : <DrawReveal key={result.id} outcome={result.outcome} entries={entries}
+        audio={sound ? result.audio : undefined} onComplete={() => setRevealing(false)} />);
 
   return <div className={styles.formStack}>
     <div className={styles.drawOverview}>
@@ -184,15 +190,18 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
       {form.tool === 'PLAYER' && <section className={styles.formStack} aria-label="Player draw">
         {remainingEntries === 0 ? <p className={styles.notice}>All entry places are filled. Open Club wheel to assign club names.</p> : form.poolLocked ? <>
           {!revealing && <p className={styles.poolCount} role="status"><strong>{poolIds.length}</strong> players remain in this pool</p>}
-          <p className={styles.muted}>{tournament.mode === 'DUO' ? 'One draw reveals two players and saves them as a Duo team.' : 'One draw reveals and saves a complete entry.'}</p>
+          <p className={styles.muted}>Start once to save all {tournament.mode === 'DUO' ? 'pairs' : 'entries'} in this pool and reveal the players one by one. You can pause the reveal or show all results anytime.</p>
           <div className={styles.inlineActions}>
-            <button className={styles.goldButton} disabled={!canRandomize} type="button" onClick={() => void run({ kind: 'PLAYER', poolPlayerIds: poolIds })}><FcIcon name="football" /> Spin player wheel</button>
+            <button className={styles.goldButton} disabled={!canStartLive} type="button" onClick={() => void run({ kind: 'AUTO', poolPlayerIds: poolIds, live: true })}><FcIcon name="football" /> Start live draw</button>
             <button className={styles.subButton} type="button" onClick={() => { update({ pool: poolIds, poolLocked: false }); setResult(undefined); }}>Edit player pool</button>
           </div>
-          {!canRandomize && <p className={styles.muted}>Edit the pool to select enough available players for the next entry.</p>}
+          {!canStartLive && <p className={styles.muted}>Edit the pool so it contains complete {tournament.mode === 'DUO' ? 'pairs' : 'entries'}.</p>}
           {canRandomize && <details className={styles.formatList}>
-            <summary>Automatic assignment</summary>
-            <button className={styles.subButton} type="button" onClick={() => void run({ kind: 'AUTO', poolPlayerIds: poolIds })}>Form all selected teams without spinning</button>
+            <summary>Other draw options</summary>
+            <div className={styles.inlineActions}>
+              <button className={styles.subButton} type="button" onClick={() => void run({ kind: 'PLAYER', poolPlayerIds: poolIds })}>Draw one entry</button>
+              <button className={styles.subButton} type="button" onClick={() => void run({ kind: 'AUTO', poolPlayerIds: poolIds })}>Form all selected teams without spinning</button>
+            </div>
           </details>}
           {!revealing && remainingPool.length > 0 && <details className={styles.formatList}>
             <summary>Remaining players · {remainingPool.length}</summary>
@@ -259,7 +268,11 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
               return <li key={id}>{entry ? entryName(entry) : 'Former entry'}</li>;
             })}</ul>
           </div>)}</div> :
-          <ul>{latest.entries.map(entry => <li key={entry.id}>{entryName(entry)}</li>)}</ul>}
+          <>
+            {latest.kind === 'AUTO' && latest.entries.length > 0 && <button className={styles.subButton} type="button"
+              onClick={() => { setRevealing(true); setResult({ id: 'saved-player-draw', outcome: latest, live: true }); }}>Replay saved player draw</button>}
+            <ul>{latest.entries.map(entry => <li key={entry.id}>{entryName(entry)}</li>)}</ul>
+          </>}
       </div></details>
     ))}
     {!revealing && <Roster entries={entries} groups={tournament.groups} duo={tournament.mode === 'DUO'} expanded={editable} />}

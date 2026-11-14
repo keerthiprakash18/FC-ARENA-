@@ -31,10 +31,11 @@ export type Entry = {
   id: string; name: string | null; logo: string | null; groupId: string | null;
   members: Player[]; captainId: string; status: string; valid: boolean;
 };
-type DrawnEntry = Pick<Entry, 'id' | 'name' | 'members' | 'captainId'>;
+export type DrawnEntry = Pick<Entry, 'id' | 'name' | 'members' | 'captainId'>;
 export type GroupResult = { id: string; name: string; entryIds: string[] };
 export type Outcome =
-  | { kind: 'MANUAL' | 'PLAYER' | 'AUTO'; entries: DrawnEntry[]; unassigned: number; options?: Player[] }
+  | { kind: 'PLAYER'; entries: DrawnEntry[]; unassigned: number; options?: Player[] }
+  | { kind: 'MANUAL' | 'AUTO'; entries: DrawnEntry[]; unassigned: number; options?: Player[] }
   | { kind: 'CLUB'; entryId: string; winner: string; options: string[] }
   | { kind: 'GROUP'; groups: GroupResult[] };
 export type Studio = {

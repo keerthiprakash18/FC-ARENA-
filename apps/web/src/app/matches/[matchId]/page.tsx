@@ -1715,7 +1715,7 @@ function MatchRoom() {
                 </label>
               </div>)}
 
-              {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} prefix="corrected" gameCount={match.tournament.duoGamesPerFixture} homeScore={confirmed.homePenaltyScore} awayScore={confirmed.awayPenaltyScore} /> : null}
+              {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} prefix="corrected" homeScore={confirmed.homePenaltyScore} awayScore={confirmed.awayPenaltyScore} /> : null}
               <label className="fc-field-label">Correction reason <span className="theme-muted">Required · at least 3 characters</span>
               <textarea
                 name="correctionReason"

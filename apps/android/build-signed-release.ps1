@@ -14,6 +14,24 @@ function Normalize-Fingerprint {
     return (($Value -replace "[^0-9A-Fa-f]", "").ToUpperInvariant())
 }
 
+function Get-Sha256Hex {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $stream = [System.IO.File]::OpenRead($Path)
+    try {
+        $sha256 = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            return [System.BitConverter]::ToString($sha256.ComputeHash($stream)).Replace("-", "")
+        }
+        finally {
+            $sha256.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 function Get-PlainText {
     param([Security.SecureString]$SecureString)
 
@@ -85,7 +103,7 @@ function Get-GradleExecutable {
     Invoke-WebRequest -UseBasicParsing -Uri $shaUrl -OutFile $shaPath
 
     $expectedHash = (Get-Content $shaPath -Raw).Trim().Split(" ")[0].ToUpperInvariant()
-    $actualHash = (Get-FileHash -Algorithm SHA256 -Path $zipPath).Hash.ToUpperInvariant()
+    $actualHash = Get-Sha256Hex -Path $zipPath
 
     if ($actualHash -ne $expectedHash) {
         Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
@@ -372,7 +390,7 @@ try {
     New-Item -ItemType Directory -Force -Path $ReleaseDir | Out-Null
     Copy-Item -Force $RawAab $FinalAab
 
-    $fileHash = (Get-FileHash -Algorithm SHA256 -Path $FinalAab).Hash.ToUpperInvariant()
+    $fileHash = Get-Sha256Hex -Path $FinalAab
     $metadata = @(
         "FC ARENA Android Play release artifact"
         "file=$FinalName"

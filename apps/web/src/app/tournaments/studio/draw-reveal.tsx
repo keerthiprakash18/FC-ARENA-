@@ -85,7 +85,7 @@ export function DrawReveal({ outcome, entries, audio, onComplete }: {
         <span className={styles.wheelHub}><FcIcon name="football" /></span>
       </div>
       <div className={styles.wheelAnnouncement} role="status">
-        {winnerVisible ? <Winner player={{ id: club.winner, name: club.winner, avatar: null }} label="Club selected" /> : <p>Spinning…</p>}
+        {winnerVisible ? <Winner player={{ id: club.winner, name: club.winner, fullName: club.winner, playerCode: null, avatar: null }} label="Club selected" /> : <p>Spinning…</p>}
       </div>
       <button className={styles.subButton} type="button" onClick={skip}>Skip animation</button>
     </section>;
@@ -98,7 +98,7 @@ export function DrawReveal({ outcome, entries, audio, onComplete }: {
     {visible && <div aria-live="polite">
       {outcome.kind === 'CLUB' ? <>
         <h3 ref={resultHeading} tabIndex={-1}>Club assigned</h3>
-        <Winner player={{ id: outcome.winner, name: outcome.winner, avatar: null }}
+        <Winner player={{ id: outcome.winner, name: outcome.winner, fullName: outcome.winner, playerCode: null, avatar: null }}
           label={clubEntry?.members.map(player => player.name).join(' + ') || 'Selected team'} />
       </> :
         outcome.kind === 'GROUP' ? <>

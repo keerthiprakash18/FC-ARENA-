@@ -2,6 +2,7 @@
 .fc-app-shell .theme-top-header { background:var(--theme-header); }
 .fc-header-brand { min-width:44px; min-height:44px; justify-content:center; }
 .fc-header-actions { gap:8px; flex-shrink:0; }
+.fc-app-shell .fc-header-wordmark .theme-brand-accent { color:var(--fc-readable-accent,var(--theme-text)); }
 .fc-header-calendar { color:var(--theme-primary); background:var(--theme-primary-soft); border-color:var(--theme-border); }
 .fc-header-calendar:hover { background:var(--theme-secondary-background); border-color:var(--theme-primary); }
 @container fc-header (max-width:760px) {

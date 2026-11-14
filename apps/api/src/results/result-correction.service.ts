@@ -17,6 +17,7 @@ import {
 import type { CorrectResultDto } from './dto/correct-result.dto.js';
 import type { ReverseResultDto } from './dto/reverse-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { duoGamesJson, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg, assertUclFirstLegMutable } from './ucl-ties.js';
 
@@ -167,6 +168,8 @@ export class ResultCorrectionService {
           });
         }
 
+        const duoGames = validateDuoAggregate(match.tournament, home.members, away.members, dto);
+
         const isUclKnockout = match.tournament.competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF';
         if (isUclKnockout) await assertUclFirstLegMutable(tx, fixture);
         if (!isUclKnockout && (dto.homePenaltyScore != null || dto.awayPenaltyScore != null)) {
@@ -310,6 +313,7 @@ export class ResultCorrectionService {
 
               awayScore:
                 dto.awayScore,
+              duoGames: duoGamesJson(duoGames),
               homePenaltyScore: dto.homePenaltyScore ?? null,
               awayPenaltyScore: dto.awayPenaltyScore ?? null,
 
@@ -826,6 +830,7 @@ export class ResultCorrectionService {
 
         select: {
           format: true,
+          duoAggregateEnabled: true,
           competitionFormat:
             true,
           legType:
@@ -1038,6 +1043,16 @@ export class ResultCorrectionService {
           away.id,
           awayDelta,
         );
+      }
+
+      if (tournament.duoAggregateEnabled) {
+        const games = parseDuoGames(result.duoGames);
+        if (!games) throw new ConflictException('A confirmed Duo result has no valid individual-game breakdown.');
+        for (const game of games) {
+          await this.applyPlayerStatistic(tx, tournamentId, game.homePlayerId, this.calculateDelta(game.homeGoals, game.awayGoals));
+          await this.applyPlayerStatistic(tx, tournamentId, game.awayPlayerId, this.calculateDelta(game.awayGoals, game.homeGoals));
+        }
+        continue;
       }
 
       for (

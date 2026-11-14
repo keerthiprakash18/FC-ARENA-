@@ -675,7 +675,7 @@
 :root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar :is(.theme-sidebar-label, .theme-sidebar-muted, .theme-quick-action, .theme-nav-item) { color: var(--theme-sidebar-muted); }
 :root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar .theme-user-card { background: var(--theme-sidebar-secondary); border-color: var(--theme-sidebar-border); }
 :root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .premium-hero {
-  background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--theme-primary-bright) 18%, transparent), transparent 65%), linear-gradient(120deg, var(--club-matchday-start), var(--club-matchday-end)) !important;
+  background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--theme-primary-bright) 18%, transparent), transparent 65%), linear-gradient(120deg, var(--club-matchday-start), var(--club-matchday-end)) var(--arena-deep, #08121e) !important;
   border-color: color-mix(in srgb, var(--theme-primary-bright) 35%, var(--club-matchday-start));
 }
 :root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .premium-hero .premium-eyebrow { color: var(--club-matchday-accent) !important; }

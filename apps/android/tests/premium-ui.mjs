@@ -6,6 +6,7 @@ import path from 'node:path';
 import { chromium } from 'playwright';
 import { createUiContext, checkLayout, career } from './phase-ui-harness.mjs';
 import { phaseData, tournament, entries, war } from './phase-ui-fixtures.mjs';
+import { emptyExperience } from './daily-rewards-fixtures.mjs';
 
 const capture = process.env.PREMIUM_CAPTURE;
 const before = capture === 'before';
@@ -46,6 +47,11 @@ const publicData = {
   topPlayers: rows.map(row => ({ ...row, name: row.fullName, matches: 5, wins: 3, goalsFor: 8, goalDifference: 4 })),
 };
 const overrides = {
+  '/api/experience/players/phase3': emptyExperience,
+  '/api/admin/ops/player-activity': {
+    daily: 18, weekly: 34, signups: 12, day1Eligible: 10, day1Returned: 5,
+    day7Eligible: 6, day7Returned: 3, inviteApplications: 8, inviteApprovals: 6,
+  },
   '/api/players/me/career': populatedCareer,
   '/api/players/me/dashboard': { career: populatedCareer, memberships: phaseData['/api/leagues/my'].leagues, tournaments: [competition], fixtures: [dashboardFixture] },
   '/api/tournaments/phase3': { tournament: competition },

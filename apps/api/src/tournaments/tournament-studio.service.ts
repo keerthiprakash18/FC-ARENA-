@@ -13,7 +13,7 @@ const action = 'TOURNAMENT_STUDIO_DRAW';
 const targetType = 'TournamentStudioDraw';
 const userSelect = {
   id: true, fullName: true,
-  player: { select: { profileImageUrl: true, identity: { select: { inGameName: true } } } },
+  player: { select: { playerCode: true, profileImageUrl: true, identity: { select: { inGameName: true } } } },
 } as const;
 
 type PlayerUser = Prisma.UserGetPayload<{ select: typeof userSelect }>;
@@ -24,7 +24,11 @@ type StudioTournament = Prisma.TournamentGetPayload<{ include: {
 } }>;
 
 function toPlayer(user: PlayerUser) {
-  return { id: user.id, name: user.player?.identity?.inGameName || user.fullName, avatar: user.player?.profileImageUrl ?? null };
+  return {
+    id: user.id, name: user.player?.identity?.inGameName || user.fullName,
+    fullName: user.fullName, playerCode: user.player?.playerCode ?? null,
+    avatar: user.player?.profileImageUrl ?? null,
+  };
 }
 
 function shuffle<T>(values: readonly T[]) {
@@ -93,7 +97,7 @@ export class TournamentStudioService {
 
   private async snapshot(db: Prisma.TransactionClient, id: string) {
     const tournament = await this.tournament(db, id);
-    const [eligible, entries, draws, fixtures] = await Promise.all([
+    const [eligible, entries, draws, fixtures, league, leagueMembers] = await Promise.all([
       this.eligible(db, tournament.leagueId),
       this.entries(db, id),
       db.auditLog.findMany({
@@ -106,11 +110,26 @@ export class TournamentStudioService {
         where: { tournamentId: id }, orderBy: { sequence: 'asc' },
         select: { id: true, sequence: true, updatedAt: true, publishedAt: true, roundName: true, homeRegistrationId: true, awayRegistrationId: true },
       }),
+      db.league.findUniqueOrThrow({ where: { id: tournament.leagueId }, select: { id: true, name: true, code: true } }),
+      db.leagueMember.findMany({
+        where: { leagueId: tournament.leagueId },
+        select: { user: { select: { id: true, fullName: true, status: true, player: {
+          select: { playerCode: true, identity: { select: { inGameName: true } } },
+        } } } },
+      }),
     ]);
     const players = new Map(eligible.map(user => [user.id, toPlayer(user)]));
     const assigned = new Set(entries.flatMap(entry => entry.members.map(member => member.userId)));
     return {
       tournament, editable: isEditable(tournament), fixtures,
+      selectedLeague: { ...league, memberCount: leagueMembers.length },
+      eligiblePlayerCount: eligible.length,
+      unavailableMembers: leagueMembers.filter(member => !players.has(member.user.id)).map(member => ({
+        id: member.user.id,
+        name: member.user.player?.identity?.inGameName || member.user.fullName,
+        playerCode: member.user.player?.playerCode ?? null,
+        reason: member.user.status !== 'ACTIVE' ? 'Inactive account' : 'Game identity not set',
+      })).sort((a, b) => a.name.localeCompare(b.name)),
       publishedFixtureCount: fixtures.filter(fixture => fixture.publishedAt).length,
       revision: createHash('sha256').update(JSON.stringify({
         tournament, fixtures, entries, eligibility: entries.flatMap(entry => entry.members.map(member => players.has(member.userId))),
@@ -119,7 +138,7 @@ export class TournamentStudioService {
         entries: liveEntries(entries).map(entry => ({
           id: entry.id, name: entry.entryName, logo: entry.entryLogoUrl, groupId: entry.groupId, status: entry.status,
           captainId: entry.registeredByUserId,
-          members: entry.members.map(member => players.get(member.userId) ?? { id: member.userId, name: 'Ineligible player', avatar: null }),
+          members: entry.members.map(member => players.get(member.userId) ?? { id: member.userId, name: 'Ineligible player', fullName: '', playerCode: null, avatar: null }),
           valid: validEntry(entry, tournament.teamSize, playerId => players.has(playerId)),
         })),
         history: draws.map(draw => ({ requestId: draw.targetId, outcome: draw.afterData })),

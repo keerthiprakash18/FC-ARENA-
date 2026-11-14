@@ -1614,6 +1614,9 @@ function MatchRoom() {
               onSubmit={submitManualResult}
               className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 sm:gap-4"
             >
+              {match.tournament.duoAggregateEnabled ? (
+                <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="manual" disabled={busy || !draft.ready} />
+              ) : (<>
               <label className="grid gap-2 text-sm font-bold">
                 {home}
 
@@ -1650,6 +1653,7 @@ function MatchRoom() {
                 />
               </label>
 
+              </>)}
               {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} values={draft.manual} onChange={draft.setManual} /> : null}
               <button
                 disabled={busy || !draft.ready}
@@ -1675,7 +1679,10 @@ function MatchRoom() {
             </h2>
 
             <form onSubmit={correctResult} className="mt-6 grid gap-4">
-              <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+              {match.tournament.duoAggregateEnabled ? (
+                <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="corrected"
+                  initial={confirmed.duoGames} disabled={busy} />
+              ) : (<div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
                 <label className="grid gap-2 text-sm font-bold">
                   {home}
 
@@ -1705,7 +1712,7 @@ function MatchRoom() {
                     className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
                   />
                 </label>
-              </div>
+              </div>)}
 
               {supportsPenaltyScores(match) ? <PenaltyInputs home={home} away={away} prefix="corrected" homeScore={confirmed.homePenaltyScore} awayScore={confirmed.awayPenaltyScore} /> : null}
               <label className="fc-field-label">Correction reason <span className="theme-muted">Required · at least 3 characters</span>
@@ -1796,6 +1803,18 @@ function MatchRoom() {
                         {submission.submittedBy.player?.identity?.inGameName ||
                           submission.submittedBy.fullName}
                       </p>
+
+                      {submission.duoGames?.length === 2 && (
+                        <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[.05] p-3">
+                          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-amber-300">Verified Duo game breakdown</p>
+                          <ol className="grid gap-2">
+                            {submission.duoGames.map((game, index) => <li key={index} className="flex flex-wrap justify-between gap-2 text-sm">
+                              <span className="break-words">{duoMemberName(match.fixture.home, game.homePlayerId)} vs {duoMemberName(match.fixture.away, game.awayPlayerId)}</span>
+                              <strong className="tabular-nums">{game.homeGoals} – {game.awayGoals}</strong>
+                            </li>)}
+                          </ol>
+                        </div>
+                      )}
 
                       {submission.rejectionReason ? (
                         <p className="mt-2 text-sm text-red-300">

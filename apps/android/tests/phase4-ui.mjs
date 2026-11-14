@@ -11,6 +11,11 @@ try {
         width, native: profile === 'android', reducedMotion: profile === 'reduced' ? 'reduce' : 'no-preference',
         onMutation: async (route, headers) => {
           assert.equal(route.request().method(), 'POST');
+          if (new URL(route.request().url()).pathname === '/api/leagues/phase3/invites') {
+            return route.fulfill({ headers, json: { success: true, data: {
+              token: 'a'.repeat(48), expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+            }, error: null } });
+          }
           assert.equal(new URL(route.request().url()).pathname, '/api/tournaments/phase3/logo');
           await new Promise(resolve => setTimeout(resolve, 400));
           return route.fulfill({ headers, json: { success: true, data: { message: 'Uploaded', logoUrl: `data:image/png;base64,${png.toString('base64')}` }, error: null } });
@@ -40,7 +45,7 @@ try {
       await page.evaluate(() => { window.fixtureClipboard.fail = true; });
       await page.getByRole('button', { name: 'Copy code', exact: true }).click();
       await page.getByRole('alert').filter({ hasText: 'Copy the league code shown above.' }).waitFor();
-      await page.getByRole('button', { name: 'Show QR', exact: true }).click();
+      await page.getByRole('button', { name: 'Show invite QR', exact: true }).click();
       await page.getByAltText('Scan to join Arena League').waitFor();
       await page.getByRole('button', { name: 'Hide QR' }).click();
       assert.equal(await page.getByAltText('Scan to join Arena League').count(), 0);

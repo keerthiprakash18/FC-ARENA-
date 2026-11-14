@@ -104,7 +104,10 @@ async function prepare(page) {
         case '/api/tournaments/ui-test/standings': data = {tournament: {name:'Arena Championship'}, standings: [{position:1,registrationId:'team1',entryName:'Manchester Champions With A Very Long Name',played:10,wins:7,draws:2,losses:1,goalsFor:23,goalsAgainst:11,goalDifference:12,points:23,form:'WWDLW'}]}; break;
         case '/api/tournaments/ui-test/groups': data = {groups:[{id:'g1',name:'Group A',position:1,entries:[{id:'team1',entryName:'Manchester Champions With A Very Long Name',members:[]}]}]}; break;
         case '/api/tournaments/ui-test/my-statistics': data={statistic:null}; break;
-        case '/api/leagues/invite-test': data = {league:{id:'invite-test',name:'Arena Test League',code:'TEST-123',region:'India',members:2,maxMembers:20,pendingApplications:0,membershipType:'PRIMARY',adminRole:null,creator:{id:'smoke',fullName:'Test Admin'}}}; break;
+        case '/api/leagues/invite-test': data = {league:{id:'invite-test',name:'Arena Test League',code:'TEST-123',region:'India',members:2,maxMembers:20,pendingApplications:0,membershipType:'PRIMARY',adminRole:'OWNER',canManageMembers:true,creator:{id:'smoke',fullName:'Test Admin'}}}; break;
+        case '/api/leagues/invite-test/invites':
+          assert.equal(route.request().method(), 'POST');
+          data = { token: 'a'.repeat(48), expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString() }; break;
         case '/api/leagues/invite-test/tournaments': data = {tournaments:[]}; break;
         case '/api/matches/result-test': data = {match:{id:'result-test',matchCode:'M-TEST',status:'SCHEDULED',isLeagueAdmin:false,isParticipant:true,participantSide:'HOME',readiness:{homeReadyAt:null,awayReadyAt:null,homeReady:false,awayReady:false,bothReady:false},schedule:{scheduledAt:'2027-01-01T12:00:00Z',estimatedDeadlineAt:null,matchDurationMinutes:15},tournament:{id:'ui-test',name:'Arena Cup',mode:'SOLO',format:'ROUND_ROBIN'},league:{id:'invite-test',name:'Arena Test League',code:'TEST-123'},fixture:{id:'f1',fixtureCode:'F1',roundName:'Round 1',roundNumber:1,matchday:1,status:'SCHEDULED',scheduledAt:'2027-01-01T12:00:00Z',venue:null,home:{id:'home',entryName:'Home Player',members:[{id:'smoke',fullName:'Home Player'}]},away:{id:'away',entryName:'Away Player',members:[{id:'opponent',fullName:'Away Player'}]},homeSource:null,awaySource:null}}}; break;
         case '/api/matches/result-test/events': return route.fulfill({body:'event: connected\ndata: {"type":"connected"}\n\n',headers:{'content-type':'text/event-stream','access-control-allow-origin':'https://fcarena.in','access-control-allow-credentials':'true'}});
@@ -196,7 +199,7 @@ try {
         assert(await page.getByText('Redis history enabled').isVisible());
       }
       if(path === '/leagues/invite-test') {
-        await page.getByRole('button',{name:'Show QR',exact:true}).click();
+        await page.getByRole('button',{name:'Show invite QR',exact:true}).click();
         await page.getByAltText('Scan to join Arena Test League').waitFor();
         assert((await page.getByAltText('Scan to join Arena Test League').getAttribute('src')).startsWith('data:image/png;base64,'));
       }

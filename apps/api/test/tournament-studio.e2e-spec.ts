@@ -127,7 +127,7 @@ describe('Tournament Studio against PostgreSQL', () => {
       draw(cup, { kind: 'MANUAL', playerIds: players.slice(0, 3), captainId: players[1] }),
       draw(cup, { kind: 'MANUAL', playerIds: players.slice(0, 3), captainId: players[2] }),
     ]);
-    expect(race.map(result => result.status).sort()).toEqual([201, 409]);
+    expect(race.map(result => result.status).sort((left, right) => left - right)).toEqual([201, 409]);
     await draw(cup, { kind: 'PLAYER' }).expect(201);
     await draw(cup, { kind: 'AUTO' }).expect(409);
   });

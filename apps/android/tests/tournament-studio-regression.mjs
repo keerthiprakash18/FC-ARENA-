@@ -121,10 +121,12 @@ try {
     await page.reload({ waitUntil: 'domcontentloaded' });
     assert.equal(await page.getByLabel('Duo teams').inputValue(), '8');
     await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await page.getByRole('heading', { name: 'Basics', exact: true }).waitFor();
     assert.equal(await name.inputValue(), 'Friday Night Cup');
-    await name.press('Enter');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('heading', { name: 'Participants', exact: true }).waitFor();
     await snap('studio-participants');
-    await page.getByRole('button', { name: 'Create draft' }).click();
+    await page.getByRole('button', { name: 'Create draft', exact: true }).click();
     await page.getByRole('checkbox', { name: 'Vinod FC' }).check();
     await page.getByRole('checkbox', { name: 'Raja United' }).check();
     await page.getByLabel('Captain', { exact: true }).selectOption('p1');

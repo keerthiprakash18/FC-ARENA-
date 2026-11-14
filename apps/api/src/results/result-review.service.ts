@@ -64,6 +64,7 @@ export class ResultReviewService {
           id: true,
           homeScore: true,
           awayScore: true,
+          duoGames: true,
           homePenaltyScore: true,
           awayPenaltyScore: true,
           status: true,
@@ -89,7 +90,7 @@ export class ResultReviewService {
                     select: {
                       entryName: true,
                       members: {
-                        select: { user: { select: { fullName: true } } },
+                        select: { user: { select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } } } },
                       },
                     },
                   },
@@ -97,7 +98,7 @@ export class ResultReviewService {
                     select: {
                       entryName: true,
                       members: {
-                        select: { user: { select: { fullName: true } } },
+                        select: { user: { select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } } } },
                       },
                     },
                   },

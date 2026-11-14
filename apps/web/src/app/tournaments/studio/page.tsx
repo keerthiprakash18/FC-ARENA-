@@ -17,6 +17,7 @@ import styles from '../cup.module.css';
 const steps = ['Basics', 'Participants', 'Draw', 'Review'] as const;
 type SavedDraft = { settings: Settings; step: number; id?: string; dirty?: boolean; create?: { requestId: string; body: Settings } };
 type Envelope<T> = { data: T };
+type LeagueChoice = { adminRole: string | null; league: { id: string; name: string; code: string } };
 
 export default function TournamentStudioPage() {
   const params = useSearchParams();
@@ -45,6 +46,7 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [storageAvailable, setStorageAvailable] = useState(true);
+  const [leagues, setLeagues] = useState<LeagueChoice[]>([]);
   const lock = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const fallback: Settings = {
@@ -52,6 +54,14 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
     competitionFormat: Object.hasOwn(formats, initialFormat) ? initialFormat as Format : 'LEAGUE_ROUND_ROBIN',
     maxEntries: 16, teamSize: 4, registrationMode: 'ADMIN_ONLY', description: '',
   };
+  useEffect(() => {
+    let mounted = true;
+    void authenticatedRequest<Envelope<{ leagues: LeagueChoice[] }>>('/leagues/my')
+      .then(response => { if (mounted) setLeagues(response.data.leagues.filter(item => Boolean(item.adminRole))); })
+      .catch(() => { /* Existing tournament access is checked by the API. */ });
+    return () => { mounted = false; };
+  }, [userId]);
+
   useEffect(() => {
     const local = readStored<SavedDraft>(key);
     const setup = local ?? { settings: fallback, step: draftId ? 2 : 0, id: draftId || undefined };
@@ -169,6 +179,16 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
       if (settings.name.trim().length >= 3) move(1);
       else setError('Enter a tournament name with at least three characters.'); }}>
       <fieldset disabled={Boolean(saved.create) || !editableSetup} className={styles.formStack}>
+        <label>League (only members of this league appear in the player draw)
+          <select value={leagueId} disabled={Boolean(id)} onChange={event => {
+            router.push('/tournaments/studio?leagueId=' + encodeURIComponent(event.target.value) +
+              (initialMode ? '&mode=' + encodeURIComponent(initialMode) : '') +
+              (initialFormat ? '&format=' + encodeURIComponent(initialFormat) : ''));
+          }}>
+            {!leagues.some(item => item.league.id === leagueId) && <option value={leagueId}>Selected league</option>}
+            {leagues.map(item => <option key={item.league.id} value={item.league.id}>{item.league.name} · {item.league.code}</option>)}
+          </select>
+        </label>
         <label>Tournament name<input value={settings.name} onChange={event => update({ name: event.target.value })} autoComplete="off" maxLength={120} required /></label>
         <fieldset disabled={modeLocked}>
           <legend>Participation mode</legend>

@@ -37,7 +37,7 @@ export type DrawnEntry = Pick<Entry, 'id' | 'name' | 'members' | 'captainId'>;
 export type GroupResult = { id: string; name: string; entryIds: string[] };
 export type Outcome =
   | { kind: 'PLAYER'; entries: DrawnEntry[]; unassigned: number; options?: Player[] }
-  | { kind: 'MANUAL' | 'AUTO'; entries: DrawnEntry[]; unassigned: number; options?: Player[] }
+  | { kind: 'MANUAL' | 'AUTO' | 'IMPORT'; entries: DrawnEntry[]; unassigned: number; options?: Player[] }
   | { kind: 'CLUB'; entryId: string; winner: string; options: string[] }
   | { kind: 'GROUP'; groups: GroupResult[] };
 export type Studio = {
@@ -52,9 +52,10 @@ export type Fixture = {
   id: string; roundName: string; sequence: number; homeRegistrationId: string | null;
   awayRegistrationId: string | null;
 };
+export type DuoPair = { name?: string; playerIds: string[] };
 export type DrawCommand = {
   kind: Outcome['kind']; playerIds?: string[]; poolPlayerIds?: string[]; captainId?: string; name?: string;
-  entryId?: string; reason?: string; groupCount?: number; clubs?: string[];
+  pairs?: DuoPair[]; entryId?: string; reason?: string; groupCount?: number; clubs?: string[];
 };
 
 export function entryName(entry: Pick<Entry, 'name' | 'members'>) {

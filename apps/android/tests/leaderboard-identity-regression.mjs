@@ -24,7 +24,7 @@ try {
       const search = f.page.getByRole('searchbox', { name: 'Find a player or team', exact: true });
       await search.waitFor();
       if (process.env.SMOKE_OUTPUT && width !== 320) {
-        await f.page.getByRole('list', { name: 'Top three players' }).waitFor();
+        await (width >= 768 ? f.page.getByRole('table') : f.page.getByRole('list', { name: 'League player rankings' })).waitFor();
         await f.page.screenshot({path:join(process.env.SMOKE_OUTPUT, `populated-leaderboard-${width}.png`),fullPage:true,animations:'disabled'});
       }
       await search.fill('south korea');

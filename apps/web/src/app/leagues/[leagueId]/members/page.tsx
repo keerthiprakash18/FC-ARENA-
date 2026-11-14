@@ -25,6 +25,7 @@ import {
 } from '@/components/app/back-header';
 
 import {
+  FcCrest,
   FcLoadingScreen,
   FcPanel,
   FcStatusBadge,
@@ -62,6 +63,7 @@ interface LeagueMember {
     id: string;
     fullName: string;
     playerCode: string | null;
+    profileImageUrl?: string | null;
     inGameName: string | null;
     identityVerified: boolean;
 
@@ -347,130 +349,36 @@ export default function LeagueMembersPage() {
         <FcNotice tone="error">{error}</FcNotice>
 
 
-        <FcPanel className="p-5">
-          <form
-            onSubmit={
-              searchMembers
-            }
-            className="flex flex-col gap-3 sm:flex-row"
-          >
-            <input
-              value={
-                search
-              }
-              onChange={
-                (
-                  event,
-                ) =>
-                  setSearch(
-                    event
-                      .target
-                      .value,
-                  )
-              }
-              placeholder="Search member..."
-              aria-label="Search league members"
-              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
-            />
+        <form onSubmit={searchMembers} className="fc-directory-search" role="search" aria-label="Find league members">
+          <input type="search" value={search} onChange={event => setSearch(event.target.value)}
+            placeholder="Name or Player ID" aria-label="Search league members" className="theme-input" />
+          <button type="submit" className="theme-secondary-button">Search</button>
+        </form>
 
-            <button
-              type="submit"
-              className="rounded-xl border border-sky-400/20 px-5 py-3 text-sm font-black text-sky-300"
-            >
-              Search
-            </button>
-          </form>
-        </FcPanel>
-
-
-        <section className="grid gap-3 lg:grid-cols-2">
-          {members.map(
-            (
-              member,
-            ) => (
-              <FcPanel
-                key={
-                  member.membershipId
-                }
-                className="p-5"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap gap-2">
-                      <FcStatusBadge
-                        label={
-                          member.membershipType
-                        }
-                        tone="cyan"
-                      />
-
-                      {member.user.adminRole ? (
-                        <FcStatusBadge
-                          label={
-                            member.user.adminRole
-                          }
-                          tone="amber"
-                        />
-                      ) : null}
-
-                      {member.user.identityVerified ? (
-                        <FcStatusBadge
-                          label="Verified"
-                          tone="emerald"
-                        />
-                      ) : null}
-                    </div>
-
-                    <h2 className="mt-4 truncate text-lg font-black">
-                      {member.user.inGameName ||
-                        member.user.fullName}
-                    </h2>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      {
-                        member.user.fullName
-                      }
-                    </p>
-
-                    <p className="mt-2 font-mono text-xs text-sky-400">
-                      {member.user.playerCode ||
-                        'Player ID pending'}
-                    </p>
+        {members.length > 0 && <ul className="fc-directory" aria-label="League members">
+          {members.map(member => {
+            const { user: player } = member;
+            const name = player.inGameName || player.fullName;
+            const canRemove = isAdmin && player.adminRole !== 'OWNER' && player.id !== user.id;
+            return <li key={member.membershipId}>
+              <div className="fc-directory-row">
+                <span aria-hidden="true"><FcCrest name={name} imageUrl={player.profileImageUrl} size="sm" /></span>
+                <div className="fc-directory-identity">
+                  <h2>{name}</h2>
+                  <p>{player.fullName !== name && <>{player.fullName} · </>}{player.playerCode || 'Player ID pending'}<span className="fc-directory-inline-date"> · {new Date(member.joinedAt).toLocaleDateString()}</span></p>
+                  <div className="fc-directory-tags">
+                    <FcStatusBadge label={member.membershipType === 'PRIMARY' ? 'Primary' : 'Secondary'} tone="cyan" />
+                    {player.adminRole && <FcStatusBadge label={player.adminRole === 'OWNER' ? 'Owner' : 'Admin'} tone="amber" />}
+                    {player.identityVerified && <FcStatusBadge label="Verified" tone="emerald" />}
                   </div>
-
-                  {isAdmin &&
-                  member.user.adminRole !==
-                    'OWNER' &&
-                  member.user.id !==
-                    user.id ? (
-                    <button
-                      type="button"
-                      disabled={
-                        busy
-                      }
-                      onClick={() =>
-                        void removeMember(
-                          member,
-                        )
-                      }
-                      className="rounded-xl border border-red-400/20 px-3 py-2 text-xs font-black text-red-300 disabled:opacity-40"
-                    >
-                      Remove
-                    </button>
-                  ) : null}
                 </div>
-
-                <p className="mt-4 text-xs text-slate-600">
-                  Joined{' '}
-                  {new Date(
-                    member.joinedAt,
-                  ).toLocaleDateString()}
-                </p>
-              </FcPanel>
-            ),
-          )}
-        </section>
-
+                <time dateTime={member.joinedAt} className="fc-directory-date">Joined {new Date(member.joinedAt).toLocaleDateString()}</time>
+                {canRemove && <button type="button" disabled={busy} className="fc-member-remove theme-danger"
+                  aria-label={'Remove ' + name} onClick={() => void removeMember(member)}>Remove</button>}
+              </div>
+            </li>;
+          })}
+        </ul>}
 
         {members.length ===
         0 ? (

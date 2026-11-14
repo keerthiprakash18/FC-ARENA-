@@ -286,3 +286,45 @@
   border-color: var(--arena-line) !important;
   color: var(--arena-ivory) !important;
 }
+
+.fc-directory-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  max-width: 36rem;
+  gap: .5rem;
+}
+.fc-directory-search > :is(input,button) { min-height: 44px; padding-inline: .8rem; border-radius: .7rem; }
+.fc-directory-search input { width: 100%; font-size: 1rem; }
+.fc-directory { overflow: hidden; list-style: none; border-radius: var(--arena-card-radius); border: 1px solid var(--theme-border); background: var(--theme-surface); }
+.fc-directory > li + li { border-top: 1px solid var(--theme-border); }
+.fc-directory-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .55rem;
+  min-height: 76px;
+  padding: .55rem .7rem;
+}
+.fc-directory-identity { min-width: 0; overflow-wrap: anywhere; }
+.fc-directory-identity h2 { color: var(--theme-text); font-size: .98rem; font-weight: 700; line-height: 1.2; }
+.fc-directory-identity > p:not(.theme-text), .fc-directory-date { color: var(--theme-text-secondary); font-size: .75rem; }
+.fc-directory-identity > p { margin-top: .12rem; }
+.fc-directory-tags { display: flex; gap: .25rem; flex-wrap: wrap; margin-top: .25rem; }
+.fc-premium .fc-main .fc-directory-tags .theme-status-badge { padding: .08rem .4rem; font-size: .65rem; }
+.fc-directory-date { display: none; }
+.fc-directory-inline-date { white-space: nowrap; }
+.fc-member-remove { min-height: 44px; grid-column: -2 / -1; font-size: .78rem; font-weight: 650; padding-inline: .4rem; }
+.fc-directory-ranking { grid-template-columns: auto auto minmax(0, 1fr) auto; min-height: 65px; }
+.fc-directory-points { text-align: end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fc-directory .fc-directory-stats { padding: 0 .7rem .3rem; margin-top: 0; border: 0; }
+.fc-directory .fc-directory-stats summary { min-height: 32px; font-size: .74rem; }
+@media (min-width: 768px) {
+  .fc-directory-row:not(.fc-directory-ranking) { grid-template-columns: auto minmax(0, 1fr) minmax(7rem, auto) 5rem; padding-inline: 1rem; }
+  .fc-directory-date { display: block; }
+  .fc-directory-rankings { display: none; }
+  .fc-directory-inline-date { display: none; }
+}
+@media (max-width: 767px) {
+  .fc-directory-ranking > .theme-crest { width: 30px; height: 30px; }
+  .fc-directory-ranking .fc-rank-medal { min-width: 26px; min-height: 28px; }
+}

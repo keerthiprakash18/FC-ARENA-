@@ -146,6 +146,18 @@ try {
     await page.getByRole('heading', { name: 'Participants', exact: true }).waitFor();
     await snap('studio-participants');
     await page.getByRole('button', { name: 'Create draft', exact: true }).click();
+    await page.getByRole('button', { name: 'Import pairs' }).click();
+    const imported = page.getByRole('region', { name: 'Import Duo teams' });
+    await imported.getByLabel('Team list').fill('Liverpool | Vinod FC | Raja United\nMilan | Vinod FC | Unknown player');
+    await imported.getByRole('button', { name: 'Preview team list' }).click();
+    await imported.getByText('Unavailable in this league: Unknown player').waitFor();
+    assert(await imported.getByRole('button', { name: 'Add 1 Duo team' }).isDisabled());
+    await imported.getByLabel('Team list').fill('Liverpool | Vinod FC | Raja United\nMilan | Mithun | Gokul');
+    await imported.getByRole('button', { name: 'Preview team list' }).click();
+    await imported.getByText('2 of 2 teams ready').waitFor();
+    assert(await imported.getByRole('button', { name: 'Add 2 Duo teams' }).isEnabled());
+    await checkLayout(page, 'import Duo pairs ' + width);
+    await page.getByRole('button', { name: 'Player wheel', exact: true }).click();
     await page.getByRole('button', { name: 'Select up to 40 eligible players' }).click();
     await page.getByText('Selected 40 of 40 players', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Confirm 40 selected players' }).click();

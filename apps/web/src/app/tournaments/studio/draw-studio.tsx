@@ -7,15 +7,16 @@ import { FootballTeamPicker } from '@/components/tournaments/football-team-picke
 import { ApiError } from '@/lib/api';
 import { authenticatedRequest } from '@/lib/auth-client';
 import { DrawReveal } from './draw-reveal';
+import { ImportDuoPairs } from './import-duo-pairs';
 import { LivePlayerWheel } from './live-player-wheel';
 import { entryName, readStored, storeLocally, type DrawCommand, type Outcome, type Player, type Studio } from './studio-model';
 import styles from '../cup.module.css';
 
-type Tool = 'MANUAL' | 'PLAYER' | 'CLUB' | 'GROUP';
+type Tool = 'MANUAL' | 'PLAYER' | 'CLUB' | 'GROUP' | 'IMPORT';
 type Pending = DrawCommand & { requestId: string; live?: true };
 type Form = { tool: Tool; players: string[]; pool: string[]; poolLocked: boolean; name: string; captain: string; entryId: string; reason: string; clubs: string; groups: number | '' };
 const initial: Form = { tool: 'PLAYER', players: [], pool: [], poolLocked: false, name: '', captain: '', entryId: '', reason: '', clubs: '', groups: '' };
-const tools: [Tool, string][] = [['PLAYER', 'Player wheel'], ['CLUB', 'Club wheel'], ['GROUP', 'Group draw'], ['MANUAL', 'Manual']];
+const tools: [Tool, string][] = [['IMPORT', 'Import pairs'], ['PLAYER', 'Player wheel'], ['CLUB', 'Club wheel'], ['GROUP', 'Group draw'], ['MANUAL', 'Manual']];
 
 export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: Studio; endpoint: string; storageKey: string; reload: () => Promise<Studio> }) {
   const [form, setForm] = useState(() => ({ ...initial, ...readStored<Partial<Form>>(storageKey + ':form') }));
@@ -75,9 +76,9 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
     setForm(current => ({ ...current, tool, entryId: '', reason: '' }));
   }
   async function run(command?: DrawCommand & { live?: true }) {
-    if (lock.current) return;
+    if (lock.current) return false;
     const intent = pending ?? (command ? { ...command, requestId: crypto.randomUUID() } : null);
-    if (!intent) return;
+    if (!intent) return false;
     lock.current = true;
     setWorking(true);
     setError('');
@@ -108,6 +109,8 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
         setRefreshRequired(true);
         setError('The result was saved. Refresh the roster before starting another draw.');
       }
+      if (outcome.kind === 'IMPORT') storeLocally(storageKey + ':import', null);
+      return true;
     } catch (cause) {
       if (cause instanceof ApiError && [400, 403, 404, 409].includes(cause.status) && cause.code !== 'CONCURRENT_UPDATE') {
         setPending(null);
@@ -117,6 +120,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
       if (cause instanceof ApiError && cause.status === 409 && cause.code !== 'CONCURRENT_UPDATE') {
         try { await reload(); } catch { setRefreshRequired(true); }
       }
+      return false;
     } finally { setWorking(false); lock.current = false; }
   }
 
@@ -150,11 +154,16 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
     </div>}
     {!editable && <p className={styles.notice}>Draws are locked after fixture preview or publication. The roster and saved outcomes are available below.</p>}
     {editable && <fieldset disabled={drawBusy} className={styles.formStack}>
+      {tournament.mode === 'DUO' && form.tool !== 'IMPORT' && entries.length === 0 &&
+        <p className={styles.muted}>Already have your teams? Choose Import pairs to keep those pairings.</p>}
       <div className={styles.drawTools} role="group" aria-label="Draw tools">
-        {tools.filter(([value]) => value !== 'GROUP' || tournament.competitionFormat === 'GROUP_STAGE_KNOCKOUT').map(([value, label]) => (
+        {tools.filter(([value]) => (value !== 'GROUP' || tournament.competitionFormat === 'GROUP_STAGE_KNOCKOUT') &&
+          (value !== 'IMPORT' || tournament.mode === 'DUO')).map(([value, label]) => (
           <button key={value} type="button" className={styles.subButton} aria-pressed={form.tool === value} onClick={() => selectTool(value)}>{label}</button>
         ))}
       </div>
+      {form.tool === 'IMPORT' && tournament.mode === 'DUO' && <ImportDuoPairs studio={studio} storageKey={storageKey + ':import'}
+        onImport={pairs => run({ kind: 'IMPORT', pairs })} />}
       {form.tool === 'MANUAL' && <form className={styles.formStack} onSubmit={event => {
         event.preventDefault();
         void run({ kind: 'MANUAL', playerIds: form.players, captainId: form.captain || form.players[0], name: form.name, entryId: editing?.id, reason: form.reason });

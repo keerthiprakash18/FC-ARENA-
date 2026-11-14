@@ -489,57 +489,13 @@ export default function LeaderboardsPage() {
                 />
               ) : (
                 <>
-                  {!query ? (
-                    <ol className="fc-rank-podium" aria-label="Top three players">
-                      {rankings.slice(0, 3).map(row => (
-                        <li key={row.userId} data-position={row.position} data-player-id={row.userId}>
-                          <FcPanel className={row.position === 1 ? "fc-rank-card fc-rank-spotlight" : "fc-rank-card"}>
-                            <div className="fc-rank-identity">
-                              <span className="fc-rank-medal" aria-label={'Rank ' + row.position}>#{row.position}</span>
-                              <FcCrest name={playerName(row)} imageUrl={row.profileImageUrl} size="sm" />
-                              <div className="min-w-0">
-                                <h2 className="theme-text font-semibold">{playerName(row)}</h2>
-                                <EntryNames row={row} />
-                              </div>
-                              <div className="fc-rank-score">
-                                <strong>{row.performancePoints}</strong>
-                                <span>Points</span>
-                              </div>
-                            </div>
-                            <dl className="fc-rank-stats">
-                              <div><dt>Wins</dt><dd>{row.wins}</dd></div>
-                              <div><dt>Win rate</dt><dd>{row.winRate}%</dd></div>
-                              <div><dt>Goal difference</dt><dd>{row.goalDifference > 0 ? "+" : ""}{row.goalDifference}</dd></div>
-                            </dl>
-                            <p className="theme-secondary-text text-xs">
-                              {row.matches} matches · {row.tournamentsPlayed} tournaments · {row.goalsFor} GF · {row.goalsAgainst} GA
-                              {row.rankChange == null
-                                ? " · No previous rank"
-                                : row.rankChange > 0
-                                  ? ' · Up ' + row.rankChange + ' places'
-                                  : row.rankChange < 0
-                                    ? ' · Down ' + Math.abs(row.rankChange) + ' places'
-                                    : " · No rank change"}
-                            </p>
-                          </FcPanel>
-                        </li>
-                      ))}
-                    </ol>
-                  ) : null}
-
-                  <div className="grid gap-3 md:hidden">
-                    {rankings.slice(query ? 0 : 3).map((row) => (
-                      <FcPanel
-                        key={row.userId}
-                        className={
-                          "p-4 " +
-                          (row.userId === userId ? "theme-soft-accent" : "")
-                        }
-                      >
-                        <div data-player-id={row.userId} className="flex items-center gap-3">
-                          <span className="theme-tone-premium grid h-10 min-w-10 place-items-center rounded-xl border px-2 font-bold">
+                  <ol className="fc-directory fc-directory-rankings md:hidden" aria-label="League player rankings">
+                    {rankings.map((row) => (
+                      <li key={row.userId} className={row.userId === userId ? "theme-soft-accent" : undefined}>
+                        <div data-player-id={row.userId} className="fc-directory-row fc-directory-ranking">
+                          <span className="fc-rank-medal" aria-label={"Rank " + row.position}>
                             #{row.position}
-                            <span className="ml-1 text-xs" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
+                            <span className="text-[10px]" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null || row.rankChange === 0 ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
                           </span>
 
                           <FcCrest
@@ -548,20 +504,19 @@ export default function LeaderboardsPage() {
                             size="sm"
                           />
 
-                          <div className="min-w-0 flex-1">
-                            <p className="theme-text truncate font-semibold">
+                          <div className="fc-directory-identity">
+                            <p className="theme-text font-semibold">
                               {playerName(row)}
                             </p>
                             <EntryNames row={row} />
 
                             <p className="theme-muted mt-0.5 text-[10px]">
-                              {row.tournamentsPlayed} tournaments ·{" "}
-                              {row.matches} matches
+                              {row.matches} matches · {row.tournamentsPlayed} tournaments
                             </p>
                           </div>
 
-                          <div className="text-right">
-                            <p className="theme-text-link font-bold">
+                          <div className="fc-directory-points">
+                            <p className="theme-text font-bold">
                               {row.performancePoints} pts
                             </p>
 
@@ -571,7 +526,7 @@ export default function LeaderboardsPage() {
                           </div>
                         </div>
 
-                         <details className="fc-row-details"><summary>Statistics &amp; recent form</summary>
+                         <details className="fc-row-details fc-directory-stats"><summary>Stats &amp; form</summary>
                          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                           {[
                             ["W", row.wins],
@@ -619,9 +574,9 @@ export default function LeaderboardsPage() {
                           </div>
                          ) : null}
                          </details>
-                       </FcPanel>
+                      </li>
                     ))}
-                  </div>
+                  </ol>
 
                   <FcPanel className="hidden overflow-hidden md:block">
                     <div className="fc-scroll-region overflow-x-auto" tabIndex={0} role="region" aria-label="League leaderboard table">
@@ -670,7 +625,7 @@ export default function LeaderboardsPage() {
                             >
                               <td className="theme-text px-4 py-3 font-bold">
                                 #{row.position}
-                            <span className="ml-1 text-xs" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
+                            <span className="text-[10px]" aria-label={row.rankChange == null ? "No previous rank" : `Rank change ${row.rankChange}`}>{row.rankChange == null ? "" : row.rankChange > 0 ? `↑${row.rankChange}` : row.rankChange < 0 ? `↓${Math.abs(row.rankChange)}` : "—"}</span>
                               </td>
 
                               <td className="px-4 py-3">

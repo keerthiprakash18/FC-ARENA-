@@ -121,6 +121,27 @@ describe('Tournament Studio against PostgreSQL', () => {
     expect(roster.availablePlayers).toHaveLength(3);
   });
 
+  it('imports existing Duo names and pairs atomically and retries without adding duplicates', async () => {
+    const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 20 })).expect(201)).body.data.tournament.id;
+    const names = Array.from({ length: 20 }, (_, index) => ({ name: 'Duo club ' + (index + 1), playerIds: players.slice(index * 2, index * 2 + 2) }));
+    const command = { kind: 'IMPORT', requestId: randomUUID(), pairs: names };
+    await draw(cup, command, visitor).expect(403);
+    await draw(cup, { kind: 'IMPORT', pairs: [names[0], { ...names[1], playerIds: [players[0], players[2]] }] }).expect(400);
+    await draw(cup, { kind: 'IMPORT', pairs: [names[0], { ...names[1], playerIds: [outsider, players[2]] }] }).expect(409);
+    await draw(cup, { kind: 'IMPORT', pairs: [names[0], { ...names[1], name: ' DUO CLUB 1 ' }] }).expect(409);
+    expect((await state(cup)).entries).toHaveLength(0);
+    const first = await draw(cup, command).expect(201);
+    const retry = await draw(cup, command).expect(201);
+    expect(first.body.data).toEqual(retry.body.data);
+    const roster = (await state(cup)).entries;
+    expect(roster).toHaveLength(20);
+    for (const [index, input] of names.entries()) {
+      expect(roster[index].name).toBe(input.name);
+      expect(roster[index].captainId).toBe(input.playerIds[0]);
+      expect(roster[index].members.map((member: {id:string}) => member.id).sort()).toEqual([...input.playerIds].sort());
+    }
+  });
+
   it('allocates distinct Duo teams, handles odd players and reconnects to the persisted wheel outcome', async () => {
     const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 128 })).expect(201)).body.data.tournament.id;
     const command = { kind: 'PLAYER', requestId: randomUUID() };

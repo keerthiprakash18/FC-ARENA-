@@ -549,42 +549,6 @@
   overflow-wrap: anywhere;
 }
 
-.fc-premium .fc-main .fc-rank-podium {
-  display: grid;
-  gap: var(--fc-space-3);
-  list-style: none;
-}
-
-.fc-rank-podium > li {
-  min-width: 0;
-}
-
-.fc-rank-card {
-  display: grid;
-  min-height: 100%;
-  align-content: center;
-  gap: var(--fc-space-3);
-  padding: clamp(14px, 1.8vw, 24px);
-}
-
-.fc-rank-identity {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: clamp(5px, 1.3vw, 12px);
-}
-
-.fc-rank-identity h2 {
-  overflow-wrap: anywhere;
-  font-size: clamp(0.9375rem, 1.8vw, 1.25rem);
-  letter-spacing: -0.025em;
-}
-
-.fc-premium .fc-main .fc-rank-spotlight {
-  border-color: color-mix(in srgb, var(--theme-primary) 32%, var(--theme-border)) !important;
-  background: var(--fc-selected-surface) !important;
-}
-
 .fc-rank-medal {
   display: grid;
   min-width: 34px;
@@ -595,65 +559,6 @@
   background: var(--theme-primary-soft);
   font-size: 0.75rem;
   font-weight: 740;
-}
-
-.fc-rank-score {
-  display: grid;
-  justify-items: end;
-  color: var(--fc-readable-accent);
-  font-size: 0.75rem;
-}
-
-.fc-rank-score strong {
-  color: var(--theme-text);
-  font-size: clamp(1.4rem, 3vw, 2.5rem);
-  font-weight: 740;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.055em;
-  line-height: 1;
-}
-
-.fc-rank-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--fc-space-2);
-  border-block: 1px solid var(--theme-border);
-  padding-block: var(--fc-space-2);
-}
-
-.fc-rank-stats dt {
-  color: var(--theme-text-secondary);
-  font-size: 0.75rem;
-}
-
-.fc-rank-stats dd {
-  color: var(--theme-text);
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
-
-@media (min-width: 900px) {
-  .fc-premium .fc-main .fc-rank-podium {
-    grid-template-columns: minmax(0, 1.13fr) minmax(0, 1fr);
-  }
-
-  .fc-rank-podium:has(> :nth-child(3)) > li:first-child {
-    grid-row: span 2;
-  }
-
-  .fc-rank-podium > li:only-child {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 400px) {
-  .fc-rank-identity {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .fc-rank-identity > .theme-crest {
-    display: none;
-  }
 }
 
 .fc-premium .fc-main .fc-ranked-table :is(th, td),

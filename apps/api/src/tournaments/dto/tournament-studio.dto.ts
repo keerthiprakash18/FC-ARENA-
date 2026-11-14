@@ -1,4 +1,5 @@
-import { ArrayMaxSize, ArrayMinSize, ArrayUnique, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Matches, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayMaxSize, ArrayMinSize, ArrayUnique, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Matches, Min, ValidateNested } from 'class-validator';
 import { CreateTournamentDto } from './create-tournament.dto.js';
 
 export class CreateStudioDraftDto extends CreateTournamentDto {
@@ -6,12 +7,26 @@ export class CreateStudioDraftDto extends CreateTournamentDto {
   requestId!: string;
 }
 
+export class ImportDuoPairDto {
+  @IsArray()
+  @ArrayMinSize(2)
+  @ArrayMaxSize(2)
+  @ArrayUnique()
+  @IsUUID('4', { each: true })
+  playerIds!: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  name?: string;
+}
+
 export class TournamentDrawDto {
   @IsUUID('4')
   requestId!: string;
 
-  @IsIn(['MANUAL', 'PLAYER', 'AUTO', 'CLUB', 'GROUP'])
-  kind!: 'MANUAL' | 'PLAYER' | 'AUTO' | 'CLUB' | 'GROUP';
+  @IsIn(['MANUAL', 'PLAYER', 'AUTO', 'CLUB', 'GROUP', 'IMPORT'])
+  kind!: 'MANUAL' | 'PLAYER' | 'AUTO' | 'CLUB' | 'GROUP' | 'IMPORT';
 
   @IsOptional()
   @IsArray()
@@ -19,6 +34,14 @@ export class TournamentDrawDto {
   @ArrayMaxSize(11)
   @IsUUID('4', { each: true })
   playerIds?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(128)
+  @ValidateNested({ each: true })
+  @Type(() => ImportDuoPairDto)
+  pairs?: ImportDuoPairDto[];
 
   @IsOptional()
   @IsArray()

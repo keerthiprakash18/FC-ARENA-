@@ -180,6 +180,7 @@ export class TournamentStudioService {
     if (dto.poolPlayerIds && dto.kind !== 'PLAYER' && dto.kind !== 'AUTO') {
       throw new BadRequestException('The player pool is only used for random player draws.');
     }
+    if (dto.pairs && dto.kind !== 'IMPORT') throw new BadRequestException('Pairs are only accepted when importing Duo teams.');
     const fingerprint = JSON.stringify(Object.entries(dto).filter(([, value]) => value !== undefined).sort(([a], [b]) => a.localeCompare(b)));
     const result = await this.prisma.$transactionWithRetry(async tx => {
       await tx.$queryRaw`SELECT id FROM tournaments WHERE id = ${id}::uuid FOR UPDATE`;
@@ -240,7 +241,16 @@ export class TournamentStudioService {
     const size = tournament.teamSize;
     const requested = dto.playerIds ?? [];
     let squads: string[][];
-    if (dto.kind === 'MANUAL') {
+    if (dto.kind === 'IMPORT') {
+      if (tournament.mode !== 'DUO' || size !== 2 || !dto.pairs?.length || dto.entryId || dto.captainId || requested.length) {
+        throw new BadRequestException('Choose a Duo tournament and provide complete pairs.');
+      }
+      if (dto.pairs.length > remaining) throw new ConflictException('The list exceeds the remaining team capacity.');
+      squads = dto.pairs.map(pair => pair.playerIds);
+      const ids = squads.flat();
+      if (new Set(ids).size !== ids.length) throw new BadRequestException('A player appears in more than one Duo team.');
+      if (ids.some(id => !playerMap.has(id))) throw new ConflictException('Some players are already assigned or no longer eligible in this league.');
+    } else if (dto.kind === 'MANUAL') {
       if (requested.length !== size || new Set(requested).size !== size) throw new BadRequestException('Choose exactly ' + size + ' distinct eligible players.');
       if (requested.some(id => !playerMap.has(id))) throw new ConflictException('One or more players are assigned already or are no longer eligible.');
       squads = [requested];
@@ -261,14 +271,20 @@ export class TournamentStudioService {
       throw new BadRequestException('Choose a captain from the selected players.');
     }
 
-    const name = dto.kind === 'MANUAL' ? dto.name?.trim() || null : null;
-    if (name && liveEntries(entries).some(item => item.id !== entry?.id && item.entryName &&
-      normalizeEntryName(item.entryName) === normalizeEntryName(name))) {
-      throw new ConflictException('An entry already uses that club or team name.');
-    }
+    const taken = new Set(liveEntries(entries).filter(item => item.id !== entry?.id && item.entryName)
+      .map(item => normalizeEntryName(item.entryName!)));
+    const names = squads.map((_, index) => {
+      const name = (dto.kind === 'IMPORT' ? dto.pairs?.[index]?.name : dto.kind === 'MANUAL' ? dto.name : undefined)?.trim() || null;
+      if (!name) return null;
+      const key = normalizeEntryName(name);
+      if (taken.has(key)) throw new ConflictException('A team name appears more than once: ' + name);
+      taken.add(key);
+      return name;
+    });
     let sortOrder = Math.max(0, ...entries.map(item => item.sortOrder));
     const created = [];
-    for (const squad of squads) {
+    for (const [index, squad] of squads.entries()) {
+      const name = names[index] ?? null;
       const members = squad.map(playerId => playerMap.get(playerId)!);
       const captainId = dto.captainId ?? squad[0]!;
       const roster = squad.map(userId => ({ tournamentId: tournament.id, userId }));

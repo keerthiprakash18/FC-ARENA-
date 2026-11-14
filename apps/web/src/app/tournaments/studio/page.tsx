@@ -96,10 +96,12 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
   const { settings, step } = saved;
   const cupHref = '/tournaments?leagueId=' + leagueId + '&view=UPCOMING';
   const endpoint = '/tournaments/' + id;
+  const registrationHref = endpoint + '/registration';
   const existingWizard = endpoint + '/wizard';
   const participantCount = studio?.entries.length ?? 0;
   const editableSetup = !studio || (studio.tournament.status === 'DRAFT' && studio.editable);
   const modeLocked = !editableSetup || participantCount > 0;
+  const registrationMode = settings.competitionFormat === 'ELITE_CUP' ? 'ADMIN_ONLY' : settings.registrationMode;
 
   function update(patch: Partial<Settings>) {
     setSaved(current => current && ({ ...current, dirty: true, settings: { ...current.settings, ...patch } }));
@@ -224,18 +226,25 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
         <p className={styles.muted}>{settings.mode === 'DUO'
           ? `${settings.maxEntries || 0} Duo teams × 2 players = ${(settings.maxEntries || 0) * 2} players for a full draw. Each player faces both opponents in a four-game fixture.`
           : `${teamSize(settings)} ${teamSize(settings) === 1 ? 'player' : 'players'} per entry.`} League members need an active account and a saved game identity.</p>
-        <label>Registration
-          <select value={settings.competitionFormat === 'ELITE_CUP' ? 'ADMIN_ONLY' : settings.registrationMode} disabled={settings.competitionFormat === 'ELITE_CUP'}
+        <label>Who can register?
+          <select value={registrationMode} disabled={settings.competitionFormat === 'ELITE_CUP'} aria-describedby="registration-mode-help"
             onChange={event => update({ registrationMode: event.target.value as Settings['registrationMode'] })}>
-            <option value="ADMIN_ONLY">Admin managed</option><option value="APPROVAL">Player applications, with approval</option><option value="OPEN">Open registration</option>
+            <option value="ADMIN_ONLY">Admin adds entries</option>
+            <option value="APPROVAL">Players register · admin approval</option>
+            <option value="OPEN">Players register · automatic approval</option>
           </select>
         </label>
+        <p className={styles.muted} id="registration-mode-help">
+          {registrationMode === 'ADMIN_ONLY'
+            ? 'Add entries in Draw using eligible player accounts and their assigned club or team name.'
+            : 'Open registration after saving. For a Duo, one captain submits for both players. Admins can still add entries in Draw.'}
+        </p>
       </fieldset>
       {saved.create && <p className={styles.muted}>A previous save is pending. Continue to recover it.</p>}
       {id && <div className={styles.inlineActions}>
-        <Link className={styles.subButton} href={endpoint + '/registration'}>Manage registration</Link>
-        {studio?.tournament.status === 'DRAFT' && studio.tournament.registrationMode !== 'ADMIN_ONLY' && (
-          <button type="button" className={styles.subButton} disabled={busy || !studio.editable} onClick={() => void openRegistration()}>Open saved registration</button>
+        <Link className={styles.subButton} href={registrationHref}>Manage registrations</Link>
+        {studio?.tournament.mode !== 'DUO' && studio?.tournament.status === 'DRAFT' && studio.tournament.registrationMode !== 'ADMIN_ONLY' && (
+          <button type="button" className={styles.subButton} disabled={busy || !studio.editable} onClick={() => void openRegistration()}>Open player registration</button>
         )}
       </div>}
       <div className={styles.footerActions}>
@@ -245,6 +254,18 @@ function StudioSession({ leagueId, draftId, userId, initialMode, initialFormat }
     </form>
   );
   else if (step === 2 && studio) panel = <>
+    {studio.tournament.mode === 'DUO' && <section className={styles.notice} aria-labelledby="duo-registration-heading">
+      <h3 id="duo-registration-heading">{studio.tournament.registrationMode === 'ADMIN_ONLY' ? 'Admin adds Duo teams' : 'Captains can register their Duo'}</h3>
+      <p>{studio.tournament.registrationMode === 'ADMIN_ONLY'
+        ? 'Choose Manual to assign a club to two linked player accounts, or Import pairs to add your existing teams together. Both players can see their entry under Registration.'
+        : 'Share the registration page with league members. One captain submits the club name and their partner’s Player ID. Both accounts can see the same entry.'}</p>
+      <div className={styles.inlineActions}>
+        {studio.tournament.registrationMode !== 'ADMIN_ONLY' && studio.tournament.status === 'DRAFT' && studio.editable && (
+          <button type="button" className={styles.subButton} disabled={busy} onClick={() => void openRegistration()}>Open player registration</button>
+        )}
+        <Link className={styles.subButton} href={registrationHref}>View registrations{studio.entries.some(entry => entry.status === 'PENDING') ? ' · approval needed' : ''}</Link>
+      </div>
+    </section>}
     <DrawStudio key={studio.tournament.id} studio={studio} endpoint={endpoint} storageKey={key + ':draw'} reload={reload} />
     <div className={styles.footerActions}>
       <button type="button" className={styles.subButton} onClick={() => move(1)}>Back</button>

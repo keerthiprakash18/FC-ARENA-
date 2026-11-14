@@ -14,11 +14,13 @@ import { TournamentsModule } from '../src/tournaments/tournaments.module.js';
 
 describe('Tournament Studio against PostgreSQL', () => {
   const tag = randomUUID().slice(0, 8);
+  const playerCode = (index: number) => 'S' + tag.toUpperCase() + index;
   let app: INestApplication;
   let db: PrismaService;
   let leagueId: string;
   let owner: string;
   let outsider: string;
+  let sign: (userId: string) => string;
   let token: string;
   let visitor: string;
   const players: string[] = [];
@@ -50,11 +52,11 @@ describe('Tournament Studio against PostgreSQL', () => {
       players.push(user.id);
       await db.leagueMember.create({ data: { userId: user.id, leagueId, type: 'PRIMARY' } });
       await db.player.create({ data: {
-        userId: user.id, playerCode: 'S' + tag + index,
+        userId: user.id, playerCode: playerCode(index),
         identity: { create: { inGameName: 'Studio Player ' + index, inGameNameNormalized: 'studio-' + tag + '-' + index } },
       } });
     }
-    const sign = (sub: string) => new JwtService().sign({ sub, email: 'studio@example.invalid', role: 'USER', type: 'access' },
+    sign = (sub: string) => new JwtService().sign({ sub, email: 'studio@example.invalid', role: 'USER', type: 'access' },
       { secret: process.env.JWT_ACCESS_SECRET, expiresIn: 900 });
     token = sign(owner);
     visitor = sign(outsider);
@@ -74,8 +76,8 @@ describe('Tournament Studio against PostgreSQL', () => {
     return request(app.getHttpServer()).post('/api' + path).set('Authorization', 'Bearer ' + bearer).send(data);
   }
 
-  function get(path: string) {
-    return request(app.getHttpServer()).get('/api' + path).set('Authorization', 'Bearer ' + token);
+  function get(path: string, bearer = token) {
+    return request(app.getHttpServer()).get('/api' + path).set('Authorization', 'Bearer ' + bearer);
   }
 
   const draftBody = (config = {}) => ({ name: 'Calendar Cup ' + ++cupIndex, mode: 'SOLO', maxEntries: 4, registrationMode: 'ADMIN_ONLY',
@@ -140,6 +142,44 @@ describe('Tournament Studio against PostgreSQL', () => {
       expect(roster[index].captainId).toBe(input.playerIds[0]);
       expect(roster[index].members.map((member: {id:string}) => member.id).sort()).toEqual([...input.playerIds].sort());
     }
+  });
+
+  it.each(['APPROVAL', 'OPEN'])('shows the same Duo roster to both player accounts in %s registration', async registrationMode => {
+    const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 2, registrationMode })).expect(201)).body.data.tournament.id;
+    async function expectDuo(memberIndexes: number[], entryId: string, entryName: string, status: string) {
+      for (const [index, memberIndex] of memberIndexes.entries()) {
+        const response = await get(path(cup) + '/my-registration', sign(players[memberIndex]!)).expect(200);
+        const { registration, canEdit } = response.body.data;
+        expect(registration).toMatchObject({ id: entryId, entryName, status, registeredBy: { id: players[memberIndexes[0]!] } });
+        expect(registration.members.map((member: { user: { id: string } }) => member.user.id).sort())
+          .toEqual(memberIndexes.map(i => players[i]).sort());
+        expect(canEdit).toBe(index === 0);
+      }
+    }
+    const manual = await draw(cup, { kind: 'MANUAL', name: 'Admin-assigned club', playerIds: players.slice(0, 2) }).expect(201);
+    const manualId = manual.body.data.entries[0].id;
+    await expectDuo([0, 1], manualId, 'Admin-assigned club', 'APPROVED');
+
+    const captain = sign(players[2]!);
+    const registrationPath = path(cup) + '/register';
+    const body = { entryName: 'Captain-selected club', playerCodes: [playerCode(2), playerCode(3)] };
+    await post(registrationPath, body, captain).expect(409);
+    await post(path(cup) + '/open-registration', {}).expect(201);
+    await post(registrationPath, { ...body, playerCodes: [body.playerCodes[0], body.playerCodes[0]] }, captain).expect(400);
+    await post(registrationPath, body, sign(players[4]!)).expect(403);
+    const result = await post(registrationPath, body, captain).expect(201);
+    const id = result.body.data.registration.id;
+    await expectDuo([2, 3], id, body.entryName, registrationMode === 'APPROVAL' ? 'PENDING' : 'APPROVED');
+    await post(registrationPath, { ...body, entryName: 'Duplicate team' }, captain).expect(409);
+    if (registrationMode === 'APPROVAL') await post(path(cup) + '/registrations/' + id + '/approve', {}).expect(201);
+
+    await post(path(cup) + '/close-registration', {}).expect(201);
+    await post(path(cup) + '/wizard/fixture-preview/generate', {}).expect(201);
+    const preview = await state(cup);
+    await post(path(cup) + '/studio/publish', { confirmed: true, revision: preview.revision }).expect(201);
+    await expectDuo([0, 1], manualId, 'Admin-assigned club', 'APPROVED');
+    await expectDuo([2, 3], id, body.entryName, 'APPROVED');
+    await get(path(cup) + '/my-registration', visitor).expect(403);
   });
 
   it('allocates distinct Duo teams, handles odd players and reconnects to the persisted wheel outcome', async () => {

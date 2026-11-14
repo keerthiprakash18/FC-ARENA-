@@ -19,7 +19,11 @@ const initial: Form = { tool: 'PLAYER', players: [], pool: [], poolLocked: false
 const tools: [Tool, string][] = [['IMPORT', 'Import pairs'], ['PLAYER', 'Player wheel'], ['CLUB', 'Club wheel'], ['GROUP', 'Group draw'], ['MANUAL', 'Manual']];
 
 export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: Studio; endpoint: string; storageKey: string; reload: () => Promise<Studio> }) {
-  const [form, setForm] = useState(() => ({ ...initial, ...readStored<Partial<Form>>(storageKey + ':form') }));
+  const [form, setForm] = useState<Form>(() => ({
+    ...initial,
+    tool: studio.tournament.mode === 'DUO' && studio.tournament.registrationMode === 'ADMIN_ONLY' ? 'MANUAL' : initial.tool,
+    ...readStored<Partial<Form>>(storageKey + ':form'),
+  }));
   const [pending, setPending] = useState(() => readStored<Pending>(storageKey));
   const [result, setResult] = useState<{ id: string; outcome: Outcome; audio?: AudioContext; live?: true }>();
   const [error, setError] = useState('');
@@ -179,6 +183,9 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
         <label>Find eligible players<input type="search" value={query} onChange={event => { setQuery(event.target.value); setVisible(24); }} /></label>
         <fieldset>
           <legend>Selected {form.players.length} of {tournament.teamSize}</legend>
+           {tournament.mode === 'DUO' && form.players.length > 0 && <p className={styles.muted}>
+             {form.players.map(id => players.find(player => player.id === id)?.name || 'Unavailable player').join(' · ')}
+           </p>}
           <ul className={styles.playerList}>
             {matching.slice(0, visible).map(player => {
               const selected = form.players.includes(player.id);
@@ -201,7 +208,7 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
         </label>}
         {editing && <label>Override reason<input required minLength={3} maxLength={300} value={form.reason} onChange={event => update({ reason: event.target.value })} /></label>}
         <button type="submit" className={styles.goldButton} disabled={form.players.length !== tournament.teamSize || (!editing && entries.length >= tournament.maxEntries)}>
-          {editing ? 'Save override' : 'Add entry'}
+           {editing ? 'Save override' : tournament.mode === 'DUO' ? 'Save Duo team' : 'Add entry'}
         </button>
       </form>}
       {form.tool === 'PLAYER' && <section className={styles.formStack} aria-label="Player draw">

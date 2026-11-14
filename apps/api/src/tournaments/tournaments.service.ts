@@ -717,6 +717,7 @@ export class TournamentsService {
             select: {
               id: true,
               fullName: true,
+              status: true,
             },
           },
           identity: {
@@ -744,6 +745,18 @@ export class TournamentsService {
         (player) =>
           player.userId,
       );
+
+    if (tournament.mode === 'DUO' &&
+      players.some(player => player.user.status !== 'ACTIVE' || !player.identity?.inGameName)) {
+      throw new BadRequestException({
+        success: false,
+        data: null,
+        error: {
+          code: 'DUO_PLAYER_NOT_ELIGIBLE',
+          message: 'Both Duo players need an active FC ARENA account and a game name saved in their profile.',
+        },
+      });
+    }
 
     if (!userIds.includes(userId)) {
       throw new ForbiddenException({
@@ -816,10 +829,6 @@ export class TournamentsService {
       });
     }
 
-    const autoApprove =
-      tournament.registrationMode ===
-      'OPEN';
-
     const entryName = dto.entryName?.trim() ||
       (isIndividualEntry ? currentPlayer.identity?.inGameName ?? currentPlayer.user.fullName : null);
 
@@ -828,11 +837,12 @@ export class TournamentsService {
         async (tx) => {
           const current = await tx.tournament.findUnique({ where: { id: tournamentId } });
           if (!current) throw this.tournamentNotFound();
-          if (current.status !== 'REGISTRATION_OPEN') {
+          if (current.status !== 'REGISTRATION_OPEN' || current.registrationMode === 'ADMIN_ONLY') {
             throw new ConflictException({ success: false, data: null, error: {
               code: 'REGISTRATION_NOT_OPEN', message: 'Tournament registration is not currently open.',
             } });
           }
+          const autoApprove = current.registrationMode === 'OPEN';
           await assertUniqueEntryName(tx, tournamentId, entryName);
           if (autoApprove) {
             const approvedCount =
@@ -908,7 +918,7 @@ export class TournamentsService {
       success: true,
       data: {
         message:
-          autoApprove
+          registration.status === 'APPROVED'
             ? 'Tournament registration approved automatically.'
             : 'Tournament registration submitted for admin approval.',
         registration,

@@ -470,22 +470,11 @@ export default function TournamentRegistrationPage() {
         '',
       ).trim();
 
-    const codes =
-      playerCodes
-        .split(
-          /[\n,]+/,
-        )
-        .map(
-          (
-            value,
-          ) =>
-            value
-              .trim()
-              .toUpperCase(),
-        )
-        .filter(
-          Boolean,
-        );
+    const codes = (tournament.mode === 'DUO'
+      ? [user?.player?.playerCode ?? '', playerCodes]
+      : playerCodes.split(/[\n,]+/))
+      .map(code => code.trim().toUpperCase())
+      .filter(Boolean);
 
     try {
       const individualEntry =
@@ -729,6 +718,8 @@ export default function TournamentRegistrationPage() {
   const isIndividualEntry =
     tournament.teamSize ===
     1;
+  const isDuo = tournament.mode === 'DUO';
+  const captainCode = user.player?.playerCode;
 
   const hasActiveRegistration =
     myRegistration?.status ===
@@ -1223,7 +1214,7 @@ export default function TournamentRegistrationPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
-                  Your Registration
+                  {isDuo ? 'Your Duo' : 'Your Registration'}
                 </p>
 
                 <h2 className="mt-2 text-xl font-black">
@@ -1241,7 +1232,9 @@ export default function TournamentRegistrationPage() {
                   }
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                {isDuo ? (
+                  <p className="theme-text mt-2 text-base font-bold [overflow-wrap:anywhere]">{myRegistration.entryName || 'Club assignment pending'}</p>
+                ) : <p className="mt-2 text-sm leading-6 text-slate-500">
                   Game Name:{' '}
                   <span className="font-black text-slate-300">
                     {
@@ -1258,7 +1251,7 @@ export default function TournamentRegistrationPage() {
                       'Not provided'
                     }
                   </span>
-                </p>
+                </p>}
               </div>
 
               <FcStatusBadge
@@ -1272,6 +1265,20 @@ export default function TournamentRegistrationPage() {
                 }
               />
             </div>
+
+            {isDuo && myRegistration.members.length > 0 ? (
+              <ul aria-label="Duo roster" className="mt-4 grid gap-2 sm:grid-cols-2">
+                {myRegistration.members.map(({ user: member }) => (
+                  <li key={member.id} className="rounded-xl border border-white/10 p-3 [overflow-wrap:anywhere]">
+                    <strong className="theme-text block text-sm">{member.player?.identity?.inGameName || member.fullName}</strong>
+                    <span className="theme-muted text-xs">
+                      {member.id === myRegistration.registeredBy?.id ? 'Captain' : 'Partner'}{member.id === user.id ? ' · You' : ''}
+                      {member.player?.playerCode ? ` · ${member.player.playerCode}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
 
             {myRegistration.status ===
             'APPROVED' ? (
@@ -1370,19 +1377,22 @@ export default function TournamentRegistrationPage() {
             </p>
 
             <h2 className="mt-2 text-xl font-black">
-              {tournament.canManageParticipants
+              {isDuo ? 'Register your Duo' : tournament.canManageParticipants
                 ? 'Join as Player'
                 : 'Join Tournament'}
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <p className="theme-muted mt-2 text-sm leading-6">
               {isIndividualEntry
                 ? tournament.canManageParticipants
                   ? 'You are managing this Tournament, but you can also compete. Your FC ARENA Player ID is linked automatically; enter your Game Name and Team Name to register yourself as a participant.'
                   : 'Your FC ARENA Player ID is linked automatically. Enter your Game Name and Team Name, then submit for admin approval.'
-                : 'Submit the complete roster for this team entry. Every Player ID must already belong to this League.'}
+                : isDuo
+                  ? 'Submit once as captain. Choose your club or team, then enter your partner’s FC ARENA Player ID from this league. Both accounts will see the entry.'
+                  : 'Submit the complete roster for this team entry. Every Player ID must already belong to this League.'}
             </p>
 
+            {isDuo && !captainCode ? <p className="fc-notice mt-4" data-tone="error">Create your FC ARENA Player profile before registering.</p> : null}
 
             <form
               onSubmit={
@@ -1444,9 +1454,24 @@ export default function TournamentRegistrationPage() {
 
                   <FootballTeamPicker tournamentId={tournamentId} disabled={busy} />
                 </>
+              ) : isDuo ? (
+                <>
+                  <FootballTeamPicker tournamentId={tournamentId} label="Club or team name" disabled={busy} />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <p className="theme-muted rounded-xl border border-white/10 px-4 py-3 text-sm">
+                      Your Player ID · Captain <strong className="theme-text block font-mono">{captainCode || 'Player profile required'}</strong>
+                    </p>
+                    <label className="grid gap-1 text-sm font-bold">
+                      Partner’s FC ARENA Player ID
+                      <input value={playerCodes} onChange={event => setPlayerCodes(event.target.value)} required
+                        autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="FCA-P-000000"
+                        className="min-w-0 rounded-xl border border-white/10 bg-black/20 px-4 py-3 font-mono outline-none focus:border-sky-400/50" />
+                    </label>
+                  </div>
+                </>
               ) : (
                 <>
-                  <FootballTeamPicker tournamentId={tournamentId} label={tournament.mode === 'DUO' ? 'Duo Name' : 'Team Name'} disabled={busy} />
+                  <FootballTeamPicker tournamentId={tournamentId} disabled={busy} />
 
 
                   <label className="grid gap-2">
@@ -1485,9 +1510,7 @@ export default function TournamentRegistrationPage() {
 
               {error ? <p role="alert" className="fc-notice" data-tone="error">{error}</p> : null}
               <button
-                disabled={
-                  busy
-                }
+                disabled={busy || (isDuo && !captainCode)}
                 className="rounded-xl bg-sky-400 px-5 py-3 font-black text-[#031019] disabled:opacity-40"
               >
                 {busy
@@ -1506,7 +1529,7 @@ export default function TournamentRegistrationPage() {
           .canManageParticipants &&
         tournament
           .registrationMode ===
-          'ADMIN_ONLY' ? (
+          'ADMIN_ONLY' && !myRegistration ? (
           <FcPanel className="border-amber-400/15 p-6">
             <p className="font-black text-amber-300">
               Admin-managed registration
@@ -1521,7 +1544,7 @@ export default function TournamentRegistrationPage() {
 
         {!tournament
           .canManageParticipants &&
-        !registrationOpen &&
+        !registrationOpen && tournament.registrationMode !== 'ADMIN_ONLY' &&
         !myRegistration ? (
           <FcPanel className="border-amber-400/15 p-6">
             <p className="font-black text-amber-300">

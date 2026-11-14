@@ -51,6 +51,7 @@ interface Tournament extends EntryLimitTournament {
   formatGuide?: TournamentFormatDescription | null;
   groupMode?: string;
   status: string;
+  registrationMode: string;
   visibility: string;
   maxEntries: number;
   approvedEntries: number;
@@ -225,6 +226,8 @@ export default function TournamentOverviewPage() {
           (tournament.approvedEntries / tournament.maxEntries) * 100,
         )
       : 0;
+  const duoRegistrationOpen = tournament.mode === 'DUO' &&
+    tournament.status === 'REGISTRATION_OPEN' && tournament.registrationMode !== 'ADMIN_ONLY';
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
@@ -244,7 +247,7 @@ export default function TournamentOverviewPage() {
                   ? `/tournaments/${tournamentId}/report`
                   : tournament.status === "DRAFT" && tournament.isLeagueAdmin
                     ? `/tournaments/${tournamentId}/wizard/setup`
-                    : `/tournaments/${tournamentId}/fixtures`
+                    : `/tournaments/${tournamentId}/${duoRegistrationOpen ? 'registration' : 'fixtures'}`
               }
             >
               {
@@ -252,7 +255,7 @@ export default function TournamentOverviewPage() {
                   ? "View Full Report"
                   : tournament.status === "DRAFT" && tournament.isLeagueAdmin
                     ? "Continue Setup"
-                    : "Open Fixtures"
+                    : duoRegistrationOpen ? "Duo Registration" : "Open Fixtures"
               } →
             </Link>
           }

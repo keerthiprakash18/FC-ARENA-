@@ -20,6 +20,7 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
+import { duoGamesJson, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
 import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
@@ -172,8 +173,10 @@ export class ResultsService {
                   tournament:
                     true,
 
-                  fixture:
-                    true,
+                  fixture: { include: {
+                    homeRegistration: { include: { members: true } },
+                    awayRegistration: { include: { members: true } },
+                  } },
                 },
               });
 
@@ -258,6 +261,15 @@ export class ResultsService {
               if (extraction.resultSubmission) throw this.resultAlreadyPending();
             }
 
+            const duoGames = validateDuoAggregate(
+              currentMatch.tournament,
+              currentMatch.fixture.homeRegistration?.members ?? [],
+              currentMatch.fixture.awayRegistration?.members ?? [],
+              dto,
+            );
+            if (duoGames && source.ocrExtractionId) {
+              throw new BadRequestException('Duo aggregate results require both individual games to be entered and verified.');
+            }
             return tx.resultSubmission.create({
               data: {
                 matchId,
@@ -267,6 +279,7 @@ export class ResultsService {
                   dto.homeScore,
                 awayScore:
                   dto.awayScore,
+                duoGames: duoGamesJson(duoGames),
                 homePenaltyScore: dto.homePenaltyScore,
                 awayPenaltyScore: dto.awayPenaltyScore,
                 source: source.ocrExtractionId ? 'OCR' : 'MANUAL',
@@ -636,6 +649,13 @@ export class ResultsService {
         await this.assertPairNotAlreadyCompleted(
           tx,
           submission.match,
+        );
+        // Revalidate after approval: the two saved games must still match both sides.
+        validateDuoAggregate(
+          submission.match.tournament,
+          home.members,
+          away.members,
+          { homeScore: submission.homeScore, awayScore: submission.awayScore, duoGames: submission.duoGames },
         );
 
         const isUclKnockout = submission.match.tournament.competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF';
@@ -1366,6 +1386,15 @@ export class ResultsService {
         continue;
       }
 
+      if (tournament.duoAggregateEnabled) {
+        const games = parseDuoGames(result.duoGames);
+        if (!games) throw new ConflictException('This verified Duo result is missing its two individual games.');
+        const homeGame = games.find(game => game.homePlayerId === userId);
+        const awayGame = games.find(game => game.awayPlayerId === userId);
+        if (homeGame) this.applyAggregate(aggregate, this.calculateDelta(homeGame.homeGoals, homeGame.awayGoals));
+        if (awayGame) this.applyAggregate(aggregate, this.calculateDelta(awayGame.awayGoals, awayGame.homeGoals));
+        continue;
+      }
       if (
         resultPlayerIds(result, 'home', fixture.homeRegistrationId === membership?.registrationId ? [{ userId }] : []).includes(userId)
       ) {
@@ -1441,6 +1470,7 @@ export class ResultsService {
 
         select: {
           format: true,
+          duoAggregateEnabled: true,
           competitionFormat:
             true,
           legType:
@@ -1653,6 +1683,16 @@ export class ResultsService {
         );
       }
 
+      if (tournament.duoAggregateEnabled) {
+        const games = parseDuoGames(result.duoGames);
+        if (!games) throw new ConflictException('A confirmed Duo result has no valid individual-game breakdown.');
+        for (const game of games) {
+          await this.applyPlayerStatistic(tx, tournamentId, game.homePlayerId, this.calculateDelta(game.homeGoals, game.awayGoals));
+          await this.applyPlayerStatistic(tx, tournamentId, game.awayPlayerId, this.calculateDelta(game.awayGoals, game.homeGoals));
+        }
+        continue;
+      }
+
       for (
         const playerId of
         resultPlayerIds(result, 'home', home.members)
@@ -1719,6 +1759,7 @@ export class ResultsService {
                   status: true,
                   homeScore: true,
                   awayScore: true,
+                  duoGames: true,
                   statEvents: { where: { type: 'APPLY' }, select: { payload: true } },
                 },
               },

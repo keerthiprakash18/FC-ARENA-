@@ -127,7 +127,13 @@ public class MainActivityRecoveryTest {
         String dashboard = "https://fcarena.in/dashboard";
         String login = "https://fcarena.in/login";
 
+        view.getWebViewClient().onPageCommitVisible(view, "about:blank");
+        assertNull(visualState.callback);
+        assertNotNull(field(activity, "launchIntro"));
+
         view.getWebViewClient().onPageStarted(view, dashboard, null);
+        view.getWebViewClient().onPageFinished(view, "about:blank");
+        assertTrue((boolean) field(activity, "pageLoadPending"));
         view.getWebViewClient().onPageCommitVisible(view, dashboard);
         assertNotNull(field(activity, "launchIntro"));
         WebView.VisualStateCallback earlierFrame = visualState.callback;

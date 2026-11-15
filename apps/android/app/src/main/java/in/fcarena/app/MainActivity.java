@@ -75,6 +75,7 @@ public final class MainActivity extends Activity {
     private TextView launchLoadingHint;
     private long launchNavigation;
     private boolean launchIntroExiting;
+    private boolean launchDocumentCommitted;
     private final Runnable launchIntroTimeout = this::expireLaunchIntro;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
@@ -221,6 +222,7 @@ public final class MainActivity extends Activity {
     }
 
     private void finishLaunchIntro(WebView view) {
+        launchDocumentCommitted = true;
         removeLaunchLoadingHint();
         if (launchIntro == null || launchIntroExiting) return;
         long navigation = launchNavigation;
@@ -244,7 +246,7 @@ public final class MainActivity extends Activity {
 
     private void expireLaunchIntro() {
         removeLaunchIntro();
-        if (!pageLoadPending || showingOfflinePage) return;
+        if (launchDocumentCommitted || showingOfflinePage || webView == null) return;
 
         launchLoadingHint = new TextView(this);
         launchLoadingHint.setText(R.string.launch_connecting);
@@ -574,6 +576,7 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageCommitVisible(WebView view, String url) {
                 if (view != webView) return;
+                if (!showingOfflinePage && !isAllowedUrl(Uri.parse(url))) return;
                 finishLaunchIntro(view);
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);
@@ -583,11 +586,11 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 if (view != webView) return;
-                removeLaunchLoadingHint();
+                Uri uri = Uri.parse(url);
+                if (!showingOfflinePage && !isAllowedUrl(uri)) return;
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);
-                Uri uri = Uri.parse(url);
-                if (!showingOfflinePage && isAllowedUrl(uri)) {
+                if (!showingOfflinePage) {
                     lastAllowedUrl = url;
                     connectionRetries = 0;
                     root.removeCallbacks(connectionRetry);
@@ -604,7 +607,7 @@ public final class MainActivity extends Activity {
                 CookieManager.getInstance().flush();
                 clearStartupGuard();
                 super.onPageFinished(view, url);
-                if (!showingOfflinePage && isAllowedUrl(uri)) PushSupport.publish(MainActivity.this,view);
+                if (!showingOfflinePage) PushSupport.publish(MainActivity.this,view);
                 if (!showingOfflinePage && playUpdates != null) playUpdates.publish(view);
             }
 

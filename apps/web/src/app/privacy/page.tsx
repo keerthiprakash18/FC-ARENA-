@@ -124,7 +124,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Clicking WhatsApp leaves FC ARENA for WhatsApp or its website. Any suggested message must be sent manually; your conversation is governed by WhatsApp's own terms and privacy controls. FC ARENA does not read or send your WhatsApp messages through this feature.
+          Clicking WhatsApp leaves FC ARENA for WhatsApp or its website. Any suggested message must be sent manually; your conversation is governed by WhatsApp&apos;s own terms and privacy controls. FC ARENA does not read or send your WhatsApp messages through this feature.
         </p>
 
         <p>

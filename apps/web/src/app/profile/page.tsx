@@ -652,14 +652,14 @@ export default function ProfilePage() {
                 WhatsApp number with country code
                 <input type="tel" name="whatsappNumber" inputMode="tel" autoComplete="off"
                   placeholder="+919876543210" value={profileForm.whatsappNumber} maxLength={30}
-                  onChange={event => setProfileForm(current => ({ ...current, whatsappNumber: event.target.value }))}
+                  onChange={event => setProfileForm(current => ({ ...current, whatsappNumber: event.target.value, whatsappShareEnabled: event.target.value.trim() ? current.whatsappShareEnabled : false }))}
                   disabled={profileBusy}
                   className="theme-input mt-2 w-full rounded-xl border px-3 py-3 text-sm font-normal" />
               </label>
               <label className="theme-text mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 p-3 text-sm">
                 <input type="checkbox" checked={profileForm.whatsappShareEnabled}
                   onChange={event => setProfileForm(current => ({ ...current, whatsappShareEnabled: event.target.checked }))}
-                  disabled={profileBusy || !profileForm.whatsappNumber.trim()}
+                  disabled={profileBusy}
                   className="mt-1 h-4 w-4 accent-emerald-500" />
                 <span>
                   <strong className="block font-semibold">Allow my fixture opponents to contact me on WhatsApp</strong>

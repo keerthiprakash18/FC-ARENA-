@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">FC ARENA</string>
     <string name="launch_tagline">WHERE CHAMPIONS RISE</string>
+    <string name="launch_connecting">Connecting to FC Arena…</string>
     <string name="launch_url" translatable="false">https://fcarena.in/dashboard</string>
     <string name="web_manifest_url" translatable="false">https://fcarena.in/manifest.webmanifest</string>
     <string name="manage_space_url" translatable="false">https://fcarena.in/</string>

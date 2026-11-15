@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
@@ -102,10 +104,15 @@ public class MainActivityRecoveryTest {
         assertEquals("https://fcarena.in/dashboard", shadowOf(view).getLastLoadedUrl());
 
         view.getWebViewClient().onPageStarted(view, "https://fcarena.in/dashboard", null);
+        intro.layout(0, 0, 360, 800);
+        intro.draw(new Canvas(Bitmap.createBitmap(360, 800, Bitmap.Config.ARGB_8888)));
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1_200));
         assertNull(field(activity, "launchIntro"));
         assertNull(intro.getParent());
+        assertNotNull(field(activity, "launchLoadingHint"));
         assertTrue((boolean) field(activity, "pageLoadPending"));
+        view.getWebViewClient().onPageCommitVisible(view, "https://fcarena.in/dashboard");
+        assertNull(field(activity, "launchLoadingHint"));
 
         controller.pause().resume();
         assertSame(view, web(activity));

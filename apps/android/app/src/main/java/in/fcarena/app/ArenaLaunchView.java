@@ -22,12 +22,14 @@ final class ArenaLaunchView extends View {
     private final float density;
     private final boolean motionEnabled;
     private final String tagline;
+    private final Runnable startPresentation;
     private ValueAnimator reveal;
     private RadialGradient floodlights;
     private LinearGradient pitchSweep;
     private float progress;
+    private boolean drawn;
 
-    ArenaLaunchView(Context context, boolean motionEnabled) {
+    ArenaLaunchView(Context context, boolean motionEnabled, Runnable onFirstFrame) {
         super(context);
         this.motionEnabled = motionEnabled;
         background = context.getColor(R.color.fc_navy);
@@ -39,12 +41,13 @@ final class ArenaLaunchView extends View {
         int halfCrest = Math.round(dp(58));
         crest.setBounds(-halfCrest, -halfCrest, halfCrest, halfCrest);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+        startPresentation = () -> {
+            onFirstFrame.run();
+            if (motionEnabled) startReveal();
+        };
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        if (!motionEnabled) return;
+    private void startReveal() {
         reveal = ValueAnimator.ofFloat(0f, 1f);
         reveal.setDuration(800);
         reveal.setInterpolator(new LinearInterpolator());
@@ -66,6 +69,7 @@ final class ArenaLaunchView extends View {
     }
 
     void stopReveal() {
+        removeCallbacks(startPresentation);
         if (reveal != null) {
             reveal.cancel();
             reveal = null;
@@ -74,6 +78,7 @@ final class ArenaLaunchView extends View {
 
     @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        if (width <= 0 || height <= 0) return;
         floodlights = new RadialGradient(width / 2f, height / 2f, Math.max(1f, width * 0.65f),
                 new int[]{0xFF1C3653, 0xFF0C1B2B, background},
                 new float[]{0f, 0.46f, 1f}, Shader.TileMode.CLAMP);
@@ -84,10 +89,14 @@ final class ArenaLaunchView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if (!drawn) {
+            drawn = true;
+            post(startPresentation);
+        }
         canvas.drawColor(background);
         float centerX = getWidth() / 2f;
         float centerY = getHeight() / 2f;
-        if (motionEnabled && getWidth() > 0) {
+        if (motionEnabled && floodlights != null) {
             drawPitch(canvas, centerX, centerY);
         }
 

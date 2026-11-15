@@ -72,9 +72,10 @@ public final class MainActivity extends Activity {
     private FrameLayout root;
     private WebView webView;
     private ArenaLaunchView launchIntro;
+    private TextView launchLoadingHint;
     private long launchNavigation;
     private boolean launchIntroExiting;
-    private final Runnable launchIntroTimeout = this::removeLaunchIntro;
+    private final Runnable launchIntroTimeout = this::expireLaunchIntro;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
     private SharedPreferences preferences;
@@ -213,13 +214,14 @@ public final class MainActivity extends Activity {
                 : Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f;
         boolean motion = animationsEnabled && !softwareRendering
                 && (activityManager == null || !activityManager.isLowRamDevice());
-        launchIntro = new ArenaLaunchView(this, motion);
+        launchIntro = new ArenaLaunchView(this, motion,
+                () -> root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS));
         root.addView(launchIntro, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-        root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
     }
 
     private void finishLaunchIntro(WebView view) {
+        removeLaunchLoadingHint();
         if (launchIntro == null || launchIntroExiting) return;
         long navigation = launchNavigation;
         view.postVisualStateCallback(navigation, new WebView.VisualStateCallback() {
@@ -240,6 +242,19 @@ public final class MainActivity extends Activity {
         });
     }
 
+    private void expireLaunchIntro() {
+        removeLaunchIntro();
+        if (!pageLoadPending || showingOfflinePage) return;
+
+        launchLoadingHint = new TextView(this);
+        launchLoadingHint.setText(R.string.launch_connecting);
+        launchLoadingHint.setTextColor(getColor(R.color.fc_white));
+        launchLoadingHint.setTextSize(14);
+        launchLoadingHint.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        root.addView(launchLoadingHint, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
+    }
+
     private void removeLaunchIntro() {
         if (launchIntro == null) return;
         ArenaLaunchView intro = launchIntro;
@@ -247,6 +262,18 @@ public final class MainActivity extends Activity {
         root.removeCallbacks(launchIntroTimeout);
         intro.animate().cancel();
         root.removeView(intro);
+    }
+
+    private void removeLaunchLoadingHint() {
+        if (launchLoadingHint != null) {
+            root.removeView(launchLoadingHint);
+            launchLoadingHint = null;
+        }
+    }
+
+    private void clearLaunchPresentation() {
+        removeLaunchIntro();
+        removeLaunchLoadingHint();
     }
 
     private void scheduleVersionCheck() {
@@ -556,6 +583,7 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 if (view != webView) return;
+                removeLaunchLoadingHint();
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);
                 Uri uri = Uri.parse(url);
@@ -624,7 +652,7 @@ public final class MainActivity extends Activity {
                     RenderProcessGoneDetail detail
             ) {
                 if (view != webView) return true;
-                removeLaunchIntro();
+                clearLaunchPresentation();
                 if (isFinishing() || isDestroyed()) {
                     destroyCurrentWebView();
                     return true;
@@ -883,7 +911,7 @@ public final class MainActivity extends Activity {
     }
 
     private void showOfflinePage() {
-        removeLaunchIntro();
+        clearLaunchPresentation();
         pageLoadPending = false;
         root.removeCallbacks(pageLoadTimeout);
         if (webView == null) {
@@ -999,7 +1027,7 @@ public final class MainActivity extends Activity {
     }
 
     private void showNativeFallback(String messageText) {
-        removeLaunchIntro();
+        clearLaunchPresentation();
         rendererRecoveryPending = false;
         destroyCurrentWebView();
         clearStartupGuard();
@@ -1140,7 +1168,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
-        removeLaunchIntro();
+        clearLaunchPresentation();
         resumed = false;
         root.removeCallbacks(updateRefresh);
         root.removeCallbacks(rendererRecovery);
@@ -1198,7 +1226,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        removeLaunchIntro();
+        clearLaunchPresentation();
         root.removeCallbacks(updateRefresh);
         stopNetworkRecovery();
         clearStartupGuard();

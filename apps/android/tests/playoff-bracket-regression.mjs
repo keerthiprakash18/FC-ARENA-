@@ -62,6 +62,8 @@ try {
         } else {
           assert.equal(await trophyLabel.count(), 0, 'champion is absent until a final is confirmed');
         }
+        const reset = page.getByRole('button', { name: 'Reset', exact: true });
+        assert.equal(await reset.evaluate(element => getComputedStyle(element).whiteSpace), 'nowrap');
         await page.getByRole('button', { name: 'Fit bracket', exact: true }).click();
         await bracket.locator('button[aria-pressed]').first().click();
         const selected = await bracket.locator('button[aria-pressed="true"]').evaluate(element => ({

@@ -19,7 +19,8 @@
 .legend > span { display: flex; align-items: center; gap: 5px; }
 .legend i { width: 16px; border-top: 2px solid var(--bracket-blue); }
 .legend .loserKey { border-top: 2px dashed var(--bracket-accent); }
-.controls { display: flex; align-items: center; gap: 5px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.controls button { flex: 0 0 auto; white-space: nowrap; }
 .controls button, .detailsHead > button { color: var(--theme-text); border: 1px solid var(--theme-control-border); background: var(--theme-elevated); min-width: 44px; min-height: 44px; padding: 7px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; }
 .controls button:disabled { opacity: .4; cursor: default; }
 .controls output { color: var(--theme-text-secondary); width: 38px; text-align: center; font-size: 11px; }

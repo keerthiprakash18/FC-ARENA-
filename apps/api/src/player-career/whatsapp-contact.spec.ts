@@ -26,6 +26,7 @@ describe('WhatsApp contact privacy', () => {
 
   function setup(enabled: boolean, targetStatus = 'ACTIVE', viewerStatus = 'ACTIVE') {
     const fixtureRead = vi.fn().mockResolvedValue({
+      tournament: { leagueId: 'league' },
       homeRegistration: { members: [{ userId: 'home1' }, { userId: 'home2' }] },
       awayRegistration: { members: [{ userId: 'away1' }, { userId: 'away2' }] },
     });
@@ -35,11 +36,15 @@ describe('WhatsApp contact privacy', () => {
         player: { whatsappNumber: '+919876543210', whatsappShareEnabled: enabled },
       }),
     );
+    const leagueMembersRead = vi.fn().mockResolvedValue([
+      { userId: 'home1' }, { userId: 'away1' },
+    ]);
     const service = new PlayerCareerService({
       fixture: { findUnique: fixtureRead },
+      leagueMember: { findMany: leagueMembersRead },
       user: { findUnique: userRead },
     } as never);
-    return { service, fixtureRead, userRead };
+    return { service, fixtureRead, leagueMembersRead, userRead };
   }
 
   it('returns a click-to-chat URL only when consent is on and the viewer is the opponent', async () => {
@@ -63,6 +68,14 @@ describe('WhatsApp contact privacy', () => {
     await expect(service.getOpponentWhatsApp('home1', 'home2', 'fixture'))
       .rejects.toThrow(ForbiddenException);
     await expect(service.getOpponentWhatsApp('stranger', 'away1', 'fixture'))
+      .rejects.toThrow(ForbiddenException);
+    expect(userRead).not.toHaveBeenCalled();
+  });
+
+  it('rejects players who left the league before returning the WhatsApp link', async () => {
+    const { service, leagueMembersRead, userRead } = setup(true);
+    leagueMembersRead.mockResolvedValue([{ userId: 'home1' }]);
+    await expect(service.getOpponentWhatsApp('home1', 'away1', 'fixture'))
       .rejects.toThrow(ForbiddenException);
     expect(userRead).not.toHaveBeenCalled();
   });

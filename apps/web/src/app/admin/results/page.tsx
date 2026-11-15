@@ -14,6 +14,7 @@ import {
   FcLoadingScreen,
   FcPageHeader,
   FcPanel,
+  FcStatusBadge,
 } from "@/components/fc/fc-ui";
 import {
   authenticatedRequest,
@@ -162,8 +163,9 @@ export default function AdminResultsPage() {
       if (!signal.aborted) setLoading(false);
     }
   }, query);
-  const disabled =
-    loading || loadedQuery !== query || Boolean(busyId) || Boolean(load.error);
+  const queueIsCurrent = !loading && loadedQuery === query && !load.error;
+  const disabled = !queueIsCurrent || Boolean(busyId);
+  const filtersApplied = status !== "PENDING_VERIFICATION" || Boolean(leagueId || tournamentId);
 
   async function review(item: Submission, decision: "confirm" | "reject") {
     let reason: string | null = null;
@@ -253,6 +255,21 @@ export default function AdminResultsPage() {
         />
         <AdminNavigation />
         <FcPanel className="grid gap-4 p-4 sm:grid-cols-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-3">
+            <h2 className="theme-text font-semibold">Queue filters</h2>
+            {filtersApplied && (
+              <button type="button" disabled={Boolean(busyId)} className="theme-secondary-button min-h-11 rounded-xl border px-3 text-sm font-semibold disabled:opacity-50"
+                onClick={() => {
+                  setStatus("PENDING_VERIFICATION");
+                  setLeagueId("");
+                  setTournamentId("");
+                  setPage(1);
+                  setEvidenceId("");
+                }}>
+                Reset filters
+              </button>
+            )}
+          </div>
           <label className="theme-muted grid gap-2 text-sm">
             Status
             <select
@@ -328,12 +345,11 @@ export default function AdminResultsPage() {
         ) : null}
         {load.error ? (
           <FcErrorState message={load.error} onRetry={load.retry} />
-        ) : null}
-        {loading || loadedQuery !== query ? (
+        ) : !queueIsCurrent ? (
           <p role="status" className="theme-muted py-5 text-sm">
             Loading result reviews…
           </p>
-        ) : !load.error && queue ? (
+        ) : queue ? (
           <>
             <p className="theme-muted text-sm" role="status">
               {queue.total}{" "}
@@ -364,9 +380,8 @@ export default function AdminResultsPage() {
                     }{" "}
                     · {item.match.fixture.roundName}
                   </p>
-                  <span className="theme-text font-bold">
-                    {labels[item.status] ?? item.status}
-                  </span>
+                  <FcStatusBadge label={labels[item.status] ?? item.status}
+                    tone={item.status === "CONFIRMED" ? "emerald" : item.status === "REJECTED" ? "red" : "amber"} />
                 </div>
                 <div className="theme-text grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 text-center font-bold">
                   <span className="break-words">

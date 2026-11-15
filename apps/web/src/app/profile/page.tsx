@@ -427,7 +427,13 @@ export default function ProfilePage() {
             </div>
           }
         />
-        <section className="profile-photo-settings fc-player-identity theme-panel" aria-label="Profile photo">
+        <nav className="fc-profile-sections" aria-label="Profile sections">
+          <a href="#profile-photo">Profile photo</a>
+          <a href="#profile-career">Career overview</a>
+          <a href="#profile-contact">Contact and identity</a>
+          <a href="#profile-opponent-contact">Opponent contact</a>
+        </nav>
+        <section id="profile-photo" tabIndex={-1} className="profile-photo-settings fc-player-identity theme-panel" aria-label="Profile photo">
           <input ref={imageInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" hidden onChange={event => { const selected = event.target.files?.[0]; event.target.value = ""; if (selected) { setImageError(""); setImageMessage(""); setPhotoFile(selected); } }} />
           <button type="button" className="profile-photo-current" disabled={imageBusy} onClick={() => imageInputRef.current?.click()}>
             {career.profile.profileImageUrl ? <img src={career.profile.profileImageUrl} alt="" /> : <span>{playerName.slice(0, 2).toUpperCase()}</span>}
@@ -440,7 +446,7 @@ export default function ProfilePage() {
         </section>
         {photoFile && <ProfilePhotoEditor file={photoFile} busy={imageBusy} progress={imageProgress} error={imageError} onSave={uploadProfileImage} onCancel={() => { if (!imageBusy) setPhotoFile(null); }} onChoose={selected => { setImageError(""); setPhotoFile(selected); }} />}
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section id="profile-career" tabIndex={-1} aria-label="Career overview" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
             label="Matches"
             value={stats.matches}
@@ -570,7 +576,7 @@ export default function ProfilePage() {
             <div>
               <p className="theme-muted text-xs">Account</p>
 
-              <h2 className="theme-text mt-1 text-lg font-semibold">
+              <h2 id="profile-contact" tabIndex={-1} className="theme-text mt-1 text-lg font-semibold">
                 Contact & membership
               </h2>
             </div>
@@ -636,13 +642,12 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            <section className="mt-5 rounded-2xl border border-emerald-400/15 bg-emerald-400/[.04] p-4 sm:p-5" aria-label="Opponent WhatsApp contact">
+            <section id="profile-opponent-contact" tabIndex={-1} className="mt-5 rounded-2xl border border-emerald-400/15 bg-emerald-400/[.04] p-4 sm:p-5" aria-label="Opponent WhatsApp contact">
               <div className="flex flex-wrap items-center gap-2">
                 <span aria-hidden="true" className="text-emerald-400">●</span>
                 <h3 className="theme-text font-semibold">WhatsApp match coordination</h3>
-                <span className="theme-secondary-text rounded-full border px-2 py-0.5 text-[11px] font-semibold">
-                  Private by default
-                </span>
+                <FcStatusBadge label={career.profile.whatsappShareEnabled ? "Sharing enabled" : "Private"}
+                  tone={career.profile.whatsappShareEnabled ? "emerald" : "slate"} />
               </div>
               <p className="theme-secondary-text mt-2 text-sm leading-6">
                 Add a separate WhatsApp number to let players you face in a tournament open your chat for match scheduling.

@@ -37,6 +37,7 @@ try {
     for (const [label, fixtures, competitionFormat, playoffFormat] of [
       ['ucl', ucl, 'UCL_CUP', 'PROTECTED_SEED'], ['standard', standard, 'KNOCKOUT', 'GLOBAL_SEEDED'],
       ['double-chance', doubleChance, 'ELITE_CUP', 'DOUBLE_CHANCE'], ['bye', [standard[0], { ...standard.at(-1), roundNumber: 2, homeSource: source('quarter1'), awaySource: null }], 'KNOCKOUT', 'PROTECTED_SEED'],
+      ['completed', [...standard.slice(0, -1), { ...standard.at(-1), ...confirmed('final', 2, 0) }], 'KNOCKOUT', 'GLOBAL_SEEDED'],
     ]) {
       const cup = { ...tournament, name: `Arena ${label} Championship`, competitionFormat, playoffFormat, playoffSource: 'DIRECT_ENTRIES', playoffSeedingBasis: 'MANUAL', isLeagueAdmin: false };
       const { context, page, errors } = await createUiContext(browser, { width, direct: true, native: width === 390, mode: width === 390 ? 'LIGHT' : 'DARK', reducedMotion: width === 390 ? 'reduce' : 'no-preference', onMutation,
@@ -50,6 +51,19 @@ try {
         assert.equal(await bracket.locator('button[aria-pressed]').count(), label === 'ucl' ? 3 : fixtures.length);
         const animation = await bracket.locator('button[aria-pressed]').first().evaluate(element => getComputedStyle(element).animationName);
         assert.equal(animation === 'none', width === 390, 'bracket respects the device motion preference');
+        const championship = page.getByRole('region', { name: 'Tournament championship bracket', exact: true });
+        const trophyLabel = championship.getByText('Champion', { exact: true });
+        if (label === 'completed') {
+          await trophyLabel.waitFor();
+          const trophy = trophyLabel.locator('..');
+          assert.equal(await trophy.locator('strong').textContent(), 'Alpha');
+          const trophyAnimation = await trophy.locator('svg').evaluate(element => getComputedStyle(element).animationName);
+          assert.equal(trophyAnimation === 'none', width === 390, 'champion trophy respects the device motion preference');
+        } else {
+          assert.equal(await trophyLabel.count(), 0, 'champion is absent until a final is confirmed');
+        }
+        const reset = page.getByRole('button', { name: 'Reset', exact: true });
+        assert.equal(await reset.evaluate(element => getComputedStyle(element).whiteSpace), 'nowrap');
         await page.getByRole('button', { name: 'Fit bracket', exact: true }).click();
         await bracket.locator('button[aria-pressed]').first().click();
         const selected = await bracket.locator('button[aria-pressed="true"]').evaluate(element => ({

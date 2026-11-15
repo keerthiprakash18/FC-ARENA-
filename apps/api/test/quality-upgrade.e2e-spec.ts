@@ -315,12 +315,17 @@ describe('Quality upgrade: real database and HTTP invariants', () => {
     const keyHash = randomUUID().replaceAll('-', '').padEnd(64, '0');
     await prisma.authRateLimit.create({ data: { action: 'QUALITY_RETRY', keyHash, attemptCount: 0, windowStartedAt: new Date() } });
     let calls = 0;
+    let firstReads = 0;
     let release: () => void = () => {};
     const barrier = new Promise<void>((resolve) => { release = resolve; });
     const increment = () => prisma.$transactionWithRetry(async (tx) => {
       const call = ++calls;
       const current = await tx.authRateLimit.findUniqueOrThrow({ where: { action_keyHash: { action: 'QUALITY_RETRY', keyHash } } });
-      if (call <= 2) { if (call === 2) release(); await barrier; }
+      if (call <= 2) {
+        firstReads++;
+        if (firstReads === 2) release();
+        await barrier;
+      }
       await tx.authRateLimit.update({ where: { action_keyHash: { action: 'QUALITY_RETRY', keyHash } }, data: { attemptCount: current.attemptCount + 1 } });
     }, { isolationLevel: 'Serializable' });
     await Promise.all([increment(), increment()]);

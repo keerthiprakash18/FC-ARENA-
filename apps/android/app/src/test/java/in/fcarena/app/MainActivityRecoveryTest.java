@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
@@ -29,7 +31,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.LooperMode;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowWebView;
 
 import java.lang.reflect.Field;
 import java.time.Duration;
@@ -87,6 +93,77 @@ public class MainActivityRecoveryTest {
 
     private static WebView web(MainActivity activity) throws Exception {
         return (WebView) field(activity, "webView");
+    }
+
+    @Test public void coldIntroExpiresWithoutBlockingLoadAndDoesNotReplayOnResume() throws Exception {
+        MainActivity activity = launch();
+        WebView view = web(activity);
+        ArenaLaunchView intro = (ArenaLaunchView) field(activity, "launchIntro");
+        assertNotNull(intro);
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, intro.getImportantForAccessibility());
+        assertEquals("https://fcarena.in/dashboard", shadowOf(view).getLastLoadedUrl());
+
+        view.getWebViewClient().onPageStarted(view, "https://fcarena.in/dashboard", null);
+        intro.layout(0, 0, 360, 800);
+        intro.draw(new Canvas(Bitmap.createBitmap(360, 800, Bitmap.Config.ARGB_8888)));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1_200));
+        assertNull(field(activity, "launchIntro"));
+        assertNull(intro.getParent());
+        assertNotNull(field(activity, "launchLoadingHint"));
+        assertTrue((boolean) field(activity, "pageLoadPending"));
+        view.getWebViewClient().onPageCommitVisible(view, "https://fcarena.in/dashboard");
+        assertNull(field(activity, "launchLoadingHint"));
+
+        controller.pause().resume();
+        assertSame(view, web(activity));
+        assertNull(field(activity, "launchIntro"));
+    }
+
+    @Test @Config(shadows = LaunchWebViewShadow.class)
+    public void introWaitsForCurrentVisualFrameAndIgnoresSupersededNavigation() throws Exception {
+        MainActivity activity = launch();
+        WebView view = web(activity);
+        LaunchWebViewShadow visualState = Shadow.extract(view);
+        String dashboard = "https://fcarena.in/dashboard";
+        String login = "https://fcarena.in/login";
+
+        view.getWebViewClient().onPageCommitVisible(view, "about:blank");
+        assertNull(visualState.callback);
+        assertNotNull(field(activity, "launchIntro"));
+
+        view.getWebViewClient().onPageStarted(view, dashboard, null);
+        view.getWebViewClient().onPageFinished(view, "about:blank");
+        assertTrue((boolean) field(activity, "pageLoadPending"));
+        view.getWebViewClient().onPageCommitVisible(view, dashboard);
+        assertNotNull(field(activity, "launchIntro"));
+        WebView.VisualStateCallback earlierFrame = visualState.callback;
+        long earlierNavigation = visualState.requestId;
+
+        view.getWebViewClient().onPageStarted(view, login, null);
+        earlierFrame.onComplete(earlierNavigation);
+        assertNotNull(field(activity, "launchIntro"));
+
+        view.getWebViewClient().onPageCommitVisible(view, login);
+        visualState.callback.onComplete(visualState.requestId);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(240));
+        assertNull(field(activity, "launchIntro"));
+    }
+
+    @Test public void recreatedActivitySkipsTheColdIntro() throws Exception {
+        controller = Robolectric.buildActivity(MainActivity.class)
+                .create(new android.os.Bundle()).start().resume().visible();
+        assertNull(field(controller.get(), "launchIntro"));
+    }
+
+    @Implements(WebView.class)
+    public static class LaunchWebViewShadow extends ShadowWebView {
+        private long requestId;
+        private WebView.VisualStateCallback callback;
+
+        @Implementation protected void postVisualStateCallback(long id, WebView.VisualStateCallback callback) {
+            requestId = id;
+            this.callback = callback;
+        }
     }
 
     private static Button button(View view, String text) {
@@ -173,6 +250,7 @@ public class MainActivityRecoveryTest {
         WebView recovered = web(activity);
         assertNotNull(recovered);
         assertNotSame(first, recovered);
+        assertNull(field(activity, "launchIntro"));
         assertEquals(View.LAYER_TYPE_SOFTWARE, recovered.getLayerType());
         assertEquals("https://fcarena.in/dashboard", shadowOf(recovered).getLastLoadedUrl());
         recovered.getWebViewClient().onRenderProcessGone(recovered, crashedRenderer());

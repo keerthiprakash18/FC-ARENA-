@@ -20,6 +20,7 @@ import {
   FcLoadingScreen,
   FcPanel,
   FcQuickActionTile,
+  FcSkeleton,
   FcStatCard,
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
@@ -183,6 +184,15 @@ interface DashboardFixture extends Fixture {
 type DashboardSection = "nextMatch" | "league" | "activeTournament" | "stats" | "quickActions" | "activity";
 
 type NextFixtureKind = "LIVE" | "TODAY" | "UPCOMING" | "POSTPONED" | "UNSCHEDULED" | "PENDING";
+
+const fixtureHeadings: Record<NextFixtureKind, string> = {
+  LIVE: "Live Match",
+  TODAY: "Today's Match",
+  UPCOMING: "Next Match",
+  POSTPONED: "Match Status",
+  UNSCHEDULED: "Fixture Ready",
+  PENDING: "Pending Match",
+};
 
 const TERMINAL_FIXTURE_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 const LIVE_FIXTURE_STATUSES = new Set(["LIVE", "IN_PROGRESS"]);
@@ -619,7 +629,26 @@ export default function DashboardPage() {
   );
 
   if (loading || !user || !career) {
-    return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Home..." embedded /></AppShell>;
+    return (
+      <AppShell currentUser={user ?? undefined}>
+        <FcLoadingScreen label="Loading Home..." embedded>
+          <div className="fc-home-loading-hero">
+            <FcSkeleton className="h-4 w-20" />
+            <FcSkeleton className="h-9 w-64 max-w-[70%]" />
+            <FcSkeleton className="h-11 w-36 max-w-full" />
+          </div>
+          <div className="theme-panel fc-home-loading-match">
+            <FcSkeleton className="h-4 w-28" />
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <FcSkeleton className="h-12 w-full" />
+              <FcSkeleton className="h-4 w-6" />
+              <FcSkeleton className="h-12 w-full" />
+            </div>
+            <FcSkeleton className="h-11 w-36 max-w-full" />
+          </div>
+        </FcLoadingScreen>
+      </AppShell>
+    );
   }
 
   const inGameName =
@@ -741,6 +770,12 @@ export default function DashboardPage() {
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
               </div>
+              {showNextMatch && nextFixture && nextFixtureKind ? (
+                <div className="home-hero-fixture">
+                  <p>{fixtureHeadings[nextFixtureKind]}</p>
+                  <strong>{entryName(nextFixture.home)} <span>vs</span> {entryName(nextFixture.away)}</strong>
+                </div>
+              ) : null}
             </div>
             <Link
               href={heroAction.href}
@@ -756,19 +791,7 @@ export default function DashboardPage() {
             <FcPanel className="fc-next-match-panel premium-home-next p-4 sm:p-5">
               <SectionTitle
                 icon="fixtures"
-                title={
-                  nextFixtureKind === "LIVE"
-                    ? "Live Match"
-                    : nextFixtureKind === "TODAY"
-                      ? "Today's Match"
-                      : nextFixtureKind === "POSTPONED"
-                        ? "Match Status"
-                        : nextFixtureKind === "PENDING"
-                          ? "Pending Match"
-                        : nextFixtureKind === "UNSCHEDULED"
-                          ? "Fixture Ready"
-                        : "Next Match"
-                }
+                title={nextFixtureKind ? fixtureHeadings[nextFixtureKind] : "Next Match"}
                 href="/fixtures"
               />
 

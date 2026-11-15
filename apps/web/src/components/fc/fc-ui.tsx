@@ -372,9 +372,11 @@ export function FcLoadingScreen({
   label =
     'Loading FC ARENA...',
   embedded = false,
+  children,
 }: {
   label?: string;
   embedded?: boolean;
+  children?: ReactNode;
 }) {
   return (
     <div
@@ -383,60 +385,36 @@ export function FcLoadingScreen({
       aria-live="polite"
     >
       <div className="mx-auto w-full max-w-[1180px] space-y-6" aria-hidden="true">
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-3">
-            <FcSkeleton className="h-3 w-28" />
-            <FcSkeleton className="h-9 w-64 max-w-[48vw]" />
-          </div>
-
-          <FcSkeleton className="h-11 w-28" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[
-            0,
-            1,
-            2,
-            3,
-          ].map(
-            (
-              item,
-            ) => (
-              <div
-                key={
-                  item
-                }
-                className="theme-panel rounded-2xl border p-5"
-              >
-                <FcSkeleton className="h-3 w-20" />
-                <FcSkeleton className="mt-4 h-8 w-24" />
-                <FcSkeleton className="mt-4 h-3 w-full" />
+        {children ?? (
+          <>
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-3">
+                <FcSkeleton className="h-3 w-28" />
+                <FcSkeleton className="h-9 w-64 max-w-[48vw]" />
               </div>
-            ),
-          )}
-        </div>
+              <FcSkeleton className="h-11 w-28" />
+            </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          {[
-            0,
-            1,
-          ].map(
-            (
-              item,
-            ) => (
-              <div
-                key={
-                  item
-                }
-                className="theme-panel rounded-2xl border p-5"
-              >
-                <FcSkeleton className="h-4 w-36" />
-                <FcSkeleton className="mt-5 h-28 w-full" />
-              </div>
-            ),
-          )}
-        </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[0, 1, 2, 3].map(item => (
+                <div key={item} className="theme-panel rounded-2xl border p-5">
+                  <FcSkeleton className="h-3 w-20" />
+                  <FcSkeleton className="mt-4 h-8 w-24" />
+                  <FcSkeleton className="mt-4 h-3 w-full" />
+                </div>
+              ))}
+            </div>
 
+            <div className="grid gap-4 lg:grid-cols-2">
+              {[0, 1].map(item => (
+                <div key={item} className="theme-panel rounded-2xl border p-5">
+                  <FcSkeleton className="h-4 w-36" />
+                  <FcSkeleton className="mt-5 h-28 w-full" />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
       <p className="fc-loading-label">{label}</p>
     </div>

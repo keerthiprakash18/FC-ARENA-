@@ -9,4 +9,10 @@
         <item name="android:colorAccent">@color/fc_gold</item>
         <item name="android:windowBackground">@color/fc_navy</item>
     </style>
+
+    <style name="Theme.FCArena.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/fc_navy</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/fc_arena_splash_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.FCArena</item>
+    </style>
 </resources>

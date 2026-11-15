@@ -1,7 +1,9 @@
 package in.fcarena.app;
 
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -15,6 +17,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -35,6 +38,8 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.splashscreen.SplashScreen;
 
 import org.json.JSONObject;
 
@@ -61,9 +66,17 @@ public final class MainActivity extends Activity {
     private static final long VERSION_CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_CONNECTION_RETRIES = 5;
     private static final long PAGE_LOAD_TIMEOUT_MS = 20_000L;
+    private static final long LAUNCH_INTRO_TIMEOUT_MS = 1_200L;
+    private static final long LAUNCH_INTRO_EXIT_MS = 120L;
 
     private FrameLayout root;
     private WebView webView;
+    private ArenaLaunchView launchIntro;
+    private TextView launchLoadingHint;
+    private long launchNavigation;
+    private boolean launchIntroExiting;
+    private boolean launchDocumentCommitted;
+    private final Runnable launchIntroTimeout = this::expireLaunchIntro;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
     private SharedPreferences preferences;
@@ -111,6 +124,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // One inset owner on every supported modern Android version.
@@ -118,7 +132,7 @@ public final class MainActivity extends Activity {
         }
 
         root = new FrameLayout(this);
-        root.setBackgroundColor(0xFF05080D);
+        root.setBackgroundColor(getColor(R.color.fc_navy));
         setContentView(root);
 
         // Keep WebView content outside system bars and the keyboard on SDK 35+.
@@ -168,6 +182,7 @@ public final class MainActivity extends Activity {
         }
 
         addProgressBar();
+        if (savedInstanceState == null) showLaunchIntro();
 
         String initialUrl = resolveInitialUrl(getIntent());
 
@@ -191,6 +206,76 @@ public final class MainActivity extends Activity {
                     + "You can still use the secure FC Arena website."
             );
         }
+    }
+
+    private void showLaunchIntro() {
+        ActivityManager activityManager = getSystemService(ActivityManager.class);
+        boolean animationsEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                ? ValueAnimator.areAnimatorsEnabled()
+                : Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f;
+        boolean motion = animationsEnabled && !softwareRendering
+                && (activityManager == null || !activityManager.isLowRamDevice());
+        launchIntro = new ArenaLaunchView(this, motion,
+                () -> root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS));
+        root.addView(launchIntro, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+    }
+
+    private void finishLaunchIntro(WebView view) {
+        launchDocumentCommitted = true;
+        removeLaunchLoadingHint();
+        if (launchIntro == null || launchIntroExiting) return;
+        long navigation = launchNavigation;
+        view.postVisualStateCallback(navigation, new WebView.VisualStateCallback() {
+            @Override public void onComplete(long requestId) {
+                if (view != webView || requestId != launchNavigation
+                        || launchIntro == null || launchIntroExiting) return;
+
+                if (!launchIntro.hasMotion()) {
+                    removeLaunchIntro();
+                    return;
+                }
+
+                launchIntroExiting = true;
+                launchIntro.stopReveal();
+                launchIntro.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS)
+                        .withEndAction(MainActivity.this::removeLaunchIntro).start();
+            }
+        });
+    }
+
+    private void expireLaunchIntro() {
+        removeLaunchIntro();
+        if (launchDocumentCommitted || showingOfflinePage || webView == null) return;
+
+        launchLoadingHint = new TextView(this);
+        launchLoadingHint.setText(R.string.launch_connecting);
+        launchLoadingHint.setTextColor(getColor(R.color.fc_white));
+        launchLoadingHint.setTextSize(14);
+        launchLoadingHint.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        root.addView(launchLoadingHint, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
+    }
+
+    private void removeLaunchIntro() {
+        if (launchIntro == null) return;
+        ArenaLaunchView intro = launchIntro;
+        launchIntro = null;
+        root.removeCallbacks(launchIntroTimeout);
+        intro.animate().cancel();
+        root.removeView(intro);
+    }
+
+    private void removeLaunchLoadingHint() {
+        if (launchLoadingHint != null) {
+            root.removeView(launchLoadingHint);
+            launchLoadingHint = null;
+        }
+    }
+
+    private void clearLaunchPresentation() {
+        removeLaunchIntro();
+        removeLaunchLoadingHint();
     }
 
     private void scheduleVersionCheck() {
@@ -394,7 +479,7 @@ public final class MainActivity extends Activity {
         // separately (e.g., on logout, token refresh) where actually required. No blanket cache
         // clearing on startup or navigation to maintain performance.
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
-        webView.setBackgroundColor(0xFF05080D);
+        webView.setBackgroundColor(getColor(R.color.fc_navy));
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setHorizontalScrollBarEnabled(false);
         webView.setVerticalScrollBarEnabled(false);
@@ -474,6 +559,7 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 if (view != webView) return;
+                if (launchIntro != null) launchNavigation++;
                 Uri uri = Uri.parse(url);
                 if (!showingOfflinePage && isAllowedUrl(uri)) {
                     lastAllowedUrl = url;
@@ -490,6 +576,8 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageCommitVisible(WebView view, String url) {
                 if (view != webView) return;
+                if (!showingOfflinePage && !isAllowedUrl(Uri.parse(url))) return;
+                finishLaunchIntro(view);
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);
                 if (progressBar != null) progressBar.setVisibility(View.GONE);
@@ -498,10 +586,11 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 if (view != webView) return;
+                Uri uri = Uri.parse(url);
+                if (!showingOfflinePage && !isAllowedUrl(uri)) return;
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);
-                Uri uri = Uri.parse(url);
-                if (!showingOfflinePage && isAllowedUrl(uri)) {
+                if (!showingOfflinePage) {
                     lastAllowedUrl = url;
                     connectionRetries = 0;
                     root.removeCallbacks(connectionRetry);
@@ -518,7 +607,7 @@ public final class MainActivity extends Activity {
                 CookieManager.getInstance().flush();
                 clearStartupGuard();
                 super.onPageFinished(view, url);
-                if (!showingOfflinePage && isAllowedUrl(uri)) PushSupport.publish(MainActivity.this,view);
+                if (!showingOfflinePage) PushSupport.publish(MainActivity.this,view);
                 if (!showingOfflinePage && playUpdates != null) playUpdates.publish(view);
             }
 
@@ -566,6 +655,7 @@ public final class MainActivity extends Activity {
                     RenderProcessGoneDetail detail
             ) {
                 if (view != webView) return true;
+                clearLaunchPresentation();
                 if (isFinishing() || isDestroyed()) {
                     destroyCurrentWebView();
                     return true;
@@ -824,6 +914,7 @@ public final class MainActivity extends Activity {
     }
 
     private void showOfflinePage() {
+        clearLaunchPresentation();
         pageLoadPending = false;
         root.removeCallbacks(pageLoadTimeout);
         if (webView == null) {
@@ -939,6 +1030,7 @@ public final class MainActivity extends Activity {
     }
 
     private void showNativeFallback(String messageText) {
+        clearLaunchPresentation();
         rendererRecoveryPending = false;
         destroyCurrentWebView();
         clearStartupGuard();
@@ -1079,6 +1171,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+        clearLaunchPresentation();
         resumed = false;
         root.removeCallbacks(updateRefresh);
         root.removeCallbacks(rendererRecovery);
@@ -1136,6 +1229,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        clearLaunchPresentation();
         root.removeCallbacks(updateRefresh);
         stopNetworkRecovery();
         clearStartupGuard();

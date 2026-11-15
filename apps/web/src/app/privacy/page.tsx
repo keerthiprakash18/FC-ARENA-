@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Effective date: 1 November 2026.
+          Effective date: 1 November 2026. Updated: 15 November 2026.
         </p>
       </PublicInfoCard>
 
@@ -35,6 +35,9 @@ export default function PrivacyPage() {
 
         <p>
           Player data can include your FC ARENA player code, In-Game Name, optional game UID, profile image and player verification information.
+        </p>
+        <p>
+          You may separately add a WhatsApp contact number to coordinate tournament matches. It is optional and OFF by default. Your existing login or recovery phone number is never automatically published as your WhatsApp number.
         </p>
 
         <p>
@@ -114,6 +117,14 @@ export default function PrivacyPage() {
 
         <p>
           Tournaments configured as public may expose public competition information such as Tournament names, fixtures, standings and participant display identities. Ordinary member email addresses and private game UID values are not intended to be exposed through public Tournament views.
+        </p>
+
+        <p>
+          When you explicitly turn on WhatsApp opponent sharing in your profile, an authenticated player on the opposing side of one of your registered fixtures can request a WhatsApp click-to-chat link containing your chosen contact number. Teammates, other viewers and public search results do not receive this link from this feature. You can disable sharing or remove the number from your profile to prevent future access. Anyone who already saw or saved your number may still retain it; switching off does not erase copies made by others.
+        </p>
+
+        <p>
+          Clicking WhatsApp leaves FC ARENA for WhatsApp or its website. Any suggested message must be sent manually; your conversation is governed by WhatsApp's own terms and privacy controls. FC ARENA does not read or send your WhatsApp messages through this feature.
         </p>
 
         <p>

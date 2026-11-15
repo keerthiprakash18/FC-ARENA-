@@ -7,6 +7,13 @@
 .trophy { display: grid; justify-items: center; gap: 7px; color: var(--bracket-accent); flex: 0 0 140px; text-align: center; }
 .trophy > span { font-size: 0.75rem; letter-spacing: 0.05em; }
 .trophy > strong { max-width: 180px; font-size: 12px; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: no-preference) {
+  .trophy > svg { animation: champion-trophy var(--arena-reveal) both; }
+}
+@keyframes champion-trophy {
+  from { opacity: .5; transform: translateY(4px) scale(.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 24px; border-block: 1px solid var(--theme-border); }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 10px; color: var(--theme-text-secondary); }
 .legend > span { display: flex; align-items: center; gap: 5px; }

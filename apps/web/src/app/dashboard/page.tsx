@@ -20,6 +20,7 @@ import {
   FcLoadingScreen,
   FcPanel,
   FcQuickActionTile,
+  FcSkeleton,
   FcStatCard,
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
@@ -619,7 +620,26 @@ export default function DashboardPage() {
   );
 
   if (loading || !user || !career) {
-    return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading Home..." embedded /></AppShell>;
+    return (
+      <AppShell currentUser={user ?? undefined}>
+        <FcLoadingScreen label="Loading Home..." embedded>
+          <div className="fc-home-loading-hero">
+            <FcSkeleton className="h-4 w-20" />
+            <FcSkeleton className="h-9 w-64 max-w-[70%]" />
+            <FcSkeleton className="h-11 w-36 max-w-full" />
+          </div>
+          <div className="theme-panel fc-home-loading-match">
+            <FcSkeleton className="h-4 w-28" />
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <FcSkeleton className="h-12 w-full" />
+              <FcSkeleton className="h-4 w-6" />
+              <FcSkeleton className="h-12 w-full" />
+            </div>
+            <FcSkeleton className="h-11 w-36 max-w-full" />
+          </div>
+        </FcLoadingScreen>
+      </AppShell>
+    );
   }
 
   const inGameName =

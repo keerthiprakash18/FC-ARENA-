@@ -40,6 +40,24 @@
 .fc-premium .fc-app-shell[data-arena-area="honours"] .fc-main :is(.premium-hero, .fc-page-heading) {
   background: var(--arena-stadium) !important;
 }
+.fc-home-loading-hero,
+.fc-home-loading-match {
+  display: grid;
+  gap: var(--fc-space-3);
+  padding: var(--arena-heading-padding);
+  border: 1px solid var(--arena-divider);
+  border-radius: var(--arena-hero-radius);
+}
+.fc-home-loading-hero {
+  border-color: var(--arena-line);
+  background: var(--arena-hero-surface);
+}
+.fc-loading-state .fc-home-loading-hero .fc-skeleton {
+  background: color-mix(in srgb, var(--arena-muted) 18%, var(--arena-raised));
+}
+.fc-home-loading-match {
+  border-radius: var(--arena-card-radius);
+}
 .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading, .premium-hero, .premium-home-hero) h1 {
   color: var(--arena-ivory) !important;
   font-size: clamp(1.9rem, 4.2vw, 3.25rem);

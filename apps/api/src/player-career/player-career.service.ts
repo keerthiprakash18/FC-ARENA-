@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import type { UpdateProfileDto } from './dto/update-profile.dto.js';
+import { isOpposingFixtureMember, normalizeWhatsAppNumber, whatsappContactUrl } from './whatsapp-contact.js';
 
 @Injectable()
 export class PlayerCareerService {
@@ -22,6 +23,8 @@ export class PlayerCareerService {
     const suppliedFields = [
       'fullName',
       'phoneNumber',
+      'whatsappNumber',
+      'whatsappShareEnabled',
       'inGameName',
       'gameUid',
     ].filter((field) =>
@@ -50,6 +53,8 @@ export class PlayerCareerService {
       'Phone number',
       30,
     );
+    const whatsappNumber = normalizeWhatsAppNumber(dto.whatsappNumber);
+    const whatsappShareEnabled = dto.whatsappShareEnabled;
     const inGameName = this.normalizeRequired(
       dto.inGameName,
       'In-game name',
@@ -79,6 +84,8 @@ export class PlayerCareerService {
                 id: true,
                 playerCode: true,
                 profileImageUrl: true,
+                whatsappNumber: true,
+                whatsappShareEnabled: true,
                 identity: {
                   select: {
                     inGameName: true,
@@ -120,6 +127,25 @@ export class PlayerCareerService {
           await tx.user.update({
             where: { id: userId },
             data: userData,
+          });
+        }
+
+        // A login/recovery phone number must never become a public contact automatically.
+        // A player must save their own WhatsApp number and explicitly enable sharing.
+        const nextWhatsappNumber = whatsappNumber === undefined
+          ? (current.player?.whatsappNumber ?? null) : whatsappNumber;
+        if (whatsappShareEnabled === true && !nextWhatsappNumber) {
+          throw new BadRequestException('Add a WhatsApp contact number before enabling opponent sharing.');
+        }
+        const nextWhatsAppVisibility = Boolean(nextWhatsappNumber)
+          && (whatsappShareEnabled ?? current.player?.whatsappShareEnabled ?? false);
+        if ((whatsappNumber !== undefined || whatsappShareEnabled !== undefined) && !current.player) {
+          throw new BadRequestException('Create a player identity before adding WhatsApp contact.');
+        }
+        if (current.player && (whatsappNumber !== undefined || whatsappShareEnabled !== undefined)) {
+          await tx.player.update({
+            where: { id: current.player.id },
+            data: { whatsappNumber: nextWhatsappNumber, whatsappShareEnabled: nextWhatsAppVisibility },
           });
         }
 
@@ -205,6 +231,8 @@ export class PlayerCareerService {
           joinedAt: current.createdAt,
           playerCode: current.player?.playerCode ?? null,
           profileImageUrl: current.player?.profileImageUrl ?? null,
+          whatsappNumber: nextWhatsappNumber,
+          whatsappShareEnabled: nextWhatsAppVisibility,
           identity,
         };
       });
@@ -239,6 +267,40 @@ export class PlayerCareerService {
     }
   }
 
+  async getOpponentWhatsApp(viewerUserId: string, targetUserId: string, fixtureId: string) {
+    // Whitelisted, auth-gated read; no contact values are returned in fixture
+    // lists, team sheets or public player search.
+    const fixture = await this.prisma.fixture.findUnique({
+      where: { id: fixtureId },
+      select: {
+        homeRegistration: { select: { members: { select: { userId: true } } } },
+        awayRegistration: { select: { members: { select: { userId: true } } } },
+      },
+    });
+    if (!fixture) throw new NotFoundException('Fixture not found.');
+    const home = fixture.homeRegistration?.members.map(member => member.userId) ?? [];
+    const away = fixture.awayRegistration?.members.map(member => member.userId) ?? [];
+    if (!isOpposingFixtureMember(viewerUserId, targetUserId, home, away)) {
+      throw new ForbiddenException('WhatsApp contact is available only to an actual opponent in this fixture.');
+    }
+
+    const [viewer, opponent] = await Promise.all([
+      this.prisma.user.findUnique({ where: { id: viewerUserId }, select: { status: true } }),
+      this.prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { status: true, player: { select: { whatsappNumber: true, whatsappShareEnabled: true } } },
+      }),
+    ]);
+    if (viewer?.status !== 'ACTIVE') throw new ForbiddenException('An active account is required.');
+    const number = opponent?.status === 'ACTIVE' && opponent.player?.whatsappShareEnabled
+      ? opponent.player.whatsappNumber : null;
+    return {
+      success: true,
+      data: { available: Boolean(number), url: number ? whatsappContactUrl(number) : null },
+      error: null,
+    };
+  }
+
   async getMyCareer(
     userId: string,
     dashboard = false,
@@ -261,6 +323,8 @@ export class PlayerCareerService {
             select: {
               playerCode: true,
               profileImageUrl: true,
+              whatsappNumber: true,
+              whatsappShareEnabled: true,
 
               identity: {
                   select: {
@@ -904,6 +968,8 @@ export class PlayerCareerService {
             user.player
               ?.profileImageUrl ??
             null,
+          whatsappNumber: user.player?.whatsappNumber ?? null,
+          whatsappShareEnabled: user.player?.whatsappShareEnabled ?? false,
 
           identity:
             user.player

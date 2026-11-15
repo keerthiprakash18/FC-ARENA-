@@ -23,6 +23,10 @@ async function contextFor(width, mode, scenario = 'empty') {
   const result = await createUiContext(browser, { width, mode, direct: true, native: width < 500,
     overrides: {
       '/api/auth/me': { user: currentUser },
+      '/api/players/opponent/whatsapp': (route, headers) => {
+        assert.equal(new URL(route.request().url()).searchParams.get('fixtureId'), fixture.id);
+        return route.fulfill({ headers, json: { success: true, data: { available: false, url: null }, error: null } });
+      },
       '/api/auth/preferences/dashboard': { preferences: { hiddenSections: scenario === 'hidden'
         ? ['nextMatch', 'league', 'activeTournament', 'stats', 'quickActions', 'activity'] : [] } },
       '/api/players/me/dashboard': (route, headers) => {
@@ -102,6 +106,7 @@ try {
       assert(target.y >= header.y + header.height - 1, 'Sticky header must not hide the next-match anchor');
       await match.getByRole('button', { name: 'View players representing Away Club' }).click();
       await f.page.getByRole('dialog').getByText('Away Player', { exact: true }).waitFor();
+      await f.page.getByRole('dialog').getByText('WhatsApp contact not shared with you').waitFor();
       await f.page.keyboard.press('Escape');
       assert.equal(await f.page.locator('.home-empty-row').count(), 0);
       await checkLayout(f.page, `Active Home ${width}px`); assert.deepEqual(f.errors, []);

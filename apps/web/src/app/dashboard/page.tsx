@@ -805,13 +805,13 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="premium-match-sides home-matchup">
-                    <FixtureTeamButton entry={nextFixture.home} name={entryName(nextFixture.home)} side="HOME" stacked size="lg" />
+                    <FixtureTeamButton entry={nextFixture.home} name={entryName(nextFixture.home)} fixtureId={nextFixture.id} side="HOME" stacked size="lg" />
 
                     <div className="home-match-separator">
                       vs
                     </div>
 
-                    <FixtureTeamButton entry={nextFixture.away} name={entryName(nextFixture.away)} side="AWAY" stacked size="lg" />
+                    <FixtureTeamButton entry={nextFixture.away} name={entryName(nextFixture.away)} fixtureId={nextFixture.id} side="AWAY" stacked size="lg" />
                   </div>
 
                   <div className="premium-match-footer">

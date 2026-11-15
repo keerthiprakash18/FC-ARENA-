@@ -1,5 +1,6 @@
 import {
   IsOptional,
+  IsBoolean,
   IsString,
   MaxLength,
   MinLength,
@@ -16,6 +17,16 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(30)
   phoneNumber?: string | null;
+
+  /** A separate number from account recovery/login; never shared by default. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  whatsappNumber?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  whatsappShareEnabled?: boolean;
 
   @IsOptional()
   @IsString()

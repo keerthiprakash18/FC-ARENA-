@@ -316,13 +316,13 @@ export function FixtureCard({
       <p className="fc-fixture-meta mt-3">{legFormatLabel(fixture.legType, fixture.competitionFormat)} · {fixture.roundName}</p>
 
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
-        <FixtureTeamButton entry={fixture.home} name={home} side="HOME" stacked />
+        <FixtureTeamButton entry={fixture.home} name={home} fixtureId={fixture.id} side="HOME" stacked />
 
         <span className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-slate-500">
           VS
         </span>
 
-        <FixtureTeamButton entry={fixture.away} name={away} side="AWAY" stacked />
+        <FixtureTeamButton entry={fixture.away} name={away} fixtureId={fixture.id} side="AWAY" stacked />
       </div>
 
       <div className="fc-fixture-score mt-5" data-incomplete={!fixture.match?.confirmedResult ? 'true' : 'false'}>

@@ -474,6 +474,9 @@ model Player {
   playerCode      String   @unique @db.VarChar(20)
   userId          String   @unique @db.Uuid
   profileImageUrl String?  @db.Text
+  // Private until this player explicitly opts in; exposed only to a verified fixture opponent.
+  whatsappNumber  String?  @db.VarChar(16)
+  whatsappShareEnabled Boolean @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

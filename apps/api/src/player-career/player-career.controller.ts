@@ -6,6 +6,9 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
+  Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -95,6 +98,16 @@ export class PlayerCareerController {
     );
   }
 
+
+  @Get(':userId/whatsapp')
+  @Header('Cache-Control', 'private, no-store')
+  opponentWhatsApp(
+    @Req() request: AuthenticatedRequest,
+    @Param('userId', new ParseUUIDPipe({ version: '4' })) userId: string,
+    @Query('fixtureId', new ParseUUIDPipe({ version: '4' })) fixtureId: string,
+  ) {
+    return this.playerCareerService.getOpponentWhatsApp(request.user.sub, userId, fixtureId);
+  }
 
   @Post('me/profile-image')
   @UseInterceptors(

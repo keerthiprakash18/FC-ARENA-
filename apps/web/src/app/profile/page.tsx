@@ -30,6 +30,8 @@ interface CareerData {
     fullName: string;
     email: string;
     phoneNumber: string | null;
+    whatsappNumber: string | null;
+    whatsappShareEnabled: boolean;
     joinedAt: string;
     playerCode: string | null;
     profileImageUrl: string | null;
@@ -125,6 +127,8 @@ export default function ProfilePage() {
   const [profileForm, setProfileForm] = useState({
     fullName: "",
     phoneNumber: "",
+    whatsappNumber: "",
+    whatsappShareEnabled: false,
     inGameName: "",
     gameUid: "",
   });
@@ -274,6 +278,8 @@ export default function ProfilePage() {
         setProfileForm({
           fullName: response.data.profile.fullName,
           phoneNumber: response.data.profile.phoneNumber || "",
+          whatsappNumber: response.data.profile.whatsappNumber || "",
+          whatsappShareEnabled: response.data.profile.whatsappShareEnabled,
           inGameName: response.data.profile.identity?.inGameName || "",
           gameUid: response.data.profile.identity?.gameUid || "",
         });
@@ -300,6 +306,7 @@ export default function ProfilePage() {
   async function saveProfile() {
     const fullName = profileForm.fullName.trim();
     const phoneNumber = profileForm.phoneNumber.trim();
+    const whatsappNumber = profileForm.whatsappNumber.trim();
     const inGameName = profileForm.inGameName.trim();
     const gameUid = profileForm.gameUid.trim();
 
@@ -310,6 +317,15 @@ export default function ProfilePage() {
 
     if (phoneNumber.length > 30) {
       setProfileError("Phone number must be at most 30 characters.");
+      return;
+    }
+
+    if (whatsappNumber && !/^\+[1-9]\d{7,14}$/.test(whatsappNumber.replace(/[\s()-]/g, ""))) {
+      setProfileError("Enter a WhatsApp number with its country code, e.g. +919876543210.");
+      return;
+    }
+    if (profileForm.whatsappShareEnabled && !whatsappNumber) {
+      setProfileError("Add a WhatsApp number before enabling opponent contact.");
       return;
     }
 
@@ -340,6 +356,8 @@ export default function ProfilePage() {
         body: JSON.stringify({
           fullName,
           phoneNumber: phoneNumber || null,
+          whatsappNumber: whatsappNumber || null,
+          whatsappShareEnabled: profileForm.whatsappShareEnabled,
           ...(identityLocked
             ? {}
             : {
@@ -377,6 +395,8 @@ export default function ProfilePage() {
       setProfileForm({
         fullName: response.data.profile.fullName,
         phoneNumber: response.data.profile.phoneNumber || "",
+        whatsappNumber: response.data.profile.whatsappNumber || "",
+        whatsappShareEnabled: response.data.profile.whatsappShareEnabled,
         inGameName: response.data.profile.identity?.inGameName || "",
         gameUid: response.data.profile.identity?.gameUid || "",
       });
@@ -615,6 +635,41 @@ export default function ProfilePage() {
                 />
               </label>
             </div>
+
+            <section className="mt-5 rounded-2xl border border-emerald-400/15 bg-emerald-400/[.04] p-4 sm:p-5" aria-label="Opponent WhatsApp contact">
+              <div className="flex flex-wrap items-center gap-2">
+                <span aria-hidden="true" className="text-emerald-400">●</span>
+                <h3 className="theme-text font-semibold">WhatsApp match coordination</h3>
+                <span className="theme-secondary-text rounded-full border px-2 py-0.5 text-[11px] font-semibold">
+                  Private by default
+                </span>
+              </div>
+              <p className="theme-secondary-text mt-2 text-sm leading-6">
+                Add a separate WhatsApp number to let players you face in a tournament open your chat for match scheduling.
+                This does not share your login phone number. Sharing starts OFF.
+              </p>
+              <label className="theme-text mt-4 block text-sm font-semibold">
+                WhatsApp number with country code
+                <input type="tel" name="whatsappNumber" inputMode="tel" autoComplete="off"
+                  placeholder="+919876543210" value={profileForm.whatsappNumber} maxLength={30}
+                  onChange={event => setProfileForm(current => ({ ...current, whatsappNumber: event.target.value }))}
+                  disabled={profileBusy}
+                  className="theme-input mt-2 w-full rounded-xl border px-3 py-3 text-sm font-normal" />
+              </label>
+              <label className="theme-text mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 p-3 text-sm">
+                <input type="checkbox" checked={profileForm.whatsappShareEnabled}
+                  onChange={event => setProfileForm(current => ({ ...current, whatsappShareEnabled: event.target.checked }))}
+                  disabled={profileBusy || !profileForm.whatsappNumber.trim()}
+                  className="mt-1 h-4 w-4 accent-emerald-500" />
+                <span>
+                  <strong className="block font-semibold">Allow my fixture opponents to contact me on WhatsApp</strong>
+                  <span className="theme-secondary-text mt-1 block text-xs leading-5">
+                    Only signed-in players on the opposing side of your fixture can request the link.
+                    They will be able to see your phone number in WhatsApp. Uncheck and save to revoke sharing for future requests.
+                  </span>
+                </span>
+              </label>
+            </section>
 
             <div className="mt-5 border-t border-black/5 pt-5">
               <div className="flex flex-wrap items-center justify-between gap-2">

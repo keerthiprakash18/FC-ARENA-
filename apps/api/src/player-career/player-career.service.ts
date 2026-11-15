@@ -273,6 +273,7 @@ export class PlayerCareerService {
     const fixture = await this.prisma.fixture.findUnique({
       where: { id: fixtureId },
       select: {
+        tournament: { select: { leagueId: true } },
         homeRegistration: { select: { members: { select: { userId: true } } } },
         awayRegistration: { select: { members: { select: { userId: true } } } },
       },
@@ -282,6 +283,19 @@ export class PlayerCareerService {
     const away = fixture.awayRegistration?.members.map(member => member.userId) ?? [];
     if (!isOpposingFixtureMember(viewerUserId, targetUserId, home, away)) {
       throw new ForbiddenException('WhatsApp contact is available only to an actual opponent in this fixture.');
+    }
+
+    // Leaving or being removed from the league revokes future access, even
+    // when an old fixture still contains the original registration.
+    const activeLeagueMembers = await this.prisma.leagueMember.findMany({
+      where: {
+        leagueId: fixture.tournament.leagueId,
+        userId: { in: [viewerUserId, targetUserId] },
+      },
+      select: { userId: true },
+    });
+    if (new Set(activeLeagueMembers.map(member => member.userId)).size !== 2) {
+      throw new ForbiddenException('Both players must currently belong to the fixture league.');
     }
 
     const [viewer, opponent] = await Promise.all([

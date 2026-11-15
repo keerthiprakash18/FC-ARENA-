@@ -39,7 +39,7 @@
 
 ## G. Production readiness and storage
 
-Release readiness is pending independent Goldfish review, candidate CI, and complete Android launch and staging evidence. Obtain a recent encrypted database backup, verify its isolated restore and compatibility, rehearse rollback, and verify the deployed commit and health checks on a separately authorized release. The default account from the existing trusted SSH configuration reached the VCCL host but authentication was denied. Live disk, backup timers, off-server copy, log retention, and Cloudinary usage remain unverified.
+This handoff records the initial review state. The [release design](fc-arena-release-design.md) and [Goldfish review](fc-arena-goldfish-review.md) track the subsequent independent review, candidate checks, trusted SSH verification, current backup and isolated restore, schema compatibility, and rollback rehearsal. Encrypted off-server retention is evaluated in the storage audit.
 
 The repository supports GPG encrypted PostgreSQL dumps and off-server copying of encrypted archive and checksum pairs via rclone. The Arena Talk helper writes local gzip archives with restrictive permissions and checksums. Verify how those media archives are encrypted and restored before including them in an off-server copy. Use the existing host and storage volumes to inventory database and WAL size, Docker layers, release outputs, temporary files, system logs, and media retention before making any capacity changes. [Backup runbook](../../ops/backup/README.md) · [Release and rollback](step-19-rollback-dr.md)
 

@@ -73,6 +73,11 @@ export function StudioReview({ studio, endpoint, reload, onBack }: {
       <div><span>{grouped ? 'Estimated group matches' : 'Estimated matches'}</span><strong>{stageMatches ?? 'See fixture preview'}</strong></div>
     </div>
     {error && <p className={styles.error} role="alert">{error}</p>}
+    {tournament.mode === 'DUO' && approved.length > 0 && !['COMPLETED', 'CANCELLED'].includes(tournament.status) && (
+      <div className={styles.inlineActions}>
+        <Link href={endpoint + '/teams#tournament-teams'} className={styles.subButton}>Assign clubs to Duo teams</Link>
+      </div>
+    )}
     <Roster entries={entries} groups={tournament.groups} duo={tournament.mode === 'DUO'} />
     {active ? <div className={styles.notice} role="status">
       <p>{tournament.status === 'ACTIVE' ? 'Tournament published.' : 'Tournament is ' + tournament.status.toLowerCase() + '.'}</p>

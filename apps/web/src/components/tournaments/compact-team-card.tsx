@@ -11,8 +11,8 @@ const subscribe = (listener: () => void) => {
 const desktopSnapshot = () => window.matchMedia(query).matches;
 const serverSnapshot = () => false;
 
-export function CompactTeamCard({ name, logoUrl, status, fixtureCount, memberCount, editing, children }: {
-  name: string; logoUrl: string | null; status: string; fixtureCount: number; memberCount: number; editing: boolean; children: ReactNode;
+export function CompactTeamCard({ name, logoUrl, status, fixtureCount, memberCount, editing, action, children }: {
+  name: string; logoUrl: string | null; status: string; fixtureCount: number; memberCount: number; editing: boolean; action?: ReactNode; children: ReactNode;
 }) {
   const desktop = useSyncExternalStore(subscribe, desktopSnapshot, serverSnapshot);
   const [expanded, setExpanded] = useState(false);
@@ -27,6 +27,7 @@ export function CompactTeamCard({ name, logoUrl, status, fixtureCount, memberCou
       </div>
     </div>
     <div className="mt-2"><FcStatusBadge label={status} tone={status === 'APPROVED' ? 'emerald' : 'amber'} /></div>
+    {!editing && action}
     {!desktop ? <button type="button" className="mt-2 min-h-11 w-full rounded-lg border border-white/10 px-2 text-xs font-bold" aria-controls={id} aria-expanded={open} disabled={editing} onClick={() => setExpanded(value => !value)}>{open ? 'Close details ↑' : 'Players & details ↓'}</button> : null}
     <div id={id} hidden={!open}>{open ? <div className="mt-3">{children}</div> : null}</div>
   </FcPanel>;

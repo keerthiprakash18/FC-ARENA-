@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { FcCrest } from '@/components/fc/fc-ui';
 import { FcIcon } from '@/components/fc/fc-icons';
@@ -156,7 +157,12 @@ export function DrawStudio({ studio, endpoint, storageKey, reload }: { studio: S
       <p>Recover the pending draw before starting another one.</p>
       <button type="button" className={styles.subButton} onClick={() => void run()}>Recover draw</button>
     </div>}
-    {!editable && <p className={styles.notice}>Draws are locked after fixture preview or publication. The roster and saved outcomes are available below.</p>}
+    {!editable && <div className={styles.notice}>
+      <p>Draws are locked after fixture preview or publication. The roster and saved outcomes are available below.</p>
+      {tournament.mode === 'DUO' && approved.length > 0 && !['COMPLETED', 'CANCELLED'].includes(tournament.status) && (
+        <Link href={endpoint + '/teams#tournament-teams'} className={styles.subButton}>Assign clubs to Duo teams</Link>
+      )}
+    </div>}
     {editable && <fieldset disabled={drawBusy} className={styles.formStack}>
       {tournament.mode === 'DUO' && form.tool !== 'IMPORT' && entries.length === 0 &&
         <p className={styles.muted}>Already have your teams? Choose Import pairs to keep those pairings.</p>}

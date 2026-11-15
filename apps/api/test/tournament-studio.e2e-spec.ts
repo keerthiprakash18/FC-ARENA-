@@ -156,9 +156,8 @@ describe('Tournament Studio against PostgreSQL', () => {
         expect(canEdit).toBe(index === 0);
       }
     }
-    const manual = await draw(cup, { kind: 'MANUAL', name: 'Admin-assigned club', playerIds: players.slice(0, 2) }).expect(201);
+    const manual = await draw(cup, { kind: 'MANUAL', playerIds: players.slice(0, 2) }).expect(201);
     const manualId = manual.body.data.entries[0].id;
-    await expectDuo([0, 1], manualId, 'Admin-assigned club', 'APPROVED');
 
     const captain = sign(players[2]!);
     const registrationPath = path(cup) + '/register';
@@ -175,10 +174,24 @@ describe('Tournament Studio against PostgreSQL', () => {
 
     await post(path(cup) + '/close-registration', {}).expect(201);
     await post(path(cup) + '/wizard/fixture-preview/generate', {}).expect(201);
-    const preview = await state(cup);
-    await post(path(cup) + '/studio/publish', { confirmed: true, revision: preview.revision }).expect(201);
+    const assignClub = (entryName: string, bearer = token) => request(app.getHttpServer())
+      .patch('/api' + path(cup) + '/entries/' + manualId).set('Authorization', 'Bearer ' + bearer).send({ entryName });
+    const beforeAssignment = await state(cup);
+    await assignClub('Admin-assigned club', sign(players[1]!)).expect(403);
+    await assignClub(body.entryName).expect(409);
+    await assignClub('Admin-assigned club').expect(200);
     await expectDuo([0, 1], manualId, 'Admin-assigned club', 'APPROVED');
+    const preview = await state(cup);
+    expect(preview.fixtures).toEqual(beforeAssignment.fixtures);
+    expect(preview.revision).not.toBe(beforeAssignment.revision);
+    await post(path(cup) + '/studio/publish', { confirmed: true, revision: preview.revision }).expect(201);
+    const fixtures = await db.fixture.findMany({ where: { tournamentId: cup }, orderBy: { id: 'asc' } });
+    const matches = await db.match.findMany({ where: { tournamentId: cup }, orderBy: { id: 'asc' } });
+    await assignClub('New club after publication').expect(200);
+    await expectDuo([0, 1], manualId, 'New club after publication', 'APPROVED');
     await expectDuo([2, 3], id, body.entryName, 'APPROVED');
+    expect(await db.fixture.findMany({ where: { tournamentId: cup }, orderBy: { id: 'asc' } })).toEqual(fixtures);
+    expect(await db.match.findMany({ where: { tournamentId: cup }, orderBy: { id: 'asc' } })).toEqual(matches);
     await get(path(cup) + '/my-registration', visitor).expect(403);
   });
 

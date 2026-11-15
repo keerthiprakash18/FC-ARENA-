@@ -97,6 +97,7 @@ interface Tournament extends EntryLimitTournament {
   id: string;
   name: string;
   status: string;
+  mode: string;
   maxEntries: number;
   isLeagueAdmin: boolean;
   canManageParticipants?: boolean;
@@ -458,6 +459,15 @@ export default function TournamentTeamsPage() {
       totalFixtures ===
         0,
     );
+  const isDuo = tournament?.mode === 'DUO';
+  const canAssignDuoClub = Boolean(tournament?.canManageParticipants &&
+    !['COMPLETED', 'CANCELLED'].includes(tournament.status) && isDuo);
+
+  function canEditTeam(entry: Entry) {
+    return isDuo
+      ? canAssignDuoClub && ['APPROVED', 'PENDING'].includes(entry.status) && entry.members.length === 2
+      : Boolean(tournament?.canManageParticipants && canManageEntries);
+  }
 
 
   function beginEdit(
@@ -488,20 +498,15 @@ export default function TournamentTeamsPage() {
 
 
   async function saveEdit(
-    entryId: string,
+    entry: Entry,
   ) {
-    if (busy) return;
+    if (busy || !canEditTeam(entry)) return;
+    const entryId = entry.id;
     if (entries.some((entry) => entry.id !== entryId && normalizeTeamName(entry.entryName ?? '') === normalizeTeamName(editName))) {
       setMessage('');
       setError(`“${editName.trim()}” already exists in this Tournament. Choose a different team name.`);
       return;
     }
-    if (
-      !canManageEntries
-    ) {
-      return;
-    }
-
     if (
       !editName.trim()
     ) {
@@ -536,8 +541,7 @@ export default function TournamentTeamsPage() {
               entryName:
                 editName.trim(),
 
-              entryLogoUrl:
-                editLogo.trim(),
+              entryLogoUrl: isDuo ? undefined : editLogo.trim() || undefined,
             }),
         },
       );
@@ -547,7 +551,7 @@ export default function TournamentTeamsPage() {
       );
 
       setMessage(
-        'Team updated successfully.',
+        isDuo ? 'Club assignment saved.' : 'Team updated successfully.',
       );
 
       await loadEntries();
@@ -763,7 +767,9 @@ export default function TournamentTeamsPage() {
                 </p>
 
                 <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
-                  Add or remove entries before fixtures are generated. To replace an unavailable player, open their team card and choose Replace player. The same group, fixtures, scores and team points are kept.
+                  {canAssignDuoClub
+                    ? 'Use Assign club for an existing Duo. You can save the club after fixtures are generated, and both players will see it in Your Duo.'
+                    : 'Add or remove entries before fixtures are generated. Use Replace player to keep the existing group, fixtures and results.'}
                 </p>
               </div>
 
@@ -809,7 +815,7 @@ export default function TournamentTeamsPage() {
 
 
         <TeamListExport tournamentId={tournamentId} approvedCount={entries.filter(entry => entry.status === 'APPROVED').length} />
-        {entries.length > 0 ? <label className="grid gap-2 text-sm font-semibold">Find a team or player
+        {entries.length > 0 ? <label id="tournament-teams" className="grid scroll-mt-24 gap-2 text-sm font-semibold">Find a team or player
           <input type="search" value={teamSearch} onChange={event => setTeamSearch(event.target.value)} placeholder="Team name, player name or ID" className="min-h-11 w-full rounded-xl border border-white/10 bg-transparent px-4 text-sm" />
           <span className="text-xs font-normal text-slate-500" role="status">{filteredEntries.length} of {entries.length} teams · Open a card for players and actions</span>
         </label> : null}
@@ -827,17 +833,23 @@ export default function TournamentTeamsPage() {
           <section className="grid grid-cols-2 items-start gap-3 md:gap-4 xl:grid-cols-3" aria-label="Tournament teams">
             {!filteredEntries.length ? <p className="col-span-2 py-8 text-center text-sm text-slate-500">No teams match your search.</p> : null}
             {filteredEntries.map(
-              (
-                entry,
-              ) => (
-                <CompactTeamCard key={entry.id} name={entry.entryName || 'Unnamed Team'} logoUrl={entry.entryLogoUrl} status={entry.status} fixtureCount={entry.fixtureCount} memberCount={entry.members.length} editing={editingId === entry.id && canManageEntries}>
-                  {editingId ===
-                    entry.id &&
-                  canManageEntries ? (
-                    <div className="space-y-3">
-                      <FootballTeamPicker tournamentId={tournamentId} excludeEntryId={entry.id} value={editName} onChange={setEditName} disabled={busy} />
+              entry => {
+                const playerNames = entry.members.map(({ user }) => user.player?.identity?.inGameName || user.fullName).join(' + ');
+                const name = entry.entryName || (isDuo && playerNames) || 'Unnamed Team';
+                const editing = editingId === entry.id && canEditTeam(entry);
+                return <CompactTeamCard key={entry.id} name={name} logoUrl={entry.entryLogoUrl} status={entry.status} fixtureCount={entry.fixtureCount} memberCount={entry.members.length} editing={editing}
+                  action={isDuo && canEditTeam(entry) ? (
+                    <button type="button" className="theme-secondary-button mt-2 min-h-11 w-full rounded-lg px-2 text-xs font-bold disabled:opacity-40"
+                      aria-label={`Assign club for ${playerNames}`} disabled={busy} onClick={() => beginEdit(entry)}>
+                      {entry.entryName ? 'Change club' : 'Assign club'}
+                    </button>
+                  ) : undefined}>
+                  {editing ? (
+                    <form className="space-y-3" onSubmit={event => { event.preventDefault(); void saveEdit(entry); }}>
+                      {isDuo && <p className="theme-muted break-words text-sm">{playerNames}</p>}
+                      <FootballTeamPicker tournamentId={tournamentId} excludeEntryId={entry.id} label={isDuo ? 'Club or team name' : 'Team Name'} value={editName} onChange={setEditName} disabled={busy} />
 
-                      <label className="grid gap-2">
+                      {!isDuo && <label className="grid gap-2">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-500">
                           Logo URL — optional
                         </span>
@@ -859,24 +871,19 @@ export default function TournamentTeamsPage() {
                           placeholder="https://..."
                           className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-sky-400/50"
                         />
-                      </label>
+                      </label>}
 
                       <div className="flex flex-wrap gap-2">
                         <button
-                          type="button"
+                          type="submit"
                           disabled={
                             busy
-                          }
-                          onClick={() =>
-                            void saveEdit(
-                              entry.id,
-                            )
                           }
                           className="rounded-xl bg-emerald-400 px-4 py-2.5 text-xs font-black text-[#03150f] disabled:opacity-40"
                         >
                           {busy
                             ? 'Saving...'
-                            : 'Save Changes'}
+                            : isDuo ? 'Save club' : 'Save Changes'}
                         </button>
 
                         <button
@@ -894,7 +901,7 @@ export default function TournamentTeamsPage() {
                           Cancel
                         </button>
                       </div>
-                    </div>
+                    </form>
                   ) : (
                     <>
                       <div className="space-y-2 border-t border-white/10 pt-3">
@@ -1056,7 +1063,7 @@ export default function TournamentTeamsPage() {
                       {tournament.canManageParticipants &&
                       canManageEntries ? (
                         <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4">
-                          <button
+                          {!isDuo && <button
                             type="button"
                             disabled={
                               busy
@@ -1069,7 +1076,7 @@ export default function TournamentTeamsPage() {
                             className="inline-flex min-h-10 items-center justify-center rounded-[10px] border border-white/10 px-3.5 text-xs font-semibold text-slate-500 transition hover:text-white disabled:opacity-40"
                           >
                             Edit Team
-                          </button>
+                          </button>}
 
                           <button
                             type="button"
@@ -1089,8 +1096,8 @@ export default function TournamentTeamsPage() {
                       ) : null}
                     </>
                   )}
-                </CompactTeamCard>
-              ),
+                </CompactTeamCard>;
+              },
             )}
           </section>
         )}

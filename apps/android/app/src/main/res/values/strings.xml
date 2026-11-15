@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FC ARENA</string>
+    <string name="launch_tagline">WHERE CHAMPIONS RISE</string>
     <string name="launch_url" translatable="false">https://fcarena.in/dashboard</string>
     <string name="web_manifest_url" translatable="false">https://fcarena.in/manifest.webmanifest</string>
     <string name="manage_space_url" translatable="false">https://fcarena.in/</string>

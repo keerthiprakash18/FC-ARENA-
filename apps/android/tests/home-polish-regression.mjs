@@ -4,8 +4,7 @@ import { createUiContext, career, user, checkLayout } from './phase-ui-harness.m
 import { phaseData } from './phase-ui-fixtures.mjs';
 
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
-const browser = await chromium.launch({ headless: true,
-  executablePath: process.env.CHROMIUM_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH });
 const cup = { ...phaseData['/api/tournaments/phase3'].tournament, status: 'ACTIVE', leagueId: 'phase3', leagueName: 'Arena League' };
 const fixture = { id: 'home-fixture', sequence: 1, matchday: 1, roundName: 'MATCHDAY 1', status: 'SCHEDULED',
   scheduledAt: new Date(Date.now() + 86400000).toISOString(), tournamentId: 'phase3', tournamentName: cup.name,
@@ -94,6 +93,7 @@ try {
       await f.page.goto(origin + '/dashboard');
       const match = f.page.locator('.fc-next-match-panel');
       const action = match.getByRole('link', { name: /^View Match/ }); await action.waitFor();
+      await f.page.locator('.premium-home-hero').getByText('Home Club vs Away Club').waitFor();
       assert.equal(await action.getAttribute('href'), '/matches/phase3');
       assert.equal(await f.page.locator('.premium-home-hero .theme-primary-button').count(), 0, 'The real match keeps the primary action');
       const jump = f.page.getByRole('link', { name: /See next match/ });

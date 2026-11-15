@@ -6,7 +6,7 @@ if (origin.protocol !== 'http:' || !['localhost', '127.0.0.1', '[::1]'].includes
 }
 
 export default defineConfig({
-  testMatch: 'startup-web.spec.mjs',
+  testMatch: ['startup-web.spec.mjs', 'release-ui.spec.mjs'],
   use: {
     baseURL: origin.origin,
     serviceWorkers: 'block',

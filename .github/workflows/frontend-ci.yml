@@ -89,6 +89,8 @@ jobs:
           SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/ui-smoke.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-group-editor-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-studio-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/home-polish-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/node_modules/@playwright/test/cli.js test --config apps/android/tests/startup-web.config.mjs --workers=2 --output /tmp/fcarena-startup-web
 
       - name: Upload complete UI verification screenshots
         if: always()

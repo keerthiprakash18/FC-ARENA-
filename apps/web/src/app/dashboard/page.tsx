@@ -185,6 +185,15 @@ type DashboardSection = "nextMatch" | "league" | "activeTournament" | "stats" | 
 
 type NextFixtureKind = "LIVE" | "TODAY" | "UPCOMING" | "POSTPONED" | "UNSCHEDULED" | "PENDING";
 
+const fixtureHeadings: Record<NextFixtureKind, string> = {
+  LIVE: "Live Match",
+  TODAY: "Today's Match",
+  UPCOMING: "Next Match",
+  POSTPONED: "Match Status",
+  UNSCHEDULED: "Fixture Ready",
+  PENDING: "Pending Match",
+};
+
 const TERMINAL_FIXTURE_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 const LIVE_FIXTURE_STATUSES = new Set(["LIVE", "IN_PROGRESS"]);
 
@@ -761,6 +770,12 @@ export default function DashboardPage() {
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
               </div>
+              {showNextMatch && nextFixture && nextFixtureKind ? (
+                <div className="home-hero-fixture">
+                  <p>{fixtureHeadings[nextFixtureKind]}</p>
+                  <strong>{entryName(nextFixture.home)} <span>vs</span> {entryName(nextFixture.away)}</strong>
+                </div>
+              ) : null}
             </div>
             <Link
               href={heroAction.href}
@@ -776,19 +791,7 @@ export default function DashboardPage() {
             <FcPanel className="fc-next-match-panel premium-home-next p-4 sm:p-5">
               <SectionTitle
                 icon="fixtures"
-                title={
-                  nextFixtureKind === "LIVE"
-                    ? "Live Match"
-                    : nextFixtureKind === "TODAY"
-                      ? "Today's Match"
-                      : nextFixtureKind === "POSTPONED"
-                        ? "Match Status"
-                        : nextFixtureKind === "PENDING"
-                          ? "Pending Match"
-                        : nextFixtureKind === "UNSCHEDULED"
-                          ? "Fixture Ready"
-                        : "Next Match"
-                }
+                title={nextFixtureKind ? fixtureHeadings[nextFixtureKind] : "Next Match"}
                 href="/fixtures"
               />
 

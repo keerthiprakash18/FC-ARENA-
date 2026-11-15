@@ -117,6 +117,8 @@ export default function TournamentsPage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [selectedLeagueId, selectLeague] = useActiveLeague(user?.id, memberships, searchParams.get('leagueId'));
   const [record, setRecord] = useState<{ leagueId: string; tournaments: Tournament[] } | null>(null);
+  const [search, setSearch] = useState('');
+  const searchTerm = search.trim().toLowerCase();
   const tournaments = useMemo(() => record?.leagueId === selectedLeagueId ? record.tournaments : [], [record, selectedLeagueId]);
   const requestedView = searchParams.get('view');
   const filter: Filter = requestedView === 'UPCOMING' || requestedView === 'COMPLETED' ? requestedView : 'ACTIVE';
@@ -186,15 +188,13 @@ export default function TournamentsPage() {
           return false;
         }
 
-        if (!formatFilter) {
-          return true;
+        if (formatFilter && (tournament.competitionFormat || tournament.format) !== formatFilter) {
+          return false;
         }
 
-        const format = tournament.competitionFormat || tournament.format;
-
-        return format === formatFilter;
+        return !searchTerm || [tournament.name, tournament.code].some(value => value.toLowerCase().includes(searchTerm));
       }),
-    [tournaments, filter, formatFilter],
+    [tournaments, filter, formatFilter, searchTerm],
   );
 
   const counts = useMemo(
@@ -308,7 +308,11 @@ export default function TournamentsPage() {
             <section aria-labelledby="cup-stage">
               <div className={styles.sectionHead}>
                 <h2 id="cup-stage">{stageLabel} tournaments</h2>
-                {filter !== 'COMPLETED' && !filtered.length && counts.COMPLETED > 0 && <button type="button" onClick={() => setFilter('COMPLETED')}>View completed</button>}
+                {!searchTerm && filter !== 'COMPLETED' && !filtered.length && counts.COMPLETED > 0 && <button type="button" onClick={() => setFilter('COMPLETED')}>View completed</button>}
+              </div>
+              <div className="fc-directory-search mb-3">
+                <input className="theme-input border" type="search" aria-label="Search tournaments" placeholder="Search by name or code" value={search} onChange={event => setSearch(event.target.value)} />
+                {search && <button type="button" className="theme-secondary-button border text-sm font-semibold" onClick={() => setSearch('')}>Clear search</button>}
               </div>
               {formatFilter && <button className={styles.filterClear} type="button" onClick={() => setFormatFilter(null)}>{competitionLabel(formatFilter)} <span aria-hidden="true">×</span><span className="sr-only">, clear format filter</span></button>}
               {tournamentLoad.error ? <FcErrorState message={tournamentLoad.error} onRetry={tournamentLoad.retry} /> : loading || record?.leagueId !== leagueId ? (
@@ -345,7 +349,10 @@ export default function TournamentsPage() {
               ) : (
                 <div className={styles.empty} key={filter + (formatFilter ?? '')}>
                   <span aria-hidden="true"><FcIcon name="trophy" /></span>
-                  <div><h3>No {stageLabel.toLowerCase()} tournaments</h3><p>{formatFilter ? 'Clear the format filter to see more tournaments.' : filter === 'ACTIVE' ? 'Live tournaments will appear here once they start.' : 'This league has no tournaments in this view.'}</p></div>
+                  <div role={searchTerm ? 'status' : undefined}>
+                    <h3>{searchTerm ? 'No matching tournaments' : `No ${stageLabel.toLowerCase()} tournaments`}</h3>
+                    <p>{searchTerm ? 'Try another name or tournament code.' : formatFilter ? 'Clear the format filter to see more tournaments.' : filter === 'ACTIVE' ? 'Live tournaments will appear here once they start.' : 'This league has no tournaments in this view.'}</p>
+                  </div>
                 </div>
               )}
             </section>

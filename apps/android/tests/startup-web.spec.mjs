@@ -65,15 +65,17 @@ test('a delayed authenticated dashboard shows the loading layout and hands off t
 });
 
 test('the dashboard exposes recovery when its API is unavailable', async ({ browser }, testInfo) => {
-  let healthy = false;
   const { context, page, errors, mutations } = await createUiContext(browser, {
     width: testInfo.project.use.viewport.width,
     direct: true,
     native: testInfo.project.name.startsWith('mobile'),
     overrides: {
-      '/api/players/me/dashboard': (route, headers) => healthy
-        ? route.fulfill({ headers, json: { success: true, data: { career, memberships: [], tournaments: [], fixtures: [] }, error: null } })
-        : route.fulfill({ headers, status: 503, json: { success: false, message: 'Service unavailable' } }),
+      '/api/players/me/dashboard': async (route, headers) => {
+        const manuallyRetried = await route.request().frame().evaluate(() => window.dashboardRetryClicked === true);
+        return manuallyRetried
+          ? route.fulfill({ headers, json: { success: true, data: { career, memberships: [], tournaments: [], fixtures: [] }, error: null } })
+          : route.fulfill({ headers, status: 503, json: { success: false, message: 'Service unavailable' } });
+      },
     },
   });
 
@@ -82,8 +84,11 @@ test('the dashboard exposes recovery when its API is unavailable', async ({ brow
     await expect(page.getByRole('heading', { name: 'Dashboard unavailable' })).toBeVisible();
     await expect(page.getByText('Loading Home...', { exact: true })).toHaveCount(0);
 
-    healthy = true;
-    await page.getByRole('button', { name: 'Try again' }).click();
+    const retry = page.getByRole('button', { name: 'Try again' });
+    await retry.evaluate(button => {
+      button.addEventListener('click', () => { window.dashboardRetryClicked = true; }, { capture: true, once: true });
+    });
+    await retry.click();
     await expect(page.getByRole('link', { name: /Join a League/ }).first()).toBeVisible();
     expect(errors).toEqual([]);
     expect(mutations).toEqual([]);

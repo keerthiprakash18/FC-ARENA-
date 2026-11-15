@@ -277,6 +277,38 @@
 .fc-premium .fc-app-shell .fc-main .premium-home-hero :is(.home-welcome, .home-player-code) {
   color: var(--arena-muted) !important;
 }
+.home-hero-fixture {
+  margin-block-start: .75rem;
+  padding-inline-start: .7rem;
+  border-inline-start: 2px solid var(--arena-gold);
+  color: var(--arena-ivory);
+  overflow-wrap: anywhere;
+}
+.home-hero-fixture p { color: var(--arena-gold); font-size: .75rem; font-weight: 650; }
+.home-hero-fixture strong { font-size: .9rem; font-weight: 650; }
+.home-hero-fixture strong span { color: var(--arena-muted); font-weight: 500; }
+
+.fc-profile-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.fc-profile-sections > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: .85rem;
+  border: 1px solid var(--theme-control-border);
+  border-radius: .65rem;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font-size: .85rem;
+  font-weight: 650;
+}
+.fc-profile-sections > a:is(:hover,:focus-visible) { background: var(--theme-primary-soft); }
+.fc-profile-page :is(#profile-photo,#profile-career,#profile-contact,#profile-opponent-contact) {
+  scroll-margin-block-start: 6rem;
+}
 
 
 .fc-app-shell {

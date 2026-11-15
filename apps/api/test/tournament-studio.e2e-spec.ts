@@ -3,8 +3,9 @@ import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import sharp from 'sharp';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { AuthModule } from '../src/auth/auth.module.js';
 import { PrismaModule } from '../src/database/prisma.module.js';
 import { PrismaService } from '../src/database/prisma.service.js';
@@ -193,6 +194,64 @@ describe('Tournament Studio against PostgreSQL', () => {
     expect(await db.fixture.findMany({ where: { tournamentId: cup }, orderBy: { id: 'asc' } })).toEqual(fixtures);
     expect(await db.match.findMany({ where: { tournamentId: cup }, orderBy: { id: 'asc' } })).toEqual(matches);
     await get(path(cup) + '/my-registration', visitor).expect(403);
+  });
+
+  it('lets an admin grant and revoke active team logo uploads without reopening registration', async () => {
+    const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 2 })).expect(201)).body.data.tournament.id;
+    const manual = await draw(cup, { kind: 'MANUAL', playerIds: players.slice(0, 2), name: 'Logo team' }).expect(201);
+    const entry = manual.body.data.entries[0].id;
+    await draw(cup, { kind: 'MANUAL', playerIds: players.slice(2, 4), name: 'Rival team' }).expect(201);
+    await post(path(cup) + '/wizard/fixture-preview/generate', {}).expect(201);
+    const preview = await state(cup);
+    await post(path(cup) + '/studio/publish', { confirmed: true, revision: preview.revision }).expect(201);
+    const publishedFixtures = (await state(cup)).fixtures;
+    const member = sign(players[1]!);
+    const captain = sign(players[0]!);
+    const rival = sign(players[2]!);
+    const entryPath = path(cup) + '/entries/' + entry;
+    const logoPath = '/api' + entryPath + '/logo';
+    const logo = await sharp({ create: { width: 160, height: 160, channels: 3, background: '#215880' } }).png().toBuffer();
+    const upload = (bearer: string) => request(app.getHttpServer()).post(logoPath)
+      .set('Authorization', 'Bearer ' + bearer).attach('logo', logo, { filename: 'crest.png', contentType: 'image/png' });
+    const setting = (allowActiveTeamLogoEdits: boolean, bearer = token) => request(app.getHttpServer())
+      .patch('/api' + path(cup) + '/team-logo-permission').set('Authorization', 'Bearer ' + bearer).send({ allowActiveTeamLogoEdits });
+    const ownEntry = () => get(path(cup) + '/my-registration', member).expect(200);
+    const url = 'https://example.invalid/crest.webp';
+    vi.stubEnv('CLOUDINARY_URL', 'cloudinary://test:test@qa');
+    const storage = vi.fn(async () => Response.json({ secure_url: url, result: 'ok' }));
+    vi.stubGlobal('fetch', storage);
+    try {
+      expect((await ownEntry()).body.data.canManageLogo).toBe(false);
+      await upload(member).expect(409);
+      await request(app.getHttpServer()).patch('/api' + entryPath).set('Authorization', 'Bearer ' + captain)
+        .send({ entryLogoUrl: url }).expect(409);
+      await setting(true, member).expect(403);
+      expect(storage).not.toHaveBeenCalled();
+
+      await upload(token).expect(201);
+      await setting(true).expect(200);
+      await upload(rival).expect(403);
+      await upload(member).expect(201);
+      expect((await ownEntry()).body.data).toMatchObject({ canManageLogo: true, registration: { entryLogoUrl: url } });
+      const entries = (await get(path(cup) + '/entries', member).expect(200)).body.data.entries;
+      expect(entries.find((item: { id: string }) => item.id === entry).canManageLogo).toBe(true);
+
+      await setting(false).expect(200);
+      await request(app.getHttpServer()).delete(logoPath).set('Authorization', 'Bearer ' + member).expect(409);
+      expect((await ownEntry()).body.data.canManageLogo).toBe(false);
+      const current = await state(cup);
+      expect(current.tournament.registrationMode).toBe('ADMIN_ONLY');
+      expect(current.fixtures).toEqual(publishedFixtures);
+      expect(storage).toHaveBeenCalledTimes(2);
+
+      await setting(true).expect(200);
+      await db.tournament.update({ where: { id: cup }, data: { status: 'COMPLETED' } });
+      await upload(member).expect(409);
+      await setting(false).expect(409);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
   });
 
   it('allocates distinct Duo teams, handles odd players and reconnects to the persisted wheel outcome', async () => {

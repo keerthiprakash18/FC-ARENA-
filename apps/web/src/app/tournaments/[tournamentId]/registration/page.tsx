@@ -118,6 +118,8 @@ interface MyRegistrationResponse {
     canEdit?: boolean;
     canEditRoster?: boolean;
     editLockReason?: string | null;
+    canManageLogo?: boolean;
+    logoLockReason?: string | null;
   };
 }
 
@@ -270,6 +272,7 @@ export default function TournamentRegistrationPage() {
   const [canEditMyRegistration, setCanEditMyRegistration] = useState(false);
   const [canEditMyRoster, setCanEditMyRoster] = useState(false);
   const [editLockReason, setEditLockReason] = useState<string | null>(null);
+  const [logoLockReason, setLogoLockReason] = useState<string | null>('Team logo uploads are unavailable.');
 
   const [
     registrations,
@@ -359,6 +362,7 @@ export default function TournamentRegistrationPage() {
     setCanEditMyRegistration(Boolean(myResponse.data.canEdit));
     setCanEditMyRoster(Boolean(myResponse.data.canEditRoster));
     setEditLockReason(myResponse.data.editLockReason ?? null);
+    setLogoLockReason(myResponse.data.canManageLogo ? null : myResponse.data.logoLockReason ?? 'Team logo uploads are unavailable.');
 
     if (
       nextTournament
@@ -1332,15 +1336,8 @@ export default function TournamentRegistrationPage() {
                   logoUrl={
                     myRegistration.entryLogoUrl
                   }
-                  locked={
-                    ![
-                      'DRAFT',
-                      'REGISTRATION_OPEN',
-                      'REGISTRATION_CLOSED',
-                    ].includes(
-                      tournament.status,
-                    )
-                  }
+                  locked={Boolean(logoLockReason)}
+                  lockedMessage={logoLockReason ?? undefined}
                   onChanged={async () => {
                     const updatedTournament =
                       await refreshTournament();

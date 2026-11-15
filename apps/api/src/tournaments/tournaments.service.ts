@@ -17,6 +17,7 @@ import type { UpdateTournamentWizardStepDto } from './dto/update-tournament-wiza
 import type { RegisterTournamentDto } from './dto/register-tournament.dto.js';
 import { assertUniqueEntryName } from './entry-name.js';
 import { RegistrationNotificationsService } from '../notifications/registration-notifications.service.js';
+import { teamLogoLock } from './team-logo-permission.js';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -943,6 +944,7 @@ export class TournamentsService {
           leagueId:
             true,
           status: true,
+          allowActiveTeamLogoEdits: true,
         },
       });
 
@@ -1029,9 +1031,11 @@ export class TournamentsService {
         },
       });
 
-    const fixtureCount = registration
-      ? await this.prisma.fixture.count({ where: { tournamentId } })
-      : 0;
+    const [fixtureCount, canManageSettings] = registration ? await Promise.all([
+      this.prisma.fixture.count({ where: { tournamentId } }),
+      this.authorizationService.canManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS'),
+    ]) : [0, false];
+    const logoLock = registration && teamLogoLock(tournament, registration, userId, canManageSettings);
     const canEdit = Boolean(
       registration &&
       ['PENDING', 'APPROVED'].includes(registration.status) &&
@@ -1056,6 +1060,8 @@ export class TournamentsService {
         registration,
         canEdit,
         canEditRoster,
+        canManageLogo: Boolean(registration && !logoLock),
+        logoLockReason: logoLock?.message ?? null,
         editLockReason,
       },
 
@@ -1404,6 +1410,35 @@ export class TournamentsService {
         ? 'The entry limit is unchanged.'
         : `Entry limit updated from ${limits.previousMaxEntries} to ${limits.maxEntries}.`,
     }, error: null };
+  }
+
+  async updateTeamLogoPermission(userId: string, tournamentId: string, allowActiveTeamLogoEdits: boolean) {
+    await this.getTournamentForAdmin(userId, tournamentId, 'MANAGE_SETTINGS');
+    await this.prisma.$transactionWithRetry(async tx => {
+      const tournament = await tx.tournament.findUnique({
+        where: { id: tournamentId },
+        select: { status: true, allowActiveTeamLogoEdits: true },
+      });
+      if (!tournament) throw this.tournamentNotFound();
+      if (tournament.status === 'COMPLETED' || tournament.status === 'CANCELLED') {
+        throw new ConflictException('This tournament has ended. Team logo permissions are read-only.');
+      }
+      if (tournament.allowActiveTeamLogoEdits === allowActiveTeamLogoEdits) return;
+
+      await tx.tournament.update({ where: { id: tournamentId }, data: { allowActiveTeamLogoEdits } });
+      await tx.auditLog.create({ data: {
+        actorUserId: userId,
+        action: 'TOURNAMENT_TEAM_LOGO_PERMISSION_UPDATED',
+        targetType: 'Tournament',
+        targetId: tournamentId,
+        scopeType: 'TOURNAMENT',
+        scopeId: tournamentId,
+        beforeData: { allowActiveTeamLogoEdits: tournament.allowActiveTeamLogoEdits },
+        afterData: { allowActiveTeamLogoEdits },
+      } });
+    }, { isolationLevel: 'Serializable' });
+
+    return { success: true, data: { allowActiveTeamLogoEdits }, error: null };
   }
 
   async prepareFixtures(userId: string, tournamentId: string) {

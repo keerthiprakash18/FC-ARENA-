@@ -31,6 +31,7 @@ import { ScheduleFixtureDto } from './dto/schedule-fixture.dto.js';
 import { UpdateSchedulingSettingsDto } from './dto/update-scheduling-settings.dto.js';
 import { UpdateTournamentSetupDto } from './dto/update-tournament-setup.dto.js';
 import { UpdateEntryLimitDto } from './dto/update-entry-limit.dto.js';
+import { UpdateTeamLogoPermissionDto } from './dto/update-team-logo-permission.dto.js';
 import { UpdateTournamentWizardStepDto } from './dto/update-tournament-wizard-step.dto.js';
 import {
   CloneTournamentDto,
@@ -323,6 +324,15 @@ export class TournamentsController {
     @Param('tournamentId') tournamentId: string,
   ) {
     return this.tournamentsService.prepareFixtures(request.user.sub, tournamentId);
+  }
+
+  @Patch('tournaments/:tournamentId/team-logo-permission')
+  updateTeamLogoPermission(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: UpdateTeamLogoPermissionDto,
+  ) {
+    return this.tournamentsService.updateTeamLogoPermission(request.user.sub, tournamentId, dto.allowActiveTeamLogoEdits);
   }
 
   @Patch(

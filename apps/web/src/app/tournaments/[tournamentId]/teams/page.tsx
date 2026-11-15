@@ -67,6 +67,7 @@ interface Entry {
   entryName: string | null;
   entryLogoUrl: string | null;
   fixtureCount: number;
+  canManageLogo?: boolean;
   status: string;
   members: EntryMember[];
 }
@@ -774,6 +775,12 @@ export default function TournamentTeamsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
+                {tournament.canManageSettings ? (
+                  <Link href={`/tournaments/${tournamentId}/settings#team-logo-permissions`}
+                    className="theme-secondary-button inline-flex min-h-11 items-center rounded-[10px] px-4 text-sm font-bold">
+                    Team logo permissions
+                  </Link>
+                ) : null}
                 <Link
                   href={
                     `/tournaments/${tournamentId}/registration`
@@ -920,7 +927,7 @@ export default function TournamentTeamsPage() {
                         }} />
                       ) : null}
 
-                      {tournament.canManageParticipants ? (
+                      {entry.canManageLogo ? (
                         <div className="mt-4 border-t border-white/[0.06] pt-4">
                           <p className="mb-3 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
                             Team Logo
@@ -941,14 +948,6 @@ export default function TournamentTeamsPage() {
                               entry.entryLogoUrl
                             }
                             compact
-                            locked={
-                              [
-                                'COMPLETED',
-                                'CANCELLED',
-                              ].includes(
-                                tournament.status,
-                              )
-                            }
                             onChanged={
                               async () => {
                                 await loadEntries();

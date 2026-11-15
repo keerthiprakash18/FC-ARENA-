@@ -682,6 +682,7 @@ model Tournament {
   fixtureMode                 TournamentFixtureMode       @default(AUTOMATIC)
   visibility                  TournamentVisibility        @default(LEAGUE)
   registrationMode            TournamentRegistrationMode  @default(APPROVAL)
+  allowActiveTeamLogoEdits     Boolean                     @default(false)
   wizardStep                  TournamentWizardStep        @default(SETUP)
   status                      TournamentStatus            @default(DRAFT)
   teamSize                    Int

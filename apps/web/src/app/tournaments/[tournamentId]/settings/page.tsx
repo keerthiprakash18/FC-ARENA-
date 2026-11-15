@@ -51,6 +51,8 @@ interface Tournament extends EntryLimitTournament {
   name: string;
   status: string;
   isLeagueAdmin: boolean;
+  canManageParticipants?: boolean;
+  allowActiveTeamLogoEdits: boolean;
   canManageAdmins: boolean;
   competitionFormat?: string;
   format: string;
@@ -211,7 +213,7 @@ export default function TournamentSettingsPage() {
     );
 
     if (
-      value.isLeagueAdmin
+      value.canManageParticipants ?? value.isLeagueAdmin
     ) {
       const registrationsResponse =
         await authenticatedRequest<any>(
@@ -226,6 +228,27 @@ export default function TournamentSettingsPage() {
     }
 
     return value;
+  }
+
+  async function changeTeamLogoPermission() {
+    if (!tournament?.canManageSettings || busy) return;
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const { data } = await authenticatedRequest<{ data: { allowActiveTeamLogoEdits: boolean } }>(
+        `/tournaments/${tournamentId}/team-logo-permission`, {
+          method: 'PATCH',
+          body: JSON.stringify({ allowActiveTeamLogoEdits: !tournament.allowActiveTeamLogoEdits }),
+        },
+      );
+      setTournament(current => current?.id === tournamentId ? { ...current, ...data } : current);
+      setMessage(data.allowActiveTeamLogoEdits ? 'Team members can now manage their own logos.' : 'Team logo uploads during play are now admin-only.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to change team logo permissions.');
+    } finally {
+      setBusy(false);
+    }
   }
 
 
@@ -813,6 +836,24 @@ export default function TournamentSettingsPage() {
           </div>
         ) : null}
 
+
+         {tournament.canManageSettings ? <FcPanel className="p-5 sm:p-6">
+           <div className="flex flex-wrap items-start justify-between gap-4">
+             <div className="min-w-0">
+               <h2 id="team-logo-permissions" className="scroll-mt-24 text-base font-bold">Team logo permissions</h2>
+               <p id="team-logo-permission-description" className="theme-muted mt-1 max-w-xl text-sm leading-6">
+                 Let approved players upload or replace their own team’s logo while this tournament is active. Players can find it under Registration or Teams.
+               </p>
+             </div>
+             <FcStatusBadge label={tournament.allowActiveTeamLogoEdits ? 'Team members and admins' : 'Admins only during play'} />
+           </div>
+           {['COMPLETED', 'CANCELLED'].includes(tournament.status)
+             ? <p className="theme-muted mt-3 text-sm">This tournament has ended. Team logos are read-only.</p>
+             : <button type="button" className="theme-secondary-button mt-4 min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-50"
+                 aria-describedby="team-logo-permission-description" disabled={busy} onClick={() => void changeTeamLogoPermission()}>
+                 {tournament.allowActiveTeamLogoEdits ? 'Restrict to admins during play' : 'Allow team members during play'}
+               </button>}
+         </FcPanel> : null}
 
          <FcPanel className="p-5 sm:p-6">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">

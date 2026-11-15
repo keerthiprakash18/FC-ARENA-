@@ -31,6 +31,7 @@ import {
   deduplicateFixtureRecords,
 } from './fixture-deduplication.js';
 import { assertUniqueEntryName, normalizeEntryName } from './entry-name.js';
+import { assertTeamLogoPermission, teamLogoLock } from './team-logo-permission.js';
 
 
 @Injectable()
@@ -59,6 +60,7 @@ export class TournamentEntriesService {
           maxEntries: true,
           status: true,
           competitionFormat: true,
+          allowActiveTeamLogoEdits: true,
         },
       });
 
@@ -66,7 +68,11 @@ export class TournamentEntriesService {
       throw this.tournamentNotFound();
     }
 
-    if (!(await this.authorization.canManageTournament(userId, tournamentId))) {
+    const [canManageTournament, canManageSettings] = await Promise.all([
+      this.authorization.canManageTournament(userId, tournamentId),
+      this.authorization.canManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS'),
+    ]);
+    if (!canManageTournament) {
       await this.assertLeagueMember(userId, tournament.leagueId);
     }
 
@@ -202,6 +208,7 @@ export class TournamentEntriesService {
           entries.map(
             (entry) => ({
               ...entry,
+              canManageLogo: !teamLogoLock(tournament, entry, userId, canManageSettings),
 
               fixtureCount:
                 fixtureCounts.get(
@@ -507,9 +514,19 @@ export class TournamentEntriesService {
     // Names and crests do not change fixture identities or result ownership.
     // Only roster changes require the participant lock.
     if (dto.playerCodes !== undefined) await this.assertEntriesEditable(tournamentId, tournament.status);
+    const canManageLogoAsAdmin = dto.entryLogoUrl !== undefined &&
+      await this.authorization.canManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
 
     const updated = await this.prisma.$transactionWithRetry(async (tx) => {
       let nextUserIds: string[] | undefined;
+
+      if (dto.entryLogoUrl !== undefined) {
+        const current = await tx.tournamentRegistration.findUniqueOrThrow({
+          where: { id: registrationId },
+          include: { tournament: { select: { status: true, allowActiveTeamLogoEdits: true } }, members: { select: { userId: true } } },
+        });
+        assertTeamLogoPermission(current.tournament, current, userId, canManageLogoAsAdmin || (!isCaptain && current.tournament.status !== 'ACTIVE'));
+      }
 
       if (dto.playerCodes !== undefined) {
         const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId }, select: { status: true } });

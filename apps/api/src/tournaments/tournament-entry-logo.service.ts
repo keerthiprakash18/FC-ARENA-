@@ -1,8 +1,6 @@
 import { assertImageFormat } from '../security/image-format.js';
 import {
   BadRequestException,
-  ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -13,6 +11,7 @@ import sharp from 'sharp';
 import { PrismaService } from '../database/prisma.service.js';
 import { fetchWithTimeout } from '../security/external-request.js';
 import { AuthorizationService } from '../security/authorization.service.js';
+import { assertTeamLogoPermission } from './team-logo-permission.js';
 
 interface CloudinaryUploadResponse {
   secure_url?: string;
@@ -295,11 +294,12 @@ export class TournamentEntryLogoService {
             id: true,
             leagueId: true,
             status: true,
+            allowActiveTeamLogoEdits: true,
           },
         },
         members: {
           where: { userId },
-          select: { id: true },
+          select: { userId: true },
         },
       },
     });
@@ -315,51 +315,8 @@ export class TournamentEntryLogoService {
       });
     }
 
-    const ownsEntry =
-      entry.registeredByUserId === userId ||
-      entry.members.length > 0;
     const canManageTournament = await this.authorization.canManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
-
-    if (!canManageTournament && !ownsEntry) {
-      throw new ForbiddenException({
-        success: false,
-        data: null,
-        error: {
-          code: 'ENTRY_LOGO_PERMISSION_REQUIRED',
-          message: 'Only this entry’s players or an authorized Tournament Admin can manage its logo.',
-        },
-      });
-    }
-
-    if (
-      !canManageTournament &&
-      !['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(
-        entry.tournament.status,
-      )
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-        error: {
-          code: 'ENTRY_LOGO_LOCKED',
-          message: 'Team logos are locked for players once the Tournament starts. Ask an admin to change it.',
-        },
-      });
-    }
-
-    if (
-      canManageTournament &&
-      ['COMPLETED', 'CANCELLED'].includes(entry.tournament.status)
-    ) {
-      throw new ConflictException({
-        success: false,
-        data: null,
-        error: {
-          code: 'ENTRY_LOGO_LOCKED',
-          message: 'Team logos are locked after the Tournament is completed or cancelled.',
-        },
-      });
-    }
+    assertTeamLogoPermission(entry.tournament, entry, userId, canManageTournament);
 
     return {
       entry,

@@ -13,6 +13,7 @@ interface EntryLogoUploadProps {
   entryName: string;
   logoUrl: string | null;
   locked?: boolean;
+  lockedMessage?: string;
   compact?: boolean;
   onChanged?: (logoUrl: string | null) => void | Promise<void>;
 }
@@ -34,6 +35,7 @@ export function EntryLogoUpload({
   entryName,
   logoUrl,
   locked = false,
+  lockedMessage = "Team logo uploads are unavailable.",
   compact = false,
   onChanged,
 }: EntryLogoUploadProps) {
@@ -164,7 +166,7 @@ export function EntryLogoUpload({
 
       {locked ? (
         <p className="text-xs text-amber-500">
-          Logo locked for players after Tournament start. An admin can still update it.
+          {lockedMessage}
         </p>
       ) : null}
       {message ? <p className="text-xs text-emerald-500">{message}</p> : null}

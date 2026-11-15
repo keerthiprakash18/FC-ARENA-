@@ -14,26 +14,27 @@
 ## C. UI and UX implementation
 
 - Home now uses the shared loading status and skeleton primitive with the same visual order as the live Home view. The loading skeleton uses the existing arena palette and respects reduced motion.
-- The bracket trophy uses the shared motion token and appears only when existing verified final results identify a champion. The winner text is visible immediately. The trophy icon stays static under reduced motion.
+- The bracket trophy uses the shared motion token and appears only when existing verified final results identify a champion. The winner text is visible immediately. The trophy icon stays static under reduced motion. Bracket controls can wrap between buttons at narrow widths and keep each control label on one line.
 - Registration, match submission, correction, standings, player, and admin screens continue to use their existing implementations. This change covers startup continuity and the champion presentation.
 
 ## D. Opening animation
 
 - AndroidX hands off from the system splash to a native view in the existing Activity. Its official crest comes from the same generated resource as the launcher. Native canvas paints dark blue floodlight, a converging pitch line, a center circle, and the tagline. The browser uses the existing login and dashboard loading routes directly.
-- The original motion runs for 800 ms when loading permits it. The first visual state callback for the current WebView document starts a 120 ms opacity handoff. A 1,200 ms deadline releases the native overlay even if no frame arrives. The deadline starts when the Activity attaches the overlay and does not include time spent in system process startup. Reduced-motion, low-memory, and software-rendering modes use the static crest. Recovery and Activity lifecycle events remove the overlay.
-- Compare baseline and candidate debug builds on the same device and network profile. Android `am start -W` measures native launch reporting. A screen recording is required separately to measure the first useful WebView frame and inspect the visual transition. [Timing design and test matrix](premium-startup-design.md)
+- The original motion runs for 800 ms when loading permits it. The first visual state callback for the current WebView document starts a 120 ms opacity handoff. A 1,200 ms deadline measured from the first native reveal draw removes the decorative layer. During an ongoing document request, the existing progress bar and the native connecting message remain until the WebView paints or recovery takes over. Reduced-motion, low-memory, and software-rendering modes use the static crest. Recovery and Activity lifecycle events remove the startup presentation.
+- The final run used Android 15/API 35 and WebView 124.0.6367.219 on the same emulator, with a local proxy simulating a slow unavailable connection. Five cold launches per build had median `am start -W TotalTime` of 3,260 ms on baseline and 2,895 ms on the candidate. Five resume samples had median `WaitTime` of 159 ms and 260 ms. Cold sample ranges were 2,308–4,935 ms and 2,835–5,041 ms. The order and spread limit performance conclusions. These samples cover Android Activity display and resume. Authenticated WebView readiness remains unmeasured.
+- The final candidate debug APK was captured with Android `screenrecord`. The recording and raw ADB samples are available in the local QA evidence directory. [Timing design and test matrix](premium-startup-design.md)
 
 ## E. Quality verification
 
-- Baseline and candidate Android debug build, Android lint, and Robolectric on API 28 and 35 passed. Startup regressions cover cold timeout, visual handoff, stale navigation, Activity restoration, resume, and renderer recovery.
-- Web ESLint, TypeScript, and the local production Webpack build passed. Six Playwright tests passed on the production build for desktop and a narrow mobile viewport. Tests exercise sign-in, keyboard navigation, delayed Home data, reduced motion, API failure, and recovery. Verified champion brackets passed in browser regression tests at 390 px and 1,280 px.
+- Baseline and candidate Android debug builds, Android lint, and 32 Robolectric tests on API 28 and 35 passed. Startup scenarios cover the visual handoff, the bounded timeout and loading message, stale navigation, Activity restoration, resume, and renderer recovery. The unsigned release build and release lint passed. The first local release build invoked the repository's configured Crashlytics mapping task. The follow-up local release check explicitly excluded that task.
+- Web ESLint, TypeScript, and the local production Webpack build passed. Six Playwright tests passed on the production build for desktop and a narrow mobile viewport. Tests exercise sign-in, keyboard navigation, delayed Home data, reduced motion, API failure, and recovery. Private and public brackets passed at 390 px and 1,280 px. Home regressions passed at 320 px, 390 px, and 1,280 px, including the opponent privacy prompt and saved dashboard preferences.
 - 61 targeted repository regression checks passed. API unit and loopback HTTP checks passed 865 tests with 5 skipped. The standard API build passed with fresh Prisma generation. The baseline `build:quality` initially rejected four checked-in missing generated model files, which the standard build creates. Generated build outputs are excluded from this change.
-- All 48 existing migrations applied to disposable PostgreSQL. The first integration pass returned 52 assertions passed and one failed, with one additional suite teardown failure. Windows denied creation of a test symlink, and account deletion teardown could not connect to Redis. The IPv4 loopback database used synthetic data exclusively.
+- All 48 existing migrations applied to disposable PostgreSQL. Targeted HTTP integration checks passed 63 assertions across the Redis-backed rerun and a fresh registration-review database. The reruns resolved the initial missing-Redis teardown and the repeated fixture-identity collision. Windows denied the screenshot containment test's symlink. The initial PR revision passed the full API E2E suite on Linux CI. The loopback databases used synthetic data exclusively.
 - The npm runtime audit found one existing low-severity `fast-xml-parser` advisory and zero moderate, high, or critical advisories. The Android dependency uses the stable AndroidX SplashScreen library from Google Maven. [AndroidX release information](https://developer.android.com/jetpack/androidx/releases/core)
 
 ## F. GitHub
 
-- `bc642f0` adds the bounded native launch and lifecycle tests. `362b079` adds Home and trophy changes, Playwright tests, and CI integration. The isolated branch is based on verified upstream source.
+- `bc642f0` adds the bounded native launch and lifecycle tests. `362b079` adds Home and trophy changes, Playwright tests, and CI integration. The initial draft revision passed all 13 GitHub checks. The final head and check state are tracked on [draft PR #166](https://github.com/keerthiprakash18/FC-ARENA-/pull/166).
 
 ## G. Production readiness and storage
 
@@ -44,6 +45,7 @@ The repository supports GPG encrypted PostgreSQL dumps and off-server copying of
 ## H. Remaining work
 
 1. Install EGM Desktop and complete an independent Goldfish review of the startup design and implementation.
-2. Finish the native device evidence and verify fresh and existing installs, background return, deep links, push navigation, network failure, and assistive technology on the current Android CI matrix and a representative physical phone.
-3. Confirm same-commit CI and complete the remaining HTTP and PostgreSQL checks in a Linux runner, including the screenshot storage containment test.
-4. Verify production backup and storage configuration via the trusted operator account, then use the existing release checklist for any later authorization.
+2. Verify physical-device launches and staging WebView behavior, including app links, push routing, reduced motion, assistive technology, and the first useful authenticated dashboard frame.
+3. Confirm same-commit CI, including the Linux screenshot storage containment check.
+4. Validate production backup and storage configuration through the trusted operator account, then use the existing release checklist for any later authorization.
+5. Audit player profile and admin workflows against the same visual and accessibility standards before selecting further changes.

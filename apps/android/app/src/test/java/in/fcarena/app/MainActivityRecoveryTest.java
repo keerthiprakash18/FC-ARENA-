@@ -112,7 +112,7 @@ public class MainActivityRecoveryTest {
 
         view.getWebViewClient().onPageStarted(view, "https://fcarena.in/dashboard", null);
         drawLaunchFrame(intro);
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1_200));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(8_000));
         assertNull(field(activity, "launchIntro"));
         assertNull(intro.getParent());
         assertNotNull(field(activity, "launchLoadingHint"));
@@ -155,7 +155,7 @@ public class MainActivityRecoveryTest {
 
         view.getWebViewClient().onPageCommitVisible(view, login);
         visualState.callback.onComplete(visualState.requestId);
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ArenaLaunchView.REVEAL_DURATION_MS + 240));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ArenaLaunchView.REVEAL_DURATION_MS + 420));
         assertNull(field(activity, "launchIntro"));
     }
 
@@ -180,7 +180,7 @@ public class MainActivityRecoveryTest {
         assertSame(intro, field(activity, "launchIntro"));
         assertFalse((boolean) field(activity, "launchIntroExiting"));
 
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(350));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(560));
         assertNull(field(activity, "launchIntro"));
     }
 
@@ -210,7 +210,37 @@ public class MainActivityRecoveryTest {
 
         view.getWebViewClient().onPageCommitVisible(view, login);
         visualState.callback.onComplete(visualState.requestId);
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(240));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(380));
+        assertNull(field(activity, "launchIntro"));
+    }
+
+    @Test public void introHasCinematicTimingAndOptionalSoundControls() throws Exception {
+        MainActivity activity = launch();
+        assertEquals(5_450L, ArenaLaunchView.REVEAL_DURATION_MS);
+        android.widget.TextView sound = findText(activity.getWindow().getDecorView(), "Sound ON");
+        assertNotNull("Sound toggle must be accessible", sound);
+        sound.performClick();
+        assertTrue(preferences.getBoolean("cinematic_intro_sound_off", false));
+        assertNotNull(findText(activity.getWindow().getDecorView(), "Sound OFF"));
+        assertNotNull(findText(activity.getWindow().getDecorView(), "Skip intro"));
+    }
+
+    @Test @Config(shadows = LaunchWebViewShadow.class)
+    public void skipNeverRevealsStaleWebViewBeforeCurrentVisualFrame() throws Exception {
+        MainActivity activity = launch();
+        WebView view = web(activity);
+        ArenaLaunchView intro = (ArenaLaunchView) field(activity, "launchIntro");
+        drawLaunchFrame(intro);
+        android.widget.TextView skip = findText(activity.getWindow().getDecorView(), "Skip intro");
+        assertNotNull(skip);
+        skip.performClick();
+        assertNotNull("Uncommitted WebView must stay covered", field(activity, "launchIntro"));
+        String dashboard = "https://fcarena.in/dashboard";
+        view.getWebViewClient().onPageStarted(view, dashboard, null);
+        view.getWebViewClient().onPageCommitVisible(view, dashboard);
+        LaunchWebViewShadow visualState = Shadow.extract(view);
+        visualState.callback.onComplete(visualState.requestId);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(360));
         assertNull(field(activity, "launchIntro"));
     }
 
@@ -229,6 +259,21 @@ public class MainActivityRecoveryTest {
             requestId = id;
             this.callback = callback;
         }
+    }
+
+    private static android.widget.TextView findText(View view, String wanted) {
+        if (view instanceof android.widget.TextView
+                && wanted.contentEquals(((android.widget.TextView) view).getText())) {
+            return (android.widget.TextView) view;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                android.widget.TextView found = findText(group.getChildAt(i), wanted);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private static Button button(View view, String text) {

@@ -24,7 +24,9 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Keep pg_dump / pg_restore client v16 aligned with the postgres:16 test
+    # service; ubuntu-latest migrated to 26.04 / PostgreSQL 18 in 2026.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     services:

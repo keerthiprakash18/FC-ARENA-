@@ -175,9 +175,9 @@ export default function AdminBallonPage() {
     tournamentRequirements,
     setTournamentRequirements,
   ] = useState({
-    SOLO: 2,
-    DUO: 2,
-    TEAM: 1,
+    SOLO: 0,
+    DUO: 0,
+    TEAM: 0,
   });
 
   function applyPeriodPreset(

@@ -33,6 +33,14 @@ interface AdminLeague {
   };
 }
 
+interface AdminTournament {
+  id: string;
+  name: string;
+  leagueId: string;
+  mode: 'SOLO' | 'DUO' | 'TEAM';
+  status: string;
+}
+
 interface Season {
   id: string;
   name: string;
@@ -44,6 +52,7 @@ interface Season {
   status: string;
   eligibleLeagueIds:
     string[];
+  eligibleTournamentIds?: string[];
   tournamentRequirements?: {
     SOLO?: number;
     DUO?: number;
@@ -95,6 +104,10 @@ export default function AdminBallonPage() {
     useState<string[]>(
       [],
     );
+
+  const [scopeMode, setScopeMode] = useState<'LEAGUE' | 'TOURNAMENT'>('LEAGUE');
+  const [availableTournaments, setAvailableTournaments] = useState<AdminTournament[]>([]);
+  const [selectedTournamentIds, setSelectedTournamentIds] = useState<string[]>([]);
 
   const [
     name,
@@ -297,6 +310,32 @@ export default function AdminBallonPage() {
         ),
     );
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (selectedLeagueIds.length === 0) {
+      setAvailableTournaments([]);
+      return;
+    }
+    void Promise.all(
+      selectedLeagueIds.map((leagueId) =>
+        authenticatedRequest<any>(`/leagues/${leagueId}/tournaments`),
+      ),
+    ).then((responses) => {
+      if (!active) return;
+      const unique = new Map<string, AdminTournament>();
+      responses.forEach((response) => {
+        (response.data.tournaments ?? []).forEach((tournament: AdminTournament) => {
+          if (tournament.status !== 'CANCELLED') unique.set(tournament.id, tournament);
+        });
+      });
+      setAvailableTournaments([...unique.values()]);
+      setSelectedTournamentIds((current) => current.filter((id) => unique.has(id)));
+    }).catch((err) => {
+      if (active) setError(err instanceof Error ? err.message : 'Unable to load league tournaments.');
+    });
+    return () => { active = false; };
+  }, [selectedLeagueIds]);
 
   const matchCountsValid =
     minimumMatches.trim() !== '' && maximumMatches.trim() !== '' &&

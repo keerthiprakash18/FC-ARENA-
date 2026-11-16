@@ -101,8 +101,9 @@ describe('Ballon live ranking calculation', () => {
 
   it('does not let a one-match scoring outlier change the qualified leaders ratings', async () => {
     const { season, matches, read } = setup();
-    season.minimumMatches = 2;
+    season.minimumMatches = 3;
     season.maximumMatches = 5;
+    matches.push(fixture(3, 2, 2));
     const before = await read();
     const byId = (rows: any[]) => new Map(rows.map((row) => [row.userId, row.rating]));
     const firstRatings = byId(before.rows);

@@ -24,7 +24,10 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Match PostgreSQL 16 CI server with Ubuntu 24.04's PG16 client.
+    # ubuntu-latest now selects 26.04 / PostgreSQL 18 clients, whose dumps
+    # inject 'transaction_timeout' unsupported by the PG16 restore server.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     services:

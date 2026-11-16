@@ -45,6 +45,12 @@ android {
         buildConfig true
     }
 
+    // MediaPlayer.openAssetFileDescriptor requires the MP4 to remain uncompressed
+    // inside the APK/AAB. The 7-second film is bundled, never streamed.
+    androidResources {
+        noCompress += ['mp4']
+    }
+
     defaultConfig {
         applicationId 'in.fcarena.app'
         minSdk 24
@@ -119,6 +125,19 @@ tasks.named("preBuild").configure {
     dependsOn("prepareFCArenaIcon")
 }
 
+tasks.register("verifyFCArenaBrandFilm") {
+    doLast {
+        def film = file("src/main/assets/fc_arena_brand_film_v3.mp4")
+        if (!film.isFile() || film.length() < 1_000_000L) {
+            throw new GradleException("Missing approved 7-second FC ARENA film: "
+                    + film + " — do not publish a release with a silent fallback.")
+        }
+    }
+}
+tasks.matching { it.name == "bundleRelease" || it.name == "assembleRelease" }.configureEach {
+    dependsOn("verifyFCArenaBrandFilm")
+}
+
 dependencies {
     implementation 'androidx.core:core-splashscreen:1.2.0'
     implementation 'com.google.android.play:app-update:2.1.0'
@@ -126,7 +145,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-crashlytics'
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.robolectric:robolectric:4.16.1'
+    testImplementation 'org.robolectric:robolectric:4.18'
 }
 
 

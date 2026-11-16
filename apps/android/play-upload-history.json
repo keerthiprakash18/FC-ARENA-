@@ -2,8 +2,8 @@
   "packageName": "in.fcarena.app",
   "highestKnownUploadedVersionCode": 22,
   "highestKnownUploadedVersionName": "1.0.20",
-  "nextCandidateVersionCode": 23,
-  "nextCandidateVersionName": "1.0.21",
+  "nextCandidateVersionCode": 24,
+  "nextCandidateVersionName": "1.0.22",
   "lastReviewed": "2026-11-16",
-  "note": "Play Console showed 1.0.20 (22) as the newest uploaded bundle, and the connected phone confirmed the Play-installed build. Version code 23 is the next candidate."
+  "note": "Play Console last confirmed bundle was 1.0.20 (22) on 2026-11-16. Version code 24 is the next planned public release candidate (23 skipped), subject to rechecking highest code in Play Console before signing/upload."
 }

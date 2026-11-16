@@ -18,7 +18,8 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Playwright 1.58 Chromium browser install is incompatible with GitHub's ubuntu-26.04 default image.
+    runs-on: ubuntu-24.04
 
     env:
       NEXT_PUBLIC_API_URL: https://api.fcarena.in/api

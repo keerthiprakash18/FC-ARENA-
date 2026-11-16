@@ -16,6 +16,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
@@ -214,6 +215,19 @@ public class MainActivityRecoveryTest {
         visualState.callback.onComplete(visualState.requestId);
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(240));
         assertNull(field(activity, "launchIntro"));
+    }
+
+    @Test public void launchSoundTogglePersistsAndDoesNotChangeAccountSettings() throws Exception {
+        preferences.edit().putBoolean("launch_sound_enabled", true).commit();
+        MainActivity activity = launch();
+        ArenaLaunchView intro = (ArenaLaunchView) field(activity, "launchIntro");
+        assertNotNull(intro);
+        intro.layout(0, 0, 360, 800);
+        long now = SystemClock.uptimeMillis();
+        intro.onTouchEvent(MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, 180f, 760f, 0));
+        intro.onTouchEvent(MotionEvent.obtain(now, now + 30, MotionEvent.ACTION_UP, 180f, 760f, 0));
+        assertFalse(preferences.getBoolean("launch_sound_enabled", true));
+        assertEquals("https://fcarena.in/dashboard", shadowOf(web(activity)).getLastLoadedUrl());
     }
 
     @Test public void recreatedActivitySkipsTheColdIntro() throws Exception {

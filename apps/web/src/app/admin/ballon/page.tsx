@@ -723,7 +723,7 @@ export default function AdminBallonPage() {
             Minimum Matches for Eligibility
             <input
               type="number"
-              min={1}
+              min={3}
               max={100}
               value={
                 minimumMatches

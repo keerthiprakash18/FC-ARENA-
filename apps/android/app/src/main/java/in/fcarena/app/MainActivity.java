@@ -68,11 +68,18 @@ public final class MainActivity extends Activity {
     private static final int MAX_CONNECTION_RETRIES = 5;
     private static final long PAGE_LOAD_TIMEOUT_MS = 20_000L;
     private static final long LAUNCH_INTRO_TIMEOUT_MS = 1_200L;
+    private static final long LAUNCH_FILM_TIMEOUT_MS = 10_000L;
+    private static final String LAUNCH_FILM_ENABLED_KEY = "launch_film_enabled";
+    private static final String LAUNCH_FILM_SOUND_KEY = "launch_film_sound_enabled";
     private static final long LAUNCH_INTRO_EXIT_MS = 120L;
 
     private FrameLayout root;
     private WebView webView;
     private ArenaLaunchView launchIntro;
+    private FrameLayout launchPresentation;
+    private ArenaLaunchFilmView launchFilm;
+    private boolean launchFilmFinished;
+    private long launchStartedAt = -1L;
     private TextView launchLoadingHint;
     private long launchNavigation;
     private String launchNavigationUrl;
@@ -226,13 +233,53 @@ public final class MainActivity extends Activity {
                 : Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f;
         boolean motion = animationsEnabled && !softwareRendering
                 && (activityManager == null || !activityManager.isLowRamDevice());
+        boolean useFilm = motion && preferences.getBoolean(LAUNCH_FILM_ENABLED_KEY, true)
+                && ArenaLaunchFilmView.hasBundledFilm(this);
+        launchPresentation = new FrameLayout(this);
+        launchPresentation.setBackgroundColor(getColor(R.color.fc_navy));
+        launchFilmFinished = false;
         launchIntro = new ArenaLaunchView(this, motion, () -> {
-            launchRevealUntil = SystemClock.uptimeMillis() + ArenaLaunchView.REVEAL_DURATION_MS;
-            root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
+            launchStartedAt = SystemClock.uptimeMillis();
+            launchRevealUntil = launchStartedAt
+                    + (launchFilm != null ? ArenaLaunchFilmView.FILM_DURATION_MS
+                    : ArenaLaunchView.REVEAL_DURATION_MS);
+            root.postDelayed(launchIntroTimeout,
+                    launchFilm != null ? LAUNCH_FILM_TIMEOUT_MS : LAUNCH_INTRO_TIMEOUT_MS);
             handoffLaunchIntro();
         });
-        root.addView(launchIntro, new FrameLayout.LayoutParams(
+        launchPresentation.addView(launchIntro, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        if (useFilm) {
+            launchFilm = new ArenaLaunchFilmView(this,
+                    preferences.getBoolean(LAUNCH_FILM_SOUND_KEY, true),
+                    enabled -> preferences.edit()
+                            .putBoolean(LAUNCH_FILM_SOUND_KEY, enabled).apply(),
+                    this::onLaunchFilmFinished);
+            launchPresentation.addView(launchFilm, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        }
+        root.addView(launchPresentation, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+    }
+
+    private void onLaunchFilmFinished(boolean completed) {
+        if (launchFilm == null || launchIntro == null) return;
+        if (completed) {
+            launchFilmFinished = true;
+            launchRevealUntil = SystemClock.uptimeMillis();
+        } else {
+            // Decode errors, unsupported devices or missing media never trap startup.
+            ArenaLaunchFilmView failed = launchFilm;
+            launchFilm = null;
+            failed.release();
+            if (launchPresentation != null) launchPresentation.removeView(failed);
+            launchRevealUntil = Math.max(SystemClock.uptimeMillis(),
+                    launchStartedAt + ArenaLaunchView.REVEAL_DURATION_MS);
+            root.removeCallbacks(launchIntroTimeout);
+            root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
+        }
+        handoffLaunchIntro();
     }
 
     private void finishLaunchIntro(WebView view) {
@@ -258,6 +305,7 @@ public final class MainActivity extends Activity {
             return;
         }
         if (launchRevealUntil < 0L) return;
+        if (launchFilm != null && !launchFilmFinished) return;
         long remaining = launchRevealUntil - SystemClock.uptimeMillis();
         root.removeCallbacks(launchIntroHandoff);
         if (remaining > 0L) {
@@ -267,7 +315,9 @@ public final class MainActivity extends Activity {
 
         launchIntroExiting = true;
         launchIntro.finishReveal();
-        launchIntro.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS).start();
+        if (launchPresentation != null) {
+            launchPresentation.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS).start();
+        }
         root.postDelayed(launchIntroRemoval, LAUNCH_INTRO_EXIT_MS);
     }
 
@@ -285,14 +335,24 @@ public final class MainActivity extends Activity {
     }
 
     private void removeLaunchIntro() {
-        if (launchIntro == null) return;
-        ArenaLaunchView intro = launchIntro;
-        launchIntro = null;
         root.removeCallbacks(launchIntroTimeout);
         root.removeCallbacks(launchIntroHandoff);
         root.removeCallbacks(launchIntroRemoval);
-        intro.animate().cancel();
-        root.removeView(intro);
+        if (launchFilm != null) {
+            ArenaLaunchFilmView film = launchFilm;
+            launchFilm = null;
+            film.release();
+        }
+        launchIntro = null;
+        launchFilmFinished = false;
+        launchStartedAt = -1L;
+        FrameLayout presentation = launchPresentation;
+        launchPresentation = null;
+        if (presentation != null) {
+            presentation.animate().cancel();
+            presentation.removeAllViews();
+            root.removeView(presentation);
+        }
     }
 
     private void removeLaunchLoadingHint() {
@@ -594,8 +654,10 @@ public final class MainActivity extends Activity {
                     launchDocumentCommitted = false;
                     if (launchIntroExiting) {
                         root.removeCallbacks(launchIntroRemoval);
-                        launchIntro.animate().cancel();
-                        launchIntro.setAlpha(1f);
+                        if (launchPresentation != null) {
+                            launchPresentation.animate().cancel();
+                            launchPresentation.setAlpha(1f);
+                        }
                         launchIntroExiting = false;
                     }
                 }

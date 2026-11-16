@@ -99,4 +99,23 @@ describe('Ballon live ranking calculation', () => {
     expect(prisma.match.findMany).not.toHaveBeenCalled();
   });
 
+  it('does not let a one-match scoring outlier change the qualified leaders ratings', async () => {
+    const { season, matches, read } = setup();
+    season.minimumMatches = 2;
+    season.maximumMatches = 5;
+    const before = await read();
+    const byId = (rows: any[]) => new Map(rows.map((row) => [row.userId, row.rating]));
+    const firstRatings = byId(before.rows);
+    const newcomerMatch = fixture(4, 99, 0);
+    newcomerMatch.fixture.homeRegistration.members[0].userId = 'newcomer';
+    newcomerMatch.fixture.awayRegistration.members[0].userId = 'other-newcomer';
+    matches.push(newcomerMatch);
+    const after = await read();
+    const nextRatings = byId(after.rows);
+    expect(nextRatings.get('home-player')).toEqual(firstRatings.get('home-player'));
+    expect(nextRatings.get('away-player')).toEqual(firstRatings.get('away-player'));
+    expect(after.rows.filter((row: any) => !row.eligible)).toHaveLength(2);
+    expect(after.rows.filter((row: any) => !row.eligible).every((row: any) => row.position === 0)).toBe(true);
+  });
+
 });

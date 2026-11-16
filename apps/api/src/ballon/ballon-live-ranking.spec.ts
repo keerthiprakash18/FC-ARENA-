@@ -73,4 +73,30 @@ describe('Ballon live ranking calculation', () => {
     expect((await read()).locked).toBe(true);
     expect(prisma.match.findMany).not.toHaveBeenCalled();
   });
+  it('keeps one-match players unranked in a tournament view and never writes a season snapshot', async () => {
+    const { season, matches, prisma } = setup();
+    season.maximumMatches = 5;
+    const readTournament = async () =>
+      (await new BallonService(prisma as any).getRankings('viewer', 'season', 'all', 'cup')).data;
+    const originalCount = prisma.ballonRankingSnapshot.upsert.mock.calls.length;
+    let response = await readTournament();
+    expect(response.tournamentView).toBe(true);
+    expect(response.tournaments).toEqual([{ id: 'cup', name: undefined, mode: 'SOLO' }]);
+    expect(response.rows.every((row: any) => !row.eligible && row.position === 0)).toBe(true);
+    expect(response.rows[0].eligibilityReasons).toContain('2/3 matches');
+    expect(prisma.ballonRankingSnapshot.upsert.mock.calls.length).toBe(originalCount);
+    matches.push(fixture(3, 3, 0));
+    response = await readTournament();
+    expect(response.rows.every((row: any) => row.eligible && row.position > 0)).toBe(true);
+    expect(prisma.ballonRankingSnapshot.upsert.mock.calls.length).toBe(originalCount);
+  });
+
+  it('rejects out-of-season tournament filters instead of leaking cross-league results', async () => {
+    const { prisma } = setup();
+    const service = new BallonService(prisma as any);
+    await expect(service.getRankings('viewer', 'season', 'all', 'outside-cup'))
+      .rejects.toMatchObject({ status: 404 });
+    expect(prisma.match.findMany).not.toHaveBeenCalled();
+  });
+
 });

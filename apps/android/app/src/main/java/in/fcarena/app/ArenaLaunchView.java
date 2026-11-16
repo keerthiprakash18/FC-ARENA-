@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.graphics.Typeface;
@@ -11,131 +12,237 @@ import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.view.View;
 
-/** Starts on the platform splash's crest and adds pitch markings while the WebView loads. */
+/**
+ * Original FC ARENA cold-launch cinematic. The underlying WebView loads in
+ * parallel. MainActivity alone controls the visual-state-safe handoff.
+ */
 final class ArenaLaunchView extends View {
-    static final long REVEAL_DURATION_MS = 650L;
-    private final int background;
-    private final int gold;
-    private final int white;
-    private final Drawable crest;
+    static final long REVEAL_DURATION_MS = 5_450L;
+    private static final int NAVY = 0xFF05080D;
+    private static final int BLUE = 0xFF65CFFF;
+    private static final int GOLD = 0xFFE5BF70;
+    private static final int IVORY = 0xFFFFF9EC;
+    private static final int PARTICLES = 28;
+
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final float density;
+    private final Path beam = new Path();
+    private final Drawable crest;
     private final boolean motionEnabled;
+    private final Runnable onFirstFrame;
     private final String tagline;
-    private final Runnable startPresentation;
-    private RadialGradient floodlights;
-    private LinearGradient pitchSweep;
-    private long revealStartedAt = -1L;
+    private final float density;
+    private RadialGradient glow;
+    private RadialGradient leftFloodlight;
+    private RadialGradient rightFloodlight;
+    private LinearGradient horizon;
+    private boolean started;
+    private long startedAt = -1L;
     private float progress;
-    private boolean drawn;
 
     ArenaLaunchView(Context context, boolean motionEnabled, Runnable onFirstFrame) {
         super(context);
         this.motionEnabled = motionEnabled;
-        background = context.getColor(R.color.fc_navy);
-        gold = context.getColor(R.color.fc_gold);
-        white = context.getColor(R.color.fc_white);
-        crest = context.getDrawable(R.drawable.fc_arena_launcher);
-        tagline = context.getString(R.string.launch_tagline);
-        density = getResources().getDisplayMetrics().density;
-        int halfCrest = Math.round(dp(58));
-        crest.setBounds(-halfCrest, -halfCrest, halfCrest, halfCrest);
-        setClickable(true); // Keep a tap on the reveal from reaching covered WebView controls.
+        this.onFirstFrame = onFirstFrame;
+        this.crest = context.getDrawable(R.drawable.fc_arena_launcher);
+        this.tagline = context.getString(R.string.launch_tagline);
+        this.density = getResources().getDisplayMetrics().density;
+        this.progress = motionEnabled ? 0f : 1f;
+        setClickable(true);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-        startPresentation = onFirstFrame;
     }
 
-    @Override
-    protected void onDetachedFromWindow() {
-        removeCallbacks(startPresentation);
-        revealStartedAt = -1L;
-        super.onDetachedFromWindow();
-    }
-
-    boolean hasMotion() {
-        return motionEnabled;
-    }
+    boolean hasMotion() { return motionEnabled; }
 
     void finishReveal() {
-        revealStartedAt = -1L;
+        startedAt = -1L;
         progress = 1f;
         invalidate();
     }
 
-    @Override
-    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
-        if (width <= 0 || height <= 0) return;
-        floodlights = new RadialGradient(width / 2f, height / 2f, Math.max(1f, width * 0.65f),
-                new int[]{0xFF1C3653, 0xFF0C1B2B, background},
-                new float[]{0f, 0.46f, 1f}, Shader.TileMode.CLAMP);
-        pitchSweep = new LinearGradient(0f, 0f, width / 2f, 0f,
-                new int[]{0x004F89B8, 0xFF75B7E8, gold},
-                new float[]{0f, 0.63f, 1f}, Shader.TileMode.MIRROR);
+    @Override protected void onDetachedFromWindow() {
+        removeCallbacks(onFirstFrame);
+        startedAt = -1L;
+        super.onDetachedFromWindow();
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        if (!drawn) {
-            drawn = true;
-            if (motionEnabled) revealStartedAt = SystemClock.uptimeMillis();
-            post(startPresentation);
+    @Override protected void onSizeChanged(int w, int h, int oldW, int oldH) {
+        if (w <= 0 || h <= 0) return;
+        float cx = w * 0.5f, cy = h * 0.5f;
+        float radius = Math.max(w, h) * 0.75f;
+        glow = new RadialGradient(cx, cy * 1.03f, radius,
+                new int[]{0xFF1B3952, 0xFF0B1C2C, NAVY},
+                new float[]{0f, 0.52f, 1f}, Shader.TileMode.CLAMP);
+        leftFloodlight = new RadialGradient(w * 0.08f, h * 0.15f, w * 0.83f,
+                new int[]{0x805FCFFF, 0x193C90D5, 0x0005080D},
+                new float[]{0f, 0.48f, 1f}, Shader.TileMode.CLAMP);
+        rightFloodlight = new RadialGradient(w * 0.92f, h * 0.15f, w * 0.83f,
+                new int[]{0x80E6BB73, 0x163C90D5, 0x0005080D},
+                new float[]{0f, 0.48f, 1f}, Shader.TileMode.CLAMP);
+        horizon = new LinearGradient(0f, h * 0.55f, 0f, h,
+                new int[]{0x001C5D83, 0x402A5C82, 0x0205080D},
+                new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP);
+    }
+
+    @Override protected void onDraw(Canvas canvas) {
+        if (!started) {
+            started = true;
+            if (motionEnabled) startedAt = SystemClock.uptimeMillis();
+            post(onFirstFrame);
         }
-        if (revealStartedAt >= 0L) {
-            progress = Math.min(1f, (SystemClock.uptimeMillis() - revealStartedAt) / (float) REVEAL_DURATION_MS);
+        if (startedAt >= 0L) {
+            progress = clamp((SystemClock.uptimeMillis() - startedAt)
+                    / (float) REVEAL_DURATION_MS);
             if (progress < 1f) postInvalidateOnAnimation();
         }
-        canvas.drawColor(background);
-        float centerX = getWidth() / 2f;
-        float centerY = getHeight() / 2f;
-        if (motionEnabled && floodlights != null) {
-            drawPitch(canvas, centerX, centerY);
+        float w = getWidth(), h = getHeight();
+        float cx = w / 2f, cy = h / 2f, t = progress;
+        canvas.drawColor(NAVY);
+
+        if (glow != null) {
+            paint.setShader(glow);
+            paint.setAlpha(145 + Math.round(110 * ease(0.02f, 0.3f, t)));
+            canvas.drawRect(0, 0, w, h, paint);
+            paint.setShader(null);
         }
 
+        drawStadium(canvas, w, h, cx, cy, t);
+        drawParticles(canvas, cx, cy, t);
+        drawLogo(canvas, cx, cy, t);
+        drawText(canvas, cx, cy, h, t);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(null);
+        paint.setAlpha(255);
+    }
+
+    private void drawStadium(Canvas canvas, float w, float h,
+                             float cx, float cy, float t) {
+        float a = ease(0.03f, 0.28f, t);
+        if (a <= 0f) return;
+        if (leftFloodlight != null) {
+            paint.setShader(leftFloodlight);
+            paint.setAlpha(Math.round(180f * a));
+            canvas.drawRect(0, 0, w, h, paint);
+            paint.setShader(rightFloodlight);
+            paint.setAlpha(Math.round(140f * a));
+            canvas.drawRect(0, 0, w, h, paint);
+            paint.setShader(horizon);
+            canvas.drawRect(0, 0, w, h, paint);
+            paint.setShader(null);
+        }
+        drawBeam(canvas, w * 0.1f, h * 0.1f, cx * 0.64f, h * 0.67f,
+                BLUE, 28f * a);
+        drawBeam(canvas, w * 0.9f, h * 0.1f, cx * 1.36f, h * 0.67f,
+                GOLD, 23f * a);
+
+        // A football stadium perspective, not a copy of another app's splash.
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(BLUE);
+        paint.setStrokeWidth(dp(1f));
+        paint.setAlpha(Math.round(59f * ease(0.1f, 0.42f, t)));
+        float horizonY = h * 0.74f;
+        for (int i = -4; i <= 4; i++) {
+            canvas.drawLine(cx + i * w * 0.055f, horizonY,
+                    cx + i * w * 0.15f, h, paint);
+        }
+        for (int i = 0; i < 5; i++) {
+            float fraction = i / 4f;
+            float warp = fraction * fraction;
+            float y = horizonY + (h - horizonY) * warp;
+            canvas.drawLine(w * (0.29f - 0.25f * warp), y,
+                    w * (0.71f + 0.25f * warp), y, paint);
+        }
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    private void drawBeam(Canvas canvas, float x, float y,
+                          float endX, float endY, int color, float alpha) {
+        beam.reset();
+        beam.moveTo(x - dp(10f), y);
+        beam.lineTo(x + dp(10f), y);
+        beam.lineTo(endX + dp(112f), endY);
+        beam.lineTo(endX - dp(112f), endY);
+        beam.close();
+        paint.setColor(color);
+        paint.setAlpha(Math.round(alpha));
+        canvas.drawPath(beam, paint);
+    }
+
+    private void drawParticles(Canvas canvas, float cx, float cy, float t) {
+        float a = ease(0.19f, 0.54f, t);
+        if (a <= 0f) return;
+        float centerY = cy - dp(19f);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(dp(1.3f));
+        for (int i = 0; i < 3; i++) {
+            paint.setColor(i == 1 ? GOLD : BLUE);
+            paint.setAlpha(Math.round((i == 1 ? 95f : 55f) * a));
+            canvas.drawCircle(cx, centerY, dp(89f + i * 18f
+                    + 2f * (float)Math.sin(t * 14f + i)), paint);
+        }
+        paint.setStyle(Paint.Style.FILL);
+        for (int i = 0; i < PARTICLES; i++) {
+            double angle = i * 2.3999632297 + t * (i % 2 == 0 ? 1.25 : -0.6);
+            float orbit = dp(96f + (i * 37 % 145));
+            float x = cx + (float)Math.cos(angle) * orbit;
+            float y = centerY + (float)Math.sin(angle) * orbit * 1.2f;
+            float shimmer = 0.55f + 0.45f * (float)Math.sin(t * 38f + i * 1.5f);
+            paint.setColor(i % 5 == 0 ? GOLD : BLUE);
+            paint.setAlpha(Math.round(140f * a * Math.max(0.12f, shimmer)));
+            canvas.drawCircle(x, y, dp(0.7f + (i % 3) * 0.45f), paint);
+        }
+    }
+
+    private void drawLogo(Canvas canvas, float cx, float cy, float t) {
+        float reveal = ease(0.26f, 0.63f, t);
+        if (reveal <= 0f || crest == null) return;
         canvas.save();
-        canvas.translate(centerX, centerY);
+        canvas.translate(cx, cy - dp(19f));
+        float scale = 0.73f + 0.27f * reveal;
+        canvas.scale(scale, scale);
+        int radius = Math.round(dp(76f));
+        crest.setBounds(-radius, -radius, radius, radius);
+        crest.setAlpha(Math.round(255f * reveal));
         crest.draw(canvas);
         canvas.restore();
 
-        if (motionEnabled && progress > 0.33f) {
-            paint.setColor(white);
-            paint.setAlpha(Math.round(fraction(0.33f, 0.74f) * 240));
-            paint.setTypeface(Typeface.DEFAULT_BOLD);
-            paint.setTextAlign(Paint.Align.CENTER);
-            paint.setTextSize(dp(11));
-            canvas.drawText(tagline, centerX, centerY + dp(86), paint);
-        }
-    }
-
-    private void drawPitch(Canvas canvas, float centerX, float centerY) {
-        paint.setStyle(Paint.Style.FILL);
-        paint.setShader(floodlights);
-        paint.setAlpha(65 + Math.round(fraction(0f, 0.35f) * 145));
-        canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-
-        float halfWidth = Math.min(dp(174), centerX * 0.89f);
-        float halfHeight = Math.min(dp(133), centerY * 0.9f);
+        float flare = ease(0.68f, 0.8f, t) * (1f - ease(0.88f, 0.96f, t));
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(dp(1.5f));
-        paint.setShader(pitchSweep);
-        paint.setAlpha(80 + Math.round(fraction(0f, 0.53f) * 150));
-        canvas.drawRoundRect(centerX - halfWidth, centerY - halfHeight, centerX + halfWidth,
-                centerY + halfHeight, dp(8), dp(8), paint);
-        canvas.drawCircle(centerX, centerY, Math.min(dp(77), halfHeight * 0.78f), paint);
-        canvas.drawLine(centerX, centerY - halfHeight, centerX, centerY + halfHeight, paint);
-
-        float lineInset = halfWidth * fraction(0.05f, 0.5f);
-        paint.setStrokeWidth(dp(1.5f));
-        canvas.drawLine(centerX - halfWidth, centerY, centerX - halfWidth + lineInset, centerY, paint);
-        canvas.drawLine(centerX + halfWidth, centerY, centerX + halfWidth - lineInset, centerY, paint);
-        paint.setShader(null);
+        paint.setStrokeWidth(dp(2.5f));
+        paint.setColor(GOLD);
+        paint.setAlpha(Math.round(155f * flare));
+        canvas.drawCircle(cx, cy - dp(19f), dp(95f), paint);
         paint.setStyle(Paint.Style.FILL);
     }
 
-    private float fraction(float start, float end) {
-        return Math.max(0f, Math.min(1f, (progress - start) / (end - start)));
+    private void drawText(Canvas canvas, float cx, float cy, float h, float t) {
+        float reveal = ease(0.53f, 0.77f, t);
+        if (reveal <= 0f) return;
+        paint.setTypeface(Typeface.create("sans-serif-black", Typeface.BOLD));
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTextSize(dp(26f));
+        paint.setColor(IVORY);
+        paint.setAlpha(Math.round(250f * reveal));
+        canvas.drawText("FC ARENA", cx, cy + dp(128f), paint);
+
+        paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        paint.setTextSize(dp(10.5f));
+        paint.setColor(GOLD);
+        paint.setAlpha(Math.round(240f * ease(0.7f, 0.86f, t)));
+        canvas.drawText(tagline, cx, cy + dp(157f), paint);
+
+        paint.setTypeface(Typeface.DEFAULT);
+        paint.setTextSize(dp(10f));
+        paint.setColor(0xFF93B5C9);
+        paint.setAlpha(Math.round(155f * ease(0.78f, 0.94f, t)));
+        canvas.drawText("ENTER THE ARENA", cx, h - dp(56f), paint);
     }
 
-    private float dp(float value) {
-        return value * density;
+    private static float clamp(float value) {
+        return Math.max(0f, Math.min(1f, value));
     }
+    private static float ease(float start, float end, float t) {
+        float x = clamp((t - start) / (end - start));
+        return x * x * (3f - 2f * x);
+    }
+    private float dp(float value) { return value * density; }
 }

@@ -500,7 +500,7 @@ export default function BallonRankingsPage() {
               Transparent Scoring
             </p>
             <h2 className="mt-1 text-base font-black">
-              How is the Ballon rating calculated?
+              How is the performance rating calculated?
             </h2>
           </div>
           <span className="text-sm font-black text-amber-300">
@@ -562,7 +562,7 @@ export default function BallonRankingsPage() {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
-             Canonical confirmed SOLO, DUO and TEAM results inside this season&apos;s eligible scope and date window count. The live calculation uses the latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player; eligibility starts at <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> plus the configured tournament mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>. Eligible players rank first; ties are then resolved by rating, wins, goal difference and goals scored.
+             Canonical confirmed results inside the selected season date window count. The latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player are counted. {tournamentView ? <>A player needs <strong className="text-slate-300">3 matches in this tournament</strong> to enter its performance table. This view does not decide the Ballon.</> : <>The season award requires <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> and the configured mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>.</>} Ineligible players have no ranking position even if their form rating is high. Qualified ties are resolved by rating, wins, goal difference and goals scored.
           </p>
         </div>
       </details>
@@ -577,11 +577,11 @@ export default function BallonRankingsPage() {
             </p>
 
             <h2 className="mt-2 text-2xl font-black sm:text-3xl">
-              Live Ballon Rankings
+              {tournamentView ? 'Tournament Performance Table' : 'Season Ballon Rankings'}
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-               Canonical confirmed SOLO, DUO and TEAM results are counted. Live ranking refreshes every 10 seconds.
+               {tournamentView ? 'Only matches in the selected tournament count. This is an insights table, not the official season award.' : 'Official standings include all verified in-scope competitions. Only qualified players can claim a position.'} Rankings refresh every 10 seconds.
             </p>
           </div>
 
@@ -593,7 +593,7 @@ export default function BallonRankingsPage() {
             </p>
 
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
-              Eligible shown
+              Ranked contenders
             </p>
           </div>
         </div>
@@ -727,7 +727,7 @@ export default function BallonRankingsPage() {
           {rows.length ===
           0 ? (
             <div className="p-10 text-center text-sm text-slate-500">
-              No eligible verified matches are available for this season yet.
+              No verified matches are available for this selection yet.
             </div>
           ) : null}
         </div>

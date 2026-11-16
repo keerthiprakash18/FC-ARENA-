@@ -54,6 +54,9 @@ public class MainActivityRecoveryTest {
         preferences.edit().clear()
                 .putInt("installed_version_code", BuildConfig.VERSION_CODE)
                 .putLong("version_check_at", System.currentTimeMillis())
+                // Existing recovery tests exercise the legacy Canvas fallback.
+                // The cinematic MP4 has a separate immutable-file acceptance test.
+                .putBoolean("launch_film_enabled", false)
                 .commit();
         ConnectivityManager manager = RuntimeEnvironment.getApplication()
                 .getSystemService(ConnectivityManager.class);

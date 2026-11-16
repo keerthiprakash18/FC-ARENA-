@@ -602,6 +602,7 @@ export default function BallonRankingsPage() {
           {rows.map(
             (
               row,
+              index,
             ) => {
               const change =
                 movement(
@@ -609,25 +610,26 @@ export default function BallonRankingsPage() {
                 );
 
               return (
+                <Fragment key={row.userId}>
+                {!row.eligible && index === eligible.length ? (
+                  <div className="border-y border-amber-300/15 bg-amber-300/[0.045] px-5 py-3">
+                    <p className="text-sm font-black text-amber-200">Qualification queue · Unranked</p>
+                    <p className="mt-1 text-xs text-slate-400">Complete the conditions below to enter the season table. Form scores alone do not grant a position.</p>
+                  </div>
+                ) : null}
                 <Link
-                  key={
-                    row.userId
-                  }
                   href={
                     `/awards/ballon/${seasonId}/players/${row.userId}`
                   }
                   className="grid grid-cols-[42px_1fr_auto] gap-3 p-4 transition hover:bg-white/[0.025] sm:grid-cols-[48px_1fr_70px_70px_70px_86px] sm:items-center sm:px-6"
                 >
                   <span className={
-                    row.position <=
+                    row.eligible && row.position <=
                     3
                       ? 'text-center text-lg font-black text-amber-300'
                       : 'text-center text-sm font-black text-slate-500'
                   }>
-                    #
-                    {
-                      row.position
-                    }
+                    {row.eligible ? '#' + row.position : '—'}
                   </span>
 
                   <span className="flex min-w-0 items-center gap-3">
@@ -666,8 +668,8 @@ export default function BallonRankingsPage() {
 
                        {!row.eligible ? (
                          <span className="mt-1 block text-[9px] font-black uppercase tracking-wider text-amber-500">
-                           Not Yet Eligible · {row.eligibilityReasons?.join(' · ') || `${metric(row, 'matches')}/${season?.minimumMatches ?? '—'} matches`}
-                         </span>
+                           Qualifying · {row.eligibilityReasons?.join(' · ') || metric(row, 'matches') + '/' + minimumNeeded + ' matches'}
+                          </span>
                        ) : null}
 
                        <span className="mt-1 block text-[9px] font-bold text-slate-600">
@@ -684,9 +686,7 @@ export default function BallonRankingsPage() {
                     </span>
 
                     <span className={`text-[10px] font-bold ${change.className}`}>
-                      {
-                        change.text
-                      }
+                      {row.eligible ? change.text : 'Provisional'}
                     </span>
                   </span>
 
@@ -720,6 +720,7 @@ export default function BallonRankingsPage() {
                     G
                   </span>
                 </Link>
+                </Fragment>
               );
             },
           )}

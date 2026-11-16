@@ -67,12 +67,15 @@ public final class MainActivity extends Activity {
     private static final long VERSION_CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_CONNECTION_RETRIES = 5;
     private static final long PAGE_LOAD_TIMEOUT_MS = 20_000L;
-    private static final long LAUNCH_INTRO_TIMEOUT_MS = 1_200L;
+    // 5.5s original score + visual handoff; capped so slow networks still show a loading state.
+    private static final long LAUNCH_INTRO_TIMEOUT_MS = 8_500L;
+    private static final String LAUNCH_SOUND_ENABLED_KEY = "launch_sound_enabled";
     private static final long LAUNCH_INTRO_EXIT_MS = 120L;
 
     private FrameLayout root;
     private WebView webView;
     private ArenaLaunchView launchIntro;
+    private ArenaLaunchSound launchSound;
     private TextView launchLoadingHint;
     private long launchNavigation;
     private String launchNavigationUrl;
@@ -226,10 +229,18 @@ public final class MainActivity extends Activity {
                 : Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f;
         boolean motion = animationsEnabled && !softwareRendering
                 && (activityManager == null || !activityManager.isLowRamDevice());
-        launchIntro = new ArenaLaunchView(this, motion, () -> {
+        final boolean allowSound = motion && preferences.getBoolean(LAUNCH_SOUND_ENABLED_KEY, true);
+        launchIntro = new ArenaLaunchView(this, motion, allowSound, () -> {
             launchRevealUntil = SystemClock.uptimeMillis() + ArenaLaunchView.REVEAL_DURATION_MS;
             root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
+            if (allowSound) launchSound = ArenaLaunchSound.start(this);
             handoffLaunchIntro();
+        }, () -> {
+            boolean enabled = !preferences.getBoolean(LAUNCH_SOUND_ENABLED_KEY, true);
+            preferences.edit().putBoolean(LAUNCH_SOUND_ENABLED_KEY, enabled).apply();
+            if (launchIntro != null) launchIntro.setSoundEnabled(enabled);
+            stopLaunchSound();
+            if (enabled && launchIntro != null) launchSound = ArenaLaunchSound.start(this);
         });
         root.addView(launchIntro, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
@@ -284,7 +295,15 @@ public final class MainActivity extends Activity {
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
     }
 
+    private void stopLaunchSound() {
+        if (launchSound != null) {
+            launchSound.stop();
+            launchSound = null;
+        }
+    }
+
     private void removeLaunchIntro() {
+        stopLaunchSound();
         if (launchIntro == null) return;
         ArenaLaunchView intro = launchIntro;
         launchIntro = null;

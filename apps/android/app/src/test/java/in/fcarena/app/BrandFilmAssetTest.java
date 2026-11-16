@@ -16,7 +16,7 @@ import java.security.MessageDigest;
 public final class BrandFilmAssetTest {
     private static final String NAME = "fc_arena_brand_film_v3.mp4";
     private static final String SHA256 =
-            "3b5e4881c580e97acf00ed7674d0a96468d2056c20ad7e9aebb09fac86feb579";
+            "588023aa21a2880e18c50b856b72ffca0fafaf04be44e2328ce510e02e4a6da2";
 
     private static File filmFile() {
         String working = System.getProperty("user.dir");
@@ -29,12 +29,12 @@ public final class BrandFilmAssetTest {
         return candidates[0];
     }
 
-    @Test public void approvedCinematicMovieIsBundledUnchanged() throws Exception {
+    @Test public void finalWatermarkCleanedBrandFilmIsBundledUnchanged() throws Exception {
         File file = filmFile();
         assertTrue("The approved 7-second MP4 must be bundled before release: "
                 + file.getAbsolutePath(), file.isFile());
         assertEquals("The approved 1080p video with original AAC soundtrack must be intact",
-                2_868_910L, file.length());
+                4_325_250L, file.length());
         byte[] header = new byte[12];
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         try (FileInputStream input = new FileInputStream(file)) {
@@ -51,7 +51,7 @@ public final class BrandFilmAssetTest {
         for (byte b : digest.digest()) {
             result.append(String.format(java.util.Locale.ROOT, "%02x", b & 0xff));
         }
-        assertEquals("Cinematic source MP4 must exactly match user-approved upload",
+        assertEquals("Cinematic MP4 must match final approved watermark-cleaned release asset",
                 SHA256, result.toString());
     }
 }

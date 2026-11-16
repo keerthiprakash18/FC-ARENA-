@@ -233,14 +233,19 @@ public final class MainActivity extends Activity {
         launchIntro = new ArenaLaunchView(this, motion, allowSound, () -> {
             launchRevealUntil = SystemClock.uptimeMillis() + ArenaLaunchView.REVEAL_DURATION_MS;
             root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
-            if (allowSound) launchSound = ArenaLaunchSound.start(this);
+            if (allowSound) launchSound = ArenaLaunchSound.start(this, 0L);
             handoffLaunchIntro();
         }, () -> {
             boolean enabled = !preferences.getBoolean(LAUNCH_SOUND_ENABLED_KEY, true);
             preferences.edit().putBoolean(LAUNCH_SOUND_ENABLED_KEY, enabled).apply();
             if (launchIntro != null) launchIntro.setSoundEnabled(enabled);
             stopLaunchSound();
-            if (enabled && launchIntro != null) launchSound = ArenaLaunchSound.start(this);
+            if (enabled && launchIntro != null) {
+                long elapsed = launchRevealUntil < 0L ? 0L :
+                        Math.max(0L, ArenaLaunchView.REVEAL_DURATION_MS
+                                - (launchRevealUntil - SystemClock.uptimeMillis()));
+                launchSound = ArenaLaunchSound.start(this, elapsed);
+            }
         });
         root.addView(launchIntro, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));

@@ -12,14 +12,17 @@ const fixture = { id: 'home-fixture', sequence: 1, matchday: 1, roundName: 'MATC
   home: { id: 'home', entryName: 'Home Club', members: [{ id: user.id, fullName: user.fullName, inGameName: 'Player One' }] },
   away: { id: 'away', entryName: 'Away Club', members: [{ id: 'opponent', fullName: 'Away Player', inGameName: 'Away FC' }] } };
 
-async function contextFor(width, mode, scenario = 'empty') {
-  const active = scenario === 'active' || scenario === 'hidden';
+async function contextFor(width, mode, scenario = 'empty', reducedMotion = 'reduce') {
+  const active = ['active', 'hidden', 'unscheduled'].includes(scenario);
   const noProfile = scenario === 'profile';
   let reads = 0;
   const currentUser = noProfile ? { ...user, player: { ...user.player, identity: null } } : user;
+  const nextFixture = scenario === 'unscheduled'
+    ? { ...fixture, scheduledAt: null, status: 'UNSCHEDULED', match: { ...fixture.match, status: 'UNSCHEDULED' } }
+    : fixture;
   const data = { career: noProfile ? { ...career, profile: { ...career.profile, identity: null } } : career,
-    memberships: active ? phaseData['/api/leagues/my'].leagues : [], tournaments: active ? [cup] : [], fixtures: active ? [fixture] : [] };
-  const result = await createUiContext(browser, { width, mode, direct: true, native: width < 500,
+    memberships: active ? phaseData['/api/leagues/my'].leagues : [], tournaments: active ? [cup] : [], fixtures: active ? [nextFixture] : [] };
+  const result = await createUiContext(browser, { width, mode, reducedMotion, direct: true, native: width < 500,
     overrides: {
       '/api/auth/me': { user: currentUser },
       '/api/players/opponent/whatsapp': (route, headers) => {
@@ -88,12 +91,21 @@ try {
   }
 
   for (const width of [320, 390, 1280]) {
-    const f = await contextFor(width, 'DARK', 'active');
+    const f = await contextFor(width, 'DARK', 'active', width === 1280 ? 'no-preference' : 'reduce');
     try {
       await f.page.goto(origin + '/dashboard');
       const match = f.page.locator('.fc-next-match-panel');
       const action = match.getByRole('link', { name: /^View Match/ }); await action.waitFor();
-      await f.page.locator('.premium-home-hero').getByText('Home Club vs Away Club').waitFor();
+      const hero = f.page.locator('.premium-home-hero');
+      const pitch = hero.locator('.home-hero-pitch');
+      await pitch.waitFor();
+      if (width === 1280) {
+        assert(await pitch.evaluate(element => element.getAnimations().some(animation =>
+          animation instanceof CSSAnimation && animation.animationName === 'home-pitch-reveal' &&
+          animation.effect?.getKeyframes().length > 1,
+        )));
+      }
+      assert.equal(await hero.getByText(/Home Club|Away Club/).count(), 0);
       assert.equal(await action.getAttribute('href'), '/matches/phase3');
       assert.equal(await f.page.locator('.premium-home-hero .theme-primary-button').count(), 0, 'The real match keeps the primary action');
       const jump = f.page.getByRole('link', { name: /See next match/ });
@@ -113,6 +125,21 @@ try {
       console.log(`PASS ${width}px: match action, opponent details and header-safe jump remain accessible`);
     } finally { await f.context.close(); }
   }
+
+  const unscheduled = await contextFor(390, 'LIGHT', 'unscheduled');
+  try {
+    await unscheduled.page.goto(origin + '/dashboard');
+    const hero = unscheduled.page.locator('.premium-home-hero');
+    const pitch = hero.locator('.home-hero-pitch');
+    await unscheduled.page.locator('#dashboard-next-match').getByRole('heading', { name: 'Fixture Ready' }).waitFor();
+    await pitch.waitFor();
+    assert.equal(await hero.getByText('Fixture Ready', { exact: true }).count(), 0);
+    assert.equal(await unscheduled.page.getByText('Fixture Ready', { exact: true }).count(), 1);
+    assert.equal(await pitch.getAttribute('aria-hidden'), 'true');
+    assert.equal(await pitch.evaluate(element => getComputedStyle(element).animationName), 'none');
+    assert.deepEqual(unscheduled.errors, []);
+    console.log('PASS unscheduled: Fixture Ready appears only in the match card and the welcome pitch respects reduced motion');
+  } finally { await unscheduled.context.close(); }
 
   for (const scenario of ['profile', 'hidden']) {
     const f = await contextFor(390, 'LIGHT', scenario);

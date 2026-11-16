@@ -1,9 +1,9 @@
 {
   "packageName": "in.fcarena.app",
-  "highestKnownUploadedVersionCode": 21,
-  "highestKnownUploadedVersionName": "1.0.19",
-  "nextCandidateVersionCode": 22,
-  "nextCandidateVersionName": "1.0.20",
+  "highestKnownUploadedVersionCode": 22,
+  "highestKnownUploadedVersionName": "1.0.20",
+  "nextCandidateVersionCode": 23,
+  "nextCandidateVersionName": "1.0.21",
   "lastReviewed": "2026-11-16",
-  "note": "Play Console Latest releases and bundles showed version code 21 as the newest upload and Production showed 1.0.19 (21) active. Version code 22 is reserved for the next candidate."
+  "note": "Play Console showed 1.0.20 (22) as the newest uploaded bundle, and the connected phone confirmed the Play-installed build. Version code 23 is the next candidate."
 }

@@ -17,6 +17,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
@@ -74,9 +75,14 @@ public final class MainActivity extends Activity {
     private ArenaLaunchView launchIntro;
     private TextView launchLoadingHint;
     private long launchNavigation;
+    private String launchNavigationUrl;
+    private long launchVisualNavigation = -1L;
+    private long launchRevealUntil = -1L;
     private boolean launchIntroExiting;
     private boolean launchDocumentCommitted;
     private final Runnable launchIntroTimeout = this::expireLaunchIntro;
+    private final Runnable launchIntroHandoff = this::handoffLaunchIntro;
+    private final Runnable launchIntroRemoval = this::removeLaunchIntro;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> fileChooserCallback;
     private SharedPreferences preferences;
@@ -124,7 +130,7 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen.installSplashScreen(this);
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // One inset owner on every supported modern Android version.
@@ -182,7 +188,12 @@ public final class MainActivity extends Activity {
         }
 
         addProgressBar();
-        if (savedInstanceState == null) showLaunchIntro();
+        if (savedInstanceState == null) {
+            showLaunchIntro();
+            if (launchIntro.hasMotion() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                splashScreen.setOnExitAnimationListener(provider -> provider.remove());
+            }
+        }
 
         String initialUrl = resolveInitialUrl(getIntent());
 
@@ -215,8 +226,11 @@ public final class MainActivity extends Activity {
                 : Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f;
         boolean motion = animationsEnabled && !softwareRendering
                 && (activityManager == null || !activityManager.isLowRamDevice());
-        launchIntro = new ArenaLaunchView(this, motion,
-                () -> root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS));
+        launchIntro = new ArenaLaunchView(this, motion, () -> {
+            launchRevealUntil = SystemClock.uptimeMillis() + ArenaLaunchView.REVEAL_DURATION_MS;
+            root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
+            handoffLaunchIntro();
+        });
         root.addView(launchIntro, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
     }
@@ -231,17 +245,30 @@ public final class MainActivity extends Activity {
                 if (view != webView || requestId != launchNavigation
                         || launchIntro == null || launchIntroExiting) return;
 
-                if (!launchIntro.hasMotion()) {
-                    removeLaunchIntro();
-                    return;
-                }
-
-                launchIntroExiting = true;
-                launchIntro.stopReveal();
-                launchIntro.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS)
-                        .withEndAction(MainActivity.this::removeLaunchIntro).start();
+                launchVisualNavigation = requestId;
+                handoffLaunchIntro();
             }
         });
+    }
+
+    private void handoffLaunchIntro() {
+        if (launchIntro == null || launchIntroExiting || launchVisualNavigation != launchNavigation) return;
+        if (!launchIntro.hasMotion()) {
+            removeLaunchIntro();
+            return;
+        }
+        if (launchRevealUntil < 0L) return;
+        long remaining = launchRevealUntil - SystemClock.uptimeMillis();
+        root.removeCallbacks(launchIntroHandoff);
+        if (remaining > 0L) {
+            root.postDelayed(launchIntroHandoff, remaining);
+            return;
+        }
+
+        launchIntroExiting = true;
+        launchIntro.finishReveal();
+        launchIntro.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS).start();
+        root.postDelayed(launchIntroRemoval, LAUNCH_INTRO_EXIT_MS);
     }
 
     private void expireLaunchIntro() {
@@ -262,6 +289,8 @@ public final class MainActivity extends Activity {
         ArenaLaunchView intro = launchIntro;
         launchIntro = null;
         root.removeCallbacks(launchIntroTimeout);
+        root.removeCallbacks(launchIntroHandoff);
+        root.removeCallbacks(launchIntroRemoval);
         intro.animate().cancel();
         root.removeView(intro);
     }
@@ -559,7 +588,17 @@ public final class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 if (view != webView) return;
-                if (launchIntro != null) launchNavigation++;
+                if (launchIntro != null) {
+                    launchNavigation++;
+                    launchNavigationUrl = url;
+                    launchDocumentCommitted = false;
+                    if (launchIntroExiting) {
+                        root.removeCallbacks(launchIntroRemoval);
+                        launchIntro.animate().cancel();
+                        launchIntro.setAlpha(1f);
+                        launchIntroExiting = false;
+                    }
+                }
                 Uri uri = Uri.parse(url);
                 if (!showingOfflinePage && isAllowedUrl(uri)) {
                     lastAllowedUrl = url;
@@ -577,6 +616,9 @@ public final class MainActivity extends Activity {
             public void onPageCommitVisible(WebView view, String url) {
                 if (view != webView) return;
                 if (!showingOfflinePage && !isAllowedUrl(Uri.parse(url))) return;
+                if (launchIntro != null && !showingOfflinePage && launchNavigationUrl != null
+                        && !launchNavigationUrl.equals(url)
+                        && !(url.equals(view.getUrl()) && launchNavigationUrl.equals(view.getOriginalUrl()))) return;
                 finishLaunchIntro(view);
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);

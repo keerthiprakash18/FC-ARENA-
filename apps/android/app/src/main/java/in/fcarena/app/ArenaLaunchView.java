@@ -1,6 +1,5 @@
 package in.fcarena.app;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
@@ -9,11 +8,12 @@ import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.SystemClock;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 
 /** Starts on the platform splash's crest and adds pitch markings while the WebView loads. */
 final class ArenaLaunchView extends View {
+    static final long REVEAL_DURATION_MS = 650L;
     private final int background;
     private final int gold;
     private final int white;
@@ -23,9 +23,9 @@ final class ArenaLaunchView extends View {
     private final boolean motionEnabled;
     private final String tagline;
     private final Runnable startPresentation;
-    private ValueAnimator reveal;
     private RadialGradient floodlights;
     private LinearGradient pitchSweep;
+    private long revealStartedAt = -1L;
     private float progress;
     private boolean drawn;
 
@@ -40,27 +40,15 @@ final class ArenaLaunchView extends View {
         density = getResources().getDisplayMetrics().density;
         int halfCrest = Math.round(dp(58));
         crest.setBounds(-halfCrest, -halfCrest, halfCrest, halfCrest);
+        setClickable(true); // Keep a tap on the reveal from reaching covered WebView controls.
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-        startPresentation = () -> {
-            onFirstFrame.run();
-            if (motionEnabled) startReveal();
-        };
-    }
-
-    private void startReveal() {
-        reveal = ValueAnimator.ofFloat(0f, 1f);
-        reveal.setDuration(800);
-        reveal.setInterpolator(new LinearInterpolator());
-        reveal.addUpdateListener(frame -> {
-            progress = (float) frame.getAnimatedValue();
-            invalidate();
-        });
-        reveal.start();
+        startPresentation = onFirstFrame;
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        stopReveal();
+        removeCallbacks(startPresentation);
+        revealStartedAt = -1L;
         super.onDetachedFromWindow();
     }
 
@@ -68,12 +56,10 @@ final class ArenaLaunchView extends View {
         return motionEnabled;
     }
 
-    void stopReveal() {
-        removeCallbacks(startPresentation);
-        if (reveal != null) {
-            reveal.cancel();
-            reveal = null;
-        }
+    void finishReveal() {
+        revealStartedAt = -1L;
+        progress = 1f;
+        invalidate();
     }
 
     @Override
@@ -91,7 +77,12 @@ final class ArenaLaunchView extends View {
     protected void onDraw(Canvas canvas) {
         if (!drawn) {
             drawn = true;
+            if (motionEnabled) revealStartedAt = SystemClock.uptimeMillis();
             post(startPresentation);
+        }
+        if (revealStartedAt >= 0L) {
+            progress = Math.min(1f, (SystemClock.uptimeMillis() - revealStartedAt) / (float) REVEAL_DURATION_MS);
+            if (progress < 1f) postInvalidateOnAnimation();
         }
         canvas.drawColor(background);
         float centerX = getWidth() / 2f;
@@ -105,9 +96,9 @@ final class ArenaLaunchView extends View {
         crest.draw(canvas);
         canvas.restore();
 
-        if (motionEnabled && progress > 0.58f) {
+        if (motionEnabled && progress > 0.33f) {
             paint.setColor(white);
-            paint.setAlpha(Math.round(fraction(0.58f, 0.88f) * 225));
+            paint.setAlpha(Math.round(fraction(0.33f, 0.74f) * 240));
             paint.setTypeface(Typeface.DEFAULT_BOLD);
             paint.setTextAlign(Paint.Align.CENTER);
             paint.setTextSize(dp(11));
@@ -118,18 +109,19 @@ final class ArenaLaunchView extends View {
     private void drawPitch(Canvas canvas, float centerX, float centerY) {
         paint.setStyle(Paint.Style.FILL);
         paint.setShader(floodlights);
-        paint.setAlpha(Math.round(fraction(0f, 0.44f) * 190));
+        paint.setAlpha(65 + Math.round(fraction(0f, 0.35f) * 145));
         canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
 
         float halfWidth = Math.min(dp(174), centerX * 0.89f);
         float halfHeight = Math.min(dp(133), centerY * 0.9f);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(dp(1));
+        paint.setStrokeWidth(dp(1.5f));
         paint.setShader(pitchSweep);
-        paint.setAlpha(Math.round(fraction(0.12f, 0.58f) * 130));
+        paint.setAlpha(80 + Math.round(fraction(0f, 0.53f) * 150));
         canvas.drawRoundRect(centerX - halfWidth, centerY - halfHeight, centerX + halfWidth,
                 centerY + halfHeight, dp(8), dp(8), paint);
         canvas.drawCircle(centerX, centerY, Math.min(dp(77), halfHeight * 0.78f), paint);
+        canvas.drawLine(centerX, centerY - halfHeight, centerX, centerY + halfHeight, paint);
 
         float lineInset = halfWidth * fraction(0.05f, 0.5f);
         paint.setStrokeWidth(dp(1.5f));

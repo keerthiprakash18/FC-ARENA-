@@ -8,6 +8,7 @@ import {
   useParams,
 } from 'next/navigation';
 import {
+  Fragment,
   useEffect,
   useMemo,
   useState,
@@ -45,6 +46,12 @@ interface Season {
     bigMatches?: number;
     consistency?: number;
   } | null;
+}
+
+interface TournamentOption {
+  id: string;
+  name: string;
+  mode: 'SOLO' | 'DUO' | 'TEAM';
 }
 
 interface RankingRow {
@@ -186,6 +193,9 @@ export default function BallonRankingsPage() {
       [],
     );
 
+  const [tournaments, setTournaments] = useState<TournamentOption[]>([]);
+  const [tournamentId, setTournamentId] = useState('');
+
   const [
     limit,
     setLimit,
@@ -223,7 +233,8 @@ export default function BallonRankingsPage() {
             '/ballon/seasons/' +
               seasonId +
               '/rankings?limit=' +
-              limit,
+              limit +
+              (tournamentId ? '&tournamentId=' + encodeURIComponent(tournamentId) : ''),
           );
 
         if (!active) {
@@ -242,6 +253,7 @@ export default function BallonRankingsPage() {
             .rows ??
             [],
         );
+        setTournaments(response.data.tournaments ?? []);
 
         setError('');
         setLastUpdated(
@@ -310,6 +322,7 @@ export default function BallonRankingsPage() {
   }, [
     limit,
     seasonId,
+    tournamentId,
   ]);
 
   const eligible =
@@ -323,6 +336,12 @@ export default function BallonRankingsPage() {
         rows,
       ],
     );
+
+  const selectedTournament = tournaments.find((item) => item.id === tournamentId);
+  const qualifiers = rows.filter((row) => !row.eligible);
+  const tournamentView = Boolean(tournamentId);
+  const minimumNeeded = tournamentView ? 3 : season?.minimumMatches ?? 10;
+  const finalSeason = season?.status === 'LOCKED' || season?.status === 'ARCHIVED';
 
   const scoring = {
     matchPerformance:
@@ -436,7 +455,43 @@ export default function BallonRankingsPage() {
         </div>
       </div>
 
-      <PremiumPodium rows={rows} seasonId={seasonId} />
+      {!tournamentView && eligible.length > 0 ? <PremiumPodium rows={rows} seasonId={seasonId} /> : null}
+
+      <FcPanel className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">Ranking Scope</p>
+            <h2 className="mt-1 text-lg font-black">{tournamentView ? 'Tournament performance' : 'Official season Ballon standings'}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              {tournamentView
+                ? 'Tournament-only form table. At least 3 verified matches are needed for a tournament position. This table does not award the Ballon or change the season winner.'
+                : 'Only verified results from this season count. A player needs ' + minimumNeeded + ' matches and the required tournament mix to enter the ranked contenders list. Everyone else remains unranked.'}
+            </p>
+          </div>
+          <label className="min-w-[220px] text-xs font-bold text-slate-400">
+            Choose competition
+            <select aria-label="Choose Ballon ranking scope" value={tournamentId} onChange={(event) => setTournamentId(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#121821] px-4 py-3 text-sm text-white">
+              <option value="">All eligible tournaments · Season award</option>
+              {tournaments.map((tournament) => (
+                <option key={tournament.id} value={tournament.id}>
+                  {tournament.name} ({tournament.mode})
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {tournamentView ? (
+          <p className="mt-4 rounded-xl border border-sky-400/20 bg-sky-400/[0.06] p-3 text-xs leading-5 text-sky-200">
+            {selectedTournament?.name ?? 'Selected tournament'} · Informational table only.
+            {finalSeason ? ' The season award is a locked historical snapshot; this tournament drill-down is recalculated from currently verified results.' : ''}
+          </p>
+        ) : null}
+        {eligible.length === 0 ? (
+          <p role="status" className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm font-semibold text-amber-200">
+            No qualified contenders yet. No player is #1 until the eligibility rules are met.
+          </p>
+        ) : null}
+      </FcPanel>
 
       <details className="premium-admin-controls overflow-hidden rounded-xl border">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">

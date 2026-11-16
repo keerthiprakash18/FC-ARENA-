@@ -6,6 +6,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Process;
+import android.util.Log;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Always respects device silent/vibrate mode and existing music playback.
  */
 final class ArenaLaunchSound {
+    private static final String TAG = "FCArenaIntroAudio";
     private static final int RATE = 22_050;
     private static final double DURATION = 5.48;
     private final AtomicBoolean stopped = new AtomicBoolean(false);
@@ -28,8 +30,24 @@ final class ArenaLaunchSound {
 
     static ArenaLaunchSound start(Context context) {
         final AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        if (manager == null || manager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL
-                || manager.isMusicActive()) return null;
+        if (manager == null) {
+            Log.w(TAG, "AudioManager unavailable; skipping optional launch score.");
+            return null;
+        }
+        // Respect the device's silent/vibrate preference and existing audio.
+        if (manager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL) {
+            Log.i(TAG, "Launch BGM skipped: phone is in silent/vibrate mode.");
+            return null;
+        }
+        if (manager.getStreamVolume(AudioManager.STREAM_MUSIC) == 0) {
+            Log.i(TAG, "Launch BGM skipped: media volume is zero.");
+            return null;
+        }
+        if (manager.isMusicActive()) {
+            Log.i(TAG, "Launch BGM skipped: another media stream is playing.");
+            return null;
+        }
+        Log.i(TAG, "Starting FC ARENA launch BGM on media stream.");
 
         ArenaLaunchSound sound = new ArenaLaunchSound();
         Thread worker = new Thread(sound::renderAndPlay, "fc-arena-launch-score");
@@ -107,15 +125,16 @@ final class ArenaLaunchSound {
             }
             double envelope = Math.min(1, t / .22) * Math.min(1, (DURATION - t) / .46);
             double mix = (pad + kick + pluck + air + resolve) * Math.max(0, envelope);
-            // Fixed conservative gain; respects system media volume.
-            pcm[i] = (short) (32767 * Math.max(-1, Math.min(1, mix * .70)));
+            // Mastered at an audible but restrained media level; the user's
+            // STREAM_MUSIC setting remains the final volume control.
+            pcm[i] = (short) (32767 * Math.tanh(mix * 1.20));
         }
         if (stopped.get()) return;
         AudioTrack created = null;
         try {
             created = new AudioTrack.Builder()
                     .setAudioAttributes(new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
                             .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
                     .setAudioFormat(new AudioFormat.Builder()
                             .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
@@ -123,12 +142,23 @@ final class ArenaLaunchSound {
                     .setTransferMode(AudioTrack.MODE_STATIC)
                     .setBufferSizeInBytes(pcm.length * 2)
                     .build();
-            if (created.getState() != AudioTrack.STATE_INITIALIZED || stopped.get()) return;
+            if (created.getState() != AudioTrack.STATE_INITIALIZED) {
+                Log.w(TAG, "AudioTrack could not initialize.");
+                return;
+            }
+            if (stopped.get()) return;
             track = created;
+            created.setVolume(1.0f);
             int count = created.write(pcm, 0, pcm.length, AudioTrack.WRITE_BLOCKING);
-            if (count == pcm.length && !stopped.get()) created.play();
-        } catch (RuntimeException ignored) {
-            // Optional launch audio must never stop the application.
+            if (count == pcm.length && !stopped.get()) {
+                created.play();
+                Log.i(TAG, "Playing 5.48-second launch BGM using media volume.");
+            } else {
+                Log.w(TAG, "AudioTrack short write or interrupted: " + count + "/" + pcm.length);
+            }
+        } catch (RuntimeException error) {
+            // Audio is optional. Log only the exception type; do not interrupt the launch.
+            Log.w(TAG, "Launch BGM playback error: " + error.getClass().getSimpleName());
         } finally {
             if (stopped.get() && created != null) {
                 try { created.release(); } catch (RuntimeException ignored) { }

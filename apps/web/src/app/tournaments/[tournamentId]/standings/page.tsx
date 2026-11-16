@@ -646,10 +646,10 @@ export default function StandingsPage() {
 
         {statistic ? (
           <section aria-labelledby="my-player-stats-heading" className="space-y-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-400">Player Performance</p>
-              <h2 id="my-player-stats-heading" className="mt-1 text-xl font-black text-slate-100">My Player Statistics</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-5 py-4">
+              <p className="theme-text-link text-xs font-black uppercase tracking-[0.16em]">Player Performance</p>
+              <h2 id="my-player-stats-heading" className="theme-text mt-1 text-xl font-black">My Player Statistics</h2>
+              <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
                 {tournament.mode === 'DUO' || tournament.mode === 'TEAM'
                   ? 'These are your individual match statistics. Team totals in the official standings below may differ from your personal goals and GD.'
                   : 'These are your personal match statistics. The official standings below rank tournament entries.'}

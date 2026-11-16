@@ -1183,6 +1183,7 @@ export class BallonService {
     userId: string,
     seasonId: string,
     rawLimit?: string,
+    tournamentId?: string,
   ) {
     await this.assertActiveUser(
       userId,
@@ -1218,6 +1219,7 @@ export class BallonService {
       await this.getRankingsData(
         season,
         limit,
+        tournamentId,
       );
 
     return {
@@ -1626,16 +1628,41 @@ export class BallonService {
     };
   }
 
+  /** Season scope is authoritative: never expose an unrelated tournament. */
+  private async ballonTournaments(season: any) {
+    const leagues = this.jsonStringArray(season.eligibleLeagueIds);
+    const tournaments = this.jsonStringArray(season.eligibleTournamentIds);
+    const scope: Record<string, unknown>[] = [];
+    if (leagues.length) scope.push({ leagueId: { in: leagues } });
+    if (tournaments.length) scope.push({ id: { in: tournaments } });
+
+    return this.prisma.tournament.findMany({
+      where: {
+        mode: { in: ['SOLO', 'DUO', 'TEAM'] },
+        status: { not: 'CANCELLED' },
+        ...(scope.length ? { OR: scope } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        leagueId: true,
+        mode: true,
+        competitionFormat: true,
+        legType: true,
+      },
+    });
+  }
+
   private async getRankingsData(
     season: any,
     limit?: number,
+    tournamentId?: string,
   ) {
     if (
-      season.status ===
-        'LOCKED' ||
-      season.status ===
-        'ARCHIVED'
+      !tournamentId &&
+      (season.status === 'LOCKED' || season.status === 'ARCHIVED')
     ) {
+      const availableTournaments = await this.ballonTournaments(season);
       const finalRows =
         await this.prisma.ballonFinalRanking.findMany({
           where: {
@@ -1667,6 +1694,8 @@ export class BallonService {
 
       return {
         locked: true,
+        tournamentView: false,
+        tournaments: availableTournaments.map(({ id, name, mode }) => ({ id, name, mode })),
         rows:
           finalRows.map(
             (row) => ({
@@ -1697,20 +1726,23 @@ export class BallonService {
     const computed =
       await this.computeRankings(
         season,
+        tournamentId,
       );
 
-    await this.captureDailySnapshot(
-      season,
-      computed.rows,
-    );
+    // Tournament drill-down is informational; it must never alter the
+    // season's official snapshots, positions or locked winner.
+    if (!tournamentId) {
+      await this.captureDailySnapshot(season, computed.rows);
+    }
 
-    const movement =
-      await this.previousPositions(
-        season.id,
-      );
+    const movement = tournamentId
+      ? new Map<string, number>()
+      : await this.previousPositions(season.id);
 
     return {
       locked: false,
+      tournamentView: Boolean(tournamentId),
+      tournaments: computed.tournaments,
       rows:
         (
           typeof limit ===
@@ -1731,14 +1763,11 @@ export class BallonService {
               return {
                 ...row,
                 previousPosition:
-                  previous ??
-                  null,
+                  row.eligible && typeof previous === 'number'
+                    ? previous : null,
                 rankChange:
-                  typeof previous ===
-                    'number'
-                    ? previous -
-                      row.position
-                    : null,
+                  row.eligible && typeof previous === 'number'
+                    ? previous - row.position : null,
               };
             },
           ),
@@ -1747,82 +1776,25 @@ export class BallonService {
 
   private async computeRankings(
     season: any,
+    tournamentId?: string,
   ) {
-    const leagueIds =
-      this.jsonStringArray(
-        season.eligibleLeagueIds,
-      );
-
-    const tournamentIds =
-      this.jsonStringArray(
-        season.eligibleTournamentIds,
-      );
-
-    const scopeOr:
-      Record<
-        string,
-        unknown
-      >[] = [];
-
-    if (
-      leagueIds.length >
-      0
-    ) {
-      scopeOr.push({
-        leagueId: {
-          in:
-            leagueIds,
+    const allTournaments = await this.ballonTournaments(season);
+    if (tournamentId && !allTournaments.some((tournament) => tournament.id === tournamentId)) {
+      throw new NotFoundException({
+        success: false,
+        data: null,
+        error: {
+          code: 'BALLON_TOURNAMENT_OUT_OF_SCOPE',
+          message: 'This tournament is not included in the selected Ballon season.',
         },
       });
     }
-
-    if (
-      tournamentIds.length >
-      0
-    ) {
-      scopeOr.push({
-        id: {
-          in:
-            tournamentIds,
-        },
-      });
-    }
-
-    const tournaments =
-      await this.prisma.tournament.findMany({
-        where: {
-          mode: {
-            in: [
-              'SOLO',
-              'DUO',
-              'TEAM',
-            ],
-          },
-
-          status: {
-            not:
-              'CANCELLED',
-          },
-
-          ...(scopeOr.length >
-          0
-            ? {
-                OR:
-                  scopeOr,
-              }
-            : {}),
-        },
-
-           select: {
-             id: true,
-             name: true,
-             leagueId: true,
-             mode: true,
-             competitionFormat:
-            true,
-          legType: true,
-        },
-      });
+    const tournaments = tournamentId
+      ? allTournaments.filter((tournament) => tournament.id === tournamentId)
+      : allTournaments;
+    const tournamentOptions = allTournaments.map(({ id, name, mode }) => ({
+      id, name, mode,
+    }));
 
     const allowedTournamentIds =
       tournaments.map(
@@ -1835,8 +1807,8 @@ export class BallonService {
       0
     ) {
       return {
-        rows:
-          [] as LiveRankingRow[],
+        rows: [] as LiveRankingRow[],
+        tournaments: tournamentOptions,
       };
     }
 
@@ -2509,8 +2481,8 @@ export class BallonService {
       0
     ) {
       return {
-        rows:
-          [] as LiveRankingRow[],
+        rows: [] as LiveRankingRow[],
+        tournaments: tournamentOptions,
       };
     }
 
@@ -2700,10 +2672,11 @@ export class BallonService {
         ),
       );
 
-    const tournamentRequirements =
-      this.normalizeTournamentRequirements(
-        season.tournamentRequirements,
-      );
+    const tournamentRequirements = tournamentId
+      ? { SOLO: 0, DUO: 0, TEAM: 0 }
+      : this.normalizeTournamentRequirements(season.tournamentRequirements);
+    // One excellent match is a provisional performance, never a contender.
+    const qualificationMinimum = tournamentId ? 3 : season.minimumMatches;
 
     const provisional =
       rated.map(
@@ -2748,7 +2721,7 @@ export class BallonService {
                 season.minimumMatches
               ) {
                 reasons.push(
-                  `${row.matches}/${season.minimumMatches} matches`,
+                  `${row.matches}/${qualificationMinimum} matches`,
                 );
               }
 
@@ -2789,7 +2762,7 @@ export class BallonService {
                 season.minimumMatches
               ) {
                 reasons.push(
-                  `${row.matches}/${season.minimumMatches} matches`,
+                  `${row.matches}/${qualificationMinimum} matches`,
                 );
               }
 
@@ -2862,6 +2835,7 @@ export class BallonService {
       );
 
     return {
+      tournaments: tournamentOptions,
       rows:
         sorted.map(
           (
@@ -2869,8 +2843,7 @@ export class BallonService {
             index,
           ) => ({
             ...row,
-            position:
-              index + 1,
+            position: row.eligible ? index + 1 : 0,
             previousPosition:
               null,
             rankChange:
@@ -2962,10 +2935,8 @@ export class BallonService {
         day,
         rows:
           rows
-            .slice(
-              0,
-              season.rankingLimit,
-            )
+            .filter((row) => row.eligible)
+            .slice(0, season.rankingLimit)
             .map(
               (row) => ({
                 userId:

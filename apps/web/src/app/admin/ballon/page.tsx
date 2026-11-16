@@ -846,6 +846,51 @@ export default function AdminBallonPage() {
           ) : null}
         </div>
 
+
+        <div className="mt-5 rounded-xl border border-amber-300/20 bg-amber-300/[0.04] p-4">
+          <p className="text-sm font-black text-amber-200">Season competition scope</p>
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            League-wide counts all verified competitions from the selected leagues.
+            Selected tournaments counts only named competitions. The two scopes are not mixed.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(['LEAGUE', 'TOURNAMENT'] as const).map((mode) => (
+              <button key={mode} type="button" aria-pressed={scopeMode === mode}
+                onClick={() => setScopeMode(mode)}
+                className={scopeMode === mode
+                  ? 'rounded-xl bg-amber-300 px-4 py-2 text-xs font-black text-[#151006]'
+                  : 'rounded-xl border border-white/10 px-4 py-2 text-xs font-black text-slate-300'}>
+                {mode === 'LEAGUE' ? 'All league tournaments' : 'Selected tournaments only'}
+              </button>
+            ))}
+          </div>
+          {scopeMode === 'TOURNAMENT' ? (
+            <div className="mt-3">
+              <p className="mb-2 text-xs font-semibold text-slate-400">
+                Choose eligible competitions ({selectedTournamentIds.length} selected).
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {availableTournaments.map((tournament) => {
+                  const checked = selectedTournamentIds.includes(tournament.id);
+                  return (
+                    <button key={tournament.id} type="button" aria-pressed={checked}
+                      onClick={() => setSelectedTournamentIds((current) =>
+                        checked ? current.filter((id) => id !== tournament.id) : [...current, tournament.id])}
+                      className={checked
+                        ? 'rounded-lg border border-amber-300/40 bg-amber-300/10 px-3 py-2 text-xs font-black text-amber-200'
+                        : 'rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300'}>
+                      {tournament.name} · {tournament.mode}
+                    </button>
+                  );
+                })}
+                {availableTournaments.length === 0 ? (
+                  <p className="text-xs text-amber-200">No eligible tournaments found in the selected leagues.</p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
         <div className="mt-5 rounded-xl border border-white/[0.07] bg-white/[0.025] p-4 text-xs leading-6 text-slate-500">
           Default rating: Match Performance 30 · Attack 20 · Defence 15 · Goal Difference 15 · Big Matches 15 · Consistency 5. These weights are server-validated and become immutable after Start.
         </div>
@@ -941,7 +986,13 @@ export default function AdminBallonPage() {
                   Tournament mix: {season.tournamentRequirements?.SOLO ?? 0} SOLO · {season.tournamentRequirements?.DUO ?? 0} DUO · {season.tournamentRequirements?.TEAM ?? 0} TEAM
                 </p>
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <p className="mt-2 text-xs font-semibold text-sky-300">
+                   {season.eligibleTournamentIds?.length
+                     ? 'Selected tournament scope · ' + season.eligibleTournamentIds.length + ' competitions'
+                     : 'League-wide season scope'}
+                 </p>
+
+                 <div className="mt-5 flex flex-wrap gap-2">
                   {season.status ===
                   'DRAFT' ? (
                     <button

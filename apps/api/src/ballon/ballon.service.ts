@@ -2676,7 +2676,7 @@ export class BallonService {
       ? { SOLO: 0, DUO: 0, TEAM: 0 }
       : this.normalizeTournamentRequirements(season.tournamentRequirements);
     // One excellent match is a provisional performance, never a contender.
-    const qualificationMinimum = tournamentId ? 3 : season.minimumMatches;
+    const qualificationMinimum = tournamentId ? 3 : Math.max(3, season.minimumMatches);
 
     // A single high-scoring provisional match must not change the rating
     // denominator for players who have actually qualified. Build the
@@ -3637,7 +3637,7 @@ export class BallonService {
     maximumMatches: number,
   ) {
     if (
-      maximumMatches < minimumMatches
+      minimumMatches < 3 || maximumMatches < minimumMatches
     ) {
       throw new BadRequestException({
         success: false,
@@ -3645,7 +3645,7 @@ export class BallonService {
         error: {
           code: 'BALLON_MATCH_BOUNDS_INVALID',
           message:
-            'Ballon maximum matches must be greater than or equal to minimum matches.',
+            'Ballon requires at least 3 matches; maximum matches must be at least the minimum.',
         },
       });
     }

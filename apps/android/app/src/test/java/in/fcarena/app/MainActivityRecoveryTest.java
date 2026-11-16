@@ -147,6 +147,9 @@ public class MainActivityRecoveryTest {
         long earlierNavigation = visualState.requestId;
 
         view.getWebViewClient().onPageStarted(view, login, null);
+        view.getWebViewClient().onPageCommitVisible(view, dashboard);
+        assertSame(earlierFrame, visualState.callback);
+        assertTrue((boolean) field(activity, "pageLoadPending"));
         earlierFrame.onComplete(earlierNavigation);
         assertNotNull(field(activity, "launchIntro"));
 
@@ -193,9 +196,9 @@ public class MainActivityRecoveryTest {
 
         view.getWebViewClient().onPageStarted(view, dashboard, null);
         view.getWebViewClient().onPageCommitVisible(view, dashboard);
-        visualState.callback.onComplete(visualState.requestId);
         long remaining = (long) field(activity, "launchRevealUntil") - SystemClock.uptimeMillis();
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(Math.max(0L, remaining)));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(Math.max(0L, remaining) + 1L));
+        visualState.callback.onComplete(visualState.requestId);
         assertTrue((boolean) field(activity, "launchIntroExiting"));
         assertSame(intro, field(activity, "launchIntro"));
 

@@ -75,6 +75,7 @@ public final class MainActivity extends Activity {
     private ArenaLaunchView launchIntro;
     private TextView launchLoadingHint;
     private long launchNavigation;
+    private String launchNavigationUrl;
     private long launchVisualNavigation = -1L;
     private long launchRevealUntil = -1L;
     private boolean launchIntroExiting;
@@ -589,6 +590,7 @@ public final class MainActivity extends Activity {
                 if (view != webView) return;
                 if (launchIntro != null) {
                     launchNavigation++;
+                    launchNavigationUrl = url;
                     launchDocumentCommitted = false;
                     if (launchIntroExiting) {
                         root.removeCallbacks(launchIntroRemoval);
@@ -614,6 +616,9 @@ public final class MainActivity extends Activity {
             public void onPageCommitVisible(WebView view, String url) {
                 if (view != webView) return;
                 if (!showingOfflinePage && !isAllowedUrl(Uri.parse(url))) return;
+                if (launchIntro != null && !showingOfflinePage && launchNavigationUrl != null
+                        && !launchNavigationUrl.equals(url)
+                        && !(url.equals(view.getUrl()) && launchNavigationUrl.equals(view.getOriginalUrl()))) return;
                 finishLaunchIntro(view);
                 pageLoadPending = false;
                 root.removeCallbacks(pageLoadTimeout);

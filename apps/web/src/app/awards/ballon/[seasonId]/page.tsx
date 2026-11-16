@@ -340,7 +340,7 @@ export default function BallonRankingsPage() {
   const selectedTournament = tournaments.find((item) => item.id === tournamentId);
   const qualifiers = rows.filter((row) => !row.eligible);
   const tournamentView = Boolean(tournamentId);
-  const minimumNeeded = tournamentView ? 3 : season?.minimumMatches ?? 10;
+  const minimumNeeded = tournamentView ? 3 : Math.max(3, season?.minimumMatches ?? 10);
   const finalSeason = season?.status === 'LOCKED' || season?.status === 'ARCHIVED';
 
   const scoring = {
@@ -562,7 +562,7 @@ export default function BallonRankingsPage() {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
-             Canonical confirmed results inside the selected season date window count. The latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player are counted. {tournamentView ? <>A player needs <strong className="text-slate-300">3 matches in this tournament</strong> to enter its performance table. This view does not decide the Ballon.</> : <>The season award requires <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> and the configured mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>.</>} Ineligible players have no ranking position even if their form rating is high. Qualified ties are resolved by rating, wins, goal difference and goals scored.
+             Canonical confirmed results inside the selected season date window count. The latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player are counted. {tournamentView ? <>A player needs <strong className="text-slate-300">3 matches in this tournament</strong> to enter its performance table. This view does not decide the Ballon.</> : <>The season award requires <strong className="text-slate-300">{minimumNeeded} matches</strong> and the configured mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>.</>} Ineligible players have no ranking position even if their form rating is high. Qualified ties are resolved by rating, wins, goal difference and goals scored.
           </p>
         </div>
       </details>

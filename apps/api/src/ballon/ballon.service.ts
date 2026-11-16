@@ -2717,8 +2717,7 @@ export class BallonService {
               const reasons: string[] = [];
 
               if (
-                row.matches <
-                season.minimumMatches
+                row.matches < qualificationMinimum
               ) {
                 reasons.push(
                   `${row.matches}/${qualificationMinimum} matches`,
@@ -2758,8 +2757,7 @@ export class BallonService {
               const reasons: string[] = [];
 
               if (
-                row.matches <
-                season.minimumMatches
+                row.matches < qualificationMinimum
               ) {
                 reasons.push(
                   `${row.matches}/${qualificationMinimum} matches`,

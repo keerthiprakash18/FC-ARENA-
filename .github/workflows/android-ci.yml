@@ -116,7 +116,8 @@ jobs:
       matrix:
         api: [33, 34, 35, 36]
     name: Android ${{ matrix.api }} launch and scroll smoke
-    runs-on: ubuntu-latest
+    # Playwright Chromium currently lacks a supported ubuntu26.04 binary.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:

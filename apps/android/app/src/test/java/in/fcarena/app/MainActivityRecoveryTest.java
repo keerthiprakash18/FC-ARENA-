@@ -54,6 +54,7 @@ public class MainActivityRecoveryTest {
         preferences.edit().clear()
                 .putInt("installed_version_code", BuildConfig.VERSION_CODE)
                 .putLong("version_check_at", System.currentTimeMillis())
+                .putBoolean("launch_sound_enabled", false)
                 .commit();
         ConnectivityManager manager = RuntimeEnvironment.getApplication()
                 .getSystemService(ConnectivityManager.class);
@@ -107,12 +108,13 @@ public class MainActivityRecoveryTest {
         WebView view = web(activity);
         ArenaLaunchView intro = (ArenaLaunchView) field(activity, "launchIntro");
         assertNotNull(intro);
-        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, intro.getImportantForAccessibility());
+        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_YES, intro.getImportantForAccessibility());
+        assertEquals(5_500L, ArenaLaunchView.REVEAL_DURATION_MS);
         assertEquals("https://fcarena.in/dashboard", shadowOf(view).getLastLoadedUrl());
 
         view.getWebViewClient().onPageStarted(view, "https://fcarena.in/dashboard", null);
         drawLaunchFrame(intro);
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1_200));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(8_500));
         assertNull(field(activity, "launchIntro"));
         assertNull(intro.getParent());
         assertNotNull(field(activity, "launchLoadingHint"));

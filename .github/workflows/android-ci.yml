@@ -91,7 +91,7 @@ jobs:
 
       - name: Android lint, debug APK, R8 release APK and release bundle
         working-directory: apps/android
-        run: gradle :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
+        run: gradle :app:testDebugUnitTest :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
 
       - name: Record release shrinker evidence
         shell: bash
@@ -116,7 +116,8 @@ jobs:
       matrix:
         api: [33, 34, 35, 36]
     name: Android ${{ matrix.api }} launch and scroll smoke
-    runs-on: ubuntu-latest
+    # Playwright Chromium currently lacks a supported ubuntu26.04 binary.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     steps:

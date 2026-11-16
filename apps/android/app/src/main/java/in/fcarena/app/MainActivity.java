@@ -11,6 +11,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -62,18 +64,24 @@ public final class MainActivity extends Activity {
     private static final String VERSION_CHECK_AT_KEY = "version_check_at";
     private static final String FORCE_FRESH_WEB_KEY = "force_fresh_web_after_update";
     private static final String FRESH_WEB_QUERY_KEY = "fc_native_refresh";
+    private static final String INTRO_SOUND_OFF_KEY = "cinematic_intro_sound_off";
     private static final String VERSION_CHECK_URL =
             "https://api.fcarena.in/api/mobile/android/version?versionCode=";
     private static final long VERSION_CHECK_INTERVAL_MS = 12L * 60L * 60L * 1000L;
     private static final int MAX_CONNECTION_RETRIES = 5;
     private static final long PAGE_LOAD_TIMEOUT_MS = 20_000L;
-    private static final long LAUNCH_INTRO_TIMEOUT_MS = 1_200L;
-    private static final long LAUNCH_INTRO_EXIT_MS = 120L;
+    // A 5.45s original cinematic with a bounded 8s fail-open timeout.
+    private static final long LAUNCH_INTRO_TIMEOUT_MS = 8_000L;
+    private static final long LAUNCH_INTRO_EXIT_MS = 320L;
 
     private FrameLayout root;
     private WebView webView;
     private ArenaLaunchView launchIntro;
     private TextView launchLoadingHint;
+    private TextView launchSoundToggle;
+    private TextView launchSkipButton;
+    private MediaPlayer launchMusic;
+    private boolean launchSkipRequested;
     private long launchNavigation;
     private String launchNavigationUrl;
     private long launchVisualNavigation = -1L;
@@ -219,6 +227,55 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private void playLaunchMusic() {
+        if (launchIntro == null || !launchIntro.hasMotion()
+                || preferences.getBoolean(INTRO_SOUND_OFF_KEY, false)) return;
+        // Respect silent mode and another app's currently playing music.
+        AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+        if (audio != null && (audio.getRingerMode() == AudioManager.RINGER_MODE_SILENT
+                || audio.isMusicActive())) return;
+        stopLaunchMusic();
+        try {
+            launchMusic = MediaPlayer.create(this, R.raw.fc_arena_launch_anthem);
+            if (launchMusic == null) return;
+            launchMusic.setLooping(false);
+            launchMusic.setVolume(0.32f, 0.32f);
+            launchMusic.setOnCompletionListener(player -> stopLaunchMusic());
+            // If sound was enabled mid-intro, synchronize with the visual timeline.
+            if (launchRevealUntil > 0L) {
+                long start = launchRevealUntil - ArenaLaunchView.REVEAL_DURATION_MS;
+                int offset = (int) Math.max(0L, Math.min(5_300L,
+                        SystemClock.uptimeMillis() - start));
+                if (offset > 0) launchMusic.seekTo(offset);
+            }
+            launchMusic.start();
+        } catch (RuntimeException error) {
+            stopLaunchMusic(); // Audio is decorative; launch never depends on it.
+        }
+    }
+
+    private void stopLaunchMusic() {
+        MediaPlayer music = launchMusic;
+        launchMusic = null;
+        if (music == null) return;
+        try { music.setOnCompletionListener(null); music.stop(); }
+        catch (IllegalStateException ignored) { }
+        finally { music.release(); }
+    }
+
+    private TextView launchControl(String label) {
+        TextView control = new TextView(this);
+        control.setText(label);
+        control.setTextSize(13);
+        control.setTextColor(0xFFFFF9EC);
+        control.setGravity(Gravity.CENTER);
+        control.setPadding(dp(15), dp(10), dp(15), dp(10));
+        control.setBackgroundColor(0xCC10273A);
+        control.setClickable(true);
+        control.setFocusable(true);
+        return control;
+    }
+
     private void showLaunchIntro() {
         ActivityManager activityManager = getSystemService(ActivityManager.class);
         boolean animationsEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -226,13 +283,49 @@ public final class MainActivity extends Activity {
                 : Settings.Global.getFloat(getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f;
         boolean motion = animationsEnabled && !softwareRendering
                 && (activityManager == null || !activityManager.isLowRamDevice());
+        launchSkipRequested = false;
         launchIntro = new ArenaLaunchView(this, motion, () -> {
             launchRevealUntil = SystemClock.uptimeMillis() + ArenaLaunchView.REVEAL_DURATION_MS;
             root.postDelayed(launchIntroTimeout, LAUNCH_INTRO_TIMEOUT_MS);
+            if (motion) playLaunchMusic();
             handoffLaunchIntro();
         });
         root.addView(launchIntro, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+        if (motion) {
+            launchSoundToggle = launchControl(preferences.getBoolean(INTRO_SOUND_OFF_KEY, false)
+                    ? "Sound OFF" : "Sound ON");
+            launchSoundToggle.setContentDescription("Toggle FC Arena opening music");
+            launchSoundToggle.setOnClickListener(v -> {
+                boolean nextMuted = !preferences.getBoolean(INTRO_SOUND_OFF_KEY, false);
+                preferences.edit().putBoolean(INTRO_SOUND_OFF_KEY, nextMuted).apply();
+                if (nextMuted) stopLaunchMusic();
+                else playLaunchMusic();
+                launchSoundToggle.setText(nextMuted ? "Sound OFF" : "Sound ON");
+            });
+            FrameLayout.LayoutParams soundLayout = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    Gravity.TOP | Gravity.END);
+            soundLayout.setMargins(dp(18), dp(18), dp(18), 0);
+            root.addView(launchSoundToggle, soundLayout);
+
+            launchSkipButton = launchControl("Skip intro");
+            launchSkipButton.setContentDescription("Skip opening cinematic when the page is ready");
+            launchSkipButton.setOnClickListener(v -> {
+                launchSkipRequested = true;
+                launchSkipButton.setText("Opening…");
+                launchRevealUntil = SystemClock.uptimeMillis();
+                handoffLaunchIntro(); // Wait for the CURRENT WebView visual state.
+            });
+            FrameLayout.LayoutParams skipLayout = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    Gravity.BOTTOM | Gravity.END);
+            skipLayout.setMargins(dp(18), 0, dp(18), dp(15));
+            root.addView(launchSkipButton, skipLayout);
+        }
     }
 
     private void finishLaunchIntro(WebView view) {
@@ -258,7 +351,7 @@ public final class MainActivity extends Activity {
             return;
         }
         if (launchRevealUntil < 0L) return;
-        long remaining = launchRevealUntil - SystemClock.uptimeMillis();
+        long remaining = launchSkipRequested ? 0L : launchRevealUntil - SystemClock.uptimeMillis();
         root.removeCallbacks(launchIntroHandoff);
         if (remaining > 0L) {
             root.postDelayed(launchIntroHandoff, remaining);
@@ -267,7 +360,10 @@ public final class MainActivity extends Activity {
 
         launchIntroExiting = true;
         launchIntro.finishReveal();
+        stopLaunchMusic();
         launchIntro.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS).start();
+        if (launchSoundToggle != null) launchSoundToggle.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS).start();
+        if (launchSkipButton != null) launchSkipButton.animate().alpha(0f).setDuration(LAUNCH_INTRO_EXIT_MS).start();
         root.postDelayed(launchIntroRemoval, LAUNCH_INTRO_EXIT_MS);
     }
 
@@ -285,6 +381,18 @@ public final class MainActivity extends Activity {
     }
 
     private void removeLaunchIntro() {
+        stopLaunchMusic();
+        if (launchSoundToggle != null) {
+            launchSoundToggle.animate().cancel();
+            root.removeView(launchSoundToggle);
+            launchSoundToggle = null;
+        }
+        if (launchSkipButton != null) {
+            launchSkipButton.animate().cancel();
+            root.removeView(launchSkipButton);
+            launchSkipButton = null;
+        }
+        launchSkipRequested = false;
         if (launchIntro == null) return;
         ArenaLaunchView intro = launchIntro;
         launchIntro = null;
@@ -596,6 +704,8 @@ public final class MainActivity extends Activity {
                         root.removeCallbacks(launchIntroRemoval);
                         launchIntro.animate().cancel();
                         launchIntro.setAlpha(1f);
+                        if (launchSoundToggle != null) { launchSoundToggle.animate().cancel(); launchSoundToggle.setAlpha(1f); }
+                        if (launchSkipButton != null) { launchSkipButton.animate().cancel(); launchSkipButton.setAlpha(1f); }
                         launchIntroExiting = false;
                     }
                 }
@@ -1170,6 +1280,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        clearLaunchPresentation(); // Deep link and notification actions bypass intro.
         applyPushLink(intent);
         setIntent(intent);
 

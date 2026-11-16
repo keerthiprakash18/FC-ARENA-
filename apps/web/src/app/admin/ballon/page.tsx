@@ -300,7 +300,7 @@ export default function AdminBallonPage() {
 
   const matchCountsValid =
     minimumMatches.trim() !== '' && maximumMatches.trim() !== '' &&
-    Number.isInteger(Number(minimumMatches)) && Number(minimumMatches) >= 1 && Number(minimumMatches) <= 100 &&
+    Number.isInteger(Number(minimumMatches)) && Number(minimumMatches) >= 3 && Number(minimumMatches) <= 100 &&
     Number.isInteger(Number(maximumMatches)) && Number(maximumMatches) >= Number(minimumMatches) && Number(maximumMatches) <= 200;
 
   const canCreate =
@@ -718,7 +718,7 @@ export default function AdminBallonPage() {
 
         {!matchCountsValid && (
           <p role="alert" className="mt-3 text-sm text-amber-200">
-            Enter whole numbers: minimum 1–100, maximum up to 200 and at least the minimum.
+            Enter whole numbers: minimum 3–100, maximum up to 200 and at least the minimum.
           </p>
         )}
 

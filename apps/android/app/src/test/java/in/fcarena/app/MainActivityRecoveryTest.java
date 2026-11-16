@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
@@ -95,6 +96,12 @@ public class MainActivityRecoveryTest {
         return (WebView) field(activity, "webView");
     }
 
+    private static void drawLaunchFrame(ArenaLaunchView intro) {
+        intro.layout(0, 0, 360, 800);
+        intro.draw(new Canvas(Bitmap.createBitmap(360, 800, Bitmap.Config.ARGB_8888)));
+        shadowOf(Looper.getMainLooper()).idle();
+    }
+
     @Test public void coldIntroExpiresWithoutBlockingLoadAndDoesNotReplayOnResume() throws Exception {
         MainActivity activity = launch();
         WebView view = web(activity);
@@ -104,8 +111,7 @@ public class MainActivityRecoveryTest {
         assertEquals("https://fcarena.in/dashboard", shadowOf(view).getLastLoadedUrl());
 
         view.getWebViewClient().onPageStarted(view, "https://fcarena.in/dashboard", null);
-        intro.layout(0, 0, 360, 800);
-        intro.draw(new Canvas(Bitmap.createBitmap(360, 800, Bitmap.Config.ARGB_8888)));
+        drawLaunchFrame(intro);
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1_200));
         assertNull(field(activity, "launchIntro"));
         assertNull(intro.getParent());
@@ -126,6 +132,7 @@ public class MainActivityRecoveryTest {
         LaunchWebViewShadow visualState = Shadow.extract(view);
         String dashboard = "https://fcarena.in/dashboard";
         String login = "https://fcarena.in/login";
+        drawLaunchFrame((ArenaLaunchView) field(activity, "launchIntro"));
 
         view.getWebViewClient().onPageCommitVisible(view, "about:blank");
         assertNull(visualState.callback);
@@ -142,6 +149,61 @@ public class MainActivityRecoveryTest {
         view.getWebViewClient().onPageStarted(view, login, null);
         earlierFrame.onComplete(earlierNavigation);
         assertNotNull(field(activity, "launchIntro"));
+
+        view.getWebViewClient().onPageCommitVisible(view, login);
+        visualState.callback.onComplete(visualState.requestId);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(ArenaLaunchView.REVEAL_DURATION_MS + 240));
+        assertNull(field(activity, "launchIntro"));
+    }
+
+    @Test @Config(shadows = LaunchWebViewShadow.class)
+    public void fastWebViewWaitsForTheVisiblePitchRevealBeforeFading() throws Exception {
+        MainActivity activity = launch();
+        WebView view = web(activity);
+        LaunchWebViewShadow visualState = Shadow.extract(view);
+        ArenaLaunchView intro = (ArenaLaunchView) field(activity, "launchIntro");
+        assertTrue(intro.hasMotion());
+        String dashboard = "https://fcarena.in/dashboard";
+
+        view.getWebViewClient().onPageStarted(view, dashboard, null);
+        view.getWebViewClient().onPageCommitVisible(view, dashboard);
+        visualState.callback.onComplete(visualState.requestId);
+        assertFalse((boolean) field(activity, "launchIntroExiting"));
+
+        drawLaunchFrame(intro);
+        long remaining = (long) field(activity, "launchRevealUntil") - SystemClock.uptimeMillis();
+        assertTrue("The reveal must still have time to play", remaining > 100L);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(remaining - 100L));
+        assertSame(intro, field(activity, "launchIntro"));
+        assertFalse((boolean) field(activity, "launchIntroExiting"));
+
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(350));
+        assertNull(field(activity, "launchIntro"));
+    }
+
+    @Test @Config(shadows = LaunchWebViewShadow.class)
+    public void aNewNavigationDuringFadeWaitsForItsOwnVisibleFrame() throws Exception {
+        MainActivity activity = launch();
+        WebView view = web(activity);
+        LaunchWebViewShadow visualState = Shadow.extract(view);
+        ArenaLaunchView intro = (ArenaLaunchView) field(activity, "launchIntro");
+        drawLaunchFrame(intro);
+        String dashboard = "https://fcarena.in/dashboard";
+        String login = "https://fcarena.in/login";
+
+        view.getWebViewClient().onPageStarted(view, dashboard, null);
+        view.getWebViewClient().onPageCommitVisible(view, dashboard);
+        visualState.callback.onComplete(visualState.requestId);
+        long remaining = (long) field(activity, "launchRevealUntil") - SystemClock.uptimeMillis();
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(Math.max(0L, remaining)));
+        assertTrue((boolean) field(activity, "launchIntroExiting"));
+        assertSame(intro, field(activity, "launchIntro"));
+
+        view.getWebViewClient().onPageStarted(view, login, null);
+        assertFalse((boolean) field(activity, "launchIntroExiting"));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(165));
+        assertSame(intro, field(activity, "launchIntro"));
+        assertEquals(1f, intro.getAlpha(), 0f);
 
         view.getWebViewClient().onPageCommitVisible(view, login);
         visualState.callback.onComplete(visualState.requestId);

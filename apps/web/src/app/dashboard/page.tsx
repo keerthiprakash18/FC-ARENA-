@@ -770,12 +770,7 @@ export default function DashboardPage() {
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
               </div>
-              {showNextMatch && nextFixture && nextFixtureKind ? (
-                <div className="home-hero-fixture">
-                  <p>{fixtureHeadings[nextFixtureKind]}</p>
-                  <strong>{entryName(nextFixture.home)} <span>vs</span> {entryName(nextFixture.away)}</strong>
-                </div>
-              ) : null}
+              <div className="home-hero-pitch" aria-hidden="true" />
             </div>
             <Link
               href={heroAction.href}

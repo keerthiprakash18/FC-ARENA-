@@ -277,16 +277,37 @@
 .fc-premium .fc-app-shell .fc-main .premium-home-hero :is(.home-welcome, .home-player-code) {
   color: var(--arena-muted) !important;
 }
-.home-hero-fixture {
+.home-hero-pitch {
+  --pitch-line: color-mix(in srgb, var(--arena-gold) 72%, transparent);
+  position: relative;
+  inline-size: min(8.5rem, 100%);
+  block-size: 2.25rem;
   margin-block-start: .75rem;
-  padding-inline-start: .7rem;
-  border-inline-start: 2px solid var(--arena-gold);
-  color: var(--arena-ivory);
-  overflow-wrap: anywhere;
+  border: 1px solid var(--pitch-line);
+  border-radius: .3rem;
+  background:
+    radial-gradient(circle at center, transparent 7px, var(--pitch-line) 7.5px 8px, transparent 8.5px),
+    linear-gradient(var(--pitch-line), var(--pitch-line)) center / 1px 100% no-repeat,
+    repeating-linear-gradient(90deg, rgb(31 111 82 / .34) 0 12.5%, rgb(16 63 49 / .55) 12.5% 25%);
 }
-.home-hero-fixture p { color: var(--arena-gold); font-size: .75rem; font-weight: 650; }
-.home-hero-fixture strong { font-size: .9rem; font-weight: 650; }
-.home-hero-fixture strong span { color: var(--arena-muted); font-weight: 500; }
+.home-hero-pitch::before,
+.home-hero-pitch::after {
+  position: absolute;
+  inset-block: 24%;
+  inline-size: 15%;
+  content: "";
+  border: 1px solid var(--pitch-line);
+}
+.home-hero-pitch::before { inset-inline-start: 0; border-inline-start: 0; }
+.home-hero-pitch::after { inset-inline-end: 0; border-inline-end: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero-pitch { animation: home-pitch-reveal .36s ease-out both; }
+}
+@keyframes home-pitch-reveal {
+  from { opacity: .25; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .fc-profile-sections {
   display: flex;

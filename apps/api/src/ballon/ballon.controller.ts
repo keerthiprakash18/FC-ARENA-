@@ -104,11 +104,15 @@ export class BallonController {
 
     @Query('limit')
     limit?: string,
+
+    @Query('tournamentId')
+    tournamentId?: string,
   ) {
     return this.ballonService.getRankings(
       request.user.sub,
       seasonId,
       limit,
+      tournamentId,
     );
   }
 

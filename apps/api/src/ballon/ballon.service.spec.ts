@@ -174,9 +174,9 @@ describe('BallonService rules', () => {
       expect(
         response.data.season.tournamentRequirements,
       ).toEqual({
-        SOLO: 2,
-        DUO: 2,
-        TEAM: 1,
+        SOLO: 0,
+        DUO: 0,
+        TEAM: 0,
       });
     },
   );

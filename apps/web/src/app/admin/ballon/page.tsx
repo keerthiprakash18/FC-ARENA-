@@ -33,6 +33,14 @@ interface AdminLeague {
   };
 }
 
+interface AdminTournament {
+  id: string;
+  name: string;
+  leagueId: string;
+  mode: 'SOLO' | 'DUO' | 'TEAM';
+  status: string;
+}
+
 interface Season {
   id: string;
   name: string;
@@ -44,6 +52,7 @@ interface Season {
   status: string;
   eligibleLeagueIds:
     string[];
+  eligibleTournamentIds?: string[];
   tournamentRequirements?: {
     SOLO?: number;
     DUO?: number;
@@ -95,6 +104,10 @@ export default function AdminBallonPage() {
     useState<string[]>(
       [],
     );
+
+  const [scopeMode, setScopeMode] = useState<'LEAGUE' | 'TOURNAMENT'>('LEAGUE');
+  const [availableTournaments, setAvailableTournaments] = useState<AdminTournament[]>([]);
+  const [selectedTournamentIds, setSelectedTournamentIds] = useState<string[]>([]);
 
   const [
     name,
@@ -162,9 +175,9 @@ export default function AdminBallonPage() {
     tournamentRequirements,
     setTournamentRequirements,
   ] = useState({
-    SOLO: 2,
-    DUO: 2,
-    TEAM: 1,
+    SOLO: 0,
+    DUO: 0,
+    TEAM: 0,
   });
 
   function applyPeriodPreset(
@@ -298,9 +311,35 @@ export default function AdminBallonPage() {
     );
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    if (selectedLeagueIds.length === 0) {
+      setAvailableTournaments([]);
+      return;
+    }
+    void Promise.all(
+      selectedLeagueIds.map((leagueId) =>
+        authenticatedRequest<any>(`/leagues/${leagueId}/tournaments`),
+      ),
+    ).then((responses) => {
+      if (!active) return;
+      const unique = new Map<string, AdminTournament>();
+      responses.forEach((response) => {
+        (response.data.tournaments ?? []).forEach((tournament: AdminTournament) => {
+          if (tournament.status !== 'CANCELLED') unique.set(tournament.id, tournament);
+        });
+      });
+      setAvailableTournaments([...unique.values()]);
+      setSelectedTournamentIds((current) => current.filter((id) => unique.has(id)));
+    }).catch((err) => {
+      if (active) setError(err instanceof Error ? err.message : 'Unable to load league tournaments.');
+    });
+    return () => { active = false; };
+  }, [selectedLeagueIds]);
+
   const matchCountsValid =
     minimumMatches.trim() !== '' && maximumMatches.trim() !== '' &&
-    Number.isInteger(Number(minimumMatches)) && Number(minimumMatches) >= 1 && Number(minimumMatches) <= 100 &&
+    Number.isInteger(Number(minimumMatches)) && Number(minimumMatches) >= 3 && Number(minimumMatches) <= 100 &&
     Number.isInteger(Number(maximumMatches)) && Number(maximumMatches) >= Number(minimumMatches) && Number(maximumMatches) <= 200;
 
   const canCreate =
@@ -315,16 +354,18 @@ export default function AdminBallonPage() {
         Boolean(
           endAt,
         ) &&
-        selectedLeagueIds
-          .length >
-          0 && matchCountsValid,
+        selectedLeagueIds.length > 0 &&
+         (scopeMode === 'LEAGUE' || selectedTournamentIds.length > 0) &&
+         matchCountsValid,
       [
         endAt,
         name,
         selectedLeagueIds,
         startAt,
         matchCountsValid,
-      ],
+         scopeMode,
+         selectedTournamentIds,
+       ],
     );
 
   function toggleLeague(
@@ -393,9 +434,9 @@ export default function AdminBallonPage() {
               rankingLimit,
               tournamentRequirements,
               eligibleLeagueIds:
-                selectedLeagueIds,
-              eligibleTournamentIds:
-                [],
+                 scopeMode === 'LEAGUE' ? selectedLeagueIds : [],
+               eligibleTournamentIds:
+                 scopeMode === 'TOURNAMENT' ? selectedTournamentIds : [],
             }),
         },
       );
@@ -682,7 +723,7 @@ export default function AdminBallonPage() {
             Minimum Matches for Eligibility
             <input
               type="number"
-              min={1}
+              min={3}
               max={100}
               value={
                 minimumMatches
@@ -718,7 +759,7 @@ export default function AdminBallonPage() {
 
         {!matchCountsValid && (
           <p role="alert" className="mt-3 text-sm text-amber-200">
-            Enter whole numbers: minimum 1–100, maximum up to 200 and at least the minimum.
+            Enter whole numbers: minimum 3–100, maximum up to 200 and at least the minimum.
           </p>
         )}
 
@@ -802,6 +843,51 @@ export default function AdminBallonPage() {
             <p className="mt-2 text-sm text-slate-500">
               You need League admin access to create a scoped Ballon season. Global seasons require Super Admin access.
             </p>
+          ) : null}
+        </div>
+
+
+        <div className="mt-5 rounded-xl border border-amber-300/20 bg-amber-300/[0.04] p-4">
+          <p className="text-sm font-black text-amber-200">Season competition scope</p>
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            League-wide counts all verified competitions from the selected leagues.
+            Selected tournaments counts only named competitions. The two scopes are not mixed.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(['LEAGUE', 'TOURNAMENT'] as const).map((mode) => (
+              <button key={mode} type="button" aria-pressed={scopeMode === mode}
+                onClick={() => setScopeMode(mode)}
+                className={scopeMode === mode
+                  ? 'rounded-xl bg-amber-300 px-4 py-2 text-xs font-black text-[#151006]'
+                  : 'rounded-xl border border-white/10 px-4 py-2 text-xs font-black text-slate-300'}>
+                {mode === 'LEAGUE' ? 'All league tournaments' : 'Selected tournaments only'}
+              </button>
+            ))}
+          </div>
+          {scopeMode === 'TOURNAMENT' ? (
+            <div className="mt-3">
+              <p className="mb-2 text-xs font-semibold text-slate-400">
+                Choose eligible competitions ({selectedTournamentIds.length} selected).
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {availableTournaments.map((tournament) => {
+                  const checked = selectedTournamentIds.includes(tournament.id);
+                  return (
+                    <button key={tournament.id} type="button" aria-pressed={checked}
+                      onClick={() => setSelectedTournamentIds((current) =>
+                        checked ? current.filter((id) => id !== tournament.id) : [...current, tournament.id])}
+                      className={checked
+                        ? 'rounded-lg border border-amber-300/40 bg-amber-300/10 px-3 py-2 text-xs font-black text-amber-200'
+                        : 'rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300'}>
+                      {tournament.name} · {tournament.mode}
+                    </button>
+                  );
+                })}
+                {availableTournaments.length === 0 ? (
+                  <p className="text-xs text-amber-200">No eligible tournaments found in the selected leagues.</p>
+                ) : null}
+              </div>
+            </div>
           ) : null}
         </div>
 
@@ -900,7 +986,13 @@ export default function AdminBallonPage() {
                   Tournament mix: {season.tournamentRequirements?.SOLO ?? 0} SOLO · {season.tournamentRequirements?.DUO ?? 0} DUO · {season.tournamentRequirements?.TEAM ?? 0} TEAM
                 </p>
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <p className="mt-2 text-xs font-semibold text-sky-300">
+                   {season.eligibleTournamentIds?.length
+                     ? 'Selected tournament scope · ' + season.eligibleTournamentIds.length + ' competitions'
+                     : 'League-wide season scope'}
+                 </p>
+
+                 <div className="mt-5 flex flex-wrap gap-2">
                   {season.status ===
                   'DRAFT' ? (
                     <button

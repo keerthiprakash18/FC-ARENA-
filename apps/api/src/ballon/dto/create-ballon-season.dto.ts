@@ -27,7 +27,7 @@ export class CreateBallonSeasonDto {
 
   @IsOptional()
   @IsInt()
-  @Min(1)
+  @Min(3)
   @Max(100)
   minimumMatches?: number;
 

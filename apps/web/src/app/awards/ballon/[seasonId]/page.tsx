@@ -8,6 +8,7 @@ import {
   useParams,
 } from 'next/navigation';
 import {
+  Fragment,
   useEffect,
   useMemo,
   useState,
@@ -45,6 +46,12 @@ interface Season {
     bigMatches?: number;
     consistency?: number;
   } | null;
+}
+
+interface TournamentOption {
+  id: string;
+  name: string;
+  mode: 'SOLO' | 'DUO' | 'TEAM';
 }
 
 interface RankingRow {
@@ -186,6 +193,9 @@ export default function BallonRankingsPage() {
       [],
     );
 
+  const [tournaments, setTournaments] = useState<TournamentOption[]>([]);
+  const [tournamentId, setTournamentId] = useState('');
+
   const [
     limit,
     setLimit,
@@ -223,7 +233,8 @@ export default function BallonRankingsPage() {
             '/ballon/seasons/' +
               seasonId +
               '/rankings?limit=' +
-              limit,
+              limit +
+              (tournamentId ? '&tournamentId=' + encodeURIComponent(tournamentId) : ''),
           );
 
         if (!active) {
@@ -242,6 +253,7 @@ export default function BallonRankingsPage() {
             .rows ??
             [],
         );
+        setTournaments(response.data.tournaments ?? []);
 
         setError('');
         setLastUpdated(
@@ -310,6 +322,7 @@ export default function BallonRankingsPage() {
   }, [
     limit,
     seasonId,
+    tournamentId,
   ]);
 
   const eligible =
@@ -323,6 +336,12 @@ export default function BallonRankingsPage() {
         rows,
       ],
     );
+
+  const selectedTournament = tournaments.find((item) => item.id === tournamentId);
+  const qualifiers = rows.filter((row) => !row.eligible);
+  const tournamentView = Boolean(tournamentId);
+  const minimumNeeded = tournamentView ? 3 : Math.max(3, season?.minimumMatches ?? 10);
+  const finalSeason = season?.status === 'LOCKED' || season?.status === 'ARCHIVED';
 
   const scoring = {
     matchPerformance:
@@ -436,7 +455,43 @@ export default function BallonRankingsPage() {
         </div>
       </div>
 
-      <PremiumPodium rows={rows} seasonId={seasonId} />
+      {!tournamentView && eligible.length > 0 ? <PremiumPodium rows={rows} seasonId={seasonId} /> : null}
+
+      <FcPanel className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">Ranking Scope</p>
+            <h2 className="mt-1 text-lg font-black">{tournamentView ? 'Tournament performance' : 'Official season Ballon standings'}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              {tournamentView
+                ? 'Tournament-only form table. At least 3 verified matches are needed for a tournament position. This table does not award the Ballon or change the season winner.'
+                : 'Only verified results from this season count. A player needs ' + minimumNeeded + ' matches and the required tournament mix to enter the ranked contenders list. Everyone else remains unranked.'}
+            </p>
+          </div>
+          <label className="min-w-[220px] text-xs font-bold text-slate-400">
+            Choose competition
+            <select aria-label="Choose Ballon ranking scope" value={tournamentId} onChange={(event) => setTournamentId(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#121821] px-4 py-3 text-sm text-white">
+              <option value="">All eligible tournaments · Season award</option>
+              {tournaments.map((tournament) => (
+                <option key={tournament.id} value={tournament.id}>
+                  {tournament.name} ({tournament.mode})
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {tournamentView ? (
+          <p className="mt-4 rounded-xl border border-sky-400/20 bg-sky-400/[0.06] p-3 text-xs leading-5 text-sky-200">
+            {selectedTournament?.name ?? 'Selected tournament'} · Informational table only.
+            {finalSeason ? ' The season award is a locked historical snapshot; this tournament drill-down is recalculated from currently verified results.' : ''}
+          </p>
+        ) : null}
+        {eligible.length === 0 ? (
+          <p role="status" className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3 text-sm font-semibold text-amber-200">
+            No qualified contenders yet. No player is #1 until the eligibility rules are met.
+          </p>
+        ) : null}
+      </FcPanel>
 
       <details className="premium-admin-controls overflow-hidden rounded-xl border">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
@@ -445,7 +500,7 @@ export default function BallonRankingsPage() {
               Transparent Scoring
             </p>
             <h2 className="mt-1 text-base font-black">
-              How is the Ballon rating calculated?
+              How is the performance rating calculated?
             </h2>
           </div>
           <span className="text-sm font-black text-amber-300">
@@ -507,7 +562,7 @@ export default function BallonRankingsPage() {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-slate-500">
-             Canonical confirmed SOLO, DUO and TEAM results inside this season&apos;s eligible scope and date window count. The live calculation uses the latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player; eligibility starts at <strong className="text-slate-300">{season?.minimumMatches ?? '—'} matches</strong> plus the configured tournament mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>. Eligible players rank first; ties are then resolved by rating, wins, goal difference and goals scored.
+             Canonical confirmed results inside the selected season date window count. The latest <strong className="text-slate-300">{season?.maximumMatches ?? '—'} matches</strong> per player are counted. {tournamentView ? <>A player needs <strong className="text-slate-300">3 matches in this tournament</strong> to enter its performance table. This view does not decide the Ballon.</> : <>The season award requires <strong className="text-slate-300">{minimumNeeded} matches</strong> and the configured mix: <strong className="text-slate-300">{season?.tournamentRequirements?.SOLO ?? 0} SOLO · {season?.tournamentRequirements?.DUO ?? 0} DUO · {season?.tournamentRequirements?.TEAM ?? 0} TEAM</strong>.</>} Ineligible players have no ranking position even if their form rating is high. Qualified ties are resolved by rating, wins, goal difference and goals scored.
           </p>
         </div>
       </details>
@@ -522,11 +577,11 @@ export default function BallonRankingsPage() {
             </p>
 
             <h2 className="mt-2 text-2xl font-black sm:text-3xl">
-              Live Ballon Rankings
+              {tournamentView ? 'Tournament Performance Table' : 'Season Ballon Rankings'}
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-               Canonical confirmed SOLO, DUO and TEAM results are counted. Live ranking refreshes every 10 seconds.
+               {tournamentView ? 'Only matches in the selected tournament count. This is an insights table, not the official season award.' : 'Official standings include all verified in-scope competitions. Only qualified players can claim a position.'} Rankings refresh every 10 seconds.
             </p>
           </div>
 
@@ -538,15 +593,21 @@ export default function BallonRankingsPage() {
             </p>
 
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
-              Eligible shown
+              Ranked contenders
             </p>
           </div>
         </div>
 
+        {qualifiers.length > 0 ? (
+          <div className="border-b border-amber-300/15 bg-amber-300/[0.035] px-5 py-3 text-xs font-semibold text-amber-200">
+            {qualifiers.length} player{qualifiers.length === 1 ? '' : 's'} are still qualifying. They are visible for progress, but have no official rank.
+          </div>
+        ) : null}
         <div className="divide-y divide-white/[0.06]">
           {rows.map(
             (
               row,
+              index,
             ) => {
               const change =
                 movement(
@@ -554,25 +615,26 @@ export default function BallonRankingsPage() {
                 );
 
               return (
+                <Fragment key={row.userId}>
+                {!row.eligible && index === eligible.length ? (
+                  <div className="border-y border-amber-300/15 bg-amber-300/[0.045] px-5 py-3">
+                    <p className="text-sm font-black text-amber-200">Qualification queue · Unranked</p>
+                    <p className="mt-1 text-xs text-slate-400">Complete the conditions below to enter the season table. Form scores alone do not grant a position.</p>
+                  </div>
+                ) : null}
                 <Link
-                  key={
-                    row.userId
-                  }
                   href={
                     `/awards/ballon/${seasonId}/players/${row.userId}`
                   }
                   className="grid grid-cols-[42px_1fr_auto] gap-3 p-4 transition hover:bg-white/[0.025] sm:grid-cols-[48px_1fr_70px_70px_70px_86px] sm:items-center sm:px-6"
                 >
                   <span className={
-                    row.position <=
+                    row.eligible && row.position <=
                     3
                       ? 'text-center text-lg font-black text-amber-300'
                       : 'text-center text-sm font-black text-slate-500'
                   }>
-                    #
-                    {
-                      row.position
-                    }
+                    {row.eligible ? '#' + row.position : '—'}
                   </span>
 
                   <span className="flex min-w-0 items-center gap-3">
@@ -611,8 +673,8 @@ export default function BallonRankingsPage() {
 
                        {!row.eligible ? (
                          <span className="mt-1 block text-[9px] font-black uppercase tracking-wider text-amber-500">
-                           Not Yet Eligible · {row.eligibilityReasons?.join(' · ') || `${metric(row, 'matches')}/${season?.minimumMatches ?? '—'} matches`}
-                         </span>
+                           Qualifying · {row.eligibilityReasons?.join(' · ') || metric(row, 'matches') + '/' + minimumNeeded + ' matches'}
+                          </span>
                        ) : null}
 
                        <span className="mt-1 block text-[9px] font-bold text-slate-600">
@@ -629,9 +691,7 @@ export default function BallonRankingsPage() {
                     </span>
 
                     <span className={`text-[10px] font-bold ${change.className}`}>
-                      {
-                        change.text
-                      }
+                      {row.eligible ? change.text : 'Provisional'}
                     </span>
                   </span>
 
@@ -665,6 +725,7 @@ export default function BallonRankingsPage() {
                     G
                   </span>
                 </Link>
+                </Fragment>
               );
             },
           )}
@@ -672,7 +733,7 @@ export default function BallonRankingsPage() {
           {rows.length ===
           0 ? (
             <div className="p-10 text-center text-sm text-slate-500">
-              No eligible verified matches are available for this season yet.
+              No verified matches are available for this selection yet.
             </div>
           ) : null}
         </div>

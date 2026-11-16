@@ -38,6 +38,12 @@ def firebaseClient = firebaseConfig?.client?.find { it.client_info.android_clien
 def firebaseString = { value -> groovy.json.JsonOutput.toJson(value ?: '') }
 
 android {
+    // MediaPlayer uses openRawResourceFd for instant seekable startup playback.
+    // Keep the original intro WAV uncompressed in the Android APK/AAB.
+    androidResources {
+        noCompress += ['wav']
+    }
+
     namespace 'in.fcarena.app'
     compileSdk 36
 

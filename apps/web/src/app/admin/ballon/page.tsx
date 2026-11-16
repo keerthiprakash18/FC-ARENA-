@@ -354,16 +354,18 @@ export default function AdminBallonPage() {
         Boolean(
           endAt,
         ) &&
-        selectedLeagueIds
-          .length >
-          0 && matchCountsValid,
+        selectedLeagueIds.length > 0 &&
+         (scopeMode === 'LEAGUE' || selectedTournamentIds.length > 0) &&
+         matchCountsValid,
       [
         endAt,
         name,
         selectedLeagueIds,
         startAt,
         matchCountsValid,
-      ],
+         scopeMode,
+         selectedTournamentIds,
+       ],
     );
 
   function toggleLeague(
@@ -432,9 +434,9 @@ export default function AdminBallonPage() {
               rankingLimit,
               tournamentRequirements,
               eligibleLeagueIds:
-                selectedLeagueIds,
-              eligibleTournamentIds:
-                [],
+                 scopeMode === 'LEAGUE' ? selectedLeagueIds : [],
+               eligibleTournamentIds:
+                 scopeMode === 'TOURNAMENT' ? selectedTournamentIds : [],
             }),
         },
       );

@@ -91,7 +91,7 @@ jobs:
 
       - name: Android lint, debug APK, R8 release APK and release bundle
         working-directory: apps/android
-        run: gradle :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
+        run: gradle :app:testDebugUnitTest :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
 
       - name: Record release shrinker evidence
         shell: bash

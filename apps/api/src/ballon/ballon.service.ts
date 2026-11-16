@@ -2678,6 +2678,19 @@ export class BallonService {
     // One excellent match is a provisional performance, never a contender.
     const qualificationMinimum = tournamentId ? 3 : season.minimumMatches;
 
+    // A single high-scoring provisional match must not change the rating
+    // denominator for players who have actually qualified. Build the
+    // official scale from eligible contenders only.
+    const qualifiedStats = [...aggregates.values()].filter((stats) =>
+      stats.matches >= qualificationMinimum &&
+      stats.soloTournamentsPlayed >= tournamentRequirements.SOLO &&
+      stats.duoTournamentsPlayed >= tournamentRequirements.DUO &&
+      stats.teamTournamentsPlayed >= tournamentRequirements.TEAM,
+    );
+    const qualifiedRatings = new Map(
+      calculatePerformanceRatings(qualifiedStats, weights).map((row) => [row.userId, row]),
+    );
+
     const provisional =
       rated.map(
         (
@@ -2710,9 +2723,9 @@ export class BallonService {
             ...identity,
             ...stats,
             rating:
-              row.rating,
+              qualifiedRatings.get(row.userId)?.rating ?? row.rating,
             ratingBreakdown:
-              row.ratingBreakdown,
+              qualifiedRatings.get(row.userId)?.ratingBreakdown ?? row.ratingBreakdown,
             eligible: (() => {
               const reasons: string[] = [];
 

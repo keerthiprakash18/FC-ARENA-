@@ -598,6 +598,11 @@ export default function BallonRankingsPage() {
           </div>
         </div>
 
+        {qualifiers.length > 0 ? (
+          <div className="border-b border-amber-300/15 bg-amber-300/[0.035] px-5 py-3 text-xs font-semibold text-amber-200">
+            {qualifiers.length} player{qualifiers.length === 1 ? '' : 's'} are still qualifying. They are visible for progress, but have no official rank.
+          </div>
+        ) : null}
         <div className="divide-y divide-white/[0.06]">
           {rows.map(
             (

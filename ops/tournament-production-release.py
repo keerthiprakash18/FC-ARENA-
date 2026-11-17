@@ -126,6 +126,63 @@ def health(url):
     with urllib.request.urlopen(url, timeout=15) as response:
         return json.load(response)
 
+def install_managed_release_dropin(directory, release_env, rollback, service):
+    """Reuse a single, last-ordered drop-in; preserve its prior contents for rollback."""
+    directory.mkdir(exist_ok=True)
+    matches = list(directory.glob('*z-tournament-production-managed.conf'))
+    if len(matches) > 1:
+        raise RuntimeError('Multiple managed release drop-ins: ' + str(directory))
+    if matches:
+        dropin = matches[0]
+    else:
+        last = max((p.name for p in directory.glob('*.conf')), default='zz-release.conf')
+        dropin = directory / (last[:-5] + 'z-tournament-production-managed.conf')
+    if dropin.is_symlink():
+        raise RuntimeError('Refusing symlinked managed drop-in: ' + str(dropin))
+    last_now = max((p.name for p in directory.glob('*.conf')), default='')
+    if last_now > dropin.name:
+        raise RuntimeError('Newer systemd override exists; inspect before deployment: ' + last_now)
+    existed = dropin.exists()
+    previous = rollback / (service + '-managed-dropin.previous')
+    if existed:
+        previous.write_bytes(dropin.read_bytes())
+        os.chmod(previous, 0o600)
+    content = ('[Service]\nEnvironmentFile=' + str(release_env) + '\n').encode()
+    # Atomic replacement ensures systemd never reads a partially written override.
+    temporary = directory / ('.managed-release-' + secrets.token_hex(8) + '.tmp')
+    try:
+        temporary.write_bytes(content)
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, dropin)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    return {'path': str(dropin), 'existed': existed,
+            'applied_sha256': hashlib.sha256(content).hexdigest()}
+
+
+def restore_managed_release_dropin(record, rollback, service):
+    """Restore the exact previous drop-in, without destroying a newer deployment."""
+    if isinstance(record, str):
+        # Rollbacks created by older revisions recorded only newly created paths.
+        path = Path(record)
+        if path.exists():
+            path.unlink()
+        return
+    path = Path(record['path'])
+    if not path.is_file() or path.is_symlink():
+        raise RuntimeError('Managed drop-in unexpectedly missing or replaced: ' + str(path))
+    if hashlib.sha256(path.read_bytes()).hexdigest() != record['applied_sha256']:
+        raise RuntimeError('Managed drop-in changed after activation; manual rollback required')
+    if record['existed']:
+        previous = rollback / (service + '-managed-dropin.previous')
+        if not previous.is_file():
+            raise RuntimeError('Managed drop-in rollback copy missing')
+        shutil.copy2(previous, path)
+    else:
+        path.unlink()
+
+
 def activate(release):
     if json.loads((BASE / 'prepared.json').read_text())['release'] != release:
         raise RuntimeError('Release does not match the tested build')
@@ -194,14 +251,10 @@ def activate(release):
         dropins = {}
         for service in ['api', 'web']:
             directory = Path('/etc/systemd/system/fcarena-' + service + '.service.d')
-            directory.mkdir(exist_ok=True)
-            # Existing releases have accumulated ordered environment overrides.
-            # Add one after the actual last override instead of shadowing it.
-            last = max((p.name for p in directory.glob('*.conf')), default='zz-release.conf')
-            dropin = directory / (last[:-5] + 'z-tournament-production.conf')
-            dropins[service] = str(dropin)
-            dropin.write_text('[Service]\nEnvironmentFile=' + str(BASE / 'release.env') + '\n')
-        save(rollback / 'dropins.json', dropins)
+            dropins[service] = install_managed_release_dropin(
+                directory, BASE / 'release.env', rollback, service)
+            # Save incrementally so a failure on the other service can be rolled back.
+            save(rollback / 'dropins.json', dropins)
         command(['systemctl', 'daemon-reload'])
         command(['systemctl', 'start', 'fcarena-api', 'fcarena-web'])
         for attempt in range(30):
@@ -233,11 +286,10 @@ def restore():
         target = LIVE / name
         if (rollback / 'files' / name).exists(): shutil.copy2(rollback / 'files' / name, target)
         elif target.exists(): target.unlink()
+    recorded = json.loads((rollback / 'dropins.json').read_text()) if (rollback / 'dropins.json').exists() else {}
     for service in ['api', 'web']:
-        recorded = json.loads((rollback / 'dropins.json').read_text()) if (rollback / 'dropins.json').exists() else {}
         if service in recorded:
-            dropin = Path(recorded[service])
-            if dropin.exists(): dropin.unlink()
+            restore_managed_release_dropin(recorded[service], rollback, service)
     command(['systemctl', 'daemon-reload'])
     command(['systemctl', 'start', 'fcarena-api', 'fcarena-web'])
     save(BASE / 'activation.json', {'state': 'rolled-back'})

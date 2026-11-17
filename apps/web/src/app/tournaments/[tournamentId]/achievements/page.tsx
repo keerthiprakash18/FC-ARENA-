@@ -90,6 +90,17 @@ interface RaceRow {
     Record<string, number> | null;
 }
 
+interface VerifiedScoreRow {
+  id: string;
+  name: string;
+  position: number;
+  matches: number;
+  goals: number;
+  goalsPerMatch: number;
+  cleanSheets: number;
+  goalsAgainstPerMatch: number;
+}
+
 interface AwardRaceData {
   tournament: {
     id: string;
@@ -100,6 +111,11 @@ interface AwardRaceData {
 
   available: boolean;
   reason: string | null;
+  verifiedScoreRaces?: {
+    scope: 'PLAYER' | 'TEAM';
+    goldenBoot: VerifiedScoreRow[];
+    goldenGlove: VerifiedScoreRow[];
+  };
   goldenBoot: RaceRow[];
   goldenGlove: RaceRow[];
   playerOfTournament:
@@ -172,7 +188,7 @@ function publicAwardName(
     );
 }
 
-function RaceList({
+function RaceList<Row extends RaceRow | VerifiedScoreRow>({
   title,
   icon,
   rows,
@@ -180,9 +196,9 @@ function RaceList({
 }: {
   title: string;
   icon: string;
-  rows: RaceRow[];
+  rows: Row[];
   metric: (
-    row: RaceRow,
+    row: Row,
   ) => string;
 }) {
   return (
@@ -212,7 +228,7 @@ function RaceList({
             ) => (
               <div
                 key={
-                  row.userId
+                  'id' in row ? row.id : row.userId
                 }
                 className="grid grid-cols-[32px_1fr_auto] items-center gap-3 p-4"
               >
@@ -230,15 +246,14 @@ function RaceList({
 
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black">
-                    {racePlayerName(
-                      row,
-                    )}
+                    {'name' in row ? row.name : racePlayerName(row)}
                   </p>
 
                   <p className="mt-1 truncate font-mono text-[9px] text-slate-600">
                     {
-                      row.playerCode ||
-                      'FC Arena Player'
+                      'playerCode' in row
+                        ? row.playerCode || 'FC Arena Player'
+                        : `${row.matches} ${row.matches === 1 ? 'match' : 'matches'}`
                     }
                   </p>
                 </div>
@@ -379,21 +394,20 @@ export default function AchievementsPage() {
 
     void initialLoad();
 
-    const interval =
-      window.setInterval(
-        () => {
-          if (
-            document.visibilityState ===
-            'visible'
-          ) {
-            void load().catch(
-              () =>
-                undefined,
-            );
-          }
-        },
-        15_000,
-      );
+    let refreshing = false;
+    async function refresh() {
+      if (document.visibilityState !== 'visible' || refreshing) return;
+      refreshing = true;
+      try {
+        await load();
+      } catch {
+        // Keep the last successful standings and retry on the next refresh.
+      } finally {
+        refreshing = false;
+      }
+    }
+    const interval = window.setInterval(refresh, 15_000);
+    document.addEventListener('visibilitychange', refresh);
 
     return () => {
       active =
@@ -401,6 +415,7 @@ export default function AchievementsPage() {
       window.clearInterval(
         interval,
       );
+      document.removeEventListener('visibilitychange', refresh);
     };
   }, [
     params.tournamentId,
@@ -614,9 +629,37 @@ export default function AchievementsPage() {
           </section>
         ) : null}
 
+        {!isCompleted && races?.verifiedScoreRaces ? (
+          <section>
+            <h2 className="text-2xl font-black">
+              {races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Award Races' : 'Player Award Races'}
+            </h2>
+            <p className="mt-1 text-sm text-slate-400">
+              {races.verifiedScoreRaces.scope === 'TEAM'
+                ? 'Ranked by verified team scores.'
+                : 'Ranked by verified individual Duo games.'}
+            </p>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <RaceList
+                title={races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Golden Boot' : 'Golden Boot'}
+                icon="⚽"
+                rows={races.verifiedScoreRaces.goldenBoot}
+                metric={(row) => `${row.goals} goals · ${row.goalsPerMatch}/M`}
+              />
+              <RaceList
+                title={races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Golden Glove' : 'Golden Glove'}
+                icon="🧤"
+                rows={races.verifiedScoreRaces.goldenGlove}
+                metric={(row) => `${row.cleanSheets} CS · ${row.goalsAgainstPerMatch} GA/M`}
+              />
+            </div>
+          </section>
+        ) : null}
+
         {!isCompleted &&
         races &&
-        !races.available ? (
+        !races.available &&
+        !races.verifiedScoreRaces ? (
           <FcPanel className="p-5">
             <p className="text-sm leading-6 text-slate-500">
               {

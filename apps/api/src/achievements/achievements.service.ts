@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import { assertRoundRobinComplete } from './completion-integrity.js';
+import { rankVerifiedScores } from './verified-score-races.js';
 import { isUclLeg, resolveAggregateWinner } from '../results/ucl-ties.js';
 import {
   deduplicateFixtureRecords,
@@ -684,6 +685,9 @@ export class AchievementsService {
           mode: true,
           format: true,
           status: true,
+          competitionFormat: true,
+          legType: true,
+          duoAggregateEnabled: true,
         },
       });
 
@@ -706,8 +710,8 @@ export class AchievementsService {
         data: {
           tournament,
           available: false,
-          reason:
-            'Individual Golden Boot, Golden Glove and Player of the Tournament races require SOLO statistics in V1. Team-level scores are never attributed to every member.',
+          reason: 'Update FC Arena to view the verified score races.',
+          verifiedScoreRaces: await this.getVerifiedScoreRaces(tournament),
           goldenBoot: [],
           goldenGlove: [],
           playerOfTournament:
@@ -990,6 +994,71 @@ export class AchievementsService {
       },
 
       error: null,
+    };
+  }
+
+  private async getVerifiedScoreRaces(tournament: {
+    id: string;
+    competitionFormat: string;
+    legType: string;
+    duoAggregateEnabled: boolean;
+  }) {
+    const fixtures = await this.prisma.fixture.findMany({
+      where: {
+        tournamentId: tournament.id,
+        status: 'COMPLETED',
+        match: { status: 'COMPLETED', confirmedResult: { status: 'CONFIRMED' } },
+      },
+      include: {
+        match: {
+          select: {
+            status: true,
+            confirmedResultSubmissionId: true,
+            confirmedResult: {
+              select: { id: true, status: true, homeScore: true, awayScore: true, duoGames: true },
+            },
+          },
+        },
+      },
+    });
+    const races = rankVerifiedScores(fixtures, tournament);
+    const individual = tournament.duoAggregateEnabled;
+    const names = new Map<string, string>();
+    if (individual) {
+      const players = await this.prisma.user.findMany({
+        where: { id: { in: races.ids } },
+        select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } },
+      });
+      for (const player of players) {
+        names.set(player.id, player.player?.identity?.inGameName || player.fullName);
+      }
+    } else {
+      const entries = await this.prisma.tournamentRegistration.findMany({
+        where: { tournamentId: tournament.id, id: { in: races.ids } },
+        select: {
+          id: true,
+          entryName: true,
+          members: { select: { user: { select: { fullName: true } } } },
+        },
+      });
+      for (const entry of entries) {
+        names.set(entry.id, entry.entryName || entry.members.map(({ user }) => user.fullName).join(' / '));
+      }
+    }
+    const decorate = (row: AwardMetricRow, index: number) => ({
+      id: row.userId,
+      name: names.get(row.userId) || (individual ? 'Player' : 'Team'),
+      position: index + 1,
+      matches: row.matches,
+      goals: row.goalsFor,
+      goalsPerMatch: Number((row.goalsFor / row.matches).toFixed(2)),
+      cleanSheets: row.cleanSheets,
+      goalsAgainstPerMatch: Number((row.goalsAgainst / row.matches).toFixed(2)),
+    });
+    return {
+      scope: individual ? 'PLAYER' as const : 'TEAM' as const,
+      goldenBoot: races.goldenBoot.map(decorate),
+      goldenGlove: races.goldenGlove.map(decorate),
     };
   }
 

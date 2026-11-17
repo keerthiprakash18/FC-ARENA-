@@ -136,7 +136,11 @@ def install_managed_release_dropin(directory, release_env, rollback, service):
         dropin = matches[0]
     else:
         last = max((p.name for p in directory.glob('*.conf')), default='zz-release.conf')
-        dropin = directory / (last[:-5] + 'z-tournament-production-managed.conf')
+        ordering_prefix = last[:len(last) - len(last.lstrip('z'))]
+        name = ordering_prefix + 'z-tournament-production-managed.conf'
+        if len(os.fsencode(name)) > os.pathconf(directory, 'PC_NAME_MAX'):
+            raise RuntimeError('Systemd override ordering prefix exceeds the file name limit: ' + str(directory))
+        dropin = directory / name
     if dropin.is_symlink():
         raise RuntimeError('Refusing symlinked managed drop-in: ' + str(dropin))
     last_now = max((p.name for p in directory.glob('*.conf')), default='')

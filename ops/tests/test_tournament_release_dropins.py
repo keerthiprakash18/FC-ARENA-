@@ -44,6 +44,24 @@ class ManagedReleaseDropinTests(unittest.TestCase):
             self.assertFalse(managed.exists())
             self.assertEqual(len(list(directory.glob('*.conf'))), 1)
 
+    def test_orders_after_long_legacy_names_without_extending_the_entire_name(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            directory = base / 'web.service.d'
+            directory.mkdir()
+            legacy = directory / ('z' * 180 + '-release' * 8 + '.conf')
+            legacy.write_text('[Service]\n')
+            backup = base / 'rollback'
+            backup.mkdir()
+
+            record = release.install_managed_release_dropin(
+                directory, Path('/releases/next/release.env'), backup, 'web')
+
+            managed = Path(record['path'])
+            self.assertGreater(managed.name, legacy.name)
+            self.assertTrue(managed.is_file())
+            self.assertEqual(legacy.read_text(), '[Service]\n')
+
     def test_newer_override_causes_abort_without_modification(self):
         with tempfile.TemporaryDirectory() as root:
             base = Path(root)

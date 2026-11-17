@@ -22,6 +22,11 @@ import {
   isCanonicalCompletedFixture,
 } from '../tournaments/fixture-deduplication.js';
 
+import {
+  duoSideGoals,
+  validateDuoAggregate,
+} from '../results/duo-aggregate.js';
+
 import type {
   CreateBallonSeasonDto,
 } from './dto/create-ballon-season.dto.js';
@@ -1649,6 +1654,8 @@ export class BallonService {
         mode: true,
         competitionFormat: true,
         legType: true,
+        duoAggregateEnabled: true,
+        duoGamesPerFixture: true,
       },
     });
   }
@@ -2402,21 +2409,52 @@ export class BallonService {
         eventAt,
       } as const;
 
+      // New-format Duo fixtures persist every verified individual game.
+      // Keep the TEAM win/draw/loss, but never credit each player with
+      // their pair's aggregate goals, clean sheet or goal difference.
+      // Legacy Duo fixtures without individual-game data retain the
+      // existing team-level interpretation.
+      let homeDuoGoals: ReturnType<typeof duoSideGoals> | null = null;
+      let awayDuoGoals: ReturnType<typeof duoSideGoals> | null = null;
+      if (tournament.mode === 'DUO' && tournament.duoAggregateEnabled) {
+        try {
+          const games = validateDuoAggregate(
+            tournament,
+            homeMembers,
+            awayMembers,
+            {
+              homeScore: result.homeScore,
+              awayScore: result.awayScore,
+              duoGames: result.duoGames,
+            },
+          );
+          if (!games) continue;
+          homeDuoGoals = duoSideGoals(games, true);
+          awayDuoGoals = duoSideGoals(games, false);
+        } catch {
+          // Fail closed on invalid stored results: do not invent
+          // personal performance from unverified team totals.
+          continue;
+        }
+      }
+
       for (const member of homeMembers) {
+        const personalGoals = homeDuoGoals?.get(member.userId);
         queue(member, {
           ...baseEvent,
-          goalsFor: result.homeScore,
-          goalsAgainst: result.awayScore,
+          goalsFor: personalGoals?.scored ?? result.homeScore,
+          goalsAgainst: personalGoals?.conceded ?? result.awayScore,
           won: homeWon,
           draw,
         });
       }
 
       for (const member of awayMembers) {
+        const personalGoals = awayDuoGoals?.get(member.userId);
         queue(member, {
           ...baseEvent,
-          goalsFor: result.awayScore,
-          goalsAgainst: result.homeScore,
+          goalsFor: personalGoals?.scored ?? result.awayScore,
+          goalsAgainst: personalGoals?.conceded ?? result.homeScore,
           won: awayWon,
           draw,
         });

@@ -1,0 +1,32 @@
+name: Production release ops regression tests
+
+on:
+  pull_request:
+    paths:
+      - "ops/tournament-production-release.py"
+      - "ops/tests/test_tournament_release_dropins.py"
+      - ".github/workflows/ops-release-regression.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ops/tournament-production-release.py"
+      - "ops/tests/test_tournament_release_dropins.py"
+      - ".github/workflows/ops-release-regression.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test-managed-dropins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate release script syntax
+        run: python3 -m py_compile ops/tournament-production-release.py
+      - name: Verify managed drop-in lifecycle and rollback
+        run: python3 -m unittest discover -s ops/tests -p 'test_tournament_release_dropins.py' -v

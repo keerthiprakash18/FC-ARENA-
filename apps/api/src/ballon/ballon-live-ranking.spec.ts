@@ -26,7 +26,12 @@ function setup() {
     achievement: { findMany: vi.fn().mockResolvedValue([]) },
     tournamentRegistrationMember: { findMany: vi.fn().mockResolvedValue([]) },
     seasonalAward: { findMany: vi.fn().mockResolvedValue([]) },
-    ballonRankingSnapshot: { upsert: vi.fn().mockResolvedValue({}), findFirst: vi.fn().mockResolvedValue(null) },
+    ballonRankingSnapshot: {
+      upsert: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue(null),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
     ballonFinalRanking: { findMany: vi.fn().mockResolvedValue([]) },
   };
   const service = new BallonService(prisma as any);
@@ -117,6 +122,50 @@ describe('Ballon live ranking calculation', () => {
     expect(nextRatings.get('away-player')).toEqual(firstRatings.get('away-player'));
     expect(after.rows.filter((row: any) => !row.eligible)).toHaveLength(2);
     expect(after.rows.filter((row: any) => !row.eligible).every((row: any) => row.position === 0)).toBe(true);
+  });
+
+  it('creates one current-day snapshot when none exists and preserves all historical days', async () => {
+    const { matches, prisma, read } = setup();
+    matches.push(fixture(3, 2, 0));
+    await read();
+    expect(prisma.ballonRankingSnapshot.upsert).toHaveBeenCalledTimes(1);
+    const inserted = prisma.ballonRankingSnapshot.upsert.mock.calls[0][0];
+    expect(inserted.create.rows).toHaveLength(2);
+    expect(inserted.create.day.toISOString().endsWith('T00:00:00.000Z')).toBe(true);
+    expect(inserted.update).toEqual({});
+    expect(prisma.ballonRankingSnapshot.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('refreshes stale live snapshots without writing on frequent ranking polls', async () => {
+    const { matches, prisma, read } = setup();
+    matches.push(fixture(3, 2, 0));
+    prisma.ballonRankingSnapshot.findUnique.mockResolvedValue({
+      capturedAt: new Date(Date.now() - 120_000),
+    });
+    await read();
+    expect(prisma.ballonRankingSnapshot.upsert).not.toHaveBeenCalled();
+    expect(prisma.ballonRankingSnapshot.updateMany).toHaveBeenCalledTimes(1);
+    const refreshed = prisma.ballonRankingSnapshot.updateMany.mock.calls[0][0];
+    expect(refreshed.data.rows).toHaveLength(2);
+    expect(refreshed.where.seasonId).toBe('season');
+    expect(refreshed.where.day.toISOString().endsWith('T00:00:00.000Z')).toBe(true);
+    expect(refreshed.where.capturedAt.lte).toBeInstanceOf(Date);
+    prisma.ballonRankingSnapshot.updateMany.mockClear();
+    prisma.ballonRankingSnapshot.findUnique.mockResolvedValue({
+      capturedAt: new Date(),
+    });
+    await read();
+    expect(prisma.ballonRankingSnapshot.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('never updates the daily snapshot after a season is locked', async () => {
+    const { season, matches, prisma, read } = setup();
+    matches.push(fixture(3, 2, 0));
+    season.status = 'LOCKED';
+    await read();
+    expect(prisma.ballonRankingSnapshot.findUnique).not.toHaveBeenCalled();
+    expect(prisma.ballonRankingSnapshot.upsert).not.toHaveBeenCalled();
+    expect(prisma.ballonRankingSnapshot.updateMany).not.toHaveBeenCalled();
   });
 
 });

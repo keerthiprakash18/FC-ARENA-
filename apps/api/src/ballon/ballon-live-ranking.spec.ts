@@ -124,6 +124,104 @@ describe('Ballon live ranking calculation', () => {
     expect(after.rows.filter((row: any) => !row.eligible).every((row: any) => row.position === 0)).toBe(true);
   });
 
+  it('credits verified Duo player goals while preserving pair match outcomes', async () => {
+    const { season, matches, prisma, read } = setup();
+    season.minimumMatches = 3;
+    season.maximumMatches = 5;
+    prisma.tournament.findMany.mockResolvedValue([{
+      id: 'cup',
+      mode: 'DUO',
+      duoAggregateEnabled: true,
+      duoGamesPerFixture: 2,
+      competitionFormat: 'CUSTOM_MANUAL',
+      legType: 'SINGLE_LEG',
+    }]);
+    const member = (id: string) => ({ userId: id, user: { id, fullName: id, player: null } });
+    const duoFixture = (sequence: number, homeA: number, awayX: number, homeB: number, awayY: number) => {
+      const match = fixture(sequence, homeA + homeB, awayX + awayY);
+      match.fixture.homeRegistration.members.push(member('home-B'));
+      match.fixture.awayRegistration.members.push(member('away-Y'));
+      Object.assign(match.confirmedResult, {
+        duoGames: [
+          { homePlayerId: 'home-player', awayPlayerId: 'away-player', homeGoals: homeA, awayGoals: awayX },
+          { homePlayerId: 'home-B', awayPlayerId: 'away-Y', homeGoals: homeB, awayGoals: awayY },
+        ],
+      });
+      return match;
+    };
+    matches.splice(0, matches.length,
+      duoFixture(1, 1, 0, 4, 2),
+      duoFixture(2, 2, 1, 0, 3),
+      duoFixture(3, 3, 0, 1, 1),
+    );
+    const response = await read();
+    const byId = (id: string) => response.rows.find((row: any) => row.userId === id);
+    expect(byId('home-player')).toMatchObject({
+      eligible: true, matches: 3, wins: 2, losses: 1,
+      goalsFor: 6, goalsAgainst: 1, cleanSheets: 2,
+    });
+    expect(byId('home-B')).toMatchObject({
+      eligible: true, matches: 3, wins: 2, losses: 1,
+      goalsFor: 5, goalsAgainst: 6, cleanSheets: 0,
+    });
+    expect(byId('away-player')).toMatchObject({
+      matches: 3, goalsFor: 1, goalsAgainst: 6,
+    });
+  });
+
+  it('counts four cross-play games as one Duo fixture with player-specific totals', async () => {
+    const { matches, prisma, read } = setup();
+    prisma.tournament.findMany.mockResolvedValue([{
+      id: 'cup',
+      mode: 'DUO',
+      duoAggregateEnabled: true,
+      duoGamesPerFixture: 4,
+      competitionFormat: 'CUSTOM_MANUAL',
+      legType: 'SINGLE_LEG',
+    }]);
+    const member = (id: string) => ({ userId: id, user: { id, fullName: id, player: null } });
+    const match = fixture(1, 6, 2);
+    match.fixture.homeRegistration.members.push(member('home-B'));
+    match.fixture.awayRegistration.members.push(member('away-Y'));
+    Object.assign(match.confirmedResult, {
+      duoGames: [
+        { homePlayerId: 'home-player', awayPlayerId: 'away-player', homeGoals: 1, awayGoals: 0 },
+        { homePlayerId: 'home-player', awayPlayerId: 'away-Y', homeGoals: 2, awayGoals: 1 },
+        { homePlayerId: 'home-B', awayPlayerId: 'away-player', homeGoals: 3, awayGoals: 0 },
+        { homePlayerId: 'home-B', awayPlayerId: 'away-Y', homeGoals: 0, awayGoals: 1 },
+      ],
+    });
+    matches.splice(0, matches.length, match);
+    const response = await read();
+    const byId = (id: string) => response.rows.find((row: any) => row.userId === id);
+    expect(byId('home-player')).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 1, wins: 1 });
+    expect(byId('home-B')).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 1, wins: 1 });
+    expect(byId('away-Y')).toMatchObject({ matches: 1, goalsFor: 2, goalsAgainst: 2, losses: 1 });
+  });
+
+  it('does not award invented personal goals from inconsistent stored Duo aggregates', async () => {
+    const { matches, prisma, read } = setup();
+    prisma.tournament.findMany.mockResolvedValue([{
+      id: 'cup',
+      mode: 'DUO',
+      duoAggregateEnabled: true,
+      duoGamesPerFixture: 2,
+      competitionFormat: 'CUSTOM_MANUAL',
+      legType: 'SINGLE_LEG',
+    }]);
+    const member = (id: string) => ({ userId: id, user: { id, fullName: id, player: null } });
+    const match = fixture(1, 20, 0);
+    match.fixture.homeRegistration.members.push(member('home-B'));
+    match.fixture.awayRegistration.members.push(member('away-Y'));
+    Object.assign(match.confirmedResult, {
+      duoGames: [
+        { homePlayerId: 'home-player', awayPlayerId: 'away-player', homeGoals: 1, awayGoals: 0 },
+        { homePlayerId: 'home-B', awayPlayerId: 'away-Y', homeGoals: 1, awayGoals: 0 },
+      ],
+    });
+    matches.splice(0, matches.length, match);
+    expect((await read()).rows).toHaveLength(0);
+  });
   it('creates one current-day snapshot when none exists and preserves all historical days', async () => {
     const { season, matches, prisma, read } = setup();
     season.maximumMatches = 3; // All three confirmed games must count to qualify.

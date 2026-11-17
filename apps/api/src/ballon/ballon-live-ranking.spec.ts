@@ -125,7 +125,8 @@ describe('Ballon live ranking calculation', () => {
   });
 
   it('creates one current-day snapshot when none exists and preserves all historical days', async () => {
-    const { matches, prisma, read } = setup();
+    const { season, matches, prisma, read } = setup();
+    season.maximumMatches = 3; // All three confirmed games must count to qualify.
     matches.push(fixture(3, 2, 0));
     await read();
     expect(prisma.ballonRankingSnapshot.upsert).toHaveBeenCalledTimes(1);
@@ -137,7 +138,8 @@ describe('Ballon live ranking calculation', () => {
   });
 
   it('refreshes stale live snapshots without writing on frequent ranking polls', async () => {
-    const { matches, prisma, read } = setup();
+    const { season, matches, prisma, read } = setup();
+    season.maximumMatches = 3; // All three confirmed games must count to qualify.
     matches.push(fixture(3, 2, 0));
     prisma.ballonRankingSnapshot.findUnique.mockResolvedValue({
       capturedAt: new Date(Date.now() - 120_000),

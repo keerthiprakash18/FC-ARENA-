@@ -2952,53 +2952,56 @@ export class BallonService {
     season: any,
     rows: any[],
   ) {
-    if (
-      season.status !==
-      'LIVE'
-    ) {
+    if (season.status !== 'LIVE') return;
+
+    const now = new Date();
+    const day = new Date(now);
+    day.setUTCHours(0, 0, 0, 0);
+
+    const latestRows = rows
+      .filter((row) => row.eligible)
+      .slice(0, season.rankingLimit)
+      .map((row) => ({
+        userId: row.userId,
+        position: row.position,
+        rating: row.rating,
+      }));
+
+    // A once-per-day insert would freeze the very first live reading.
+    // Keep today's snapshot reasonably fresh without writing on every
+    // viewer's 10-second poll. Older calendar days are never altered.
+    const key = { seasonId: season.id, day };
+    const existing = await this.prisma.ballonRankingSnapshot.findUnique({
+      where: { seasonId_day: key },
+      select: { capturedAt: true },
+    });
+    if (!existing) {
+      // The empty conflict update makes concurrent first reads safe.
+      await this.prisma.ballonRankingSnapshot.upsert({
+        where: { seasonId_day: key },
+        create: {
+          ...key,
+          rows: latestRows,
+        },
+        update: {},
+      });
       return;
     }
 
-    const day =
-      new Date();
+    const refreshBefore = new Date(now.getTime() - 60_000);
+    if (existing.capturedAt > refreshBefore) return;
 
-    day.setUTCHours(
-      0,
-      0,
-      0,
-      0,
-    );
-
-    await this.prisma.ballonRankingSnapshot.upsert({
+    // Concurrent readers may all see a stale snapshot. The conditional
+    // update lets only one reader refresh that UTC day per minute.
+    await this.prisma.ballonRankingSnapshot.updateMany({
       where: {
-        seasonId_day: {
-          seasonId:
-            season.id,
-          day,
-        },
+        ...key,
+        capturedAt: { lte: refreshBefore },
       },
-
-      create: {
-        seasonId:
-          season.id,
-        day,
-        rows:
-          rows
-            .filter((row) => row.eligible)
-            .slice(0, season.rankingLimit)
-            .map(
-              (row) => ({
-                userId:
-                  row.userId,
-                position:
-                  row.position,
-                rating:
-                  row.rating,
-              }),
-            ),
+      data: {
+        rows: latestRows,
+        capturedAt: now,
       },
-
-      update: {},
     });
   }
 

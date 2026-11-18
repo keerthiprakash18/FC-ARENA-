@@ -73,11 +73,12 @@ test('league-only fixtures use table terminology without a misleading group filt
   assert.match(fixturePage, /isLeagueTable \? 'League matchdays' : 'Competition Group'/);
 });
 
-test('single-table tournament overview does not mislabel a league as zero groups or show knockout bracket link', () => {
-  assert.match(tournamentOverview, /const isSingleTable = !supportError && isSingleTableDisplay\(/);
-  assert.match(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
-  assert.match(tournamentOverview, /hasKnockoutStage \? \[\[/);
-  assert.match(tournamentOverview, /isSingleTable \? "League Teams" : "Groups"/);
+test('tournament overview puts format and match progress above optional management tools', () => {
+  assert.match(tournamentOverview, /<TournamentFormatOverview/);
+  assert.match(tournamentOverview, /Competition tools · Poster, registration, team management/);
+  assert.match(tournamentOverview, /label="Completed Fixtures"/);
+  assert.doesNotMatch(tournamentOverview, /aria-label="Competition destinations"/);
+  assert.doesNotMatch(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
 });
 
 test('legacy 20-team round-robin with zero actual groups is one table even when groupMode is MULTIPLE_GROUPS', () => {

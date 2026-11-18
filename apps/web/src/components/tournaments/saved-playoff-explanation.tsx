@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PlayoffFlowDiagram } from './playoff-flow-diagram';
 import { describeSavedPlayoffs, type PlayoffGuideInput } from '@/lib/saved-playoff-explainer';
 
 export function SavedPlayoffExplanation({
@@ -26,41 +27,10 @@ export function SavedPlayoffExplanation({
           {bracketFixtures ? 'Bracket published' : stageIncomplete || !stageTotal ? 'League / group stage in progress' : 'Stage finished · bracket not yet published'}
         </span>
       </div>
-      <ol className="grid gap-3 md:grid-cols-3">
-        <li className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
-          <span className="text-xs font-bold text-sky-300">01 · QUALIFY</span>
-          <p className="mt-2 text-sm leading-6">{guide.qualifierRule}</p>
-          <p className="mt-2 text-xs leading-5 text-slate-400">{guide.selection}</p>
-        </li>
-        <li className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
-          <span className="text-xs font-bold text-sky-300">02 · PLAYOFF RULE</span>
-          <p className="mt-2 text-sm leading-6">{guide.mechanism}</p>
-        </li>
-        <li className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
-          <span className="text-xs font-bold text-sky-300">03 · THE CHAMPION</span>
-          <p className="mt-2 text-sm leading-6">{guide.winnerRule}</p>
-        </li>
-      </ol>
-      {guide.rounds.length > 0 ? (
-        <div>
-          <h3 className="text-sm font-bold">Route to the trophy — format example</h3>
-          <ol className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
-            {guide.rounds.map((round, index) => (
-              <li key={round} className="flex items-center gap-2">
-                {index > 0 ? <span aria-hidden="true" className="text-amber-300">→</span> : null}
-                <span className="rounded-lg border border-white/10 px-3 py-2">{round}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
-      {guide.openingExample ? (
-        <p className="rounded-lg border border-sky-300/20 bg-sky-300/[0.04] p-3 text-sm">
-          <strong>Seeding example:</strong> {guide.openingExample}
-          {guide.knockoutFixtureCount !== null ? ` This is ${guide.knockoutFixtureCount} total knockout fixtures with no byes for a complete seeded draw.` : ''}
-          <span className="mt-1 block text-xs text-slate-400">Teams shown as #numbers are final league seeds, not currently confirmed teams.</span>
-        </p>
-      ) : null}
+      <PlayoffFlowDiagram guide={guide} tournament={tournament} />
+      <p className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.04] p-3 text-sm font-semibold text-emerald-300">
+        🏆 {guide.winnerRule}
+      </p>
       {guide.isLeaguePlayoffs ? (
         <p className="text-sm font-semibold text-emerald-300">
           League progress: {stageTotal - stageIncomplete}/{stageTotal} stage fixtures completed.

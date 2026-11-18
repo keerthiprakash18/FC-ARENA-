@@ -76,6 +76,24 @@ describe('Verified player experience policy', () => {
       summarizeExperience(weeks.slice(1), 0, false, 'CLASSIC', now).streak,
     ).toBe(0);
   });
+  it('unlocks immutable verified-match milestones without separate claims', () => {
+    const first = summarizeExperience(
+      [{ week: '2026-11-02', matches: 10, days: 2, teamMatches: 0 }],
+      0, false, 'CLASSIC', now,
+    );
+    expect(first.milestones.find(m => m.id === 'MATCHDAY_REGULAR')).toMatchObject({
+      progress: 10, unlocked: true,
+    });
+    expect(first.milestones.find(m => m.id === 'ARENA_VETERAN')?.unlocked).toBe(false);
+    const reversed = summarizeExperience(
+      [{ week: '2026-11-02', matches: 3, days: 1, teamMatches: 0 }],
+      0, false, 'CLASSIC', now,
+    );
+    expect(reversed.milestones.find(m => m.id === 'MATCHDAY_REGULAR')).toMatchObject({
+      progress: 3, unlocked: false,
+    });
+  });
+
   it('shows a squad mission only to players with relevant team activity', () => {
     const week = { week: '2026-11-02', matches: 0, days: 0, teamMatches: 0 };
     expect(missionsForWeek(week, false)).toHaveLength(3);

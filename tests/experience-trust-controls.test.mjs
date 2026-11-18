@@ -33,3 +33,27 @@ test('Phone push quiet hours are explicit, opt-in and distinguish inbox from pus
   assert.match(push, /isQuietHoursActive\(quietHours, new Date\(\)\)/);
   assert.match(push, /if \(!urgent && isQuietHoursActive/);
 });
+
+test('verified XP mission and milestone views are automatic and reversible', () => {
+  const policy = source('apps/api/src/experience/experience-policy.ts');
+  const page = source('apps/web/src/components/experience/player-journey.tsx');
+  assert.match(policy, /PLAYER_MILESTONES/);
+  assert.match(policy, /milestones: PLAYER_MILESTONES\.map/);
+  assert.match(page, /Matchday Milestones/);
+  assert.match(page, /unique confirmed matches/);
+  assert.match(page, /Bonuses are applied automatically after results are verified/);
+});
+test('official team honours are scoped and archived, never copied into individual player awards', () => {
+  const api = source('apps/api/src/achievements/achievements.service.ts');
+  const summary = source('apps/web/src/app/tournaments/[tournamentId]/summary/page.tsx');
+  assert.match(api, /calculateTeamHonours\(completedMatches/);
+  assert.match(api, /teamHonours: officialTeamHonours/);
+  assert.match(summary, /Official DUO \/ TEAM Trophy Archive/);
+  assert.match(summary, /summary\.teamHonours/);
+});
+test('production retention audit is explicitly read only', () => {
+  const script = source('ops/vcl-release-retention-audit.sh');
+  assert.match(script, /RELEASE_RETENTION_AUDIT=PASS READ_ONLY/);
+  assert.match(script, /fcarena-prod/);
+  assert.doesNotMatch(script, /\brm\s+-rf\b|\brmdir\s|\bfind\b[^\n]+-delete\b/);
+});

@@ -9,6 +9,8 @@ export interface OverviewFormatInfo {
   playoffQualifiersTotal?: number | null;
   qualifiersPerGroup?: number | null;
   playoffFormat?: string | null;
+  canManageSettings?: boolean;
+  canManageFixtures?: boolean;
 }
 
 const playoffNames: Record<string, string> = {
@@ -80,9 +82,16 @@ export function TournamentFormatOverview({
         <h2 className="mt-2 text-xl font-black">{playoff}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{playoffDescription}</p>
         {knockout && (
-          <Link href={`/tournaments/${tournamentId}/playoffs`} className="mt-3 inline-flex min-h-9 items-center text-sm font-black text-amber-400 underline underline-offset-4">
-            See How This Playoff Works →
-          </Link>
+          <div className="mt-3 flex flex-wrap items-center gap-4">
+            <Link href={`/tournaments/${tournamentId}/playoffs`} className="inline-flex min-h-9 items-center text-sm font-black text-amber-400 underline underline-offset-4">
+              See How This Playoff Works →
+            </Link>
+            {leagueStage && tournament.canManageSettings && tournament.canManageFixtures ? (
+              <Link href={`/tournaments/${tournamentId}/playoffs`} className="theme-secondary-button inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-bold">
+                ⚙️ Customize Playoffs →
+              </Link>
+            ) : null}
+          </div>
         )}
       </div>
     </section>

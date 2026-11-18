@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
 import { FcCrest, FcEmptyState, FcPanel } from '@/components/fc/fc-ui';
 import { authenticatedRequest } from '@/lib/auth-client';
+import { useArenaLocale } from '@/lib/locale';
 
 interface Club {
   id: string;
@@ -17,6 +18,7 @@ interface Club {
 }
 
 export default function ClubsPage() {
+  const { t } = useArenaLocale();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -71,7 +73,7 @@ export default function ClubsPage() {
     } finally { setBusy(false); }
   }
 
-  return <SecondaryFeaturePage title="FC ARENA Clubs" eyebrow="Permanent club identity"
+  return <SecondaryFeaturePage title={t('clubs')} eyebrow="Permanent club identity"
     subtitle="Build a persistent roster and link verified DUO or TEAM tournament entries. Club stats never infer results from matching names."
     backHref="/community/teams" backLabel="Tournament Teams">
     {error ? <p role="alert" className="rounded-xl border border-[var(--theme-danger)] p-3 text-sm text-[var(--theme-danger)]">{error}</p> : null}
@@ -84,7 +86,7 @@ export default function ClubsPage() {
     </section> : null}
     <div className="grid gap-4 xl:grid-cols-2">
       <FcPanel className="p-5">
-        <h2 className="text-xl font-bold">Create a club</h2>
+        <h2 className="text-xl font-bold">{t('createClub')}</h2>
         <p className="theme-secondary-text mt-1 text-sm">Be the captain. Members join with a private invitation.</p>
         <form className="mt-4 grid gap-3" onSubmit={event => void create(event)}>
           <label className="grid gap-1 text-sm font-semibold">Club name
@@ -95,11 +97,11 @@ export default function ClubsPage() {
             <textarea maxLength={400} value={description} onChange={e => setDescription(e.target.value)}
               className="theme-input min-h-24 rounded-xl border p-3" placeholder="What is your club about?" />
           </label>
-          <button disabled={busy} className="theme-primary-button min-h-11 rounded-xl px-4 font-bold disabled:opacity-50">Create Club</button>
+          <button disabled={busy} className="theme-primary-button min-h-11 rounded-xl px-4 font-bold disabled:opacity-50">{t('createClub')}</button>
         </form>
       </FcPanel>
       <FcPanel className="p-5">
-        <h2 className="text-xl font-bold">Join a club</h2>
+        <h2 className="text-xl font-bold">{t('joinClub')}</h2>
         <p className="theme-secondary-text mt-1 text-sm">Ask your captain for a private 24-character invite code.</p>
         <form className="mt-4 grid gap-3" onSubmit={event => void join(event)}>
           <label className="grid gap-1 text-sm font-semibold">Invitation code
@@ -107,12 +109,12 @@ export default function ClubsPage() {
               autoCapitalize="off" autoComplete="off" spellCheck={false}
               className="theme-input min-h-11 rounded-xl border px-3 font-mono" placeholder="24-character private code" />
           </label>
-          <button disabled={busy} className="theme-secondary-button min-h-11 rounded-xl border px-4 font-bold disabled:opacity-50">Join Club</button>
+          <button disabled={busy} className="theme-secondary-button min-h-11 rounded-xl border px-4 font-bold disabled:opacity-50">{t('joinClub')}</button>
         </form>
       </FcPanel>
     </div>
     <section aria-label="Arena clubs" className="space-y-3">
-      <h2 className="text-xl font-bold">Permanent Clubs</h2>
+      <h2 className="text-xl font-bold">{t('permanentClubs')}</h2>
       {loading ? <p role="status" className="theme-muted">Loading clubs…</p> :
         !clubs.length ? <FcEmptyState title="No clubs yet" description="Create the first persistent FC ARENA club." /> :
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

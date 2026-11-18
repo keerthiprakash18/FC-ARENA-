@@ -11,6 +11,7 @@ export interface PlayerExperience {
   streak: number;
   verifiedMatches: number;
   completedTournaments: number;
+  milestones: Array<{ id: string; title: string; detail: string; verifiedMatches: number; progress: number; unlocked: boolean }>;
   frames: { id: string; name: string; level: number; unlocked: boolean }[];
   breakdown: { matchXp: number; tournamentXp: number; missionXp: number };
   week: {

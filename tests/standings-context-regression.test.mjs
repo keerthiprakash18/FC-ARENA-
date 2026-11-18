@@ -3,6 +3,7 @@ import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
+import { isRoundRobinLeague, hasKnockoutStage, isSingleTableDisplay, showReadOnlyGroupRoster } from '../apps/web/src/lib/tournament-ui-context.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const page = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/standings/page.tsx'), 'utf8');
@@ -33,6 +34,7 @@ const groups = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[to
 const tournamentOverview = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/page.tsx'), 'utf8');
 const fixturePage = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/fixtures/page.tsx'), 'utf8');
 const awards = fs.readFileSync(path.join(root, 'apps/web/src/app/awards/page.tsx'), 'utf8');
+const nav = fs.readFileSync(path.join(root, 'apps/web/src/components/tournaments/tournament-navigation.tsx'), 'utf8');
 
 test('round-robin league does not offer a false playoff generation action', () => {
   assert.match(playoffs, /function includesPlayoffStage\(competitionFormat: string\)/);
@@ -50,7 +52,7 @@ test('single-table tournaments do not report a false group balancing problem', (
   assert.match(groups, /Single-table competition/);
   assert.match(groups, /Separate groups and group balancing are not configured/);
   assert.match(groups, /View official standings/);
-  assert.match(groups, /if \(editor\.tournament\.groupMode !== 'MULTIPLE_GROUPS'\)/);
+  assert.match(groups, /const showReadOnlyRoster = showReadOnlyGroupRoster\(/);
   assert.match(groups, /title="Single-table competition"/);
   assert.match(groups, /This is a read-only roster/);
   assert.match(groups, /No separate groups in this competition/);
@@ -64,7 +66,7 @@ test('unqualified Ballon contenders are never displayed as rank zero', () => {
 });
 
 test('league-only fixtures use table terminology without a misleading group filter', () => {
-  assert.match(fixturePage, /const isLeagueTable =/);
+  assert.match(fixturePage, /const isLeagueTable = isRoundRobinLeague\(tournament\?\.competitionFormat\)/);
   assert.match(fixturePage, /\{!isLeagueTable \? <>/);
   assert.match(fixturePage, /isLeagueTable \? 'Format' : 'Groups'/);
   assert.match(fixturePage, /isLeagueTable \? 'League' : \(groups\.length \|\| 1\)/);
@@ -72,8 +74,27 @@ test('league-only fixtures use table terminology without a misleading group filt
 });
 
 test('single-table tournament overview does not mislabel a league as zero groups or show knockout bracket link', () => {
-  assert.match(tournamentOverview, /const isSingleTable = tournament\.groupMode !== 'MULTIPLE_GROUPS'/);
+  assert.match(tournamentOverview, /const isSingleTable = !supportError && isSingleTableDisplay\(/);
   assert.match(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
   assert.match(tournamentOverview, /hasKnockoutStage \? \[\[/);
   assert.match(tournamentOverview, /isSingleTable \? "League Teams" : "Groups"/);
+});
+
+test('legacy 20-team round-robin with zero actual groups is one table even when groupMode is MULTIPLE_GROUPS', () => {
+  assert.equal(isRoundRobinLeague('LEAGUE_ROUND_ROBIN'), true);
+  assert.equal(isSingleTableDisplay('LEAGUE_ROUND_ROBIN', 'MULTIPLE_GROUPS', 0), true);
+  assert.equal(showReadOnlyGroupRoster('MULTIPLE_GROUPS', 0, false), true);
+  assert.equal(hasKnockoutStage('LEAGUE_ROUND_ROBIN'), false);
+
+  // A genuinely configured 7-group stage must retain its editor and filters.
+  assert.equal(isSingleTableDisplay('LEAGUE_ROUND_ROBIN', 'MULTIPLE_GROUPS', 7), false);
+  assert.equal(showReadOnlyGroupRoster('MULTIPLE_GROUPS', 7, true), false);
+  assert.equal(hasKnockoutStage('GROUP_STAGE_KNOCKOUT'), true);
+  assert.equal(showReadOnlyGroupRoster('MULTIPLE_GROUPS', 0, true), false);
+});
+
+test('competition tabs use actual group count rather than a legacy MULTIPLE_GROUPS flag', () => {
+  assert.match(nav, /isRoundRobinLeague\(current\.competitionFormat\) && current\.groupCount === 0/);
+  assert.match(nav, /label !== 'Groups' \|\| !isLeagueWithoutGroups/);
+  assert.match(nav, /label !== 'Bracket' \|\| hasKnockoutStage/);
 });

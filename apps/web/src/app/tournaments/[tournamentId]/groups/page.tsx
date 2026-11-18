@@ -13,6 +13,7 @@ import { ApiError } from '@/lib/api';
 import { authenticatedRequest, getCurrentUser, type CurrentUser } from '@/lib/auth-client';
 import { balanceGroupMembership, createGroupId, groupDraftKey, groupDraftProblem, type GroupChangePreview, type GroupDraft, type GroupEditInput, type GroupEditorEntry, type GroupEditorState } from '@/lib/group-editor';
 import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+import { showReadOnlyGroupRoster } from '@/lib/tournament-ui-context';
 
 type RecordState = { scope: string; editor: GroupEditorState; draft: GroupDraft };
 const toDraft = (editor: GroupEditorState): GroupDraft => ({ groups: editor.groups.map(group => ({ id: group.id, name: group.name, registrationIds: group.entries.map(entry => entry.id) })), unassignedIds: editor.unassigned.map(entry => entry.id) });
@@ -137,7 +138,13 @@ export default function TournamentGroupsPage() {
   if (!user || !current || !editor) return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading tournament groups…" embedded /></AppShell>;
   // A one-table round robin has no configurable groups. Keep the roster visible,
   // but never expose group balancing, group draft actions or fresh-draw controls.
-  if (editor.tournament.groupMode !== 'MULTIPLE_GROUPS') {
+  // The live league has a legacy MULTIPLE_GROUPS value with zero configured
+  // groups, while the server explicitly disallows changing group membership.
+  // A 0-group competition is not an unbalanced draw.
+  const showReadOnlyRoster = showReadOnlyGroupRoster(
+    editor.tournament.groupMode, editor.groups.length, editor.canChangeMembership,
+  );
+  if (showReadOnlyRoster) {
     return <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
       <div className="space-y-5">
         <BackHeader backHref={`/tournaments/${tournamentId}`} backLabel="Tournament Overview"
@@ -150,7 +157,7 @@ export default function TournamentGroupsPage() {
         <FcPanel className="p-4 sm:p-5">
           <h2 className="text-lg font-black">No separate groups in this competition</h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            {entries.length} approved teams compete in one overall league table.
+            {entries.length} approved teams appear in one competition roster.
             Existing fixtures, verified results and tournament progression remain unchanged.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">

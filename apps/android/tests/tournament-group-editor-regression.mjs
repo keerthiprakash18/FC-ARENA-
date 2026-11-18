@@ -22,6 +22,9 @@ try {
     const original = structuredClone(state), plans = [], saved = [];
     const f = await createUiContext(browser, { width, native: width < 700, direct: true, mode, overrides: {
       '/api/tournaments/phase3': { tournament: { ...tournament, ...state.tournament, isLeagueAdmin: true, canManageAdmins: false } },
+       '/api/tournaments/phase3/groups': (r, h) => ok(r, h, { groups: state.groups.map(({ id, name, position }) => ({ id, name, position })) }),
+       '/api/tournaments/fresh': { tournament: { ...tournament, ...state.tournament, id: 'fresh', isLeagueAdmin: true, canManageAdmins: false } },
+       '/api/tournaments/fresh/groups': (r, h) => ok(r, h, { groups: state.groups.map(({ id, name, position }) => ({ id, name, position })) }),
       '/api/tournaments/phase3/registrations': { registrations: [] },
       '/api/tournaments/phase3/groups/editor': (r, h) => ok(r, h, { editor: state }),
       '/api/tournaments/fresh/groups/editor': (r, h) => ok(r, h, { editor: { ...state, tournament: { ...state.tournament, id: 'fresh', hasFixtures: false } } }),
@@ -95,5 +98,33 @@ try {
       throw error;
     } finally { await f.context.close(); }
   }
+
+  // Reproduce the actual recorded issue: legacy MULTIPLE_GROUPS metadata,
+  // 20 Duo entries, zero real groups and an API policy that forbids balancing.
+  const legacy = {
+    revision: 'd'.repeat(64),
+    tournament: { id: 'legacy-league', name: 'ISL + I-League', code: 'FCA-T-LEGACY', leagueId: 'phase3', status: 'ACTIVE', groupMode: 'MULTIPLE_GROUPS', legType: 'SINGLE_LEG', maxEntries: 20, hasFixtures: true },
+    canManage: true, canChangeMembership: false,
+    membershipReason: 'Enable a multiple-group round-robin stage in Tournament Setup to arrange groups.',
+    protectedEntryIds: [], groups: [],
+    unassigned: Array.from({ length: 20 }, (_, i) => ({ id: `duo-${i + 1}`, name: `Duo Team ${i + 1}`, logoUrl: null, members: [] })),
+  };
+  const legacyContext = await createUiContext(browser, { width: 390, native: true, direct: true, mode: 'LIGHT', overrides: {
+    '/api/tournaments/legacy-league': { tournament: { ...tournament, ...legacy.tournament, competitionFormat: 'LEAGUE_ROUND_ROBIN', isLeagueAdmin: true, canManageAdmins: false } },
+    '/api/tournaments/legacy-league/groups': { groups: [] },
+    '/api/tournaments/legacy-league/groups/editor': { editor: legacy },
+  } });
+  try {
+    await legacyContext.page.goto(origin + '/tournaments/legacy-league/groups');
+    await legacyContext.page.getByRole('heading', { name: 'Single-table competition', exact: true }).waitFor();
+    assert.equal(await legacyContext.page.getByText('Needs balancing', { exact: true }).count(), 0);
+    assert.equal(await legacyContext.page.getByRole('button', { name: 'Auto-balance groups' }).count(), 0);
+    assert.equal(await legacyContext.page.getByText('Approved teams · 20').count(), 1);
+    await legacyContext.page.getByRole('link', { name: 'View official standings' }).waitFor();
+    await legacyContext.page.waitForTimeout(300);
+    assert.equal(await legacyContext.page.getByRole('link', { name: 'Bracket', exact: true }).count(), 0);
+    assert.deepEqual(legacyContext.errors, []);
+    console.log('PASS legacy 20-team league with 0 groups: read-only roster, no false balancing or bracket');
+  } finally { await legacyContext.context.close(); }
 } finally { await browser.close(); }
 console.log(`${passed} tournament editor viewport/theme scenarios passed.`);

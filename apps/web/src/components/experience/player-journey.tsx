@@ -358,6 +358,25 @@ export function PlayerJourney({
               ))}
             </div>
           </section>
+          <section className="community-panel" aria-label="Verified player milestones">
+            <span className="community-eyebrow">VERIFIED JOURNEY</span>
+            <h3>Matchday Milestones</h3>
+            <p className="community-muted">Earned automatically from unique confirmed matches. Reversed results also update your badges.</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {data.milestones.map(milestone => (
+                <article key={milestone.id} className={`rounded-xl border p-3 ${milestone.unlocked
+                  ? 'border-amber-400/25 bg-amber-400/[0.05]' : 'border-white/10'}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <strong className="text-sm">{milestone.unlocked ? '🏅 ' : '○ '}{milestone.title}</strong>
+                    <span className="text-xs font-bold">{milestone.progress}/{milestone.verifiedMatches}</span>
+                  </div>
+                  <p className="community-muted mt-1 text-xs">{milestone.detail}</p>
+                  <progress className="mt-2 h-2 w-full" aria-label={`${milestone.title} progress`}
+                    value={milestone.progress} max={milestone.verifiedMatches} />
+                </article>
+              ))}
+            </div>
+          </section>
           <section className="community-panel">
             <span className="community-eyebrow">EVERY POINT HAS A PURPOSE</span>
             <h3>How your XP adds up</h3>

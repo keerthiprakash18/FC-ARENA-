@@ -51,3 +51,30 @@ export function assertCompleteWarFixtures(
     } });
   }
 }
+
+/**
+ * A read-only readiness snapshot, shared by the admin UI and the final
+ * authoritative completion guard. Never trust only "COMPLETED" match status:
+ * disputed or unconfirmed results must not unlock the trophy.
+ */
+export function leagueWarCompletionReadiness(
+  war: { playerCount: number; legType: string; homeLeagueId: string; awayLeagueId: string },
+  roster: Array<{ leagueId: string; userId: string }>,
+  matches: WarMatch[],
+) {
+  const required = war.playerCount * (war.legType === 'HOME_AWAY' ? 2 : 1);
+  const verified = matches.filter(match =>
+    match.status === 'COMPLETED' &&
+    ['CONFIRMED', 'WALKOVER_CONFIRMED'].includes(match.resultStatus) &&
+    match.homeScore != null && match.awayScore != null,
+  ).length;
+  const disputes = matches.filter(match => match.resultStatus === 'DISPUTED').length;
+  let canComplete = false;
+  try {
+    assertCompleteWarFixtures(war, roster, matches);
+    canComplete = true;
+  } catch (error) {
+    if (!(error instanceof ConflictException)) throw error;
+  }
+  return { required, verified, remaining: Math.max(0, required - verified), disputes, canComplete };
+}

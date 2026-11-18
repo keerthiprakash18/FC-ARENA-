@@ -39,3 +39,20 @@ test('League War status filters retain the original supported states', () => {
   }
   assert.match(warPage, /setFilter\(/);
 });
+
+test('League War final whistle is tied to verified readiness, not just completed statuses', () => {
+  const details = fs.readFileSync(path.join(root, 'apps/web/src/app/league-war/[warId]/page.tsx'), 'utf8');
+  const service = fs.readFileSync(path.join(root, 'apps/api/src/league-wars/league-wars.service.ts'), 'utf8');
+  assert.match(details, /completionReadiness/);
+  assert.match(details, /war\.permissions\.canComplete/);
+  assert.match(service, /completionReadiness\.canComplete/);
+  assert.match(service, /war\.status === 'ACCEPTED'/);
+});
+
+test('Admin result queue defaults to pending; advanced filters are collapsible without removing actions', () => {
+  const page = fs.readFileSync(path.join(root, 'apps/web/src/app/admin/results/page.tsx'), 'utf8');
+  assert.match(page, /useState\("PENDING_VERIFICATION"\)/);
+  assert.match(page, /Review filters/);
+  assert.match(page, /<details className="theme-panel/);
+  assert.match(page, /Verify result/);
+});

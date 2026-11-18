@@ -87,9 +87,13 @@ test('admin queue reset restores the default authorized pending review filters',
   try {
     await page.goto(`${baseURL}/admin/results`);
     await expect(page.getByRole('heading', { name: 'All caught up' })).toBeVisible();
-    const status = page.getByRole('combobox', { name: 'Review status' });
-    const league = page.getByRole('combobox', { name: 'Review league' });
-    const tournament = page.getByRole('combobox', { name: 'Review tournament' });
+    // Filters are collapsed by default to prioritize pending result review.
+    const filterDisclosure = page.locator('details').filter({ hasText: 'Review filters' });
+    await filterDisclosure.locator('summary').click();
+    await expect(filterDisclosure).toHaveAttribute('open', '');
+    const status = page.locator('select[aria-label="Review status"]');
+    const league = page.locator('select[aria-label="Review league"]');
+    const tournament = page.locator('select[aria-label="Review tournament"]');
     await status.selectOption('CONFIRMED');
     await league.selectOption('phase3');
     await tournament.selectOption('cup-alpha');

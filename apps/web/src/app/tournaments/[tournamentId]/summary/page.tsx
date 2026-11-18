@@ -77,6 +77,12 @@ interface TournamentSummary {
     goldenGlove: AwardWinner[];
     playerOfTournament: AwardWinner[];
   };
+  teamHonours?: {
+    scope: 'TEAM';
+    source: 'CONFIRMED_FIXTURE_RESULTS';
+    goldenBoot: Array<{ entry: EntrySummary | null; goals: number; matches: number }>;
+    defensiveRecord: Array<{ entry: EntrySummary | null; cleanSheets: number; matches: number }>;
+  } | null;
   stats: {
     entries: number;
     completedMatches: number;
@@ -512,6 +518,37 @@ export default function TournamentSummaryPage() {
             </p>
           ) : null}
         </section>
+
+        {summary.teamHonours ? (
+          <section aria-label="Official team honours" className="space-y-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">Verified Team Honours</p>
+              <h2 className="mt-1 text-xl font-black">Official DUO / TEAM Trophy Archive</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-400">
+                Recorded at finalisation from confirmed team fixtures. Individual awards below use separate verified player data.
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                { id: 'team-boot', label: 'Team Golden Boot', icon: '⚽',
+                  winners: summary.teamHonours.goldenBoot.map(row => ({ entry: row.entry, value: row.goals, unit: 'verified goals' })) },
+                { id: 'team-defence', label: 'Team Defensive Record', icon: '🛡️',
+                  winners: summary.teamHonours.defensiveRecord.map(row => ({ entry: row.entry, value: row.cleanSheets, unit: 'clean sheets' })) },
+              ].map(category => (
+                <FcPanel key={category.id} className="p-4 sm:p-5">
+                  <h3 className="text-base font-black">{category.icon} {category.label}</h3>
+                  {category.winners.length ? category.winners.map(winner => (
+                    <div key={winner.entry?.registrationId ?? category.id} className="mt-3 flex items-center gap-3">
+                      <FcCrest name={winner.entry?.name ?? 'Team'} imageUrl={winner.entry?.logoUrl} size="sm" />
+                      <p className="min-w-0 text-sm"><strong className="block truncate">{winner.entry?.name ?? 'Team'}</strong>
+                        <span className="theme-muted">{winner.value} {winner.unit}</span></p>
+                    </div>
+                  )) : <p className="theme-muted mt-3 text-xs">No eligible verified winner for this award.</p>}
+                </FcPanel>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">

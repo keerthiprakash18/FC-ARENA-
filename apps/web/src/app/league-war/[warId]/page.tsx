@@ -145,6 +145,7 @@ interface WarDetail {
     home: boolean;
     away: boolean;
   };
+  completionReadiness: { required: number; verified: number; remaining: number; disputes: number; canComplete: boolean };
   permissions: {
     canManageHome: boolean;
     canManageAway: boolean;
@@ -2400,8 +2401,7 @@ export default function LeagueWarDetailPage() {
 
             {war.status ===
               'LIVE' &&
-            war.permissions
-              .canComplete ? (
+            (war.permissions.canManageHome || war.permissions.canManageAway) ? (
               <FcPanel className="mt-4 p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -2414,13 +2414,16 @@ export default function LeagueWarDetailPage() {
                     </h2>
 
                     <p className="mt-2 text-sm text-slate-500">
-                      Every result must be opponent-confirmed first. Winner: War Points → GD → Goals Scored → Wins.
+                      Verified {war.completionReadiness.verified}/{war.completionReadiness.required} matches
+                      {war.completionReadiness.disputes > 0 ? ` · ${war.completionReadiness.disputes} dispute(s) awaiting resolution` : ''}.
+                      Winner: War Points → GD → Goals Scored → Wins.
                     </p>
                   </div>
 
                   <button
                     type="button"
                     disabled={
+                      !war.permissions.canComplete ||
                       !allMatchesComplete ||
                       Boolean(
                         busy,

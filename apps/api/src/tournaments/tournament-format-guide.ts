@@ -35,6 +35,7 @@ export function describeTournamentFormat(t: FormatInput) {
   const legs = format === 'DOUBLE_ROUND_ROBIN' || t.legType === 'HOME_AWAY' ? 2 : 1;
   const source = isUcl ? 'OVERALL_STANDINGS' : t.playoffSource !== 'AUTO' ? t.playoffSource
     : isKnockout ? 'DIRECT_ENTRIES' : grouped ? 'GROUP_QUALIFIERS' : 'OVERALL_STANDINGS';
+  const leagueKnockout = format === 'GROUP_STAGE_KNOCKOUT' && groupCount === 0 && source === 'OVERALL_STANDINGS';
   let total: number | null = null, direct: number | null = null, playIn: number | null = null;
   let state: 'READY' | 'PENDING' | 'NONE' = count >= 2 ? 'READY' : 'PENDING';
   let description = 'Approve at least two entries to calculate the qualification places.';
@@ -110,7 +111,7 @@ export function describeTournamentFormat(t: FormatInput) {
   return {
     tournamentName: t.name ?? names[format] ?? 'Tournament',
     playoffFormat: isLeague || format === 'CUSTOM_MANUAL' ? null : isUcl ? 'UCL_TWO_LEG' : t.playoffFormat,
-    title: names[format] ?? 'Tournament format', competitionFormat: format, approvedEntries: count, capacity: t.maxEntries,
+    title: leagueKnockout ? 'Single-table league + playoffs' : names[format] ?? 'Tournament format', competitionFormat: format, approvedEntries: count, capacity: t.maxEntries,
     entryLabel: t.mode === 'SOLO' ? 'players' : t.mode === 'DUO' ? 'duos' : 'teams', teamSize: t.teamSize,
     mode: t.mode, groupCount, groups, stage, fixtureRule, matchesPerEntry: matches,
     qualification: { state, source: effectiveSource, total, direct, playIn, perGroup: source === 'GROUP_QUALIFIERS' ? t.qualifiersPerGroup : null,

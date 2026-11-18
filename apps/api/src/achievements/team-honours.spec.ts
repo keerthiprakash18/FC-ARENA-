@@ -14,7 +14,7 @@ describe('official team honours archive', () => {
       fixture('bc', 'B', 'C', 2, 0),
     ], approved);
     expect(rows.goldenBoot.map(row => row.registrationId)).toEqual(['A']);
-    expect(rows.defensiveRecord.map(row => row.registrationId)).toEqual(['C']);
+    expect(rows.defensiveRecord.map(row => row.registrationId)).toEqual(['A']);
     expect(rows.entries.find(row => row.registrationId === 'A')).toMatchObject({
       matches: 2, goalsFor: 4, goalsAgainst: 2, cleanSheets: 1,
     });

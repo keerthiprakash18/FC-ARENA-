@@ -73,7 +73,7 @@ function subscribe(listener: () => void) {
   return () => { window.removeEventListener(eventName, listener); window.removeEventListener('storage', listener); };
 }
 export function useArenaLocale() {
-  const locale = useSyncExternalStore(subscribe, current, () => 'en');
+  const locale = useSyncExternalStore<ArenaLocale>(subscribe, current, () => 'en');
   const changeLocale = (next: ArenaLocale) => {
     if (typeof window === 'undefined') return;
     try { localStorage.setItem(key, next); } catch {}

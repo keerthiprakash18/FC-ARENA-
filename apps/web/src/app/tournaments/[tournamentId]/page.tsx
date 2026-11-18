@@ -229,7 +229,7 @@ export default function TournamentOverviewPage() {
   const duoRegistrationOpen = tournament.mode === 'DUO' &&
     tournament.status === 'REGISTRATION_OPEN' && tournament.registrationMode !== 'ADMIN_ONLY';
   const isSingleTable = tournament.groupMode !== 'MULTIPLE_GROUPS';
-  const hasKnockoutStage = ['GROUP_STAGE_KNOCKOUT', 'SINGLE_ELIMINATION', 'ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat);
+  const hasKnockoutStage = ['GROUP_STAGE_KNOCKOUT', 'SINGLE_ELIMINATION', 'ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat ?? '');
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>

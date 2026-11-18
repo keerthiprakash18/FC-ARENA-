@@ -222,143 +222,48 @@ function StandingTable({
         logoUrl: row.entryLogoUrl,
       }))} />
       <div className="hidden overflow-x-auto sm:block" tabIndex={0} role="region" aria-label={`${title} detailed standings`}>
-        <table className="w-full min-w-[850px] text-sm">
-          <caption className="sr-only">{title} standings — played, wins, draws, losses, goals and points</caption>
-          <thead className="border-b border-white/10 bg-white/[0.025] text-xs uppercase text-slate-500">
+        <table className="w-full min-w-[650px] text-sm" aria-label={`${title} points table`}>
+          <caption className="sr-only">{title} standings — rank, entry, points, played, wins, draws, losses and goal difference</caption>
+          <thead className="border-b border-white/10 bg-white/[0.025] text-xs uppercase text-slate-400">
             <tr>
-              <th className="p-4 text-left">
-                #
-              </th>
-
-              <th className="p-4 text-left">
-                Entry
-              </th>
-
-              <th className="p-4">
-                P
-              </th>
-
-              <th className="p-4">
-                W
-              </th>
-
-              <th className="p-4">
-                D
-              </th>
-
-              <th className="p-4">
-                L
-              </th>
-
-              <th className="p-4">
-                GF
-              </th>
-
-              <th className="p-4">
-                GA
-              </th>
-
-              <th className="p-4" title="Goal difference = goals for minus goals against" aria-label="Goal difference">
-                GD
-              </th>
-
-              <th className="p-4 bg-sky-400/[0.10] text-sky-200" title="Points: win 3, draw 1, loss 0" aria-label="Points">
-                PTS
-              </th>
-
-              <th className="p-4">
-                FORM
-              </th>
+              <th scope="col" className="px-3 py-3 text-left">#</th>
+              <th scope="col" className="px-3 py-3 text-left">Team / Duo</th>
+              <th scope="col" className="bg-sky-400/[0.10] px-3 py-3 text-sky-200" title="Points: win 3, draw 1, loss 0" aria-label="Points">PTS</th>
+              <th scope="col" className="px-2 py-3" title="Played">P</th>
+              <th scope="col" className="px-2 py-3" title="Won">W</th>
+              <th scope="col" className="px-2 py-3" title="Drawn">D</th>
+              <th scope="col" className="px-2 py-3" title="Lost">L</th>
+              <th scope="col" className="px-3 py-3" title="Goal difference = goals for minus goals against" aria-label="Goal difference">GD</th>
             </tr>
           </thead>
-
           <tbody>
-            {rows.map(
-              (row) => (
-                <tr
-                  key={
-                    row.registrationId
-                  }
-                  className="border-b border-white/5 text-center last:border-0"
-                >
-                  <td className="p-4 text-left">
-                    <span
-                      title={bands.find(band => row.position >= band.from && row.position <= band.to)?.label}
-                      data-qualification={bands.find(band => row.position >= band.from && row.position <= band.to)?.tone}
-                      className={`inline-grid h-8 w-8 place-items-center rounded-xl font-black ${bands.some(band => row.position >= band.from && row.position <= band.to) ? 'fc-qualification-rank' : 'bg-white/[0.03] text-slate-500'}`}
-                    >
-                      {
-                        row.position
-                      }
+            {rows.map((row) => {
+              const band = bands.find(item => row.position >= item.from && row.position <= item.to);
+              return (
+                <tr key={row.registrationId} className="border-b border-white/5 text-center last:border-0">
+                  <td className="px-3 py-3 text-left">
+                    <span title={band?.label} data-qualification={band?.tone}
+                      className={`inline-grid h-8 w-8 place-items-center rounded-xl font-black ${band ? 'fc-qualification-rank' : 'bg-white/[0.03] text-slate-500'}`}>
+                      {row.position}
                     </span>
                   </td>
-
-                  <td className="p-4 text-left font-black"><div className="flex items-center gap-3"><FcCrest name={row.entryName} imageUrl={row.entryLogoUrl ?? undefined} size="sm" />
-                    {
-                      row.entryName
-                    }
-                  </div></td>
-
-                  <td className="p-4">
-                    {
-                      row.played
-                    }
+                  <th scope="row" className="px-3 py-3 text-left font-black">
+                    <span className="flex min-w-[150px] items-center gap-2">
+                      <FcCrest name={row.entryName} imageUrl={row.entryLogoUrl ?? undefined} size="sm" />
+                      <span className="min-w-0 truncate" title={row.entryName}>{row.entryName}</span>
+                    </span>
+                  </th>
+                  <td className="bg-sky-400/[0.08] px-3 py-3 text-xl font-black tabular-nums text-sky-200" aria-label={`${row.points} points`}>
+                    {row.points}
                   </td>
-
-                  <td className="p-4">
-                    {
-                      row.wins
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    {
-                      row.draws
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    {
-                      row.losses
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    {
-                      row.goalsFor
-                    }
-                  </td>
-
-                  <td className="p-4">
-                    {
-                      row.goalsAgainst
-                    }
-                  </td>
-
-                  <td className="p-4 font-bold">
-                    {row.goalDifference >
-                    0
-                      ? '+'
-                      : ''}
-
-                    {
-                      row.goalDifference
-                    }
-                  </td>
-
-                  <td className="p-4 bg-sky-400/[0.08] text-xl font-black tabular-nums text-sky-200" aria-label={`${row.points} points`}>
-                    {
-                      row.points
-                    }
-                  </td>
-
-                  <td className="p-4 font-black tracking-widest">
-                    {row.form ||
-                      '—'}
-                  </td>
+                  <td className="px-2 py-3 tabular-nums">{row.played}</td>
+                  <td className="px-2 py-3 tabular-nums">{row.wins}</td>
+                  <td className="px-2 py-3 tabular-nums">{row.draws}</td>
+                  <td className="px-2 py-3 tabular-nums">{row.losses}</td>
+                  <td className="px-3 py-3 font-semibold tabular-nums">{row.goalDifference > 0 ? '+' : ''}{row.goalDifference}</td>
                 </tr>
-              ),
-            )}
+              );
+            })}
           </tbody>
         </table>
       </div>

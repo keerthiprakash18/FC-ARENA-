@@ -77,6 +77,9 @@ try {
       await f.page.getByRole('button', { name: 'Discard draft', exact: true }).click();
       await f.page.getByRole('dialog').getByRole('button', { name: 'Discard draft', exact: true }).click();
       await f.page.getByRole('link', { name: 'Open reset & fresh draw options', exact: true }).click();
+      // Recovery is now intentionally collapsed to protect admins from accidental resets.
+      const safety = f.page.locator('#advanced-safety');
+      await safety.locator('summary').click();
       await f.page.getByRole('button', { name: 'Reset All Groups & Fixtures', exact: true }).click();
       await f.page.getByText(/Recorded results exist/).waitFor();
       assert(!f.mutations.some(m => m.path.endsWith('/full-reset')));

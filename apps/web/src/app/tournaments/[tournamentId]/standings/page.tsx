@@ -636,8 +636,8 @@ export default function StandingsPage() {
               <h2 id="my-player-stats-heading" className="theme-text mt-1 text-xl font-black">My Player Statistics</h2>
               <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
                 {tournament.mode === 'DUO' || tournament.mode === 'TEAM'
-                  ? 'These are your individual match statistics. Team totals in the official standings below may differ from your personal goals and GD.'
-                  : 'These are your personal match statistics. The official standings below rank tournament entries.'}
+                  ? 'These are your individual match statistics. Team totals in the official standings above may differ from your personal goals and GD.'
+                  : 'These are your personal match statistics. The official standings above rank tournament entries.'}
               </p>
             </div>
             <div className="premium-metrics premium-standing-metrics" aria-label="Your personal competition statistics">

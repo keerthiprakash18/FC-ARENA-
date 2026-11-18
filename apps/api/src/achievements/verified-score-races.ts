@@ -73,6 +73,9 @@ export function rankVerifiedScores(
   const rows = [...scores.values()];
   return {
     ids: [...scores.keys()],
+    // Full canonical verified metrics for official awards at tournament finalisation.
+    // The public races below remain capped at 20; official winners must not be.
+    metrics: rows,
     goldenBoot: rows.filter((row) => row.goalsFor > 0).sort(goldenBootOrder).slice(0, 20),
     goldenGlove: rows.sort(goldenGloveOrder).slice(0, 20),
   };

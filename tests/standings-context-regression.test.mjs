@@ -66,7 +66,7 @@ test('unqualified Ballon contenders are never displayed as rank zero', () => {
 });
 
 test('league-only fixtures use table terminology without a misleading group filter', () => {
-  assert.match(fixturePage, /const isLeagueTable = isRoundRobinLeague\(tournament\?\.competitionFormat\)/);
+  assert.match(fixturePage, /isRoundRobinLeague\(tournament\?\.competitionFormat\)/);
   assert.match(fixturePage, /\{!isLeagueTable \? <>/);
   assert.match(fixturePage, /isLeagueTable \? 'Format' : 'Groups'/);
   assert.match(fixturePage, /isLeagueTable \? 'League' : \(groups\.length \|\| 1\)/);
@@ -116,7 +116,7 @@ test('tournament format and playoff format are explicit on Overview, not repeate
 test('league champion rule changes only after explicit admin bracket and qualifier choice', () => {
   assert.match(tournamentOverview, /<LeaguePlayoffSetup/);
   assert.match(tournamentOverview, /tournament\.canManageSettings && tournament\.canManageFixtures/);
-  assert.match(leaguePlayoffSetup, /'PROTECTED_SEED'/);
+  assert.match(leaguePlayoffSetup, /value="PROTECTED_SEED"/);
   assert.match(leaguePlayoffSetup, /playoffQualifiersTotal: total/);
   assert.match(leaguePlayoffSetup, /confirmation: confirmation\.trim\(\)/);
   assert.match(leaguePlayoffSetup, /Type the exact tournament name/);

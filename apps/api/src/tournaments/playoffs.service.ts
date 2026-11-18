@@ -21,6 +21,7 @@ import {
 import type {
   GeneratePlayoffsDto,
 } from './dto/generate-playoffs.dto.js';
+import type { EnableLeaguePlayoffsDto } from './dto/enable-league-playoffs.dto.js';
 
 import {
   buildPlayoffSeedPlan,
@@ -106,6 +107,112 @@ export class PlayoffsService {
     private readonly authorization:
       AuthorizationService,
   ) {}
+
+  /**
+   * Convert a running one-table league into League + Knockout without
+   * touching a single fixture, match, result or registration.
+   *
+   * Its round-robin stage stays intact; the overall table seeds the selected
+   * top N only after every existing STAGE match has finished.
+   */
+  async enableLeaguePlayoffs(
+    userId: string,
+    tournamentId: string,
+    dto: EnableLeaguePlayoffsDto,
+  ) {
+    return this.prisma.$transactionWithRetry(async tx => {
+      const tournament = await tx.tournament.findUnique({
+        where: { id: tournamentId },
+      });
+      if (!tournament) throw this.tournamentNotFound();
+
+      const authorization = new AuthorizationService(tx as PrismaService);
+      await authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_SETTINGS');
+      await authorization.assertCanManageTournamentPermission(userId, tournamentId, 'MANAGE_FIXTURES');
+
+      const fail = (code: string, message: string): never => {
+        throw new ConflictException({ success: false, data: null, error: { code, message } });
+      };
+      if (dto.confirmation.trim() !== tournament.name) {
+        fail('TOURNAMENT_CONFIRMATION_MISMATCH', 'Type the exact tournament name to confirm the new winner format.');
+      }
+      if (!['DRAFT', 'REGISTRATION_CLOSED', 'ACTIVE'].includes(tournament.status)) {
+        fail('LEAGUE_PLAYOFFS_LOCKED', 'Completed or cancelled tournaments cannot change their winner format.');
+      }
+      if (!['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat)) {
+        fail('LEAGUE_PLAYOFFS_FORMAT', 'Only an existing single-table league can opt into League + Knockout.');
+      }
+
+      const [groups, stageFixtures, existingPlayoffs, approved] = await Promise.all([
+        tx.tournamentGroup.count({ where: { tournamentId } }),
+        tx.fixture.count({ where: { tournamentId, phase: 'STAGE' } }),
+        tx.fixture.count({ where: { tournamentId, phase: 'PLAYOFF' } }),
+        tx.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } }),
+      ]);
+
+      if (groups !== 0) {
+        fail('LEAGUE_PLAYOFFS_GROUPS', 'This is not a zero-group league. Preserve the existing group structure and use the group qualification setup.');
+      }
+      if (stageFixtures < 1) {
+        fail('LEAGUE_PLAYOFFS_NO_STAGE', 'Publish the full league fixture schedule before enabling knockout qualification.');
+      }
+      if (existingPlayoffs !== 0) {
+        fail('LEAGUE_PLAYOFFS_EXISTS', 'A playoff bracket already exists. No automatic format change is allowed.');
+      }
+      if (approved < dto.playoffQualifiersTotal) {
+        fail('LEAGUE_PLAYOFFS_QUALIFIERS', `Only ${approved} teams are approved. Choose no more than ${approved} playoff qualifiers.`);
+      }
+
+      // An existing 190-game league stays the 190-game league. Change only
+      // competition rules, not status, legacy ROUND_ROBIN format, leg type or
+      // published fixtures. GROUP_STAGE_KNOCKOUT supports one overall table
+      // when source=OVERALL_STANDINGS; actual groups remain zero.
+      const after = {
+        competitionFormat: 'GROUP_STAGE_KNOCKOUT' as const,
+        groupMode: 'SINGLE_GROUP' as const,
+        playoffSource: 'OVERALL_STANDINGS' as const,
+        playoffSeedingBasis: 'OVERALL_PERFORMANCE' as const,
+        playoffQualifiersTotal: dto.playoffQualifiersTotal,
+        playoffFormat: dto.playoffFormat,
+        qualifiersPerGroup: null,
+        avoidSameGroupEarly: false,
+      };
+      await tx.tournament.update({
+        where: { id: tournamentId },
+        data: after,
+      });
+      await tx.auditLog.create({
+        data: {
+          actorUserId: userId,
+          action: 'PLAYOFF_FORMAT_UPDATED',
+          targetType: 'Tournament',
+          targetId: tournamentId,
+          scopeType: 'TOURNAMENT',
+          scopeId: tournamentId,
+          beforeData: {
+            competitionFormat: tournament.competitionFormat,
+            groupMode: tournament.groupMode,
+            playoffSource: tournament.playoffSource,
+            playoffQualifiersTotal: tournament.playoffQualifiersTotal,
+            playoffFormat: tournament.playoffFormat,
+          },
+          afterData: { ...after, approved, stageFixtures, existingPlayoffs },
+        },
+      });
+      return {
+        success: true,
+        data: {
+          message: `League + Knockout enabled. Top ${dto.playoffQualifiersTotal} qualify from the final league table. The champion is decided by the knockout final, not by first place in the league.`,
+          playoffQualifiersTotal: dto.playoffQualifiersTotal,
+          playoffFormat: dto.playoffFormat,
+          stageFixturesPreserved: stageFixtures,
+          existingResultsPreserved: true,
+          bracketCreated: false,
+        },
+        error: null,
+      };
+    }, { isolationLevel: 'Serializable', timeout: 15_000 });
+  }
 
   async applyBestThirdFormat(userId: string, tournamentId: string) {
     return this.saveBestThirdPlayoffs(userId, tournamentId, true);

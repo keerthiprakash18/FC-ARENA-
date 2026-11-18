@@ -698,7 +698,7 @@ export default function AwardsPage() {
             body:
               JSON.stringify({
                 name:
-                  `FC Arena Ballon · ${selectedAdminLeague.league.name}`,
+                  `FC ARENA Ballon d’Or · ${selectedAdminLeague.league.name}`,
                 startAt:
                   start.toISOString(),
                 endAt:
@@ -710,10 +710,12 @@ export default function AwardsPage() {
                 rankingLimit:
                   20,
                 tournamentRequirements: {
-                  SOLO: 2,
-                  DUO: 2,
-                  TEAM: 1,
-                },
+                   // Open season: let verified players qualify without
+                   // requiring formats their League may not run.
+                   SOLO: 0,
+                   DUO: 0,
+                   TEAM: 0,
+                 },
                 eligibleLeagueIds:
                   [
                     selectedAdminLeague
@@ -738,7 +740,7 @@ export default function AwardsPage() {
       );
 
       setAdminMessage(
-        'FC Arena Ballon created and started. Live rankings are now active.',
+        'FC ARENA Ballon d’Or season started. Qualified players appear after 10 verified matches.',
       );
 
       await refreshAfterAdminAction();
@@ -1135,7 +1137,7 @@ export default function AwardsPage() {
                   >
                     {adminBusy
                       ? 'Starting...'
-                      : 'Create & Start 3-Month Season'}
+                      : 'Create Open Ballon Season'}
                   </button>
                 )}
 
@@ -1151,7 +1153,7 @@ export default function AwardsPage() {
                 ?.currentBallon &&
               !draftSeason ? (
                 <p className="text-[11px] leading-5 text-slate-600">
-                   Quick Start: 3 months · minimum 10 matches · max 40 counted · 2 SOLO + 2 DUO + 1 TEAM tournaments · Top 20 overview. You can customize everything first through Advanced Settings.
+                   Open Season: 3 months · 10 verified matches required · max 40 counted · SOLO, DUO and TEAM results count · Top 20. Choose stricter multi-format rules in Advanced Settings before starting.
                 </p>
               ) : null}
             </div>

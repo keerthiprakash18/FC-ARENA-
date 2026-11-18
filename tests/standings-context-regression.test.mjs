@@ -30,6 +30,7 @@ test('standings explicitly explain GD, points, and ranking without changing scor
 
 const playoffs = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/playoffs/page.tsx'), 'utf8');
 const groups = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/groups/page.tsx'), 'utf8');
+const tournamentOverview = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/page.tsx'), 'utf8');
 const fixturePage = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/fixtures/page.tsx'), 'utf8');
 const awards = fs.readFileSync(path.join(root, 'apps/web/src/app/awards/page.tsx'), 'utf8');
 
@@ -68,4 +69,11 @@ test('league-only fixtures use table terminology without a misleading group filt
   assert.match(fixturePage, /isLeagueTable \? 'Format' : 'Groups'/);
   assert.match(fixturePage, /isLeagueTable \? 'League' : \(groups\.length \|\| 1\)/);
   assert.match(fixturePage, /isLeagueTable \? 'League matchdays' : 'Competition Group'/);
+});
+
+test('single-table tournament overview does not mislabel a league as zero groups or show knockout bracket link', () => {
+  assert.match(tournamentOverview, /const isSingleTable = tournament\.groupMode !== 'MULTIPLE_GROUPS'/);
+  assert.match(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
+  assert.match(tournamentOverview, /!isSingleTable \? \[\[/);
+  assert.match(tournamentOverview, /isSingleTable \? "League Teams" : "Groups"/);
 });

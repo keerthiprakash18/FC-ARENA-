@@ -100,7 +100,7 @@ export function TournamentNavigation({ tournamentId }: Props) {
   return (
     <div className="space-y-2">
       <FcContextNav
-        ariaLabel="Tournament main sections"
+        ariaLabel="Tournament sections"
         items={primaryItems.filter(showPrimary).map(([label, suffix]) => ({
           label, href: base + suffix, active: isActive(suffix),
         }))}

@@ -321,10 +321,6 @@ export default function TournamentFixturesPage() {
   ]);
 
 
-  // Legacy fixture grouping is not a separate group stage in league-only tournaments.
-  const isLeagueTable = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']
-    .includes(tournament?.competitionFormat ?? '');
-
   const groups =
     useMemo(
       () => {
@@ -368,6 +364,11 @@ export default function TournamentFixturesPage() {
       ],
     );
 
+
+  // A round-robin can also have genuinely configured groups; suppress
+  // group labels only when there are no actual tournament groups.
+  const isLeagueTable = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']
+    .includes(tournament?.competitionFormat ?? '') && groups.length === 0;
 
   const filteredByGroup =
     useMemo(

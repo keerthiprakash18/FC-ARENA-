@@ -61,7 +61,7 @@ export function TournamentFormatOverview({
   const playoffDescription = !knockout
     ? 'The team finishing first in the final league table is the tournament winner.'
     : leagueStage
-      ? `Top ${qualifiers ?? 'configured'} from one league table enter the ${playoff}. League position alone does not award the championship.`
+      ? `After every league match is verified, the top ${qualifiers ?? 'configured'} qualify. The saved ${playoff} determines the champion; finishing first in the league alone is not enough.`
       : 'The knockout final determines the tournament champion.';
 
   return (
@@ -81,7 +81,7 @@ export function TournamentFormatOverview({
         <p className="mt-2 text-sm leading-6 text-slate-500">{playoffDescription}</p>
         {knockout && (
           <Link href={`/tournaments/${tournamentId}/playoffs`} className="mt-3 inline-flex min-h-9 items-center text-sm font-black text-amber-400 underline underline-offset-4">
-            Open Playoff Center →
+            See How This Playoff Works →
           </Link>
         )}
       </div>

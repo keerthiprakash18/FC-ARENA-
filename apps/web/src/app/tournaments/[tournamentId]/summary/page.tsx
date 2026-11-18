@@ -520,7 +520,7 @@ export default function TournamentSummaryPage() {
         </section>
 
         {summary.teamHonours ? (
-          <section aria-label="Official team honours" className="space-y-3">
+          <section id="team-honours" aria-label="Official team honours" className="scroll-mt-24 space-y-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">Verified Team Honours</p>
               <h2 className="mt-1 text-xl font-black">Official DUO / TEAM Trophy Archive</h2>

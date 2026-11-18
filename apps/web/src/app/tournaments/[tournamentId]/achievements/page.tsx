@@ -569,12 +569,54 @@ export default function AchievementsPage() {
           ) : null}
         </PremiumHero>
 
+        <section aria-label="Awards guide and current status" className="theme-panel rounded-2xl border p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-amber-300">Your tournament awards</p>
+              <h2 className="mt-1 text-xl font-black">
+                {data.tournament.mode === 'DUO' ? 'DUO: Individual + Team Honours' : data.tournament.mode === 'TEAM' ? 'Team Honours' : 'SOLO: Player Honours'}
+              </h2>
+            </div>
+            <span className="rounded-full border border-amber-400/30 px-3 py-1 text-xs font-bold text-amber-200">
+              {isCompleted ? 'OFFICIAL WINNERS PUBLISHED' : 'LIVE RACES · NOT FINAL'}
+            </span>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-white/10 p-3">
+              <h3 className="font-bold">Available now · Award Races</h3>
+              <p className="mt-1 text-sm leading-5 text-slate-400">
+                Verified goals and clean sheets show provisional leaders while matches are ongoing.
+                DUO player results are only individual when individual game scores are verified.
+              </p>
+              {!isCompleted ? <a href="#live-award-races" className="mt-2 inline-block text-sm font-bold text-sky-300 underline underline-offset-4">See live races ↓</a> : null}
+            </div>
+            <div className="rounded-xl border border-white/10 p-3">
+              <h3 className="font-bold">After the final · Official Awards</h3>
+              <p className="mt-1 text-sm leading-5 text-slate-400">
+                Champion, player honours and, for DUO/TEAM tournaments, separate official Team Golden Boot
+                and Team Defensive Record are available after finalisation.
+              </p>
+              {isCompleted && (data.tournament.mode === 'DUO' || data.tournament.mode === 'TEAM') ? (
+                <Link href={`/tournaments/${params.tournamentId}/summary#team-honours`}
+                  className="mt-2 inline-block text-sm font-bold text-amber-300 underline underline-offset-4">
+                  Open Official Team Trophy Archive →
+                </Link>
+              ) : (
+                <span className="mt-2 block text-xs font-semibold text-amber-300">
+                  {isCompleted ? 'See Final Honours below.' : 'Team trophy archive unlocks after completion.'}
+                </span>
+              )}
+            </div>
+          </div>
+          {!isCompleted ? <p className="mt-3 text-xs text-slate-400">Official awards are locked until all required stage and playoff results are verified. Do not use provisional standings as trophy winners.</p> : null}
+        </section>
+
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
 
         {!isCompleted &&
         races?.available ? (
-          <section>
+          <section id="live-award-races" className="scroll-mt-24">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
               Live Performance
             </p>
@@ -631,9 +673,9 @@ export default function AchievementsPage() {
         ) : null}
 
         {!isCompleted && races?.verifiedScoreRaces ? (
-          <section>
+          <section id={races.available ? undefined : 'live-award-races'} className="scroll-mt-24">
             <h2 className="text-2xl font-black">
-              {races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Award Races' : 'Player Award Races'}
+              {races.verifiedScoreRaces.scope === 'TEAM' ? 'DUO / TEAM Award Races' : 'Verified DUO Player Award Races'}
             </h2>
             <p className="mt-1 text-sm text-slate-400">
               {races.verifiedScoreRaces.scope === 'TEAM'
@@ -648,7 +690,7 @@ export default function AchievementsPage() {
                 metric={(row) => `${row.goals} goals · ${row.goalsPerMatch}/M`}
               />
               <RaceList
-                title={races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Golden Glove' : 'Golden Glove'}
+                title={races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Defensive Record' : 'Golden Glove'}
                 icon="🧤"
                 rows={races.verifiedScoreRaces.goldenGlove}
                 metric={(row) => `${row.cleanSheets} CS · ${row.goalsAgainstPerMatch} GA/M`}

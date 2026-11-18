@@ -779,6 +779,21 @@ export default function AwardsPage() {
         </span>
       }
     >
+      <section aria-label="Find your tournament and Duo awards" className="theme-panel rounded-2xl border p-4 sm:p-5">
+        <p className="text-xs font-black uppercase tracking-widest text-amber-300">Where are my awards?</p>
+        <h2 className="mt-1 text-xl font-black">SOLO · DUO · TEAM Honours</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+          Select a tournament → open its <strong className="text-slate-200">Awards</strong> tab for live races and official player trophies.
+          For DUO / TEAM competitions, official <strong className="text-slate-200">Team Golden Boot</strong> and
+          <strong className="text-slate-200"> Team Defensive Record</strong> appear in that completed tournament&apos;s
+          <strong className="text-slate-200"> Summary → Team Trophy Archive</strong>.
+          No winner is declared from a provisional race.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Link href="/tournaments" className="theme-primary-button inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold">Choose Tournament →</Link>
+          <a href="#live-tournament-awards" className="theme-secondary-button inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold">View Active Award Races ↓</a>
+        </div>
+      </section>
       {unauthorized ? <FcUnauthorizedState forbidden={unauthorized === 403} /> : error ? (
         <FcErrorState title={data ? 'Unable to refresh Awards' : 'Awards unavailable'} message={error} onRetry={retryOverview} busy={loading} />
       ) : null}
@@ -1162,7 +1177,7 @@ export default function AwardsPage() {
         </details>
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section id="live-tournament-awards" className="grid scroll-mt-24 gap-4 lg:grid-cols-2">
         <FcPanel className="p-5">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
             Live Award Races

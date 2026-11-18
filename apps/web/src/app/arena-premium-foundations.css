@@ -1,0 +1,83 @@
+/* FC ARENA — shared V12 premium UI foundations.
+   New product surfaces use these theme-token primitives rather than more
+   one-off global overrides. Legacy CSS remains until visual parity is proven.
+*/
+:root {
+  --fc-ux-radius: var(--fc-card-radius, 18px);
+  --fc-ux-space: var(--fc-space-4, 16px);
+  --fc-ux-stroke: var(--theme-border);
+  --fc-ux-surface: var(--theme-surface);
+  --fc-ux-raised: var(--theme-elevated);
+  --fc-ux-foreground: var(--theme-text);
+  --fc-ux-secondary: var(--theme-text-secondary);
+  --fc-ux-accent: var(--theme-primary);
+}
+.fc-ux-panel {
+  min-width: 0;
+  border: 1px solid var(--fc-ux-stroke);
+  border-radius: var(--fc-ux-radius);
+  background: var(--fc-ux-surface);
+  color: var(--fc-ux-foreground);
+}
+.fc-ux-card {
+  min-width: 0;
+  padding: clamp(14px, 2vw, 22px);
+  border: 1px solid var(--fc-ux-stroke);
+  border-radius: var(--fc-ux-radius);
+  background: var(--fc-ux-surface);
+  color: var(--fc-ux-foreground);
+  overflow-wrap: anywhere;
+}
+.fc-ux-inset {
+  min-width: 0;
+  border: 1px solid var(--fc-ux-stroke);
+  border-radius: 12px;
+  background: var(--fc-ux-raised);
+  color: var(--fc-ux-foreground);
+}
+.fc-ux-muted {
+  color: var(--fc-ux-secondary);
+}
+.fc-ux-section-title {
+  color: var(--fc-ux-foreground);
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  font-weight: 750;
+  letter-spacing: -.025em;
+  line-height: 1.18;
+}
+.fc-ux-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: .4rem;
+  color: var(--fc-ux-accent);
+  font-size: .875rem;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+.fc-ux-link:hover { text-decoration: underline; }
+.fc-ux-card:is(a):hover { border-color: var(--theme-control-border); }
+.fc-ux-card:is(a):focus-visible,
+.fc-ux-link:focus-visible,
+.fc-ux-inset:focus-visible {
+  outline: 2px solid var(--theme-focus);
+  outline-offset: 3px;
+}
+.fc-ux-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: .75rem;
+}
+@media (min-width: 640px) {
+  .fc-ux-stats { grid-template-columns: repeat(4, minmax(0,1fr)); }
+}
+@media (forced-colors: active) {
+  .fc-ux-card, .fc-ux-panel, .fc-ux-inset {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-ux-card, .fc-ux-link { animation: none !important; transition: none !important; }
+}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { FcContextNav } from '@/components/fc/fc-context-nav';
 import { authenticatedRequest } from '@/lib/auth-client';
+import { isRoundRobinLeague, hasKnockoutStage as isKnockoutFormat } from '@/lib/tournament-ui-context';
 
 interface Props {
   tournamentId: string;
@@ -30,9 +31,6 @@ const items = [
   ['Settings', '/settings'],
   ['Manage Admins', '/admins'],
 ] as const;
-
-const leagueFormats = new Set(['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']);
-const knockoutFormats = new Set(['GROUP_STAGE_KNOCKOUT', 'SINGLE_ELIMINATION', 'ELITE_CUP', 'UCL_CUP']);
 
 export function TournamentNavigation({ tournamentId }: Props) {
   const pathname = usePathname();
@@ -67,8 +65,8 @@ export function TournamentNavigation({ tournamentId }: Props) {
 
   const current = context?.tournamentId === tournamentId ? context : null;
   const isLeagueWithoutGroups = Boolean(current
-    && leagueFormats.has(current.competitionFormat) && current.groupCount === 0);
-  const hasKnockoutStage = !current || knockoutFormats.has(current.competitionFormat);
+    && isRoundRobinLeague(current.competitionFormat) && current.groupCount === 0);
+  const hasKnockoutStage = !current || isKnockoutFormat(current.competitionFormat);
   const base = `/tournaments/${tournamentId}`;
 
   return (

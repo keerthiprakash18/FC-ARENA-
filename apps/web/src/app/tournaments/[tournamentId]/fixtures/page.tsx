@@ -321,6 +321,10 @@ export default function TournamentFixturesPage() {
   ]);
 
 
+  // Legacy fixture grouping is not a separate group stage in league-only tournaments.
+  const isLeagueTable = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']
+    .includes(tournament?.competitionFormat ?? '');
+
   const groups =
     useMemo(
       () => {
@@ -855,6 +859,7 @@ export default function TournamentFixturesPage() {
 
         <section className="theme-panel rounded-2xl border p-5">
 
+          {!isLeagueTable ? <>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
             Group Filter
           </p>
@@ -908,7 +913,8 @@ export default function TournamentFixturesPage() {
           </div>
 
 
-          <div className="mt-5 border-t border-white/10 pt-5">
+          </> : null}
+          <div className={isLeagueTable ? 'pt-1' : 'mt-5 border-t border-white/10 pt-5'}>
 
             <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
               Matchday
@@ -991,13 +997,12 @@ export default function TournamentFixturesPage() {
 
           <article className="theme-panel rounded-2xl border p-4">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">
-              Groups
+              {isLeagueTable ? 'Format' : 'Groups'}
             </p>
 
             <p className="mt-2 text-3xl font-black">
               {
-                groups.length ||
-                1
+                isLeagueTable ? 'League' : (groups.length || 1)
               }
             </p>
           </article>
@@ -1079,12 +1084,12 @@ export default function TournamentFixturesPage() {
 
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-                        Competition Group
+                        {isLeagueTable ? 'League matchdays' : 'Competition Group'}
                       </p>
 
                       <h2 className="mt-1 text-3xl font-black">
                         {
-                          group.groupName
+                          isLeagueTable ? 'League fixtures' : group.groupName
                         }
                       </h2>
                     </div>

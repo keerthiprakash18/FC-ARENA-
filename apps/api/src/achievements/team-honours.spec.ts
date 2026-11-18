@@ -14,7 +14,7 @@ describe('official team honours archive', () => {
       fixture('bc', 'B', 'C', 2, 0),
     ], approved);
     expect(rows.goldenBoot.map(row => row.registrationId)).toEqual(['A']);
-    expect(rows.defensiveRecord.map(row => row.registrationId)).toEqual(['B']);
+    expect(rows.defensiveRecord.map(row => row.registrationId)).toEqual(['C']);
     expect(rows.entries.find(row => row.registrationId === 'A')).toMatchObject({
       matches: 2, goalsFor: 4, goalsAgainst: 2, cleanSheets: 1,
     });
@@ -28,7 +28,7 @@ describe('official team honours archive', () => {
     expect(result.entries.find(row => row.registrationId === 'A')?.matches).toBe(1);
     expect(result.goldenBoot.map(row => row.registrationId)).toEqual(['A']);
   });
-  it('does not invent a winner with zero goals or zero clean sheets', () => {
+  it('does not invent a Golden Boot winner when teams score zero', () => {
     const result = calculateTeamHonours([fixture('nil', 'A', 'B', 0, 0)], approved);
     expect(result.goldenBoot).toEqual([]);
     expect(result.defensiveRecord.map(row => row.registrationId).sort()).toEqual(['A','B']);

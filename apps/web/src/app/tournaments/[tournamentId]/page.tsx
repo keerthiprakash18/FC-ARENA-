@@ -29,6 +29,7 @@ import {
 } from "@/components/fc/fc-ui";
 
 import { TournamentNavigation } from "@/components/tournaments/tournament-navigation";
+import { hasKnockoutStage as formatHasKnockoutStage, isSingleTableDisplay } from '@/lib/tournament-ui-context';
 import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 import type { EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
 
@@ -228,13 +229,11 @@ export default function TournamentOverviewPage() {
       : 0;
   const duoRegistrationOpen = tournament.mode === 'DUO' &&
     tournament.status === 'REGISTRATION_OPEN' && tournament.registrationMode !== 'ADMIN_ONLY';
-  // A legacy MULTIPLE_GROUPS setting is not a real group stage when a league
-  // has zero created groups. The recorded results remain the league table.
-  const isLeagueTableFormat = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']
-    .includes(tournament.competitionFormat ?? '');
-  const isSingleTable = tournament.groupMode !== 'MULTIPLE_GROUPS'
-    || (isLeagueTableFormat && !supportError && groups.length === 0);
-  const hasKnockoutStage = ['GROUP_STAGE_KNOCKOUT', 'SINGLE_ELIMINATION', 'ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat ?? '');
+  // Unknown group data is not treated as an empty league stage.
+  const isSingleTable = !supportError && isSingleTableDisplay(
+    tournament.competitionFormat, tournament.groupMode, groups.length,
+  );
+  const hasKnockoutStage = formatHasKnockoutStage(tournament.competitionFormat);
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>

@@ -143,6 +143,7 @@ export default function MorePage() {
 
         <section className="grid gap-3 sm:grid-cols-2">
           <FcMenuRow href="/experience" icon="↗" title="Player Journey" description="Levels, weekly missions and your player card" tone="amber" />
+          <FcMenuRow href="/awards" icon="🏆" title="Awards & DUO/TEAM Honours" description="Live Golden Boot races, official team trophies and Ballon d’Or" tone="amber" />
           <FcMenuRow href="/arena-talk" icon="◉" title="Arena Talk" description="Your league conversations and the football community" tone="cyan" />
           {user.role === "SUPER_ADMIN" && <FcMenuRow href="/admin/community" icon="◎" title="Community Reports" description="Review reported posts and comments" />}
         </section>

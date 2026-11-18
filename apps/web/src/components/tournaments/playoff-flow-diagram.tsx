@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { seededOpeningPairs } from '@/lib/playoff-flow-data';
+import { seededOpeningPairs, sampleSeededKnockoutRounds } from '@/lib/playoff-flow-data';
 import { describePlayoffVisualRules, type PlayoffVisualRules } from '@/lib/playoff-visual-rules';
 import type { PlayoffGuide, PlayoffGuideInput } from '@/lib/saved-playoff-explainer';
 
@@ -121,18 +121,36 @@ export function PlayoffFlowDiagram({ guide, tournament }: {
       </div>
       <p className="mt-2 text-xs leading-5 text-slate-400">↔ Scroll sideways on mobile to view the full progression. {rules.qualificationNote}</p>
       {pairs.length ? (
-        <div className="mt-4 rounded-xl border border-sky-400/20 bg-sky-400/[0.03] p-3">
-          <h4 className="text-sm font-bold">Example opening matches · Seed numbers only</h4>
-          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {pairs.map(([higher, lower], index) => (
-              <div key={higher} className="rounded-lg border border-white/10 p-2 text-center text-xs font-bold">
-                <span className="block text-[10px] text-slate-400">Match {index + 1}</span>
-                #{higher} <span className="text-amber-300">vs</span> #{lower}
+        <section className="mt-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-3" aria-label="Example seeded knockout bracket">
+          <h4 className="text-sm font-bold">Example seed-to-final bracket</h4>
+          <p className="mt-1 text-xs leading-5 text-[var(--theme-text-secondary)]">Each winner advances along the bracket to the next round. Seed placeholders only; no official fixtures have been drawn.</p>
+          <div role="region" aria-label="Scrollable seeded knockout example" tabIndex={0}
+            className="mt-3 overflow-x-auto rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--theme-focus)]">
+            <div className="flex w-max min-w-full items-stretch gap-3 p-1">
+              {sampleSeededKnockoutRounds(count ?? 0).map((round, index) => (
+                <Fragment key={round.title}>
+                  {index > 0 ? <div aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-lg text-[var(--theme-primary)]">→</div> : null}
+                  <div className="flex w-48 shrink-0 flex-col rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+                    <h5 className="border-b border-[var(--theme-border)] pb-2 text-center text-xs font-black text-[var(--theme-text)]">{round.title}</h5>
+                    <ol className="flex flex-1 flex-col justify-around gap-3 py-3">
+                      {round.matches.map((match) => (
+                        <li key={match} className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-elevated)] p-2 text-xs leading-5 text-[var(--theme-text)]">
+                          {match}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </Fragment>
+              ))}
+              <div aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-lg text-[var(--theme-primary)]">→</div>
+              <div className="flex w-40 shrink-0 flex-col items-center justify-center gap-2 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-primary-soft)] p-4 text-center">
+                <span aria-hidden="true" className="text-3xl">🏆</span>
+                <strong className="text-sm text-[var(--theme-text)]">Champion</strong>
+                <span className="text-xs text-[var(--theme-text-secondary)]">Verified final winner</span>
               </div>
-            ))}
+            </div>
           </div>
-          <p className="mt-2 text-[11px] text-slate-400">These are seed placeholders, not confirmed teams. The real bracket appears after generation.</p>
-        </div>
+        </section>
       ) : null}
       <figcaption className="mt-3 text-xs leading-5 text-slate-400">
         {guide.mechanism} {guide.reminder}

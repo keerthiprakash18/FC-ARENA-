@@ -54,6 +54,9 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
   if (!isDoubleChance && count === 4) rounds = ['Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
   if (!isDoubleChance && count === 8) rounds = ['Quarter-finals (8 teams)', 'Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
   if (!isDoubleChance && count === 16) rounds = ['Round of 16 (16 teams)', 'Quarter-finals (8 teams)', 'Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
+  if (!isDoubleChance && ![4, 8, 16].includes(count ?? -1)) {
+    rounds = ['Knockout matches (as drawn)', 'Final', 'Champion'];
+  }
   if (isDoubleChance) rounds = [
     'Lower-seed elimination path + top-seed qualifying finals',
     'Second Chance: qualifying-final losers face lower-path survivors',

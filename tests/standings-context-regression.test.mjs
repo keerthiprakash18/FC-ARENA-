@@ -94,7 +94,8 @@ test('legacy 20-team round-robin with zero actual groups is one table even when 
 });
 
 test('competition tabs use actual group count rather than a legacy MULTIPLE_GROUPS flag', () => {
-  assert.match(nav, /isRoundRobinLeague\(current\.competitionFormat\) && current\.groupCount === 0/);
+  assert.match(nav, /current\.groupCount === 0/);
+  assert.match(nav, /current\.playoffSource === 'OVERALL_STANDINGS'/);
   assert.match(nav, /label !== 'Groups' \|\| !isLeagueWithoutGroups/);
   assert.match(nav, /label !== 'Bracket' \|\| hasKnockoutStage/);
 });

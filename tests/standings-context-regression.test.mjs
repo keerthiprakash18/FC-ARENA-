@@ -51,7 +51,7 @@ test('single-table tournaments do not report a false group balancing problem', (
   assert.match(groups, /Separate groups and group balancing are not configured/);
   assert.match(groups, /View official standings/);
   assert.match(groups, /if \(editor\.tournament\.groupMode !== 'MULTIPLE_GROUPS'\)/);
-  assert.match(groups, /title="Single-table League"/);
+  assert.match(groups, /title="Single-table competition"/);
   assert.match(groups, /This is a read-only roster/);
   assert.match(groups, /No separate groups in this competition/);
 });

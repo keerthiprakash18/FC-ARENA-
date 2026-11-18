@@ -35,7 +35,9 @@ const awards = fs.readFileSync(path.join(root, 'apps/web/src/app/awards/page.tsx
 test('round-robin league does not offer a false playoff generation action', () => {
   assert.match(playoffs, /function includesPlayoffStage\(competitionFormat: string\)/);
   assert.match(playoffs, /if \(!includesPlayoffStage\(tournament\.competitionFormat\)\)/);
-  assert.match(playoffs, /if \(!hasKnockoutStage && playoffFixtures\.length === 0\)/);
+  assert.match(playoffs, /if \(!hasKnockoutStage\)/);
+  assert.match(playoffs, /historical playoff fixture\(s\) exist for this league-only format/);
+  assert.match(playoffs, /!includesPlayoffStage\(tournament\.competitionFormat\)/);
   assert.match(playoffs, /No playoff bracket for this league/);
   assert.match(playoffs, /View league standings/);
   assert.match(playoffs, /format\.title,/);
@@ -46,6 +48,10 @@ test('single-table tournaments do not report a false group balancing problem', (
   assert.match(groups, /Single-table competition/);
   assert.match(groups, /Separate groups and group balancing are not configured/);
   assert.match(groups, /View official standings/);
+  assert.match(groups, /if \(editor\.tournament\.groupMode !== 'MULTIPLE_GROUPS'\)/);
+  assert.match(groups, /title="Single-table League"/);
+  assert.match(groups, /This is a read-only roster/);
+  assert.match(groups, /No separate groups in this competition/);
 });
 
 test('unqualified Ballon contenders are never displayed as rank zero', () => {

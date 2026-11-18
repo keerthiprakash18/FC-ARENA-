@@ -142,8 +142,8 @@ export default function TournamentGroupsPage() {
       <div className="space-y-5">
         <BackHeader backHref={`/tournaments/${tournamentId}`} backLabel="Tournament Overview"
           eyebrow={`${editor.tournament.name} · ${editor.tournament.code}`}
-          title="Single-table League"
-          subtitle="All approved entries compete in one league table. No groups or group balancing are required."
+          title="Single-table competition"
+          subtitle="Entries are not split into separate groups. No group balancing is required."
           action={<FcStatusBadge label={editor.tournament.status} tone={editor.tournament.status === 'ACTIVE' ? 'emerald' : 'amber'} />} />
         <TournamentNavigation tournamentId={tournamentId} />
         <FcNotice tone="error">{error || load.refreshError}</FcNotice>
@@ -151,7 +151,7 @@ export default function TournamentGroupsPage() {
           <h2 className="text-lg font-black">No separate groups in this competition</h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">
             {entries.length} approved teams compete in one overall league table.
-            The final verified standings determine the winner; existing fixtures and results remain unchanged.
+            Existing fixtures, verified results and tournament progression remain unchanged.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link href={`/tournaments/${tournamentId}/standings`} className={actionClass}>View official standings</Link>

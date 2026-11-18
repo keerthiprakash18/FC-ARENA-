@@ -14,6 +14,8 @@ export interface PlayoffGuide {
   qualifierRule: string;
   selection: string;
   rounds: string[];
+  openingExample: string | null;
+  knockoutFixtureCount: number | null;
   formatName: string;
   mechanism: string;
   winnerRule: string;
@@ -53,6 +55,20 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
     'Champion',
   ];
   if (isUcl) rounds = ['Knockout qualification as applicable', 'Two-leg knockout ties (except final)', 'Single-match final', 'Champion'];
+  const openingExample =
+    !isUcl && !isDoubleChance && source === 'OVERALL_STANDINGS' &&
+    (t.playoffSeedingBasis === 'OVERALL_PERFORMANCE' || t.playoffSeedingBasis === 'AUTO' || !t.playoffSeedingBasis)
+      ? count === 4
+        ? 'Opening pairings by final league seed: #1 vs #4 and #2 vs #3.'
+        : count === 8
+          ? 'Example opening quarter-finals: #1 vs #8, #4 vs #5, #2 vs #7, #3 vs #6.'
+          : count === 16
+            ? 'Opening round pairs high seeds with low seeds from the final top 16.'
+            : null
+      : null;
+  const knockoutFixtureCount = !isUcl && !isDoubleChance && [4, 8, 16].includes(count ?? -1)
+    ? (count as number) - 1
+    : null;
   const formatName = isUcl ? 'UCL Two-Leg Knockout' : nameByFormat[format] ?? 'Saved Knockout Format';
   const mechanism = isUcl
     ? 'Follow the published two-leg ties and aggregate result rules. The final is a single match.'
@@ -67,6 +83,8 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
       ? 'Current table positions are provisional until the league stage is complete and results are verified.'
       : 'The published bracket and official saved qualification settings decide the actual participants.',
     rounds,
+    openingExample,
+    knockoutFixtureCount,
     formatName,
     mechanism,
     winnerRule: 'League first place is NOT automatically champion: the verified knockout final winner is champion.',

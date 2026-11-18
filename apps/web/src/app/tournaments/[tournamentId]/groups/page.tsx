@@ -13,6 +13,7 @@ import { ApiError } from '@/lib/api';
 import { authenticatedRequest, getCurrentUser, type CurrentUser } from '@/lib/auth-client';
 import { balanceGroupMembership, createGroupId, groupDraftKey, groupDraftProblem, type GroupChangePreview, type GroupDraft, type GroupEditInput, type GroupEditorEntry, type GroupEditorState } from '@/lib/group-editor';
 import { useRecoverableLoad } from '@/lib/use-recoverable-load';
+import { showReadOnlyGroupRoster } from '@/lib/tournament-ui-context';
 
 type RecordState = { scope: string; editor: GroupEditorState; draft: GroupDraft };
 const toDraft = (editor: GroupEditorState): GroupDraft => ({ groups: editor.groups.map(group => ({ id: group.id, name: group.name, registrationIds: group.entries.map(entry => entry.id) })), unassignedIds: editor.unassigned.map(entry => entry.id) });
@@ -140,8 +141,9 @@ export default function TournamentGroupsPage() {
   // The live league has a legacy MULTIPLE_GROUPS value with zero configured
   // groups, while the server explicitly disallows changing group membership.
   // A 0-group competition is not an unbalanced draw.
-  const showReadOnlyRoster = editor.tournament.groupMode !== 'MULTIPLE_GROUPS'
-    || (editor.groups.length === 0 && !editor.canChangeMembership);
+  const showReadOnlyRoster = showReadOnlyGroupRoster(
+    editor.tournament.groupMode, editor.groups.length, editor.canChangeMembership,
+  );
   if (showReadOnlyRoster) {
     return <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
       <div className="space-y-5">

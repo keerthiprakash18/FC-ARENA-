@@ -55,7 +55,7 @@ export default function ClubProfilePage() {
       const response = await authenticatedRequest<{ data: { inviteCode: string } }>(
         '/clubs/' + club.id + '/invite/rotate', { method: 'POST' });
       setInvite(response.data.inviteCode);
-      setNotice('Your old club invitation code is invalid. This new one is shown once.');
+      setNotice(t('inviteRotated'));
     } catch (failure) { setError(failure instanceof Error ? failure.message : 'Unable to regenerate invitation.'); }
     finally { setBusy(false); }
   }
@@ -68,7 +68,7 @@ export default function ClubProfilePage() {
       await authenticatedRequest('/clubs/' + club.id + '/entries', {
         method: 'POST', body: JSON.stringify({ registrationId }),
       });
-      setNotice('Official tournament registration linked to your persistent club.');
+      setNotice(t('teamLinked'));
       setRegistrationId('');
       await load();
     } catch (failure) { setError(failure instanceof Error ? failure.message : 'Unable to link team.'); }
@@ -76,7 +76,7 @@ export default function ClubProfilePage() {
   }
 
   return <SecondaryFeaturePage title={club?.name || t('clubs')} eyebrow="FC ARENA Club" backHref="/clubs" backLabel="Clubs"
-    subtitle="Verified club identity · members · linked official tournament entries">
+    subtitle={t('clubsDescription')}>
     {error ? <p role="alert" className="rounded-xl border border-[var(--theme-danger)] p-3 text-sm text-[var(--theme-danger)]">{error}</p> : null}
     {notice ? <p role="status" className="rounded-xl border border-[var(--theme-border)] p-3 text-sm text-[var(--theme-success)]">{notice}</p> : null}
     {club ? <div className="space-y-5">
@@ -85,40 +85,40 @@ export default function ClubProfilePage() {
         <div className="min-w-0 flex-1">
           <h1 className="break-words text-2xl font-bold">{club.name}</h1>
           <p className="theme-secondary-text mt-1 text-sm">{club.description || 'Official persistent FC ARENA club identity'}</p>
-          <p className="theme-secondary-text mt-2 text-xs">{club.members.length} joined members · {club.entries.length} linked competition entries</p>
+          <p className="theme-secondary-text mt-2 text-xs">{club.members.length} {t('members')} · {club.entries.length} {t('linkedEntries')}</p>
         </div>
-        {club.isCaptain ? <span className="rounded-xl bg-[var(--theme-primary-soft)] px-3 py-2 text-sm font-semibold">Club captain</span> : null}
+        {club.isCaptain ? <span className="rounded-xl bg-[var(--theme-primary-soft)] px-3 py-2 text-sm font-semibold">{t('clubCaptain')}</span> : null}
       </FcPanel>
       {stats ? <section aria-label="Confirmed club match statistics" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          ['Verified games',stats.matches], ['Wins',stats.wins], ['Goals for',stats.goalsFor], ['Win rate',stats.winRate + '%'],
+          [t('verifiedGames'),stats.matches], [t('wins'),stats.wins], [t('goalsFor'),stats.goalsFor], [t('winRate'),stats.winRate + '%'],
         ].map(([label,value])=><FcPanel key={label} className="p-4"><strong className="text-2xl">{value}</strong><p className="theme-secondary-text mt-1 text-xs">{label}</p></FcPanel>)}
       </section> : null}
-      <p className="theme-secondary-text text-xs">Only confirmed scores from explicitly linked tournament registrations are counted. There are no invented historical trophies.</p>
+      <p className="theme-secondary-text text-xs">{t('clubStatsVerified')}</p>
       {club.isCaptain ? <FcPanel className="space-y-3 p-5">
-        <h2 className="text-lg font-bold">Captain controls</h2>
+        <h2 className="text-lg font-bold">{t('captainControls')}</h2>
         <p className="theme-secondary-text text-sm">Share invitation codes privately. Rotating invalidates the previous code.</p>
         <button type="button" disabled={busy} className="theme-secondary-button min-h-11 rounded-xl border px-4 font-semibold" onClick={() => void rotate()}>
-          Regenerate private invite code
+          {t('rotateInvite')}
         </button>
         {invite ? <div className="rounded-xl border border-[var(--theme-border)] p-3">
-          <p className="text-xs">Copy this code now. It will not be shown again.</p>
+          <p className="text-xs">{t('inviteOneTime')}</p>
           <code className="mt-2 block select-all break-all text-lg">{invite}</code>
-          <button type="button" className="theme-secondary-button mt-2 min-h-11 rounded-xl px-4" onClick={() => void navigator.clipboard?.writeText(invite)}>Copy code</button>
+          <button type="button" className="theme-secondary-button mt-2 min-h-11 rounded-xl px-4" onClick={() => void navigator.clipboard?.writeText(invite)}>{t('copyInvite')}</button>
         </div> : null}
-        <h3 className="border-t border-[var(--theme-border)] pt-3 font-semibold">Link an approved DUO / TEAM tournament entry</h3>
-        <p className="theme-secondary-text text-sm">All registered teammates must already belong to this club. Entries with confirmed results cannot be linked retroactively.</p>
+        <h3 className="border-t border-[var(--theme-border)] pt-3 font-semibold">{t('linkTeamHeading')}</h3>
+        <p className="theme-secondary-text text-sm">{t('linkTeamHint')}</p>
         {choices.length ? <form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]" onSubmit={event => void linkTeam(event)}>
-          <label className="grid gap-2 text-sm font-semibold">Your eligible tournament registration
+          <label className="grid gap-2 text-sm font-semibold">{t('selectTeam')}
             <select required className="theme-input min-h-11 rounded-xl border p-3" value={registrationId} onChange={e => setRegistrationId(e.target.value)}>
-              <option value="">Select approved team</option>
+              <option value="">{t('selectTeam')}</option>
               {choices.map(entry=><option key={entry.id} value={entry.id}>{entry.tournamentName} · {entry.entryName} ({entry.mode})</option>)}
             </select>
           </label>
-          <button disabled={busy || !registrationId} className="theme-primary-button min-h-11 self-end rounded-xl px-4 font-bold disabled:opacity-50">Link team</button>
-        </form> : <p className="theme-secondary-text text-sm">No eligible unlinked team entries yet.</p>}
+          <button disabled={busy || !registrationId} className="theme-primary-button min-h-11 self-end rounded-xl px-4 font-bold disabled:opacity-50">{t('linkTeam')}</button>
+        </form> : <p className="theme-secondary-text text-sm">{t('noLinkable')}</p>}
       </FcPanel> : null}
-      <section aria-label="Club roster" className="space-y-3"><h2 className="text-xl font-bold">Club Roster</h2>
+      <section aria-label="Club roster" className="space-y-3"><h2 className="text-xl font-bold">{t('clubRoster')}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {club.members.map(member=><FcPanel key={member.userId} className="flex items-center gap-3 p-4">
             <FcCrest name={member.user.player?.identity?.inGameName || member.user.fullName} imageUrl={member.user.player?.profileImageUrl} size="sm" />
@@ -129,14 +129,14 @@ export default function ClubProfilePage() {
         </div>
       </section>
       <section aria-label="Linked official competition history" className="space-y-3">
-        <h2 className="text-xl font-bold">Linked Tournament History</h2>
+        <h2 className="text-xl font-bold">{t('linkedHistory')}</h2>
         {club.entries.length ? <div className="grid gap-3 md:grid-cols-2">
           {club.entries.map(entry=><Link key={entry.registrationId} href={`/tournaments/${entry.registration.tournament.id}`} className="theme-panel rounded-2xl border p-4 hover:border-[var(--theme-primary)]">
             <strong className="block">{entry.registration.tournament.name}</strong>
             <p className="theme-secondary-text mt-1 text-sm">{entry.registration.entryName || 'Team entry'} · {entry.registration.tournament.mode}</p>
-            <span className="mt-2 block text-xs font-bold text-[var(--theme-primary)]">View competition →</span>
+            <span className="mt-2 block text-xs font-bold text-[var(--theme-primary)]">{t('linkCompetition')} →</span>
           </Link>)}
-        </div> : <p className="theme-secondary-text text-sm">No tournament registrations linked yet.</p>}
+        </div> : <p className="theme-secondary-text text-sm">{t('noEntries')}</p>}
       </section>
     </div> : <p role="status" className="theme-secondary-text">Loading verified club identity…</p>}
   </SecondaryFeaturePage>;

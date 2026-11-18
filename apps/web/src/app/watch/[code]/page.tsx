@@ -67,18 +67,18 @@ export default function PublicMatchdayPage() {
     </header>
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
       {data ? <PremiumHero eyebrow={data.tournament.league.name} title={data.tournament.name}
-        description="Public spectator scoreboard. Only verified scores are displayed; live status does not imply real-time goals."
-        crest={data.tournament.name} /> : <h1 className="text-2xl font-bold">FC ARENA Spectator Match Center</h1>}
+        description={t('spectatorDescription')}
+        crest={data.tournament.name} /> : <h1 className="text-2xl font-bold">FC ARENA {t('spectator')}</h1>}
       <aside aria-label="Scoreboard refresh status" className="theme-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
-        <p className="theme-secondary-text text-sm" role="status">{offline ? 'Offline · last successfully loaded scoreboard' :
-          error ? 'Connection issue · showing last loaded results' : 'Public verified matchday data'}
+        <p className="theme-secondary-text text-sm" role="status">{offline ? t('offlineLast') :
+          error ? t('connectionIssue') : t('publicData')}
           {lastRefresh ? ' · Checked '+new Date(lastRefresh).toLocaleTimeString() : ''}</p>
         <button type="button" onClick={()=>void refresh()} className="theme-secondary-button min-h-11 rounded-xl border px-4 text-sm font-semibold">{t('refresh')}</button>
       </aside>
       {error && !data ? <section role="alert" className="theme-panel rounded-2xl border p-5">
-        <h2 className="text-lg font-bold">Match Center unavailable</h2>
+        <h2 className="text-lg font-bold">{t('matchCenterUnavailable')}</h2>
         <p className="theme-secondary-text mt-2 text-sm">{error}</p>
-        <p className="mt-2 text-sm">Only tournaments explicitly marked PUBLIC can be viewed without a player account.</p>
+        <p className="mt-2 text-sm">{t('publicOnly')}</p>
       </section> : null}
       {data ? <>
         <section aria-label="Live fixture status" className="space-y-3">
@@ -89,14 +89,14 @@ export default function PublicMatchdayPage() {
             <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
               <strong className="break-words">{f.home}</strong><span className="text-xl font-black">vs</span><strong className="break-words">{f.away}</strong>
             </div>
-            <p className="theme-secondary-text mt-3 text-center text-xs">Awaiting verified result · scores are not published until approval.</p>
+            <p className="theme-secondary-text mt-3 text-center text-xs">{t('awaitingResult')}</p>
           </article>)}</div> : <p className="theme-secondary-text text-sm">{t('noLiveMatches')}</p>}
         </section>
         <section aria-label="Upcoming match schedule" className="space-y-3">
           <h2 className="text-xl font-black">{t('upcoming')}</h2>
           {upcoming.length ? <div className="grid gap-3 sm:grid-cols-2">
             {upcoming.map(f=><article key={f.id} className="theme-panel rounded-2xl border p-4">
-              <div className="theme-secondary-text flex items-center justify-between gap-3 text-xs"><span>{f.roundName}</span><span>{f.scheduledAt?new Date(f.scheduledAt).toLocaleString():'Kickoff pending'}</span></div>
+              <div className="theme-secondary-text flex items-center justify-between gap-3 text-xs"><span>{f.roundName}</span><span>{f.scheduledAt?new Date(f.scheduledAt).toLocaleString():t('kickoffPending')}</span></div>
               <div className="mt-3 flex items-center justify-between gap-3 font-bold"><span className="break-words">{f.home}</span><span className="text-[var(--theme-primary)]">VS</span><span className="break-words text-right">{f.away}</span></div>
             </article>)}
           </div> : <p className="theme-secondary-text text-sm">{t('noUpcomingMatches')}</p>}
@@ -105,7 +105,7 @@ export default function PublicMatchdayPage() {
           <h2 className="text-xl font-black">🏆 {t('verifiedResults')}</h2>
           {results.length ? <div className="grid gap-3 sm:grid-cols-2">
             {results.map(f=><article key={f.id} className="theme-panel rounded-2xl border p-4">
-              <p className="theme-secondary-text text-xs">{f.roundName} · Verified score</p>
+              <p className="theme-secondary-text text-xs">{f.roundName} · {t('verifiedScore')}</p>
               <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <strong className="break-words">{f.home}</strong>
                 <span className="rounded-xl bg-[var(--theme-primary-soft)] px-3 py-2 text-lg font-black tabular-nums">

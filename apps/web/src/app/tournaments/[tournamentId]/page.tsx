@@ -311,10 +311,14 @@ export default function TournamentOverviewPage() {
             <Link href={`/tournaments/${tournamentId}/achievements`} className="theme-primary-button inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold">
               View Tournament Awards →
             </Link>
-            {(tournament.mode === 'DUO' || tournament.mode === 'TEAM') ? (
+            {(tournament.mode === 'DUO' || tournament.mode === 'TEAM') && tournament.status === 'COMPLETED' ? (
               <Link href={`/tournaments/${tournamentId}/summary#team-honours`} className="theme-secondary-button inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold">
-                {tournament.status === 'COMPLETED' ? 'Official Team Trophy Archive →' : 'Where Team Trophies Appear →'}
+                Official Team Trophy Archive →
               </Link>
+            ) : (tournament.mode === 'DUO' || tournament.mode === 'TEAM') ? (
+              <span className="inline-flex items-center rounded-xl border border-white/10 px-4 text-xs text-slate-400">
+                Team trophy archive unlocks after tournament finalisation
+              </span>
             ) : null}
           </div>
         </section>

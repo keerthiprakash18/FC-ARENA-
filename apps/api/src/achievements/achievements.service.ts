@@ -8,6 +8,7 @@ import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import { assertRoundRobinComplete } from './completion-integrity.js';
 import { completionPlacementPolicy } from './competition-winner-policy.js';
+import { officialDuoIndividualAwards } from './duo-official-awards.js';
 import { rankVerifiedScores } from './verified-score-races.js';
 import { isUclLeg, resolveAggregateWinner } from '../results/ucl-ties.js';
 import {
@@ -553,6 +554,42 @@ export class AchievementsService {
                 matches:
                   player.matches,
               },
+            );
+          }
+        }
+
+        // Verified per-player DUO goals are distinct from the aggregate team
+        // score. Never award individual Golden Boot or Glove from team totals.
+        // Existing legacy DUO tournaments without duoGames are safely skipped.
+        if (currentTournament.mode === 'DUO' && currentTournament.duoAggregateEnabled) {
+          const verified = rankVerifiedScores(completionFixtures, currentTournament);
+          const approvedPlayers = new Set<string>(
+            registrations.flatMap(registration => registration.members.map(member => member.userId)),
+          );
+          const winners = officialDuoIndividualAwards(verified.metrics, approvedPlayers);
+          for (const player of winners.goldenBoot) {
+            await this.award(
+              tx, player.userId, tournamentId, 'GOLDEN_BOOT',
+              '⚽ Individual Golden Boot',
+              `Most verified individual Duo goals in ${currentTournament.name}: ${player.goalsFor} goals.`,
+              { scope: 'PLAYER', verifiedGoals: player.goalsFor, verifiedGames: player.matches },
+            );
+          }
+          for (const player of winners.goldenGlove) {
+            await this.award(
+              tx, player.userId, tournamentId, 'GOLDEN_GLOVE',
+              '🧤 Individual Defensive Honour',
+              `Best verified individual Duo clean-sheet record in ${currentTournament.name}: ${player.cleanSheets}.`,
+              { scope: 'PLAYER', cleanSheets: player.cleanSheets, verifiedGames: player.matches },
+            );
+          }
+          if (winners.playerOfTournament) {
+            const player = winners.playerOfTournament;
+            await this.award(
+              tx, player.userId, tournamentId, 'BEST_PLAYER',
+              '⭐ Player of the Tournament',
+              `Highest verified individual Duo performance rating in ${currentTournament.name}: ${player.rating}/100.`,
+              { scope: 'PLAYER', rating: player.rating, verifiedGames: player.matches },
             );
           }
         }

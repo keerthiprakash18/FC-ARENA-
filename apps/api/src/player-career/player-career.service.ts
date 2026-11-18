@@ -322,7 +322,7 @@ export class PlayerCareerService {
    */
   async getMySeasonRecaps(userId: string) {
     const [careerResponse, seasons] = await Promise.all([
-      this.getMyCareer(userId),
+      this.getMyCareer(userId, false, undefined, 5001),
       this.prisma.ballonSeason.findMany({
         where: { status: { not: 'DRAFT' } },
         select: { id: true, name: true, startAt: true, endAt: true,
@@ -333,6 +333,9 @@ export class PlayerCareerService {
     ]);
     const career = careerResponse.data;
     const matchHistory = career.matchHistory;
+    if (matchHistory.length > 5000) {
+      throw new ConflictException('Season recap requires a longer verified match history. Please contact the organizer; partial statistics will not be shown as complete.');
+    }
     const ids = (value: unknown): string[] => Array.isArray(value) ?
       value.filter((item): item is string => typeof item === 'string') : [];
     const official = await this.prisma.ballonFinalRanking.findMany({
@@ -378,6 +381,7 @@ export class PlayerCareerService {
     userId: string,
     dashboard = false,
     leagueId?: string,
+    historyLimit = 100,
   ) {
     const user =
       await this.prisma.user.findUnique({
@@ -668,7 +672,7 @@ export class PlayerCareerService {
           updatedAt: 'desc',
         },
 
-        take: dashboard ? 3 : 100,
+        take: dashboard ? 3 : Math.min(5001, Math.max(1, historyLimit)),
       });
 
     const achievements =

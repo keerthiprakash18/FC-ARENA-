@@ -228,7 +228,12 @@ export default function TournamentOverviewPage() {
       : 0;
   const duoRegistrationOpen = tournament.mode === 'DUO' &&
     tournament.status === 'REGISTRATION_OPEN' && tournament.registrationMode !== 'ADMIN_ONLY';
-  const isSingleTable = tournament.groupMode !== 'MULTIPLE_GROUPS';
+  // A legacy MULTIPLE_GROUPS setting is not a real group stage when a league
+  // has zero created groups. The recorded results remain the league table.
+  const isLeagueTableFormat = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']
+    .includes(tournament.competitionFormat ?? '');
+  const isSingleTable = tournament.groupMode !== 'MULTIPLE_GROUPS'
+    || (isLeagueTableFormat && !supportError && groups.length === 0);
   const hasKnockoutStage = ['GROUP_STAGE_KNOCKOUT', 'SINGLE_ELIMINATION', 'ELITE_CUP', 'UCL_CUP'].includes(tournament.competitionFormat ?? '');
 
   return (

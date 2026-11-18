@@ -70,7 +70,7 @@ test('seed example bracket traces each winner through the real 4/8/16 round size
   }
   assert.deepEqual(sampleSeededKnockoutRounds(6), []);
   assert.match(sampleSeededKnockoutRounds(8)[1].matches[0], /winner QF1 vs winner QF2/);
-  assert.match(sampleSeededKnockoutRounds(16)[1].matches[0], /winner R161 vs winner R162/);
+  assert.match(sampleSeededKnockoutRounds(16)[1].matches[0], /winner R16-1 vs winner R16-2/);
 });
 
 test('matchday guidance is state-specific and never asserts unverified results', () => {

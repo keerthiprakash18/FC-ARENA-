@@ -4,8 +4,8 @@ import { TournamentRegistrationSummary } from '@/components/tournaments/registra
 
 import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 
-import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
-import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
+import { TournamentFormatOverview } from '@/components/tournaments/tournament-format-overview';
+import { LeaguePlayoffSetup } from '@/components/tournaments/league-playoff-setup';
 import { PlayerProgress } from "@/components/tournaments/player-progress";
 import { confirmNamedDeletion } from "@/components/fc/confirmation-provider";
 import Link from "next/link";
@@ -49,8 +49,11 @@ interface Tournament extends EntryLimitTournament {
   mode: string;
   format: string;
   competitionFormat?: string;
-  formatGuide?: TournamentFormatDescription | null;
   groupMode?: string;
+  playoffSource?: string | null;
+  playoffQualifiersTotal?: number | null;
+  qualifiersPerGroup?: number | null;
+  playoffFormat?: string | null;
   status: string;
   registrationMode: string;
   visibility: string;
@@ -63,6 +66,7 @@ interface Tournament extends EntryLimitTournament {
   endAt?: string | null;
   isLeagueAdmin: boolean;
   canManageSettings?: boolean;
+  canManageFixtures?: boolean;
 
   league: {
     id: string;
@@ -234,6 +238,12 @@ export default function TournamentOverviewPage() {
     tournament.competitionFormat, tournament.groupMode, groups.length,
   );
   const hasKnockoutStage = formatHasKnockoutStage(tournament.competitionFormat);
+  const canConvertToLeaguePlayoffs = !supportError
+    && groups.length === 0
+    && fixtures.some(fixture => fixture !== null)
+    && ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat ?? '')
+    && ['DRAFT', 'REGISTRATION_CLOSED', 'ACTIVE'].includes(tournament.status)
+    && Boolean(tournament.canManageSettings && tournament.canManageFixtures);
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
@@ -270,7 +280,22 @@ export default function TournamentOverviewPage() {
         <TournamentNavigation tournamentId={tournamentId} />
         <TournamentRegistrationSummary tournament={tournament} />
         {supportError ? <div role="status" className="theme-panel rounded-xl border p-4 text-sm">{supportError} <button type="button" className="font-bold underline" onClick={initialLoad.retry}>Retry details</button></div> : null}
-        <TournamentFormatGuide guide={tournament.formatGuide} />
+        <TournamentFormatOverview
+          tournament={tournament}
+          groupCount={supportError ? null : groups.length}
+          tournamentId={tournamentId}
+        />
+        {canConvertToLeaguePlayoffs ? (
+          <LeaguePlayoffSetup
+            tournamentId={tournamentId}
+            tournamentName={tournament.name}
+            approvedEntries={tournament.approvedEntries}
+            onSaved={async () => {
+              const refreshed = await authenticatedRequest<{ data: { tournament: Tournament } }>(`/tournaments/${tournamentId}`);
+              setTournament(refreshed.data.tournament);
+            }}
+          />
+        ) : null}
         <PlayerProgress tournamentId={tournamentId} />
 
         <FcNotice tone="error">{deleteError}</FcNotice>

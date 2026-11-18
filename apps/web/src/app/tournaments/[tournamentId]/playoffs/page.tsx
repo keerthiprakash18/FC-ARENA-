@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { PlayoffBracket } from '@/components/tournaments/playoff-bracket';
 import { SavedPlayoffExplanation } from '@/components/tournaments/saved-playoff-explanation';
+import { LeaguePlayoffSetup } from '@/components/tournaments/league-playoff-setup';
 
 import {
   useParams,
@@ -750,6 +751,13 @@ export default function PlayoffsPage() {
   const roundOf16 = usesRoundOf16(tournament);
   const format = roundOf16 ? roundOf16Format : formatCopy[tournament.playoffFormat];
   const hasKnockoutStage = includesPlayoffStage(tournament.competitionFormat);
+  const isSingleTablePlayoffs = tournament.competitionFormat === 'GROUP_STAGE_KNOCKOUT' &&
+    tournament.groupMode === 'SINGLE_GROUP' &&
+    tournament.playoffSource === 'OVERALL_STANDINGS' && groupCount === 0;
+  const canEditPlayoffSettings = isSingleTablePlayoffs &&
+    tournament.canManageSettings && tournament.canManageFixtures &&
+    ['DRAFT', 'REGISTRATION_CLOSED', 'ACTIVE'].includes(tournament.status) &&
+    stageFixtures.length > 0 && playoffFixtures.length === 0;
   const canApplyRoundOf16 = !roundOf16 && tournament.canManageSettings && tournament.canManageFixtures &&
     tournament.competitionFormat === "GROUP_STAGE_KNOCKOUT" && tournament.legType === "SINGLE_LEG" &&
     ["DRAFT", "REGISTRATION_CLOSED", "ACTIVE"].includes(tournament.status) &&
@@ -913,6 +921,32 @@ export default function PlayoffsPage() {
           stageIncomplete={incompleteStageFixtures}
           bracketFixtures={playoffFixtures.length}
         />
+
+        {canEditPlayoffSettings ? (
+          <LeaguePlayoffSetup
+            mode="edit"
+            tournamentId={tournamentId}
+            tournamentName={tournament.name}
+            approvedEntries={tournament.approvedEntries}
+            savedQualifiers={tournament.playoffQualifiersTotal}
+            savedFormat={tournament.playoffFormat}
+            onSaved={async () => {
+              const response = await authenticatedRequest<{ data: { tournament: Tournament } }>(
+                `/tournaments/${tournamentId}`,
+              );
+              setTournament(response.data.tournament);
+              await loadFixtures();
+            }}
+          />
+        ) : isSingleTablePlayoffs && tournament.canManageSettings &&
+          tournament.canManageFixtures && playoffFixtures.length > 0 ? (
+          <section aria-label="Playoff edit protection" className="theme-panel rounded-2xl border p-4 text-sm">
+            <strong>🔒 Playoff format locked</strong>
+            <p className="mt-1 text-slate-400">A playoff bracket has already been generated.
+              Changing the qualifier count or format here could invalidate official fixture links,
+              so editing is disabled. Existing match results remain protected.</p>
+          </section>
+        ) : null}
 
         <FcNotice>
           {

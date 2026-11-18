@@ -10,6 +10,7 @@ import {
 
 import Link from "next/link";
 import { PlayoffBracket } from '@/components/tournaments/playoff-bracket';
+import { SavedPlayoffExplanation } from '@/components/tournaments/saved-playoff-explanation';
 
 import {
   useParams,
@@ -904,6 +905,14 @@ export default function PlayoffsPage() {
             </Link>
           </div>
         </PremiumHero>
+
+        <SavedPlayoffExplanation
+          tournament={tournament}
+          tournamentId={tournamentId}
+          stageTotal={stageFixtures.length}
+          stageIncomplete={incompleteStageFixtures}
+          bracketFixtures={playoffFixtures.length}
+        />
 
         <FcNotice>
           {

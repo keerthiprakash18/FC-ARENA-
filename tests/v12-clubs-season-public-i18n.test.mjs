@@ -55,7 +55,7 @@ test('Spectator data reuses visibility-filtered API and never publishes unverifi
   assert.match(matchPage,/apiRequest/);
   assert.match(matchPage,/\/public\/tournaments\//);
   assert.match(matchPage,/result/);
-  assert.match(matchPage,/scores are not published until approval/);
+  assert.match(matchPage,/t\('awaitingResult'\)/);
   assert.doesNotMatch(matchPage,/authenticatedRequest|getCurrentUser/);
   assert.match(src('apps/web/src/app/public/tournaments/[code]/page.tsx'),/\/watch\//);
 });
@@ -78,7 +78,9 @@ test('V12 CSS is structurally consolidated into one ordered product bundle witho
     cursor=i+block.length;
   }
   const layout=src('apps/web/src/app/layout.tsx');
-  const imports=[...layout.matchAll(/import '\\.\\/([^']+\\.css)';/g)].map(m=>m[1]);
+  const imports=layout.split('\n').map(line=>line.trim())
+    .filter(line=>line.startsWith("import './") && line.endsWith(".css';"))
+    .map(line=>line.slice("import './".length,-"';".length));
   assert.deepEqual(imports,['globals.css','design-tokens.css','arena-consolidated.css']);
 });
 
@@ -88,7 +90,7 @@ test('All new V12 product screens have the Tamil interface translation hook',()=
     'apps/web/src/app/career/season-recaps/page.tsx','apps/web/src/app/watch/[code]/page.tsx',
   ]) {
     assert.match(src(page),/useArenaLocale/);
-    assert.match(src(page),/t\\('/);
+    assert.ok(src(page).includes("t('"));
   }
   assert.equal(translate('ta','clubRoster'),'கிளப் வீரர்கள்');
   assert.equal(translate('ta','seasonEvidence').includes('Golden Boot'),true);

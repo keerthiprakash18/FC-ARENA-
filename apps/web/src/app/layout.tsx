@@ -19,19 +19,20 @@ import { AppRefreshProvider } from '@/components/app/app-refresh';
 import { WebVitalsReporter } from '@/components/telemetry/web-vitals-reporter';
 import './globals.css';
 import './design-tokens.css';
-import './modernization.css';
-import './ux-polish.css';
-import './interactions.css';
-import './release-consistency.css';
-import './premium-redesign.css';
-import './player-community.css';
-import './daily-rewards.css';
-import './competition-clarity.css';
-import './native-android.css';
-import './vnext-interaction-system.css';
-import './vnext-visual-polish.css';
-import './arena-design.css';
-import './arena-premium-foundations.css';
+import './arena-consolidated.css';
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const metadata: Metadata = {
   metadataBase:

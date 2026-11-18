@@ -56,6 +56,8 @@ interface Tournament extends EntryLimitTournament {
   status: string;
   fixturesGeneratedAt: string | null;
   competitionFormat: string;
+  groupMode: string;
+  playoffSource: string;
   legType: string;
 
   dailyMatchLimit: number;
@@ -365,8 +367,11 @@ export default function TournamentFixturesPage() {
 
   // A round-robin can also have genuinely configured groups; suppress
   // group labels only when there are no actual tournament groups.
-  const isLeagueTable = isRoundRobinLeague(tournament?.competitionFormat)
-    && groups.length === 0;
+  const isLeagueTable = groups.length === 0 &&
+    (isRoundRobinLeague(tournament?.competitionFormat)
+      || (tournament?.competitionFormat === 'GROUP_STAGE_KNOCKOUT'
+        && tournament?.groupMode === 'SINGLE_GROUP'
+        && tournament?.playoffSource === 'OVERALL_STANDINGS'));
 
   const filteredByGroup =
     useMemo(

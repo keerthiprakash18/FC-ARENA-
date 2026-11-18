@@ -292,6 +292,33 @@ export default function TournamentOverviewPage() {
             }}
           />
         ) : null}
+        <section aria-label="Tournament awards and Duo honours" className="theme-panel rounded-2xl border p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-amber-300">Awards &amp; Honours</p>
+              <h2 className="mt-1 text-lg font-black">{tournament.mode === 'DUO' ? 'DUO Player + Team Awards' : tournament.mode === 'TEAM' ? 'Team Awards' : 'Player Awards'}</h2>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-slate-400">
+                {tournament.status === 'COMPLETED'
+                  ? 'Official winners are published. See the awards page, plus the saved team trophy archive in Tournament Summary.'
+                  : 'Live award races are provisional. Golden Boot, defensive honours and the champion are finalised only after verified matches and the official final.'}
+              </p>
+            </div>
+            <span className="rounded-full border border-amber-400/25 px-3 py-1 text-xs font-bold text-amber-200">
+              {tournament.status === 'COMPLETED' ? 'OFFICIAL' : 'LIVE / PROVISIONAL'}
+            </span>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link href={`/tournaments/${tournamentId}/achievements`} className="theme-primary-button inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold">
+              View Tournament Awards →
+            </Link>
+            {(tournament.mode === 'DUO' || tournament.mode === 'TEAM') ? (
+              <Link href={`/tournaments/${tournamentId}/summary#team-honours`} className="theme-secondary-button inline-flex min-h-10 items-center rounded-xl px-4 text-sm font-bold">
+                {tournament.status === 'COMPLETED' ? 'Official Team Trophy Archive →' : 'Where Team Trophies Appear →'}
+              </Link>
+            ) : null}
+          </div>
+        </section>
+
         <PlayerProgress tournamentId={tournamentId} />
 
         <FcNotice tone="error">{deleteError}</FcNotice>

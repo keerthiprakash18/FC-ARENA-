@@ -2,6 +2,7 @@
 import { TournamentRegistrationSummary } from '@/components/tournaments/registration-summary';
 
 import { PlayerOnboarding } from "@/components/fc/player-onboarding";
+import { getMatchdayGuidance, type MatchdayState } from "@/lib/matchday-guidance";
 import Link from "next/link";
 import { useActiveLeague } from '@/lib/active-league';
 import { useRecoverableLoad } from '@/lib/use-recoverable-load';
@@ -183,7 +184,7 @@ interface DashboardFixture extends Fixture {
 
 type DashboardSection = "nextMatch" | "league" | "activeTournament" | "stats" | "quickActions" | "activity";
 
-type NextFixtureKind = "LIVE" | "TODAY" | "UPCOMING" | "POSTPONED" | "UNSCHEDULED" | "PENDING";
+type NextFixtureKind = MatchdayState;
 
 const fixtureHeadings: Record<NextFixtureKind, string> = {
   LIVE: "Live Match",
@@ -607,6 +608,7 @@ export default function DashboardPage() {
   const nextFixtureKind = nextFixture
     ? fixtureKind(nextFixture, nowMs)
     : null;
+  const matchdayGuidance = nextFixtureKind ? getMatchdayGuidance(nextFixtureKind) : null;
 
   const activeTournamentNextFixture = useMemo(() => {
     if (!activeTournament) {
@@ -866,6 +868,19 @@ export default function DashboardPage() {
                       {nextFixtureKind === "LIVE" ? "Open Live Match →" : "View Match →"}
                     </Link>
                   </div>
+                  {matchdayGuidance ? (
+                    <div className="mt-3 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-3 sm:p-4" aria-label="Your matchday next action">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold uppercase tracking-wider text-[var(--theme-text-secondary)]">Your next action</p>
+                        <h3 className="mt-1 text-sm font-bold text-[var(--theme-text)]">{matchdayGuidance.heading}</h3>
+                        <p className="mt-1 text-sm leading-5 text-[var(--theme-text-secondary)]">{matchdayGuidance.description}</p>
+                      </div>
+                      <Link href={nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${nextFixture.tournamentId}/fixtures`}
+                        className="theme-secondary-button inline-flex min-h-11 shrink-0 items-center rounded-xl border px-3 text-sm font-semibold">
+                        {matchdayGuidance.actionLabel} →
+                      </Link>
+                    </div>
+                  ) : null}
                 </>
               ) : null}
             </FcPanel>

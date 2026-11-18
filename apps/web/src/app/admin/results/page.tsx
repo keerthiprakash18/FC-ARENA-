@@ -254,7 +254,11 @@ export default function AdminResultsPage() {
           }
         />
         <AdminNavigation />
-        <FcPanel className="grid gap-4 p-4 sm:grid-cols-3">
+        <details className="theme-panel rounded-2xl border p-4" open={filtersApplied}>
+          <summary className="cursor-pointer text-sm font-bold">
+            Review filters {filtersApplied ? '· Custom selection' : '· Pending results'}
+          </summary>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-3">
             <h2 className="theme-text font-semibold">Queue filters</h2>
             {filtersApplied && (
@@ -332,7 +336,8 @@ export default function AdminResultsPage() {
                 ))}
             </select>
           </label>
-        </FcPanel>
+        </div>
+        </details>
         {notice ? (
           <p role="status" className="theme-muted text-sm">
             {notice}

@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { seededOpeningPairs } from '@/lib/playoff-flow-data';
 import type { PlayoffGuide, PlayoffGuideInput } from '@/lib/saved-playoff-explainer';
 
 /**
@@ -6,15 +7,6 @@ import type { PlayoffGuide, PlayoffGuideInput } from '@/lib/saved-playoff-explai
  * Do not pass live entrants: only a generated official bracket can show
  * real pairings. Keep this separate from the live PlayoffBracket component.
  */
-export function seededOpeningPairs(count: number): Array<[number, number]> {
-  if (![4, 8, 16].includes(count)) return [];
-  let branches = [1];
-  for (let size = 2; size <= count / 2; size *= 2) {
-    branches = branches.flatMap(seed => [seed, size + 1 - seed]);
-  }
-  return branches.map(seed => [seed, count + 1 - seed]);
-}
-
 function FlowNode({ eyebrow, title, detail, accent = 'sky' }: {
   eyebrow: string;
   title: string;

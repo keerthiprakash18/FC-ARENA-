@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
 import { FcCrest, FcPanel } from '@/components/fc/fc-ui';
 import { authenticatedRequest } from '@/lib/auth-client';
+import { useArenaLocale } from '@/lib/locale';
 
 interface ClubDetails {
   id: string; slug: string; name: string; description: string | null; ownerUserId: string;
@@ -23,6 +24,7 @@ interface Linkable { id: string; entryName: string; tournamentName: string; mode
 
 export default function ClubProfilePage() {
   const { slug } = useParams<{ slug: string }>();
+  const { t } = useArenaLocale();
   const [club, setClub] = useState<ClubDetails | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [choices, setChoices] = useState<Linkable[]>([]);
@@ -73,7 +75,7 @@ export default function ClubProfilePage() {
     finally { setBusy(false); }
   }
 
-  return <SecondaryFeaturePage title={club?.name || 'Club Profile'} eyebrow="FC ARENA Club" backHref="/clubs" backLabel="Clubs"
+  return <SecondaryFeaturePage title={club?.name || t('clubs')} eyebrow="FC ARENA Club" backHref="/clubs" backLabel="Clubs"
     subtitle="Verified club identity · members · linked official tournament entries">
     {error ? <p role="alert" className="rounded-xl border border-[var(--theme-danger)] p-3 text-sm text-[var(--theme-danger)]">{error}</p> : null}
     {notice ? <p role="status" className="rounded-xl border border-[var(--theme-border)] p-3 text-sm text-[var(--theme-success)]">{notice}</p> : null}

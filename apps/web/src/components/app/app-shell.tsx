@@ -1,7 +1,6 @@
 'use client';
 
 import { useLeagueRole } from '@/lib/use-league-role';
-import { useArenaLocale, menuTranslationKey } from '@/lib/locale';
 
 import { PushSync } from '@/components/notifications/phone-push';
 import { PullToRefresh } from '@/components/app/app-refresh';
@@ -570,7 +569,6 @@ export function AppShell({
   currentUser,
 }: AppShellProps) {
   const leagueRole = useLeagueRole(currentUser, playerRole);
-  const { t } = useArenaLocale();
   const pathname =
     usePathname();
 
@@ -741,7 +739,7 @@ export function AppShell({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           <p className="theme-sidebar-label px-1 text-[11px] font-semibold uppercase tracking-[0.06em]">
-            {t('dashboard')}
+            Main
           </p>
 
           <nav className="mt-3 space-y-2">
@@ -757,7 +755,7 @@ export function AppShell({
                     item.href
                   }
                   label={
-                    menuTranslationKey(item.href) ? t(menuTranslationKey(item.href)!) : item.shortLabel
+                    item.shortLabel
                   }
                   icon={
                     mainIconForHref(
@@ -778,7 +776,7 @@ export function AppShell({
 
 
           <p className="theme-sidebar-label px-1 text-[11px] font-semibold uppercase tracking-[0.06em]">
-            {t('quickActions')}
+            Quick Actions
           </p>
 
           <div className="mt-3 space-y-2">
@@ -795,7 +793,7 @@ export function AppShell({
                     item.href
                   }
                   label={
-                    menuTranslationKey(item.href) ? t(menuTranslationKey(item.href)!) : item.label
+                    item.label
                   }
                   icon={
                     item.icon
@@ -868,8 +866,8 @@ export function AppShell({
             />
 
             {loggingOut
-              ? t('signingOut')
-              : t('signOut')}
+              ? 'Signing out...'
+              : 'Sign Out'}
           </button>
 
 

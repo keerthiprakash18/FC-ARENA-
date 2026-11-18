@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useArenaLocale, menuTranslationKey } from '@/lib/locale';
 import {
   FcIcon,
 } from '@/components/fc/fc-icons';
@@ -15,7 +14,6 @@ export function BottomNavigation({
 }: {
   active: string;
 }) {
-  const { t } = useArenaLocale();
   return (
     <nav
       className="theme-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t px-1 pb-[env(safe-area-inset-bottom)] lg:hidden"
@@ -64,7 +62,7 @@ export function BottomNavigation({
 
                 <span className="max-w-full truncate text-[11px] leading-tight">
                   {
-                    menuTranslationKey(item.href) ? t(menuTranslationKey(item.href)!) : item.shortLabel
+                    item.shortLabel
                   }
                 </span>
               </Link>

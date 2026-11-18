@@ -128,7 +128,7 @@ export default async function RootLayout({
           : 'light';
 
         document.documentElement.dataset.mode = mode;
-        document.documentElement.lang = localStorage.getItem('fc-arena-locale-v1') === 'ta' ? 'ta' : 'en';
+
 
       } catch (_) {
         document.documentElement.dataset.theme = 'luxury-gold';

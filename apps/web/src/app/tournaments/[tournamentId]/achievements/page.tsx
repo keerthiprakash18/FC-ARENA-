@@ -596,10 +596,16 @@ export default function AchievementsPage() {
                 Champion, player honours and, for DUO/TEAM tournaments, separate official Team Golden Boot
                 and Team Defensive Record are available after finalisation.
               </p>
-              <Link href={`/tournaments/${params.tournamentId}/summary#team-honours`}
-                className="mt-2 inline-block text-sm font-bold text-amber-300 underline underline-offset-4">
-                {isCompleted ? 'Open Official Team Trophy Archive →' : 'Where team trophies will be published →'}
-              </Link>
+              {isCompleted && (data.tournament.mode === 'DUO' || data.tournament.mode === 'TEAM') ? (
+                <Link href={`/tournaments/${params.tournamentId}/summary#team-honours`}
+                  className="mt-2 inline-block text-sm font-bold text-amber-300 underline underline-offset-4">
+                  Open Official Team Trophy Archive →
+                </Link>
+              ) : (
+                <span className="mt-2 block text-xs font-semibold text-amber-300">
+                  {isCompleted ? 'See Final Honours below.' : 'Team trophy archive unlocks after completion.'}
+                </span>
+              )}
             </div>
           </div>
           {!isCompleted ? <p className="mt-3 text-xs text-slate-400">Official awards are locked until all required stage and playoff results are verified. Do not use provisional standings as trophy winners.</p> : null}

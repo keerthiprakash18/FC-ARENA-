@@ -228,6 +228,7 @@ export default function TournamentOverviewPage() {
       : 0;
   const duoRegistrationOpen = tournament.mode === 'DUO' &&
     tournament.status === 'REGISTRATION_OPEN' && tournament.registrationMode !== 'ADMIN_ONLY';
+  const isSingleTable = tournament.groupMode !== 'MULTIPLE_GROUPS';
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
@@ -370,13 +371,9 @@ export default function TournamentOverviewPage() {
           />
 
           <FcStatCard
-            label="Groups"
-            value={supportError ? "—" : groups.length}
-            detail={
-              tournament.groupMode
-                ? competitionLabel(tournament.groupMode)
-                : "Single table"
-            }
+            label={isSingleTable ? "League table" : "Groups"}
+            value={supportError ? "—" : isSingleTable ? "Single" : groups.length}
+            detail={isSingleTable ? "One table · no group balancing" : competitionLabel(tournament.groupMode ?? "MULTIPLE_GROUPS")}
             tone="amber"
           />
 
@@ -418,8 +415,8 @@ export default function TournamentOverviewPage() {
               `/tournaments/${tournamentId}/teams`,
             ],
             [
-              "Groups",
-              "Group structure and assignments",
+              isSingleTable ? "League Teams" : "Groups",
+              isSingleTable ? "Approved teams · single table" : "Group structure and assignments",
               `/tournaments/${tournamentId}/groups`,
             ],
             [
@@ -427,11 +424,11 @@ export default function TournamentOverviewPage() {
               "Live tables from confirmed results",
               `/tournaments/${tournamentId}/standings`,
             ],
-            [
+            ...(!isSingleTable ? [[
               "Bracket",
               "Knockout qualification and progression",
               `/tournaments/${tournamentId}/playoffs`,
-            ],
+            ]] : []),
             [
               "Summary",
               tournament.status === "COMPLETED"

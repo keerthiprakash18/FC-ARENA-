@@ -2,6 +2,7 @@
 
 import { useCareerData, careerHref, type CareerScopeData } from '@/lib/career-scope';
 import { CareerLeagueFilter } from '@/components/career/career-league-filter';
+import { ShareCard } from '@/components/fc/share-card';
 
 import Link from 'next/link';
 
@@ -181,6 +182,35 @@ export default function CareerPage() {
             detail={`${stats.tournaments} tournaments`}
             tone="slate"
           />
+        </section>
+
+        <section aria-label="Verified career snapshot" className="relative overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 sm:p-6">
+          <div className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-[var(--theme-primary-soft)] opacity-40" aria-hidden="true" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-widest text-[var(--theme-text-secondary)]">FC ARENA · verified performance</p>
+              <h2 className="mt-1 text-2xl font-bold text-[var(--theme-text)]">{leagueId ? 'League Career Snapshot' : 'Career Snapshot'}</h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--theme-text-secondary)]">
+                {leagueId ? 'Statistics for the selected league.' : 'Your verified overall career totals.'} Share your current achievements with your community.
+              </p>
+            </div>
+            <ShareCard
+              label="Share my career card"
+              title={`${ign} · Career`}
+              filename="fc-arena-career-snapshot"
+              lines={[
+                leagueId ? 'Selected league career' : 'Verified overall career',
+                `Matches: ${stats.matches}`,
+                `Wins: ${stats.wins} · Draws: ${stats.draws}`,
+                `Goals: ${stats.goalsFor} · GD: ${stats.goalDifference > 0 ? '+' : ''}${stats.goalDifference}`,
+                `Win rate: ${stats.winRate}%`,
+                `Tournaments: ${stats.tournaments} · Achievements: ${stats.achievements}`,
+              ]}
+            />
+          </div>
+          <p className="relative mt-3 text-xs text-[var(--theme-text-secondary)]">
+            This is a career snapshot, not a dated season recap or an official award certificate.
+          </p>
         </section>
 
         <FcPanel className="p-5">

@@ -53,9 +53,11 @@ test('shows Double-Chance as partial rescue for elite seeds, not full double eli
 
 test('awards are discoverable from both global and tournament pages', () => {
   const global = content('apps/web/src/app/awards/page.tsx');
+  const more = content('apps/web/src/app/more/page.tsx');
   const tournament = content('apps/web/src/app/tournaments/[tournamentId]/page.tsx');
   const awards = content('apps/web/src/app/tournaments/[tournamentId]/achievements/page.tsx');
   const summary = content('apps/web/src/app/tournaments/[tournamentId]/summary/page.tsx');
+  assert.match(more, /href="\/awards" icon="🏆" title="Awards & DUO\/TEAM Honours"/);
   assert.match(global, /Where are my awards/);
   assert.match(global, /Choose Tournament/);
   assert.match(global, /Team Trophy Archive/);

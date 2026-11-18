@@ -14,15 +14,15 @@ test('personal player stats are clearly separate from official tournament standi
   assert.match(page, /id="my-player-stats-heading"[^>]*>My Player Statistics</);
   assert.match(page, /aria-label="Your personal competition statistics"/);
   assert.match(page, /individual match statistics/);
-  assert.match(page, /Team totals in the official standings below may differ/);
+  assert.match(page, /Team totals in the official standings above may differ/);
   assert.match(page, /tournament\.mode === 'DUO' \|\| tournament\.mode === 'TEAM'/);
   assert.match(page, /eyebrow = 'Official Tournament Standings'/);
   assert.equal((page.match(/eyebrow="Official Tournament Standings"/g) ?? []).length, 2);
 });
 
 test('standings explicitly explain GD, points, and ranking without changing scoring', () => {
-  assert.match(page, /Points determine rank first\. GD = GF/);
-  assert.match(page, /Win = 3 pts, draw = 1, loss = 0/);
+  assert.match(page, /Official standings · sorted by points \(PTS\)/);
+  assert.match(page, /Win 3 · Draw 1 · Loss 0/);
   assert.match(page, /title="Goal difference = goals for minus goals against"/);
   assert.match(page, /title="Points: win 3, draw 1, loss 0"/);
   assert.match(scoring, /goalDifference: goalsFor - goalsAgainst/);
@@ -120,4 +120,16 @@ test('league champion rule changes only after explicit admin bracket and qualifi
   assert.match(leaguePlayoffSetup, /confirmation: confirmation\.trim\(\)/);
   assert.match(leaguePlayoffSetup, /Type the exact tournament name/);
   assert.match(leaguePlayoffSetup, /does not generate or reset fixtures/);
+});
+
+
+test('official points table is primary, format appears only on tournament overview', () => {
+  const standingsTable = page.indexOf('title="Overall Standings"');
+  const personalStatistics = page.indexOf('aria-label="Optional personal player statistics"');
+  assert.ok(standingsTable !== -1 && personalStatistics > standingsTable);
+  assert.doesNotMatch(page, /<TournamentFormatGuide/);
+  assert.doesNotMatch(fixturePage, /<TournamentFormatGuide/);
+  assert.match(tournamentOverview, /<TournamentFormatOverview/);
+  assert.match(page, /aria-label={\`\$\{row\.points\} points\`\}/);
+  assert.match(page, /bg-sky-400\/\[0\.08\].*tabular-nums/);
 });

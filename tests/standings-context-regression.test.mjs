@@ -74,6 +74,6 @@ test('league-only fixtures use table terminology without a misleading group filt
 test('single-table tournament overview does not mislabel a league as zero groups or show knockout bracket link', () => {
   assert.match(tournamentOverview, /const isSingleTable = tournament\.groupMode !== 'MULTIPLE_GROUPS'/);
   assert.match(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
-  assert.match(tournamentOverview, /!isSingleTable \? \[\[/);
+  assert.match(tournamentOverview, /hasKnockoutStage \? \[\[/);
   assert.match(tournamentOverview, /isSingleTable \? "League Teams" : "Groups"/);
 });

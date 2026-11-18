@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { authenticatedRequest } from '@/lib/auth-client';
+import { describeSavedPlayoffs } from '@/lib/saved-playoff-explainer';
 
 /**
  * Admin-only, explicit format choice. Never convert an active tournament on
@@ -90,6 +91,25 @@ export function LeaguePlayoffSetup({
               <option value="DOUBLE_CHANCE">Double-Chance Playoffs</option>
             </select>
           </label>
+          {options.includes(Number(count)) && bracket ? (() => {
+            const guide = describeSavedPlayoffs({
+              competitionFormat: 'GROUP_STAGE_KNOCKOUT',
+              playoffSource: 'OVERALL_STANDINGS',
+              playoffQualifiersTotal: Number(count),
+              playoffFormat: bracket,
+              approvedEntries,
+              playoffSeedingBasis: 'OVERALL_PERFORMANCE',
+            });
+            return (
+              <div aria-label="Your selected playoff format preview" className="rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-4 sm:col-span-2">
+                <p className="text-xs font-black uppercase tracking-widest text-amber-300">Before you save · what happens next?</p>
+                <h3 className="mt-2 text-lg font-bold">Top {count} → {guide.formatName}</h3>
+                <p className="mt-2 text-sm leading-6">{guide.mechanism}</p>
+                <p className="mt-2 text-sm font-semibold text-emerald-300">{guide.winnerRule}</p>
+                <p className="mt-2 text-xs text-slate-400">{guide.reminder}</p>
+              </div>
+            );
+          })() : null}
           <div className="sm:col-span-2">
             <p className="text-xs leading-5 text-amber-500">
               This changes the official championship rule. It does not generate or reset fixtures.

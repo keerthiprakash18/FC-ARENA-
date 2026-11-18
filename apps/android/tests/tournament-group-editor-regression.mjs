@@ -22,6 +22,9 @@ try {
     const original = structuredClone(state), plans = [], saved = [];
     const f = await createUiContext(browser, { width, native: width < 700, direct: true, mode, overrides: {
       '/api/tournaments/phase3': { tournament: { ...tournament, ...state.tournament, isLeagueAdmin: true, canManageAdmins: false } },
+       '/api/tournaments/phase3/groups': (r, h) => ok(r, h, { groups: state.groups.map(({ id, name, position }) => ({ id, name, position })) }),
+       '/api/tournaments/fresh': { tournament: { ...tournament, ...state.tournament, id: 'fresh', isLeagueAdmin: true, canManageAdmins: false } },
+       '/api/tournaments/fresh/groups': (r, h) => ok(r, h, { groups: state.groups.map(({ id, name, position }) => ({ id, name, position })) }),
       '/api/tournaments/phase3/registrations': { registrations: [] },
       '/api/tournaments/phase3/groups/editor': (r, h) => ok(r, h, { editor: state }),
       '/api/tournaments/fresh/groups/editor': (r, h) => ok(r, h, { editor: { ...state, tournament: { ...state.tournament, id: 'fresh', hasFixtures: false } } }),

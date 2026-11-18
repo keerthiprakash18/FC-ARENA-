@@ -7,6 +7,7 @@ export interface PlayoffGuideInput {
   playoffFormat?: string | null;
   playoffQualifiersTotal?: number | null;
   qualifiersPerGroup?: number | null;
+  groupCount?: number | null;
   approvedEntries?: number | null;
   playoffSeedingBasis?: string | null;
 }
@@ -36,11 +37,17 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
   const isDoubleChance = format === 'DOUBLE_CHANCE';
   const isUcl = competition === 'UCL_CUP';
   const isDirect = competition === 'SINGLE_ELIMINATION';
+  const isBestThird = source === 'GROUP_QUALIFIERS' && t.groupCount === 7 &&
+    t.qualifiersPerGroup === 2 && count === 16 && t.playoffSeedingBasis === 'RANDOM';
   const qualifierRule = isDirect
     ? 'All approved entries enter the knockout draw.'
+    : isUcl
+      ? 'UCL league-phase qualification follows the saved ranking bands and knockout regulations, including applicable two-leg ties.'
+    : isBestThird
+      ? 'The top 2 teams from each of 7 groups plus the best 2 third-place teams qualify for the Round of 16.'
     : source === 'GROUP_QUALIFIERS'
       ? `Teams advance from their groups${t.qualifiersPerGroup ? ` (top ${t.qualifiersPerGroup} from each group)` : ''}, subject to saved qualification rules.`
-      : source === 'OVERALL_STANDINGS' || league || isUcl
+      : source === 'OVERALL_STANDINGS' || league
         ? `After every league-stage match is verified, the top ${count ?? 'configured'} entries in the final overall standings qualify.`
         : 'Qualifiers are selected from the saved tournament qualification rules.';
   let rounds: string[] = [];
@@ -87,7 +94,9 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
     knockoutFixtureCount,
     formatName,
     mechanism,
-    winnerRule: 'League first place is NOT automatically champion: the verified knockout final winner is champion.',
+    winnerRule: isDirect
+      ? 'The winner of the verified knockout final is the tournament champion.'
+      : 'League first place is NOT automatically champion: the verified knockout final winner is champion.',
     reminder: 'This is a format explanation, not a live fixture draw. The actual teams, opponents and any byes appear only after the bracket is generated.',
     isLeaguePlayoffs: league,
   };

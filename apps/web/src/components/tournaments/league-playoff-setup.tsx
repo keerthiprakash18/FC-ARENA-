@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { authenticatedRequest } from '@/lib/auth-client';
 import { describeSavedPlayoffs } from '@/lib/saved-playoff-explainer';
+import { PlayoffFlowDiagram } from './playoff-flow-diagram';
 
 /**
  * Admin-only, explicit format choice. Never convert an active tournament on
@@ -101,21 +102,21 @@ export function LeaguePlayoffSetup({
             </select>
           </label>
           {options.includes(Number(count)) && bracket ? (() => {
-            const guide = describeSavedPlayoffs({
+            const previewSettings = {
               competitionFormat: 'GROUP_STAGE_KNOCKOUT',
               playoffSource: 'OVERALL_STANDINGS',
               playoffQualifiersTotal: Number(count),
               playoffFormat: bracket,
               approvedEntries,
               playoffSeedingBasis: 'OVERALL_PERFORMANCE',
-            });
+            };
+            const guide = describeSavedPlayoffs(previewSettings);
             return (
               <div aria-label="Your selected playoff format preview" className="rounded-xl border border-amber-400/20 bg-amber-400/[0.04] p-4 sm:col-span-2">
                 <p className="text-xs font-black uppercase tracking-widest text-amber-300">Before you save · what happens next?</p>
                 <h3 className="mt-2 text-lg font-bold">Top {count} → {guide.formatName}</h3>
-                <p className="mt-2 text-sm leading-6">{guide.mechanism}</p>
+                <div className="mt-3"><PlayoffFlowDiagram guide={guide} tournament={previewSettings} /></div>
                 <p className="mt-2 text-sm font-semibold text-emerald-300">{guide.winnerRule}</p>
-                <p className="mt-2 text-xs text-slate-400">{guide.reminder}</p>
               </div>
             );
           })() : null}

@@ -698,6 +698,15 @@ export class TournamentsController {
     return this.playoffsService.enableLeaguePlayoffs(request.user.sub, tournamentId, dto);
   }
 
+  @Patch('tournaments/:tournamentId/playoffs/league-settings')
+  updateLeaguePlayoffSettings(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: EnableLeaguePlayoffsDto,
+  ) {
+    return this.playoffsService.reconfigureLeaguePlayoffs(request.user.sub, tournamentId, dto);
+  }
+
   @Post('tournaments/:tournamentId/playoffs/best-third-round-of-16')
   applyBestThirdFormat(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string) {
     return this.playoffsService.applyBestThirdFormat(request.user.sub, tournamentId);

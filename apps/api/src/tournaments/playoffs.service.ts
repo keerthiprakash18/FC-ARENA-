@@ -120,6 +120,27 @@ export class PlayoffsService {
     tournamentId: string,
     dto: EnableLeaguePlayoffsDto,
   ) {
+    return this.changeLeaguePlayoffs(userId, tournamentId, dto, false);
+  }
+
+  /**
+   * Organizers may change a previously saved one-table playoff configuration.
+   * Never redraw or delete a published bracket, or mutate league fixtures.
+   */
+  async reconfigureLeaguePlayoffs(
+    userId: string,
+    tournamentId: string,
+    dto: EnableLeaguePlayoffsDto,
+  ) {
+    return this.changeLeaguePlayoffs(userId, tournamentId, dto, true);
+  }
+
+  private async changeLeaguePlayoffs(
+    userId: string,
+    tournamentId: string,
+    dto: EnableLeaguePlayoffsDto,
+    reconfigure: boolean,
+  ) {
     return this.prisma.$transactionWithRetry(async tx => {
       const tournament = await tx.tournament.findUnique({
         where: { id: tournamentId },
@@ -139,7 +160,14 @@ export class PlayoffsService {
       if (!['DRAFT', 'REGISTRATION_CLOSED', 'ACTIVE'].includes(tournament.status)) {
         fail('LEAGUE_PLAYOFFS_LOCKED', 'Completed or cancelled tournaments cannot change their winner format.');
       }
-      if (!['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat)) {
+      if (reconfigure) {
+        if (tournament.competitionFormat !== 'GROUP_STAGE_KNOCKOUT' ||
+            tournament.groupMode !== 'SINGLE_GROUP' ||
+            tournament.playoffSource !== 'OVERALL_STANDINGS' ||
+            tournament.playoffSeedingBasis !== 'OVERALL_PERFORMANCE') {
+          fail('LEAGUE_PLAYOFFS_FORMAT', 'Only a saved, one-table League + Playoffs configuration can be edited here.');
+        }
+      } else if (!['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat)) {
         fail('LEAGUE_PLAYOFFS_FORMAT', 'Only an existing single-table league can opt into League + Knockout.');
       }
 
@@ -157,7 +185,7 @@ export class PlayoffsService {
         fail('LEAGUE_PLAYOFFS_NO_STAGE', 'Publish the full league fixture schedule before enabling knockout qualification.');
       }
       if (existingPlayoffs !== 0) {
-        fail('LEAGUE_PLAYOFFS_EXISTS', 'A playoff bracket already exists. No automatic format change is allowed.');
+        fail('LEAGUE_PLAYOFFS_EXISTS', 'A playoff bracket already exists. To protect official fixture links, this format cannot be changed after the bracket is created.');
       }
       if (approved < dto.playoffQualifiersTotal) {
         fail('LEAGUE_PLAYOFFS_QUALIFIERS', `Only ${approved} teams are approved. Choose no more than ${approved} playoff qualifiers.`);
@@ -196,13 +224,13 @@ export class PlayoffsService {
             playoffQualifiersTotal: tournament.playoffQualifiersTotal,
             playoffFormat: tournament.playoffFormat,
           },
-          afterData: { ...after, approved, stageFixtures, existingPlayoffs },
+          afterData: { ...after, approved, stageFixtures, existingPlayoffs, reconfigure },
         },
       });
       return {
         success: true,
         data: {
-          message: `League + Knockout enabled. Top ${dto.playoffQualifiersTotal} qualify from the final league table. The champion is decided by the knockout final, not by first place in the league.`,
+          message: `${reconfigure ? 'League + Playoffs settings updated' : 'League + Knockout enabled'}. Top ${dto.playoffQualifiersTotal} qualify from the final league table. The champion is decided by the knockout final, not by first place in the league.`,
           playoffQualifiersTotal: dto.playoffQualifiersTotal,
           playoffFormat: dto.playoffFormat,
           stageFixturesPreserved: stageFixtures,

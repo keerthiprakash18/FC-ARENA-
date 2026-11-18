@@ -11,11 +11,15 @@ const tournament = {
 function createHarness(overrides: {
   status?: string; format?: string; groups?: number; playoffFixtures?: number;
   stageFixtures?: number; approvedEntries?: number;
+  groupMode?: string; source?: string; seeding?: string;
 } = {}) {
   const current = {
     ...tournament,
     status: overrides.status ?? tournament.status,
     competitionFormat: overrides.format ?? tournament.competitionFormat,
+    groupMode: overrides.groupMode ?? tournament.groupMode,
+    playoffSource: overrides.source ?? tournament.playoffSource,
+    playoffSeedingBasis: overrides.seeding ?? 'AUTO',
   };
   const tx = {
     tournament: {
@@ -99,6 +103,82 @@ describe('existing 20-team single-table league to top-N playoffs conversion', ()
     })).rejects.toMatchObject({
       response: { error: { code: 'TOURNAMENT_CONFIRMATION_MISMATCH' } },
     });
+    expect(tx.tournament.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('admin reconfiguration of an already selected League + Playoffs format', () => {
+  const configured = {
+    format: 'GROUP_STAGE_KNOCKOUT',
+    groupMode: 'SINGLE_GROUP',
+    source: 'OVERALL_STANDINGS',
+    seeding: 'OVERALL_PERFORMANCE',
+  };
+
+  it('changes only saved playoff rules, preserves 190 stage fixtures and writes an audit record', async () => {
+    const permission = vi.spyOn(AuthorizationService.prototype, 'assertCanManageTournamentPermission').mockResolvedValue(undefined);
+    const { service, tx } = createHarness(configured);
+    const response = await service.reconfigureLeaguePlayoffs('owner', tournament.id, {
+      playoffQualifiersTotal: 16,
+      playoffFormat: 'DOUBLE_CHANCE',
+      confirmation: tournament.name,
+    });
+    expect(response.data).toMatchObject({
+      playoffQualifiersTotal: 16,
+      playoffFormat: 'DOUBLE_CHANCE',
+      stageFixturesPreserved: 190,
+      existingResultsPreserved: true,
+      bracketCreated: false,
+    });
+    expect(response.data.message).toContain('settings updated');
+    expect(tx.tournament.update).toHaveBeenCalledWith({
+      where: { id: tournament.id },
+      data: expect.objectContaining({
+        competitionFormat: 'GROUP_STAGE_KNOCKOUT',
+        playoffSource: 'OVERALL_STANDINGS',
+        playoffQualifiersTotal: 16,
+        playoffFormat: 'DOUBLE_CHANCE',
+      }),
+    });
+    expect(tx.fixture.count).toHaveBeenCalledTimes(2);
+    expect(tx.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ action: 'PLAYOFF_FORMAT_UPDATED',
+        afterData: expect.objectContaining({ reconfigure: true }) }),
+    });
+    expect(permission).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [{ playoffFixtures: 1 }, 'LEAGUE_PLAYOFFS_EXISTS'],
+    [{ groups: 1 }, 'LEAGUE_PLAYOFFS_GROUPS'],
+    [{ approvedEntries: 4 }, 'LEAGUE_PLAYOFFS_QUALIFIERS'],
+    [{ stageFixtures: 0 }, 'LEAGUE_PLAYOFFS_NO_STAGE'],
+    [{ status: 'COMPLETED' }, 'LEAGUE_PLAYOFFS_LOCKED'],
+    [{ status: 'CANCELLED' }, 'LEAGUE_PLAYOFFS_LOCKED'],
+    [{ format: 'SINGLE_ELIMINATION' }, 'LEAGUE_PLAYOFFS_FORMAT'],
+    [{ source: 'GROUP_QUALIFIERS' }, 'LEAGUE_PLAYOFFS_FORMAT'],
+    [{ seeding: 'RANDOM' }, 'LEAGUE_PLAYOFFS_FORMAT'],
+  ] as const)('refuses unsafe changes with no writes (%s)', async (override, code) => {
+    vi.spyOn(AuthorizationService.prototype, 'assertCanManageTournamentPermission').mockResolvedValue(undefined);
+    const { service, tx } = createHarness({ ...configured, ...override });
+    await expect(service.reconfigureLeaguePlayoffs('owner', tournament.id, {
+      playoffQualifiersTotal: 8, playoffFormat: 'GLOBAL_SEEDED', confirmation: tournament.name,
+    })).rejects.toMatchObject({ response: { error: { code } } });
+    expect(tx.tournament.update).not.toHaveBeenCalled();
+    expect(tx.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  it('requires the exact tournament name and both organizer permissions', async () => {
+    const permission = vi.spyOn(AuthorizationService.prototype, 'assertCanManageTournamentPermission').mockResolvedValue(undefined);
+    const { service, tx } = createHarness(configured);
+    await expect(service.reconfigureLeaguePlayoffs('owner', tournament.id, {
+      playoffQualifiersTotal: 8, playoffFormat: 'PROTECTED_SEED', confirmation: 'wrong',
+    })).rejects.toMatchObject({ response: { error: { code: 'TOURNAMENT_CONFIRMATION_MISMATCH' } } });
+    expect(tx.tournament.update).not.toHaveBeenCalled();
+    permission.mockRejectedValueOnce(new Error('forbidden'));
+    await expect(service.reconfigureLeaguePlayoffs('viewer', tournament.id, {
+      playoffQualifiersTotal: 8, playoffFormat: 'PROTECTED_SEED', confirmation: tournament.name,
+    })).rejects.toThrow('forbidden');
     expect(tx.tournament.update).not.toHaveBeenCalled();
   });
 });

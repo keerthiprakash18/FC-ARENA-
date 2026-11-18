@@ -275,7 +275,7 @@ export default function TournamentOverviewPage() {
               } →
             </Link>
           }
-        ><div className="premium-hero-tags"><span>{competitionLabel(tournament.status)}</span><span>{competitionLabel(tournament.competitionFormat || tournament.format)}</span><span>{tournament.mode}</span><span>{tournament.registeredEntries ?? tournament.approvedEntries} registered · {tournament.pendingEntries ?? 0} pending</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div></PremiumHero>
+        ><div className="premium-hero-tags"><span>{competitionLabel(tournament.status)}</span><span>{tournament.competitionFormat === 'GROUP_STAGE_KNOCKOUT' && groups.length === 0 && tournament.playoffSource === 'OVERALL_STANDINGS' ? 'League + Playoffs' : competitionLabel(tournament.competitionFormat || tournament.format)}</span><span>{tournament.mode}</span><span>{tournament.registeredEntries ?? tournament.approvedEntries} registered · {tournament.pendingEntries ?? 0} pending</span>{tournament.startAt ? <span>{new Date(tournament.startAt).toLocaleDateString()}</span> : null}</div></PremiumHero>
 
         <TournamentNavigation tournamentId={tournamentId} />
         <TournamentRegistrationSummary tournament={tournament} />

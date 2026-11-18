@@ -13,6 +13,7 @@ interface Props {
 interface NavigationContext {
   tournamentId: string;
   competitionFormat: string;
+  playoffSource: string;
   groupCount: number;
 }
 
@@ -42,7 +43,7 @@ export function TournamentNavigation({ tournamentId }: Props) {
     // The stored groupMode can say MULTIPLE_GROUPS on an older single-table
     // tournament. Only actual configured groups determine if Groups applies.
     void Promise.all([
-      authenticatedRequest<{ data: { tournament: { competitionFormat: string } } }>(
+      authenticatedRequest<{ data: { tournament: { competitionFormat: string; playoffSource: string } } }>(
         `/tournaments/${tournamentId}`, { signal: controller.signal },
       ),
       authenticatedRequest<{ data: { groups: Array<{ id: string }> } }>(
@@ -53,6 +54,7 @@ export function TournamentNavigation({ tournamentId }: Props) {
         setContext({
           tournamentId,
           competitionFormat: tournamentResponse.data.tournament.competitionFormat,
+          playoffSource: tournamentResponse.data.tournament.playoffSource,
           groupCount: groupResponse.data.groups.length,
         });
       }
@@ -65,7 +67,8 @@ export function TournamentNavigation({ tournamentId }: Props) {
 
   const current = context?.tournamentId === tournamentId ? context : null;
   const isLeagueWithoutGroups = Boolean(current
-    && isRoundRobinLeague(current.competitionFormat) && current.groupCount === 0);
+    && current.groupCount === 0
+    && (isRoundRobinLeague(current.competitionFormat) || current.playoffSource === 'OVERALL_STANDINGS'));
   const hasKnockoutStage = !current || isKnockoutFormat(current.competitionFormat);
   const base = `/tournaments/${tournamentId}`;
 

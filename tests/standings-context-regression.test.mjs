@@ -14,15 +14,15 @@ test('personal player stats are clearly separate from official tournament standi
   assert.match(page, /id="my-player-stats-heading"[^>]*>My Player Statistics</);
   assert.match(page, /aria-label="Your personal competition statistics"/);
   assert.match(page, /individual match statistics/);
-  assert.match(page, /Team totals in the official standings below may differ/);
+  assert.match(page, /Team totals in the official standings above may differ/);
   assert.match(page, /tournament\.mode === 'DUO' \|\| tournament\.mode === 'TEAM'/);
   assert.match(page, /eyebrow = 'Official Tournament Standings'/);
   assert.equal((page.match(/eyebrow="Official Tournament Standings"/g) ?? []).length, 2);
 });
 
 test('standings explicitly explain GD, points, and ranking without changing scoring', () => {
-  assert.match(page, /Points determine rank first\. GD = GF/);
-  assert.match(page, /Win = 3 pts, draw = 1, loss = 0/);
+  assert.match(page, /Official standings · sorted by points \(PTS\)/);
+  assert.match(page, /Win 3 · Draw 1 · Loss 0/);
   assert.match(page, /title="Goal difference = goals for minus goals against"/);
   assert.match(page, /title="Points: win 3, draw 1, loss 0"/);
   assert.match(scoring, /goalDifference: goalsFor - goalsAgainst/);
@@ -66,7 +66,7 @@ test('unqualified Ballon contenders are never displayed as rank zero', () => {
 });
 
 test('league-only fixtures use table terminology without a misleading group filter', () => {
-  assert.match(fixturePage, /const isLeagueTable = isRoundRobinLeague\(tournament\?\.competitionFormat\)/);
+  assert.match(fixturePage, /isRoundRobinLeague\(tournament\?\.competitionFormat\)/);
   assert.match(fixturePage, /\{!isLeagueTable \? <>/);
   assert.match(fixturePage, /isLeagueTable \? 'Format' : 'Groups'/);
   assert.match(fixturePage, /isLeagueTable \? 'League' : \(groups\.length \|\| 1\)/);
@@ -94,7 +94,43 @@ test('legacy 20-team round-robin with zero actual groups is one table even when 
 });
 
 test('competition tabs use actual group count rather than a legacy MULTIPLE_GROUPS flag', () => {
-  assert.match(nav, /isRoundRobinLeague\(current\.competitionFormat\) && current\.groupCount === 0/);
+  assert.match(nav, /current\.groupCount === 0/);
+  assert.match(nav, /current\.playoffSource === 'OVERALL_STANDINGS'/);
   assert.match(nav, /label !== 'Groups' \|\| !isLeagueWithoutGroups/);
   assert.match(nav, /label !== 'Bracket' \|\| hasKnockoutStage/);
+});
+
+const formatOverview = fs.readFileSync(path.join(root, 'apps/web/src/components/tournaments/tournament-format-overview.tsx'), 'utf8');
+const leaguePlayoffSetup = fs.readFileSync(path.join(root, 'apps/web/src/components/tournaments/league-playoff-setup.tsx'), 'utf8');
+
+test('tournament format and playoff format are explicit on Overview, not repeated on Fixtures', () => {
+  assert.match(tournamentOverview, /<TournamentFormatOverview/);
+  assert.match(formatOverview, /Tournament Format/);
+  assert.match(formatOverview, /Playoff Format/);
+  assert.match(formatOverview, /No Playoffs — League Winner/);
+  assert.match(formatOverview, /Single-Table League \+ Playoffs/);
+  assert.match(formatOverview, /Final league standings → top/);
+  assert.doesNotMatch(fixturePage, /<TournamentFormatGuide/);
+});
+
+test('league champion rule changes only after explicit admin bracket and qualifier choice', () => {
+  assert.match(tournamentOverview, /<LeaguePlayoffSetup/);
+  assert.match(tournamentOverview, /tournament\.canManageSettings && tournament\.canManageFixtures/);
+  assert.match(leaguePlayoffSetup, /value="PROTECTED_SEED"/);
+  assert.match(leaguePlayoffSetup, /playoffQualifiersTotal: total/);
+  assert.match(leaguePlayoffSetup, /confirmation: confirmation\.trim\(\)/);
+  assert.match(leaguePlayoffSetup, /Type the exact tournament name/);
+  assert.match(leaguePlayoffSetup, /does not generate or reset fixtures/);
+});
+
+
+test('official points table is primary, format appears only on tournament overview', () => {
+  const standingsTable = page.indexOf('title="Overall Standings"');
+  const personalStatistics = page.indexOf('aria-label="Optional personal player statistics"');
+  assert.ok(standingsTable !== -1 && personalStatistics > standingsTable);
+  assert.doesNotMatch(page, /<TournamentFormatGuide/);
+  assert.doesNotMatch(fixturePage, /<TournamentFormatGuide/);
+  assert.match(tournamentOverview, /<TournamentFormatOverview/);
+  assert.match(page, /aria-label={\`\$\{row\.points\} points\`\}/);
+  assert.match(page, /bg-sky-400\/\[0\.08\].*tabular-nums/);
 });

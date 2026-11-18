@@ -84,6 +84,20 @@ describe('Tournament format guide follows saved qualification rules', () => {
     expect(describeTournamentFormat({ ...base, competitionFormat: 'LEAGUE_ROUND_ROBIN' }).playoffFormat).toBeNull();
   });
 
+  it('labels a zero-group 20-team top-eight competition as league plus playoffs with the knockout champion', () => {
+    const guide = describeTournamentFormat({
+      ...base, name: 'ISL + I-League', mode: 'DUO', teamSize: 2,
+      _count: { registrations: 20 }, maxEntries: 20,
+      groupMode: 'SINGLE_GROUP', competitionFormat: 'GROUP_STAGE_KNOCKOUT',
+      playoffSource: 'OVERALL_STANDINGS', playoffQualifiersTotal: 8,
+      playoffFormat: 'PROTECTED_SEED', playoffSeedingBasis: 'OVERALL_PERFORMANCE',
+    });
+    expect(guide.title).toBe('Single-table league + playoffs');
+    expect(guide.qualification).toMatchObject({ state: 'READY', source: 'OVERALL_STANDINGS', total: 8 });
+    expect(guide.stage).toContain('knockout bracket → champion');
+    expect(guide.fixtureRule).toContain('19 matches per entry');
+  });
+
   it('marks a two-entry double-chance field pending because its bracket requires three entries', () => {
     expect(describeTournamentFormat({ ...base, playoffFormat: 'DOUBLE_CHANCE', playoffQualifiersTotal: 2 }).qualification).toMatchObject({ state: 'PENDING', bands: [] });
   });

@@ -24,6 +24,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CreateTournamentDto } from './dto/create-tournament.dto.js';
 import { DeleteTournamentDto } from './dto/delete-tournament.dto.js';
 import { GeneratePlayoffsDto } from './dto/generate-playoffs.dto.js';
+import { EnableLeaguePlayoffsDto } from './dto/enable-league-playoffs.dto.js';
 import { SetupTournamentGroupsDto } from './dto/setup-tournament-groups.dto.js';
 import { AssignTournamentGroupDto } from './dto/assign-tournament-group.dto.js';
 import { RegisterTournamentDto } from './dto/register-tournament.dto.js';
@@ -687,6 +688,15 @@ export class TournamentsController {
     );
   }
 
+
+  @Post('tournaments/:tournamentId/playoffs/enable-from-league')
+  enablePlayoffsFromLeague(
+    @Req() request: AuthenticatedRequest,
+    @Param('tournamentId') tournamentId: string,
+    @Body() dto: EnableLeaguePlayoffsDto,
+  ) {
+    return this.playoffsService.enableLeaguePlayoffs(request.user.sub, tournamentId, dto);
+  }
 
   @Post('tournaments/:tournamentId/playoffs/best-third-round-of-16')
   applyBestThirdFormat(@Req() request: AuthenticatedRequest, @Param('tournamentId') tournamentId: string) {

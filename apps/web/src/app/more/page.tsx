@@ -1,4 +1,6 @@
 "use client";
+import { LanguageSwitcher } from '@/components/app/language-switcher';
+import { useArenaLocale } from '@/lib/locale';
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -102,6 +104,7 @@ export default function MorePage() {
     }
   }
 
+  const { t } = useArenaLocale();
   if (initialLoad.error) return <AppShell><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user) {
     return <AppShell><FcLoadingScreen label="Loading More..." embedded /></AppShell>;
@@ -115,7 +118,7 @@ export default function MorePage() {
         <FcPageHeader
           icon="more"
           eyebrow="YOUR FC ARENA"
-          title="More"
+          title={t('more')}
           subtitle="Profile, career, community and account tools."
           action={
             <FcStatusBadge
@@ -141,9 +144,16 @@ export default function MorePage() {
           </div>
         </FcPanel>
 
+        <section aria-label="Language preference" className="theme-panel flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
+          <div><h2 className="font-bold">{t('language')} · Language</h2>
+            <p className="theme-secondary-text text-xs">English / தமிழ் · Interface preference</p></div>
+          <LanguageSwitcher />
+        </section>
         <section className="grid gap-3 sm:grid-cols-2">
           <FcMenuRow href="/experience" icon="↗" title="Player Journey" description="Levels, weekly missions and your player card" tone="amber" />
           <FcMenuRow href="/awards" icon="🏆" title="Awards & DUO/TEAM Honours" description="Live Golden Boot races, official team trophies and Ballon d’Or" tone="amber" />
+          <FcMenuRow href="/clubs" icon="★" title={t('clubs')} description={t('clubsDescription')} tone="amber" />
+          <FcMenuRow href="/career/season-recaps" icon="▥" title={t('seasonRecaps')} description="Verified results by official Ballon season" tone="cyan" />
           <FcMenuRow href="/arena-talk" icon="◉" title="Arena Talk" description="Your league conversations and the football community" tone="cyan" />
           {user.role === "SUPER_ADMIN" && <FcMenuRow href="/admin/community" icon="◎" title="Community Reports" description="Review reported posts and comments" />}
         </section>

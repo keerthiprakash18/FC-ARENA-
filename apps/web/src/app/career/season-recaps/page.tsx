@@ -78,7 +78,7 @@ export default function SeasonRecapsPage() {
                 <span className="shrink-0 font-semibold">{match.outcome} · {new Date(match.confirmedAt).toLocaleDateString()}</span>
               </li>)}
             </ul>
-          </details> : <p className="theme-secondary-text mt-3 text-sm">No verified matches in this season's eligible competitions yet.</p>}
+          </details> : <p className="theme-secondary-text mt-3 text-sm">No verified matches in this season&apos;s eligible competitions yet.</p>}
           <Link href="/career" className="mt-4 inline-flex min-h-11 items-center font-bold text-[var(--theme-primary)]">View full career →</Link>
         </FcPanel>)}
       </div>}

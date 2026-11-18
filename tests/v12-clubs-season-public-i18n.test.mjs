@@ -3,21 +3,29 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { translate, menuTranslationKey } from '../apps/web/src/lib/locale.ts';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const src=(p)=>fs.readFileSync(path.join(root,p),'utf8');
 
-test('English and Tamil dictionaries cover every shared navigation and core action',()=>{
-  for(const key of ['home','leagues','tournaments','fixtures','awards','more','clubs','seasonRecaps','spectator','liveFixtures','verifiedResults']){
-    assert.equal(typeof translate('en',key),'string');
-    assert.equal(typeof translate('ta',key),'string');
-    assert.notEqual(translate('en',key),translate('ta',key),key);
+test('English-only FC ARENA has no Tamil language option',()=>{
+  const pages=[
+    'apps/web/src/components/app/app-shell.tsx',
+    'apps/web/src/components/app/app-header.tsx',
+    'apps/web/src/components/app/bottom-navigation.tsx',
+    'apps/web/src/app/more/page.tsx',
+    'apps/web/src/app/clubs/page.tsx',
+    'apps/web/src/app/clubs/[slug]/page.tsx',
+    'apps/web/src/app/career/season-recaps/page.tsx',
+    'apps/web/src/app/watch/[code]/page.tsx',
+  ];
+  for(const page of pages){
+    assert.doesNotMatch(src(page),/LanguageSwitcher|useArenaLocale|menuTranslationKey|[\u0B80-\u0BFF]/u);
   }
-  assert.equal(menuTranslationKey('/clubs'),'clubs');
-  assert.equal(menuTranslationKey('/career/season-recaps'),'seasonRecaps');
-  assert.equal(menuTranslationKey('/tournaments'),'tournaments');
+  assert.doesNotMatch(src('apps/web/src/app/layout.tsx'),/fc-arena-locale-v1/);
+  assert.equal(fs.existsSync(path.join(root,'apps/web/src/lib/locale.ts')),false);
+  assert.equal(fs.existsSync(path.join(root,'apps/web/src/components/app/language-switcher.tsx')),false);
 });
+
 test('V12 introduces persistent club identity with additive DB migration and opt-in rosters',()=>{
   const schema=src('apps/api/prisma/schema.prisma');
   const migration=src('apps/api/prisma/migrations/20261118180000_persistent_arena_clubs/migration.sql');
@@ -84,15 +92,8 @@ test('V12 CSS is structurally consolidated into one ordered product bundle witho
   assert.deepEqual(imports,['globals.css','design-tokens.css','arena-consolidated.css']);
 });
 
-test('All new V12 product screens have the Tamil interface translation hook',()=>{
-  for(const page of [
-    'apps/web/src/app/clubs/page.tsx','apps/web/src/app/clubs/[slug]/page.tsx',
-    'apps/web/src/app/career/season-recaps/page.tsx','apps/web/src/app/watch/[code]/page.tsx',
-  ]) {
-    assert.match(src(page),/useArenaLocale/);
-    assert.ok(src(page).includes("t('"));
-  }
-  assert.equal(translate('ta','clubRoster'),'கிளப் வீரர்கள்');
-  assert.equal(translate('ta','seasonEvidence').includes('Golden Boot'),true);
-  assert.equal(translate('ta','spectatorDescription').includes('LIVE'),true);
+test('New Clubs, Season Recap and Spectator pages show English copy',()=>{
+  assert.match(src('apps/web/src/app/clubs/page.tsx'),/Create Club/);
+  assert.match(src('apps/web/src/app/career/season-recaps/page.tsx'),/Official season/);
+  assert.match(src('apps/web/src/app/watch/[code]/page.tsx'),/Verified Results/);
 });

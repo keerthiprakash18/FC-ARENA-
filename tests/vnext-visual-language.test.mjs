@@ -37,16 +37,15 @@ test('profile and league-war design follow shared hierarchy and themed controls'
   assert.match(war, /theme-input border-\[var\(--theme-control-border\)\]/);
 });
 
-test('the bilingual interface preserves English SSR and accepts persisted Tamil preference', () => {
+test('the English interface declares its language without loading a language preference', () => {
   const layout = read('apps/web/src/app/layout.tsx');
   const settings = read('apps/web/src/app/settings/page.tsx');
   assert.match(layout, /lang="en"/);
-  assert.match(layout, /fc-arena-locale-v1/);
-  assert.match(layout, /document\.documentElement\.lang/);
+  assert.doesNotMatch(layout, /AppLanguageProvider|fc-arena-ui-language/);
   assert.doesNotMatch(settings, /App language|useAppLanguage/);
 });
 
-test('navigation keeps current-page semantics and translates shared labels', () => {
+test('navigation exposes English labels and current-page semantics', () => {
   const bottom = read('apps/web/src/components/app/bottom-navigation.tsx');
   const shell = read('apps/web/src/components/app/app-shell.tsx');
   const search = read('apps/web/src/components/app/app-header.tsx');
@@ -54,10 +53,5 @@ test('navigation keeps current-page semantics and translates shared labels', () 
   assert.match(bottom, /aria-current/);
   assert.match(shell, /item\.shortLabel/);
   assert.match(search, /Search app sections/);
-  assert.match(bottom, /useArenaLocale/);
-  assert.match(shell, /menuTranslationKey/);
-  assert.match(search, /LanguageSwitcher/);
-  const locale=read('apps/web/src/lib/locale.ts');
-  assert.match(locale, /தமிழ்/);
-  assert.match(locale, /முகப்பு/);
+  assert.doesNotMatch(bottom + shell + search, /[\u0B80-\u0BFF]/u);
 });

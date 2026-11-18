@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { PlayoffGuide, PlayoffGuideInput } from '@/lib/saved-playoff-explainer';
 
 /**
@@ -113,11 +114,11 @@ export function PlayoffFlowDiagram({ guide, tournament }: {
               title={isDirect ? 'Knockout draw' : `Top ${count ?? 'configured'} qualify`}
               detail={isDirect ? 'Approved entrants' : 'Based on saved qualification rules'} accent="amber" />
             {guide.rounds.filter(round => round !== 'Champion').map((round, index) => (
-              <li key={round} className="contents">
+              <Fragment key={round}>
                 <Arrow label={index === 0 ? 'advance' : undefined} />
                 <FlowNode eyebrow={index === 0 ? 'Opening round' : 'Next round'} title={round}
                   detail={isUcl && index === 0 ? 'Aggregate decides the winner' : 'Verified winner advances'} />
-              </li>
+              </Fragment>
             ))}
             <Arrow />
             <FlowNode eyebrow="Official winner" title="🏆 Champion"

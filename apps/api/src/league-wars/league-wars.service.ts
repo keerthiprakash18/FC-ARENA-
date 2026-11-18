@@ -10,7 +10,7 @@ import {
   PrismaService,
 } from '../database/prisma.service.js';
 import type { Prisma } from '../generated/prisma/client.js';
-import { assertCompleteWarFixtures } from './league-war-integrity.js';
+import { assertCompleteWarFixtures, leagueWarCompletionReadiness } from './league-war-integrity.js';
 import type {
   CreateLeagueWarDto,
   LeagueWarWalkoverDto,
@@ -991,6 +991,7 @@ export class LeagueWarsService {
         war,
         matches,
       );
+    const completionReadiness = leagueWarCompletionReadiness(war, participants, matches);
 
     const playerStats =
       this.playerStats(
@@ -1072,6 +1073,7 @@ export class LeagueWarsService {
                 war.awayReadyAt,
               ),
           },
+          completionReadiness,
           permissions: {
             canManageHome:
               access.adminLeagueIds.includes(
@@ -1125,10 +1127,9 @@ export class LeagueWarsService {
               access.adminLeagueIds.length >
                 0,
             canComplete:
-              war.status ===
-                'LIVE' &&
-              access.adminLeagueIds.length >
-                0,
+              war.status === 'LIVE' &&
+              access.adminLeagueIds.length > 0 &&
+              completionReadiness.canComplete,
             canRematch:
               [
                 'COMPLETED',

@@ -5,7 +5,6 @@ import { PlayoffBracket } from '@/components/tournaments/playoff-bracket';
 import type { FixtureForUi } from '@/components/tournaments/fixture-card';
 import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import Link from 'next/link';
-import { LanguageSwitcher } from '@/components/app/language-switcher';
 import { FcCrest, FcStatusBadge } from '@/components/fc/fc-ui';
 import { FcIcon } from '@/components/fc/fc-icons';
 import { PremiumHero, PremiumMatch, PremiumSection } from '@/components/fc/premium-ui';
@@ -351,7 +350,6 @@ function PublicTournamentView() {
           </Link>
 
           <div className="flex flex-wrap justify-end gap-2">
-            <LanguageSwitcher compact />
             <Link href={`/watch/${encodeURIComponent(params.code)}`} className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold">🔴 Spectator Matchday</Link>
             <button
               type="button"

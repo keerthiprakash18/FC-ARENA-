@@ -3,7 +3,6 @@
 import { useCareerData, careerHref, type CareerScopeData } from '@/lib/career-scope';
 import { CareerLeagueFilter } from '@/components/career/career-league-filter';
 import { ShareCard } from '@/components/fc/share-card';
-import { useArenaLocale } from '@/lib/locale';
 
 import Link from 'next/link';
 
@@ -77,7 +76,6 @@ function outcomeClass(outcome: string) {
 
 export default function CareerPage() {
   const { user, career, leagueId, ...initialLoad } = useCareerData<CareerData>();
-  const { t } = useArenaLocale();
   if (initialLoad.error) return <AppShell currentUser={user ?? undefined}><FcErrorState message={initialLoad.error} onRetry={initialLoad.retry} /></AppShell>;
   if (!user || !career) return <FcLoadingScreen label="Loading Career Stats..." />;
 
@@ -111,8 +109,8 @@ export default function CareerPage() {
         />
 
         <div className="flex flex-wrap gap-3">
-          <Link href="/career/season-recaps" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">🏆 {t('seasonRecaps')} →</Link>
-          <Link href="/clubs" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">★ {t('clubs')} →</Link>
+          <Link href="/career/season-recaps" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">🏆 {"Season Recaps"} →</Link>
+          <Link href="/clubs" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">★ {"FC ARENA Clubs"} →</Link>
         </div>
         <CareerNavigation />
         <CareerLeagueFilter data={career} />

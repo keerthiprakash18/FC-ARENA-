@@ -2,7 +2,6 @@
 import { TournamentRegistrationSummary } from '@/components/tournaments/registration-summary';
 
 import { PlayerOnboarding } from "@/components/fc/player-onboarding";
-import { useArenaLocale } from '@/lib/locale';
 import { getMatchdayGuidance, type MatchdayState } from "@/lib/matchday-guidance";
 import Link from "next/link";
 import { useActiveLeague } from '@/lib/active-league';
@@ -426,7 +425,6 @@ function SectionTitle({
 }
 
 export default function DashboardPage() {
-  const { t } = useArenaLocale();
 
   const [user, setUser] = useState<CurrentUser | null>(null);
 
@@ -891,7 +889,7 @@ export default function DashboardPage() {
 
         {nextActions.length > 0 ? (
           <section aria-labelledby="dashboard-actions-title" className="fc-dashboard-queue theme-panel border">
-            <h2 id="dashboard-actions-title" className="theme-text text-lg font-semibold">{t('myNextSteps')}</h2>
+            <h2 id="dashboard-actions-title" className="theme-text text-lg font-semibold">{"Your next steps"}</h2>
             <div className="fc-dashboard-queue-list">
               {nextActions.map((action) => (
                 <Link key={action.id} href={action.href} className="fc-dashboard-queue-item focus-visible:outline-2">

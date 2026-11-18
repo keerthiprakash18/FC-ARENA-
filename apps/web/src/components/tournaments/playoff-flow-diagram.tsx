@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { seededOpeningPairs } from '@/lib/playoff-flow-data';
+import { describePlayoffVisualRules, type PlayoffVisualRules } from '@/lib/playoff-visual-rules';
 import type { PlayoffGuide, PlayoffGuideInput } from '@/lib/saved-playoff-explainer';
 
 /**
@@ -36,11 +37,13 @@ function Arrow({ label }: { label?: string }) {
   );
 }
 
-function DoubleChanceFlow({ qualifierCount }: { qualifierCount: number | null | undefined }) {
+function DoubleChanceFlow({ qualifierCount, rules }: { qualifierCount: number | null | undefined; rules: PlayoffVisualRules }) {
   const eliteCount = (qualifierCount ?? 0) >= 8 ? 4 : 2;
   return (
     <ol className="flex w-max min-w-full items-stretch gap-1 py-2" aria-label="Double-Chance qualification route">
-      <FlowNode eyebrow="League table" title={`Top ${qualifierCount ?? 'N'}`} detail="Final verified league ranking" />
+      <FlowNode eyebrow="Stage" title={rules.stageTitle} detail={rules.stageDetail} />
+      <Arrow />
+      <FlowNode eyebrow="Qualify" title={rules.qualificationTitle} detail={rules.qualificationDetail} accent="amber" />
       <Arrow label="split" />
       <li className="flex w-48 shrink-0 flex-col gap-2">
         <div className="flex flex-1 flex-col justify-center rounded-xl border border-violet-400/30 bg-violet-400/10 p-3 text-center">
@@ -76,12 +79,10 @@ export function PlayoffFlowDiagram({ guide, tournament }: {
   tournament: PlayoffGuideInput;
 }) {
   const count = tournament.playoffQualifiersTotal;
+  const rules = describePlayoffVisualRules(tournament);
   const isDoubleChance = tournament.playoffFormat === 'DOUBLE_CHANCE' &&
     tournament.competitionFormat !== 'UCL_CUP';
-  const pairs = !isDoubleChance && tournament.playoffSource === 'OVERALL_STANDINGS' &&
-    (tournament.playoffSeedingBasis === 'OVERALL_PERFORMANCE' ||
-      tournament.playoffSeedingBasis === 'AUTO' ||
-      !tournament.playoffSeedingBasis)
+  const pairs = !isDoubleChance && rules.seededExamplesAllowed
     ? seededOpeningPairs(count ?? 0) : [];
   const isUcl = tournament.competitionFormat === 'UCL_CUP';
   const isDirect = tournament.competitionFormat === 'SINGLE_ELIMINATION';
@@ -96,15 +97,15 @@ export function PlayoffFlowDiagram({ guide, tournament }: {
       </div>
       <div role="region" aria-label="Scroll to explore the playoff route" tabIndex={0}
         className="overflow-x-auto rounded-xl bg-white/[0.02] p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-400">
-        {isDoubleChance ? <DoubleChanceFlow qualifierCount={count} /> : (
+        {isDoubleChance ? <DoubleChanceFlow qualifierCount={count} rules={rules} /> : (
           <ol className="flex w-max min-w-full items-stretch gap-1 py-2" aria-label="Qualification to champion">
             <FlowNode eyebrow={isDirect ? 'Entry list' : 'Stage'}
-              title={isDirect ? 'All approved entries' : isUcl ? 'League phase' : 'League / Group Stage'}
-              detail={isDirect ? 'Direct knockout' : 'Finish and verify results'} />
+              title={rules.stageTitle}
+              detail={rules.stageDetail} />
             <Arrow />
             <FlowNode eyebrow="Qualify"
-              title={isDirect ? 'Knockout draw' : `Top ${count ?? 'configured'} qualify`}
-              detail={isDirect ? 'Approved entrants' : 'Based on saved qualification rules'} accent="amber" />
+              title={rules.qualificationTitle}
+              detail={rules.qualificationDetail} accent="amber" />
             {guide.rounds.filter(round => round !== 'Champion').map((round, index) => (
               <Fragment key={round}>
                 <Arrow label={index === 0 ? 'advance' : undefined} />
@@ -118,7 +119,7 @@ export function PlayoffFlowDiagram({ guide, tournament }: {
           </ol>
         )}
       </div>
-      <p className="mt-2 text-xs text-slate-400">↔ Scroll sideways on mobile to view the full progression.</p>
+      <p className="mt-2 text-xs leading-5 text-slate-400">↔ Scroll sideways on mobile to view the full progression. {rules.qualificationNote}</p>
       {pairs.length ? (
         <div className="mt-4 rounded-xl border border-sky-400/20 bg-sky-400/[0.03] p-3">
           <h4 className="text-sm font-bold">Example opening matches · Seed numbers only</h4>

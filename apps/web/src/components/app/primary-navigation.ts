@@ -24,21 +24,9 @@ export const primaryNavigation:
       icon: 'league',
     },
     {
-      label: 'TOURNAMENT',
-      shortLabel: 'Cup',
+      label: 'COMPETITIONS',
+      shortLabel: 'Cups',
       href: '/tournaments',
-      icon: 'tournament',
-    },
-    {
-      label: 'ELITE CUP',
-      shortLabel: 'Elite',
-      href: '/elite-cup',
-      icon: 'tournament',
-    },
-    {
-      label: 'UCL CUP',
-      shortLabel: 'UCL',
-      href: '/ucl-cup',
       icon: 'tournament',
     },
     {
@@ -55,12 +43,9 @@ export const primaryNavigation:
     },
   ];
 
-// Keep the mobile rail focused. Competition hubs remain directly available in
-// the desktop sidebar and from the More page without collapsing the five-slot
-// mobile layout that is used by the Android shell.
-export const mobilePrimaryNavigation = primaryNavigation.filter(
-  (item) => item.href !== '/elite-cup' && item.href !== '/ucl-cup',
-);
+// Five primary destinations on every screen. Elite and UCL formats remain
+// reachable through Competitions and More, not duplicate top-level tabs.
+export const mobilePrimaryNavigation = primaryNavigation;
 
 export function getActivePrimarySection(
   pathname: string,
@@ -78,11 +63,11 @@ export function getActivePrimarySection(
   }
 
   if (pathname.startsWith('/elite-cup')) {
-    return '/elite-cup';
+    return '/tournaments';
   }
 
   if (pathname.startsWith('/ucl-cup')) {
-    return '/ucl-cup';
+    return '/tournaments';
   }
 
   if (

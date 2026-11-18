@@ -291,7 +291,9 @@ export function tiedGoldenBootWinners(
 export function tiedGoldenGloveWinners(
   rows: AwardMetricRow[],
 ) {
-  const eligible = rows.filter((row) => row.matches > 0);
+  // A verified clean sheet is required for this named honour. Zero-CS
+  // standings can be shown as a defensive race, but not awarded a trophy.
+  const eligible = rows.filter((row) => row.matches > 0 && row.cleanSheets > 0);
   const ranked = [...eligible].sort(goldenGloveOrder);
 
   if (ranked.length === 0) {

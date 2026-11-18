@@ -119,6 +119,13 @@ describe('FC Arena award scoring', () => {
     ]);
   });
 
+  it('does not invent a Golden Glove winner when no one has a clean sheet', () => {
+    expect(tiedGoldenGloveWinners([
+      row({ userId: 'a', cleanSheets: 0, matches: 10 }),
+      row({ userId: 'b', cleanSheets: 0, matches: 12 }),
+    ])).toEqual([]);
+  });
+
   it('does not reward match volume by itself in the overall rating', () => {
     const ratings = calculatePerformanceRatings([
       row({

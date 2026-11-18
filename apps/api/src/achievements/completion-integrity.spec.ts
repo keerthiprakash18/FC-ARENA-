@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { assertRoundRobinComplete } from './completion-integrity.js';
 import { generateUclLeaguePhase } from '../tournaments/ucl-engine.js';
+import { generateRoundRobinFixtures } from '../tournaments/fixture-engine.js';
 
 function completedFixture(id: string, phase = 'STAGE') {
   return {
@@ -67,4 +68,29 @@ describe('tournament completion integrity', () => {
       ),
     ).toThrow();
   });
+  it('validates all 190 legacy league fixtures after conversion and ignores new playoff matches', () => {
+    const teamIds = Array.from({ length: 20 }, (_, index) => `DUO-${index + 1}`);
+    const stage = generateRoundRobinFixtures(teamIds).map((fixture, index) => ({
+      ...completedFixture(`STAGE-${index}`),
+      ...fixture,
+      sequence: index + 1,
+      id: `STAGE-${index}`,
+      phase: 'STAGE',
+      status: 'COMPLETED',
+    }));
+    const playoff = {
+      ...completedFixture('PLAYOFF-QF-1', 'PLAYOFF'),
+      roundNumber: 1,
+      matchday: null,
+      sequence: 191,
+    };
+    const tournament = {
+      format: 'ROUND_ROBIN', competitionFormat: 'GROUP_STAGE_KNOCKOUT', legType: 'SINGLE_LEG',
+    };
+    const registrations = teamIds.map(id => ({ id, groupId: null }));
+    expect(stage).toHaveLength(190);
+    expect(() => assertRoundRobinComplete(tournament, registrations, [...stage, playoff])).not.toThrow();
+    expect(() => assertRoundRobinComplete(tournament, registrations, [...stage.slice(1), playoff])).toThrow();
+  });
+
 });

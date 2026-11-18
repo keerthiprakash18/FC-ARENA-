@@ -73,11 +73,12 @@ test('league-only fixtures use table terminology without a misleading group filt
   assert.match(fixturePage, /isLeagueTable \? 'League matchdays' : 'Competition Group'/);
 });
 
-test('single-table tournament overview does not mislabel a league as zero groups or show knockout bracket link', () => {
-  assert.match(tournamentOverview, /const isSingleTable = !supportError && isSingleTableDisplay\(/);
-  assert.match(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
-  assert.match(tournamentOverview, /hasKnockoutStage \? \[\[/);
-  assert.match(tournamentOverview, /isSingleTable \? "League Teams" : "Groups"/);
+test('tournament overview puts format and match progress above optional management tools', () => {
+  assert.match(tournamentOverview, /<TournamentFormatOverview/);
+  assert.match(tournamentOverview, /Competition tools · Poster, registration, team management/);
+  assert.match(tournamentOverview, /label="Completed Fixtures"/);
+  assert.doesNotMatch(tournamentOverview, /aria-label="Competition destinations"/);
+  assert.doesNotMatch(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
 });
 
 test('legacy 20-team round-robin with zero actual groups is one table even when groupMode is MULTIPLE_GROUPS', () => {
@@ -93,11 +94,13 @@ test('legacy 20-team round-robin with zero actual groups is one table even when 
   assert.equal(showReadOnlyGroupRoster('MULTIPLE_GROUPS', 0, true), false);
 });
 
-test('competition tabs use actual group count rather than a legacy MULTIPLE_GROUPS flag', () => {
-  assert.match(nav, /current\.groupCount === 0/);
-  assert.match(nav, /current\.playoffSource === 'OVERALL_STANDINGS'/);
-  assert.match(nav, /label !== 'Groups' \|\| !isLeagueWithoutGroups/);
-  assert.match(nav, /label !== 'Bracket' \|\| hasKnockoutStage/);
+test('tournament navigation is compact, role-aware, and refreshes on playoff setting changes', () => {
+  assert.match(nav, /label !== 'Groups' \|\| !current \|\| current\.groupCount > 0/);
+  assert.match(nav, /label !== 'Bracket' \|\| !current \|\| isKnockoutFormat/);
+  assert.match(nav, /label !== 'Settings' \|\| !current \|\| current\.canManageSettings/);
+  assert.match(nav, /fcarena:tournament-updated/);
+  assert.match(nav, /More tournament sections/);
+  assert.doesNotMatch(nav, /\['Registration', '\/registration'\],\s*\['Teams', '\/teams'\],\s*\['Groups', '\/groups'\],\s*\['Fixtures', '\/fixtures'\]/);
 });
 
 const formatOverview = fs.readFileSync(path.join(root, 'apps/web/src/components/tournaments/tournament-format-overview.tsx'), 'utf8');
@@ -133,4 +136,14 @@ test('official points table is primary, format appears only on tournament overvi
   assert.match(tournamentOverview, /<TournamentFormatOverview/);
   assert.match(page, /aria-label={\`\$\{row\.points\} points\`\}/);
   assert.match(page, /bg-sky-400\/\[0\.08\].*tabular-nums/);
+});
+
+test('Awards feature only verified honours and keep live races above the catalogue', () => {
+  assert.doesNotMatch(awards, /Explore verified assist leaders/);
+  assert.match(awards, /Live award races are provisional/);
+  assert.ok(awards.indexOf('Live Award Races') < awards.indexOf('Award Categories'));
+  assert.match(awards, /Create Open Ballon Season/);
+  assert.match(awards, /SOLO: 0/);
+  assert.match(awards, /DUO: 0/);
+  assert.match(awards, /TEAM: 0/);
 });

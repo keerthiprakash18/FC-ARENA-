@@ -71,7 +71,7 @@ export function TournamentFormatOverview({
         <h2 className="mt-2 text-xl font-black">{mode}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{route}</p>
         <p className="mt-3 text-xs font-semibold text-slate-500">
-          {tournament.approvedEntries} registered entries
+          {tournament.approvedEntries} approved entries
           {groupCount !== null ? ` · ${groupCount > 0 ? `${groupCount} groups` : format === 'SINGLE_ELIMINATION' ? 'Direct knockout' : 'One overall table'}` : ''}
         </p>
       </div>
@@ -81,7 +81,7 @@ export function TournamentFormatOverview({
         <p className="mt-2 text-sm leading-6 text-slate-500">{playoffDescription}</p>
         {knockout && (
           <Link href={`/tournaments/${tournamentId}/playoffs`} className="mt-3 inline-flex min-h-9 items-center text-sm font-black text-amber-400 underline underline-offset-4">
-            View playoff bracket →
+            Open Playoff Center →
           </Link>
         )}
       </div>

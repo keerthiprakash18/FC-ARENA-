@@ -29,7 +29,6 @@ import {
 } from "@/components/fc/fc-ui";
 
 import { TournamentNavigation } from "@/components/tournaments/tournament-navigation";
-import { hasKnockoutStage as formatHasKnockoutStage, isSingleTableDisplay } from '@/lib/tournament-ui-context';
 import { TournamentFixtureStart } from '@/components/tournaments/tournament-fixture-start';
 import type { EntryLimitTournament } from '@/components/tournaments/tournament-entry-limit';
 
@@ -233,17 +232,14 @@ export default function TournamentOverviewPage() {
       : 0;
   const duoRegistrationOpen = tournament.mode === 'DUO' &&
     tournament.status === 'REGISTRATION_OPEN' && tournament.registrationMode !== 'ADMIN_ONLY';
-  // Unknown group data is not treated as an empty league stage.
-  const isSingleTable = !supportError && isSingleTableDisplay(
-    tournament.competitionFormat, tournament.groupMode, groups.length,
-  );
-  const hasKnockoutStage = formatHasKnockoutStage(tournament.competitionFormat);
   const canConvertToLeaguePlayoffs = !supportError
     && groups.length === 0
     && fixtures.some(fixture => fixture !== null)
     && ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat ?? '')
     && ['DRAFT', 'REGISTRATION_CLOSED', 'ACTIVE'].includes(tournament.status)
     && Boolean(tournament.canManageSettings && tournament.canManageFixtures);
+
+  const completedFixtures = fixtures.filter(fixture => fixture.status === 'COMPLETED' && fixture.match?.status === 'COMPLETED').length;
 
   return (
     <AppShell playerName={user.player?.identity?.inGameName}>
@@ -300,6 +296,8 @@ export default function TournamentOverviewPage() {
 
         <FcNotice tone="error">{deleteError}</FcNotice>
 
+        <details className="theme-panel rounded-2xl border px-3 py-2 text-sm">
+          <summary className="cursor-pointer font-bold text-slate-300">Competition tools · Poster, registration, team management</summary>
         <FcPanel className="premium-competition-tools overflow-hidden">
           <div className="p-5 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -392,33 +390,19 @@ export default function TournamentOverviewPage() {
             </div>
           </div>
         </FcPanel>
+        </details>
 
-        <section className="premium-metrics" aria-label="Tournament summary">
+        <section className="premium-metrics" aria-label="Competition progress">
           <FcStatCard
-            label="Registrations"
+            label="Registered Teams"
             value={tournament.registeredEntries ?? tournament.approvedEntries}
             detail={`${tournament.approvedEntries} approved · ${tournament.pendingEntries ?? 0} pending`}
           />
-
           <FcStatCard
-            label={isSingleTable ? "League table" : "Groups"}
-            value={supportError ? "—" : isSingleTable ? "Single" : groups.length}
-            detail={isSingleTable ? "One table · no group balancing" : competitionLabel(tournament.groupMode ?? "MULTIPLE_GROUPS")}
-            tone="amber"
-          />
-
-          <FcStatCard
-            label="Fixtures"
-            value={supportError ? "—" : fixtures.length}
-            detail="Tournament schedule"
+            label="Completed Fixtures"
+            value={supportError ? "—" : completedFixtures}
+            detail={supportError ? "Fixture progress unavailable" : `of ${fixtures.length} scheduled fixtures`}
             tone="emerald"
-          />
-
-          <FcStatCard
-            label="Stage"
-            value={competitionLabel(tournament.status)}
-            detail="Current state"
-            tone="slate"
           />
         </section>
 
@@ -428,54 +412,16 @@ export default function TournamentOverviewPage() {
           <PremiumMatch home={entryName(nextFixture.home)} away={entryName(nextFixture.away)} label={`Next Match · ${nextFixture.roundName}`} status={<FcStatusBadge label={nextFixture.match?.status || nextFixture.status} />} href={nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${tournamentId}/fixtures`}>
             <span>{nextFixture.scheduledAt ? new Date(nextFixture.scheduledAt).toLocaleString() : "Schedule pending"}</span>
           </PremiumMatch>
-        ) : (
+        ) : tournament.status !== "COMPLETED" ? (
           <FcEmptyState
             title="No upcoming match"
             description="Open Fixtures to review the Tournament schedule or generate matches when permitted."
             actionLabel="Open Fixtures"
             actionHref={`/tournaments/${tournamentId}/fixtures`}
           />
-        )}
+        ) : null}
 
-        <section className="premium-hub-links" aria-label="Competition destinations">
-          {[
-            [
-              "Teams",
-              "Tournament entries and team management",
-              `/tournaments/${tournamentId}/teams`,
-            ],
-            [
-              isSingleTable ? "League Teams" : "Groups",
-              isSingleTable ? "Approved teams · single table" : "Group structure and assignments",
-              `/tournaments/${tournamentId}/groups`,
-            ],
-            [
-              "Standings",
-              "Live tables from confirmed results",
-              `/tournaments/${tournamentId}/standings`,
-            ],
-            ...(hasKnockoutStage ? [[
-              "Bracket",
-              "Knockout qualification and progression",
-              `/tournaments/${tournamentId}/playoffs`,
-            ]] : []),
-            [
-              "Summary",
-              tournament.status === "COMPLETED"
-                ? "Champion, podium, awards and final tournament statistics"
-                : "Official recap unlocks when the tournament is completed",
-              `/tournaments/${tournamentId}/summary`,
-            ],
-          ].map(([title, description, href]) => (
-            <Link
-              key={title}
-              href={href}
-              className="premium-destination"
-            >
-              <span><strong>{title}</strong><span>{description}</span></span><span aria-hidden="true">→</span>
-            </Link>
-          ))}
-        </section>
+
       </div>
     </AppShell>
   );

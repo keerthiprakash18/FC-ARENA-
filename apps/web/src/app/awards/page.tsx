@@ -149,29 +149,29 @@ const awardCards = [
   {
     type: 'FC_ARENA_BALLON',
     icon: 'ballon',
-    title: 'FC Arena Ballon',
-    detail: 'Seasonal Player Honour',
+    title: 'FC ARENA Ballon d’Or',
+    detail: 'Verified seasonal player honour',
     href: '/awards/ballon',
   },
   {
     type: 'GOLDEN_BOOT',
     icon: 'boot',
     title: 'Golden Boot',
-    detail: 'Top Scorer',
+    detail: 'Verified goals · top scorer',
     href: '/awards/golden-boot',
   },
   {
     type: 'GOLDEN_GLOVE',
     icon: 'glove',
     title: 'Golden Glove',
-    detail: 'Best Defensive Record',
+    detail: 'Verified clean sheets · defensive record',
     href: '/awards/golden-glove',
   },
   {
     type: 'PLAYER_OF_TOURNAMENT',
     icon: 'playmaker',
-    title: 'Player of Tournament',
-    detail: 'Best Overall Performance',
+    title: 'Player of the Tournament',
+    detail: 'Highest verified performance rating',
     href: '/awards/player-of-tournament',
   },
   {
@@ -698,7 +698,7 @@ export default function AwardsPage() {
             body:
               JSON.stringify({
                 name:
-                  `FC Arena Ballon · ${selectedAdminLeague.league.name}`,
+                  `FC ARENA Ballon d’Or · ${selectedAdminLeague.league.name}`,
                 startAt:
                   start.toISOString(),
                 endAt:
@@ -710,10 +710,12 @@ export default function AwardsPage() {
                 rankingLimit:
                   20,
                 tournamentRequirements: {
-                  SOLO: 2,
-                  DUO: 2,
-                  TEAM: 1,
-                },
+                   // Open season: let verified players qualify without
+                   // requiring formats their League may not run.
+                   SOLO: 0,
+                   DUO: 0,
+                   TEAM: 0,
+                 },
                 eligibleLeagueIds:
                   [
                     selectedAdminLeague
@@ -738,7 +740,7 @@ export default function AwardsPage() {
       );
 
       setAdminMessage(
-        'FC Arena Ballon created and started. Live rankings are now active.',
+        'FC ARENA Ballon d’Or season started. Qualified players appear after 10 verified matches.',
       );
 
       await refreshAfterAdminAction();
@@ -1135,7 +1137,7 @@ export default function AwardsPage() {
                   >
                     {adminBusy
                       ? 'Starting...'
-                      : 'Create & Start 3-Month Season'}
+                      : 'Create Open Ballon Season'}
                   </button>
                 )}
 
@@ -1151,7 +1153,7 @@ export default function AwardsPage() {
                 ?.currentBallon &&
               !draftSeason ? (
                 <p className="text-[11px] leading-5 text-slate-600">
-                   Quick Start: 3 months · minimum 10 matches · max 40 counted · 2 SOLO + 2 DUO + 1 TEAM tournaments · Top 20 overview. You can customize everything first through Advanced Settings.
+                   Open Season: 3 months · 10 verified matches required · max 40 counted · SOLO, DUO and TEAM results count · Top 20. Choose stricter multi-format rules in Advanced Settings before starting.
                 </p>
               ) : null}
             </div>
@@ -1159,99 +1161,6 @@ export default function AwardsPage() {
         </FcPanel>
         </details>
       ) : null}
-
-      <section>
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-              FC Arena
-            </p>
-
-            <h2 className="mt-1 text-2xl font-black">
-              Award Categories
-            </h2>
-          </div>
-
-          <p className="text-xs font-semibold text-slate-500">
-            {
-              cabinetTotal
-            }{' '}
-            honours earned
-          </p>
-        </div>
-
-        <div className="premium-award-lanes">
-          {awardCards.map(
-            (
-              award,
-            ) => (
-              <Link
-                key={
-                  award.type
-                }
-                href={
-                  award.href
-                }
-                className="premium-award-lane"
-              >
-                <AwardEmblem kind={award.icon} />
-                <div><h3>{award.title}</h3><p>{award.detail}</p><span className="theme-muted text-xs">{data?.trophyCabinet[award.type] ?? 0} honours earned</span></div>
-                <FcIcon name="chevronRight" size={18} />
-              </Link>
-            ),
-          )}
-          <Link href="/tournaments" className="premium-award-lane"><AwardEmblem kind="playmaker" /><div><h3>Playmaker</h3><p>Explore verified assist leaders in your tournament rankings.</p><span className="premium-quiet">Choose a tournament →</span></div></Link>
-          <Link href="/leaderboards" className="premium-award-lane"><AwardEmblem kind="ranking" /><div><h3>Power Ranking</h3><p>League performance, points and player identity from verified matches.</p><span className="premium-quiet">Explore rankings →</span></div></Link>
-        </div>
-      </section>
-
-      <section className="grid gap-3 sm:grid-cols-2">
-        <Link
-          href="/awards/hall-of-fame"
-          className="group block"
-        >
-          <FcPanel className="h-full border-amber-400/20 p-5 transition group-hover:border-amber-300/40">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
-              FC Arena Legacy
-            </p>
-
-            <h2 className="mt-2 text-xl font-black">
-              Hall of Fame
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Ballon champions, season podiums, tournament winners and historic major honours.
-            </p>
-
-            <p className="mt-4 text-sm font-black text-amber-300">
-              Explore history →
-            </p>
-          </FcPanel>
-        </Link>
-
-        <Link
-          href="/discover"
-          className="group block"
-        >
-          <FcPanel className="h-full border-sky-400/15 p-5 transition group-hover:border-sky-300/35">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
-              Discover competitions
-            </p>
-
-            <h2 className="mt-2 text-xl font-black">
-              ⌕ Search FC Arena
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Find players, Leagues, Tournaments and Ballon seasons across FC Arena.
-            </p>
-
-            <p className="mt-4 text-sm font-black text-sky-400">
-              Open Discover →
-            </p>
-          </FcPanel>
-        </Link>
-      </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
         <FcPanel className="p-5">
@@ -1405,6 +1314,102 @@ export default function AwardsPage() {
           </div>
         </FcPanel>
       </section>
+
+
+      <section>
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              FC Arena
+            </p>
+
+            <h2 className="mt-1 text-2xl font-black">
+              Award Categories
+            </h2>
+          </div>
+
+          <p className="text-xs font-semibold text-slate-500">
+            {
+              cabinetTotal
+            }{' '}
+            honours earned
+          </p>
+        </div>
+
+        <p className="mb-4 text-xs leading-5 text-slate-400">Live award races are provisional. Official honours are confirmed only after verified results and tournament finalisation.</p>
+        <div className="premium-award-lanes">
+          {awardCards.map(
+            (
+              award,
+            ) => (
+              <Link
+                key={
+                  award.type
+                }
+                href={
+                  award.href
+                }
+                className="premium-award-lane"
+              >
+                <AwardEmblem kind={award.icon} />
+                <div><h3>{award.title}</h3><p>{award.detail}</p><span className="theme-muted text-xs">{data?.trophyCabinet[award.type] ?? 0} honours earned</span></div>
+                <FcIcon name="chevronRight" size={18} />
+              </Link>
+            ),
+          )}
+          
+          
+        </div>
+      </section>
+
+      <section className="grid gap-3 sm:grid-cols-2">
+        <Link
+          href="/awards/hall-of-fame"
+          className="group block"
+        >
+          <FcPanel className="h-full border-amber-400/20 p-5 transition group-hover:border-amber-300/40">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              FC Arena Legacy
+            </p>
+
+            <h2 className="mt-2 text-xl font-black">
+              Hall of Fame
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Ballon champions, season podiums, tournament winners and historic major honours.
+            </p>
+
+            <p className="mt-4 text-sm font-black text-amber-300">
+              Explore history →
+            </p>
+          </FcPanel>
+        </Link>
+
+        <Link
+          href="/discover"
+          className="group block"
+        >
+          <FcPanel className="h-full border-sky-400/15 p-5 transition group-hover:border-sky-300/35">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+              Discover competitions
+            </p>
+
+            <h2 className="mt-2 text-xl font-black">
+              ⌕ Search FC Arena
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Find players, Leagues, Tournaments and Ballon seasons across FC Arena.
+            </p>
+
+            <p className="mt-4 text-sm font-black text-sky-400">
+              Open Discover →
+            </p>
+          </FcPanel>
+        </Link>
+      </section>
+
 
       </> : null}
     </SecondaryFeaturePage>

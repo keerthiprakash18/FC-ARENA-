@@ -1,6 +1,6 @@
 'use client';
 
-import { TournamentFormatGuide, QualificationLegend } from '@/components/tournaments/tournament-format-guide';
+import { QualificationLegend } from '@/components/tournaments/tournament-format-guide';
 import type { TournamentFormatDescription, QualificationBand } from '@/lib/tournament-format-guide';
 import { ApiError } from "@/lib/api";
 import Link from 'next/link';
@@ -196,17 +196,17 @@ function StandingTable({
 
   return (
     <section className="premium-standings-table overflow-hidden rounded-[26px] border border-white/10 bg-[#0a1018]">
-      <div className="premium-standings-group-header flex items-center justify-between border-b border-white/10 px-5 py-5">
+      <div className="premium-standings-group-header flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
             {eyebrow}
           </p>
 
-          <h2 className="mt-1 text-2xl font-black">
+          <h2 className="mt-1 text-xl font-black">
             {title}
           </h2>
           <p className="mt-2 max-w-xl text-xs leading-5 text-slate-400">
-            Official entry totals from confirmed results. Points determine rank first. GD = GF (goals for) minus GA (goals against). Win = 3 pts, draw = 1, loss = 0.
+            Official standings · sorted by points (PTS). Win 3 · Draw 1 · Loss 0. Goal difference breaks ties.
           </p>
         </div>
 
@@ -262,7 +262,7 @@ function StandingTable({
                 GD
               </th>
 
-              <th className="p-4" title="Points: win 3, draw 1, loss 0" aria-label="Points">
+              <th className="p-4 bg-sky-400/[0.10] text-sky-200" title="Points: win 3, draw 1, loss 0" aria-label="Points">
                 PTS
               </th>
 
@@ -346,7 +346,7 @@ function StandingTable({
                     }
                   </td>
 
-                  <td className="p-4 text-lg font-black text-sky-300">
+                  <td className="p-4 bg-sky-400/[0.08] text-xl font-black tabular-nums text-sky-200" aria-label={`${row.points} points`}>
                     {
                       row.points
                     }
@@ -585,133 +585,6 @@ export default function StandingsPage() {
 
         <PremiumHero eyebrow={tournament.name} title="Standings" description="Official competition standings and your own match statistics, updated from confirmed results." />
 
-        {isLeagueTable ? (
-          <section className="rounded-[24px] border border-white/10 bg-[#0a1018] p-5" aria-label="League format and leader">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-sky-400/20 bg-sky-400/[0.08] px-3 py-2 text-xs font-black text-sky-300">
-                    {
-                      competitionLabel
-                    }
-                  </span>
-
-                  {isDoubleLeg ? (
-                    <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-400">
-                      Leg 1 + Leg 2 combined
-                    </span>
-                  ) : null}
-                </div>
-
-                <p className="mt-3 text-sm leading-6 text-slate-500">
-                  Confirmed results update the same overall table. {tournament.formatGuide?.scoring || 'Win = 3 points, draw = 1 point, loss = 0 points.'} {tournament.formatGuide?.ranking || 'Ranking uses points, goal difference, goals scored and wins.'}
-                </p>
-              </div>
-
-              {leader ? (
-                <div className="rounded-2xl border border-amber-400/15 bg-amber-400/[0.04] px-5 py-4 text-right">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
-                    {
-                      tournament.status ===
-                      'COMPLETED' && ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN'].includes(tournament.competitionFormat)
-                        ? 'Champion'
-                        : 'Current Leader'
-                    }
-                  </p>
-                  <p className="mt-1 max-w-[240px] truncate text-lg font-black">
-                    {
-                      leader.entryName
-                    }
-                  </p>
-                  <p className="mt-1 text-xs font-bold text-slate-500">
-                    {
-                      leader.points
-                    } PTS · GD {
-                      leader.goalDifference >
-                      0
-                        ? '+'
-                        : ''
-                    }{
-                      leader.goalDifference
-                    }
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </section>
-        ) : null}
-
-
-        <TournamentFormatGuide guide={tournament.formatGuide} />
-
-        {statistic ? (
-          <section aria-labelledby="my-player-stats-heading" className="space-y-3">
-            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-5 py-4">
-              <p className="theme-text-link text-xs font-black uppercase tracking-[0.16em]">Player Performance</p>
-              <h2 id="my-player-stats-heading" className="theme-text mt-1 text-xl font-black">My Player Statistics</h2>
-              <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
-                {tournament.mode === 'DUO' || tournament.mode === 'TEAM'
-                  ? 'These are your individual match statistics. Team totals in the official standings below may differ from your personal goals and GD.'
-                  : 'These are your personal match statistics. The official standings below rank tournament entries.'}
-              </p>
-            </div>
-            <div className="premium-metrics premium-standing-metrics" aria-label="Your personal competition statistics">
-            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-              <p className="text-xs text-slate-600">
-                Matches
-              </p>
-
-              <p className="mt-2 text-3xl font-black">
-                {
-                  statistic.matches
-                }
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-              <p className="text-xs text-slate-600">
-                Wins
-              </p>
-
-              <p className="mt-2 text-3xl font-black">
-                {
-                  statistic.wins
-                }
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-              <p className="text-xs text-slate-600">
-                Goal Difference
-              </p>
-
-              <p className="mt-2 text-3xl font-black">
-                {statistic.goalDifference >
-                0
-                  ? '+'
-                  : ''}
-
-                {
-                  statistic.goalDifference
-                }
-              </p>
-            </article>
-
-            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
-              <p className="text-xs text-slate-600">
-                Form
-              </p>
-
-              <p className="mt-2 text-xl font-black">
-                {statistic.form ||
-                  '—'}
-              </p>
-            </article>
-            </div>
-          </section>
-        ) : null}
-
-
         {groups.length > 0 && tournament.formatGuide?.qualification.source === 'OVERALL_STANDINGS' && standings.length > 0 ? (
           <StandingTable title="Overall qualification table" eyebrow="Official Tournament Standings" bands={tournament.formatGuide.qualification.bands}
             entries={standings.map(row => ({ id: row.registrationId, entryName: row.entryName, entryLogoUrl: row.entryLogoUrl, members: [] }))} standings={standings} />
@@ -782,6 +655,80 @@ export default function StandingsPage() {
             </p>
           </section>
         )}
+
+        {/** Personal metrics are secondary to the official points table. */}
+        {statistic ? (
+          <details className="rounded-2xl border border-white/10 bg-[#0a1018] p-4" aria-label="Optional personal player statistics">
+            <summary className="cursor-pointer text-sm font-bold text-slate-300">My Player Statistics (optional) — show details</summary>
+          <section aria-labelledby="my-player-stats-heading" className="mt-4 space-y-3">
+            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-5 py-4">
+              <p className="theme-text-link text-xs font-black uppercase tracking-[0.16em]">Player Performance</p>
+              <h2 id="my-player-stats-heading" className="theme-text mt-1 text-xl font-black">My Player Statistics</h2>
+              <p className="theme-secondary-text mt-2 max-w-3xl text-sm leading-6">
+                {tournament.mode === 'DUO' || tournament.mode === 'TEAM'
+                  ? 'These are your individual match statistics. Team totals in the official standings below may differ from your personal goals and GD.'
+                  : 'These are your personal match statistics. The official standings below rank tournament entries.'}
+              </p>
+            </div>
+            <div className="premium-metrics premium-standing-metrics" aria-label="Your personal competition statistics">
+            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
+              <p className="text-xs text-slate-600">
+                Matches
+              </p>
+
+              <p className="mt-2 text-3xl font-black">
+                {
+                  statistic.matches
+                }
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
+              <p className="text-xs text-slate-600">
+                Wins
+              </p>
+
+              <p className="mt-2 text-3xl font-black">
+                {
+                  statistic.wins
+                }
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
+              <p className="text-xs text-slate-600">
+                Goal Difference
+              </p>
+
+              <p className="mt-2 text-3xl font-black">
+                {statistic.goalDifference >
+                0
+                  ? '+'
+                  : ''}
+
+                {
+                  statistic.goalDifference
+                }
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
+              <p className="text-xs text-slate-600">
+                Form
+              </p>
+
+              <p className="mt-2 text-xl font-black">
+                {statistic.form ||
+                  '—'}
+              </p>
+            </article>
+            </div>
+          </section>
+          </details>
+        ) : null}
+
+
+
       </div>
     </AppShell>
   );

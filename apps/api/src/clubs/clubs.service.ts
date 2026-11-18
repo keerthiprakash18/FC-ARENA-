@@ -106,18 +106,39 @@ export class ClubsService {
       where: { slug },
       select: {
         id: true, slug: true, name: true, description: true, ownerUserId: true, createdAt: true,
-        members: { orderBy: { joinedAt: 'asc' },
-          select: { userId: true, joinedAt: true, user: {
-            select: { fullName: true, player: { select: { playerCode: true, profileImageUrl: true,
-              identity: { select: { inGameName: true } } } } },
-          } },
+        members: {
+          orderBy: { joinedAt: 'asc' },
+          select: {
+            userId: true,
+            joinedAt: true,
+            user: {
+              select: {
+                fullName: true,
+                player: {
+                  select: {
+                    playerCode: true,
+                    profileImageUrl: true,
+                    identity: { select: { inGameName: true } },
+                  },
+                },
+              },
+            },
+          },
         },
-        entries: { orderBy: { linkedAt: 'desc' },
-          select: { registrationId: true, linkedAt: true,
-            registration: { select: { entryName: true, entryLogoUrl: true, status: true,
-              tournament: { select: { id: true, name: true, mode: true, status: true } },
-            } },
-          } },
+        entries: {
+          orderBy: { linkedAt: 'desc' },
+          select: {
+            registrationId: true,
+            linkedAt: true,
+            registration: {
+              select: {
+                entryName: true,
+                entryLogoUrl: true,
+                status: true,
+                tournament: { select: { id: true, name: true, mode: true, status: true } },
+              },
+            },
+          },
         },
       },
     });

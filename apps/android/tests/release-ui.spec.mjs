@@ -91,9 +91,9 @@ test('admin queue reset restores the default authorized pending review filters',
     const filterDisclosure = page.locator('details').filter({ hasText: 'Review filters' });
     await filterDisclosure.locator('summary').click();
     await expect(filterDisclosure).toHaveAttribute('open', '');
-    const status = page.getByRole('combobox', { name: 'Review status' });
-    const league = page.getByRole('combobox', { name: 'Review league' });
-    const tournament = page.getByRole('combobox', { name: 'Review tournament' });
+    const status = page.locator('select[aria-label="Review status"]');
+    const league = page.locator('select[aria-label="Review league"]');
+    const tournament = page.locator('select[aria-label="Review tournament"]');
     await status.selectOption('CONFIRMED');
     await league.selectOption('phase3');
     await tournament.selectOption('cup-alpha');

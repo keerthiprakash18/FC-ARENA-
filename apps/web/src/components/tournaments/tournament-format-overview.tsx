@@ -29,7 +29,8 @@ export function TournamentFormatOverview({
   const format = tournament.competitionFormat ?? '';
   const knockout = hasKnockoutStage(format);
   const noGroups = groupCount === 0;
-  const leagueStage = format === 'GROUP_STAGE_KNOCKOUT' && noGroups;
+  const leagueStage = format === 'GROUP_STAGE_KNOCKOUT' &&
+    (noGroups || (tournament.groupMode === 'SINGLE_GROUP' && tournament.playoffSource === 'OVERALL_STANDINGS'));
   const roundRobin = format === 'LEAGUE_ROUND_ROBIN' || format === 'DOUBLE_ROUND_ROBIN';
   const mode = format === 'DOUBLE_ROUND_ROBIN' ? 'Home & Away League'
     : format === 'LEAGUE_ROUND_ROBIN' ? 'Single-Table League'
@@ -69,7 +70,10 @@ export function TournamentFormatOverview({
         <p className="text-xs font-black uppercase tracking-widest text-sky-400">Tournament Format</p>
         <h2 className="mt-2 text-xl font-black">{mode}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{route}</p>
-        <p className="mt-3 text-xs font-semibold text-slate-500">{tournament.approvedEntries} approved teams{groupCount !== null ? ` · ${groupCount > 0 ? `${groupCount} groups` : 'One overall table'}` : ''}</p>
+        <p className="mt-3 text-xs font-semibold text-slate-500">
+          {tournament.approvedEntries} registered entries
+          {groupCount !== null ? ` · ${groupCount > 0 ? `${groupCount} groups` : format === 'SINGLE_ELIMINATION' ? 'Direct knockout' : 'One overall table'}` : ''}
+        </p>
       </div>
       <div className="theme-panel rounded-2xl border p-5">
         <p className="text-xs font-black uppercase tracking-widest text-amber-400">Playoff Format</p>

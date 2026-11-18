@@ -526,13 +526,11 @@ export default function AwardsPage() {
       ?.rankings?.rows ??
     [];
 
-  const leader =
-    rankings.find(
-      (row) =>
-        row.eligible,
-    ) ??
-    rankings[0] ??
-    null;
+  const qualifiedLeader =
+    rankings.find((row) => row.eligible && row.position > 0) ?? null;
+
+  // A high form rating is not an official position until eligibility is met.
+  const leader = qualifiedLeader ?? rankings[0] ?? null;
 
   const cabinetTotal = Object.values(data?.trophyCabinet ?? {}).reduce(
     (total, count) => total + count,
@@ -860,7 +858,7 @@ export default function AwardsPage() {
           <FcPanel className="premium-awards-leader overflow-hidden">
             <div className="border-b border-white/[0.07] p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
-                Current Leader
+                {qualifiedLeader ? 'Current Leader' : 'Top Qualifying Player'}
               </p>
 
               {leader ? (
@@ -915,6 +913,11 @@ export default function AwardsPage() {
                   Rankings will appear after eligible verified matches.
                 </p>
               )}
+              {leader && !qualifiedLeader ? (
+                <p className="mt-3 text-xs leading-5 text-amber-700">
+                  No player has qualified for an official position yet. These form scores are provisional.
+                </p>
+              ) : null}
             </div>
 
             <div className="divide-y divide-white/[0.06]">
@@ -939,11 +942,11 @@ export default function AwardsPage() {
                       }
                       className="grid grid-cols-[32px_1fr_auto_auto] items-center gap-3 px-5 py-3 transition hover:bg-white/[0.025]"
                     >
-                      <span className="text-center text-sm font-black text-amber-300">
-                        #
-                        {
-                          row.position
-                        }
+                      <span
+                        className="text-center text-sm font-black text-amber-300"
+                        aria-label={row.eligible && row.position > 0 ? `Rank ${row.position}` : 'Unranked, still qualifying'}
+                      >
+                        {row.eligible && row.position > 0 ? `#${row.position}` : '—'}
                       </span>
 
                       <span className="truncate text-sm font-bold">

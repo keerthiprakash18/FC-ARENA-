@@ -23,6 +23,14 @@ export const PLAYER_FRAMES = [
   { id: 'CHAMPION', name: 'Champion', level: 10 },
 ] as const;
 export type PlayerFrame = (typeof PLAYER_FRAMES)[number]['id'];
+/** Non-monetary, verified-match milestones. Unlocked status is derived from
+ * canonical confirmed results: no claim endpoint, no duplicate award writes. */
+export const PLAYER_MILESTONES = [
+  { id: 'FIRST_WHISTLE', title: 'First Whistle', verifiedMatches: 1, detail: 'Complete your first verified match.' },
+  { id: 'MATCHDAY_REGULAR', title: 'Matchday Regular', verifiedMatches: 10, detail: 'Play ten verified matches.' },
+  { id: 'ARENA_VETERAN', title: 'Arena Veteran', verifiedMatches: 50, detail: 'Play fifty verified matches.' },
+  { id: 'CENTURY_CLUB', title: 'Century Club', verifiedMatches: 100, detail: 'Play one hundred verified matches.' },
+] as const;
 
 export function weekWindow(now = new Date()) {
   const local = new Date(now.getTime() + IST);
@@ -164,6 +172,11 @@ export function summarizeExperience(
     streak,
     verifiedMatches: matches,
     completedTournaments,
+    milestones: PLAYER_MILESTONES.map(milestone => ({
+      ...milestone,
+      progress: Math.min(matches, milestone.verifiedMatches),
+      unlocked: matches >= milestone.verifiedMatches,
+    })),
     breakdown: {
       matchXp: matches * EXPERIENCE_POLICY.matchXp,
       tournamentXp: completedTournaments * EXPERIENCE_POLICY.tournamentXp,

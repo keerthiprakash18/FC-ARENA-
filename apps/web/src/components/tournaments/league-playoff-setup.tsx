@@ -13,15 +13,21 @@ export function LeaguePlayoffSetup({
   tournamentName,
   approvedEntries,
   onSaved,
+  mode = 'create',
+  savedQualifiers = null,
+  savedFormat = null,
 }: {
   tournamentId: string;
   tournamentName: string;
   approvedEntries: number;
   onSaved: () => Promise<void>;
+  mode?: 'create' | 'edit';
+  savedQualifiers?: number | null;
+  savedFormat?: string | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [count, setCount] = useState('');
-  const [bracket, setBracket] = useState('');
+  const [count, setCount] = useState(savedQualifiers ? String(savedQualifiers) : '');
+  const [bracket, setBracket] = useState(savedFormat ?? '');
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -31,14 +37,17 @@ export function LeaguePlayoffSetup({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const total = Number(count);
-    if (busy || !options.includes(total) || !bracket || confirmation.trim() !== tournamentName) return;
+    if (busy || !options.includes(total) || !bracket || confirmation.trim() !== tournamentName ||
+      (mode === 'edit' && total === savedQualifiers && bracket === savedFormat)) return;
     setBusy(true);
     setError('');
     setMessage('');
     try {
       const result = await authenticatedRequest<{ data: { message: string } }>(
-        `/tournaments/${tournamentId}/playoffs/enable-from-league`, {
-          method: 'POST',
+        mode === 'edit'
+          ? `/tournaments/${tournamentId}/playoffs/league-settings`
+          : `/tournaments/${tournamentId}/playoffs/enable-from-league`, {
+          method: mode === 'edit' ? 'PATCH' : 'POST',
           body: JSON.stringify({
             playoffQualifiersTotal: total,
             playoffFormat: bracket,
@@ -58,19 +67,19 @@ export function LeaguePlayoffSetup({
   }
 
   return (
-    <section className="theme-panel rounded-2xl border p-5" aria-label="Change league winner format">
+    <section className="theme-panel rounded-2xl border p-5" aria-label={mode === 'edit' ? 'Customize saved playoff format' : 'Change league winner format'}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-xl">
-          <h2 className="text-lg font-black">Change to League + Playoffs</h2>
+          <h2 className="text-lg font-black">{mode === 'edit' ? '⚙️ Customize Playoff Format' : 'Change to League + Playoffs'}</h2>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Currently, first place in the league wins. You can instead qualify a chosen number
-            of teams from the final league standings and decide the champion through knockout playoffs.
-            Existing scheduled matches and verified results are preserved.
+            {mode === 'edit'
+              ? 'You can change the qualifier count or bracket format while the tournament is active, but only before playoff fixtures are created. Existing league fixtures, scores and standings stay untouched.'
+              : 'Currently, first place in the league wins. You can instead qualify a chosen number of teams from the final league standings and decide the champion through knockout playoffs. Existing scheduled matches and verified results are preserved.'}
           </p>
         </div>
         <button type="button" className="theme-secondary-button min-h-11 rounded-xl px-4 text-sm font-black"
           aria-expanded={open} onClick={() => setOpen(value => !value)} disabled={busy}>
-          {open ? 'Close setup' : 'Configure playoffs'}
+          {open ? 'Close setup' : mode === 'edit' ? 'Edit playoff settings' : 'Configure playoffs'}
         </button>
       </div>
       {open && (
@@ -112,8 +121,9 @@ export function LeaguePlayoffSetup({
           })() : null}
           <div className="sm:col-span-2">
             <p className="text-xs leading-5 text-amber-500">
-              This changes the official championship rule. It does not generate or reset fixtures.
-              The playoff bracket can be generated only after all league matches finish.
+              {mode === 'edit'
+                ? 'Changes apply only to the saved rules. They do not redraw fixtures, and the server blocks edits once any playoff fixture exists. No existing league match is deleted or reset.'
+                : 'This changes the official championship rule. It does not generate or reset fixtures. The playoff bracket can be generated only after all league matches finish.'}
             </p>
           </div>
           <label className="grid gap-2 text-sm font-semibold sm:col-span-2">
@@ -123,8 +133,9 @@ export function LeaguePlayoffSetup({
               placeholder={tournamentName} required />
           </label>
           <button type="submit" className="theme-primary-button min-h-11 rounded-xl px-5 font-black disabled:opacity-40 sm:col-span-2"
-            disabled={busy || !options.includes(Number(count)) || !bracket || confirmation.trim() !== tournamentName}>
-            {busy ? 'Saving format…' : 'Save League + Playoffs'}
+            disabled={busy || !options.includes(Number(count)) || !bracket || confirmation.trim() !== tournamentName ||
+              (mode === 'edit' && Number(count) === savedQualifiers && bracket === savedFormat)}>
+            {busy ? 'Saving format…' : mode === 'edit' ? 'Save Playoff Changes' : 'Save League + Playoffs'}
           </button>
         </form>
       )}

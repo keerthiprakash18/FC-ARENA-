@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../database/prisma.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import { assertRoundRobinComplete } from './completion-integrity.js';
+import { completionPlacementPolicy } from './competition-winner-policy.js';
 import { rankVerifiedScores } from './verified-score-races.js';
 import { isUclLeg, resolveAggregateWinner } from '../results/ucl-ties.js';
 import {
@@ -270,55 +271,36 @@ export class AchievementsService {
             },
           });
 
-        const playoffFixtureCount =
-          await tx.fixture.count({
-            where: {
-              tournamentId,
-
-              groupId: null,
-              ...(currentTournament.competitionFormat === 'UCL_CUP' ? { phase: 'PLAYOFF' as const } : {}),
-            },
-          });
-
-        if (
-          (groupCount > 0 || currentTournament.competitionFormat === 'UCL_CUP') &&
-          playoffFixtureCount === 0
-        ) {
+        // A single-table league converted to GROUP_STAGE_KNOCKOUT has
+        // groupCount=0, but is still a knockout championship. Count only
+        // PLAYOFF fixtures, never the 190 groupId=null league matches.
+        const playoffFixtureCount = await tx.fixture.count({
+          where: { tournamentId, phase: 'PLAYOFF' },
+        });
+        const placementPolicy = completionPlacementPolicy(
+          currentTournament,
+          groupCount,
+          playoffFixtureCount,
+        );
+        if (placementPolicy.errorCode) {
           throw new ConflictException({
             success: false,
             data: null,
-
             error: {
-              code:
-                'PLAYOFF_STAGE_REQUIRED',
-
-              message:
-                'Generate and complete the knockout stage before completing this grouped Tournament.',
+              code: placementPolicy.errorCode,
+              message: 'Generate and complete the knockout bracket before finalising this Tournament. League first place alone is not champion.',
             },
           });
         }
-
-        const hasGroupPlayoffs =
-          (groupCount > 0 || currentTournament.competitionFormat === 'UCL_CUP') &&
-          playoffFixtureCount > 0;
 
         const completionFixtures = await tx.fixture.findMany({
           where: { tournamentId }, include: { match: { include: { confirmedResult: true } } },
         });
         assertRoundRobinComplete(currentTournament, registrations, completionFixtures);
 
-        const placement =
-          hasGroupPlayoffs ||
-          currentTournament.format ===
-            'KNOCKOUT'
-            ? await this.getKnockoutPlacement(
-                tx,
-                tournamentId,
-              )
-            : await this.getRoundRobinPlacement(
-                tx,
-                tournamentId,
-              );
+        const placement = placementPolicy.source === 'KNOCKOUT'
+          ? await this.getKnockoutPlacement(tx, tournamentId, placementPolicy.filterToPlayoffs)
+          : await this.getRoundRobinPlacement(tx, tournamentId);
 
         for (
           const registration
@@ -1518,13 +1500,14 @@ export class AchievementsService {
   private async getKnockoutPlacement(
     tx: any,
     tournamentId: string,
+    onlyPublishedPlayoffs = false,
   ) {
     const fixtures =
       await tx.fixture.findMany({
         where: {
           tournamentId,
-
           groupId: null,
+          ...(onlyPublishedPlayoffs ? { phase: 'PLAYOFF' as const } : {}),
         },
 
         orderBy: [

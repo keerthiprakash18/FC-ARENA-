@@ -135,6 +135,8 @@ export default function CommunityTeamsPage() {
       title="Teams"
       subtitle="Real Tournament teams aggregated from the Leagues you currently belong to."
     >
+      <Link href="/clubs" className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-bold">★ Explore Permanent FC ARENA Clubs →</Link>
+      <p className="theme-secondary-text text-sm">Tournament entries are event-specific; persistent clubs have separate verified membership and linked competitions.</p>
       {teams.length === 0 ? (
         <FcEmptyState
           title="No competition teams yet"

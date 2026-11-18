@@ -1,7 +1,5 @@
 'use client';
 
-import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
-import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import Link from 'next/link';
 
 import {
@@ -58,7 +56,6 @@ interface Tournament extends EntryLimitTournament {
   status: string;
   fixturesGeneratedAt: string | null;
   competitionFormat: string;
-  formatGuide?: TournamentFormatDescription | null;
   legType: string;
 
   dailyMatchLimit: number;
@@ -768,7 +765,7 @@ export default function TournamentFixturesPage() {
         />
         <TournamentNavigation tournamentId={tournamentId} />
         <TournamentFixtureStart tournament={tournament} />
-        <TournamentFormatGuide guide={tournament.formatGuide} compact />
+
 
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>

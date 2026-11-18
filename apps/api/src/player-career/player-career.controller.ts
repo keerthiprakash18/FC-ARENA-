@@ -72,6 +72,12 @@ export class PlayerCareerController {
     return this.dashboard.getSummary(request.user.sub);
   }
 
+  @Get('me/season-recaps')
+  @Header('Cache-Control', 'private, no-store')
+  mySeasonRecaps(@Req() request: AuthenticatedRequest) {
+    return this.playerCareerService.getMySeasonRecaps(request.user.sub);
+  }
+
   @Get('me/career')
   myCareer(
     @Req()

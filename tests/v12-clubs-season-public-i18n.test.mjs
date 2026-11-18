@@ -63,7 +63,7 @@ test('Spectator data reuses visibility-filtered API and never publishes unverifi
   assert.match(matchPage,/apiRequest/);
   assert.match(matchPage,/\/public\/tournaments\//);
   assert.match(matchPage,/result/);
-  assert.match(matchPage,/t\('awaitingResult'\)/);
+  assert.match(matchPage,/scores are not published until approval/);
   assert.doesNotMatch(matchPage,/authenticatedRequest|getCurrentUser/);
   assert.match(src('apps/web/src/app/public/tournaments/[code]/page.tsx'),/\/watch\//);
 });

@@ -23,6 +23,7 @@ import type {
 import { AppShell } from '@/components/app/app-shell';
 import { BackHeader } from '@/components/app/back-header';
 import { TournamentNavigation } from '@/components/tournaments/tournament-navigation';
+import { isRoundRobinLeague } from '@/lib/tournament-ui-context';
 
 import {
   FixtureCard,
@@ -367,8 +368,8 @@ export default function TournamentFixturesPage() {
 
   // A round-robin can also have genuinely configured groups; suppress
   // group labels only when there are no actual tournament groups.
-  const isLeagueTable = ['LEAGUE_ROUND_ROBIN', 'DOUBLE_ROUND_ROBIN', 'ROUND_ROBIN']
-    .includes(tournament?.competitionFormat ?? '') && groups.length === 0;
+  const isLeagueTable = isRoundRobinLeague(tournament?.competitionFormat)
+    && groups.length === 0;
 
   const filteredByGroup =
     useMemo(

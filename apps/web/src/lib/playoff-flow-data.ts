@@ -26,9 +26,11 @@ export function sampleSeededKnockoutRounds(count: number): SampleBracketRound[] 
     ['Semi-finals', 'Final'];
   const prefixes = count === 16 ? ['R16', 'QF', 'SF', 'F'] :
     count === 8 ? ['QF', 'SF', 'F'] : ['SF', 'F'];
+  const matchCode = (prefix: string, index: number) =>
+    prefix === 'R16' ? `R16-${index}` : `${prefix}${index}`;
   const rounds: SampleBracketRound[] = [{
     title: names[0]!,
-    matches: pairings.map(([a,b], index) => `${opening}${index + 1}: #${a} vs #${b}`),
+    matches: pairings.map(([a,b], index) => `${matchCode(opening, index + 1)}: #${a} vs #${b}`),
   }];
   let previous = opening;
   let matchCount = pairings.length;
@@ -38,7 +40,7 @@ export function sampleSeededKnockoutRounds(count: number): SampleBracketRound[] 
     rounds.push({
       title: names[step]!,
       matches: Array.from({ length: nextCount }, (_, index) =>
-        `${current}${index + 1}: winner ${previous}${index * 2 + 1} vs winner ${previous}${index * 2 + 2}`),
+        `${matchCode(current, index + 1)}: winner ${matchCode(previous, index * 2 + 1)} vs winner ${matchCode(previous, index * 2 + 2)}`),
     });
     previous = current;
     matchCount = nextCount;

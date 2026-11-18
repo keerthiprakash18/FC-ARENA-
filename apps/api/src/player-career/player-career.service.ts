@@ -315,10 +315,73 @@ export class PlayerCareerService {
     };
   }
 
+  /**
+   * A genuine dated season recap: only official Ballon seasons, authorized
+   * player career history and confirmed results. No guessed season totals.
+   * Tournament/league eligibility matches the season's stored scope.
+   */
+  async getMySeasonRecaps(userId: string) {
+    const [careerResponse, seasons] = await Promise.all([
+      this.getMyCareer(userId, false, undefined, 5001),
+      this.prisma.ballonSeason.findMany({
+        where: { status: { not: 'DRAFT' } },
+        select: { id: true, name: true, startAt: true, endAt: true,
+          status: true, eligibleLeagueIds: true, eligibleTournamentIds: true },
+        orderBy: { startAt: 'desc' },
+        take: 20,
+      }),
+    ]);
+    const career = careerResponse.data;
+    const matchHistory = career.matchHistory;
+    if (matchHistory.length > 5000) {
+      throw new ConflictException('Season recap requires a longer verified match history. Please contact the organizer; partial statistics will not be shown as complete.');
+    }
+    const ids = (value: unknown): string[] => Array.isArray(value) ?
+      value.filter((item): item is string => typeof item === 'string') : [];
+    const official = await this.prisma.ballonFinalRanking.findMany({
+      where: { userId, seasonId: { in: seasons
+        .filter(s => ['LOCKED', 'ARCHIVED'].includes(s.status)).map(s => s.id) } },
+      select: { seasonId: true, rank: true },
+    });
+    const finalRanks = new Map(official.map(r => [r.seasonId, r.rank]));
+    const recaps = seasons.map(season => {
+      const start = season.startAt.getTime(), end = season.endAt.getTime();
+      const eligibleTournaments = new Set(ids(season.eligibleTournamentIds));
+      const eligibleLeagues = new Set(ids(season.eligibleLeagueIds));
+      const verified = matchHistory.filter(match => {
+        const when = new Date(match.confirmedAt).getTime();
+        if (!(when >= start && when <= end)) return false;
+        if (!eligibleTournaments.size && !eligibleLeagues.size) return true;
+        return eligibleTournaments.has(match.tournament.id) ||
+          eligibleLeagues.has(match.tournament.league.id);
+      });
+      const wins = verified.filter(m => m.outcome === 'W').length;
+      const draws = verified.filter(m => m.outcome === 'D').length;
+      const losses = verified.filter(m => m.outcome === 'L').length;
+      const teamGoalsFor = verified.reduce((sum,m) => sum + m.teamGoalsFor, 0);
+      const teamGoalsAgainst = verified.reduce((sum,m) => sum + m.teamGoalsAgainst, 0);
+      return {
+        id: season.id, name: season.name, status: season.status,
+        startAt: season.startAt, endAt: season.endAt,
+        matches: verified.length, wins, draws, losses, teamGoalsFor, teamGoalsAgainst,
+        winRate: verified.length ? Math.round(wins * 1000 / verified.length) / 10 : 0,
+        officialRank: finalRanks.get(season.id) ?? null,
+        // Team goals are deliberately not represented as individual scorer awards.
+        statsBasis: 'CONFIRMED_RESULTS', goalBasis: 'TEAM_SIDE_GOALS',
+        results: verified.slice(0, 10).map(m => ({
+          id: m.id, confirmedAt: m.confirmedAt, outcome: m.outcome,
+          tournamentName: m.tournament.name,
+        })),
+      };
+    });
+    return { success: true, data: { recaps }, error: null };
+  }
+
   async getMyCareer(
     userId: string,
     dashboard = false,
     leagueId?: string,
+    historyLimit = 100,
   ) {
     const user =
       await this.prisma.user.findUnique({
@@ -609,7 +672,7 @@ export class PlayerCareerService {
           updatedAt: 'desc',
         },
 
-        take: dashboard ? 3 : 100,
+        take: dashboard ? 3 : Math.min(5001, Math.max(1, historyLimit)),
       });
 
     const achievements =
@@ -756,6 +819,9 @@ export class PlayerCareerService {
               match.status,
 
             outcome,
+            // Team-side score, not individual goals: SOLO/DUO/TEAM share this shape.
+            teamGoalsFor: isHome ? result.homeScore : result.awayScore,
+            teamGoalsAgainst: isHome ? result.awayScore : result.homeScore,
             opponent: {
               key: (isHome ? awayPlayerIds : homePlayerIds).toSorted().join(':'),
               name: this.registrationName(isHome ? match.fixture.awayRegistration : match.fixture.homeRegistration),

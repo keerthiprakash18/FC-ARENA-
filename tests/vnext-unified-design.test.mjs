@@ -10,12 +10,14 @@ const styles = read('apps/web/src/app/vnext-interaction-system.css');
 const layout = read('apps/web/src/app/layout.tsx');
 const tokens = read('apps/web/src/app/design-tokens.css');
 
-test('single design foundation is loaded after other authored UI layers', () => {
-  assert.match(layout, /import '\.\/vnext-interaction-system\.css';/);
-  assert.ok(layout.indexOf("import './vnext-interaction-system.css'") >
-            layout.indexOf("import './native-android.css'"));
-  assert.match(styles, /\.fc-premium \.fc-main/);
-  assert.doesNotMatch(styles, /@import\s+url/);
+test('single design foundation is present in the consolidated authored layer after native WebView rules', () => {
+  assert.ok(layout.includes("import './arena-consolidated.css';"));
+  const product = read('apps/web/src/app/arena-consolidated.css');
+  const native = product.indexOf('/* ---- BEGIN SOURCE native-android.css ---- */');
+  const interaction = product.indexOf('/* ---- BEGIN SOURCE vnext-interaction-system.css ---- */');
+  assert.ok(native >= 0 && interaction > native, 'Native safety styles must precede interaction styles');
+  assert.ok(styles.includes('.fc-premium .fc-main'));
+  assert.ok(!styles.includes('@import url'));
 });
 
 test('same interaction and tap-target standards apply across feature screens', () => {

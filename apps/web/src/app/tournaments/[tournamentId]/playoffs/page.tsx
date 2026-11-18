@@ -920,6 +920,7 @@ export default function PlayoffsPage() {
           stageTotal={stageFixtures.length}
           stageIncomplete={incompleteStageFixtures}
           bracketFixtures={playoffFixtures.length}
+          groupCount={groupCount}
         />
 
         {canEditPlayoffSettings ? (

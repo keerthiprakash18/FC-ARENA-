@@ -350,6 +350,7 @@ function PublicTournamentView() {
           </Link>
 
           <div className="flex flex-wrap justify-end gap-2">
+            <Link href={`/watch/${encodeURIComponent(params.code)}`} className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold">🔴 Spectator Matchday</Link>
             <button
               type="button"
               onClick={() => void exportResults()}

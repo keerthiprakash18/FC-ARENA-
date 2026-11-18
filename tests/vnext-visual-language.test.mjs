@@ -10,7 +10,10 @@ const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 test('new visual layer uses all existing club themes and remains responsive', () => {
   const layout = read('apps/web/src/app/layout.tsx');
   const css = read('apps/web/src/app/vnext-visual-polish.css');
-  assert.match(layout, /import '\.\/vnext-visual-polish\.css'/);
+  assert.match(layout, /arena-consolidated/);
+  const merged = read('apps/web/src/app/arena-consolidated.css');
+  assert.ok(merged.includes('/* ---- BEGIN SOURCE vnext-visual-polish.css ---- */'));
+  assert.ok(merged.includes(css));
   assert.match(css, /--theme-primary/);
   assert.match(css, /--theme-surface/);
   assert.match(css, /--theme-border/);

@@ -3,6 +3,7 @@ import { SafeExceptionFilter } from './security/safe-exception.filter.js';
 import { Module } from '@nestjs/common';
 
 import { AchievementsModule } from './achievements/achievements.module.js';
+import { ClubsModule } from './clubs/clubs.module.js';
 import { AnnouncementsSupportModule } from './announcements-support/announcements-support.module.js';
 import { AdminOpsModule } from './admin-ops/admin-ops.module.js';
 import { AiModule } from './ai/ai.module.js';
@@ -31,6 +32,7 @@ import { TournamentsModule } from './tournaments/tournaments.module.js';
   providers: [{ provide: APP_FILTER, useClass: SafeExceptionFilter }],
   imports: [
     PrismaModule,
+    ClubsModule,
     AnnouncementsSupportModule,
     SecurityModule,
     AdminOpsModule,

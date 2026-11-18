@@ -819,6 +819,12 @@ export default function TournamentSettingsPage() {
           }
         />
 
+        <nav aria-label="Settings quick navigation" className="flex flex-wrap gap-2 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
+          <a className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-3 text-sm font-semibold" href="#tournament-configuration">Configuration</a>
+          {tournament.canManageSettings ? <a className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-3 text-sm font-semibold" href="#team-logo-permissions">Team logos</a> : null}
+          {tournament.isLeagueAdmin ? <a className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-3 text-sm font-semibold" href="#advanced-safety">Advanced recovery</a> : null}
+        </nav>
+
 
         {message ? (
           <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-4 text-sm text-emerald-300">
@@ -856,7 +862,7 @@ export default function TournamentSettingsPage() {
          </FcPanel> : null}
 
          <FcPanel className="p-5 sm:p-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+          <p id="tournament-configuration" className="scroll-mt-24 text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
             Configuration
           </p>
 
@@ -924,6 +930,15 @@ export default function TournamentSettingsPage() {
         <TournamentEntryLimit tournament={tournament}
           onUpdated={maxEntries => setTournament(current => current ? { ...current, maxEntries } : current)} />
 
+
+        {tournament.isLeagueAdmin ? (
+          <details id="advanced-safety" className="theme-panel scroll-mt-24 rounded-2xl border border-[var(--theme-border)] p-4 sm:p-5">
+            <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-xl font-semibold focus-visible:outline-2 focus-visible:outline-offset-2">
+              <span>⚠️ Advanced recovery &amp; reset actions</span>
+              <span className="theme-muted text-xs">Open with care</span>
+            </summary>
+            <p className="theme-muted mt-3 text-sm leading-6">Use Start Fresh with Existing Teams when possible to preserve the original tournament history. Reset actions can remove unplayed group draws or fixtures; their existing server-side safety checks and confirmation steps still apply.</p>
+            <div className="mt-4 space-y-4">
         {tournament.isLeagueAdmin ? (
           <FcPanel className="border border-emerald-300 bg-emerald-50 p-5 text-slate-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-slate-100">
             <p className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-200">
@@ -1006,6 +1021,11 @@ export default function TournamentSettingsPage() {
               {busy ? 'Checking...' : 'Reset Fixture Draw'}
             </button>
           </FcPanel>
+        ) : null}
+
+
+            </div>
+          </details>
         ) : null}
 
         {tournament.isLeagueAdmin ? (

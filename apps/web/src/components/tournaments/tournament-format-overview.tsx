@@ -8,6 +8,7 @@ export interface OverviewFormatInfo {
   playoffSource?: string | null;
   playoffQualifiersTotal?: number | null;
   qualifiersPerGroup?: number | null;
+  playoffSeedingBasis?: string | null;
   playoffFormat?: string | null;
   canManageSettings?: boolean;
   canManageFixtures?: boolean;
@@ -32,7 +33,9 @@ export function TournamentFormatOverview({
   const knockout = hasKnockoutStage(format);
   const noGroups = groupCount === 0;
   const leagueStage = format === 'GROUP_STAGE_KNOCKOUT' &&
-    (noGroups || (tournament.groupMode === 'SINGLE_GROUP' && tournament.playoffSource === 'OVERALL_STANDINGS'));
+    tournament.groupMode === 'SINGLE_GROUP' &&
+    tournament.playoffSource === 'OVERALL_STANDINGS' &&
+    (noGroups || groupCount === null);
   const roundRobin = format === 'LEAGUE_ROUND_ROBIN' || format === 'DOUBLE_ROUND_ROBIN';
   const mode = format === 'DOUBLE_ROUND_ROBIN' ? 'Home & Away League'
     : format === 'LEAGUE_ROUND_ROBIN' ? 'Single-Table League'
@@ -46,15 +49,19 @@ export function TournamentFormatOverview({
   const source = tournament.playoffSource ?? 'AUTO';
   const qualifiers = tournament.playoffQualifiersTotal;
   const perGroup = tournament.qualifiersPerGroup;
+  const usesBestThird = source === 'GROUP_QUALIFIERS' && groupCount === 7 &&
+    perGroup === 2 && qualifiers === 16 && tournament.playoffSeedingBasis === 'RANDOM';
   const route = format === 'SINGLE_ELIMINATION'
     ? 'All approved entries play knockout matches.'
     : !knockout
       ? roundRobin ? 'Every team plays league matches. First in the final table wins.' : 'Organiser-defined tournament progression.'
       : leagueStage || source === 'OVERALL_STANDINGS'
         ? `Final league standings → top ${qualifiers ?? 'configured'} teams qualify → knockout final decides the champion.`
-        : source === 'GROUP_QUALIFIERS'
-          ? `Group standings → ${perGroup ? `top ${perGroup} from each group` : 'qualified teams'} → knockout champion.`
-          : 'Complete the stage and follow the published qualification settings.';
+        : usesBestThird
+          ? '7 groups → 14 top-two qualifiers + 2 best third-place teams → Round of 16 → knockout champion.'
+          : source === 'GROUP_QUALIFIERS'
+            ? `Group standings → ${perGroup ? `top ${perGroup} from each group` : 'qualified teams'} → knockout champion.`
+            : 'Complete the stage and follow the published qualification settings.';
 
   const playoff = !knockout ? 'No Playoffs — League Winner'
     : format === 'UCL_CUP' ? 'UCL Two-Leg Knockout'

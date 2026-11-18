@@ -115,7 +115,7 @@ export default function MorePage() {
         <FcPageHeader
           icon="more"
           eyebrow="YOUR FC ARENA"
-          title="More"
+          title={"More"}
           subtitle="Profile, career, community and account tools."
           action={
             <FcStatusBadge
@@ -144,6 +144,8 @@ export default function MorePage() {
         <section className="grid gap-3 sm:grid-cols-2">
           <FcMenuRow href="/experience" icon="↗" title="Player Journey" description="Levels, weekly missions and your player card" tone="amber" />
           <FcMenuRow href="/awards" icon="🏆" title="Awards & DUO/TEAM Honours" description="Live Golden Boot races, official team trophies and Ballon d’Or" tone="amber" />
+          <FcMenuRow href="/clubs" icon="★" title={"FC ARENA Clubs"} description={"Permanent teams, members and verified history"} tone="amber" />
+          <FcMenuRow href="/career/season-recaps" icon="▥" title={"Season Recaps"} description="Verified results by official Ballon season" tone="cyan" />
           <FcMenuRow href="/arena-talk" icon="◉" title="Arena Talk" description="Your league conversations and the football community" tone="cyan" />
           {user.role === "SUPER_ADMIN" && <FcMenuRow href="/admin/community" icon="◎" title="Community Reports" description="Review reported posts and comments" />}
         </section>

@@ -8,14 +8,17 @@ export function SavedPlayoffExplanation({
   stageTotal,
   stageIncomplete,
   bracketFixtures,
+  groupCount = null,
 }: {
   tournament: PlayoffGuideInput;
   tournamentId: string;
   stageTotal: number;
   stageIncomplete: number;
   bracketFixtures: number;
+  groupCount?: number | null;
 }) {
-  const guide = describeSavedPlayoffs(tournament);
+  const settings = { ...tournament, groupCount };
+  const guide = describeSavedPlayoffs(settings);
   return (
     <section aria-label="How your saved playoff format works" className="theme-panel space-y-4 rounded-2xl border p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -27,7 +30,7 @@ export function SavedPlayoffExplanation({
           {bracketFixtures ? 'Bracket published' : stageIncomplete || !stageTotal ? 'League / group stage in progress' : 'Stage finished · bracket not yet published'}
         </span>
       </div>
-      <PlayoffFlowDiagram guide={guide} tournament={tournament} />
+      <PlayoffFlowDiagram guide={guide} tournament={settings} />
       <p className="rounded-xl border border-emerald-400/20 bg-emerald-400/[0.04] p-3 text-sm font-semibold text-emerald-300">
         🏆 {guide.winnerRule}
       </p>

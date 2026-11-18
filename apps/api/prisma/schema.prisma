@@ -410,6 +410,8 @@ model User {
   leagueApplications         LeagueApplication[]            @relation("LeagueApplicant")
   reviewedLeagueApplications LeagueApplication[]            @relation("LeagueApplicationReviewer")
   leagueAdminRoles           LeagueAdmin[]
+  ownedClubs                 ArenaClub[]                    @relation("ArenaClubOwner")
+  arenaClubMemberships       ArenaClubMember[]
   createdTournaments         Tournament[]                   @relation("TournamentCreator")
   tournamentAdminRoles       TournamentAdmin[]
   createdTournamentTemplates TournamentTemplate[]           @relation("TournamentTemplateCreator")
@@ -825,6 +827,7 @@ model TournamentRegistration {
   homeFixtures Fixture[]                      @relation("FixtureHomeRegistration")
   awayFixtures Fixture[]                      @relation("FixtureAwayRegistration")
   standing     TournamentStanding?
+  arenaClubEntry ArenaClubEntry?
 
   @@index([tournamentId, status])
   @@index([registeredByUserId])
@@ -1799,4 +1802,49 @@ model ArenaReport {
   @@unique([reporterUserId, targetKey])
   @@index([status, createdAt])
   @@map("arena_reports")
+}
+
+/**
+ * Long-lived opt-in club identity. Historical tournament entries are linked
+ * explicitly by a verified captain, never inferred from a matching name.
+ */
+model ArenaClub {
+  id             String   @id @default(uuid()) @db.Uuid
+  slug           String   @unique @db.VarChar(80)
+  name           String   @db.VarChar(80)
+  description    String?  @db.VarChar(400)
+  ownerUserId    String   @db.Uuid
+  inviteHash     String   @unique @db.VarChar(64)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  owner          User     @relation("ArenaClubOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  members        ArenaClubMember[]
+  entries        ArenaClubEntry[]
+
+  @@index([ownerUserId])
+  @@index([createdAt])
+  @@map("arena_clubs")
+}
+
+model ArenaClubMember {
+  clubId    String @db.Uuid
+  userId    String @db.Uuid
+  joinedAt  DateTime @default(now())
+  club      ArenaClub @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([clubId, userId])
+  @@index([userId])
+  @@map("arena_club_members")
+}
+
+model ArenaClubEntry {
+  registrationId String   @id @db.Uuid
+  clubId         String   @db.Uuid
+  linkedAt       DateTime @default(now())
+  club           ArenaClub @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  registration   TournamentRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([clubId, linkedAt])
+  @@map("arena_club_entries")
 }

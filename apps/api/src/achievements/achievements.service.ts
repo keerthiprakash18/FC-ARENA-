@@ -9,6 +9,7 @@ import { AuthorizationService } from '../security/authorization.service.js';
 import { assertRoundRobinComplete } from './completion-integrity.js';
 import { completionPlacementPolicy } from './competition-winner-policy.js';
 import { officialDuoIndividualAwards } from './duo-official-awards.js';
+import { calculateTeamHonours } from './team-honours.js';
 import { rankVerifiedScores } from './verified-score-races.js';
 import { isUclLeg, resolveAggregateWinner } from '../results/ucl-ties.js';
 import {
@@ -2041,6 +2042,7 @@ export class AchievementsService {
           fixture: {
             select: {
               id: true,
+              status: true,
               roundName:
                 true,
               homeRegistrationId:
@@ -2152,8 +2154,30 @@ export class AchievementsService {
         )[0] ??
       null;
 
+    // Immutable scoped Team/DUO trophies live in the already-persisted
+    // TournamentSummary JSON snapshot. They are never written to an individual
+    // player's achievement record or inferred from individual game data.
+    const teamRecords = ['DUO', 'TEAM'].includes(tournament.mode)
+      ? calculateTeamHonours(completedMatches, new Set<string>(registrations.map((row: any) => row.id)))
+      : null;
+    const officialTeamHonours = teamRecords ? {
+      scope: teamRecords.scope,
+      source: teamRecords.source,
+      goldenBoot: teamRecords.goldenBoot.map(row => ({
+        entry: entrySnapshot(registrationById.get(row.registrationId)),
+        goals: row.value,
+        matches: row.matches,
+      })),
+      defensiveRecord: teamRecords.defensiveRecord.map(row => ({
+        entry: entrySnapshot(registrationById.get(row.registrationId)),
+        cleanSheets: row.value,
+        matches: row.matches,
+      })),
+    } : null;
+
     return {
-      version: 1,
+      version: 2,
+      teamHonours: officialTeamHonours,
       tournament: {
         id:
           tournament.id,

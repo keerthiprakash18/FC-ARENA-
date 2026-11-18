@@ -10,7 +10,10 @@ const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 test('new visual layer uses all existing club themes and remains responsive', () => {
   const layout = read('apps/web/src/app/layout.tsx');
   const css = read('apps/web/src/app/vnext-visual-polish.css');
-  assert.match(layout, /import '\.\/vnext-visual-polish\.css'/);
+  assert.match(layout, /arena-consolidated/);
+  const merged = read('apps/web/src/app/arena-consolidated.css');
+  assert.ok(merged.includes('/* ---- BEGIN SOURCE vnext-visual-polish.css ---- */'));
+  assert.ok(merged.includes(css));
   assert.match(css, /--theme-primary/);
   assert.match(css, /--theme-surface/);
   assert.match(css, /--theme-border/);
@@ -34,15 +37,16 @@ test('profile and league-war design follow shared hierarchy and themed controls'
   assert.match(war, /theme-input border-\[var\(--theme-control-border\)\]/);
 });
 
-test('the English interface declares its language without loading a language preference', () => {
+test('the bilingual interface preserves English SSR and accepts persisted Tamil preference', () => {
   const layout = read('apps/web/src/app/layout.tsx');
   const settings = read('apps/web/src/app/settings/page.tsx');
   assert.match(layout, /lang="en"/);
-  assert.doesNotMatch(layout, /AppLanguageProvider|fc-arena-ui-language/);
+  assert.match(layout, /fc-arena-locale-v1/);
+  assert.match(layout, /document\.documentElement\.lang/);
   assert.doesNotMatch(settings, /App language|useAppLanguage/);
 });
 
-test('navigation exposes English labels and current-page semantics', () => {
+test('navigation keeps current-page semantics and translates shared labels', () => {
   const bottom = read('apps/web/src/components/app/bottom-navigation.tsx');
   const shell = read('apps/web/src/components/app/app-shell.tsx');
   const search = read('apps/web/src/components/app/app-header.tsx');
@@ -50,5 +54,10 @@ test('navigation exposes English labels and current-page semantics', () => {
   assert.match(bottom, /aria-current/);
   assert.match(shell, /item\.shortLabel/);
   assert.match(search, /Search app sections/);
-  assert.doesNotMatch(bottom + shell + search, /[\u0B80-\u0BFF]/u);
+  assert.match(bottom, /useArenaLocale/);
+  assert.match(shell, /menuTranslationKey/);
+  assert.match(search, /LanguageSwitcher/);
+  const locale=read('apps/web/src/lib/locale.ts');
+  assert.match(locale, /தமிழ்/);
+  assert.match(locale, /முகப்பு/);
 });

@@ -16,6 +16,7 @@ import {
 } from '@/components/fc/fc-icons';
 
 import { MobileAppMenu } from './mobile-app-menu';
+import { LanguageSwitcher } from './language-switcher';
 
 import {
   useTheme,
@@ -482,6 +483,7 @@ export function AppHeader({
             <FcIcon name="calendar" size={20} />
           </Link>
 
+          <span className="hidden xl:block"><LanguageSwitcher compact /></span>
           <ThemeQuickPicker />
 
           <NotificationBell />

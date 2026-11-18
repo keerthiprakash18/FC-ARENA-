@@ -524,36 +524,6 @@ export default function StandingsPage() {
   ]);
 
 
-  const isLeagueTable =
-    tournament.competitionFormat ===
-      'LEAGUE_ROUND_ROBIN' ||
-    tournament.competitionFormat ===
-      'DOUBLE_ROUND_ROBIN' ||
-    tournament.competitionFormat ===
-      'ELITE_CUP' ||
-    tournament.competitionFormat ===
-      'UCL_CUP';
-
-  const isDoubleLeg =
-    tournament.competitionFormat ===
-      'DOUBLE_ROUND_ROBIN' ||
-    tournament.legType ===
-      'HOME_AWAY';
-
-  const leader =
-    standings[0] ??
-    null;
-
-  const competitionLabel =
-    tournament.competitionFormat === 'ELITE_CUP'
-      ? 'Elite Cup · League Phase'
-      : tournament.competitionFormat === 'UCL_CUP'
-      ? 'UCL Cup · League Phase'
-      : isDoubleLeg
-      ? 'Double Leg · Home & Away'
-      : 'Single Leg';
-
-
   if(loadError) return <AppShell><FcErrorState message={loadError} onRetry={() => window.location.reload()} /></AppShell>;
   if (
     !user ||

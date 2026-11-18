@@ -508,7 +508,8 @@ export default function PlayoffsPage() {
   async function reapplySavedFormat() {
     if (
       busy ||
-      !tournament
+      !tournament ||
+      !includesPlayoffStage(tournament.competitionFormat)
     ) {
       return;
     }
@@ -678,7 +679,7 @@ export default function PlayoffsPage() {
   }
 
   async function applyRoundOf16() {
-    if (!tournament || busy) return;
+    if (!tournament || busy || tournament.competitionFormat !== 'GROUP_STAGE_KNOCKOUT') return;
     const confirmed = await confirmAction({
       title: "Use the Round of 16 format?",
       description: playoffFixtures.length
@@ -770,7 +771,7 @@ export default function PlayoffsPage() {
         "UNSCHEDULED",
     );
 
-  if (!hasKnockoutStage && playoffFixtures.length === 0) {
+  if (!hasKnockoutStage) {
     return (
       <AppShell playerName={user.player?.identity?.inGameName}>
         <div className="premium-page premium-playoffs">
@@ -786,6 +787,12 @@ export default function PlayoffsPage() {
               Complete the scheduled league fixtures. The official final table determines the champion and runner-up.
               Existing matches and results are unchanged.
             </p>
+            {playoffFixtures.length > 0 ? (
+              <FcNotice tone="error">
+                {playoffFixtures.length} historical playoff fixture(s) exist for this league-only format.
+                They have not been changed or deleted. Contact a tournament administrator to review them.
+              </FcNotice>
+            ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href={`/tournaments/${tournamentId}/standings`} className="theme-primary-button rounded-xl px-4 py-3 text-sm font-bold">
                 View league standings

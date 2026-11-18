@@ -135,6 +135,47 @@ export default function TournamentGroupsPage() {
 
   if (load.error && !current) return <AppShell currentUser={user ?? undefined}><FcErrorState message={load.error} onRetry={load.retry} /></AppShell>;
   if (!user || !current || !editor) return <AppShell currentUser={user ?? undefined}><FcLoadingScreen label="Loading tournament groups…" embedded /></AppShell>;
+  // A one-table round robin has no configurable groups. Keep the roster visible,
+  // but never expose group balancing, group draft actions or fresh-draw controls.
+  if (editor.tournament.groupMode !== 'MULTIPLE_GROUPS') {
+    return <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
+      <div className="space-y-5">
+        <BackHeader backHref={`/tournaments/${tournamentId}`} backLabel="Tournament Overview"
+          eyebrow={`${editor.tournament.name} · ${editor.tournament.code}`}
+          title="Single-table League"
+          subtitle="All approved entries compete in one league table. No groups or group balancing are required."
+          action={<FcStatusBadge label={editor.tournament.status} tone={editor.tournament.status === 'ACTIVE' ? 'emerald' : 'amber'} />} />
+        <TournamentNavigation tournamentId={tournamentId} />
+        <FcNotice tone="error">{error || load.refreshError}</FcNotice>
+        <FcPanel className="p-4 sm:p-5">
+          <h2 className="text-lg font-black">No separate groups in this competition</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            {entries.length} approved teams compete in one overall league table.
+            The final verified standings determine the winner; existing fixtures and results remain unchanged.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href={`/tournaments/${tournamentId}/standings`} className={actionClass}>View official standings</Link>
+            <Link href={`/tournaments/${tournamentId}/fixtures`} className={actionClass}>View league fixtures</Link>
+          </div>
+        </FcPanel>
+        <FcPanel className="p-4 sm:p-5">
+          <h2 className="text-lg font-black">Approved teams · {entries.length}</h2>
+          <p className="mt-1 text-sm text-slate-500">This is a read-only roster. Team assignments do not need balancing.</p>
+          {entries.length > 0 ? <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            {entries.map(entry => <li key={entry.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-white/10 p-3">
+              <FcCrest name={entry.name} imageUrl={entry.logoUrl} size="sm" />
+              <div className="min-w-0">
+                <p className="break-words text-sm font-bold">{entry.name}</p>
+                <p className="mt-1 break-words text-[11px] leading-4 text-slate-500">
+                  {entry.members.map(member => member.name).join(' / ') || 'No linked players recorded'}
+                </p>
+              </div>
+            </li>)}
+          </ul> : <p className="mt-4 text-sm text-slate-500">No approved teams are available yet.</p>}
+        </FcPanel>
+      </div>
+    </AppShell>;
+  }
   return <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
     <div className="space-y-5" data-refresh-lock={dirty || busy || review ? 'true' : undefined}>
       <BackHeader backHref={`/tournaments/${tournamentId}`} backLabel="Tournament Overview" eyebrow={`${editor.tournament.name} · ${editor.tournament.code}`} title="Group Manager" subtitle={editor.tournament.groupMode === 'MULTIPLE_GROUPS' ? 'Keep groups even and review fixture changes before applying them.' : 'This competition uses a single league table; no group balancing is required.'} action={<FcStatusBadge label={editor.tournament.status} tone={editor.tournament.status === 'ACTIVE' ? 'emerald' : 'amber'} />} />

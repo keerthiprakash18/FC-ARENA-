@@ -951,8 +951,7 @@ export class LeagueWarsService {
       access.adminLeagueIds;
 
     const candidateRows =
-      manageableIds.length >
-      0
+      manageableIds.length > 0 && war.status === 'ACCEPTED'
         ? await this.prisma.leagueMember.findMany({
             where: {
               leagueId: {

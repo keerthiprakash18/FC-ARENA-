@@ -1,34 +1,38 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { FcContextNav } from '@/components/fc/fc-context-nav';
 import { authenticatedRequest } from '@/lib/auth-client';
-import { isRoundRobinLeague, hasKnockoutStage as isKnockoutFormat } from '@/lib/tournament-ui-context';
+import { hasKnockoutStage as isKnockoutFormat } from '@/lib/tournament-ui-context';
 
-interface Props {
-  tournamentId: string;
-}
-
+interface Props { tournamentId: string }
 interface NavigationContext {
   tournamentId: string;
   competitionFormat: string;
-  playoffSource: string;
   groupCount: number;
+  canManageSettings: boolean;
+  canManageAdmins: boolean;
 }
 
-const items = [
+// Player-facing actions belong first. Management and historic screens remain
+// accessible, but do not consume thirteen always-visible tournament tabs.
+const primaryItems = [
   ['Overview', ''],
-  ['Registration', '/registration'],
-  ['Teams', '/teams'],
-  ['Groups', '/groups'],
   ['Fixtures', '/fixtures'],
   ['Standings', '/standings'],
   ['Bracket', '/playoffs'],
+  ['Awards', '/achievements'],
+] as const;
+
+const tools = [
+  ['Registration', '/registration'],
+  ['Teams', '/teams'],
+  ['Groups', '/groups'],
   ['Stats', '/stats'],
   ['Summary', '/summary'],
   ['Report', '/report'],
-  ['Awards', '/achievements'],
   ['Settings', '/settings'],
   ['Manage Admins', '/admins'],
 ] as const;
@@ -38,55 +42,84 @@ export function TournamentNavigation({ tournamentId }: Props) {
   const [context, setContext] = useState<NavigationContext | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    // The stored groupMode can say MULTIPLE_GROUPS on an older single-table
-    // tournament. Only actual configured groups determine if Groups applies.
-    void Promise.all([
-      authenticatedRequest<{ data: { tournament: { competitionFormat: string; playoffSource: string } } }>(
-        `/tournaments/${tournamentId}`, { signal: controller.signal },
-      ),
-      authenticatedRequest<{ data: { groups: Array<{ id: string }> } }>(
-        `/tournaments/${tournamentId}/groups`, { signal: controller.signal },
-      ),
-    ]).then(([tournamentResponse, groupResponse]) => {
-      if (!controller.signal.aborted) {
-        setContext({
-          tournamentId,
-          competitionFormat: tournamentResponse.data.tournament.competitionFormat,
-          playoffSource: tournamentResponse.data.tournament.playoffSource,
-          groupCount: groupResponse.data.groups.length,
-        });
+    let controller: AbortController | null = null;
+    function refresh() {
+      controller?.abort();
+      controller = new AbortController();
+      const signal = controller.signal;
+      void Promise.all([
+        authenticatedRequest<{ data: { tournament: {
+          competitionFormat: string; canManageSettings?: boolean; canManageAdmins?: boolean;
+        } } }>(`/tournaments/${tournamentId}`, { signal }),
+        authenticatedRequest<{ data: { groups: Array<{ id: string }> } }>(
+          `/tournaments/${tournamentId}/groups`, { signal },
+        ),
+      ]).then(([tournamentResponse, groupResponse]) => {
+        if (!signal.aborted) {
+          setContext({
+            tournamentId,
+            competitionFormat: tournamentResponse.data.tournament.competitionFormat,
+            groupCount: groupResponse.data.groups.length,
+            canManageSettings: Boolean(tournamentResponse.data.tournament.canManageSettings),
+            canManageAdmins: Boolean(tournamentResponse.data.tournament.canManageAdmins),
+          });
+        }
+      }).catch(() => {
+        // Fail open for navigation links if an API request fails; all protected
+        // backend endpoints still enforce permissions independently.
+      });
+    }
+    refresh();
+    const onUpdated = (event: Event) => {
+      if ((event as CustomEvent<{ tournamentId?: string }>).detail?.tournamentId === tournamentId) {
+        refresh();
       }
-    }).catch(() => {
-      // Keep links available if context refresh fails. Never alter fixtures.
-    });
-
-    return () => controller.abort();
+    };
+    window.addEventListener('fcarena:tournament-updated', onUpdated);
+    return () => {
+      controller?.abort();
+      window.removeEventListener('fcarena:tournament-updated', onUpdated);
+    };
   }, [tournamentId]);
 
   const current = context?.tournamentId === tournamentId ? context : null;
-  const isLeagueWithoutGroups = Boolean(current
-    && current.groupCount === 0
-    && (isRoundRobinLeague(current.competitionFormat) || current.playoffSource === 'OVERALL_STANDINGS'));
-  const hasKnockoutStage = !current || isKnockoutFormat(current.competitionFormat);
   const base = `/tournaments/${tournamentId}`;
+  const isActive = (suffix: string) => {
+    const href = base + suffix;
+    return suffix === '' ? pathname === base : pathname === href || pathname.startsWith(href + '/');
+  };
+  const showPrimary = ([label]: readonly [string, string]) =>
+    label !== 'Bracket' || !current || isKnockoutFormat(current.competitionFormat);
+  const showTool = ([label]: readonly [string, string]) =>
+    (label !== 'Groups' || !current || current.groupCount > 0)
+    && (label !== 'Settings' || !current || current.canManageSettings)
+    && (label !== 'Manage Admins' || !current || current.canManageAdmins);
+  const moreItems = tools.filter(showTool);
+  const activeTool = moreItems.find(([, suffix]) => isActive(suffix));
 
   return (
-    <FcContextNav
-      ariaLabel="Tournament sections"
-      items={items
-        .filter(([label]) => (
-          (label !== 'Groups' || !isLeagueWithoutGroups)
-          && (label !== 'Bracket' || hasKnockoutStage)
-        ))
-        .map(([label, suffix]) => {
-          const href = `${base}${suffix}`;
-          const active = suffix === ''
-            ? pathname === base
-            : pathname === href || pathname.startsWith(`${href}/`);
-          return { label, href, active };
-        })}
-    />
+    <div className="space-y-2">
+      <FcContextNav
+        ariaLabel="Tournament main sections"
+        items={primaryItems.filter(showPrimary).map(([label, suffix]) => ({
+          label, href: base + suffix, active: isActive(suffix),
+        }))}
+      />
+      <details className="theme-panel rounded-xl border px-3 py-2 text-sm">
+        <summary className="cursor-pointer font-semibold text-slate-300">
+          More tournament sections{activeTool ? ` · ${activeTool[0]}` : ''}
+        </summary>
+        <nav aria-label="More tournament sections" className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3">
+          {moreItems.map(([label, suffix]) => (
+            <Link key={suffix} href={base + suffix} aria-current={isActive(suffix) ? 'page' : undefined}
+              className={`inline-flex min-h-10 items-center rounded-lg border px-3 text-xs font-bold transition-colors ${isActive(suffix)
+                ? 'border-amber-400/40 bg-amber-400/10 text-amber-200'
+                : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </details>
+    </div>
   );
 }

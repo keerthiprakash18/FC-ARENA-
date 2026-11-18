@@ -54,6 +54,13 @@ export function SavedPlayoffExplanation({
           </ol>
         </div>
       ) : null}
+      {guide.openingExample ? (
+        <p className="rounded-lg border border-sky-300/20 bg-sky-300/[0.04] p-3 text-sm">
+          <strong>Seeding example:</strong> {guide.openingExample}
+          {guide.knockoutFixtureCount !== null ? ` This is ${guide.knockoutFixtureCount} total knockout fixtures with no byes for a complete seeded draw.` : ''}
+          <span className="mt-1 block text-xs text-slate-400">Teams shown as #numbers are final league seeds, not currently confirmed teams.</span>
+        </p>
+      ) : null}
       {guide.isLeaguePlayoffs ? (
         <p className="text-sm font-semibold text-emerald-300">
           League progress: {stageTotal - stageIncomplete}/{stageTotal} stage fixtures completed.

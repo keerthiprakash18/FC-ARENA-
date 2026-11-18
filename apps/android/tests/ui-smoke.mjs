@@ -17,7 +17,7 @@ const reviewPaths = new Set([
   '/dashboard', '/leagues', '/matches', '/profile', '/settings', '/more', '/career', '/leaderboards', '/tournaments',
   '/tournaments/ui-test/standings', '/tournaments/phase3/wizard/setup', '/tournaments/phase3/fixtures',
   '/matches/result-test', '/league-war', '/league-war/phase3', '/awards',
-  '/notifications', '/arena-talk', '/admin/system',
+  '/notifications', '/arena-talk', '/experience', '/admin/system',
 ]);
 const themes = ['luxury-gold', 'classic-blue', 'city-sky', 'london-red', 'mersey-red', 'madrid-royal', 'catalan-nights', 'munich-red', 'paris-night', 'milan-blue', 'milan-red', 'turin-mono'];
 
@@ -192,7 +192,11 @@ try {
       // The shell mounts before authenticated reads finish. Measure the loaded
       // content after skeletons settle, while still failing a stalled loader.
       await page.waitForFunction(() => !document.querySelector('.fc-skeleton'));
-      if (path === '/dashboard' && width < 1024) {
+      if (path === '/experience') {
+          await page.getByRole('heading', { name: 'Matchday Milestones' }).waitFor();
+          assert.equal(await page.locator('[aria-label="Verified player milestones"] article').count(), 4);
+        }
+        if (path === '/dashboard' && width < 1024) {
         const tabs = page.locator('.theme-bottom-nav a');
         assert.equal(await tabs.count(), 5, 'Dashboard mobile navigation must have five tabs');
         const widths = await tabs.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().width));

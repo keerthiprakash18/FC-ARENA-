@@ -27,3 +27,30 @@ test('standings explicitly explain GD, points, and ranking without changing scor
   assert.match(scoring, /goalDifference: goalsFor - goalsAgainst/);
   assert.match(scoring, /points: outcome === 'W' \? 3 : outcome === 'D' \? 1 : 0/);
 });
+
+const playoffs = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/playoffs/page.tsx'), 'utf8');
+const groups = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/groups/page.tsx'), 'utf8');
+const awards = fs.readFileSync(path.join(root, 'apps/web/src/app/awards/page.tsx'), 'utf8');
+
+test('round-robin league does not offer a false playoff generation action', () => {
+  assert.match(playoffs, /function includesPlayoffStage\(competitionFormat: string\)/);
+  assert.match(playoffs, /if \(!includesPlayoffStage\(tournament\.competitionFormat\)\)/);
+  assert.match(playoffs, /if \(!hasKnockoutStage && playoffFixtures\.length === 0\)/);
+  assert.match(playoffs, /No playoff bracket for this league/);
+  assert.match(playoffs, /View league standings/);
+  assert.match(playoffs, /format\.title,/);
+});
+
+test('single-table tournaments do not report a false group balancing problem', () => {
+  assert.match(groups, /editor\.tournament\.groupMode === 'MULTIPLE_GROUPS'/);
+  assert.match(groups, /Single-table competition/);
+  assert.match(groups, /Separate groups and group balancing are not configured/);
+  assert.match(groups, /View official standings/);
+});
+
+test('unqualified Ballon contenders are never displayed as rank zero', () => {
+  assert.match(awards, /const qualifiedLeader =/);
+  assert.match(awards, /Top Qualifying Player/);
+  assert.match(awards, /No player has qualified for an official position yet/);
+  assert.match(awards, /row\.eligible && row\.position > 0 \? `#\$\{row\.position\}` : '—'/);
+});

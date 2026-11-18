@@ -159,6 +159,32 @@ export class ClubsService {
     }, error: null };
   }
 
+  async linkableEntries(userId: string, clubId: string) {
+    await this.requireActive(userId);
+    const club = await this.prisma.arenaClub.findUnique({
+      where: { id: clubId }, select: { ownerUserId: true,
+        members: { select: { userId: true } } },
+    });
+    if (!club || club.ownerUserId !== userId) throw new ForbiddenException('Only a club captain can link a team.');
+    const roster = new Set(club.members.map(m => m.userId));
+    const registrations = await this.prisma.tournamentRegistration.findMany({
+      where: { status: 'APPROVED',
+        members: { some: { userId } },
+        arenaClubEntry: { is: null },
+        tournament: { mode: { in: ['DUO','TEAM'] }, status: { notIn: ['COMPLETED','CANCELLED'] } },
+      },
+      select: { id: true, entryName: true,
+        members: { select: { userId: true } },
+        tournament: { select: { id: true, name: true, mode: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    const entries = registrations.filter(r => r.members.length > 0 && r.members.every(m => roster.has(m.userId)))
+      .map(r => ({ id: r.id, entryName: r.entryName || r.tournament.name,
+        tournamentName: r.tournament.name, tournamentId: r.tournament.id, mode: r.tournament.mode }));
+    return { success: true, data: { entries }, error: null };
+  }
+
   /**
    * A captain explicitly binds an approved DUO/TEAM registration to a permanent club.
    * Verified past matches may never be retroactively claimed for a new club.

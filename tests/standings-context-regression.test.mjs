@@ -30,6 +30,7 @@ test('standings explicitly explain GD, points, and ranking without changing scor
 
 const playoffs = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/playoffs/page.tsx'), 'utf8');
 const groups = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/groups/page.tsx'), 'utf8');
+const fixturePage = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/fixtures/page.tsx'), 'utf8');
 const awards = fs.readFileSync(path.join(root, 'apps/web/src/app/awards/page.tsx'), 'utf8');
 
 test('round-robin league does not offer a false playoff generation action', () => {
@@ -59,4 +60,12 @@ test('unqualified Ballon contenders are never displayed as rank zero', () => {
   assert.match(awards, /Top Qualifying Player/);
   assert.match(awards, /No player has qualified for an official position yet/);
   assert.match(awards, /row\.eligible && row\.position > 0 \? `#\$\{row\.position\}` : '—'/);
+});
+
+test('league-only fixtures use table terminology without a misleading group filter', () => {
+  assert.match(fixturePage, /const isLeagueTable =/);
+  assert.match(fixturePage, /\{!isLeagueTable \? <>/);
+  assert.match(fixturePage, /isLeagueTable \? 'Format' : 'Groups'/);
+  assert.match(fixturePage, /isLeagueTable \? 'League' : \(groups\.length \|\| 1\)/);
+  assert.match(fixturePage, /isLeagueTable \? 'League matchdays' : 'Competition Group'/);
 });

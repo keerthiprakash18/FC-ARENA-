@@ -31,6 +31,7 @@ import './native-android.css';
 import './vnext-interaction-system.css';
 import './vnext-visual-polish.css';
 import './arena-design.css';
+import './arena-premium-foundations.css';
 
 export const metadata: Metadata = {
   metadataBase:

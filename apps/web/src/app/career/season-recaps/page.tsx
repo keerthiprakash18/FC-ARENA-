@@ -6,6 +6,7 @@ import { SecondaryFeaturePage } from '@/components/fc/secondary-feature-page';
 import { FcEmptyState, FcPanel } from '@/components/fc/fc-ui';
 import { ShareCard } from '@/components/fc/share-card';
 import { authenticatedRequest, getCurrentUser } from '@/lib/auth-client';
+import { useArenaLocale } from '@/lib/locale';
 
 interface Recap {
   id: string; name: string; status: string; startAt: string; endAt: string;
@@ -16,6 +17,7 @@ interface Recap {
 }
 
 export default function SeasonRecapsPage() {
+  const { t } = useArenaLocale();
   const [recaps, setRecaps] = useState<Recap[]>([]);
   const [playerName, setPlayerName] = useState('FC ARENA Player');
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ export default function SeasonRecapsPage() {
       .finally(()=>{ if(active) setLoading(false); });
     return ()=>{ active=false; };
   },[]);
-  return <SecondaryFeaturePage title="Season Recaps" eyebrow="Verified season history" backHref="/career" backLabel="Career"
+  return <SecondaryFeaturePage title={t('seasonRecaps')} eyebrow="Verified season history" backHref="/career" backLabel="Career"
     subtitle="Your results for official FC ARENA Ballon seasons. Only confirmed player matches in each season's eligible competitions are counted.">
     {error ? <p role="alert" className="rounded-xl border border-[var(--theme-danger)] p-4 text-sm text-[var(--theme-danger)]">{error}</p> : null}
     {loading ? <p role="status" className="theme-secondary-text">Loading official seasons…</p> : !recaps.length ?

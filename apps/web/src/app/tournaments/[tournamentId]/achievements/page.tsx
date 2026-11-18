@@ -582,6 +582,7 @@ export default function AchievementsPage() {
             <h2 className="mt-1 text-2xl font-black">
               Award Races
             </h2>
+             <p className="mt-2 text-xs text-slate-400">Provisional. Only confirmed results count; official honours are issued after tournament finalisation.</p>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               <RaceList
@@ -636,8 +637,8 @@ export default function AchievementsPage() {
             </h2>
             <p className="mt-1 text-sm text-slate-400">
               {races.verifiedScoreRaces.scope === 'TEAM'
-                ? 'Ranked by verified team scores.'
-                : 'Ranked by verified individual Duo games.'}
+                ? 'Provisional team records from confirmed aggregate scores. These are not individual player awards.'
+                : 'Provisional player records from confirmed individual Duo games. Official honours are awarded at tournament finalisation.'}
             </p>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <RaceList

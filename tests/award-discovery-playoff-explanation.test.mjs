@@ -20,6 +20,8 @@ test('explains saved Top 8 one-table league and identifies knockout winner as ch
   assert.match(guide.qualifierRule, /top 8 entries in the final overall standings/);
   assert.deepEqual(guide.rounds, ['Quarter-finals (8 teams)', 'Semi-finals (4 teams)', 'Final (2 teams)', 'Champion']);
   assert.match(guide.winnerRule, /NOT automatically champion/);
+  assert.match(guide.openingExample, /#1 vs #8/);
+  assert.equal(guide.knockoutFixtureCount, 7);
   assert.match(guide.selection, /provisional/);
   assert.match(guide.reminder, /not a live fixture draw/);
 });

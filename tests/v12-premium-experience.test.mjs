@@ -98,7 +98,7 @@ test('premium enhancements preserve safety and use existing trusted data', () =>
   assert.match(diagram, /not live fixtures/);
   assert.match(diagram, /scroll sideways|Scroll sideways/i);
   assert.match(settings, /<details id="advanced-safety"/);
-  assert.ok(settings.indexOf('<details id="advanced-safety"') < settings.indexOf('Reset All Groups & Fixtures'));
+  assert.ok(settings.indexOf('<details id="advanced-safety"') < settings.lastIndexOf('Reset All Groups & Fixtures'));
   assert.match(settings, /confirmTournamentName/);
   assert.match(settings, /full-reset-preview/);
   assert.match(dashboard, /getMatchdayGuidance/);

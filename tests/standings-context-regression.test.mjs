@@ -98,3 +98,26 @@ test('competition tabs use actual group count rather than a legacy MULTIPLE_GROU
   assert.match(nav, /label !== 'Groups' \|\| !isLeagueWithoutGroups/);
   assert.match(nav, /label !== 'Bracket' \|\| hasKnockoutStage/);
 });
+
+const formatOverview = fs.readFileSync(path.join(root, 'apps/web/src/components/tournaments/tournament-format-overview.tsx'), 'utf8');
+const leaguePlayoffSetup = fs.readFileSync(path.join(root, 'apps/web/src/components/tournaments/league-playoff-setup.tsx'), 'utf8');
+
+test('tournament format and playoff format are explicit on Overview, not repeated on Fixtures', () => {
+  assert.match(tournamentOverview, /<TournamentFormatOverview/);
+  assert.match(formatOverview, /Tournament Format/);
+  assert.match(formatOverview, /Playoff Format/);
+  assert.match(formatOverview, /No Playoffs — League Winner/);
+  assert.match(formatOverview, /Single-Table League \+ Playoffs/);
+  assert.match(formatOverview, /Final league standings → top/);
+  assert.doesNotMatch(fixturePage, /<TournamentFormatGuide/);
+});
+
+test('league champion rule changes only after explicit admin bracket and qualifier choice', () => {
+  assert.match(tournamentOverview, /<LeaguePlayoffSetup/);
+  assert.match(tournamentOverview, /tournament\.canManageSettings && tournament\.canManageFixtures/);
+  assert.match(leaguePlayoffSetup, /'PROTECTED_SEED'/);
+  assert.match(leaguePlayoffSetup, /playoffQualifiersTotal: total/);
+  assert.match(leaguePlayoffSetup, /confirmation: confirmation\.trim\(\)/);
+  assert.match(leaguePlayoffSetup, /Type the exact tournament name/);
+  assert.match(leaguePlayoffSetup, /does not generate or reset fixtures/);
+});

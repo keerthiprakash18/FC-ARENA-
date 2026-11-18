@@ -32,6 +32,12 @@ export class ClubsController {
     return this.clubs.details(request.user.sub, slug);
   }
 
+  @Get(':clubId/linkable-entries')
+  linkableEntries(@Req() request: AuthenticatedRequest,
+    @Param('clubId', new ParseUUIDPipe({ version: '4' })) clubId: string) {
+    return this.clubs.linkableEntries(request.user.sub, clubId);
+  }
+
   @Post(':clubId/invite/rotate')
   rotate(@Req() request: AuthenticatedRequest, @Param('clubId', new ParseUUIDPipe({ version: '4' })) clubId: string) {
     return this.clubs.rotateInvite(request.user.sub, clubId);

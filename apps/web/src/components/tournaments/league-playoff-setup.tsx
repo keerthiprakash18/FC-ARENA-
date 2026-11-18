@@ -46,6 +46,7 @@ export function LeaguePlayoffSetup({
         },
       );
       setMessage(result.data.message);
+      window.dispatchEvent(new CustomEvent('fcarena:tournament-updated', { detail: { tournamentId } }));
       await onSaved();
       setOpen(false);
     } catch (failure) {

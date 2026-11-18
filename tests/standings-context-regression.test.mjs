@@ -27,3 +27,53 @@ test('standings explicitly explain GD, points, and ranking without changing scor
   assert.match(scoring, /goalDifference: goalsFor - goalsAgainst/);
   assert.match(scoring, /points: outcome === 'W' \? 3 : outcome === 'D' \? 1 : 0/);
 });
+
+const playoffs = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/playoffs/page.tsx'), 'utf8');
+const groups = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/groups/page.tsx'), 'utf8');
+const tournamentOverview = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/page.tsx'), 'utf8');
+const fixturePage = fs.readFileSync(path.join(root, 'apps/web/src/app/tournaments/[tournamentId]/fixtures/page.tsx'), 'utf8');
+const awards = fs.readFileSync(path.join(root, 'apps/web/src/app/awards/page.tsx'), 'utf8');
+
+test('round-robin league does not offer a false playoff generation action', () => {
+  assert.match(playoffs, /function includesPlayoffStage\(competitionFormat: string\)/);
+  assert.match(playoffs, /if \(!includesPlayoffStage\(tournament\.competitionFormat\)\)/);
+  assert.match(playoffs, /if \(!hasKnockoutStage\)/);
+  assert.match(playoffs, /historical playoff fixture\(s\) exist for this league-only format/);
+  assert.match(playoffs, /!includesPlayoffStage\(tournament\.competitionFormat\)/);
+  assert.match(playoffs, /No playoff bracket for this league/);
+  assert.match(playoffs, /View league standings/);
+  assert.match(playoffs, /format\.title,/);
+});
+
+test('single-table tournaments do not report a false group balancing problem', () => {
+  assert.match(groups, /editor\.tournament\.groupMode === 'MULTIPLE_GROUPS'/);
+  assert.match(groups, /Single-table competition/);
+  assert.match(groups, /Separate groups and group balancing are not configured/);
+  assert.match(groups, /View official standings/);
+  assert.match(groups, /if \(editor\.tournament\.groupMode !== 'MULTIPLE_GROUPS'\)/);
+  assert.match(groups, /title="Single-table competition"/);
+  assert.match(groups, /This is a read-only roster/);
+  assert.match(groups, /No separate groups in this competition/);
+});
+
+test('unqualified Ballon contenders are never displayed as rank zero', () => {
+  assert.match(awards, /const qualifiedLeader =/);
+  assert.match(awards, /Top Qualifying Player/);
+  assert.match(awards, /No player has qualified for an official position yet/);
+  assert.match(awards, /row\.eligible && row\.position > 0 \? `#\$\{row\.position\}` : '—'/);
+});
+
+test('league-only fixtures use table terminology without a misleading group filter', () => {
+  assert.match(fixturePage, /const isLeagueTable =/);
+  assert.match(fixturePage, /\{!isLeagueTable \? <>/);
+  assert.match(fixturePage, /isLeagueTable \? 'Format' : 'Groups'/);
+  assert.match(fixturePage, /isLeagueTable \? 'League' : \(groups\.length \|\| 1\)/);
+  assert.match(fixturePage, /isLeagueTable \? 'League matchdays' : 'Competition Group'/);
+});
+
+test('single-table tournament overview does not mislabel a league as zero groups or show knockout bracket link', () => {
+  assert.match(tournamentOverview, /const isSingleTable = tournament\.groupMode !== 'MULTIPLE_GROUPS'/);
+  assert.match(tournamentOverview, /label=\{isSingleTable \? "League table" : "Groups"\}/);
+  assert.match(tournamentOverview, /hasKnockoutStage \? \[\[/);
+  assert.match(tournamentOverview, /isSingleTable \? "League Teams" : "Groups"/);
+});

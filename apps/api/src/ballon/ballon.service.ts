@@ -59,7 +59,7 @@ interface PlayerIdentity {
   profileImageUrl: string | null;
 }
 
-interface LiveRankingRow
+export interface LiveRankingRow
   extends SeasonStats,
     PlayerIdentity {
   position: number;

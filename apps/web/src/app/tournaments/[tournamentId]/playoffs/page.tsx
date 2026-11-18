@@ -50,6 +50,15 @@ import {
 } from "@/lib/auth-client";
 
 
+function includesPlayoffStage(competitionFormat: string) {
+  return [
+    'GROUP_STAGE_KNOCKOUT',
+    'SINGLE_ELIMINATION',
+    'ELITE_CUP',
+    'UCL_CUP',
+  ].includes(competitionFormat);
+}
+
 type PlayoffFormat =
   | "GLOBAL_SEEDED"
   | "PROTECTED_SEED"
@@ -499,7 +508,8 @@ export default function PlayoffsPage() {
   async function reapplySavedFormat() {
     if (
       busy ||
-      !tournament
+      !tournament ||
+      !includesPlayoffStage(tournament.competitionFormat)
     ) {
       return;
     }
@@ -569,9 +579,12 @@ export default function PlayoffsPage() {
 
 
   async function generatePlayoffs() {
-    if (
-      !tournament
-    ) {
+    if (!tournament) {
+      return;
+    }
+
+    if (!includesPlayoffStage(tournament.competitionFormat)) {
+      setError('This league is decided by its final standings. It has no playoff stage.');
       return;
     }
 
@@ -666,7 +679,7 @@ export default function PlayoffsPage() {
   }
 
   async function applyRoundOf16() {
-    if (!tournament || busy) return;
+    if (!tournament || busy || tournament.competitionFormat !== 'GROUP_STAGE_KNOCKOUT') return;
     const confirmed = await confirmAction({
       title: "Use the Round of 16 format?",
       description: playoffFixtures.length
@@ -735,6 +748,7 @@ export default function PlayoffsPage() {
 
   const roundOf16 = usesRoundOf16(tournament);
   const format = roundOf16 ? roundOf16Format : formatCopy[tournament.playoffFormat];
+  const hasKnockoutStage = includesPlayoffStage(tournament.competitionFormat);
   const canApplyRoundOf16 = !roundOf16 && tournament.canManageSettings && tournament.canManageFixtures &&
     tournament.competitionFormat === "GROUP_STAGE_KNOCKOUT" && tournament.legType === "SINGLE_LEG" &&
     ["DRAFT", "REGISTRATION_CLOSED", "ACTIVE"].includes(tournament.status) &&
@@ -743,6 +757,7 @@ export default function PlayoffsPage() {
 
 
   const canReapply =
+    hasKnockoutStage &&
     tournament.isLeagueAdmin &&
     playoffFixtures.length >
       0 &&
@@ -756,6 +771,41 @@ export default function PlayoffsPage() {
         "UNSCHEDULED",
     );
 
+  if (!hasKnockoutStage) {
+    return (
+      <AppShell playerName={user.player?.identity?.inGameName}>
+        <div className="premium-page premium-playoffs">
+          <PremiumHero
+            eyebrow={`${tournament.name} · ${tournament.code}`}
+            title="League Standings"
+            description="This competition has no knockout stage. Verified league results decide the winner through the final standings."
+            crest={tournament.name}
+          />
+          <section className="theme-card rounded-2xl border p-5">
+            <h2 className="theme-text text-xl font-black">No playoff bracket for this league</h2>
+            <p className="theme-secondary-text mt-3 text-sm leading-6">
+              Complete the scheduled league fixtures. The official final table determines the champion and runner-up.
+              Existing matches and results are unchanged.
+            </p>
+            {playoffFixtures.length > 0 ? (
+              <FcNotice tone="error">
+                {playoffFixtures.length} historical playoff fixture(s) exist for this league-only format.
+                They have not been changed or deleted. Contact a tournament administrator to review them.
+              </FcNotice>
+            ) : null}
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href={`/tournaments/${tournamentId}/standings`} className="theme-primary-button rounded-xl px-4 py-3 text-sm font-bold">
+                View league standings
+              </Link>
+              <Link href={`/tournaments/${tournamentId}/fixtures`} className="theme-secondary-button rounded-xl px-4 py-3 text-sm font-bold">
+                View league fixtures
+              </Link>
+            </div>
+          </section>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell
@@ -873,7 +923,7 @@ export default function PlayoffsPage() {
           {[
             [
               "Format",
-              format.badge,
+              format.title,
             ],
             [
               "Stage Matches",
@@ -903,7 +953,7 @@ export default function PlayoffsPage() {
                     label
                   }
                 </p>
-                <p className="theme-text mt-2 text-2xl font-black">
+                <p className="theme-text mt-2 break-words text-lg font-black sm:text-2xl">
                   {
                     value
                   }

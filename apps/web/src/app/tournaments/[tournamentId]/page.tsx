@@ -419,7 +419,7 @@ export default function TournamentOverviewPage() {
             actionLabel="Open Fixtures"
             actionHref={`/tournaments/${tournamentId}/fixtures`}
           />
-        )}
+        ) : null}
 
 
       </div>

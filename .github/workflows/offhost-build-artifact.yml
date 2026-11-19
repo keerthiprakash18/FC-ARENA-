@@ -34,7 +34,7 @@ jobs:
           cache: npm
 
       - name: Install locked dependencies on GitHub runner
-        run: npm ci
+        run: npm ci --include=dev
 
       - name: Generate Prisma client
         run: npx prisma generate --schema=apps/api/prisma/schema.prisma

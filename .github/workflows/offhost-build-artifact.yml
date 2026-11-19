@@ -3,7 +3,17 @@
 name: FC ARENA - Off-host production build artifact
 
 on:
-  # Tests the package on this draft PR before merging; does not touch VCL.
+  # Build deployable artifacts off-host whenever relevant code reaches main.
+  # This never deploys or changes VCL production.
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/offhost-build-artifact.yml"
   pull_request:
     paths:
       - ".github/workflows/offhost-build-artifact.yml"

@@ -25,11 +25,16 @@ jobs:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
       API_PROXY_TARGET: https://api.fcarena.in/api
-      FC_ARENA_RELEASE_SHA: ${{ github.sha }}
+      # Dummy CI build value only. Never inject production database credentials.
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena_build_only?schema=public
+      JWT_ACCESS_SECRET: ci-dummy-access-secret-for-build-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-dummy-refresh-secret-for-build-at-least-32-characters
+      FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Checkout exact requested revision
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Setup Node 24
@@ -60,7 +65,7 @@ jobs:
           test -d node_modules/@prisma/client
           rm -rf apps/web/.next/cache
           mkdir -p release-output
-          bundle="release-output/fcarena-runtime-${GITHUB_SHA}.tar.gz"
+          bundle="release-output/fcarena-runtime-${FC_ARENA_RELEASE_SHA}.tar.gz"
           tar -czf "$bundle" \
             --exclude='node_modules/.cache' \
             package.json package-lock.json \
@@ -76,7 +81,7 @@ jobs:
       - name: Upload short-lived build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fcarena-vcl-runtime-${{ github.sha }}
+          name: fcarena-vcl-runtime-${{ github.event.pull_request.head.sha || github.sha }}
           path: release-output/
           retention-days: 14
           compression-level: 0

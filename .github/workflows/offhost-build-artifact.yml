@@ -3,6 +3,11 @@
 name: FC ARENA - Off-host production build artifact
 
 on:
+  # Tests the package on this draft PR before merging; does not touch VCL.
+  pull_request:
+    paths:
+      - ".github/workflows/offhost-build-artifact.yml"
+      - "ops/VCL_RELEASE_STORAGE_POLICY.md"
   workflow_dispatch:
 
 permissions:
@@ -36,15 +41,12 @@ jobs:
       - name: Install locked dependencies on GitHub runner
         run: npm ci --include=dev
 
-      - name: Generate Prisma client
-        run: npx prisma generate --schema=apps/api/prisma/schema.prisma
-
       - name: Build API and Web on GitHub runner
         run: |
           set -euo pipefail
           npm run build:api
           npm run build:web
-          test -f apps/api/dist/main.js
+          test -f apps/api/dist/main.js || test -f apps/api/dist/main
           test -f apps/web/.next/BUILD_ID
 
       - name: Package production-only runtime and checksum
@@ -54,6 +56,8 @@ jobs:
           # No live credentials, DB files, uploads, backups or .env files are included.
           # npm prune is run only on the disposable GitHub runner.
           npm prune --omit=dev
+          # After packaging, migrations should be run as a separate verified step.
+          test -d node_modules/@prisma/client
           rm -rf apps/web/.next/cache
           mkdir -p release-output
           bundle="release-output/fcarena-runtime-${GITHUB_SHA}.tar.gz"

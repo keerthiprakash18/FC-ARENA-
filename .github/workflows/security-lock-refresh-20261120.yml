@@ -1,0 +1,44 @@
+# Temporary, narrow one-off lockfile refresh; remove after audited lock commit.
+# No production hosts, credentials, artifact publishing, migrations or deployments.
+name: TEMP - security dependency lock refresh (off-host only)
+on:
+  push:
+    branches: [chore/security-npm-high-gate-20261120]
+    paths:
+      - .github/workflows/security-lock-refresh-20261120.yml
+permissions:
+  contents: write
+jobs:
+  refresh-and-audit:
+    if: github.ref == 'refs/heads/chore/security-npm-high-gate-20261120'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Regenerate precise npm override lock on disposable runner
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Validate install resolves pinned secure transitives
+        run: |
+          set -euo pipefail
+          npm ci --include=dev
+          node -e 'let p=require("./package-lock.json").packages; for (const [n,v] of [["effect","3.22.1"],["fast-xml-parser","5.12.0"]]) {const got=p["node_modules/"+n]?.version; if (got !== v) throw Error(n+" expected "+v+", got "+got); console.log("Verified "+n+"@"+got);}'
+          npm audit --audit-level=high
+      - name: Commit reviewed lockfile only to security branch
+        run: |
+          set -euo pipefail
+          git diff --check
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo 'No package-lock change; nothing to commit'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'security: refresh audited npm lockfile for effect and XML parser'
+          git push origin HEAD:refs/heads/chore/security-npm-high-gate-20261120

@@ -1,0 +1,92 @@
+.dayBanner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: clamp(22px, 4vw, 35px);
+  border-radius: 25px;
+  border: 1px solid #f4c8d7;
+  background: radial-gradient(ellipse at 96% 8%, #dcd5fc 0%, transparent 49%),
+    radial-gradient(ellipse at 0 100%, #ffdaca 0%, transparent 48%),
+    linear-gradient(125deg, #fff8f2, #ffe9ec 58%, #fae8ff);
+  box-shadow: 0 15px 44px rgb(107 58 91 / 9%);
+  color: #54344a;
+}
+.daySparkles {
+  position: absolute;
+  top: -23px;
+  right: 25px;
+  font-size: clamp(90px, 11vw, 145px);
+  letter-spacing: -36px;
+  color: rgb(237 114 157 / 19%);
+  user-select: none;
+  pointer-events: none;
+  z-index: -1;
+}
+.bannerText { min-width: 0; max-width: 670px; }
+.eyebrow { margin: 0; color: #a34b70; font-weight: 800; font-size: 10px; letter-spacing: .18em; line-height: 1.6; }
+.bannerText strong { display: block; overflow-wrap: anywhere; font-size: clamp(25px, 4vw, 38px); letter-spacing: -.035em; line-height: 1.14; font-weight: 850; margin-top: 8px; }
+.bannerText p { font-size: 14px; margin: 10px 0 0; line-height: 1.55; color: #77596b; }
+.bannerButton { min-height: 46px; padding: 10px 18px; border-radius: 999px; border: 1px solid #af416a; background: #a83d68; color: #fff; font-weight: 750; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgb(146 46 91 / 20%); }
+.bannerButton:hover { background: #8f3055; }
+.bannerButton:focus-visible, .paper button:focus-visible { outline: 3px solid #8046b1; outline-offset: 3px; }
+
+.overlay { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 15px; overflow-y: auto; background: rgb(33 22 37 / 78%); backdrop-filter: blur(12px); }
+.paper { position: relative; isolation: isolate; width: min(100%, 450px); min-height: min(720px, calc(100dvh - 30px)); overflow: hidden; border-radius: 30px; background: #fff4f0; box-shadow: 0 30px 100px rgb(7 7 19 / 50%); color: #4a2b40; }
+.close, .sound { position: absolute; top: 18px; z-index: 12; border: 1px solid rgb(145 90 104 / 18%); background: rgb(255 253 253 / 86%); color: #5e354d; border-radius: 100px; padding: 10px 15px; cursor: pointer; font-size: 12px; font-weight: 800; min-height: 42px; backdrop-filter: blur(12px); }
+.close { right: 16px; } .sound { left: 16px; }
+.screen { position: relative; isolation: isolate; min-height: min(720px, calc(100dvh - 30px)); display: flex; flex-direction: column; justify-content: flex-start; }
+.backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
+.fallbackWarmth { position: absolute; inset: 0; z-index: -3; background: radial-gradient(ellipse at 75% 73%, #ffb6ad, transparent 50%), radial-gradient(ellipse at 15% 50%, #d9cbfa, transparent 62%), linear-gradient(155deg, #fffaf4, #ffe3da); }
+.fallbackWarmth::after { content: "✦"; position: absolute; bottom: 19%; left: 19%; color: rgb(255 255 255 / 62%); font-size: 140px; text-shadow: 35px -30px 48px rgb(211 64 135 / 30%); }
+.welcomeCopy { padding: clamp(92px, 12vh, 140px) 33px 50px; position: relative; z-index: 2; }
+.welcomeCopy h2, .cakeCopy h2, .letter h2, .gift h2 { margin: 15px 0; font-size: clamp(40px, 9vw, 58px); letter-spacing: -.068em; line-height: 1.06; font-weight: 800; overflow-wrap: anywhere; }
+.welcomeCopy h2 em, .cakeCopy h2 em, .letter h2 em, .gift h2 em { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -.055em; color: #c24b7d; }
+.welcomeCopy > p:not(.eyebrow), .cakeCopy > p:not(.eyebrow), .gift > p:not(.eyebrow) { max-width: 300px; line-height: 1.75; font-size: 15px; margin: 15px 0 24px; color: #79586b; }
+.deco { font-family: Georgia, serif; font-size: 37px; color: #e2a36d; margin-top: 24px; }
+.primary { display: inline-flex; align-items: center; justify-content: center; gap: 14px; min-height: 52px; padding: 12px 23px; border: none; border-radius: 100px; color: white; background: linear-gradient(125deg, #c5487f, #a33b72); font-weight: 750; font-size: 14px; letter-spacing: -.012em; cursor: pointer; box-shadow: 0 14px 27px rgb(180 60 116 / 25%); }
+.primary:hover { filter: brightness(.95); }
+.film { position: relative; height: min(720px, calc(100dvh - 30px)); background: #091522; overflow: hidden; }
+.film video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.film::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(3 14 26 / 30%), rgb(2 11 23 / 16%) 40%, rgb(3 10 23 / 88%)); pointer-events: none; }
+.filmCopy { position: absolute; inset: auto 22px 41px; z-index: 2; color: white; text-align: center; }
+.filmCopy p { font-size: 10px; letter-spacing: .3em; font-weight: 700; color: #e9e8e2; }
+.filmCopy h2 { font-size: clamp(32px, 7vw, 47px); margin: 12px 0 5px; text-shadow: 0 3px 12px #000; overflow-wrap: anywhere; }
+.filmCopy strong { font-size: 12px; letter-spacing: .19em; color: #f6e8df; }
+.filmCopy button { display: block; margin: 22px auto 0; padding: 12px 18px; min-height: 44px; border-radius: 100px; border: 1px solid #fff9; background: #fff2; color: white; cursor: pointer; font-weight: 650; }
+.filmAvatar { width: 68px; height: 68px; border-radius: 100%; border: 3px solid #fff; object-fit: cover; margin: 12px auto 0; }
+.cakeCopy { padding: 85px 30px 0; z-index: 2; position: relative; }
+.cakeCopy h2 { font-size: clamp(37px, 8vw, 49px); margin: 8px 0; }
+.cakeCopy p:not(.eyebrow) { margin: 9px 0; font-size: 13px; line-height: 1.55; }
+.cakeActions { position: relative; z-index: 2; margin-top: auto; padding: 18px 26px 45px; text-align: center; background: linear-gradient(transparent, rgb(255 246 242 / 91%)); }
+.cakeActions .primary { width: 100%; }
+.wishNote { background: #fff9; padding: 12px; border-radius: 18px; font-size: 13px; color: #a03b64; font-weight: 700; }
+.letter, .gift { min-height: min(720px, calc(100dvh - 30px)); padding: 95px 36px 42px; display: flex; flex-direction: column; justify-content: center; background: radial-gradient(ellipse at 100% 0%, #f5d8ef 0, transparent 50%), radial-gradient(ellipse at 0 100%, #ffdbcd 0, transparent 47%), #fff9f2; }
+.letter h2, .gift h2 { font-size: clamp(37px, 8vw, 51px); }
+.letter > p:not(.eyebrow), .gift > p:not(.eyebrow) { font-size: 15px; line-height: 1.8; color: #71576a; }
+.signature { margin: 20px 0 29px; font-size: 15px; color: #803b61; }
+.signature span { color: #e45a83; }
+.ribbon { font-size: 96px; line-height: 1; color: #e5a4ba; }
+.profileChip { display: flex; gap: 12px; align-items: center; border: 1px solid #f2cbd7; background: #fffaf2cc; border-radius: 19px; padding: 12px; margin: 19px 0 26px; }
+.profileChip img, .profileChip > span { flex: 0 0 48px; width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #f7c8de; color: #80365a; display: grid; place-items: center; font-weight: 850; font-size: 22px; }
+.profileChip div { min-width: 0; } .profileChip strong { display: block; overflow-wrap: anywhere; } .profileChip small { display: block; font-size: 10px; line-height: 1.6; color: #8d6f7e; margin-top: 3px; }
+.disclaimer { margin-top: 16px; color: #937487; line-height: 1.5; font-size: 11px; }
+@media (max-width: 500px) {
+  .overlay { padding: 0; align-items: stretch; }
+  .paper { border-radius: 0; width: 100%; min-height: 100dvh; }
+  .screen, .letter, .gift { min-height: 100dvh; }
+  .film { height: 100dvh; }
+  .welcomeCopy { padding-top: 24vh; }
+  .cakeCopy { padding-top: 16vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paper *, .dayBanner * { animation: none !important; transition: none !important; }
+}
+@media (forced-colors: active) {
+  .overlay, .paper, .dayBanner { border: 1px solid CanvasText; forced-color-adjust: auto; }
+  .primary, .bannerButton { border: 1px solid ButtonText; }
+}

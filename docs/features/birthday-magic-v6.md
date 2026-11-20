@@ -53,6 +53,6 @@ Disable NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED and create a new off-host WEB artifac
 
 ## Integration update — 20 November 2026
 
-- Approved V6 warm welcome, boutique CSS cake and satin gift are now staged in the signed-in dashboard. No optional welcome image is required.
-- The stadium clip is muted during playback so it does not overlap the approved background music. Natural voice remains absent. No browser TTS, invented voice file, or fabricated spoken player name.
+- Approved V6 warm welcome, **always-interactive boutique CSS cake** and satin gift are now staged in the signed-in dashboard. No optional welcome or cake image is required, and the candle/cake-cut interactions are deterministic.
+- The stadium clip is muted during playback so it does not overlap the approved background music. Natural voice remains absent; `NEXT_PUBLIC_BIRTHDAY_VOICE_READY` defaults OFF and prevents network attempts for missing recordings. No browser TTS, invented voice file, or fabricated spoken player name.
 - **DO NOT ENABLE OR DEPLOY** until Android WebView playback/accessibility, account switching, authenticated competition regressions, security gate #192, fresh DB and uploads off-host recoverability, exact off-host artifact rehearsal, VCL live identity and verified rollback all pass. The feature flag stays OFF by default.

@@ -117,3 +117,74 @@
 .cakeSliced .cakeSlice { opacity: 1; transform: translate(33px, 28px) rotate(-3deg); }
 .cakeSliced .cakeBody::after { content: ""; position: absolute; right: 2px; top: 18px; width: 70px; height: 150px; clip-path: polygon(0 0, 100% 16%, 100% 100%, 0 100%); background: linear-gradient(90deg, #f9e4d2, #e99fb1); box-shadow: inset 2px 2px 6px #c0838c; }
 @media (max-width: 375px) { .cakeStage { transform: translateX(-50%) scale(.88); transform-origin: 50% 70%; } }
+
+/* Owner-approved V6: warm boutique birthday opening, not a tournament announcement.
+   All decorations are CSS and independent of web uploads or third-party media. */
+.birthdayWelcome {
+  background: radial-gradient(ellipse at 80% 22%, #ffcbd4 0, transparent 39%),
+    radial-gradient(ellipse at 7% 70%, #fbdbf4 0, transparent 38%),
+    linear-gradient(155deg, #fff8e9 0%, #ffecdf 46%, #f3dcf7 100%);
+  align-items: stretch;
+  text-align: center;
+}
+.welcomeHeader { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 71px 25px 0; font-size: 17px; color: #563b50; font-weight: 950; letter-spacing: -.9px; }
+.welcomeHeader strong { color: #d45b83; }
+.welcomeEdition { border: 1px solid #f4b7be; background: #fff8f3b8; color: #a94f6b; padding: 8px 10px; border-radius: 40px; letter-spacing: 1.1px; font-size: 9px; font-weight: 900; }
+.birthdayWelcomeCopy { padding: 32px 17px 0; position: relative; z-index: 2; }
+.welcomeGreeting { font-size: 11px; letter-spacing: 2.2px; color: #b35e79; font-weight: 850; margin: 0; }
+.welcomeGreeting span { color: #e74d80; }
+.birthdayWelcomeCopy h2 { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(46px, 12vw, 62px); font-weight: 500; line-height: .96; letter-spacing: -2.7px; margin: 18px 0 10px; color: #873d66; }
+.birthdayWelcomeCopy h2 em { font-weight: 400; font-style: italic; color: #e2688b; }
+.welcomeName { font-size: 22px; font-weight: 850; letter-spacing: .6px; margin: 0 auto; max-width: 350px; overflow-wrap: anywhere; color: #513648; }
+.welcomeDescription { color: #9a687b; font-size: 13px; line-height: 1.65; max-width: 286px; margin: 12px auto; }
+.birthdayWelcomeArt { height: 215px; flex: 0 0 215px; width: min(100%, 350px); position: relative; z-index: 2; margin: 0 auto; }
+.welcomeSun { position: absolute; width: 204px; height: 204px; top: 5px; left: 50%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle at 30% 25%, #fff9d8, #ffddbf 58%, #ffc8d1 85%); box-shadow: 0 12px 40px #eb8fa23f; }
+.welcomeHalo { position: absolute; width: 253px; height: 253px; top: -20px; left: 50%; transform: translateX(-50%); border: 1px solid #f4b8ba8a; border-radius: 50%; }
+.welcomeHalo::after { content: ''; position: absolute; inset: 17px; border: 1px dashed #e1a3baaa; border-radius: 50%; }
+.welcomeCake { position: absolute; left: 50%; top: 13px; transform: translateX(-50%); width: 190px; height: 171px; filter: drop-shadow(0 14px 16px #c969854c); animation: birthdayCakeFloat 4s ease-in-out infinite; }
+@keyframes birthdayCakeFloat { 50% { transform: translateX(-50%) translateY(-7px); } }
+.wcPlate { position: absolute; bottom: 10px; left: 11px; right: 11px; height: 25px; border-radius: 50%; background: linear-gradient(180deg, #fffdfd, #dfadc1); box-shadow: 0 5px 7px #b36b8642; }
+.wcBottom { position: absolute; bottom: 28px; left: 29px; right: 29px; height: 82px; border-radius: 8px 8px 20px 20px; background: linear-gradient(90deg, #e88ea7, #fff0e8 22%, #ffc2d0 67%, #ce6e8d); box-shadow: inset -9px 0 11px #cb709a55; }
+.wcBottom::before { content: ''; position: absolute; top: -15px; left: 0; right: 0; height: 36px; background: radial-gradient(ellipse at 40% 35%, #fffdf9, #ffe6e5 80%, #e597b1); border-radius: 50%; box-shadow: 0 7px 0 #ffedf2; }
+.wcBottom::after { content: ''; position: absolute; left: 0; right: 0; bottom: 21px; height: 8px; background: linear-gradient(90deg, #efa3b7, #fff8e8, #dc7c9c); }
+.wcTop { position: absolute; bottom: 94px; left: 55px; right: 55px; height: 46px; background: linear-gradient(90deg, #ee9fb7, #fff0ea 36%, #ffbad2 76%, #d47c9b); border-radius: 7px 7px 14px 14px; }
+.wcTop::before { content: ''; position: absolute; top: -13px; left: 0; right: 0; height: 30px; border-radius: 50%; background: radial-gradient(ellipse, #fffcf7, #ffe2e8 85%); box-shadow: 0 4px 0 #fff2ee; }
+.wcTop::after { content: ''; position: absolute; left: -8px; right: -8px; bottom: -2px; height: 12px; border-radius: 50%; background: #fff4f2a0; }
+.wcCandles { position: absolute; bottom: 127px; left: 78px; right: 78px; display: flex; gap: 8px; justify-content: center; }
+.wcCandles i { display: block; position: relative; height: 23px; width: 6px; border-radius: 3px; background: linear-gradient(90deg, #e6a6bd, #fff3d8, #da839a); }
+.wcCandles i::before { content: ''; position: absolute; width: 9px; height: 13px; bottom: 100%; left: -2px; border-radius: 70% 30% 60% 30%; transform: rotate(27deg); background: radial-gradient(circle at 60% 76%, #fff9cc, #ffcc5a 58%, #ff865b); filter: drop-shadow(0 0 5px #ffca79); }
+.wcHeart { position: absolute; left: 45%; top: 94px; color: #b65b7d; font-family: Georgia, serif; font-size: 23px; font-weight: bold; }
+.welcomeSparkleOne, .welcomeSparkleTwo { position: absolute; color: #da7399; font-size: 27px; }
+.welcomeSparkleOne { left: 27px; top: 30px; }
+.welcomeSparkleTwo { right: 25px; top: 57px; color: #e9ab54; }
+.welcomeFooter { margin-top: auto; padding: 8px 28px 31px; position: relative; z-index: 3; }
+.welcomeFooter .primary { width: 100%; min-height: 60px; border-radius: 20px; background: linear-gradient(100deg, #d95483, #b74686); font-size: 15px; }
+.welcomeFooter p { margin: 12px 0 0; color: #9d7b86; font-size: 11px; }
+
+/* Owner-approved V6 satin gift in the private, cosmetic birthday scene. */
+.giftVessel { position: relative; flex: 0 0 158px; width: 200px; height: 158px; margin: 5px auto 4px; filter: drop-shadow(0 16px 15px #bc789f60); }
+.gvBox { position: absolute; left: 30px; top: 68px; width: 140px; height: 83px; border-radius: 5px 6px 15px 15px; background: linear-gradient(100deg, #c9537d, #f5aec1 25%, #f8c8d1 65%, #ba577f); box-shadow: inset -13px -9px 20px #ac467356, inset 8px 0 16px #fff3f17d; }
+.gvRibbon { position: absolute; left: 57px; top: 0; bottom: 0; width: 26px; background: linear-gradient(90deg, #f5e5c2, #fffef9, #ebca9c); }
+.gvHorizontal { position: absolute; top: 23px; left: 0; right: 0; height: 17px; background: linear-gradient(180deg, #fff6dd, #f0d4ac); }
+.gvLid { position: absolute; left: 20px; top: 54px; width: 160px; height: 34px; border-radius: 8px 8px 4px 4px; background: linear-gradient(110deg, #d96891, #ffbfd0 47%, #c95783); box-shadow: 0 7px 6px #a84f7840; transform: rotate(-5deg); }
+.gvLidRibbon { position: absolute; left: 67px; width: 26px; top: 0; bottom: 0; background: linear-gradient(90deg, #ebcb98, #fff9df, #e7c18b); }
+.gvLoopLeft, .gvLoopRight { position: absolute; border: 14px solid #fff0d3; top: 20px; width: 61px; height: 53px; box-shadow: inset 3px 0 8px #c58a5677, 0 0 6px #e2a7ac55; }
+.gvLoopLeft { left: 49px; transform: rotate(28deg); border-radius: 80% 20% 60% 30%; }
+.gvLoopRight { right: 45px; transform: rotate(-27deg); border-radius: 20% 80% 30% 60%; }
+.gvSparkleOne, .gvSparkleTwo { position: absolute; top: 13px; left: 4px; z-index: 3; font-size: 26px; color: #d977a0; }
+.gvSparkleTwo { left: auto; right: 4px; top: 2px; color: #dcb05f; }
+
+@media (max-width: 500px) {
+  .birthdayWelcome { min-height: 100dvh; }
+  .welcomeHeader { padding-top: 70px; }
+  .birthdayWelcomeCopy { padding-top: 28px; }
+  .birthdayWelcomeArt { flex-basis: 200px; height: 200px; }
+  .gift { padding-top: 70px; padding-bottom: 24px; }
+}
+@media (max-width: 375px) {
+  .welcomeHeader { padding-left: 17px; padding-right: 17px; }
+  .birthdayWelcomeCopy h2 { font-size: 46px; }
+  .welcomeEdition { letter-spacing: .5px; }
+  .welcomeFooter { padding: 8px 19px 25px; }
+  .birthdayWelcomeArt { flex-basis: 188px; height: 188px; }
+}

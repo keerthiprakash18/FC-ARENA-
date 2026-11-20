@@ -2,20 +2,20 @@
 
 ## What is hosted where?
 
-- **GitHub repository and GitHub Actions:** source control, build/test, immutable release bundles. The `offhost-build-artifact.yml` workflow is **manual-dispatch only**.
+- **GitHub repository and GitHub Actions:** source control, build/test, immutable release bundles. The `offhost-build-artifact.yml` workflow builds on relevant `main` updates, manual dispatch, and selected PRs; **it does not deploy**.
 - **VCL Hosting (`fcarena-prod`):** live Node API and Next web processes, PostgreSQL/Redis, persistent user media, runtime credentials, and minimal release artifacts.
 - **Independent encrypted backups:** DB and user media must be verified outside VCL Hosting before any whole-release purge.
 
 There is **no move to an old server or a separate VPS**. A build runner is transient; it does not serve production requests. If Web/API continue to run on VCL Hosting, their compiled runtime binaries and runtime dependencies **must** exist on VCL Hosting. Only one live release and one tested rollback are intended to remain long term.
 
-## Current migration blockers (19 Nov 2026)
+## Verified status (20 Nov 2026; production remains on VCL)
 
-- V12 live release: `fcarena-v12-stage-154b8440b92c`; V11 rollback: `playoff-visual-v11-2433159e0d5c`.
-- Two services have **47 API / 56 Web environment-file layers**, currently tied to many historical releases. A previous cutover failed; rollback was independently confirmed. Do not retry blindly.
-- API WorkingDirectory is `/opt/fcarena/apps/api` (legacy).
-- Web effective ReadWritePaths includes historical `.next/cache` directories. These paths block some old-release purges.
-- Old historical service drop-ins contain references that must be consolidated separately and reviewed.
-- Off-host DB + uploads recovery proof is still needed. Never delete `/opt/fcarena/backups`, `/var/lib/fcarena`, `/opt/fcarena/storage`, or unrelated data.
+- Current live V12: `/opt/fcarena-deployments/fcarena-v12-stage-154b8440b92c` (SHA `154b8440b92ca18f15fc186ee17019820cf8e116`). Protected V11 rollback: `/opt/fcarena-deployments/playoff-visual-v11-2433159e0d5c`. GitHub main is not automatically live.
+- API and WEB service guard restarts, stable `/etc/fcarena` environment-file precedence and effective WEB cache writable paths were verified in Nov 2026. The **47 API and 56 WEB historical environment layers and older systemd drop-ins still require a separate review**; never blindly remove them. API `WorkingDirectory` intentionally remains `/opt/fcarena/apps/api`.
+- Production target ABI observed read-only on 20 Nov: Ubuntu 24.04, x86_64, glibc 2.39, Node 24.22.1, API and WEB active. Matching GitHub runner packaging and native module smoke can reduce compatibility risk, but does not prove a VCL runtime launch or authenticated feature parity.
+- Off-host Windows DB dump was restore-verified in isolation with 67 tables and 49 migrations. On 20 Nov a further 32 persistent-source files were copied to Windows with SHA-256 parity PASS; that copy **was not an application/media restore rehearsal**.
+- Arena Talk media directory is release-independent, contains 0 files at audit time, and 14 local media archives passed checksum verification but contained 0 image entries. **Real, nonempty media off-host recovery is not proven by those empty archives or synthetic CI.** The other persistent roots must be retained even if their purposes are not fully cataloged.
+- Production storage audit found 101 deployment directories, with ~29 GB free (67% usage); no current disk emergency. Old release deletion remains unauthorized.
 
 ## Safe near-term cleanup
 

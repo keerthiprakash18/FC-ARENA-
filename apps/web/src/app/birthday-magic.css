@@ -1,0 +1,32 @@
+/* Birthday Magic V6 is strictly opt-in and only decorates the birthday owner's dashboard.
+   Never override non-birthday club palettes, shared navigation, tournament or match components. */
+.fc-dashboard-page.fc-birthday-active {
+  isolation: isolate;
+}
+.fc-dashboard-page.fc-birthday-active::before {
+  content: "";
+  position: absolute;
+  inset: -22px -18px auto;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 3% 15%, rgb(255 176 202 / 18%), transparent 42%),
+    radial-gradient(ellipse at 83% 5%, rgb(187 159 248 / 16%), transparent 45%);
+}
+.fc-dashboard-page.fc-birthday-active > .fc-dashboard-hero {
+  border-color: rgb(239 157 191 / 40%);
+  background-image:
+    radial-gradient(ellipse at 100% 3%, rgb(255 173 198 / 17%), transparent 50%),
+    radial-gradient(ellipse at 2% 95%, rgb(211 185 255 / 12%), transparent 55%);
+  box-shadow: 0 12px 32px rgb(168 86 127 / 9%);
+}
+.fc-dashboard-page.fc-birthday-active .home-player-name {
+  text-decoration: underline;
+  text-decoration-color: #eab4c8;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 5px;
+}
+@media (forced-colors: active) {
+  .fc-dashboard-page.fc-birthday-active > .fc-dashboard-hero { border: 1px solid CanvasText; }
+}

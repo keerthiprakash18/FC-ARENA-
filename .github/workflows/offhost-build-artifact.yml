@@ -1,5 +1,5 @@
 # Builds immutable deployable files on GitHub Actions, NOT on VCL Hosting.
-# Manual-dispatch only. This workflow NEVER connects to or changes production.
+# Build on relevant main updates or manually; this workflow NEVER changes production.
 name: FC ARENA - Off-host production build artifact
 
 on:
@@ -55,6 +55,27 @@ jobs:
 
       - name: Install locked dependencies on GitHub runner
         run: npm ci --include=dev
+
+      # Deterministic source-level tests only. This runner has no production
+      # credentials, no SSH access, and never contacts or mutates live DB/media.
+      # A failure stops packaging, so a failed feature safety check cannot
+      # produce a deployable runtime artifact.
+      - name: Offline FC ARENA feature and recovery regression gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test \
+            tests/award-discovery-playoff-explanation.test.mjs \
+            tests/playoff-bracket.test.mjs \
+            tests/tournament-format-diagram.test.mjs \
+            tests/tournament-create-preview.test.mjs \
+            tests/standings-context-regression.test.mjs \
+            tests/v12-premium-experience.test.mjs \
+            tests/v12-clubs-season-public-i18n.test.mjs \
+            tests/security-env.test.mjs \
+            tests/date-of-birth.test.mjs \
+            tests/production-restore-safety.test.mjs \
+            tests/release-rehearsal-contract.test.mjs
 
       - name: Build API and Web on GitHub runner
         run: |

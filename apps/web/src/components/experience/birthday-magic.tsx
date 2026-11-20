@@ -28,7 +28,6 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
   const [musicMuted, setMusicMuted] = useState(false);
   const [videoAvailable, setVideoAvailable] = useState(true);
   const [cakePhotoAvailable, setCakePhotoAvailable] = useState(true);
-  const [welcomePhotoAvailable, setWelcomePhotoAvailable] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   const musicRef = useRef<HTMLAudioElement>(null);
   const voiceRef = useRef<HTMLAudioElement>(null);
@@ -193,22 +192,34 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
             <audio ref={voiceRef} preload="none" aria-hidden="true" />
 
             {scene === "welcome" && (
-              <div className={styles.screen}>
-                {welcomePhotoAvailable && <img src="/birthday-magic/welcome.webp" alt="" className={styles.backdrop} onError={() => setWelcomePhotoAvailable(false)} />}
-                <div className={styles.fallbackWarmth} />
-                <div className={styles.welcomeCopy}>
-                  <p className={styles.eyebrow}>FC ARENA · JUST FOR YOU</p>
-                  <div className={styles.deco} aria-hidden="true">✦</div>
-                  <h2>A little <em>birthday</em><br />magic.</h2>
-                  <p>Hey <strong>{name}</strong>, we saved a special moment for you.</p>
-                  <button className={styles.primary} type="button" onClick={start}>Open my surprise <span aria-hidden="true">→</span></button>
+              <div className={`${styles.screen} ${styles.birthdayWelcome}`}>
+                <div className={styles.welcomeHeader} aria-hidden="true">
+                  <span>FC <strong>ARENA.</strong></span><span className={styles.welcomeEdition}>✧ BIRTHDAY EDITION</span>
+                </div>
+                <div className={styles.birthdayWelcomeCopy}>
+                  <p className={styles.welcomeGreeting}>TODAY, THE ARENA CELEBRATES <span aria-hidden="true">♥</span></p>
+                  <h2>Happy <em>birthday!</em></h2>
+                  <p className={styles.welcomeName}>{name}</p>
+                  <p className={styles.welcomeDescription}>A little surprise, made just for you. Because today is more than just another matchday.</p>
+                </div>
+                <div className={styles.birthdayWelcomeArt} aria-hidden="true">
+                  <div className={styles.welcomeHalo} /><div className={styles.welcomeSun} />
+                  <div className={styles.welcomeCake}>
+                    <div className={styles.wcPlate} /><div className={styles.wcBottom} /><div className={styles.wcTop} />
+                    <div className={styles.wcCandles}><i /><i /><i /></div><div className={styles.wcHeart}>♡</div>
+                  </div>
+                  <span className={styles.welcomeSparkleOne}>✦</span><span className={styles.welcomeSparkleTwo}>✧</span>
+                </div>
+                <div className={styles.welcomeFooter}>
+                  <button className={styles.primary} type="button" onClick={start}>Open your birthday surprise <span aria-hidden="true">↗</span></button>
+                  <p>From your FC ARENA family, with love. ♡</p>
                 </div>
               </div>
             )}
 
             {scene === "film" && (
               <div className={styles.film}>
-                <video ref={filmRef} src="/birthday-magic/stadium.mp4" playsInline preload="metadata" poster="/brand/dashboard-stadium.webp"
+                <video ref={filmRef} src="/birthday-magic/stadium.mp4" playsInline muted preload="metadata" poster="/brand/dashboard-stadium.webp"
                   onEnded={() => setScene("cake")} onError={() => { setVideoAvailable(false); setScene("cake"); }} />
                 <div className={styles.filmCopy}>
                   <p>FC ARENA PRESENTS</p>
@@ -263,7 +274,12 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
 
             {scene === "gift" && (
               <div className={styles.gift}>
-                <span className={styles.ribbon} aria-hidden="true">✳</span>
+                <div className={styles.giftVessel} aria-hidden="true">
+                  <div className={styles.gvLoopLeft} /><div className={styles.gvLoopRight} />
+                  <div className={styles.gvBox}><div className={styles.gvRibbon} /><div className={styles.gvHorizontal} /></div>
+                  <div className={styles.gvLid}><div className={styles.gvLidRibbon} /></div>
+                  <span className={styles.gvSparkleOne}>✦</span><span className={styles.gvSparkleTwo}>✧</span>
+                </div>
                 <p className={styles.eyebrow}>A SMALL GIFT, JUST FOR YOU</p>
                 <h2>Your day,<br /><em>your story.</em></h2>
                 <p>Today your FC ARENA home wears a little birthday magic. Come back and relive this whenever you like.</p>

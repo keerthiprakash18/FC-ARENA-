@@ -111,6 +111,23 @@ jobs:
           set -euo pipefail
           node scripts/verify-live-baseline.mjs
 
+      - name: Require strictly healthy API and Redis before reporting readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          const response = await fetch('https://api.fcarena.in/api/health', {
+            cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(8000),
+          });
+          if (!response.ok) throw new Error('API health HTTP failure');
+          const payload = await response.json();
+          if (payload?.success !== true || payload?.data?.status !== 'healthy' ||
+              payload?.data?.database !== 'connected' || payload?.data?.redis !== 'connected') {
+            throw new Error('Strict API / DB / Redis health verification failed');
+          }
+          console.log('FC_ARENA_STRICT_API_HEALTH=PASS');
+          NODE
+
       - name: Report readiness only - operator deployment is forbidden here
         run: |
           echo 'OFFHOST_ARTIFACT_PREDEPLOY_READINESS=PASS'

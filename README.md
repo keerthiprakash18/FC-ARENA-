@@ -1,5 +1,8 @@
 \# FC ARENA
 
+> **For Codex, ChatGPT, Claude, Copilot and developers:** Read [AGENTS.md](AGENTS.md) before changing features or deploying. Code commits and GitHub builds do **not** deploy to VCL. Preserve live user data, protected rollback and the [production release/storage policy](ops/VCL_RELEASE_STORAGE_POLICY.md). Never clean old releases without separate verified approval.
+
+
 
 
 FC ARENA is a football/esports tournament and community management platform.

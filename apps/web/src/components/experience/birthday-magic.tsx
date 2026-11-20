@@ -27,7 +27,6 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
   const [cakeCut, setCakeCut] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
   const [videoAvailable, setVideoAvailable] = useState(true);
-  const [cakePhotoAvailable, setCakePhotoAvailable] = useState(true);
   const [hasStarted, setHasStarted] = useState(false);
   const musicRef = useRef<HTMLAudioElement>(null);
   const voiceRef = useRef<HTMLAudioElement>(null);
@@ -126,6 +125,8 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
   }
 
   function playVoice(source: "opening" | "cake") {
+    // No licensed studio recording has been supplied: do not request missing files.
+    if (process.env.NEXT_PUBLIC_BIRTHDAY_VOICE_READY !== "true") return;
     const audio = voiceRef.current;
     if (!audio) return;
     audio.pause();
@@ -233,14 +234,13 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
 
             {scene === "cake" && (
               <div className={styles.screen}>
-                {cakePhotoAvailable && <img className={styles.backdrop} src="/birthday-magic/cake.webp" alt="An elegant birthday cake with lit candles" onError={() => setCakePhotoAvailable(false)} />}
-                {!cakePhotoAvailable && <div className={`${styles.cakeStage} ${cakeCut ? styles.cakeSliced : ""}`} role="img" aria-label="Pastel pink birthday cake with three candles">
+                <div className={`${styles.cakeStage} ${cakeCut ? styles.cakeSliced : ""}`} role="img" aria-label="Pastel pink birthday cake with three candles">
                   <div className={styles.cakeGround} /><div className={styles.cakeStand} /><div className={styles.cakePedestal} />
                   <div className={styles.cakeBody}><i className={styles.cakeRibbon} /><i className={styles.cakeLace} /></div>
                   <div className={styles.cakeTop} /><div className={styles.berries}><i /><i /><i /></div>
                   <div className={styles.candles}>{[0, 1, 2].map(index => <span className={styles.candle} key={index}>{!candlesOut && <i className={styles.flame} />}</span>)}</div>
                   <div className={styles.cakeSlice} />
-                </div>}
+                </div>
                 <div className={styles.fallbackWarmth} />
                 <div className={styles.cakeCopy}>
                   <p className={styles.eyebrow}>A MOMENT TO REMEMBER</p>

@@ -201,3 +201,149 @@
   }
   .giftVessel { flex-shrink: 0; }
 }
+
+/* Birthday V6 portrait alignment pass — 20 Nov 2026.
+   The real Android recording showed the normal app header and bottom nav
+   painting ON TOP of the celebration; the modal now portals to document.body.
+   Size scenes to the actual visual viewport, not the nested dashboard layout.
+   Keep every action inside its screen, including 320px and short WebViews. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  padding: 0;
+  overflow: hidden;
+  align-items: stretch;
+  justify-content: center;
+  z-index: 2147483647;
+}
+.paper {
+  width: min(100%, 450px);
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.screen, .birthdayWelcome, .letter, .gift {
+  box-sizing: border-box;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+}
+.film { height: 100%; min-height: 0; }
+.close, .sound { top: max(18px, env(safe-area-inset-top, 0px)); }
+.birthdayWelcome {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.welcomeHeader {
+  padding: clamp(68px, 9dvh, 83px) clamp(18px, 6vw, 26px) 0;
+  min-width: 0;
+}
+.welcomeHeader > span:first-child { flex-shrink: 0; }
+.welcomeEdition { text-align: center; line-height: 1.35; }
+.birthdayWelcomeCopy {
+  padding: clamp(18px, 3.5dvh, 28px) 20px 0;
+}
+.birthdayWelcomeCopy h2 { font-size: clamp(39px, 11vw, 59px); }
+.welcomeName { font-size: clamp(18px, 5.5vw, 22px); line-height: 1.28; }
+.birthdayWelcomeArt {
+  align-self: center;
+  min-height: 0;
+  height: clamp(155px, 26dvh, 215px);
+  width: min(100%, 350px);
+  margin-block: 0;
+  flex: none;
+}
+.welcomeFooter {
+  margin-top: 0;
+  padding: 10px 20px max(24px, env(safe-area-inset-bottom, 0px));
+}
+.welcomeFooter .primary { min-height: 54px; }
+.cakeCopy {
+  flex: none;
+  padding: clamp(89px, 12dvh, 118px) clamp(19px, 6vw, 30px) 0;
+}
+.cakeCopy h2 { font-size: clamp(32px, 8vw, 48px); line-height: 1.12; }
+.cakeCopy p:not(.eyebrow) { max-width: 335px; }
+.cakeStage {
+  bottom: clamp(145px, 18dvh, 169px);
+  max-width: 100%;
+}
+.cakeActions {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: auto;
+  flex: none;
+  padding: 9px clamp(18px, 6vw, 28px) max(26px, env(safe-area-inset-bottom, 0px));
+}
+.cakeActions .primary { min-height: 54px; }
+.wishNote { margin: 0 0 10px; padding: 10px 9px; line-height: 1.45; }
+.filmCopy { bottom: max(28px, env(safe-area-inset-bottom, 0px)); }
+.letter, .gift {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  justify-content: safe center;
+  padding: clamp(80px, 10dvh, 104px) clamp(20px, 6vw, 36px)
+    max(29px, env(safe-area-inset-bottom, 0px));
+}
+.letter h2, .gift h2 { font-size: clamp(34px, 8vw, 51px); }
+.letter > p:not(.eyebrow), .gift > p:not(.eyebrow) { line-height: 1.65; }
+.letter .primary, .gift .primary { flex: none; min-height: 54px; }
+.gift .profileChip { margin: 14px 0 20px; }
+.giftVessel { flex-shrink: 0; }
+
+/* A 320px/short-height phone must never bury the cake button behind nav chrome.
+   Scale the decoration only; text and interactive controls remain full size. */
+@media (max-height: 740px) {
+  .welcomeHeader { padding-top: 67px; }
+  .birthdayWelcomeCopy { padding-top: 13px; }
+  .birthdayWelcomeCopy h2 { margin: 9px 0 6px; }
+  .welcomeDescription { margin: 7px auto; line-height: 1.5; }
+  .birthdayWelcomeArt { height: 151px; transform: scale(.78); transform-origin: 50% 50%; }
+  .welcomeFooter { padding-top: 4px; padding-bottom: 17px; }
+  .welcomeFooter p { margin-top: 7px; }
+  .cakeCopy { padding-top: 78px; }
+  .cakeStage { bottom: 119px; transform: translateX(-50%) scale(.78); transform-origin: 50% 100%; }
+  .cakeActions { padding-bottom: 18px; }
+  .letter, .gift { padding-top: 77px; padding-bottom: 22px; }
+  .giftVessel { margin-top: 0; transform: scale(.82); transform-origin: 50% 70%; height: 130px; flex-basis: 130px; }
+  .letter > p:not(.eyebrow), .gift > p:not(.eyebrow) { font-size: 14px; line-height: 1.5; }
+  .letter .signature { margin: 12px 0 19px; }
+}
+@media (max-height: 600px) {
+  .cakeCopy { padding-top: 66px; }
+  .cakeCopy h2 { font-size: clamp(28px, 7vw, 39px); }
+  .cakeStage { bottom: 106px; transform: translateX(-50%) scale(.62); }
+  .cakeActions { padding-bottom: 12px; }
+  .birthdayWelcomeArt { height: 118px; transform: scale(.64); }
+  .welcomeFooter p { display: none; }
+  .filmCopy { bottom: 16px; }
+}
+@media (max-width: 375px) {
+  .cakeStage { width: 390px; max-width: none; transform: translateX(-50%) scale(.88); }
+  .welcomeGreeting { font-size: 9px; letter-spacing: 1.6px; }
+  .welcomeEdition { font-size: 8px; }
+}
+@media (max-width: 375px) and (max-height: 740px) {
+  .cakeStage { transform: translateX(-50%) scale(.75); }
+}
+@media (max-width: 375px) and (max-height: 600px) {
+  .cakeStage { transform: translateX(-50%) scale(.60); }
+}
+/* Desktop remains an elegant centered card; mobile fills the WebView so the
+   normal FC ARENA top/bottom navigation cannot obscure action controls. */
+@media (min-width: 600px) and (min-height: 760px) {
+  .overlay { padding: 15px; align-items: center; }
+  .paper {
+    height: min(720px, calc(100dvh - 30px));
+    max-height: min(720px, calc(100dvh - 30px));
+    border-radius: 30px;
+  }
+}

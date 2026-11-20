@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CurrentUser } from "@/lib/auth-client";
 import { birthdayDateForToday, birthdaySeenKey } from "@/lib/birthday-magic";
 import styles from "./birthday-magic.module.css";
@@ -178,8 +179,8 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
         <button type="button" onClick={replay} className={styles.bannerButton}>Relive your moment <span aria-hidden="true">↗</span></button>
       </section>
 
-      {open && (
-        <div className={styles.overlay} data-birthday-modal role="dialog" aria-modal="true" aria-label={"Birthday surprise for " + name}>
+      {open && typeof document !== "undefined" && createPortal(
+        <div className={styles.overlay} data-birthday-modal data-birthday-scene={scene} role="dialog" aria-modal="true" aria-label={"Birthday surprise for " + name}>
           <div className={styles.paper}>
             <button ref={closeRef} type="button" className={styles.close} onClick={dismiss} aria-label="Skip birthday celebration">Skip <span aria-hidden="true">×</span></button>
             <button type="button" className={styles.sound} onClick={() => {
@@ -292,7 +293,8 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

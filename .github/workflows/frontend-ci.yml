@@ -93,6 +93,11 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/home-polish-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/node_modules/@playwright/test/cli.js test --config apps/android/tests/startup-web.config.mjs --workers=2 --output /tmp/fcarena-startup-web
 
+      - name: Birthday V6 real CSS portrait alignment regression (320-430px and desktop)
+        env:
+          BIRTHDAY_V6_LAYOUT_OUTPUT: /tmp/fcarena-birthday-layout
+        run: node apps/android/tests/birthday-v6-portrait-layout.mjs
+
       - name: Upload complete UI verification screenshots
         if: always()
         uses: actions/upload-artifact@v4

@@ -24,6 +24,7 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
   const [open, setOpen] = useState(false);
   const [scene, setScene] = useState<Scene>("welcome");
   const [candlesOut, setCandlesOut] = useState(false);
+  const [cakeCut, setCakeCut] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
   const [videoAvailable, setVideoAvailable] = useState(true);
   const [cakePhotoAvailable, setCakePhotoAvailable] = useState(true);
@@ -109,6 +110,7 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
     stopAudio();
     setScene("welcome");
     setCandlesOut(false);
+    setCakeCut(false);
     setHasStarted(false);
     setOpen(true);
   }
@@ -152,8 +154,8 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
 
   function cutCake() {
     if (!candlesOut) return;
-    setScene("letter");
-    playVoice("cake");
+    if (cakeCut) setScene("letter");
+    else { setCakeCut(true); playVoice("cake"); }
   }
 
   if (!enabled || !date) return null;
@@ -217,6 +219,13 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
             {scene === "cake" && (
               <div className={styles.screen}>
                 {cakePhotoAvailable && <img className={styles.backdrop} src="/birthday-magic/cake.webp" alt="An elegant birthday cake with lit candles" onError={() => setCakePhotoAvailable(false)} />}
+                {!cakePhotoAvailable && <div className={`${styles.cakeStage} ${cakeCut ? styles.cakeSliced : ""}`} role="img" aria-label="Pastel pink birthday cake with three candles">
+                  <div className={styles.cakeGround} /><div className={styles.cakeStand} /><div className={styles.cakePedestal} />
+                  <div className={styles.cakeBody}><i className={styles.cakeRibbon} /><i className={styles.cakeLace} /></div>
+                  <div className={styles.cakeTop} /><div className={styles.berries}><i /><i /><i /></div>
+                  <div className={styles.candles}>{[0, 1, 2].map(index => <span className={styles.candle} key={index}>{!candlesOut && <i className={styles.flame} />}</span>)}</div>
+                  <div className={styles.cakeSlice} />
+                </div>}
                 <div className={styles.fallbackWarmth} />
                 <div className={styles.cakeCopy}>
                   <p className={styles.eyebrow}>A MOMENT TO REMEMBER</p>
@@ -229,7 +238,7 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
                   ) : (
                     <>
                       <p className={styles.wishNote} aria-live="polite">Wish made. May beautiful things find you. ♥</p>
-                      <button type="button" className={styles.primary} onClick={cutCake}>Cut your birthday cake <span aria-hidden="true">♡</span></button>
+                      <button type="button" className={styles.primary} onClick={cutCake}>{cakeCut ? "Read your birthday note" : "Cut your birthday cake"} <span aria-hidden="true">♡</span></button>
                     </>
                   )}
                 </div>

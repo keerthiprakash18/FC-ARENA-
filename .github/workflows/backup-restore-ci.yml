@@ -25,7 +25,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -41,6 +41,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Rehearse media archive, isolated off-host copy, and restore
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s ops/backup -p 'test_arena_media_restore_ci.py' -v
 
       - name: Install backup verification tools
         run: |

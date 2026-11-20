@@ -22,11 +22,12 @@ jobs:
           node-version: '24'
           cache: npm
       - name: Regenerate precise npm override lock on disposable runner
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+        run: npm update effect fast-xml-parser --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Validate install resolves pinned secure transitives
         run: |
           set -euo pipefail
           npm ci --include=dev
+          npm ls effect fast-xml-parser --all || true
           node -e 'let p=require("./package-lock.json").packages; for (const [n,v] of [["effect","3.22.1"],["fast-xml-parser","5.12.0"]]) {const got=p["node_modules/"+n]?.version; if (got !== v) throw Error(n+" expected "+v+", got "+got); console.log("Verified "+n+"@"+got);}'
           npm audit --audit-level=high
       - name: Commit reviewed lockfile only to security branch

@@ -118,6 +118,19 @@ jobs:
             --output-dir release-output \
             --release "$FC_ARENA_RELEASE_SHA"
 
+      # The VCL host reports Ubuntu 24.04 x86_64, Node 24.22.1 and glibc 2.39.
+      # Rehearse the EXACT packaged output on a disposable matching runner.
+      # This does not boot a server, read user data or contact the production host.
+      - name: Verify packaged native runtime on VCL-matching Linux runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/offhost-vcl-native-runtime.test.mjs
+          stage="$(mktemp -d "$RUNNER_TEMP/fcarena-native-XXXXXXXX")"
+          trap 'rm -rf "$stage"' EXIT
+          tar -xzf "release-output/fcarena-runtime-${FC_ARENA_RELEASE_SHA}.tar.gz" -C "$stage" --no-same-owner --no-same-permissions
+          node ops/verify-offhost-vcl-native-runtime.mjs "$stage"
+
       - name: Upload short-lived build artifact
         uses: actions/upload-artifact@v4
         with:

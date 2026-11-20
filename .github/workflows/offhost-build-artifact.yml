@@ -18,7 +18,17 @@ on:
     paths:
       - ".github/workflows/offhost-build-artifact.yml"
       - "ops/VCL_RELEASE_STORAGE_POLICY.md"
+      - "apps/web/src/components/experience/birthday-magic*"
+      - "apps/web/birthday-video-src/**"
+      - "scripts/prepare-birthday-media.mjs"
+      - "docs/features/birthday-magic-v6.md"
   workflow_dispatch:
+    inputs:
+      birthday_magic_enabled:
+        description: 'Build WEB with reviewed Birthday Magic enabled; does not deploy'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,6 +50,9 @@ jobs:
       JWT_ACCESS_SECRET: ci-dummy-access-secret-for-build-at-least-32-characters
       JWT_REFRESH_SECRET: ci-dummy-refresh-secret-for-build-at-least-32-characters
       FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      # PR runs exercise the flagged Birthday Magic candidate; main stays OFF.
+      # A manual dispatch can opt into the feature only after owner review.
+      NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED: ${{ (github.event_name == 'pull_request' && 'true') || (inputs.birthday_magic_enabled && 'true') || 'false' }}
     steps:
       - name: Checkout exact requested revision
         uses: actions/checkout@v7
@@ -84,6 +97,9 @@ jobs:
           npm run build:web
           test -f apps/api/dist/main.js || test -f apps/api/dist/main
           test -f apps/web/.next/BUILD_ID
+          test -s apps/web/public/birthday-magic/stadium.mp4
+          node scripts/prepare-birthday-media.mjs
+          echo 'Approved 10s birthday film SHA256 checked before packaging.'
 
       - name: Package production-only runtime and checksum
         shell: bash

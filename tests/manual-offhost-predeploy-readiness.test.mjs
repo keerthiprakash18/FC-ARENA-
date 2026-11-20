@@ -26,6 +26,7 @@ test('validate both source provenance and packaged bytes before readiness', () =
   assert.match(workflow, /\[\.head_sha, \.name, \.conclusion\]/);
   assert.match(workflow, /FC ARENA - Off-host production build artifact\|success/);
   assert.match(workflow, /actions\/download-artifact@v4/);
-  assert.match(workflow, /--output-dir candidate-artifact --release "\$CANDIDATE_SHA"/);
+  assert.match(workflow, /--output-dir candidate-artifact/);
+  assert.match(workflow, /--release "\$CANDIDATE_SHA"/);
   assert.match(workflow, /node scripts\/verify-live-baseline\.mjs/);
 });

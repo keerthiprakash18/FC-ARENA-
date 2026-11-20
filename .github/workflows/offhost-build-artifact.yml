@@ -52,11 +52,10 @@ jobs:
       FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       # Build-time Next.js flag: only the explicitly reviewed Birthday V6 PR
       # candidate is enabled. The main branch and unrelated builds stay OFF.
-      NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/birthday-magic-v6-staged-20261120' && 'true' || 'false' }}
+      NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/birthday-magic-v6-staged-20261120') || (github.event_name == 'workflow_dispatch' && inputs.birthday_magic_enabled)) && 'true' || 'false' }}
       NEXT_PUBLIC_BIRTHDAY_VOICE_READY: 'false'
       # PR runs exercise the flagged Birthday Magic candidate; main stays OFF.
       # A manual dispatch can opt into the feature only after owner review.
-      NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED: ${{ (github.event_name == 'pull_request' && 'true') || (inputs.birthday_magic_enabled && 'true') || 'false' }}
     steps:
       - name: Checkout exact requested revision
         uses: actions/checkout@v7
@@ -103,7 +102,7 @@ jobs:
           test -f apps/web/.next/BUILD_ID
           # Refuse release artifacts with the Birthday V6 switch accidentally OFF
           # or with a different/partial version of the user-approved opening film.
-          if [[ "${GITHUB_HEAD_REF:-}" == "feat/birthday-magic-v6-staged-20261120" ]]; then
+          if [[ "${NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED:-}" == 'true' ]]; then
             test "$NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED" = 'true' || {
               echo 'BIRTHDAY_V6_FLAG=BLOCKED: candidate built with feature disabled'; exit 1;
             }
@@ -113,7 +112,9 @@ jobs:
             test -s apps/web/public/birthday-magic/ambient.mp3
             echo 'BIRTHDAY_V6_FLAG=ON_APPROVED_PR_ONLY MEDIA_SHA256=PASS VOICE_READY=NO'
           else
-            test "$NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED" = 'false'
+            if [[ "${GITHUB_HEAD_REF:-}" == "feat/birthday-magic-v6-staged-20261120" ]]; then
+              echo 'BIRTHDAY_V6_FLAG=BLOCKED: Birthday PR must build with flag ON'; exit 1;
+            fi
             echo 'BIRTHDAY_V6_FLAG=OFF_NON_BIRTHDAY_BUILD'
           fi
           test -s apps/web/public/birthday-magic/stadium.mp4

@@ -2,6 +2,8 @@
 import { TournamentRegistrationSummary } from '@/components/tournaments/registration-summary';
 
 import { PlayerOnboarding } from "@/components/fc/player-onboarding";
+import { BirthdayMagic } from "@/components/experience/birthday-magic";
+import { birthdayDateForToday } from "@/lib/birthday-magic";
 import { getMatchdayGuidance, type MatchdayState } from "@/lib/matchday-guidance";
 import Link from "next/link";
 import { useActiveLeague } from '@/lib/active-league';
@@ -753,7 +755,8 @@ export default function DashboardPage() {
       playerName={inGameName}
       playerRole={selectedMembership?.adminRole || "Player"}
     >
-      <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5">
+      <div className={`fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5 ${process.env.NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED === "true" && birthdayDateForToday(user.dateOfBirth, new Date(nowMs)) ? "fc-birthday-active" : ""}`}>
+        <BirthdayMagic key={`${user.id}:${user.dateOfBirth ?? ""}`} user={user} playerName={inGameName} leagueName={selectedMembership?.league.name} />
         <section className="fc-dashboard-hero premium-home-hero" data-has-match={showNextMatch}>
           <div className="home-hero-layout relative grid items-center">
             <div className="min-w-0">

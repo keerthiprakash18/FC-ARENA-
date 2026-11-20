@@ -18,7 +18,17 @@ on:
     paths:
       - ".github/workflows/offhost-build-artifact.yml"
       - "ops/VCL_RELEASE_STORAGE_POLICY.md"
+      - "apps/web/src/components/experience/birthday-magic*"
+      - "apps/web/birthday-video-src/**"
+      - "scripts/prepare-birthday-media.mjs"
+      - "docs/features/birthday-magic-v6.md"
   workflow_dispatch:
+    inputs:
+      birthday_magic_enabled:
+        description: 'Build WEB with reviewed Birthday Magic enabled; does not deploy'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,6 +50,19 @@ jobs:
       JWT_ACCESS_SECRET: ci-dummy-access-secret-for-build-at-least-32-characters
       JWT_REFRESH_SECRET: ci-dummy-refresh-secret-for-build-at-least-32-characters
       FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      # IMPORTANT: Next resolves VERCEL_GIT_COMMIT_SHA before GITHUB_SHA.
+      # On pull_request, GITHUB_SHA is the synthetic merge SHA, not the
+      # reviewed candidate head. Without pinning, /web-release is wrong
+      # even though the archive is correctly named for the head SHA.
+      VERCEL_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NEXT_PUBLIC_FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NEXT_DEPLOYMENT_ID: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Build-time Next.js flag: only the explicitly reviewed Birthday V6 PR
+      # candidate is enabled. The main branch and unrelated builds stay OFF.
+      NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/birthday-magic-v6-staged-20261120') || (github.event_name == 'workflow_dispatch' && inputs.birthday_magic_enabled)) && 'true' || 'false' }}
+      NEXT_PUBLIC_BIRTHDAY_VOICE_READY: 'false'
+      # PR runs exercise the flagged Birthday Magic candidate; main stays OFF.
+      # A manual dispatch can opt into the feature only after owner review.
     steps:
       - name: Checkout exact requested revision
         uses: actions/checkout@v7
@@ -84,6 +107,55 @@ jobs:
           npm run build:web
           test -f apps/api/dist/main.js || test -f apps/api/dist/main
           test -f apps/web/.next/BUILD_ID
+          # Refuse release artifacts with the Birthday V6 switch accidentally OFF
+          # or with a different/partial version of the user-approved opening film.
+          if [[ "${NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED:-}" == 'true' ]]; then
+            test "$NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED" = 'true' || {
+              echo 'BIRTHDAY_V6_FLAG=BLOCKED: candidate built with feature disabled'; exit 1;
+            }
+            test "$NEXT_PUBLIC_BIRTHDAY_VOICE_READY" = 'false'
+            test -s apps/web/public/birthday-magic/stadium.mp4
+            echo 'f274956e3ec572a56f848e5c1057dda2add3b5bc631fda5fc295443f3cf49e07  apps/web/public/birthday-magic/stadium.mp4' | sha256sum -c
+            test -s apps/web/public/birthday-magic/ambient.mp3
+            echo 'BIRTHDAY_V6_FLAG=ON_APPROVED_PR_ONLY MEDIA_SHA256=PASS VOICE_READY=NO'
+          else
+            if [[ "${GITHUB_HEAD_REF:-}" == "feat/birthday-magic-v6-staged-20261120" ]]; then
+              echo 'BIRTHDAY_V6_FLAG=BLOCKED: Birthday PR must build with flag ON'; exit 1;
+            fi
+            echo 'BIRTHDAY_V6_FLAG=OFF_NON_BIRTHDAY_BUILD'
+          fi
+          test -s apps/web/public/birthday-magic/stadium.mp4
+          node scripts/prepare-birthday-media.mjs
+          echo 'Approved 10s birthday film SHA256 checked before packaging.'
+
+      - name: Boot compiled Next app on isolated GitHub loopback and verify its release SHA
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          expected="$FC_ARENA_RELEASE_SHA"
+          # Real next start against compiled, frozen files; no production host,
+          # credentials, DB, user records or mutable services.
+          (
+            cd apps/web
+            NODE_ENV=production node ../../node_modules/next/dist/bin/next start -H 127.0.0.1 -p 39871
+          ) > "$RUNNER_TEMP/birthday-v6-compiled-next.log" 2>&1 &
+          web_pid=$!
+          trap 'kill "$web_pid" 2>/dev/null || true; wait "$web_pid" 2>/dev/null || true' EXIT
+          got=''
+          for i in $(seq 1 30); do
+            got="$(curl -fsS --max-time 3 http://127.0.0.1:39871/web-release 2>/dev/null | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{console.log(JSON.parse(s).release)}catch{process.exitCode=1}})' 2>/dev/null || true)"
+            [[ "$got" == "$expected" ]] && break
+            sleep 1
+          done
+          if [[ "$got" != "$expected" ]]; then
+            echo "BLOCKED: compiled /web-release identity mismatch; expected=$expected actual=$got"
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 12 --output /dev/null http://127.0.0.1:39871/
+          curl --fail --silent --show-error --max-time 12 --range 0-1023 --output /dev/null http://127.0.0.1:39871/birthday-magic/stadium.mp4
+          curl --fail --silent --show-error --max-time 12 --output /dev/null http://127.0.0.1:39871/birthday-magic/ambient.mp3
+          echo "EXACT_COMPILED_RELEASE_SHA=PASS sha=$expected"
+          echo 'ISOLATED_BIRTHDAY_WEB_AND_MEDIA_SMOKE=PASS PRODUCTION_CONTACTED=NO'
 
       - name: Package production-only runtime and checksum
         shell: bash

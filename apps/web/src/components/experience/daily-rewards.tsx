@@ -11,6 +11,13 @@ export function DailyRewards({userId,full=false}:{userId:string;full?:boolean}){
   const [month,setMonth]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState('');
   const [busy,setBusy]=useState(false),[refreshing,setRefreshing]=useState(false),[earned,setEarned]=useState(false);
   const [promptDay,setPromptDay]=useState(''),[dismissedDay,setDismissedDay]=useState('');
+  const [birthdayModalOpen,setBirthdayModalOpen]=useState(false);
+  useEffect(()=>{
+    const sync=()=>setBirthdayModalOpen(document.body.dataset.fcBirthdayOverlay==='open');
+    sync();
+    window.addEventListener('fc-arena:birthday-visibility',sync);
+    return()=>window.removeEventListener('fc-arena:birthday-visibility',sync);
+  },[]);
   const actionPending=useRef(false),reload=useRef<((force?:boolean)=>Promise<void>)|null>(null),activeOwner=useRef('');
   const revision=useRef(0),scope=useRef(0);
   useEffect(()=>{
@@ -86,7 +93,7 @@ export function DailyRewards({userId,full=false}:{userId:string;full?:boolean}){
   const label=data?new Date(data.calendar.month+'-01T12:00:00Z').toLocaleDateString('en-IN',{month:'long',year:'numeric',timeZone:'UTC'}):'';
   const cells=data?monthCells(data.calendar.month):[];
   if(!full)return <FcDialog
-    open={!!data&&!data.claimedToday&&promptDay===data.today&&dismissedDay!==data.today}
+    open={!birthdayModalOpen&&!!data&&!data.claimedToday&&promptDay===data.today&&dismissedDay!==data.today}
     title="Daily check-in" description="Your daily reward is ready. Collect coins and make your player card yours."
     className="daily-rewards daily-check-in-dialog" busy={busy}
     confirmLabel={`Collect today · +${data?.todayReward.totalCoins??10}`} cancelLabel="Not now"

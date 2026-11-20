@@ -20,7 +20,6 @@ import { WebVitalsReporter } from '@/components/telemetry/web-vitals-reporter';
 import './globals.css';
 import './design-tokens.css';
 import './arena-consolidated.css';
-import './birthday-magic.css';
 
 
 

@@ -1,4 +1,4 @@
-import { todayForBirthDate } from "./date-of-birth";
+import { todayForBirthDate } from "./date-of-birth.ts";
 
 /**
  * Birthday is a private account property. Only the signed-in owner's UI

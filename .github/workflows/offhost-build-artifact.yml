@@ -104,10 +104,19 @@ jobs:
             apps/api/package.json apps/api/dist apps/api/prisma \
             apps/web/package.json apps/web/next.config.ts apps/web/.next apps/web/public
           (cd release-output && sha256sum "$(basename "$bundle")" > SHA256SUMS)
-          printf '%s\n' "$GITHUB_SHA" > release-output/RELEASE_SHA.txt
+          printf '%s\n' "$FC_ARENA_RELEASE_SHA" > release-output/RELEASE_SHA.txt
           test -s "$bundle"
           (cd release-output && sha256sum -c SHA256SUMS)
           echo 'Built immutable runtime bundle on GitHub runner; VCL server untouched.'
+
+      - name: Validate bundle identity, checksum, and absence of user data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s ops/tests -p 'test_offhost_bundle.py' -v
+          python3 ops/verify-offhost-runtime-bundle.py \
+            --output-dir release-output \
+            --release "$FC_ARENA_RELEASE_SHA"
 
       - name: Upload short-lived build artifact
         uses: actions/upload-artifact@v4

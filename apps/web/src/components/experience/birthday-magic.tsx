@@ -66,6 +66,8 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.dataset.fcBirthdayOverlay = "open";
+    window.dispatchEvent(new Event("fc-arena:birthday-visibility"));
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") dismiss();
       if (event.key === "Tab") {
@@ -83,6 +85,8 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
     window.setTimeout(() => closeRef.current?.focus(), 0);
     return () => {
       document.body.style.overflow = previousOverflow;
+      delete document.body.dataset.fcBirthdayOverlay;
+      window.dispatchEvent(new Event("fc-arena:birthday-visibility"));
       window.removeEventListener("keydown", onKeyDown);
       stopAudio();
     };

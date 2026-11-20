@@ -188,3 +188,16 @@
   .welcomeFooter { padding: 8px 19px 25px; }
   .birthdayWelcomeArt { flex-basis: 188px; height: 188px; }
 }
+
+/* Short Android WebViews: keep the letter/gift CTA reachable instead of
+   clipping overflowing copy behind the full-screen modal. */
+@media (max-width: 500px), (max-height: 680px) {
+  .letter, .gift {
+    max-height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    justify-content: safe center;
+    scrollbar-width: thin;
+  }
+  .giftVessel { flex-shrink: 0; }
+}

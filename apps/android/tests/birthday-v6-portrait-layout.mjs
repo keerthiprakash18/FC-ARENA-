@@ -12,9 +12,9 @@ import { chromium } from "@playwright/test";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const css = fs.readFileSync(path.join(root, "apps/web/src/components/experience/birthday-magic.module.css"), "utf8");
 const source = fs.readFileSync(path.join(root, "apps/web/src/components/experience/birthday-magic.tsx"), "utf8");
-assert.match(source, /import\\s*\\{\\s*createPortal\\s*\\}\\s*from\\s*["']react-dom["']/);
-assert.match(source, /createPortal\\([\\s\\S]*document\\.body/);
-assert.match(source, /data-birthday-scene=\\{scene\\}/);
+assert.match(source, /import\s*\{\s*createPortal\s*\}\s*from\s*["']react-dom["']/);
+assert.match(source, /createPortal\([\s\S]*document\.body/);
+assert.match(source, /data-birthday-scene=\{scene\}/);
 
 const stage = '<div class="cakeStage"><div class="cakeGround"></div><div class="cakeStand"></div><div class="cakePedestal"></div><div class="cakeBody"><i class="cakeRibbon"></i><i class="cakeLace"></i></div><div class="cakeTop"></div><div class="berries"><i></i><i></i><i></i></div><div class="candles"><span class="candle"><i class="flame"></i></span><span class="candle"><i class="flame"></i></span><span class="candle"><i class="flame"></i></span></div><div class="cakeSlice"></div></div>';
 const scenes = {

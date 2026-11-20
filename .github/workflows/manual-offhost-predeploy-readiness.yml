@@ -1,0 +1,119 @@
+# Manual, read-only staging gate for an already-built GitHub runtime artifact.
+# This workflow NEVER copies anything to VCL, deploys, migrates or restarts.
+name: FC ARENA - Manual Off-host Predeploy Readiness
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/manual-offhost-predeploy-readiness.yml"
+      - "tests/manual-offhost-predeploy-readiness.test.mjs"
+      - "ops/verify-offhost-runtime-bundle.py"
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful off-host build workflow run ID containing the candidate artifact
+        required: true
+        type: string
+      candidate_sha:
+        description: Exact full 40-character SHA contained in the build artifact
+        required: true
+        type: string
+      expected_live_web_sha:
+        description: Current production web SHA (read-only drift guard)
+        required: true
+        type: string
+      expected_live_api_sha:
+        description: Current production API SHA (read-only drift guard)
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: fcarena-readonly-predeploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contract:
+    name: Prove workflow has no production write path
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Verify predeploy safety contract and baseline regressions
+        run: |
+          set -euo pipefail
+          node --test tests/manual-offhost-predeploy-readiness.test.mjs tests/verify-live-baseline.test.mjs
+          python3 -m unittest discover -s ops/tests -p 'test_offhost_bundle.py' -v
+
+  verify-candidate:
+    name: Read-only artifact and live release verification
+    if: github.event_name == 'workflow_dispatch'
+    needs: contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+      FC_ARENA_EXPECTED_WEB_RELEASE: ${{ inputs.expected_live_web_sha }}
+      FC_ARENA_EXPECTED_API_RELEASE: ${{ inputs.expected_live_api_sha }}
+    steps:
+      - name: Checkout trusted verification scripts only
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Reject malformed identifiers before downloading anything
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]] || { echo 'Invalid source run ID'; exit 1; }
+          for sha in "$CANDIDATE_SHA" "$FC_ARENA_EXPECTED_WEB_RELEASE" "$FC_ARENA_EXPECTED_API_RELEASE"; do
+            [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid 40-character release SHA'; exit 1; }
+          done
+
+      - name: Confirm source run has successful trusted build identity
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          metadata="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}" --jq '[.head_sha, .name, .conclusion] | join("|")')"
+          expected="$CANDIDATE_SHA|FC ARENA - Off-host production build artifact|success"
+          [[ "$metadata" == "$expected" ]] || { echo 'Source run SHA, workflow identity, or result mismatch'; exit 1; }
+
+      - name: Download exact candidate artifact (GitHub only)
+        uses: actions/download-artifact@v4
+        with:
+          name: fcarena-vcl-runtime-${{ inputs.candidate_sha }}
+          run-id: ${{ inputs.source_run_id }}
+          repository: ${{ github.repository }}
+          github-token: ${{ github.token }}
+          path: candidate-artifact
+
+      - name: Verify candidate package checksum, metadata and safe paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ops/verify-offhost-runtime-bundle.py \
+            --output-dir candidate-artifact --release "$CANDIDATE_SHA"
+
+      - name: Compare current public release IDs to pinned expected baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-live-baseline.mjs
+
+      - name: Report readiness only - operator deployment is forbidden here
+        run: |
+          echo 'OFFHOST_ARTIFACT_PREDEPLOY_READINESS=PASS'
+          echo 'VCL_WRITES=0 DATABASE_CHANGES=0 SERVICE_RESTARTS=0'
+          echo 'DEPLOYMENT_EXECUTED=NO DEPLOYMENT_AUTHORIZED=NO'
+          echo 'Still required: real persistent-data restore, authenticated feature gate, runtime compatibility and guarded activation.'

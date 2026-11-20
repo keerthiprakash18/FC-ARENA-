@@ -33,7 +33,6 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
   const voiceRef = useRef<HTMLAudioElement>(null);
   const filmRef = useRef<HTMLVideoElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const openRef = useRef(false);
 
   // Re-check after midnight, returning to a foreground tab, or changing accounts.
   useEffect(() => {
@@ -63,7 +62,6 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
   }, [enabled, user.id, date]);
 
   useEffect(() => {
-    openRef.current = open;
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -181,7 +179,7 @@ export function BirthdayMagic({ user, playerName, leagueName }: Props) {
             <button type="button" className={styles.sound} onClick={() => {
               setMusicMuted(v => {
                 const muted = !v;
-                if (musicRef.current) { musicRef.current.muted = muted; if (!muted && hasStarted) playMusic(); }
+                if (musicRef.current) { musicRef.current.muted = muted; if (!muted && hasStarted) void musicRef.current.play().catch(() => undefined); }
                 return muted;
               });
             }} aria-label={musicMuted ? "Turn birthday music on" : "Turn birthday music off"}>{musicMuted ? "Music off" : "Music on"} <span aria-hidden="true">{musicMuted ? "◌" : "♫"}</span></button>

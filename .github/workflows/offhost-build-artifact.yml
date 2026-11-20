@@ -50,6 +50,13 @@ jobs:
       JWT_ACCESS_SECRET: ci-dummy-access-secret-for-build-at-least-32-characters
       JWT_REFRESH_SECRET: ci-dummy-refresh-secret-for-build-at-least-32-characters
       FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      # IMPORTANT: Next resolves VERCEL_GIT_COMMIT_SHA before GITHUB_SHA.
+      # On pull_request, GITHUB_SHA is the synthetic merge SHA, not the
+      # reviewed candidate head. Without pinning, /web-release is wrong
+      # even though the archive is correctly named for the head SHA.
+      VERCEL_GIT_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NEXT_PUBLIC_FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      NEXT_DEPLOYMENT_ID: ${{ github.event.pull_request.head.sha || github.sha }}
       # Build-time Next.js flag: only the explicitly reviewed Birthday V6 PR
       # candidate is enabled. The main branch and unrelated builds stay OFF.
       NEXT_PUBLIC_BIRTHDAY_MAGIC_ENABLED: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/birthday-magic-v6-staged-20261120') || (github.event_name == 'workflow_dispatch' && inputs.birthday_magic_enabled)) && 'true' || 'false' }}
@@ -120,6 +127,35 @@ jobs:
           test -s apps/web/public/birthday-magic/stadium.mp4
           node scripts/prepare-birthday-media.mjs
           echo 'Approved 10s birthday film SHA256 checked before packaging.'
+
+      - name: Boot compiled Next app on isolated GitHub loopback and verify its release SHA
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          expected="$FC_ARENA_RELEASE_SHA"
+          # Real next start against compiled, frozen files; no production host,
+          # credentials, DB, user records or mutable services.
+          (
+            cd apps/web
+            NODE_ENV=production node ../../node_modules/next/dist/bin/next start -H 127.0.0.1 -p 39871
+          ) > "$RUNNER_TEMP/birthday-v6-compiled-next.log" 2>&1 &
+          web_pid=$!
+          trap 'kill "$web_pid" 2>/dev/null || true; wait "$web_pid" 2>/dev/null || true' EXIT
+          got=''
+          for i in $(seq 1 30); do
+            got="$(curl -fsS --max-time 3 http://127.0.0.1:39871/web-release 2>/dev/null | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{console.log(JSON.parse(s).release)}catch{process.exitCode=1}})' 2>/dev/null || true)"
+            [[ "$got" == "$expected" ]] && break
+            sleep 1
+          done
+          if [[ "$got" != "$expected" ]]; then
+            echo "BLOCKED: compiled /web-release identity mismatch; expected=$expected actual=$got"
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 12 --output /dev/null http://127.0.0.1:39871/
+          curl --fail --silent --show-error --max-time 12 --range 0-1023 --output /dev/null http://127.0.0.1:39871/birthday-magic/stadium.mp4
+          curl --fail --silent --show-error --max-time 12 --output /dev/null http://127.0.0.1:39871/birthday-magic/ambient.mp3
+          echo "EXACT_COMPILED_RELEASE_SHA=PASS sha=$expected"
+          echo 'ISOLATED_BIRTHDAY_WEB_AND_MEDIA_SMOKE=PASS PRODUCTION_CONTACTED=NO'
 
       - name: Package production-only runtime and checksum
         shell: bash

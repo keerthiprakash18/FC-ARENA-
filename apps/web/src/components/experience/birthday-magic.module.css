@@ -90,3 +90,30 @@
   .overlay, .paper, .dayBanner { border: 1px solid CanvasText; forced-color-adjust: auto; }
   .primary, .bannerButton { border: 1px solid ButtonText; }
 }
+
+
+/* Port of the approved Birthday Magic V6 patisserie cake (pure CSS, no external file).
+   It remains interactive in offline Android WebView if photo media is unavailable. */
+.cakeStage { position: absolute; z-index: 0; bottom: 103px; left: 50%; width: min(390px, 100%); height: 350px; transform: translateX(-50%); background: radial-gradient(ellipse at 52% 67%, #ffffffb5 0%, transparent 54%); pointer-events: none; }
+.cakeStage::before { content: ""; position: absolute; width: 280px; height: 280px; border: 1px solid #eeb6c5; border-radius: 50%; top: 27px; left: 50%; transform: translateX(-50%); }
+.cakeGround { position: absolute; left: 60px; right: 60px; bottom: 32px; height: 24px; background: #c7719a30; border-radius: 50%; filter: blur(14px); }
+.cakeStand { position: absolute; left: 126px; right: 126px; bottom: 29px; height: 40px; background: linear-gradient(90deg, #d9a9b8, #fffbf5 40%, #d4a0b2); border-radius: 0 0 16px 16px; }
+.cakeStand::after { content: ""; position: absolute; left: -24px; right: -24px; bottom: -10px; height: 21px; background: linear-gradient(180deg, #fffdf8, #eec3d1); border-radius: 50%; }
+.cakePedestal { position: absolute; left: 32px; right: 32px; bottom: 64px; height: 36px; background: linear-gradient(180deg, #fffefb, #fae6e6, #e6bbc7); border-radius: 50%; box-shadow: 0 10px 9px #d3a9b65c; }
+.cakeBody { position: absolute; left: 48px; right: 48px; bottom: 84px; height: 177px; border-radius: 12px 12px 32px 32px; background: linear-gradient(90deg, #e39cae 0%, #fff4f0 13%, #ffdde3 42%, #ffb5c6 75%, #d37e9a 100%); box-shadow: inset -18px -12px 20px #dc73933d, inset 7px 0 15px #fff8f0ad, 0 24px 30px #c3789d2c; overflow: hidden; }
+.cakeBody::before { content: ""; position: absolute; left: -12px; right: -12px; top: -31px; height: 67px; border-radius: 50%; background: linear-gradient(180deg, #fffdfa, #fff3f2); box-shadow: 0 9px 0 #ffeff0; }
+.cakeRibbon { position: absolute; left: 0; right: 0; top: 72px; height: 11px; background: linear-gradient(90deg, #e393ad, #ffeff2, #e78cac); }
+.cakeLace { position: absolute; left: 4px; right: 4px; bottom: 25px; height: 21px; background: repeating-radial-gradient(circle at 10px 9px, transparent 0 7px, #f8f1e8 7px 8px, transparent 8px 19px); opacity: .8; }
+.cakeTop { position: absolute; z-index: 6; left: 48px; right: 48px; bottom: 215px; height: 78px; background: radial-gradient(ellipse at 35% 35%, #fffef9, #ffe2df 68%, #e5a6b7 100%); border-radius: 50%; box-shadow: 0 10px 12px #c7728b36; }
+.berries { position: absolute; z-index: 7; left: 98px; right: 98px; bottom: 245px; display: flex; justify-content: space-between; }
+.berries i { display: block; width: 25px; height: 21px; background: radial-gradient(circle at 30% 25%, #ff8a9b, #e65b77 50%, #ab3555); border-radius: 65% 60% 55% 40%; box-shadow: 1px 3px 4px #bc527462; }
+.berries i:nth-child(2) { transform: translateY(-10px); } .berries i:nth-child(3) { transform: translateY(4px); }
+.candles { position: absolute; z-index: 9; left: 50%; bottom: 237px; transform: translateX(-50%); width: 118px; display: flex; justify-content: space-between; }
+.candle { position: relative; width: 9px; height: 49px; background: linear-gradient(90deg, #ff9db5 0%, #fff5e9 48%, #eeb3c3 100%); border: 1px solid #efd5d6; border-radius: 3px; }
+.candle:nth-child(2) { height: 59px; top: -10px; }
+.flame { position: absolute; width: 12px; height: 20px; bottom: calc(100% + 1px); left: -2px; background: radial-gradient(circle at 50% 66%, #fff9ba 8%, #ffd66d 37%, #ff8b5b 66%, transparent 80%); filter: drop-shadow(0 0 12px #ffb66c); border-radius: 60% 55% 50% 45%; transform: rotate(12deg); animation: candleFlicker .6s ease-in-out infinite alternate; }
+@keyframes candleFlicker { from { transform: rotate(9deg) scale(.95); } to { transform: rotate(-9deg) scale(1.08); } }
+.cakeSlice { position: absolute; z-index: 8; right: 58px; bottom: 84px; width: 74px; height: 145px; clip-path: polygon(0 0, 100% 8%, 100% 93%, 0 100%); background: linear-gradient(90deg, #f3caac 0%, #fff3ea 24%, #f4b7bf 25%, #f4b7bf 38%, #fff1d8 39%, #fff1d8 64%, #eea2af 65%, #fff2ec 100%); opacity: 0; transition: transform .7s cubic-bezier(.2, 1.5, .4, 1), opacity .3s; border-radius: 5px; }
+.cakeSliced .cakeSlice { opacity: 1; transform: translate(33px, 28px) rotate(-3deg); }
+.cakeSliced .cakeBody::after { content: ""; position: absolute; right: 2px; top: 18px; width: 70px; height: 150px; clip-path: polygon(0 0, 100% 16%, 100% 100%, 0 100%); background: linear-gradient(90deg, #f9e4d2, #e99fb1); box-shadow: inset 2px 2px 6px #c0838c; }
+@media (max-width: 375px) { .cakeStage { transform: translateX(-50%) scale(.88); transform-origin: 50% 70%; } }

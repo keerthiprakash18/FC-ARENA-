@@ -51,7 +51,7 @@ async function main() {
   const swc = requireBundle('@next/swc-linux-x64-gnu');
   assert.ok(swc && typeof swc === 'object' && Object.keys(swc).length,
     'Packaged Next.js native SWC not loadable');
-  for (const spec of ['next/package.json', '@prisma/client/package.json', '@prisma/adapter-pg/package.json']) {
+  for (const spec of ['next', '@prisma/client', '@prisma/adapter-pg']) {
     assert.ok(requireBundle.resolve(spec).startsWith(root + path.sep),
       'Runtime dependency resolves outside isolated bundle: ' + spec);
   }

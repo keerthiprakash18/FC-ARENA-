@@ -77,3 +77,7 @@ backups/
 *.backup
 *.bak
 *.sql.zip
+
+# Rebuilt from checksummed source shards on developer/CI machines only.
+# This generated film is packaged into off-host WEB runtime artifacts.
+apps/web/public/birthday-magic/stadium.mp4

@@ -35,6 +35,9 @@ jobs:
       - name: Verify availability failure detection
         run: node --test tests/availability.test.mjs
 
+      - name: Verify encrypted recovery and managed runtime guards
+        run: python3 -m unittest discover -s ops/tests -v
+
       - name: Validate shell syntax
         shell: bash
         run: |

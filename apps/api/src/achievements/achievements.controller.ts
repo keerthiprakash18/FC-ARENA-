@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -21,6 +22,7 @@ import {
 import {
   AchievementsService,
 } from './achievements.service.js';
+import { LiveAwardRacesDto } from './dto/live-award-races.dto.js';
 
 type AuthenticatedRequest =
   Request & {
@@ -34,6 +36,11 @@ export class AchievementsController {
     private readonly achievementsService:
       AchievementsService,
   ) {}
+
+  @Get('awards/live-races')
+  liveRaces(@Req() request: AuthenticatedRequest, @Query() query: LiveAwardRacesDto) {
+    return this.achievementsService.getLiveAwardRaces(request.user.sub, query.offset, query.limit);
+  }
 
   @Post(
     'tournaments/:tournamentId/complete',

@@ -18,6 +18,7 @@ import { OcrService } from './ocr.service.js';
   OCR_QUEUE,
   {
     concurrency: 1,
+    autorun: process.env.OCR_WORKER_ENABLED !== 'false',
   },
 )
 export class OcrProcessor

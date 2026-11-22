@@ -45,6 +45,7 @@ export async function createUiContext(browser, { width, native = false, direct =
         return route.fulfill({ headers, json: { success: true, data: override, error: null } });
       }
       const defaults = {
+        '/api/awards/live-races': { races: [], failed: [], pagination: { offset: 0, limit: 6, total: 0, nextOffset: null } },
         '/api/matches/phase3/scheduling': { enabled: false, proposals: [] },
         '/api/experience/me/check-in': collectedDailyFixture(),
         '/api/experience/me': emptyExperience,

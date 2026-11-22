@@ -25,15 +25,15 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: fcarena
+          POSTGRES_DB: fcarena_load_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d fcarena"
+          --health-cmd "pg_isready -U postgres -d fcarena_load_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -49,13 +49,16 @@ jobs:
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena_load_test?schema=public
       JWT_ACCESS_SECRET: step10-ci-access-secret-at-least-32-characters
       JWT_REFRESH_SECRET: step10-ci-refresh-secret-at-least-32-characters
       NODE_ENV: test
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
       AI_ASSISTANT_ENABLED: "false"
+      API_RATE_LIMIT_STORAGE: redis
+      # Isolated capacity probe budget; production uses its separate lower quota.
+      API_RATE_LIMIT_READS_PER_MINUTE: "120000"
       LOAD_ACCEPTANCE_OUTPUT: /tmp/fcarena-step10-load-acceptance.json
 
     steps:

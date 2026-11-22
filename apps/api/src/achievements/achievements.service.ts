@@ -35,6 +35,32 @@ export class AchievementsService {
     private readonly authorization: AuthorizationService,
   ) {}
 
+  async getLiveAwardRaces(userId: string, offset = 0, limit = 6) {
+    const memberships = await this.prisma.leagueMember.findMany({ where: { userId }, select: { leagueId: true } });
+    const where = { leagueId: { in: memberships.map(row => row.leagueId) },
+      mode: { in: ['SOLO','DUO','TEAM'] as Array<'SOLO'|'DUO'|'TEAM'> },
+      status: { in: ['REGISTRATION_CLOSED','ACTIVE'] as Array<'REGISTRATION_CLOSED'|'ACTIVE'> },
+    };
+    const [tournaments,total] = memberships.length ? await Promise.all([
+      this.prisma.tournament.findMany({ where, skip: offset, take: limit, orderBy: { id: 'asc' },
+        select:{ id:true,name:true,code:true,mode:true,status:true,league:{select:{id:true,name:true}} },
+      }), this.prisma.tournament.count({where}),
+    ]) : [[],0] as const;
+    const races: Array<{ tournament: typeof tournaments[number]; data: Awaited<ReturnType<AchievementsService['getTournamentAwardRaces']>>['data'] }> = [];
+    const failed: Array<{ tournamentId: string }> = [];
+    // Bound database fanout even when a client requests the maximum page size.
+    for (let index=0; index<tournaments.length; index+=3) {
+      const page=tournaments.slice(index,index+3);
+      const results=await Promise.allSettled(page.map(tournament => this.getTournamentAwardRaces(userId,tournament.id)));
+      for (const [slot,result] of results.entries()) {
+        if(result.status==='fulfilled') races.push({tournament:page[slot],data:result.value.data});
+        else failed.push({tournamentId:page[slot].id});
+      }
+    }
+    return { success:true, data:{races,failed,pagination:{offset,limit,total,
+      nextOffset: offset+tournaments.length<total ? offset+tournaments.length : null}}, error:null };
+  }
+
   async completeTournament(
     adminUserId: string,
     tournamentId: string,

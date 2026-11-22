@@ -1562,7 +1562,6 @@ export class BallonService {
                 'desc',
             },
 
-            take: 6,
           })
         : [];
 

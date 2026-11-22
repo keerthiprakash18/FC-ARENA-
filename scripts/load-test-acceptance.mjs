@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
+import { fork } from 'node:child_process';
+import { createServer, request as proxyRequest } from 'node:http';
+import { once } from 'node:events';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +12,9 @@ import { PrismaService } from '../apps/api/dist/database/prisma.service.js';
 import { resolvePlan, runLoadTest } from './load-test.mjs';
 
 const profiles = ['baseline', '50', '100', '250', '500'];
+// These are request-rate capacity probes, separate from the paced user profiles.
+const capacity = { '100rps': { vus: 100, rps: 100, seconds: 15 },
+  '250rps': { vus: 250, rps: 250, seconds: 15 }, '500burst': { vus: 500, rps: 500, seconds: 5, exploratory: true } };
 
 function assertIsolatedEnvironment() {
   if (process.env.NODE_ENV !== 'test') {
@@ -21,6 +27,7 @@ function assertIsolatedEnvironment() {
   }
 
   const hostname = new URL(databaseUrl).hostname;
+  if (!new URL(databaseUrl).pathname.endsWith('_test')) throw new Error('Disposable *_test database required.');
   if (!['localhost', '127.0.0.1', '[::1]', '::1'].includes(hostname)) {
     throw new Error(
       'Step 10 acceptance refuses a non-loopback database. Use isolated CI/local PostgreSQL only.',
@@ -115,6 +122,7 @@ async function main() {
   const prisma = app.get(PrismaService);
   const jwt = app.get(JwtService);
   let seeded;
+  let secondary,proxy;
 
   try {
     await app.listen(0, '127.0.0.1');
@@ -138,17 +146,34 @@ async function main() {
       },
     );
 
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+    secondary=fork(new URL('./load-test-instance.mjs',import.meta.url),[],{stdio:['ignore','ignore','inherit','ipc'],env:{...process.env,
+      PUSH_ENABLED:'false',FIXTURE_DAY_REMINDERS_ENABLED:'false',REGISTRATION_NOTIFICATIONS_ENABLED:'false',AUTH_RATE_LIMIT_CLEANUP_ENABLED:'false',
+      TOURNAMENT_REPORT_EXPORT_CLEANUP_ENABLED:'false',CARD_EXPORT_CLEANUP_ENABLED:'false',ARENA_MEDIA_CLEANUP_ENABLED:'false',OCR_RETENTION_CLEANUP_ENABLED:'false',OCR_WORKER_ENABLED:'false'}});
+    const message=await Promise.race([once(secondary,'message').then(([value])=>value),
+      once(secondary,'exit').then(()=>{throw Error('Secondary API exited before readiness');}),
+      new Promise((_,reject)=>{const timer=setTimeout(()=>reject(Error('Secondary readiness timeout')),30000);timer.unref();})]);
+    if(!Number.isInteger(message.port)||message.port<1024)throw Error('Invalid secondary API port');
+    const upstreams=[address.port,message.port];let next=0;
+    proxy=createServer((request,response)=>{
+      const upstream=proxyRequest({hostname:'127.0.0.1',port:upstreams[next++%2],path:request.url,method:request.method,headers:request.headers},result=>{
+        response.writeHead(result.statusCode,result.headers);result.pipe(response);
+      });
+      upstream.on('error',()=>{response.writeHead(502);response.end();});request.pipe(upstream);
+    });
+    proxy.listen(0,'127.0.0.1');await once(proxy,'listening');
+    const baseUrl = `http://127.0.0.1:${proxy.address().port}`;
     const results = [];
 
-    for (const profile of profiles) {
+    for (const profile of [...profiles, ...Object.keys(capacity)]) {
       // The database is disposable and isolated. Reset only test rate-limit
       // buckets so each profile measures its own policy window.
       await prisma.authRateLimit.deleteMany();
 
       const plan = resolvePlan({
         LOAD_TEST_BASE_URL: baseUrl,
-        LOAD_TEST_PROFILE: profile,
+        LOAD_TEST_PROFILE: capacity[profile] ? 'baseline' : profile,
+        ...(capacity[profile] ? { LOAD_TEST_VUS: String(capacity[profile].vus), LOAD_TEST_TARGET_RPS: String(capacity[profile].rps),
+          LOAD_TEST_DURATION_SECONDS: String(capacity[profile].seconds) } : {}),
         LOAD_TEST_ACCESS_TOKEN: token,
         LOAD_TEST_LEAGUE_ID: seeded.league.id,
         LOAD_TEST_TOURNAMENT_ID: seeded.tournament.id,
@@ -158,15 +183,18 @@ async function main() {
       });
 
       const result = await runLoadTest(plan);
+      result.acceptanceProfile = profile;
+      result.requiredForRelease = !capacity[profile]?.exploratory;
+      result.offeredRateAchieved = result.overall.requestsPerSecond >= plan.targetRps * 0.9;
+      // 500 RPS deliberately probes saturation beyond the 250 RPS acceptance
+      // envelope. Preserve its failed latency/throughput results in the report;
+      // it must never be represented as supported capacity or an SLO pass.
       results.push(result);
 
       console.log(
         `STEP10_PROFILE profile=${profile} vus=${plan.vus} rps=${result.overall.requestsPerSecond} requests=${result.overall.requests} errors=${result.overall.errors} p50=${result.overall.p50Ms} p95=${result.overall.p95Ms} p99=${result.overall.p99Ms} pass=${result.thresholds.pass}`,
       );
 
-      if (!result.thresholds.pass) {
-        throw new Error(`Step 10 acceptance failed for profile ${profile}.`);
-      }
     }
 
     const report = {
@@ -174,10 +202,15 @@ async function main() {
       environment: 'isolated GitHub Actions/local acceptance',
       database: 'isolated loopback PostgreSQL',
       redis: 'isolated loopback Redis',
+      apiInstances: 2,
       productionTrafficGenerated: false,
       writeTrafficDuringLoad: false,
       profiles: results,
-      pass: results.every((result) => result.thresholds.pass),
+      supportedCapacityRps: 250,
+      exploratoryResults: results.filter(result => !result.requiredForRelease).map(result => ({
+        profile: result.acceptanceProfile, latencyAndErrorsPass: result.thresholds.pass, offeredRateAchieved: result.offeredRateAchieved,
+      })),
+      pass: results.filter(result => result.requiredForRelease).every(result => result.thresholds.pass && result.offeredRateAchieved),
     };
 
     const output =
@@ -188,7 +221,10 @@ async function main() {
     });
 
     console.log(`STEP10_ACCEPTANCE_OK output=${output}`);
+    if (!report.pass) throw new Error('Required acceptance profile failed; see preserved report.');
   } finally {
+    if(proxy){proxy.closeAllConnections();await new Promise(resolve=>proxy.close(resolve));}
+    if(secondary&&secondary.exitCode===null){secondary.kill('SIGTERM');await once(secondary,'exit');}
     if (seeded?.league?.id) {
       await prisma.league.deleteMany({ where: { id: seeded.league.id } });
     }

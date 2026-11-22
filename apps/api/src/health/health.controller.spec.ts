@@ -39,7 +39,7 @@ describe('public health output', () => {
     }
   });
 
-  it('exposes only the configured release SHA when provided', async () => {
+  it('exposes the configured release and safe replica identity', async () => {
     const controller = new HealthController({
       $queryRaw: vi.fn().mockResolvedValue([{ value: 1 }]),
     } as never);
@@ -56,6 +56,7 @@ describe('public health output', () => {
 
       expect(response.data.runtime).toEqual({
         release: '0123456789abcdef0123456789abcdef01234567',
+        instance: 'primary',
       });
       expect(response.data).not.toHaveProperty('telemetry');
     } finally {

@@ -18,19 +18,16 @@ try {
     const f = await createUiContext(browser, { width, overrides: {
       '/api/awards/overview': { trophyCabinet: {}, myTournamentAwards: [], mySeasonalAwards: [],
         recentSeasonalWinners: [], activeAwardTournaments: tournaments },
-      '/api/tournaments/solo/award-races': (route, headers) => route.fulfill({ headers,
-        status: failSolo ? 503 : 200, json: failSolo
-          ? { success: false, error: { code: 'UNAVAILABLE', message: 'Race temporarily unavailable' } }
-          : { success: true, data: { available: true, reason: null, goldenBoot: [raceRow('Solo Star')],
-            goldenGlove: [], playerOfTournament: [] }, error: null } }),
-      ...Object.fromEntries(['team', 'duo'].map(id => [`/api/tournaments/${id}/award-races`, {
-        available: false, reason: 'Update FC Arena to view the verified score races.',
-        goldenBoot: [], goldenGlove: [], playerOfTournament: [], verifiedScoreRaces: {
-          scope: id === 'team' ? 'TEAM' : 'PLAYER',
-          goldenBoot: [{ id, name: id === 'team' ? 'Team Comets' : 'DUO Star', position: 1,
-            goals: 12, goalsPerMatch: 3, matches: 4, cleanSheets: 2, goalsAgainstPerMatch: 0.75 }], goldenGlove: [],
-        },
-      }])) }, onMutation: (route, headers) => {
+      '/api/awards/live-races': (route,headers) => route.fulfill({ headers, json: { success:true, error:null, data:{
+        races: tournaments.flatMap(tournament => {
+          if(tournament.id==='solo') return failSolo ? [] : [{tournament,data:{available:true,reason:null,
+            goldenBoot:[raceRow('Solo Star')],goldenGlove:[],playerOfTournament:[]}}];
+          return [{tournament,data:{available:false,reason:'Update FC Arena to view the verified score races.',
+            goldenBoot:[],goldenGlove:[],playerOfTournament:[],verifiedScoreRaces:{scope:tournament.id==='team'?'TEAM':'PLAYER',
+              goldenBoot:[{id:tournament.id,name:tournament.id==='team'?'Team Comets':'DUO Star',position:1,
+                goals:12,goalsPerMatch:3,matches:4,cleanSheets:2,goalsAgainstPerMatch:0.75}],goldenGlove:[]}}}];
+        }),failed:failSolo?[{tournamentId:'solo'}]:[],pagination:{offset:0,limit:6,total:3,nextOffset:null},
+      } } }), }, onMutation: (route, headers) => {
         assert.equal(new URL(route.request().url()).pathname, '/api/telemetry/web-vitals');
         return route.fulfill({ status: 204, headers });
       } });
@@ -58,6 +55,45 @@ try {
       throw error;
     } finally { await f.context.close(); }
   }
+
+  let batchCalls = 0;
+  const paged = await createUiContext(browser, { width: 390, overrides: {
+    '/api/awards/overview': { trophyCabinet: {}, myTournamentAwards: [], mySeasonalAwards: [], recentSeasonalWinners: [], activeAwardTournaments: [] },
+    '/api/awards/live-races': (route, headers) => {
+      batchCalls++;
+      const offset = Number(new URL(route.request().url()).searchParams.get('offset'));
+      return route.fulfill({ headers, json: { success: true, data: {
+        races: [{ tournament: { id: String(offset), name: offset ? 'Older Cup' : 'Latest Cup',
+          league: { id: 'phase3', name: 'Arena League' } }, data: { available: true,
+          goldenBoot: [raceRow(offset ? 'Older Scorer' : 'Latest Scorer')], goldenGlove: [], playerOfTournament: [] } }],
+        failed: [], pagination: { offset, limit: 6, total: 7, nextOffset: offset ? null : 6 },
+      } } });
+    },
+  } });
+  try {
+    await paged.page.goto('https://fcarena.in/awards/golden-boot');
+    await paged.page.getByText('Latest Scorer', { exact: true }).waitFor();
+    await paged.page.clock.install();
+    await paged.page.getByRole('button', { name: 'Next races', exact: true }).click();
+    await paged.page.getByText('Older Scorer', { exact: true }).waitFor();
+    assert(await paged.page.getByRole('button', { name: 'Next races', exact: true }).isDisabled());
+    await paged.page.getByRole('button', { name: 'Previous races', exact: true }).click();
+    await paged.page.getByText('Latest Scorer', { exact: true }).waitFor();
+    await paged.page.evaluate(() => Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }));
+    const before = batchCalls;
+    await paged.page.clock.fastForward(61000);
+    assert.equal(batchCalls, before, 'Offline screens must not poll');
+    await paged.page.evaluate(() => {
+      Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => true });
+      window.dispatchEvent(new Event('online'));
+    });
+    await paged.page.waitForFunction(() => document.body.innerText.includes('Latest Scorer'));
+    await new Promise(resolve => setTimeout(resolve, 300));
+    assert(batchCalls > before, 'Online reconnect must refresh live awards');
+    await checkLayout(paged.page, 'paginated award races');
+    assert.deepEqual(paged.errors, []);
+    console.log('PASS 390px: older tournament pagination, offline polling pause and online refresh');
+  } finally { await paged.context.close(); }
 
   const row = { ...raceRow('phase3'), fullName: 'Ranking Star', inGameName: null,
     performancePoints: 9, goalsFor: 10, goalsAgainst: 3, winRate: 75, form: 'WWWL' };

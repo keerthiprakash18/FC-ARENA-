@@ -39,6 +39,7 @@ export async function checkAvailability({
   }
   const checks = [];
   const assets = new Map();
+  const backupProbes = new Set();
   const overallDeadline = AbortSignal.timeout(90_000);
 
   async function probe(name, url, validate, method = 'GET') {
@@ -95,9 +96,20 @@ export async function checkAvailability({
   await Promise.all([
     probe('web-home', new URL('/', web), page),
     probe('android-start-page', new URL('/dashboard', web), page),
-    probe('same-origin-api', new URL('/api/health', web), async response => requireHealthy(await response.json())),
-    probe('direct-api', api, async response => requireHealthy(await response.json())),
+    probe('same-origin-api', new URL('/api/health', web), async response => {
+      const body=await response.json();requireHealthy(body);
+      if(body.data.backupMonitoring==='enabled')backupProbes.add(new URL('/api/health/backups',web).href);
+    }),
+    probe('direct-api', api, async response => {
+      const body=await response.json();requireHealthy(body);
+      if(body.data.backupMonitoring==='enabled')backupProbes.add(new URL('/api/health/backups',api).href);
+    }),
   ]);
+  await Promise.all([...backupProbes].map(url=>probe('encrypted-recovery',url,async response=>{
+    const body=await response.json();
+    if(body.success!==true||body.data?.configured!==true||body.data?.status!=='healthy'||body.data?.encrypted!==true)
+      throw Error('Encrypted off-host backup and recovery proof must be fresh.');
+  })));
   // Verify the exact chunk URLs in the documents; stale/missing deploy assets cause blank screens.
   const urls = [...assets.values()];
   for (let offset = 0; offset < urls.length; offset += 4) {

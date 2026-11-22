@@ -35,7 +35,9 @@ function setup(previous: Record<string, number> | null) {
     tournament: { count: vi.fn().mockResolvedValue(1) },
     tournamentRegistrationMember: { findMany: vi.fn().mockResolvedValue([]) },
     match: { count: vi.fn().mockResolvedValue(3) },
+    fixture: { findMany: vi.fn().mockResolvedValue([]) },
     rankingSnapshot: {
+      findUnique: vi.fn().mockResolvedValue(null),
       upsert: vi.fn().mockResolvedValue({}),
       findFirst: vi
         .fn()
@@ -52,6 +54,21 @@ function setup(previous: Record<string, number> | null) {
   return { prisma, statistic, service: new RankingsService(prisma) };
 }
 describe('Persisted rank comparison', () => {
+  it('coalesces concurrent authorized readers while preserving each own rank and fresh later reads', async () => {
+    const {service,prisma}=setup(null);
+    const [one,two]=await Promise.all([service.getLeagueRankings('one','league'),service.getLeagueRankings('two','league')]);
+    expect(one.data.myPosition).toBe(1);expect(two.data.myPosition).toBe(2);
+    expect(prisma.leagueMember.findUnique).toHaveBeenCalledTimes(2);
+    expect(prisma.playerTournamentStatistic.findMany).toHaveBeenCalledTimes(1);
+    await service.getLeagueRankings('one','league');
+    expect(prisma.playerTournamentStatistic.findMany).toHaveBeenCalledTimes(2);
+  });
+  it('does not contend on an already recorded immutable daily snapshot', async () => {
+    const {service,prisma}=setup(null);
+    prisma.rankingSnapshot.findUnique.mockResolvedValue({id:'observed'});
+    await service.getLeagueRankings('one','league');
+    expect(prisma.rankingSnapshot.upsert).not.toHaveBeenCalled();
+  });
   it('leaves players without a verified match out of ranks and saved snapshots', async () => {
     const { service, prisma, statistic } = setup(null);
     prisma.playerTournamentStatistic.findMany.mockResolvedValue([

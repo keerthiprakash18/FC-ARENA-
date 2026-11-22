@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { execFileSync } from 'node:child_process';
+import { readFile,stat } from 'node:fs/promises';
+import { assessBackupHealth } from './backup-health.js';
 
 import {
   PrismaService,
@@ -56,6 +58,20 @@ export class HealthController {
     private readonly prisma:
       PrismaService,
   ) {}
+
+  @Get('backups')
+  async backups() {
+    const file=process.env.BACKUP_HEALTH_FILE;
+    if(!file)return {success:true,data:{configured:false},error:null};
+    try {
+      if((await stat(file)).size>16384)throw Error('Invalid backup state');
+      const data=assessBackupHealth(JSON.parse(await readFile(file,'utf8')));
+      if(data.status!=='healthy')throw Error('Backup recovery is stale');
+      return {success:true,data,error:null};
+    } catch {
+      throw new ServiceUnavailableException({success:false,data:null,error:{code:'BACKUP_RECOVERY_UNAVAILABLE',message:'Backup or off-host recovery verification needs attention.'}});
+    }
+  }
 
   @Get('live')
   liveness() {
@@ -176,10 +192,12 @@ export class HealthController {
           },
           redis,
         },
+        backupMonitoring: process.env.BACKUP_HEALTH_FILE ? 'enabled' : 'disabled',
         ...(release
           ? {
               runtime: {
                 release,
+                instance: process.env.FC_ARENA_INSTANCE_ID ?? 'primary',
               },
             }
           : {}),

@@ -319,6 +319,8 @@ export default function AwardCategoryPage() {
     useState(true);
 
   const [attempt, setAttempt] = useState(0);
+  const [raceOffset, setRaceOffset] = useState(0);
+  const [pagination, setPagination] = useState<{ offset: number; limit: number; total: number; nextOffset: number | null }>({ offset: 0, limit: 6, total: 0, nextOffset: null });
 
   const [
     lastUpdated,
@@ -336,155 +338,56 @@ export default function AwardCategoryPage() {
       return;
     }
 
-    let active =
-      true;
-
+    let active = true;
     let loadingRequest = false;
-    async function load() {
-      if (loadingRequest) return;
+    let lastRequestedAt = 0;
+    const controller = new AbortController();
+    async function load(silent = false) {
+      if (loadingRequest || controller.signal.aborted || (silent && (
+        document.visibilityState !== 'visible' || navigator.onLine === false ||
+        Date.now() - lastRequestedAt < 15_000
+      ))) return;
       loadingRequest = true;
+      lastRequestedAt = Date.now();
       try {
-        let warning = "";
-        const response =
-          await authenticatedRequest<{
-            success: true;
-            data: AwardsOverview;
-            error: null;
-          }>('/awards/overview');
-
-        if (!active) {
-          return;
-        }
-
-        setOverview(
-          response.data,
-        );
-
-        if (
-          config.raceKey
-        ) {
-          const results =
-            await Promise.allSettled(
-              response.data
-                .activeAwardTournaments
-                .map(
-                  async (
-                    tournament,
-                  ) => {
-                    const raceResponse =
-                      await authenticatedRequest<{
-                        success: true;
-                        data: AwardRaceData;
-                        error: null;
-                      }>(
-                        `/tournaments/${tournament.id}/award-races`,
-                      );
-
-                    return {
-                      tournament,
-                      data:
-                        raceResponse.data,
-                    };
-                  },
-                ),
-            );
-
-          if (!active) {
-            return;
-          }
-
-          setRaces(
-            results.flatMap(
-              (
-                result,
-              ) =>
-                result.status ===
-                'fulfilled'
-                  ? [
-                      result.value,
-                    ]
-                  : [],
-            ),
-          );
-          const failed = results.filter(result => result.status === 'rejected').length;
-          if (failed) warning = `${failed} tournament race${failed === 1 ? '' : 's'} could not be loaded. Retry to get the complete award table.`;
-        } else {
-          setRaces(
-            [],
-          );
-        }
-
-        setError(warning);
-        setLastUpdated(
-          new Date(),
-        );
-      } catch (
-        err
-      ) {
-        if (!active) {
-          return;
-        }
-
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load this award category.',
-        );
+        const [response, live] = await Promise.all([
+          authenticatedRequest<{ data: AwardsOverview }>('/awards/overview', { signal: controller.signal }),
+          config.raceKey ? authenticatedRequest<{ data: {
+            races: TournamentRace[]; failed: Array<{ tournamentId: string }>;
+            pagination: { offset: number; limit: number; total: number; nextOffset: number | null };
+          } }>(`/awards/live-races?offset=${raceOffset}&limit=6`, { signal: controller.signal }) : Promise.resolve(null),
+        ]);
+        if (!active) return;
+        setOverview(response.data);
+        setRaces(live?.data.races ?? []);
+        if (live) setPagination(live.data.pagination);
+        const failed = live?.data.failed.length ?? 0;
+        setError(failed ? `${failed} tournament race${failed === 1 ? '' : 's'} could not be loaded. Retry to get the complete award table.` : '');
+        setLastUpdated(new Date());
+      } catch (err) {
+        if (active && !controller.signal.aborted) setError(err instanceof Error ? err.message : 'Unable to load this award category.');
       } finally {
         loadingRequest = false;
-        if (active) {
-          setLoading(
-            false,
-          );
-        }
+        if (active) setLoading(false);
       }
     }
-
     void load();
-
-    const interval =
-      window.setInterval(
-        () => {
-          if (
-            document.visibilityState ===
-            'visible'
-          ) {
-            void load();
-          }
-        },
-        15_000,
-      );
-
-    const refreshOnFocus =
-      () => {
-        if (
-          document.visibilityState ===
-          'visible'
-        ) {
-          void load();
-        }
-      };
-
-    document.addEventListener(
-      'visibilitychange',
-      refreshOnFocus,
-    );
-
+    const interval = window.setInterval(() => { void load(true); }, 60_000);
+    const refresh = () => { void load(true); };
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    window.addEventListener('online', refresh);
     return () => {
-      active =
-        false;
-      window.clearInterval(
-        interval,
-      );
-      document.removeEventListener(
-        'visibilitychange',
-        refreshOnFocus,
-      );
+      active = false; controller.abort(); window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('online', refresh);
     };
   }, [
     category,
     config,
     attempt,
+    raceOffset,
   ]);
 
   const myAwards =
@@ -568,7 +471,7 @@ export default function AwardCategoryPage() {
       backLabel="Awards"
       action={
         <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
-          {error ? 'Refresh needed' : loading ? 'Loading' : '● Live · 15s'}
+          {error ? 'Refresh needed' : loading ? 'Loading' : '● Live · 60s'}
           {lastUpdated
             ? ` · ${lastUpdated.toLocaleTimeString([], {
                 hour: '2-digit',
@@ -687,6 +590,18 @@ export default function AwardCategoryPage() {
             </p>
           </div>
 
+          {pagination.total > 6 ? (
+            <nav aria-label="Award race pages" className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <button type="button" disabled={loading || raceOffset === 0}
+                onClick={() => { setLoading(true); setRaces([]); setRaceOffset(Math.max(0, raceOffset - 6)); }}
+                className="theme-secondary-button min-h-11 rounded-lg border px-3 text-sm font-semibold disabled:opacity-40">Previous races</button>
+              <span aria-live="polite" className="text-xs text-slate-400">{raceOffset + 1}–{Math.min(raceOffset + 6, pagination.total)} of {pagination.total} tournaments</span>
+              <button type="button" disabled={loading || pagination.nextOffset === null}
+                onClick={() => { if (pagination.nextOffset !== null) { setLoading(true); setRaces([]); setRaceOffset(pagination.nextOffset); } }}
+                className="theme-secondary-button min-h-11 rounded-lg border px-3 text-sm font-semibold disabled:opacity-40">Next races</button>
+            </nav>
+          ) : null}
+          {loading && races.length === 0 ? <p role="status" className="mt-4 text-sm text-slate-400">Loading verified races…</p> : null}
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {races.map(
               (

@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import { rankGoldenBootRace } from '../achievements/award-scoring.js';
+import { InFlightReads } from '../security/in-flight-reads.js';
+import { chronologicalLeagueForm } from './league-recent-form.js';
 
 interface PlayerRankingRow {
   userId: string;
@@ -32,6 +34,7 @@ interface LeaguePlayerRankingRow
 
 @Injectable()
 export class RankingsService {
+  private readonly reads = new InFlightReads();
   constructor(
     private readonly prisma: PrismaService,
   ) {}
@@ -388,10 +391,16 @@ export class RankingsService {
     leagueId: string,
     mode?: string,
   ) {
-    await this.assertLeagueMember(
-      userId,
-      leagueId,
-    );
+    await this.assertLeagueMember(userId, leagueId);
+    const scope = mode?.toUpperCase() ?? '';
+    const response = await this.reads.run(`league:${leagueId}:${scope}`,
+      () => this.buildLeagueRankings(userId, leagueId, mode));
+    return { ...response, data: { ...response.data,
+      myPosition: response.data.rankings.find(row => row.userId === userId)?.position ?? null,
+    } };
+  }
+
+  private async buildLeagueRankings(userId: string, leagueId: string, mode?: string) {
 
     const allowedModes =
       new Set([
@@ -433,6 +442,7 @@ export class RankingsService {
       tournamentCount,
       verifiedMatches,
       registrations,
+      formFixtures,
     ] =
       await Promise.all([
         this.prisma.league.findUnique({
@@ -516,6 +526,21 @@ export class RankingsService {
           select: { userId: true, registrationId: true, registration: { select: {
             entryName: true, tournamentId: true, tournament: { select: { name: true } },
           } } },
+        }),
+        this.prisma.fixture.findMany({
+          where: { tournament: tournamentFilter, status: 'COMPLETED', match: {
+            status: 'COMPLETED', confirmedResult: { is: { status: 'CONFIRMED' } },
+          } },
+          select: { id:true,tournamentId:true,groupId:true,phase:true,sequence:true,matchday:true,roundNumber:true,
+            homeRegistrationId:true,awayRegistrationId:true,status:true,
+            tournament:{select:{competitionFormat:true,legType:true,duoAggregateEnabled:true}},
+            homeRegistration:{select:{members:{select:{userId:true}}}},
+            awayRegistration:{select:{members:{select:{userId:true}}}},
+            match:{select:{status:true,confirmedResultSubmissionId:true,confirmedResult:{select:{
+              id:true,status:true,homeScore:true,awayScore:true,reviewedAt:true,createdAt:true,duoGames:true,
+              statEvents:{where:{type:'APPLY'},select:{payload:true}},
+            }}}},
+          },
         }),
       ]);
 
@@ -668,6 +693,8 @@ export class RankingsService {
           );
     }
 
+    const forms = chronologicalLeagueForm(formFixtures, currentMemberIds);
+    for (const row of aggregate.values()) row.form = forms.get(row.userId) ?? '';
     const rows =
       [...aggregate.values()].filter(row => row.matches > 0);
 
@@ -696,7 +723,10 @@ export class RankingsService {
     day.setUTCHours(0, 0, 0, 0);
     const scope = competitionMode ?? 'ALL';
     // First observed table each UTC day is immutable; never invent earlier history.
-    await this.prisma.rankingSnapshot.upsert({
+    const observedToday = await this.prisma.rankingSnapshot.findUnique({
+      where: { leagueId_scope_day: { leagueId, scope, day } }, select: { id: true },
+    });
+    if (!observedToday) await this.prisma.rankingSnapshot.upsert({
       where: { leagueId_scope_day: { leagueId, scope, day } },
       create: { leagueId, scope, day, positions: Object.fromEntries(rankedRows.map(row => [row.userId, row.position])) },
       update: {},

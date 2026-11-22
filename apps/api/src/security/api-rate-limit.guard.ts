@@ -13,7 +13,9 @@ export class ApiRateLimitGuard implements CanActivate {
     const ip = (request.ip || request.socket.remoteAddress || 'unknown').slice(0, 200);
     // Shared NATs and dashboard polling need a generous global ceiling.
     // Auth endpoints retain their much tighter per-action/account limits.
-    await this.rateLimit.consume('API_IP', ip, 1200, 60_000);
+    const configured = Number(process.env.API_RATE_LIMIT_READS_PER_MINUTE ?? 1200);
+    const ceiling = Number.isInteger(configured) && configured >= 1200 && configured <= 120000 ? configured : 1200;
+    await this.rateLimit.consume('API_IP', ip, ceiling, 60_000);
     if (!['GET', 'HEAD'].includes(request.method)) {
       await this.rateLimit.consume('API_WRITE_IP', ip, 300, 60_000);
     }

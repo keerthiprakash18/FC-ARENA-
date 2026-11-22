@@ -9,6 +9,9 @@ import { PrismaService } from '../apps/api/dist/database/prisma.service.js';
 import { resolvePlan, runLoadTest } from './load-test.mjs';
 
 const profiles = ['baseline', '50', '100', '250', '500'];
+// These are request-rate capacity probes, separate from the paced user profiles.
+const capacity = { '100rps': { vus: 100, rps: 100, seconds: 15 },
+  '250rps': { vus: 250, rps: 250, seconds: 15 }, '500burst': { vus: 500, rps: 500, seconds: 5 } };
 
 function assertIsolatedEnvironment() {
   if (process.env.NODE_ENV !== 'test') {
@@ -21,6 +24,7 @@ function assertIsolatedEnvironment() {
   }
 
   const hostname = new URL(databaseUrl).hostname;
+  if (!new URL(databaseUrl).pathname.endsWith('_test')) throw new Error('Disposable *_test database required.');
   if (!['localhost', '127.0.0.1', '[::1]', '::1'].includes(hostname)) {
     throw new Error(
       'Step 10 acceptance refuses a non-loopback database. Use isolated CI/local PostgreSQL only.',
@@ -141,14 +145,16 @@ async function main() {
     const baseUrl = `http://127.0.0.1:${address.port}`;
     const results = [];
 
-    for (const profile of profiles) {
+    for (const profile of [...profiles, ...Object.keys(capacity)]) {
       // The database is disposable and isolated. Reset only test rate-limit
       // buckets so each profile measures its own policy window.
       await prisma.authRateLimit.deleteMany();
 
       const plan = resolvePlan({
         LOAD_TEST_BASE_URL: baseUrl,
-        LOAD_TEST_PROFILE: profile,
+        LOAD_TEST_PROFILE: capacity[profile] ? 'baseline' : profile,
+        ...(capacity[profile] ? { LOAD_TEST_VUS: String(capacity[profile].vus), LOAD_TEST_TARGET_RPS: String(capacity[profile].rps),
+          LOAD_TEST_DURATION_SECONDS: String(capacity[profile].seconds) } : {}),
         LOAD_TEST_ACCESS_TOKEN: token,
         LOAD_TEST_LEAGUE_ID: seeded.league.id,
         LOAD_TEST_TOURNAMENT_ID: seeded.tournament.id,
@@ -158,6 +164,7 @@ async function main() {
       });
 
       const result = await runLoadTest(plan);
+      result.acceptanceProfile = profile;
       results.push(result);
 
       console.log(

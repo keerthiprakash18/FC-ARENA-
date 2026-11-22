@@ -7,6 +7,17 @@ import { checkAvailability } from '../scripts/check-availability.mjs';
 const health = { success: true, data: { status: 'healthy', api: 'connected', database: 'connected', redis: 'connected' } };
 const html = '<html><link rel="stylesheet" href="/_next/static/app.css"><script src="/_next/static/app.js"></script></html>';
 
+test('enabled backup monitoring fails when off-host recovery is degraded', async t => {
+  for (const status of ['healthy','degraded']) {
+    const body=JSON.stringify({...health,data:{...health.data,backupMonitoring:'enabled'}});
+    const server=await fixture(t,{'/api/health':{body},'/direct/health':{body},
+      '/api/health/backups':{type:'application/json',body:JSON.stringify({success:true,data:{configured:true,status,encrypted:true}})}});
+    const result=await checkAvailability(server);
+    assert.equal(result.ok,status==='healthy');
+    assert.equal(result.checks.find(row=>row.name==='encrypted-recovery').ok,status==='healthy');
+  }
+});
+
 async function fixture(t, overrides = {}) {
   const requests = [];
   const server = createServer((request, response) => {

@@ -8,6 +8,15 @@ import {
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
+import { Redis } from 'ioredis';
+import { boundedRedisOptions } from '../security/redis-options.js';
+
+export const API_RATE_LIMIT_SCRIPT = `
+local count = tonumber(redis.call('GET', KEYS[1]) or '0')
+if count < tonumber(ARGV[1]) + 1 then count = redis.call('INCR', KEYS[1]) end
+if redis.call('PTTL', KEYS[1]) < 0 then redis.call('PEXPIRE', KEYS[1], ARGV[2]) end
+return count
+`;
 
 type RateLimitAction =
   | 'API_IP'
@@ -33,6 +42,8 @@ export class AuthRateLimitService
   implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AuthRateLimitService.name);
   private cleanupTimer?: ReturnType<typeof setInterval>;
+  private apiRedis: Redis | null = null;
+  private redisRetryAt = 0;
 
   constructor(
     private readonly prisma:
@@ -40,6 +51,12 @@ export class AuthRateLimitService
   ) {}
 
   onModuleInit(): void {
+    if (process.env.API_RATE_LIMIT_STORAGE === 'redis') {
+      const redis = new Redis(boundedRedisOptions());
+      redis.on('error', () => {});
+      this.apiRedis = redis;
+      void redis.connect().catch(() => { this.redisRetryAt = Date.now() + 10_000; });
+    }
     if (process.env.AUTH_RATE_LIMIT_CLEANUP_ENABLED === 'false') {
       return;
     }
@@ -53,6 +70,8 @@ export class AuthRateLimitService
   }
 
   onModuleDestroy(): void {
+    this.apiRedis?.disconnect();
+    this.apiRedis = null;
     if (this.cleanupTimer) {
       clearInterval(this.cleanupTimer);
     }
@@ -64,6 +83,23 @@ export class AuthRateLimitService
     limit: number,
     windowMs: number,
   ): Promise<void> {
+    if ((action === 'API_IP' || action === 'API_WRITE_IP') && this.apiRedis && Date.now() >= this.redisRetryAt) {
+      let attempts: number | null = null;
+      try {
+        const value = await this.apiRedis.eval(API_RATE_LIMIT_SCRIPT, 1,
+          `fcarena:api-limit:v1:${action}:${this.hashKey(rawKey)}`, limit, windowMs);
+        if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1) throw new Error('Invalid Redis counter');
+        attempts = value;
+      } catch {
+        // Authentication/account budgets always stay in PostgreSQL. If the
+        // accelerator fails, global budgets use the existing atomic DB path.
+        this.redisRetryAt = Date.now() + 10_000;
+      }
+      if (attempts !== null) {
+        if (attempts > limit) this.rejectLimit();
+        return;
+      }
+    }
     // A single upsert locks the bucket: parallel requests cannot all pass
     // a separate read before incrementing the counter.
     const keyHash = this.hashKey(rawKey);
@@ -82,11 +118,14 @@ export class AuthRateLimitService
       RETURNING "attemptCount"
     `;
     if (!rows[0] || rows[0].attemptCount > limit) {
-      throw new HttpException({
-        success: false, data: null,
-        error: { code: 'RATE_LIMITED', message: 'Too many attempts. Please try again later.' },
-      }, HttpStatus.TOO_MANY_REQUESTS);
+      this.rejectLimit();
     }
+  }
+
+  private rejectLimit(): never {
+    throw new HttpException({ success: false, data: null,
+      error: { code: 'RATE_LIMITED', message: 'Too many attempts. Please try again later.' },
+    }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
   async clear(

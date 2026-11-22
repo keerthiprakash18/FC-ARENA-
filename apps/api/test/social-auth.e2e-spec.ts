@@ -53,7 +53,7 @@ describe('social sign-in through real PostgreSQL, Redis, HTTP and refresh cookie
     users.push(completed.body.data.user.id);
     expect(completed.headers['set-cookie'][0]).toContain('HttpOnly');expect(completed.body.data.refreshToken).toBeUndefined();
     expect(completed.body.data.user.dateOfBirth).toBe(profile.dateOfBirth);
-    const identity=await db.playerIdentity.findFirstOrThrow({where:{player:{userId:users[0]}}});
+    const identity=await db.player.findUniqueOrThrow({where:{userId:users[0]}});
     expect(identity.whatsappNumber).toBeNull();expect(identity.whatsappShareEnabled).toBe(false);
     await exchange(code).expect(400);
     await request(app.getHttpServer()).post('/api/auth/social/register').send({ticket,...profile}).expect(400);

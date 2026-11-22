@@ -38,7 +38,7 @@ interface Ticket {
 const hash = (value: string) =>
   createHash('sha256').update(value).digest('base64url');
 const same = (a: string, b: string) =>
-  timingSafeEqual(Buffer.from(hash(a)), Buffer.from(hash(b)));
+  a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 const valid = (value: unknown): value is string =>
   typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value);
 const expired = () =>
@@ -104,7 +104,7 @@ export class SocialAuthService {
     cookie: unknown,
     cancelled: boolean,
   ) {
-    if (!valid(state) || typeof cookie !== 'string') throw expired();
+    if (!valid(state) || !valid(cookie)) throw expired();
     const attempt = await this.store.read<Attempt>('oauth', state);
     if (
       !attempt ||

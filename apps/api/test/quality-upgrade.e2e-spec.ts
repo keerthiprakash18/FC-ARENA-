@@ -447,7 +447,7 @@ describe('Quality upgrade: real database and HTTP invariants', () => {
     const denied = await request(app.getHttpServer()).post('/api/auth/register').set('Origin', 'https://untrusted.example').send({}).expect(403);
     expect(denied.body.error.code).toBe('ORIGIN_NOT_ALLOWED');
     await request(app.getHttpServer()).post('/api/auth/register').send({ email: 'invalid@example.test', fullName: 'Invalid', password, confirmPassword: password, inGameName: 'Invalid', role: 'SUPER_ADMIN' }).expect(400);
-    await request(app.getHttpServer()).post('/api/auth/register').send({ email: `sixth-${run}@example.test`, fullName: 'Sixth', password, confirmPassword: password, inGameName: `Sixth${run}` }).expect(429);
+    await request(app.getHttpServer()).post('/api/auth/register').send({ email: `sixth-${run}@example.test`, fullName: 'Sixth', password, confirmPassword: password, inGameName: `Sixth${run}`,dateOfBirth:'1995-01-01',phoneNumber:'+49'+String(Number.parseInt(run,16)).padStart(10,'0') }).expect(429);
     await request(app.getHttpServer()).post('/api/players/me/profile-image').set('Authorization', `Bearer ${users[2].token}`)
       .attach('image', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>'), { filename: 'fake.png', contentType: 'image/png' }).expect(400);
     await request(app.getHttpServer()).post('/api/players/me/profile-image').set('Authorization', `Bearer ${users[2].token}`)

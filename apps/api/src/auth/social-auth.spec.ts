@@ -9,7 +9,8 @@ describe('social authorization binding and one-time completion', () => {
   const state = 'S'.repeat(43),
     verifier = 'V'.repeat(43),
     code = 'C'.repeat(43),
-    ticket = 'T'.repeat(43);
+    ticket = 'T'.repeat(43),
+    cookie = 'K'.repeat(43);
   const identity = {
     provider: 'google' as const,
     subject: 'provider-user',
@@ -89,7 +90,7 @@ describe('social authorization binding and one-time completion', () => {
       const f = fixture();
       f.data.set('oauth' + state, {
         provider: 'google',
-        cookie: hash('real-cookie'),
+        cookie: hash(cookie),
         challenge: hash(verifier),
       });
       await expect(
@@ -97,7 +98,7 @@ describe('social authorization binding and one-time completion', () => {
           reason === 'provider mix-up' ? 'facebook' : 'google',
           state,
           'provider-code',
-          reason === 'bad cookie' ? 'bad' : 'real-cookie',
+          reason === 'bad cookie' ? 'B'.repeat(43) : cookie,
           false,
         ),
       ).rejects.toMatchObject({ status: 400 });
@@ -108,7 +109,7 @@ describe('social authorization binding and one-time completion', () => {
     const f = fixture();
     f.data.set('oauth' + state, {
       provider: 'google',
-      cookie: hash('real-cookie'),
+      cookie: hash(cookie),
       challenge: hash(verifier),
       verifier,
       nonce: 'nonce',
@@ -118,7 +119,7 @@ describe('social authorization binding and one-time completion', () => {
         'google',
         state,
         'provider-code',
-        'real-cookie',
+        cookie,
         false,
       ),
     );
@@ -130,7 +131,7 @@ describe('social authorization binding and one-time completion', () => {
         'google',
         state,
         'provider-code',
-        'real-cookie',
+        cookie,
         false,
       ),
     ).rejects.toMatchObject({ status: 400 });

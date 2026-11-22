@@ -95,6 +95,7 @@ async function prepare(page) {
       switch (url.pathname) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
+        case '/api/auth/social/providers': data={google:false,facebook:false}; break;
         case '/api/auth/preferences/dashboard': data = { preferences: { hiddenSections: [] } }; break;
         case '/api/experience/me/check-in': data = collectedDailyFixture(); break;
         case '/api/experience/me': data = emptyExperience; break;

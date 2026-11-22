@@ -70,6 +70,7 @@ describe('Quality upgrade: real database and HTTP invariants', () => {
       const registered = await request(app.getHttpServer()).post('/api/auth/register').send({
         email, fullName: `Quality ${index}`, inGameName: `Quality${run}${index}`,
         password, confirmPassword: password,
+        dateOfBirth:'1995-01-01',phoneNumber:'+1'+String(Number.parseInt(run,16)).padStart(10,'0')+index,
       }).expect(201);
       expect(registered.body.data.user.status).toBe('ACTIVE');
       expect(JSON.stringify(registered.body)).not.toContain('passwordHash');

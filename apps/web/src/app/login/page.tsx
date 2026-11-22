@@ -8,6 +8,8 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FcNotice } from '@/components/fc/fc-ui';
 import { apiRequest } from '@/lib/api';
+import {SocialSignIn} from '@/components/auth/social-sign-in';
+import {signedInDestination} from '@/lib/required-profile';
 import {
   establishLoginSession,
 } from '@/lib/auth-client';
@@ -65,6 +67,7 @@ export default function LoginPage() {
 
             user: {
               dateOfBirth?: string | null;
+              phoneNumber?: string | null;
               themePreference:
                 ThemePreference;
             };
@@ -98,10 +101,7 @@ export default function LoginPage() {
           .themePreference,
       );
 
-      const invite = leagueInviteQuery(window.location.search);
-      const destination = invite ? `/leagues${invite}` : '/dashboard';
-      const profileSetup = `/profile/date-of-birth${invite}`;
-      router.replace(response.data.user.dateOfBirth === null ? profileSetup : destination);
+      router.replace(signedInDestination(response.data.user,window.location.search));
       sessionStorage.removeItem(
         'fc_auth_registration_notice',
       );
@@ -195,6 +195,8 @@ export default function LoginPage() {
           </span>
         </button>
       </form>
+
+      <SocialSignIn/>
 
       <div className="link-row">
         <Link className="text-link" href="/forgot-password">

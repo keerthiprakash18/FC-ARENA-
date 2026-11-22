@@ -29,6 +29,9 @@ import type {
 import { OtpMailService } from './mail.service.js';
 import { normalizeLoginIdentifier } from './login-identifier.js';
 import { parseDateOfBirth } from './date-of-birth.service.js';
+import { normalizeWhatsAppNumber, phoneAliases } from './whatsapp-number.js';
+import type { CompleteProfileDto } from './dto/complete-profile.dto.js';
+import type { VerifiedSocialIdentity } from './social.types.js';
 import type { AccountDeletionRequestDto } from './dto/account-deletion-request.dto.js';
 import type { DeleteAccountDto } from './dto/delete-account.dto.js';
 import type { ForgotPasswordDto } from './dto/forgot-password.dto.js';
@@ -70,7 +73,7 @@ export class AuthService {
     this.refreshSecret = refreshSecret;
   }
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, social?: VerifiedSocialIdentity) {
     if (dto.password !== dto.confirmPassword) {
       throw new BadRequestException({
         success: false,
@@ -85,9 +88,9 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const inGameName = dto.inGameName.trim();
     const inGameNameNormalized = inGameName.toLowerCase();
-    const phoneNumber = dto.phoneNumber?.trim() || null;
+    const phoneNumber = normalizeWhatsAppNumber(dto.phoneNumber);
     const gameUid = dto.gameUid?.trim() || null;
-    const dateOfBirth = dto.dateOfBirth === undefined ? null : parseDateOfBirth(dto.dateOfBirth);
+    const dateOfBirth = parseDateOfBirth(dto.dateOfBirth);
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -97,15 +100,7 @@ export class AuthService {
       throw this.registrationConflict();
     }
 
-    if (phoneNumber) {
-      const existingPhone = await this.prisma.user.findUnique({
-        where: { phoneNumber },
-      });
-
-      if (existingPhone) {
-        throw this.registrationConflict();
-      }
-    }
+    await this.assertPhoneAvailable(phoneNumber);
 
     const existingIdentity = await this.prisma.playerIdentity.findUnique({
       where: { inGameNameNormalized },
@@ -142,6 +137,7 @@ export class AuthService {
             email,
             phoneNumber,
             dateOfBirth,
+            ...(social?.emailVerified ? {emailVerifiedAt:new Date()}:{}),
             passwordHash,
             status: 'ACTIVE',
           },
@@ -171,6 +167,8 @@ export class AuthService {
             gameUid,
           },
         });
+
+        if (social) await tx.socialIdentity.create({data:{provider:social.provider,subject:social.subject,userId:user.id}});
 
         return {
           user,
@@ -817,6 +815,8 @@ export class AuthService {
           },
         });
 
+        await tx.socialIdentity.deleteMany({where:{userId}});
+
         await tx.authOtp.deleteMany({
           where: {
             userId,
@@ -1201,6 +1201,66 @@ export class AuthService {
       },
       error: null,
     };
+  }
+
+  private async assertPhoneAvailable(phoneNumber: string, exceptUserId?: string) {
+    const conflict=await this.prisma.user.findFirst({where:{phoneNumber:{in:phoneAliases(phoneNumber)},
+      ...(exceptUserId?{id:{not:exceptUserId}}:{})},select:{id:true}});
+    if(conflict)throw this.registrationConflict();
+  }
+
+  private isUniqueConstraintError(error: unknown): boolean {
+    return typeof error==='object'&&error!==null&&'code' in error&&error.code==='P2002';
+  }
+
+  async completeProfile(userId: string, dto: CompleteProfileDto) {
+    const dateOfBirth=parseDateOfBirth(dto.dateOfBirth),phoneNumber=normalizeWhatsAppNumber(dto.phoneNumber);
+    await this.assertPhoneAvailable(phoneNumber,userId);
+    try {
+      const changed=await this.prisma.user.updateMany({where:{id:userId,status:'ACTIVE'},data:{dateOfBirth,phoneNumber}});
+      if(changed.count!==1)throw this.invalidCredentials();
+    } catch(error) {
+      if(this.isUniqueConstraintError(error))throw this.registrationConflict();
+      throw error;
+    }
+    return {success:true,data:{dateOfBirth:dateOfBirth.toISOString().slice(0,10),phoneNumber},error:null};
+  }
+
+  async loginSocial(identity: VerifiedSocialIdentity) {
+    const linked=await this.prisma.socialIdentity.findUnique({where:{provider_subject:{provider:identity.provider,subject:identity.subject}}});
+    return linked ? this.socialSession(linked.userId) : null;
+  }
+
+  async registerSocial(identity: VerifiedSocialIdentity, profile: {fullName:string;inGameName:string;dateOfBirth:string;phoneNumber:string}) {
+    if(!identity.email)throw new BadRequestException('This provider did not share an email. Use another sign-in option.');
+    const password=randomBytes(48).toString('base64url');
+    const registered=await this.register({...profile,email:identity.email,password,confirmPassword:password},identity);
+    return this.socialSession(registered.data.user.id);
+  }
+
+  async connectSocial(identity: VerifiedSocialIdentity, password: string) {
+    if(!identity.email)throw this.invalidCredentials();
+    const user=await this.prisma.user.findUnique({where:{email:identity.email}});
+    if(!user||user.status!=='ACTIVE'||!await this.passwordMatches(password,user.passwordHash))throw this.invalidCredentials();
+    try {
+      await this.prisma.$transaction(async tx=>{
+        const active=await tx.user.findFirst({where:{id:user.id,status:'ACTIVE',passwordHash:user.passwordHash},select:{id:true}});
+        if(!active)throw this.invalidCredentials();
+        await tx.socialIdentity.create({data:{provider:identity.provider,subject:identity.subject,userId:user.id}});
+      });
+    } catch(error) {
+      if(this.isUniqueConstraintError(error))throw new ConflictException('This sign-in is already connected. Start sign-in again.');
+      throw error;
+    }
+    return this.socialSession(user.id);
+  }
+
+  private async socialSession(userId: string) {
+    const user=await this.prisma.user.findUnique({where:{id:userId},include:{player:{include:{identity:true}}}});
+    if(!user||user.status!=='ACTIVE')throw this.invalidCredentials();
+    const tokens=await this.createSession(user);
+    const themePreference=await this.getThemePreference(user.id);
+    return {success:true,data:{...tokens,expiresIn:ACCESS_TOKEN_SECONDS,user:this.publicUser({...user,themePreference})},error:null};
   }
 
   async login(dto: LoginDto) {

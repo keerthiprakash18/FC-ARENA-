@@ -28,6 +28,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto.js';
 import { UpdateThemePreferenceDto } from './dto/update-theme-preference.dto.js';
 import { UpdateDashboardPreferencesDto } from './dto/update-dashboard-preferences.dto.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { CompleteProfileDto } from './dto/complete-profile.dto.js';
 
 const REFRESH_COOKIE_NAME = 'fc_arena_refresh_token';
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
@@ -398,6 +399,12 @@ export class AuthController {
     },
   ) {
     return this.authService.getMe(request.user.sub);
+  }
+
+  @Patch('me/profile')
+  @UseGuards(JwtAuthGuard)
+  completeProfile(@Req()request:Request&{user:AccessTokenPayload},@Body()dto:CompleteProfileDto) {
+    return this.authService.completeProfile(request.user.sub,dto);
   }
 
   @Get('preferences/dashboard')

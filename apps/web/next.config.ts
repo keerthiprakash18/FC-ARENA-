@@ -142,6 +142,7 @@ const nextConfig: NextConfig = {
         headers:
           securityHeaders,
       },
+      {source:'/auth/social/callback',headers:[{key:'Cache-Control',value:'no-store'},{key:'Referrer-Policy',value:'no-referrer'},{key:'X-Robots-Tag',value:'noindex, nofollow'}]},
     ];
   },
 

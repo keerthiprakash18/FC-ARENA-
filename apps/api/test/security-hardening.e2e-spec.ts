@@ -24,7 +24,7 @@ describe('Production auth security through PostgreSQL and HTTP', () => {
     app = (await Test.createTestingModule({ imports: [PrismaModule, AuthModule, MatchesModule] }).compile()).createNestApplication();
     configureHttpSecurity(app); await app.listen(0,'127.0.0.1'); db=app.get(PrismaService); auth=app.get(AuthService);
     const account = await auth.register({ email: `security-${run}@example.invalid`, fullName: 'Security Fixture', inGameName: `Security${run}`,
-      password: 'Security-test-42!', confirmPassword: 'Security-test-42!' });
+      password: 'Security-test-42!', confirmPassword: 'Security-test-42!',dateOfBirth:'1995-01-01',phoneNumber:'+44'+String(Number.parseInt(run,16)).padStart(10,'0') });
     userId=account.data.user.id;
     const login = await auth.login({ email: `security-${run}@example.invalid`, password: 'Security-test-42!' });
     access=login.data.accessToken; refresh=login.data.refreshToken;

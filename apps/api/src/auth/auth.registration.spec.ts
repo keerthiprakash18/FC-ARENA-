@@ -79,6 +79,7 @@ describe(
 
         const prisma = {
           user: {
+            findFirst:vi.fn().mockResolvedValue(null),
             findUnique:
               vi.fn()
                 .mockResolvedValue(
@@ -124,6 +125,7 @@ describe(
 
         const result =
           await service.register({
+            dateOfBirth:'1995-06-15',phoneNumber:'+919876543210',
             fullName:
               'Test Player',
             email:

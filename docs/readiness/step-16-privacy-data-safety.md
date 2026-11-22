@@ -3,6 +3,7 @@
 Status: CODE/DOCUMENTATION COMPLETE. Play Console answers must be copied from this worksheet and rechecked against the exact final build before submission.
 
 Last reviewed: 3 October 2026
+Prepared update, 22 November 2026: the required-profile/social-sign-in change makes birth date and private WhatsApp account contact required when activated. The source change is not yet live; review/update Play Console before that activation.
 Package: `in.fcarena.app`
 
 ## Scope reviewed
@@ -17,8 +18,9 @@ Google Play treats user data collected through a WebView controlled by the app a
 | --- | --- | --- | --- | --- | --- |
 | Personal info — Name | Yes | No* | Required account/display data | Account management, app functionality | Full name, In-Game Name |
 | Personal info — Email address | Yes | No* | Required | Account management, developer communications, security | Login/recovery/deletion verification, Brevo transactional email |
-| Personal info — Phone number | Yes when supplied | No* | Optional | Account management | Optional phone number |
-| Personal info — User IDs | Yes | No* | Required/core | Account management, app functionality | Internal account ID, player code, optional game UID |
+| Personal info — Phone number | Yes | No* | Required account contact after the prepared update | Account management | Private WhatsApp account number; public contact sharing remains optional |
+| Personal info — Other info | Yes | No* | Required after the prepared update | Account management | Private date of birth |
+| Personal info — User IDs | Yes | No* | Required/core | Account management, app functionality | Internal account ID, player code, optional game UID; linked provider subject IDs when social sign-in is chosen |
 | Photos and videos — Photos | Yes when uploaded | No* | Optional | App functionality, fraud/security | Profile photo, result/evidence images stored through Cloudinary |
 | App activity — App interactions | Yes | No* | Core | App functionality, security | League/Tournament participation, fixtures, results, standings, awards, notifications |
 | App activity — Other user-generated content | Yes | No* | Feature dependent | App functionality, moderation, security | Team/Tournament names, reports, disputes, Fair Play reasons/evidence/appeals |

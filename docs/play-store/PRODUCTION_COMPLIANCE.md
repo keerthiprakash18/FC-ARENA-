@@ -74,7 +74,8 @@ Current code can process the following categories:
 | --- | --- | --- |
 | Name / display identity | Account + competition identity | Full name and in-game name |
 | Email address | Account login, recovery, deletion verification | Required account data |
-| Phone number | Optional account/profile field where enabled | Do not mark required if optional |
+| Phone number | Required private WhatsApp account contact in the prepared auth update | Update Console before activation; public sharing remains optional |
+| Other personal info | Required private date of birth in the prepared auth update | Update Console before activation |
 | User IDs | FC Arena player/account identifiers | Includes internal account/player IDs |
 | Photos / images | Optional profile photos and match/result evidence | Cloudinary can process uploaded images |
 | App activity / competition content | Leagues, tournaments, fixtures, results, disputes, awards | Core app functionality |

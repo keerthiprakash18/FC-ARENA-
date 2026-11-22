@@ -173,7 +173,7 @@ describe('Birth dates: authenticated HTTP, registration, privacy and deletion', 
       .expect(200);
     expect(exported.text).not.toMatch(/dateOfBirth|date_of_birth|1996-07-18/);
   });
-  it('accepts date of birth at registration and keeps old API clients compatible', async () => {
+  it('requires a birth date and WhatsApp number on new registrations', async () => {
     // The dedicated test database is shared with auth rate-limit suites.
     // Reset their loopback buckets without weakening the production limiter.
     await db.authRateLimit.deleteMany({ where: { action: { in: ['REGISTER_IP', 'LOGIN_IP'] } } });
@@ -189,9 +189,11 @@ describe('Birth dates: authenticated HTTP, registration, privacy and deletion', 
           inGameName: `dob-${run}-${label}`,
           password,
           confirmPassword: password,
+          phoneNumber:'+1'+String(Number.parseInt(run,16)).padStart(10,'0'),
           ...(dateOfBirth ? { dateOfBirth } : {}),
         })
-        .expect(201);
+        .expect(dateOfBirth?201:400);
+      if(!dateOfBirth)continue;
       const id = response.body.data.user.id;
       users.push(id);
       const login = await request(app.getHttpServer())

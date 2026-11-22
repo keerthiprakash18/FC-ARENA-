@@ -349,6 +349,7 @@ export default function LeaderboardsPage() {
               <button type="button" disabled={loading} onClick={() => setRefresh(value => value + 1)} className="theme-secondary-button min-h-11 rounded-xl border px-4 text-sm font-semibold disabled:opacity-50">Refresh leaderboard</button>
             </div>
             <p className="theme-muted mt-3 text-xs leading-5">Player names and their tournament teams are shown together. League ranks combine verified results across the selected tournaments; group positions are separate.</p>
+            <p className="theme-muted mt-2 text-xs leading-5">Ranking order: points, wins, win rate, goal difference, then goals scored. Players enter the table after their first verified match.</p>
             {query && data ? <p role="status" className="theme-muted mt-2 text-xs">{rankings.length} of {allRankings.length} ranked players match. League rank numbers are preserved.</p> : null}
 
             <div className="mt-4 grid grid-cols-4 gap-2" aria-label="Leaderboard scoring rules">

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import path from 'node:path';
 import { assertRunnerPlatform, verifyPackagedPaths } from '../ops/verify-offhost-vcl-native-runtime.mjs';
 
 test('accept VCL target Linux x86_64 Node24 glibc2.39 only', () => {
@@ -10,11 +11,11 @@ test('accept VCL target Linux x86_64 Node24 glibc2.39 only', () => {
 });
 
 test('refuses missing compiled runtime files in isolated bundle', () => {
-  const root = '/tmp/fcarena-fixture';
+  const root = path.resolve('/tmp/fcarena-fixture');
   const required = ['package.json', 'package-lock.json', 'apps/web/.next/BUILD_ID', 'apps/api/dist/main.js'];
-  const exists = filename => required.some(relative => filename === root + '/' + relative);
+  const exists = filename => required.some(relative => filename === path.join(root, relative));
   assert.doesNotThrow(() => verifyPackagedPaths(root, exists));
   for (const missing of required) {
-    assert.throws(() => verifyPackagedPaths(root, filename => exists(filename) && filename !== root + '/' + missing));
+    assert.throws(() => verifyPackagedPaths(root, filename => exists(filename) && filename !== path.join(root, missing)));
   }
 });

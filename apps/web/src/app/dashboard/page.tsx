@@ -438,6 +438,8 @@ export default function DashboardPage() {
 
   const [fixtures, setFixtures] = useState<DashboardFixture[]>([]);
 
+  const [selectedFixture, setSelectedFixture] = useState<{ leagueId: string; id: string } | null>(null);
+
   const [hiddenSections, setHiddenSections] = useState<DashboardSection[]>([]);
 
 
@@ -587,24 +589,20 @@ export default function DashboardPage() {
       .sort(sortByFixtureTime);
   }, [fixtures, registrationIdsByTournament, scopedTournamentIds, user]);
 
-  const liveFixture = personalRelevantFixtures.find(isLiveFixture) ?? null;
-
-  const scheduledFixture =
-    personalRelevantFixtures.find((fixture) =>
-      isFutureScheduledFixture(fixture, nowMs),
-    ) ?? null;
-
-  const postponedFixture =
-    personalRelevantFixtures.find(isPostponedFixture) ?? null;
-
-  const unscheduledFixture =
-    personalRelevantFixtures.find(isUnscheduledFixture) ?? null;
-
-  const pendingFixture = personalRelevantFixtures.find(fixture =>
-    !isPostponedFixture(fixture) && fixtureTime(fixture) !== null && fixtureTime(fixture)! < nowMs,
-  ) ?? null;
-
-  const nextFixture = liveFixture ?? scheduledFixture ?? pendingFixture ?? postponedFixture ?? unscheduledFixture;
+  // Keep every open match reachable. A stable ID preserves the selected match
+  // during background refreshes; a completed/removed match falls back to the next.
+  const browsableFixtures = useMemo(() => {
+    const priority = (fixture: DashboardFixture) => isLiveFixture(fixture) ? 0
+      : isFutureScheduledFixture(fixture, nowMs) ? 1
+      : isPostponedFixture(fixture) ? 3
+      : isUnscheduledFixture(fixture) ? 4 : 2;
+    return [...personalRelevantFixtures].sort((first, second) =>
+      priority(first) - priority(second) || sortByFixtureTime(first, second) || first.id.localeCompare(second.id));
+  }, [personalRelevantFixtures, nowMs]);
+  const selectedFixtureIndex = selectedFixture?.leagueId === selectedMembership?.league.id
+    ? browsableFixtures.findIndex(fixture => fixture.id === selectedFixture.id) : -1;
+  const fixtureIndex = Math.max(0, selectedFixtureIndex);
+  const nextFixture = browsableFixtures[fixtureIndex] ?? null;
   const nextFixtureKind = nextFixture
     ? fixtureKind(nextFixture, nowMs)
     : null;
@@ -616,13 +614,13 @@ export default function DashboardPage() {
     }
 
     return (
-      personalRelevantFixtures.find(
+      browsableFixtures.find(
           (fixture) =>
             fixture.tournamentId === activeTournament.id &&
             fixtureIsRelevant(fixture),
       ) ?? null
     );
-  }, [activeTournament, personalRelevantFixtures]);
+  }, [activeTournament, browsableFixtures]);
 
   if (error) return (
     <AppShell>
@@ -705,7 +703,7 @@ export default function DashboardPage() {
   const hasProfile = Boolean(career.profile.identity || user.player?.identity);
   const heroAction = nextFixture
     ? showNextMatch
-      ? { href: "#dashboard-next-match", label: "See next match ↓", jump: true }
+      ? { href: "#dashboard-next-match", label: "See match details ↓", jump: true }
       : { href: nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${nextFixture.tournamentId}/fixtures`, label: "Open Match Centre →", jump: false }
     : !hasProfile
       ? { href: "/profile", label: "Complete Profile →", jump: false }
@@ -868,6 +866,23 @@ export default function DashboardPage() {
                       {nextFixtureKind === "LIVE" ? "Open Live Match →" : "View Match →"}
                     </Link>
                   </div>
+                  {browsableFixtures.length > 1 ? (
+                    <nav aria-label="Upcoming match navigation" className="mt-3 flex items-center justify-between gap-2 border-t border-[var(--theme-border)] pt-3">
+                      <button type="button" disabled={fixtureIndex === 0}
+                        onClick={() => setSelectedFixture({ leagueId: nextFixture.leagueId, id: browsableFixtures[fixtureIndex - 1].id })}
+                        className="theme-secondary-button min-h-11 rounded-lg border px-3 text-xs font-semibold disabled:cursor-default disabled:opacity-40">
+                        ← Previous match
+                      </button>
+                      <span aria-live="polite" aria-atomic="true" className="theme-muted text-center text-xs">
+                        {fixtureIndex + 1} of {browsableFixtures.length}
+                      </span>
+                      <button type="button" disabled={fixtureIndex === browsableFixtures.length - 1}
+                        onClick={() => setSelectedFixture({ leagueId: nextFixture.leagueId, id: browsableFixtures[fixtureIndex + 1].id })}
+                        className="theme-secondary-button min-h-11 rounded-lg border px-3 text-xs font-semibold disabled:cursor-default disabled:opacity-40">
+                        Next match →
+                      </button>
+                    </nav>
+                  ) : null}
                   {matchdayGuidance ? (
                     <div className="mt-3 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-3 sm:p-4" aria-label="Your matchday next action">
                       <div className="min-w-0">

@@ -20,5 +20,5 @@ test('profile page exposes editable fields through the authenticated profile end
 test('profile page disables verified identity fields', () => {
   assert.match(profile, /const identityLocked = Boolean\(identity\?\.isVerified \|\| identity\?\.lockedAt\)/);
   assert.match(profile, /disabled=\{profileBusy \|\| identityLocked\}/);
-  assert.match(profile, /Verified identity is locked and cannot be edited/);
+  assert.match(profile, /These game identity details are locked/);
 });

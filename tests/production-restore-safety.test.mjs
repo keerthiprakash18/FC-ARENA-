@@ -16,6 +16,9 @@ test('offline actual backup restore refuses accidental remote or production DB c
   assert.match(shell,/--network none/);
   assert.match(shell,/--read-only/);
   assert.match(shell,/--security-opt no-new-privileges/);
+  assert.match(shell,/--memory 512m --memory-swap 512m --cpus 1 --pids-limit 128/);
+  assert.match(shell,/PGDATA=\/var\/lib\/postgresql\/fcarena-restore-data/);
+  assert.match(shell,/pg_isready -q -h 127\.0\.0\.1/);
   assert.match(shell,/sha256sum --check --status/);
   assert.match(shell,/pg_restore --list/);
   assert.match(shell,/pg_restore[\s\S]*--exit-on-error/);

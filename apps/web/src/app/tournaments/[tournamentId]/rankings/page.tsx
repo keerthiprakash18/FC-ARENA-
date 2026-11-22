@@ -138,6 +138,16 @@ function playerName(
   );
 }
 
+function rankingMetric(tab: RankingTab, player: PlayerRanking) {
+  switch (tab) {
+    case 'GOALS': return [player.goalsFor, 'goals'];
+    case 'MOST_WINS': return [player.wins, 'wins'];
+    case 'WIN_RATE': return [`${player.winRate}%`, 'win rate'];
+    case 'GOAL_DIFFERENCE': return [player.goalDifference > 0 ? `+${player.goalDifference}` : player.goalDifference, 'goal difference'];
+    default: return [player.performancePoints, 'points'];
+  }
+}
+
 export default function RankingsPage() {
   const params =
     useParams<{
@@ -363,7 +373,7 @@ export default function RankingsPage() {
           <section className="overflow-hidden rounded-[24px] border border-white/10 bg-[#0a1018]">
             <ol className="fc-mobile-standings sm:hidden" aria-label="Player rankings">
               {playerRows.map(player => <li key={player.userId} className="fc-standing-row">
-                <div className="fc-standing-top"><span className="fc-standing-rank">{player.position}</span><strong className="min-w-0 flex-1 break-words">{playerName(player)}</strong><span className="fc-standing-points">{player.winRate}%<small>win rate</small></span></div>
+                <div className="fc-standing-top"><span className="fc-standing-rank">{player.position}</span><strong className="min-w-0 flex-1 break-words">{playerName(player)}</strong><span className="fc-standing-points">{rankingMetric(tab, player)[0]}<small>{rankingMetric(tab, player)[1]}</small></span></div>
                 <details className="fc-row-details"><summary>Player statistics</summary><dl className="fc-standing-stats">{[['Matches', player.matches], ['Wins', player.wins], ['Draws', player.draws], ['Losses', player.losses], ['Goals', player.goalsFor], ['GD', player.goalDifference]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><p className="theme-muted mt-3 text-xs">Form: {player.form || '—'}</p></details>
               </li>)}
             </ol>

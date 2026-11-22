@@ -21,6 +21,8 @@ import {
 } from './competition-completion.js';
 import {
   calculatePerformanceRatings,
+  rankGoldenBootRace,
+  rankGoldenGloveRace,
   tiedGoldenBootWinners,
   tiedGoldenGloveWinners,
   type AwardMetricRow,
@@ -890,101 +892,13 @@ export class AchievementsService {
       };
     };
 
-    const goldenBoot =
-      [...metrics]
-        .sort(
-          (
-            first,
-            second,
-          ) => {
-            const firstGpm =
-              first.matches > 0
-                ? first.goalsFor /
-                  first.matches
-                : 0;
+    const goldenBoot = rankGoldenBootRace(metrics)
+      .slice(0, 20)
+      .map(row => decorate(row, row.position));
 
-            const secondGpm =
-              second.matches > 0
-                ? second.goalsFor /
-                  second.matches
-                : 0;
-
-            return (
-              second.goalsFor -
-                first.goalsFor ||
-              secondGpm -
-                firstGpm ||
-              second.goalDifference -
-                first.goalDifference ||
-              second.wins -
-                first.wins ||
-              first.userId.localeCompare(
-                second.userId,
-              )
-            );
-          },
-        )
-        .slice(0, 20)
-        .map(
-          (row, index) =>
-            decorate(
-              row,
-              index + 1,
-            ),
-        );
-
-    const goldenGlove =
-      [...metrics]
-        .filter(
-          (row) =>
-            row.matches > 0,
-        )
-        .sort(
-          (
-            first,
-            second,
-          ) => {
-            const firstRate =
-              first.cleanSheets /
-              first.matches;
-
-            const secondRate =
-              second.cleanSheets /
-              second.matches;
-
-            const firstGa =
-              first.goalsAgainst /
-              first.matches;
-
-            const secondGa =
-              second.goalsAgainst /
-              second.matches;
-
-            return (
-              second.cleanSheets -
-                first.cleanSheets ||
-              secondRate -
-                firstRate ||
-              firstGa -
-                secondGa ||
-              second.matches -
-                first.matches ||
-              first.goalsAgainst -
-                second.goalsAgainst ||
-              first.userId.localeCompare(
-                second.userId,
-              )
-            );
-          },
-        )
-        .slice(0, 20)
-        .map(
-          (row, index) =>
-            decorate(
-              row,
-              index + 1,
-            ),
-        );
+    const goldenGlove = rankGoldenGloveRace(metrics)
+      .slice(0, 20)
+      .map(row => decorate(row, row.position));
 
     const playerOfTournament =
       calculatePerformanceRatings(
@@ -1065,10 +979,10 @@ export class AchievementsService {
         names.set(entry.id, entry.entryName || entry.members.map(({ user }) => user.fullName).join(' / '));
       }
     }
-    const decorate = (row: AwardMetricRow, index: number) => ({
+    const decorate = (row: AwardMetricRow & { position: number }) => ({
       id: row.userId,
       name: names.get(row.userId) || (individual ? 'Player' : 'Team'),
-      position: index + 1,
+      position: row.position,
       matches: row.matches,
       goals: row.goalsFor,
       goalsPerMatch: Number((row.goalsFor / row.matches).toFixed(2)),

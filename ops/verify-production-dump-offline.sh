@@ -32,7 +32,7 @@ if [[ ! -d "$report_dir" || -L "$report_dir" ]]; then
   echo "BLOCKED: private safety report directory is missing." >&2
   exit 2
 fi
-for exe in docker sha256sum pg_restore python3; do
+for exe in docker sha256sum python3; do
   command -v "$exe" >/dev/null || { echo "BLOCKED: missing $exe." >&2; exit 2; }
 done
 
@@ -41,18 +41,19 @@ done
   echo "BLOCKED: backup checksum verification failed." >&2
   exit 1
 }
-# TOC parsing is safe and does not connect to a database.
-pg_restore --list "$backup" >/dev/null || {
+# Only an already installed image may be used: never pull unreviewed images
+# automatically on production. Use the same PostgreSQL major as production.
+image="${FC_ARENA_RESTORE_VERIFY_IMAGE:-postgres:17}"
+docker image inspect "$image" >/dev/null 2>&1 || {
+  echo "BLOCKED: pre-reviewed PostgreSQL image is not installed." >&2
+  exit 2
+}
+# The archive stays on stdin; no production filesystem is mounted.
+docker run --rm -i --network none --read-only --memory 256m --memory-swap 256m \
+  --cpus 1 --pids-limit 64 --security-opt no-new-privileges \
+  "$image" pg_restore --list < "$backup" >/dev/null || {
   echo "BLOCKED: invalid custom format archive." >&2
   exit 1
-}
-
-# Only an already installed image may be used: never pull unreviewed images
-# automatically on production. Postgres 18 matches the server-side pg tools.
-image="postgres:18"
-docker image inspect "$image" >/dev/null 2>&1 || {
-  echo "BLOCKED: pre-reviewed postgres:18 image is not installed." >&2
-  exit 2
 }
 
 id="$(python3 -c 'import secrets; print(secrets.token_hex(6))')"
@@ -65,15 +66,18 @@ cleanup() {
 trap cleanup EXIT
 
 docker run -d --rm --name "$container" --network none --read-only \
+  --memory 512m --memory-swap 512m --cpus 1 --pids-limit 128 \
   --security-opt no-new-privileges \
-  --tmpfs /var/lib/postgresql:rw,nosuid,size=4g \
+  --tmpfs /var/lib/postgresql:rw,nosuid,size=1g \
   --tmpfs /var/run/postgresql:rw,nosuid,size=32m \
-  --tmpfs /tmp:rw,nosuid,size=256m \
+  --tmpfs /tmp:rw,nosuid,size=128m \
+  --env PGDATA=/var/lib/postgresql/fcarena-restore-data \
   --env POSTGRES_HOST_AUTH_METHOD=trust "$image" > /dev/null
 
 ready=0
 for _ in $(seq 1 45); do
-  if docker exec -u postgres "$container" pg_isready -q -U postgres; then
+  # TCP excludes the entrypoint's temporary socket-only initialization server.
+  if docker exec -u postgres "$container" pg_isready -q -h 127.0.0.1 -U postgres; then
     ready=1; break
   fi
   sleep 1
@@ -83,11 +87,11 @@ if [[ "$ready" != "1" ]]; then
   exit 1
 fi
 
-docker exec -u postgres "$container" createdb -U postgres fcarena_restore_rehearsal
+docker exec -u postgres "$container" createdb -h 127.0.0.1 -U postgres fcarena_restore_rehearsal
 # No network and no mount of backup or production disk inside container.
 # Production rows stream via stdin to the disposable server only.
 if ! docker exec -i -u postgres "$container" pg_restore \
-    -U postgres -d fcarena_restore_rehearsal --no-owner --no-privileges \
+    -h 127.0.0.1 -U postgres -d fcarena_restore_rehearsal --no-owner --no-privileges \
     --exit-on-error < "$backup" > "$log" 2>&1; then
   echo "FAILED: isolated production dump restore. Private log retained under /root/fcarena-safety." >&2
   exit 1
@@ -95,7 +99,7 @@ fi
 
 query() {
   docker exec -u postgres "$container" psql -X -Atq -v ON_ERROR_STOP=1 \
-    -U postgres -d fcarena_restore_rehearsal -c "$1"
+    -h 127.0.0.1 -U postgres -d fcarena_restore_rehearsal -c "$1"
 }
 tables="$(query "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'")"
 migrations="$(query 'SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NOT NULL')"

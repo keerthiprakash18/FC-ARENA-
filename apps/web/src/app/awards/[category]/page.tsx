@@ -45,7 +45,7 @@ const categories:
     'golden-boot': {
       title: 'Golden Boot',
       icon: '⚽',
-      detail: 'Live top-scorer races from verified SOLO tournament results.',
+      detail: 'Live scoring races from verified tournament results, with player and team records clearly identified.',
       backendTypes: [
         'GOLDEN_BOOT',
       ],
@@ -210,15 +210,32 @@ interface RaceRow {
   playerCode: string | null;
   matches: number;
   goals: number;
+  goalsPerMatch: number;
   cleanSheets: number;
   cleanSheetRate: number;
   goalsAgainstPerMatch: number;
   rating: number | null;
 }
 
+interface VerifiedScoreRow {
+  id: string;
+  name: string;
+  position: number;
+  matches: number;
+  goals: number;
+  goalsPerMatch: number;
+  cleanSheets: number;
+  goalsAgainstPerMatch: number;
+}
+
 interface AwardRaceData {
   available: boolean;
   reason: string | null;
+  verifiedScoreRaces?: {
+    scope: 'PLAYER' | 'TEAM';
+    goldenBoot: VerifiedScoreRow[];
+    goldenGlove: VerifiedScoreRow[];
+  };
   goldenBoot: RaceRow[];
   goldenGlove: RaceRow[];
   playerOfTournament:
@@ -247,7 +264,7 @@ function raceMetric(
     key ===
     'goldenBoot'
   ) {
-    return `${row.goals} goals`;
+    return `${row.goals} goals · ${row.goalsPerMatch}/M · ${row.matches} M`;
   }
 
   if (
@@ -301,6 +318,8 @@ export default function AwardCategoryPage() {
   ] =
     useState(true);
 
+  const [attempt, setAttempt] = useState(0);
+
   const [
     lastUpdated,
     setLastUpdated,
@@ -325,6 +344,7 @@ export default function AwardCategoryPage() {
       if (loadingRequest) return;
       loadingRequest = true;
       try {
+        let warning = "";
         const response =
           await authenticatedRequest<{
             success: true;
@@ -386,13 +406,15 @@ export default function AwardCategoryPage() {
                   : [],
             ),
           );
+          const failed = results.filter(result => result.status === 'rejected').length;
+          if (failed) warning = `${failed} tournament race${failed === 1 ? '' : 's'} could not be loaded. Retry to get the complete award table.`;
         } else {
           setRaces(
             [],
           );
         }
 
-        setError('');
+        setError(warning);
         setLastUpdated(
           new Date(),
         );
@@ -462,6 +484,7 @@ export default function AwardCategoryPage() {
   }, [
     category,
     config,
+    attempt,
   ]);
 
   const myAwards =
@@ -545,7 +568,7 @@ export default function AwardCategoryPage() {
       backLabel="Awards"
       action={
         <span className="rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-emerald-300">
-          ● Live · 15s
+          {error ? 'Refresh needed' : loading ? 'Loading' : '● Live · 15s'}
           {lastUpdated
             ? ` · ${lastUpdated.toLocaleTimeString([], {
                 hour: '2-digit',
@@ -642,7 +665,7 @@ export default function AwardCategoryPage() {
         </div>
 
         <p className="border-t border-white/[0.07] px-5 py-4 text-xs leading-5 text-slate-500">
-          Live individual award races use verified SOLO match data only. Unverified, cancelled or duplicate fixture records do not count.
+          Individual races use verified SOLO results or verified individual DUO games. Aggregate DUO and TEAM scores appear as team records. Unverified, cancelled or duplicate fixtures do not count.
         </p>
       </details>
 
@@ -672,10 +695,12 @@ export default function AwardCategoryPage() {
                 const key =
                   config.raceKey!;
 
-                const rows =
-                  race.data[
-                    key
-                  ];
+                const verified = key === 'playerOfTournament' ? undefined : race.data.verifiedScoreRaces;
+                const rows: RaceRow[] = verified && key !== 'playerOfTournament'
+                  ? verified[key].map(row => ({ ...row, userId: row.id, fullName: row.name, inGameName: null,
+                    playerCode: verified.scope === 'TEAM' ? 'Team record' : 'Verified DUO player',
+                    cleanSheetRate: row.matches > 0 ? Number((row.cleanSheets / row.matches * 100).toFixed(1)) : 0, rating: null }))
+                  : race.data[key];
 
                 return (
                   <FcPanel
@@ -714,7 +739,10 @@ export default function AwardCategoryPage() {
                       </Link>
                     </div>
 
-                    {race.data.available ? (
+                    {verified ? <p className="border-b border-white/[0.07] px-5 py-3 text-xs text-slate-400">{verified.scope === 'TEAM'
+                      ? 'Team record · aggregate scores; individual player honours are separate.'
+                      : 'Player record · verified individual DUO games.'}</p> : null}
+                    {race.data.available || verified ? (
                       <div className="divide-y divide-white/[0.06]">
                         {rows
                           .slice(
@@ -788,11 +816,11 @@ export default function AwardCategoryPage() {
               },
             )}
 
-            {!loading &&
+            {!loading && !error &&
             races.length ===
               0 ? (
               <FcPanel className="p-8 text-center text-sm text-slate-500 lg:col-span-2">
-                No active SOLO tournament race is available in your leagues right now.
+                No active tournament race is available in your leagues right now.
               </FcPanel>
             ) : null}
           </div>
@@ -998,9 +1026,8 @@ export default function AwardCategoryPage() {
 
       {error ? (
         <FcPanel className="p-5 text-sm text-red-300">
-          {
-            error
-          }
+          <div role="alert">{error}</div>
+          <button type="button" onClick={() => setAttempt(value => value + 1)} className="theme-secondary-button mt-3 rounded-lg border px-3 py-2 font-semibold">Retry award data</button>
         </FcPanel>
       ) : null}
 

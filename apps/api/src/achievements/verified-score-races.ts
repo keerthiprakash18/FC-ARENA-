@@ -1,4 +1,4 @@
-import { goldenBootOrder, goldenGloveOrder, type AwardMetricRow } from './award-scoring.js';
+import { rankGoldenBootRace, rankGoldenGloveRace, type AwardMetricRow } from './award-scoring.js';
 import { parseDuoGames } from '../results/duo-aggregate.js';
 import {
   deduplicateFixtureRecords,
@@ -76,7 +76,7 @@ export function rankVerifiedScores(
     // Full canonical verified metrics for official awards at tournament finalisation.
     // The public races below remain capped at 20; official winners must not be.
     metrics: rows,
-    goldenBoot: rows.filter((row) => row.goalsFor > 0).sort(goldenBootOrder).slice(0, 20),
-    goldenGlove: rows.sort(goldenGloveOrder).slice(0, 20),
+    goldenBoot: rankGoldenBootRace(rows).slice(0, 20),
+    goldenGlove: rankGoldenGloveRace(rows).slice(0, 20),
   };
 }

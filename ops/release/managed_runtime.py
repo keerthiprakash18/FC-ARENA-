@@ -69,10 +69,13 @@ def launcher(component,role):
         os.chdir(runtime/'apps/web');env.update(VERCEL_GIT_COMMIT_SHA=sha,GITHUB_SHA=sha,NEXT_DEPLOYMENT_ID=sha[:32])
         argv=['/usr/bin/node',str(runtime/'node_modules/next/dist/bin/next'),'start','-H','127.0.0.1','-p',str(PORTS['web'][role])]
     os.execve(argv[0],argv,env)
+def managed_override_name(names):
+    count=max([len(re.match('z*',name).group()) for name in names]+[0])+1
+    name='z'*count+'-managed.conf';assert len(name)<=255 and all(name>old for old in names)
+    return name
 def dropin(unit):
     names=[Path(raw).name for raw in property(unit,'DropInPaths').split()]
-    count=max([len(re.match('z*',name).group()) for name in names]+[0])+1
-    name='z'*count+'-fcarena-managed-release.conf';assert len(name)<255 and all(name>old for old in names)
+    name=managed_override_name(names)
     target=Path('/etc/systemd/system')/(unit+'.service.d')/name;assert not target.exists();return target
 def service(component,role,cache):
     user='fcarena-'+component
@@ -157,6 +160,13 @@ def activate(args):
     assert re.fullmatch('[0-9a-f]{40}',args.sha or '')
     runtime=Path(args.runtime).resolve();assert runtime.name=='runtime' and runtime.parent.parent==Path('/opt/fcarena-deployments')
     previous=json.loads((MANAGED/'current.json').read_text()) if (MANAGED/'current.json').exists() else None
+    # A preparation failure before installing the primary overrides never
+    # switched production. Resume only this exact candidate with both old
+    # markers and original ExecStarts still intact; never treat it as deployed.
+    if previous and previous['release']==args.sha and previous['runtime']==str(runtime):
+        assert release_health(4000,'api')==args.expected_old and release_health(3000,'web')==args.expected_old
+        assert all('managed_runtime.py' not in property('fcarena-'+kind,'ExecStart') for kind in ['api','web'])
+        previous=None
     proof=json.loads(Path(args.staging_proof).read_text());assert proof['release']==args.sha and proof['crossInstanceRedis'] and proof['replicaFailover'] and proof['realBrowser']
     backup=json.loads(Path('/var/lib/fcarena-backup-state/health.json').read_text())
     assert backup['encrypted'] and backup.get('lastOffhostCopyAt') and backup.get('lastVerifiedRestoreAt')
@@ -181,7 +191,7 @@ def activate(args):
         unit_files={}
         replacements={}
         for component in ['api','web']:
-            primary=[Path(raw) for raw in property('fcarena-'+component,'DropInPaths').split() if raw.endswith('-fcarena-managed-release.conf')]
+            primary=[Path(raw) for raw in property('fcarena-'+component,'DropInPaths').split() if raw.endswith('-managed.conf')]
             assert len(primary)==1
             secondary=Path('/etc/systemd/system')/('fcarena-'+component+'-secondary.service')
             for target,role in [(primary[0],'primary'),(secondary,'secondary')]:
@@ -198,7 +208,9 @@ def activate(args):
         except BaseException:restore(snapshot);raise
     for component,values in old_env.items():
         if component=='api':values.update(API_RATE_LIMIT_STORAGE='redis',API_RATE_LIMIT_READS_PER_MINUTE='12000',MATCH_REALTIME_REDIS_ENABLED='true',BACKUP_HEALTH_FILE='/var/lib/fcarena-backup-state/health.json')
-        target=MANAGED/(component+'.env');assert not target.exists();target.write_text(encode_environment(values));target.chmod(0o600)
+        target=MANAGED/(component+'.env');encoded=encode_environment(values)
+        if target.exists():assert target.read_text()==encoded,'Prepared environment changed; inspect before resuming'
+        else:target.write_text(encoded);target.chmod(0o600)
     save(MANAGED/'current.json',{'runtime':str(runtime),'release':args.sha},0o644)
     for file in (old_web/'.next/static').rglob('*'):
         if not file.is_file():continue
@@ -210,8 +222,10 @@ def activate(args):
     snapshot={'oldApiRelease':release_health(4000,'api'),'oldWebRelease':release_health(3000,'web'),
       'nginx':{str(path):path.read_text() for path in paths},'managedDropins':[]}
     assert snapshot['oldApiRelease']==args.expected_old and snapshot['oldWebRelease']==args.expected_old
-    slice_file=Path('/etc/systemd/system/fcarena-app.slice');assert not slice_file.exists()
-    slice_file.write_text('[Unit]\nDescription=FC Arena bounded application memory budget\n[Slice]\nMemoryAccounting=yes\nMemoryHigh=2300M\nMemoryMax=2800M\nMemorySwapMax=512M\n')
+    slice_file=Path('/etc/systemd/system/fcarena-app.slice')
+    slice_content='[Unit]\nDescription=FC Arena bounded application memory budget\n[Slice]\nMemoryAccounting=yes\nMemoryHigh=2300M\nMemoryMax=2800M\nMemorySwapMax=512M\n'
+    if slice_file.exists():assert slice_file.read_text()==slice_content
+    else:slice_file.write_text(slice_content)
     for component in ['api','web']:
         primary=dropin('fcarena-'+component);snapshot['managedDropins'].append(str(primary));primary.write_text(service(component,'primary',cache));primary.chmod(0o644)
         secondary=Path('/etc/systemd/system')/('fcarena-'+component+'-secondary.service');assert not secondary.exists()

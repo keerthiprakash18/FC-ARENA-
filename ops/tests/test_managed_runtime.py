@@ -7,6 +7,11 @@ spec=importlib.util.spec_from_file_location('managed_runtime',path)
 runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
 
 class ManagedRuntimeTests(unittest.TestCase):
+    def test_override_fits_actual_long_legacy_filenames_and_sorts_last(self):
+        old=['z'*227+'-birthday-v6-alignment.conf','z'*228+'-audit-c2dcf148fae8.conf']
+        name=runtime.managed_override_name(old)
+        self.assertLessEqual(len(name),255)
+        self.assertTrue(all(name>prior for prior in old))
     def test_environment_preserves_literal_secrets_without_shell_expansion(self):
         encoded=runtime.encode_environment({'PRIVATE_KEY':'line1\nline2', 'VALUE':'$HOME `id` "quote" \\path', 'INVOCATION_ID':'omit'})
         self.assertIn('PRIVATE_KEY="line1\nline2"',encoded)

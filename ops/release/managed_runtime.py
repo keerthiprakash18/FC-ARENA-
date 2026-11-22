@@ -50,13 +50,54 @@ def wait_all(sha):
         time.sleep(2)
     raise RuntimeError('Managed replicas failed exact release health')
 
-def require_schema_parity(previous,runtime):
+SOCIAL_MIGRATION='migrations/20261122160000_social_sign_in/migration.sql'
+SOCIAL_MIGRATION_HASH='8264b8fc5ff9988e5b481d4a6788279c32a1cb9b85d66274793eda69f4683249'
+
+def require_schema_parity(previous,runtime,approval=None):
     def files(root):
         folder=root/'apps/api/prisma'
         return {file.relative_to(folder).as_posix():file.read_bytes().replace(b'\r\n',b'\n')
           for file in folder.rglob('*') if file.is_file() and (file.name=='schema.prisma' or file.name=='migration.sql')}
     old,new=files(previous),files(runtime)
-    assert old and old==new,'Schema changes require a separate approved migration rehearsal'
+    assert old,'Baseline schema is missing'
+    if old==new:return
+    assert approval,'Schema changes require a separate approved migration rehearsal'
+    assert set(new)==set(old)|{SOCIAL_MIGRATION},'Only the reviewed additive identity migration is allowed'
+    assert {name for name in old if old[name]!=new[name]}=={'schema.prisma'},'Existing migration history changed'
+    assert hashlib.sha256(new[SOCIAL_MIGRATION]).hexdigest()==SOCIAL_MIGRATION_HASH,'Unreviewed migration SQL'
+    assert approval['status']=='APPLIED_AND_VERIFIED' and approval['approvedBy']=='owner'
+    assert approval['baselineRuntime']==str(previous.resolve()) and approval['candidateRuntime']==str(runtime.resolve())
+    assert approval['baselineSchemaSha256']==hashlib.sha256(old['schema.prisma']).hexdigest()
+    assert approval['candidateSchemaSha256']==hashlib.sha256(new['schema.prisma']).hexdigest()
+    assert approval['migrationSha256']==SOCIAL_MIGRATION_HASH
+
+def approved_schema_proof(path,runtime,sha,expected_old):
+    """Verify an already-applied migration. Never applies SQL or infers approval."""
+    if not path:return None
+    source=Path(path);metadata=source.stat()
+    assert not source.is_symlink() and metadata.st_uid==0 and metadata.st_mode&0o077==0,'Approval must be a private root-owned file'
+    proof=json.loads(source.read_text())
+    assert proof['release']==sha and proof['baselineRelease']==expected_old
+    assert proof['approvedBy']=='owner' and proof['status']=='APPLIED_AND_VERIFIED'
+    now=dt.datetime.now(dt.timezone.utc)
+    approved=dt.datetime.fromisoformat(proof['approvedAt'])
+    assert dt.timedelta(0)<=now-approved<=dt.timedelta(hours=24),'Migration approval expired'
+    rehearsal=json.loads(Path(proof['rehearsal']).read_text())
+    assert rehearsal['status']=='PASS' and rehearsal['release']==sha and rehearsal['baselineRelease']==expected_old
+    assert rehearsal['migrationSha256']==SOCIAL_MIGRATION_HASH and rehearsal['postgresMajor']==17
+    assert all(rehearsal[key] for key in ['existingDataPreserved','baselineAfterMigrationHealthy','candidateAfterMigrationHealthy'])
+    backup=json.loads(Path('/var/backups/fcarena-encrypted/latest.json').read_text())
+    receipt=json.loads(Path('/var/backups/fcarena-encrypted/offhost-receipt.json').read_text())
+    assert proof['backupSha256']==backup['latestSha256']==receipt['sha256']
+    assert backup['latestFile']==receipt['file'] and backup['unavailableProviderAssets']==0
+    assert dt.datetime.fromisoformat(receipt['lastVerifiedRestoreAt'])>=dt.datetime.fromisoformat(backup['lastLocalBackupAt'])
+    sql='SELECT json_agg(row_to_json(m)) FROM (SELECT migration_name, checksum, finished_at IS NOT NULL AS finished, rolled_back_at IS NOT NULL AS rolled_back FROM "_prisma_migrations" ORDER BY migration_name) m'
+    ledger=json.loads(command(['docker','exec','fc-arena-postgres','sh','-ec',
+      'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -X -Atq -v ON_ERROR_STOP=1 -c "$1"','approved-ledger',sql]))
+    assert ledger==proof['appliedLedger'],'Production migration state differs from approval'
+    expected={file.parent.name:hashlib.sha256(file.read_bytes()).hexdigest() for file in (runtime/'apps/api/prisma/migrations').glob('*/migration.sql')}
+    assert len(ledger)==len(expected) and all(row['finished'] and not row['rolled_back'] and expected.get(row['migration_name'])==row['checksum'] for row in ledger)
+    return proof
 def launcher(component,role):
     current=json.loads((MANAGED/'current.json').read_text());runtime=Path(current['runtime']).resolve();sha=current['release']
     assert re.fullmatch('[0-9a-f]{40}',sha) and runtime.parent.parent==Path('/opt/fcarena-deployments') and runtime.name=='runtime'
@@ -191,7 +232,8 @@ def activate(args):
         assert dt.timedelta(minutes=-5)<=now-dt.datetime.fromisoformat(backup[key])<=dt.timedelta(hours=hours),'Recovery proof is stale'
     assert backup['unavailableProviderAssets']==0
     old_web=Path(property('fcarena-web','WorkingDirectory'))
-    require_schema_parity(old_web.parents[1],runtime)
+    schema_proof=approved_schema_proof(args.approved_schema_proof,runtime,args.sha,args.expected_old)
+    require_schema_parity(old_web.parents[1],runtime,schema_proof)
     assert release_health(4000,'api')==args.expected_old and release_health(3000,'web')==args.expected_old
     old_env={component:environment('fcarena-'+component) for component in ['api','web']}
     assert all(values.get('NODE_ENV')=='production' for values in old_env.values())
@@ -269,7 +311,7 @@ def activate(args):
     except BaseException:restore(snapshot);raise
 def main():
     import fcntl
-    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['launch','activate','rollback']);parser.add_argument('--component',choices=['api','web']);parser.add_argument('--role',choices=['primary','secondary']);parser.add_argument('--runtime');parser.add_argument('--sha');parser.add_argument('--expected-old');parser.add_argument('--staging-proof');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['launch','activate','rollback']);parser.add_argument('--component',choices=['api','web']);parser.add_argument('--role',choices=['primary','secondary']);parser.add_argument('--runtime');parser.add_argument('--sha');parser.add_argument('--expected-old');parser.add_argument('--staging-proof');parser.add_argument('--approved-schema-proof');args=parser.parse_args()
     if args.action=='launch':launcher(args.component,args.role);return
     assert os.geteuid()==0
     with open('/run/lock/fcarena-release.lock','a') as lock:

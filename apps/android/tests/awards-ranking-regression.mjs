@@ -48,7 +48,7 @@ try {
       await f.page.getByRole('button', { name: 'Retry award data', exact: true }).click();
       await f.page.getByText('Solo Star', { exact: true }).waitFor();
       await f.page.getByText('10 goals · 2.5/M · 4 M', { exact: true }).waitFor();
-      await f.page.getByRole('alert').waitFor({ state: 'detached' });
+      await f.page.getByRole('alert').filter({ hasText: 'tournament race could not be loaded' }).waitFor({ state: 'detached' });
       await checkLayout(f.page, `Golden Boot ${width}`);
       assert.deepEqual(f.errors, []);
       console.log(`PASS ${width}px: SOLO / team / DUO awards, scoring metrics, partial failure and retry, layout`);
@@ -72,11 +72,11 @@ try {
     await f.page.goto('https://fcarena.in/tournaments/phase3/rankings');
     const metric = f.page.getByRole('list', { name: 'Player rankings', exact: true }).locator('.fc-standing-points');
     await metric.waitFor();
-    assert.equal((await metric.innerText()).replace(/\s/g, ''), '9points');
+    assert.equal((await metric.textContent()).replace(/\s/g, ''), '9points');
     for (const [tab, expected] of [['Top Goals', '10goals'], ['Most Wins', '3wins'],
       ['Win Rate', '75%win rate'], ['Best GD', '+7goal difference']]) {
       await f.page.getByRole('button', { name: tab, exact: true }).click();
-      assert.equal((await metric.innerText()).replace(/\s/g, ''), expected.replace(/\s/g, ''));
+      assert.equal((await metric.textContent()).replace(/\s/g, ''), expected.replace(/\s/g, ''));
     }
     await checkLayout(f.page, 'mobile ranking metrics');
     assert.deepEqual(f.errors, []);

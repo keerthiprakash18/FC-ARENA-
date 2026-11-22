@@ -49,6 +49,8 @@ try {
     const requests = [];
     f.page.on('request', request => { if (request.url().includes('/api/')) requests.push(`${request.method()} ${request.url()}`); });
     f.page.on('response', response => { if (response.url().includes('/api/')) requests.push(`${response.status()} ${response.url()}`); });
+    f.page.on('console', message => { if (message.type() === 'error') requests.push(`console: ${message.text()}`); });
+    f.page.on('requestfailed', request => requests.push(`failed: ${request.url()} ${request.failure()?.errorText}`));
     try {
       await f.page.goto(origin + '/dashboard');
       const card = f.page.locator('.fc-next-match-panel');

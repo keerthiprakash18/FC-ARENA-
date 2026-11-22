@@ -187,7 +187,7 @@ export class RankingsService {
               'Individual scorers are not available from team-level match scores. Match-event goal data is required.',
 
             entries:
-              [] as PlayerRankingRow[],
+              [] as Array<PlayerRankingRow & { position: number }>,
           };
 
     const standings =

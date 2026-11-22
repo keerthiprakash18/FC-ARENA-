@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
+import { fork } from 'node:child_process';
+import { createServer, request as proxyRequest } from 'node:http';
+import { once } from 'node:events';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -119,6 +122,7 @@ async function main() {
   const prisma = app.get(PrismaService);
   const jwt = app.get(JwtService);
   let seeded;
+  let secondary,proxy;
 
   try {
     await app.listen(0, '127.0.0.1');
@@ -142,7 +146,22 @@ async function main() {
       },
     );
 
-    const baseUrl = `http://127.0.0.1:${address.port}`;
+    secondary=fork(new URL('./load-test-instance.mjs',import.meta.url),[],{stdio:['ignore','ignore','inherit','ipc'],env:{...process.env,
+      PUSH_ENABLED:'false',FIXTURE_DAY_REMINDERS_ENABLED:'false',REGISTRATION_NOTIFICATIONS_ENABLED:'false',AUTH_RATE_LIMIT_CLEANUP_ENABLED:'false',
+      TOURNAMENT_REPORT_EXPORT_CLEANUP_ENABLED:'false',CARD_EXPORT_CLEANUP_ENABLED:'false',ARENA_MEDIA_CLEANUP_ENABLED:'false',OCR_RETENTION_CLEANUP_ENABLED:'false',OCR_WORKER_ENABLED:'false'}});
+    const message=await Promise.race([once(secondary,'message').then(([value])=>value),
+      once(secondary,'exit').then(()=>{throw Error('Secondary API exited before readiness');}),
+      new Promise((_,reject)=>{const timer=setTimeout(()=>reject(Error('Secondary readiness timeout')),30000);timer.unref();})]);
+    if(!Number.isInteger(message.port)||message.port<1024)throw Error('Invalid secondary API port');
+    const upstreams=[address.port,message.port];let next=0;
+    proxy=createServer((request,response)=>{
+      const upstream=proxyRequest({hostname:'127.0.0.1',port:upstreams[next++%2],path:request.url,method:request.method,headers:request.headers},result=>{
+        response.writeHead(result.statusCode,result.headers);result.pipe(response);
+      });
+      upstream.on('error',()=>{response.writeHead(502);response.end();});request.pipe(upstream);
+    });
+    proxy.listen(0,'127.0.0.1');await once(proxy,'listening');
+    const baseUrl = `http://127.0.0.1:${proxy.address().port}`;
     const results = [];
 
     for (const profile of [...profiles, ...Object.keys(capacity)]) {
@@ -181,6 +200,7 @@ async function main() {
       environment: 'isolated GitHub Actions/local acceptance',
       database: 'isolated loopback PostgreSQL',
       redis: 'isolated loopback Redis',
+      apiInstances: 2,
       productionTrafficGenerated: false,
       writeTrafficDuringLoad: false,
       profiles: results,
@@ -196,6 +216,8 @@ async function main() {
 
     console.log(`STEP10_ACCEPTANCE_OK output=${output}`);
   } finally {
+    if(proxy){proxy.closeAllConnections();await new Promise(resolve=>proxy.close(resolve));}
+    if(secondary&&secondary.exitCode===null){secondary.kill('SIGTERM');await once(secondary,'exit');}
     if (seeded?.league?.id) {
       await prisma.league.deleteMany({ where: { id: seeded.league.id } });
     }

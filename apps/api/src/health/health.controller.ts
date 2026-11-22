@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { execFileSync } from 'node:child_process';
-import { readFile,stat } from 'node:fs/promises';
+import { open } from 'node:fs/promises';
 import { assessBackupHealth } from './backup-health.js';
 
 import {
@@ -64,8 +64,15 @@ export class HealthController {
     const file=process.env.BACKUP_HEALTH_FILE;
     if(!file)return {success:true,data:{configured:false},error:null};
     try {
-      if((await stat(file)).size>16384)throw Error('Invalid backup state');
-      const data=assessBackupHealth(JSON.parse(await readFile(file,'utf8')));
+      const handle=await open(file,'r');
+      let state: Record<string,unknown>;
+      try {
+        const buffer=Buffer.alloc(16385);
+        const {bytesRead}=await handle.read(buffer,0,buffer.length,0);
+        if(bytesRead>16384)throw Error('Invalid backup state');
+        state=JSON.parse(buffer.subarray(0,bytesRead).toString('utf8'));
+      } finally {await handle.close();}
+      const data=assessBackupHealth(state);
       if(data.status!=='healthy')throw Error('Backup recovery is stale');
       return {success:true,data,error:null};
     } catch {

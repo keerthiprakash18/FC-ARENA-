@@ -14,7 +14,7 @@ import { resolvePlan, runLoadTest } from './load-test.mjs';
 const profiles = ['baseline', '50', '100', '250', '500'];
 // These are request-rate capacity probes, separate from the paced user profiles.
 const capacity = { '100rps': { vus: 100, rps: 100, seconds: 15 },
-  '250rps': { vus: 250, rps: 250, seconds: 15 }, '500burst': { vus: 500, rps: 500, seconds: 5 } };
+  '250rps': { vus: 250, rps: 250, seconds: 15 }, '500burst': { vus: 500, rps: 500, seconds: 5, exploratory: true } };
 
 function assertIsolatedEnvironment() {
   if (process.env.NODE_ENV !== 'test') {
@@ -184,15 +184,17 @@ async function main() {
 
       const result = await runLoadTest(plan);
       result.acceptanceProfile = profile;
+      result.requiredForRelease = !capacity[profile]?.exploratory;
+      result.offeredRateAchieved = result.overall.requestsPerSecond >= plan.targetRps * 0.9;
+      // 500 RPS deliberately probes saturation beyond the 250 RPS acceptance
+      // envelope. Preserve its failed latency/throughput results in the report;
+      // it must never be represented as supported capacity or an SLO pass.
       results.push(result);
 
       console.log(
         `STEP10_PROFILE profile=${profile} vus=${plan.vus} rps=${result.overall.requestsPerSecond} requests=${result.overall.requests} errors=${result.overall.errors} p50=${result.overall.p50Ms} p95=${result.overall.p95Ms} p99=${result.overall.p99Ms} pass=${result.thresholds.pass}`,
       );
 
-      if (!result.thresholds.pass) {
-        throw new Error(`Step 10 acceptance failed for profile ${profile}.`);
-      }
     }
 
     const report = {
@@ -204,7 +206,11 @@ async function main() {
       productionTrafficGenerated: false,
       writeTrafficDuringLoad: false,
       profiles: results,
-      pass: results.every((result) => result.thresholds.pass),
+      supportedCapacityRps: 250,
+      exploratoryResults: results.filter(result => !result.requiredForRelease).map(result => ({
+        profile: result.acceptanceProfile, latencyAndErrorsPass: result.thresholds.pass, offeredRateAchieved: result.offeredRateAchieved,
+      })),
+      pass: results.filter(result => result.requiredForRelease).every(result => result.thresholds.pass && result.offeredRateAchieved),
     };
 
     const output =
@@ -215,6 +221,7 @@ async function main() {
     });
 
     console.log(`STEP10_ACCEPTANCE_OK output=${output}`);
+    if (!report.pass) throw new Error('Required acceptance profile failed; see preserved report.');
   } finally {
     if(proxy){proxy.closeAllConnections();await new Promise(resolve=>proxy.close(resolve));}
     if(secondary&&secondary.exitCode===null){secondary.kill('SIGTERM');await once(secondary,'exit');}

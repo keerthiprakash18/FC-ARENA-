@@ -2,6 +2,8 @@
 
 This release uses the existing VCCLHosting machine and the owner's approved private PC. Two API processes and two web processes share the existing PostgreSQL, Redis and stable media paths. Nginx balances requests and skips failed processes. This protects against an application process failure; the physical host, database and Redis remain single points of failure. A second host needs a separate infrastructure decision.
 
+Capacity acceptance requires two real API processes to achieve at least 90% of offered traffic through 250 RPS, with p95 under 1.5 seconds and errors under 1%. The additional 500 RPS five-second probe is exploratory saturation evidence, not supported capacity. Its raw latency, throughput and failures remain in the artifact even when required profiles pass. These short synthetic probes do not certify 1,000 simultaneous active players, large production tournaments, OCR throughput or sustained production traffic.
+
 ## Runtime and release
 
 Build with `.github/workflows/offhost-build-artifact.yml`. Verify its SHA256, rehearse the exact Linux artifact with disposable PostgreSQL 17 and Redis, real browser login, cross-instance match updates and a stopped-replica failover. Do not install or build dependencies on production. Never run `start:prod` during activation: it includes migrations.

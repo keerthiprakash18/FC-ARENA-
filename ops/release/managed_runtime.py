@@ -53,6 +53,11 @@ def wait_all(sha):
 SOCIAL_MIGRATION='migrations/20261122160000_social_sign_in/migration.sql'
 SOCIAL_MIGRATION_HASH='8264b8fc5ff9988e5b481d4a6788279c32a1cb9b85d66274793eda69f4683249'
 
+def migration_checksums(file):
+    """Historical migrations may have been applied from Windows or Linux."""
+    raw=file.read_bytes();lf=raw.replace(b'\r\n',b'\n')
+    return {hashlib.sha256(data).hexdigest() for data in [raw,lf,lf.replace(b'\n',b'\r\n')]}
+
 def require_schema_parity(previous,runtime,approval=None):
     def files(root):
         folder=root/'apps/api/prisma'
@@ -95,8 +100,8 @@ def approved_schema_proof(path,runtime,sha,expected_old):
     ledger=json.loads(command(['docker','exec','fc-arena-postgres','sh','-ec',
       'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -X -Atq -v ON_ERROR_STOP=1 -c "$1"','approved-ledger',sql]))
     assert ledger==proof['appliedLedger'],'Production migration state differs from approval'
-    expected={file.parent.name:hashlib.sha256(file.read_bytes()).hexdigest() for file in (runtime/'apps/api/prisma/migrations').glob('*/migration.sql')}
-    assert len(ledger)==len(expected) and all(row['finished'] and not row['rolled_back'] and expected.get(row['migration_name'])==row['checksum'] for row in ledger)
+    expected={file.parent.name:migration_checksums(file) for file in (runtime/'apps/api/prisma/migrations').glob('*/migration.sql')}
+    assert len(ledger)==len(expected) and all(row['finished'] and not row['rolled_back'] and row['checksum'] in expected.get(row['migration_name'],set()) for row in ledger)
     return proof
 def launcher(component,role):
     current=json.loads((MANAGED/'current.json').read_text());runtime=Path(current['runtime']).resolve();sha=current['release']

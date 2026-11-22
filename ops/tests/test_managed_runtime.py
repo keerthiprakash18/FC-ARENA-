@@ -1,12 +1,66 @@
 import importlib.util
 from pathlib import Path
 import unittest
+import hashlib
+import json
+import tempfile
+from unittest.mock import patch
+from types import SimpleNamespace
 
 path=Path(__file__).resolve().parents[1]/'release/managed_runtime.py'
 spec=importlib.util.spec_from_file_location('managed_runtime',path)
 runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
 
 class ManagedRuntimeTests(unittest.TestCase):
+    def test_schema_change_requires_bound_additive_migration_approval(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root=Path(raw);old=root/'old';new=root/'new'
+            for folder in [old,new]:
+                schema=folder/'apps/api/prisma';(schema/'migrations/old').mkdir(parents=True)
+                (schema/'schema.prisma').write_bytes(b'baseline')
+                (schema/'migrations/old/migration.sql').write_bytes(b'baseline migration')
+            runtime.require_schema_parity(old,new)
+            schema=new/'apps/api/prisma';(schema/'schema.prisma').write_bytes(b'candidate')
+            with self.assertRaises(AssertionError):runtime.require_schema_parity(old,new)
+            migration=schema/runtime.SOCIAL_MIGRATION;migration.parent.mkdir()
+            migration.write_bytes((path.parents[2]/'apps/api/prisma'/runtime.SOCIAL_MIGRATION).read_bytes())
+            proof={'status':'APPLIED_AND_VERIFIED','approvedBy':'owner','baselineRuntime':str(old.resolve()),'candidateRuntime':str(new.resolve()),
+              'baselineSchemaSha256':hashlib.sha256(b'baseline').hexdigest(),'candidateSchemaSha256':hashlib.sha256(b'candidate').hexdigest(),
+              'migrationSha256':runtime.SOCIAL_MIGRATION_HASH}
+            runtime.require_schema_parity(old,new,proof)
+            for key,value in [('approvedBy','agent'),('status','PENDING'),('candidateSchemaSha256','wrong'),('baselineRuntime','other')]:
+                with self.subTest(key=key),self.assertRaises(AssertionError):runtime.require_schema_parity(old,new,{**proof,key:value})
+            migration.write_bytes(b'DROP TABLE users;')
+            with self.assertRaises(AssertionError):runtime.require_schema_parity(old,new,proof)
+            migration.write_bytes((path.parents[2]/'apps/api/prisma'/runtime.SOCIAL_MIGRATION).read_bytes())
+            (schema/'migrations/old/migration.sql').write_bytes(b'changed history')
+            with self.assertRaises(AssertionError):runtime.require_schema_parity(old,new,proof)
+
+    def test_applied_migration_proof_requires_fresh_recovery_and_exact_live_ledger(self):
+        with tempfile.TemporaryDirectory() as raw:
+            candidate=Path(raw);migration=candidate/'apps/api/prisma'/runtime.SOCIAL_MIGRATION;migration.parent.mkdir(parents=True)
+            migration.write_bytes((path.parents[2]/'apps/api/prisma'/runtime.SOCIAL_MIGRATION).read_bytes())
+            now=runtime.dt.datetime.now(runtime.dt.timezone.utc)
+            ledger=[{'migration_name':migration.parent.name,'checksum':runtime.SOCIAL_MIGRATION_HASH,'finished':True,'rolled_back':False}]
+            proof={'release':'candidate','baselineRelease':'baseline','approvedBy':'owner','status':'APPLIED_AND_VERIFIED','approvedAt':now.isoformat(),
+              'rehearsal':'rehearsal.json','backupSha256':'backup','appliedLedger':ledger}
+            rehearsal={'status':'PASS','release':'candidate','baselineRelease':'baseline','migrationSha256':runtime.SOCIAL_MIGRATION_HASH,
+              'postgresMajor':17,'existingDataPreserved':True,'baselineAfterMigrationHealthy':True,'candidateAfterMigrationHealthy':True}
+            backup={'latestSha256':'backup','latestFile':'archive.gpg','lastLocalBackupAt':now.isoformat(),'unavailableProviderAssets':0}
+            receipt={'sha256':'backup','file':'archive.gpg','lastVerifiedRestoreAt':now.isoformat()}
+            def read(file,*args,**kwargs):
+                return json.dumps({'approval.json':proof,'rehearsal.json':rehearsal,'latest.json':backup,'offhost-receipt.json':receipt}[file.name])
+            with patch.object(Path,'stat',return_value=SimpleNamespace(st_uid=0,st_mode=0o600)),patch.object(Path,'is_symlink',return_value=False),patch.object(Path,'read_text',read),patch.object(runtime,'command',return_value=json.dumps(ledger)) as query:
+                self.assertEqual(runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline'),proof)
+                query.return_value='[]'
+                with self.assertRaises(AssertionError):runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline')
+                query.return_value=json.dumps(ledger);receipt['file']='older.gpg'
+                with self.assertRaises(AssertionError):runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline')
+                receipt['file']='archive.gpg';rehearsal['postgresMajor']=18
+                with self.assertRaises(AssertionError):runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline')
+                rehearsal['postgresMajor']=17;proof['approvedAt']=(now-runtime.dt.timedelta(days=2)).isoformat()
+                with self.assertRaises(AssertionError):runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline')
+
     def test_rollback_preserves_long_override_under_short_disabled_name(self):
         target=Path('/etc/systemd/system/fcarena-web.service.d')/('z'*235+'-managed.conf')
         disabled=runtime.disabled_override_path(target,1)

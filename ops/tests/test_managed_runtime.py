@@ -12,6 +12,15 @@ spec=importlib.util.spec_from_file_location('managed_runtime',path)
 runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
 
 class ManagedRuntimeTests(unittest.TestCase):
+    def test_historical_checksums_accept_only_equivalent_line_endings(self):
+        with tempfile.TemporaryDirectory() as raw:
+            file=Path(raw)/'migration.sql';lf=b'CREATE TABLE example (id int);\n';crlf=lf.replace(b'\n',b'\r\n')
+            file.write_bytes(lf)
+            allowed=runtime.migration_checksums(file)
+            self.assertEqual(allowed,{hashlib.sha256(lf).hexdigest(),hashlib.sha256(crlf).hexdigest()})
+            file.write_bytes(crlf);self.assertEqual(runtime.migration_checksums(file),allowed)
+            self.assertNotIn(hashlib.sha256(b'DROP TABLE example;\n').hexdigest(),allowed)
+
     def test_schema_change_requires_bound_additive_migration_approval(self):
         with tempfile.TemporaryDirectory() as raw:
             root=Path(raw);old=root/'old';new=root/'new'

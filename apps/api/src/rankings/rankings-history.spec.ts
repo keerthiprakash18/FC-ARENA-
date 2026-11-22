@@ -52,6 +52,18 @@ function setup(previous: Record<string, number> | null) {
   return { prisma, statistic, service: new RankingsService(prisma) };
 }
 describe('Persisted rank comparison', () => {
+  it('leaves players without a verified match out of ranks and saved snapshots', async () => {
+    const { service, prisma, statistic } = setup(null);
+    prisma.playerTournamentStatistic.findMany.mockResolvedValue([
+      statistic('one', 1),
+      { ...statistic('two', 0), matches: 0, losses: 0 },
+    ]);
+    const response = await service.getLeagueRankings('two', 'league');
+    expect(response.data.myPosition).toBeNull();
+    expect(response.data.summary.rankedPlayers).toBe(1);
+    expect(response.data.rankings.map(row => row.userId)).toEqual(['one']);
+    expect(prisma.rankingSnapshot.upsert.mock.calls[0][0].create.positions).toEqual({ one: 1 });
+  });
   it('labels players with their tournament entry without changing their score or league rank', async () => {
     const { service, prisma } = setup(null);
     prisma.tournamentRegistrationMember.findMany.mockResolvedValue([

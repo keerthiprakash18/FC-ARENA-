@@ -26,6 +26,14 @@ const fixture = {
 };
 
 describe('verified score award races', () => {
+  it('shows tied team records at the same race position', () => {
+    const drawn = { ...fixture, match: { ...fixture.match, confirmedResult: {
+      ...fixture.match.confirmedResult, homeScore: 2, awayScore: 2,
+    } } };
+    const races = rankVerifiedScores([drawn], tournament);
+    expect(races.goldenBoot.map(row => row.position)).toEqual([1, 1]);
+    expect(races.goldenGlove.map(row => row.position)).toEqual([1, 1]);
+  });
   it('counts a legacy team score once and excludes unverified fixtures', () => {
     const duplicate = { ...fixture, id: 'duplicate', sequence: 2 };
     const pending = { ...fixture, id: 'pending', awayRegistrationId: 'other', status: 'SCHEDULED' };

@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { rankGoldenBootRace } from '../achievements/award-scoring.js';
 
 interface PlayerRankingRow {
   userId: string;
@@ -95,7 +96,7 @@ export class RankingsService {
 
     const playerRows:
       PlayerRankingRow[] =
-      statistics.map(
+      statistics.filter(statistic => statistic.matches > 0).map(
         (statistic) =>
           this.mapPlayer(
             statistic,
@@ -108,6 +109,7 @@ export class RankingsService {
           (a, b) =>
             b.performancePoints -
               a.performancePoints ||
+            b.wins - a.wins ||
             b.winRate -
               a.winRate ||
             b.goalDifference -
@@ -116,9 +118,8 @@ export class RankingsService {
               a.goalsFor ||
             a.fullName.localeCompare(
               b.fullName,
-            ),
-        )
-        .slice(0, 20);
+            ) || a.userId.localeCompare(b.userId),
+        );
 
     const mostWins =
       [...playerRows]
@@ -132,9 +133,8 @@ export class RankingsService {
               a.goalDifference ||
             a.fullName.localeCompare(
               b.fullName,
-            ),
-        )
-        .slice(0, 20);
+            ) || a.userId.localeCompare(b.userId),
+        );
 
     const highestWinRate =
       playerRows
@@ -152,9 +152,8 @@ export class RankingsService {
               a.wins ||
             a.fullName.localeCompare(
               b.fullName,
-            ),
-        )
-        .slice(0, 20);
+            ) || a.userId.localeCompare(b.userId),
+        );
 
     const bestGoalDifference =
       [...playerRows]
@@ -168,9 +167,8 @@ export class RankingsService {
               a.wins ||
             a.fullName.localeCompare(
               b.fullName,
-            ),
-        )
-        .slice(0, 20);
+            ) || a.userId.localeCompare(b.userId),
+        );
 
     const topGoals =
       tournament.mode ===
@@ -180,19 +178,7 @@ export class RankingsService {
 
             reason: null,
 
-            entries:
-              [...playerRows]
-                .sort(
-                  (a, b) =>
-                    b.goalsFor -
-                      a.goalsFor ||
-                    b.wins -
-                      a.wins ||
-                    a.fullName.localeCompare(
-                      b.fullName,
-                    ),
-                )
-                .slice(0, 20),
+            entries: rankGoldenBootRace(playerRows),
           }
         : {
             available: false,
@@ -201,7 +187,7 @@ export class RankingsService {
               'Individual scorers are not available from team-level match scores. Match-event goal data is required.',
 
             entries:
-              [] as PlayerRankingRow[],
+              [] as Array<PlayerRankingRow & { position: number }>,
           };
 
     const standings =
@@ -322,8 +308,7 @@ export class RankingsService {
                     form:
                       standing.form,
                   }),
-                )
-                .slice(0, 20),
+                ),
           }
         : {
             available: false,
@@ -378,10 +363,7 @@ export class RankingsService {
           topGoals: {
             ...topGoals,
 
-            entries:
-              this.withPositions(
-                topGoals.entries,
-              ),
+            entries: topGoals.entries,
           },
 
           topAssists: {
@@ -687,7 +669,7 @@ export class RankingsService {
     }
 
     const rows =
-      [...aggregate.values()];
+      [...aggregate.values()].filter(row => row.matches > 0);
 
     rows.sort(
       (a, b) =>

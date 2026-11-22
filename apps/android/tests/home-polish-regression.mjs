@@ -108,7 +108,7 @@ try {
       assert.equal(await hero.getByText(/Home Club|Away Club/).count(), 0);
       assert.equal(await action.getAttribute('href'), '/matches/phase3');
       assert.equal(await f.page.locator('.premium-home-hero .theme-primary-button').count(), 0, 'The real match keeps the primary action');
-      const jump = f.page.getByRole('link', { name: /See next match/ });
+      const jump = f.page.getByRole('link', { name: /See match details/ });
       assert.equal(await jump.getAttribute('href'), '#dashboard-next-match');
       const metrics = await action.boundingBox();
       if (width === 390) assert(metrics.y + metrics.height < 778, 'The next-match action must be in the first mobile screen');

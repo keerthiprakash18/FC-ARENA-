@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - "apps/web/**"
+      - "apps/android/tests/**"
       - "tests/deployment-id.test.cjs"
       - "packages/**"
       - "package.json"
@@ -92,6 +93,8 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-studio-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/home-polish-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/node_modules/@playwright/test/cli.js test --config apps/android/tests/startup-web.config.mjs --workers=2 --output /tmp/fcarena-startup-web
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/next-match-navigation-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/awards-ranking-regression.mjs
 
       - name: Upload complete UI verification screenshots
         if: always()

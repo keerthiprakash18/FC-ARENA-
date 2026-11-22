@@ -231,23 +231,29 @@ export function calculatePerformanceRatings(
     );
 }
 
-export function goldenBootOrder(
-  first: AwardMetricRow,
-  second: AwardMetricRow,
+type GoldenBootMetric = Pick<AwardMetricRow,
+  'userId' | 'matches' | 'goalsFor' | 'goalDifference' | 'wins'>;
+
+function goldenBootScoreOrder(
+  first: GoldenBootMetric,
+  second: GoldenBootMetric,
 ) {
-  const a = metrics(first);
-  const b = metrics(second);
+  const firstRate = first.matches > 0 ? first.goalsFor / first.matches : 0;
+  const secondRate = second.matches > 0 ? second.goalsFor / second.matches : 0;
 
   return (
     second.goalsFor - first.goalsFor ||
-    b.goalsPerMatch - a.goalsPerMatch ||
+    secondRate - firstRate ||
     second.goalDifference - first.goalDifference ||
-    second.wins - first.wins ||
-    first.userId.localeCompare(second.userId)
+    second.wins - first.wins
   );
 }
 
-export function goldenGloveOrder(
+export function goldenBootOrder(first: GoldenBootMetric, second: GoldenBootMetric) {
+  return goldenBootScoreOrder(first, second) || first.userId.localeCompare(second.userId);
+}
+
+function goldenGloveScoreOrder(
   first: AwardMetricRow,
   second: AwardMetricRow,
 ) {
@@ -259,15 +265,35 @@ export function goldenGloveOrder(
     b.cleanSheetRate - a.cleanSheetRate ||
     a.goalsAgainstPerMatch - b.goalsAgainstPerMatch ||
     second.matches - first.matches ||
-    first.goalsAgainst - second.goalsAgainst ||
-    first.userId.localeCompare(second.userId)
+    first.goalsAgainst - second.goalsAgainst
   );
+}
+
+export function goldenGloveOrder(first: AwardMetricRow, second: AwardMetricRow) {
+  return goldenGloveScoreOrder(first, second) || first.userId.localeCompare(second.userId);
+}
+
+function sharedPositions<T extends { userId: string }>(rows: T[], scoreOrder: (a: T, b: T) => number) {
+  const ranked = [...rows].sort((a, b) => scoreOrder(a, b) || a.userId.localeCompare(b.userId));
+  let position = 0;
+  return ranked.map((row, index) => {
+    if (index === 0 || scoreOrder(ranked[index - 1], row) !== 0) position = index + 1;
+    return { ...row, position };
+  });
+}
+
+export function rankGoldenBootRace<T extends GoldenBootMetric>(rows: T[]) {
+  return sharedPositions(rows.filter(row => row.matches > 0 && row.goalsFor > 0), goldenBootScoreOrder);
+}
+
+export function rankGoldenGloveRace<T extends AwardMetricRow>(rows: T[]) {
+  return sharedPositions(rows.filter(row => row.matches > 0), goldenGloveScoreOrder);
 }
 
 export function tiedGoldenBootWinners(
   rows: AwardMetricRow[],
 ) {
-  const ranked = [...rows].sort(goldenBootOrder);
+  const ranked = rankGoldenBootRace(rows);
 
   if (ranked.length === 0 || ranked[0].goalsFor <= 0) {
     return [];

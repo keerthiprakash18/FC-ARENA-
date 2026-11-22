@@ -4,7 +4,7 @@ import { makeFixtureFeed } from './fixture-feed-fixtures.mjs';
 import { collectedDailyFixture, emptyExperience } from './daily-rewards-fixtures.mjs';
 
 export const user = {
-  id: 'phase3', fullName: 'Phase Three Player', email: 'fixture@example.invalid', phoneNumber: null,
+  id: 'phase3', fullName: 'Phase Three Player', email: 'fixture@example.invalid', phoneNumber: '+919876543210',dateOfBirth:'1995-01-01',
   role: 'SUPER_ADMIN', status: 'ACTIVE', themePreference: 'LUXURY_GOLD',
   player: { playerCode: 'P3', profileImageUrl: null, identity: { inGameName: 'Phase Three Player', gameUid: '123', isVerified: true } },
 };
@@ -54,6 +54,7 @@ export async function createUiContext(browser, { width, native = false, direct =
           { phase3: phaseData['/api/tournaments/phase3/fixtures'].fixtures }),
         '/api/auth/refresh': { accessToken: 'fixture-only', expiresIn: 3600 },
         '/api/auth/me': { user: { ...user, role, themePreference: theme } },
+        '/api/auth/social/providers':{google:false,facebook:false},
         '/api/notifications': { notifications: [], unreadCount: 0 },
         '/api/players/me/career': career,
         '/api/players/me/dashboard': { career, memberships: [], tournaments: [], fixtures: [] },

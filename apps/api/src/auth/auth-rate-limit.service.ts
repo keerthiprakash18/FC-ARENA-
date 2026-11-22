@@ -19,6 +19,9 @@ return count
 `;
 
 type RateLimitAction =
+  | 'SOCIAL_START_IP'
+  | 'SOCIAL_EXCHANGE_IP'
+  | 'SOCIAL_CALLBACK_IP'
   | 'API_IP'
   | 'API_WRITE_IP'
   | 'VERIFY_EMAIL_IDENTIFIER'

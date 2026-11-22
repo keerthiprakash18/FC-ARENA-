@@ -9,6 +9,7 @@ import { AuthCard } from '@/components/auth/auth-card';
 import { FcNotice } from '@/components/fc/fc-ui';
 import { apiRequest } from '@/lib/api';
 import { todayForBirthDate } from '@/lib/date-of-birth';
+import {SocialSignIn} from '@/components/auth/social-sign-in';
 
 interface RegisterResponse {
   success: true;
@@ -40,7 +41,7 @@ export default function RegisterPage() {
       email: String(form.get('email') ?? '')
         .trim()
         .toLowerCase(),
-      phoneNumber: String(form.get('phoneNumber') ?? '') || undefined,
+      phoneNumber: String(form.get('phoneNumber') ?? ''),
       inGameName: String(form.get('inGameName') ?? ''),
       gameUid: String(form.get('gameUid') ?? '') || undefined,
       password: String(form.get('password') ?? ''),
@@ -106,8 +107,9 @@ export default function RegisterPage() {
         </div>
 
         <div className="field">
-          <label htmlFor="auth-phoneNumber">Phone Number — optional</label>
-          <input id="auth-phoneNumber" name="phoneNumber" />
+          <label htmlFor="auth-phoneNumber">WhatsApp number</label>
+          <input id="auth-phoneNumber" name="phoneNumber" type="tel" autoComplete="tel" placeholder="+91 98765 43210" minLength={8} maxLength={30} required />
+          <p className="theme-muted text-sm">Required private account contact. It is not automatically shared with other players.</p>
         </div>
 
         <div className="form-grid">
@@ -181,6 +183,8 @@ export default function RegisterPage() {
           {loading ? 'Creating player...' : 'Create Player Account'}
         </button>
       </form>
+
+      <SocialSignIn/>
 
       <div className="link-row">
         Already registered?{' '}

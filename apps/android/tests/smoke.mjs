@@ -9,7 +9,7 @@ const output = process.env.SMOKE_OUTPUT || '/tmp/fcarena-smoke';
 mkdirSync(output, { recursive: true });
 const adb = (...args) => execFileSync('adb', args, { encoding: 'utf8' }).trim();
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const user = { id: 'smoke', fullName: 'Android Scroll Validation Long Player Name', email: 'smoke@example.invalid', role: 'PLAYER', status: 'ACTIVE', themePreference: 'CLASSIC_BLUE', player: { playerCode: 'TEST01', profileImageUrl: null, identity: { inGameName: 'LongAndroidPlayerNameForLayoutValidation', gameUid: '123', isVerified: true } } };
+const user = { id: 'smoke', fullName: 'Android Scroll Validation Long Player Name', email: 'smoke@example.invalid', dateOfBirth: '1995-01-01', phoneNumber: '+919876543210', role: 'PLAYER', status: 'ACTIVE', themePreference: 'CLASSIC_BLUE', player: { playerCode: 'TEST01', profileImageUrl: null, identity: { inGameName: 'LongAndroidPlayerNameForLayoutValidation', gameUid: '123', isVerified: true } } };
 const career = { profile: { ...user.player, primaryLeague: null, secondaryLeague: null }, lifetimeStatistics: { matches: 20, wins: 10, draws: 5, losses: 5, goalsFor: 40, goalsAgainst: 20, goalDifference: 20, winRate: 50, form: ['W','D','L'], tournaments: 2, achievements: 0 }, matchHistory: [], tournamentHistory: [], leagueHistory: [], achievements: [] };
 const errors = [];
 const results = [];
@@ -54,6 +54,7 @@ async function prepare(page) {
       switch (url.pathname) {
         case '/api/auth/refresh': data = { accessToken: 'smoke-only', expiresIn: 3600 }; break;
         case '/api/auth/me': data = { user }; break;
+        case '/api/auth/social/providers': data = { google: false, facebook: false }; break;
         case '/api/auth/preferences/dashboard': data = { preferences: { hiddenSections: [] } }; break;
         case '/api/experience/me/check-in': data = collectedDailyFixture(); break;
         case '/api/experience/me': data = emptyExperience; break;

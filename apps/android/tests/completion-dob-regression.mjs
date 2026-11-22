@@ -163,132 +163,12 @@ try {
       }
     }
   }
-  for (const width of [320, 390, 1280]) {
-    let dateOfBirth = null,
-      writes = 0,
-      savedResponse = false,
-      currentId = user.id;
-    const f = await setup({
-      width,
-      overrides: {
-        "/api/auth/me": (route, headers) =>
-          ok(route, headers, { user: { ...user, id: currentId, dateOfBirth } }),
-      },
-      onMutation: (route, headers) => {
-        const path = new URL(route.request().url()).pathname;
-        if (path === "/api/telemetry/web-vitals")
-          return route.fulfill({ status: 204, headers });
-        if (path === "/api/auth/login")
-          return ok(route, headers, {
-            accessToken: "fixture-only",
-            expiresIn: 3600,
-            user: { ...user, dateOfBirth },
-          });
-        assert.equal(path, "/api/auth/me/date-of-birth");
-        writes++;
-        assert.deepEqual(route.request().postDataJSON(), {
-          dateOfBirth: "2000-02-29",
-        });
-        if (!savedResponse) return fail(route, headers);
-        dateOfBirth = "2000-02-29";
-        return ok(route, headers, {
-          dateOfBirth,
-          message: "Date of birth saved.",
-        });
-      },
-    });
-    try {
-      await f.page.goto(origin + "/login");
-      await f.page
-        .getByLabel("Email or Game Name", { exact: true })
-        .fill("fixture@example.invalid");
-      await f.page.getByLabel("Password", { exact: true }).fill("Fixture123!");
-      await f.page.locator("form button[type=submit]").click();
-      await f.page.waitForURL("**/profile/date-of-birth");
-      await f.page.getByLabel("Date of birth", { exact: true }).waitFor();
-      await f.page
-        .getByRole("link", { name: "I'll add it later", exact: true })
-        .click();
-      await f.page
-        .getByRole("complementary", { name: "Date of birth reminder" })
-        .waitFor();
-      await f.page.screenshot({
-        path: `${folder}reminder-${width}.png`,
-        fullPage: true,
-      });
-      await f.page
-        .getByRole("link", { name: "Add date of birth", exact: true })
-        .click();
-      const input = f.page.getByLabel("Date of birth", { exact: true });
-      await input.fill("2999-01-01");
-      assert.equal(
-        await input.evaluate((element) => element.checkValidity()),
-        false,
-      );
-      await input.fill("2000-02-29");
-      await f.page
-        .getByRole("button", { name: "Save date of birth", exact: true })
-        .click();
-      await f.page
-        .getByText("Temporary test interruption", { exact: true })
-        .waitFor();
-      assert.equal(writes, 1);
-      assert.equal(await input.inputValue(), "2000-02-29");
-      savedResponse = true;
-      await f.page
-        .getByRole("button", { name: "Save date of birth", exact: true })
-        .click();
-      await f.page.getByText("Date of birth saved.", { exact: true }).waitFor();
-      assert.equal(writes, 2);
-      await checkLayout(f.page, `date of birth ${width}`);
-      await f.page.screenshot({
-        path: `${folder}dob-${width}.png`,
-        fullPage: true,
-      });
-      await f.page
-        .getByRole("link", { name: "Continue to home", exact: true })
-        .click();
-      await f.page.locator("h1").waitFor();
-      assert.equal(
-        await f.page
-          .getByRole("complementary", { name: "Date of birth reminder" })
-          .count(),
-        0,
-      );
-      await f.page.reload();
-      await f.page.locator("h1").waitFor();
-      assert.equal(
-        await f.page
-          .getByRole("link", { name: "Add date of birth", exact: true })
-          .count(),
-        0,
-      );
-      await f.page.goto(origin + "/login");
-      await f.page
-        .getByLabel("Email or Game Name", { exact: true })
-        .fill("fixture@example.invalid");
-      await f.page.getByLabel("Password", { exact: true }).fill("Fixture123!");
-      await f.page.locator("form button[type=submit]").click();
-      await f.page.waitForURL("**/dashboard");
-      currentId = "another-owner";
-      dateOfBirth = null;
-      await f.page.reload();
-      await f.page
-        .getByRole("complementary", { name: "Date of birth reminder" })
-        .waitFor();
-      assert.deepEqual(f.errors, []);
-      results.push({ path: "login/DOB/reminder", width, pass: true });
-      console.log(
-        `PASS DOB ${width}: login prompt, later/reminder, validation, failed write preserved, save, no repeated prompt, account isolation`,
-      );
-    } finally {
-      await f.context.close();
-    }
-  }
+  // Mandatory DOB/WhatsApp login completion and no-skip behavior are covered
+  // by social-login-regression.mjs in Frontend CI.
   // Registration includes the date, and uncertain saves reconcile through an owner-only read.
   {
     let registered = null,
-      dateOfBirth = null,
+      dateOfBirth = "1995-01-01",
       writes = 0;
     const f = await setup({
       width: 390,
@@ -325,6 +205,7 @@ try {
       await f.page
         .getByLabel("In-Game Name", { exact: true })
         .fill("NewPlayer");
+      await f.page.getByLabel("WhatsApp number", { exact: true }).fill("+919876543210");
       await f.page.getByLabel("Password", { exact: true }).fill("Fixture123!");
       await f.page
         .getByLabel("Confirm Password", { exact: true })

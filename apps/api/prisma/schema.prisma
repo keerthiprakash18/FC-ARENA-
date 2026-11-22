@@ -402,6 +402,7 @@ model User {
   player                     Player?
   authOtps                   AuthOtp[]
   refreshSessions            RefreshSession[]
+  socialIdentities           SocialIdentity[]
   arenaLeagueSubscriptions   ArenaLeagueSubscription[]
   arenaMutes                 ArenaPlayerMute[] @relation("ArenaMutingUser")
   mutedByInArena             ArenaPlayerMute[] @relation("ArenaMutedUser")
@@ -468,6 +469,19 @@ model User {
 
   @@index([status])
   @@map("users")
+}
+
+model SocialIdentity {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  provider  String   @db.VarChar(16)
+  subject   String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@unique([userId, provider])
+  @@map("social_identities")
 }
 
 model Player {

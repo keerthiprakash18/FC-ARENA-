@@ -7,6 +7,7 @@ import { PullToRefresh } from '@/components/app/app-refresh';
 import { NetworkStatus } from './network-status';
 import { DailyRewards } from '@/components/experience/daily-rewards';
 import { DateOfBirthReminder } from '@/components/profile/date-of-birth-reminder';
+import {RequiredProfileGate} from '@/components/profile/required-profile-gate';
 import Link from 'next/link';
 import {
   usePathname,
@@ -909,6 +910,7 @@ export function AppShell({
         >
           <NetworkStatus />
           <DateOfBirthReminder currentUser={currentUser} />
+          <RequiredProfileGate currentUser={currentUser}/>
           {
             children
           }

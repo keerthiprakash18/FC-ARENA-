@@ -9,6 +9,10 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { OtpMailService } from './mail.service.js';
 import { DateOfBirthService } from './date-of-birth.service.js';
 import { DateOfBirthController } from './date-of-birth.controller.js';
+import {SocialAuthController} from './social-auth.controller.js';
+import {SocialAuthService} from './social-auth.service.js';
+import {SocialProviderService} from './social-provider.service.js';
+import {SocialStateStore} from './social-state.store.js';
 
 @Module({
   imports: [
@@ -16,11 +20,13 @@ import { DateOfBirthController } from './date-of-birth.controller.js';
   ],
 
   controllers: [
+    SocialAuthController,
     DateOfBirthController,
     AuthController,
   ],
 
   providers: [
+    SocialAuthService,SocialProviderService,SocialStateStore,
     DateOfBirthService,
     { provide: APP_GUARD, useClass: ApiRateLimitGuard },
     AuthRateLimitService,

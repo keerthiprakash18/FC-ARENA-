@@ -9,10 +9,9 @@ import {
 } from 'class-validator';
 
 export class RegisterDto {
-  @IsOptional()
   @IsString()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  dateOfBirth?: string;
+  dateOfBirth!: string;
 
   @IsString()
   @MinLength(2)
@@ -23,10 +22,10 @@ export class RegisterDto {
   @MaxLength(255)
   email!: string;
 
-  @IsOptional()
   @IsString()
+  @MinLength(8)
   @MaxLength(30)
-  phoneNumber?: string;
+  phoneNumber!: string;
 
   @IsString()
   @MaxLength(256)

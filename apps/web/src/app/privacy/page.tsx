@@ -30,8 +30,9 @@ export default function PrivacyPage() {
         icon="profile"
       >
         <p>
-          Account data can include your full name, email address, optional phone number, date of birth, password hash, account status, verification status and app preferences. Your date of birth is used for your account profile, is not displayed on public player profiles, and is removed when your account is deleted.
+          Account creation requires your full name, email address, date of birth and a WhatsApp number. Account data also includes password hashes, account status, verification status and app preferences. Your date of birth and account WhatsApp number stay private and are removed when your account is deleted. A number you enter is not automatically verified as a WhatsApp account.
         </p>
+        <p>When you choose Google or Facebook sign-in, we receive your provider account identifier, name and available email address to sign you in and connect your FC ARENA account. We do not receive your Google or Facebook password, or send your date of birth or WhatsApp number to those providers. Provider account links are removed when your FC ARENA account is deleted.</p>
 
         <p>
           Player data can include your FC ARENA player code, In-Game Name, optional game UID, profile image and player verification information.
@@ -194,7 +195,7 @@ export default function PrivacyPage() {
         icon="settings"
       >
         <p>
-          You can update certain profile information in the app, remove your profile photo, sign out of active sessions and request account deletion. You can choose not to provide optional data such as a phone number, game UID or profile image where the app allows it.
+          You can update your private account details, remove your profile photo, sign out of active sessions and request account deletion. Optional game UID, profile photo and public WhatsApp sharing remain your choice.
         </p>
       </PublicInfoCard>
 

@@ -34,7 +34,7 @@ describe('Login quota identity', () => {
 describe('New password byte limits', () => {
   for (const password of ['A' + 'a'.repeat(70) + '1', 'é'.repeat(34) + 'aA11']) {
     it(`accepts exactly 72 UTF-8 bytes (${password.length} characters)`, async () => {
-      const dto = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.test', inGameName: 'Tester', password, confirmPassword: password });
+      const dto = Object.assign(new RegisterDto(), { fullName: 'Test Player', email: 'test@example.test', inGameName: 'Tester',dateOfBirth:'1995-01-01',phoneNumber:'+919876543210', password, confirmPassword: password });
       expect(await validate(dto)).toHaveLength(0);
     });
   }

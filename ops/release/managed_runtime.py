@@ -117,6 +117,22 @@ def proxy_changes(path,text):
     if path.name in ['fcarena-api','fcarena-auth.conf','fcarena-api.conf']:
         updated=re.sub(r'proxy_connect_timeout\s+\d+s;', 'proxy_connect_timeout 2s;',updated)
     return updated
+
+def disabled_override_path(target,index):
+    return target.with_name('managed-rollback-'+str(index)+'-'+str(time.time_ns())+'.disabled')
+
+def verify_public_replicas(sha,probe=None,sleep=time.sleep):
+    def public_health():
+        with urllib.request.urlopen('https://api.fcarena.in/api/health',timeout=10) as response:return json.load(response)
+    probe=probe or public_health;seen=set()
+    # Nginx reload is asynchronous. Old workers may briefly continue routing to
+    # the original primary while new workers load both upstreams.
+    for attempt in range(60):
+        body=probe();assert body['data']['runtime']['release']==sha
+        seen.add(body['data']['runtime']['instance'])
+        if seen=={'api-primary','api-secondary'}:return seen
+        sleep(0.25)
+    raise AssertionError('Both API replicas must actually serve public traffic')
 UPSTREAMS='''upstream fcarena_api_runtime {
     least_conn;
     server 127.0.0.1:4000 max_fails=1 fail_timeout=3s;
@@ -140,9 +156,9 @@ def restore(snapshot):
     for raw,content in snapshot['nginx'].items():Path(raw).write_text(content)
     upstream=Path('/etc/nginx/conf.d/fcarena-managed-upstreams.conf')
     if upstream.exists():upstream.rename(upstream.with_name(upstream.name+'.disabled-'+str(time.time_ns())))
-    for raw in snapshot['managedDropins']:
+    for index,raw in enumerate(snapshot['managedDropins']):
         target=Path(raw)
-        if target.exists():target.rename(target.with_name(target.name+'.disabled-'+str(time.time_ns())))
+        if target.exists():target.rename(disabled_override_path(target,index))
     command(['systemctl','daemon-reload'])
     for unit in ['fcarena-api-secondary','fcarena-web-secondary']:
         subprocess.run(['systemctl','disable','--now',unit],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -228,8 +244,10 @@ def activate(args):
     else:slice_file.write_text(slice_content)
     for component in ['api','web']:
         primary=dropin('fcarena-'+component);snapshot['managedDropins'].append(str(primary));primary.write_text(service(component,'primary',cache));primary.chmod(0o644)
-        secondary=Path('/etc/systemd/system')/('fcarena-'+component+'-secondary.service');assert not secondary.exists()
-        secondary.write_text(service(component,'secondary',cache));secondary.chmod(0o644)
+        secondary=Path('/etc/systemd/system')/('fcarena-'+component+'-secondary.service')
+        if secondary.exists():
+            assert property('fcarena-'+component+'-secondary','MainPID')=='0' and secondary.read_text()==service(component,'secondary',cache),'Only identical inactive candidate units may resume'
+        else:secondary.write_text(service(component,'secondary',cache));secondary.chmod(0o644)
     save(runtime.parent/'managed-rollback.private.json',snapshot)
     try:
         command(['systemctl','daemon-reload'])
@@ -242,11 +260,7 @@ def activate(args):
         for path in paths:path.write_text(proxy_changes(path,snapshot['nginx'][str(path)]))
         upstream=Path('/etc/nginx/conf.d/fcarena-managed-upstreams.conf');assert not upstream.exists();upstream.write_text(UPSTREAMS)
         command(['nginx','-t']);command(['systemctl','reload','nginx'])
-        seen=set()
-        for attempt in range(12):
-            with urllib.request.urlopen('https://api.fcarena.in/api/health',timeout=10) as response:body=json.load(response)
-            assert body['data']['runtime']['release']==args.sha;seen.add(body['data']['runtime']['instance'])
-        assert seen=={'api-primary','api-secondary'},'Both API replicas must actually serve public traffic'
+        seen=verify_public_replicas(args.sha)
         for kind in ['api','web']:
             command(['systemctl','enable','fcarena-'+kind+'-secondary'])
         save(runtime.parent/'managed-release-evidence.json',{'status':'PASS','release':args.sha,'apiInstances':2,'webInstances':2,'workerRole':'primary only',

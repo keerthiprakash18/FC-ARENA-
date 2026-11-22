@@ -7,6 +7,18 @@ spec=importlib.util.spec_from_file_location('managed_runtime',path)
 runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
 
 class ManagedRuntimeTests(unittest.TestCase):
+    def test_rollback_preserves_long_override_under_short_disabled_name(self):
+        target=Path('/etc/systemd/system/fcarena-web.service.d')/('z'*235+'-managed.conf')
+        disabled=runtime.disabled_override_path(target,1)
+        self.assertEqual(disabled.parent,target.parent)
+        self.assertLess(len(disabled.name),100)
+        self.assertTrue(disabled.name.endswith('.disabled'))
+    def test_reload_verification_waits_for_both_replicas_and_never_accepts_only_primary(self):
+        from unittest.mock import Mock
+        def response(instance):return {'data':{'runtime':{'release':'sha','instance':instance}}}
+        probe=Mock(side_effect=[response('api-primary')]*15+[response('api-secondary')])
+        self.assertEqual(runtime.verify_public_replicas('sha',probe,lambda _:None),{'api-primary','api-secondary'})
+        with self.assertRaises(AssertionError):runtime.verify_public_replicas('sha',lambda:response('api-primary'),lambda _:None)
     def test_override_fits_actual_long_legacy_filenames_and_sorts_last(self):
         old=['z'*227+'-birthday-v6-alignment.conf','z'*228+'-audit-c2dcf148fae8.conf']
         name=runtime.managed_override_name(old)

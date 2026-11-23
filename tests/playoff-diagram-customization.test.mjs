@@ -3,7 +3,8 @@ import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
-import { seededOpeningPairs } from '../apps/web/src/lib/playoff-flow-data.ts';
+import { seededOpeningPairs, sampleSeededKnockoutRounds } from '../apps/web/src/lib/playoff-flow-data.ts';
+import { describeSavedPlayoffs } from '../apps/web/src/lib/saved-playoff-explainer.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = p => fs.readFileSync(path.join(root, p), 'utf8');
@@ -29,6 +30,22 @@ test('visual flow replaces three text cards and keeps actual results separate', 
   assert.match(chart, /overflow-x-auto/);
   assert.match(chart, /tabIndex=\{0\}/);
   assert.match(chart, /seededOpeningPairs/);
+});
+
+test('Top 12 shows four real play-ins and four seeded byes leading to exactly eleven matches', () => {
+  assert.deepEqual(seededOpeningPairs(12), [[8,9],[5,12],[7,10],[6,11]]);
+  const rounds=sampleSeededKnockoutRounds(12);
+  assert.deepEqual(rounds.map(round=>round.matches.length),[4,4,2,1]);
+  assert.deepEqual(rounds[0].byes,[1,2,3,4]);
+  assert.equal(rounds[1].matches[0],'QF1: #1 vs winner PI1');
+  assert.equal(rounds[1].matches[1],'QF2: #4 vs winner PI2');
+  for(const format of ['GLOBAL_SEEDED','PROTECTED_SEED']) {
+    const guide=describeSavedPlayoffs({competitionFormat:'GROUP_STAGE_KNOCKOUT',playoffSource:'OVERALL_STANDINGS',playoffSeedingBasis:'OVERALL_PERFORMANCE',playoffQualifiersTotal:12,playoffFormat:format});
+    assert.equal(guide.knockoutFixtureCount,11);assert.match(guide.rounds[0],/4 seeds receive byes/);
+    assert.match(guide.mechanism,/no match or score created for a bye/);assert.match(guide.openingExample,/#1–#4/);
+  }
+  const double=describeSavedPlayoffs({playoffQualifiersTotal:12,playoffFormat:'DOUBLE_CHANCE'});
+  assert.equal(double.knockoutFixtureCount,null);assert.match(double.mechanism,/top 4/);assert.doesNotMatch(double.mechanism,/four.*byes/i);
 });
 
 test('admin edit is shown on Playoff Center only before a bracket exists', () => {

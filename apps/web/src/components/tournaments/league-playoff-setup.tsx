@@ -33,7 +33,7 @@ export function LeaguePlayoffSetup({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const options = [4, 8, 16].filter(value => value <= approvedEntries);
+  const options = [4, 8, 12, 16].filter(value => value <= approvedEntries);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -12,6 +12,7 @@ import { PrismaService } from '../src/database/prisma.service.js';
 import { SecurityModule } from '../src/security/security.module.js';
 import { configureHttpSecurity } from '../src/security/http-security.js';
 import { TournamentsModule } from '../src/tournaments/tournaments.module.js';
+import { generateRoundRobinFixtures } from '../src/tournaments/fixture-engine.js';
 
 describe('Tournament Studio against PostgreSQL', () => {
   const tag = randomUUID().slice(0, 8);
@@ -40,6 +41,8 @@ describe('Tournament Studio against PostgreSQL', () => {
     configureHttpSecurity(app);
     await app.init();
     db = app.get(PrismaService);
+    // Each suite uses the same disposable database and loopback HTTP address.
+    await db.authRateLimit.deleteMany({where:{action:{in:['API_IP','API_WRITE_IP']}}});
     const createUser = (index: number) => db.user.create({
       data: { fullName: 'Studio Player ' + index, email: 'studio-' + tag + '-' + index + '@example.invalid', passwordHash: 'not-a-login-hash', status: 'ACTIVE' },
     });
@@ -64,6 +67,7 @@ describe('Tournament Studio against PostgreSQL', () => {
   }, 60000);
 
   afterAll(async () => {
+    if(db) await db.authRateLimit.deleteMany({where:{action:{in:['API_IP','API_WRITE_IP']}}});
     if (db && leagueId) {
       const cups = await db.tournament.findMany({ where: { leagueId }, select: { id: true } });
       await db.auditLog.deleteMany({ where: { scopeId: { in: [leagueId, ...cups.map(cup => cup.id)] } } });
@@ -123,6 +127,59 @@ describe('Tournament Studio against PostgreSQL', () => {
     expect(new Set(roster.entries.flatMap((entry: { members: { id: string }[] }) => entry.members.map(member => member.id)))).toEqual(new Set(selected));
     expect(roster.availablePlayers).toHaveLength(3);
   });
+
+  it('configures Top 12 Duo teams, preserves the verified league and creates four play-ins with four seeded byes', async () => {
+    const cup=await db.tournament.create({data:{leagueId,createdByUserId:owner,name:'Top Twelve '+tag,code:'TW'+tag,mode:'DUO',teamSize:2,maxEntries:14,
+      duoAggregateEnabled:true,duoGamesPerFixture:4,format:'ROUND_ROBIN',competitionFormat:'LEAGUE_ROUND_ROBIN',groupMode:'SINGLE_GROUP',status:'ACTIVE'}});
+    const entries=[];
+    for(let index=0;index<14;index++) {
+      const ids=players.slice(index*2,index*2+2);
+      entries.push(await db.tournamentRegistration.create({data:{tournamentId:cup.id,registeredByUserId:ids[0]!,entryName:'Duo '+(index+1),status:'APPROVED',sortOrder:index,
+        members:{create:ids.map(userId=>({tournamentId:cup.id,userId}))}}}));
+    }
+    const entryIds=entries.map(entry=>entry.id),stageMatches:string[]=[],stageFixtures:string[]=[];
+    const draw=generateRoundRobinFixtures(entryIds);
+    await db.$transaction(async tx=>{
+      for(const [index,blueprint] of draw.entries()) {
+        const h=entryIds.indexOf(blueprint.homeRegistrationId!),a=entryIds.indexOf(blueprint.awayRegistrationId!),homeWins=h<a;
+        const fixture=await tx.fixture.create({data:{tournamentId:cup.id,fixtureCode:'TW-'+tag+'-'+index,sequence:index+1,roundNumber:blueprint.roundNumber,roundName:blueprint.roundName,
+          bracketPosition:blueprint.bracketPosition,homeRegistrationId:entryIds[h],awayRegistrationId:entryIds[a],phase:'STAGE',status:'COMPLETED'}});
+        const match=await tx.match.create({data:{tournamentId:cup.id,fixtureId:fixture.id,status:'COMPLETED'}});
+        const duoGames=players.slice(h*2,h*2+2).flatMap(homePlayerId=>players.slice(a*2,a*2+2).map(awayPlayerId=>({homePlayerId,awayPlayerId,homeGoals:homeWins?1:0,awayGoals:homeWins?0:1})));
+        const result=await tx.resultSubmission.create({data:{matchId:match.id,submittedByUserId:owner,reviewedByUserId:owner,reviewedAt:new Date(),status:'CONFIRMED',homeScore:homeWins?4:0,awayScore:homeWins?0:4,duoGames}});
+        await tx.match.update({where:{id:match.id},data:{confirmedResultSubmissionId:result.id}});stageMatches.push(match.id);stageFixtures.push(fixture.id);
+      }
+      await tx.tournamentStanding.createMany({data:entryIds.map((registrationId,index)=>({tournamentId:cup.id,registrationId,played:13,wins:13-index,losses:index,points:(13-index)*3,
+        goalsFor:(13-index)*4,goalsAgainst:index*4,goalDifference:(13-index)*4-index*4,form:'WWL'}))});
+    },{timeout:60000});
+    const standings=await db.tournamentStanding.findMany({where:{tournamentId:cup.id},orderBy:{registrationId:'asc'}});
+    const body={playoffQualifiersTotal:12,playoffFormat:'PROTECTED_SEED',confirmation:cup.name};
+    await post(path(cup.id)+'/playoffs/enable-from-league',body,visitor).expect(403);
+    await post(path(cup.id)+'/playoffs/enable-from-league',{...body,playoffQualifiersTotal:10}).expect(400);
+    const saved=(await post(path(cup.id)+'/playoffs/enable-from-league',body).expect(201)).body.data;
+    expect(saved).toMatchObject({playoffQualifiersTotal:12,stageFixturesPreserved:91,bracketCreated:false});
+    await request(app.getHttpServer()).patch('/api'+path(cup.id)+'/playoffs/league-settings').set('Authorization','Bearer '+token).send({...body,playoffFormat:'GLOBAL_SEEDED'}).expect(200);
+    expect((await db.tournament.findUniqueOrThrow({where:{id:cup.id}})).playoffQualifiersTotal).toBe(12);
+    await db.fixture.update({where:{id:stageFixtures[0]},data:{status:'LIVE'}});
+    await post(path(cup.id)+'/playoffs/generate',{}).expect(409);
+    expect(await db.fixture.count({where:{tournamentId:cup.id,phase:'PLAYOFF'}})).toBe(0);
+    await db.fixture.update({where:{id:stageFixtures[0]},data:{status:'COMPLETED'}});
+    await post(path(cup.id)+'/playoffs/generate',{}).expect(201);
+    const bracket=await db.fixture.findMany({where:{tournamentId:cup.id,phase:'PLAYOFF'},include:{match:true},orderBy:[{roundNumber:'asc'},{bracketPosition:'asc'}]});
+    expect(bracket).toHaveLength(11);expect([1,2,3,4].map(round=>bracket.filter(f=>f.roundNumber===round).length)).toEqual([4,4,2,1]);
+    expect(bracket.filter(f=>f.roundNumber===1).map(f=>[entryIds.indexOf(f.homeRegistrationId!)+1,entryIds.indexOf(f.awayRegistrationId!)+1])).toEqual([[8,9],[5,12],[7,10],[6,11]]);
+    expect(new Set(bracket.flatMap(f=>[f.homeRegistrationId,f.awayRegistrationId].filter(Boolean)))).toEqual(new Set(entryIds.slice(0,12)));
+    expect(new Set(bracket.filter(f=>f.roundNumber===2).flatMap(f=>[f.homeRegistrationId,f.awayRegistrationId].filter(Boolean)))).toEqual(new Set(entryIds.slice(0,4)));
+    expect(bracket.filter(f=>f.roundNumber===1).every(f=>f.homeRegistrationId&&f.awayRegistrationId)).toBe(true);
+    expect(bracket.every(f=>f.match&&!f.match.confirmedResultSubmissionId&&f.status!=='COMPLETED')).toBe(true);
+    expect(bracket.filter(f=>f.roundNumber<4).every(f=>f.nextFixtureId)).toBe(true);
+    expect(await db.tournamentStanding.findMany({where:{tournamentId:cup.id},orderBy:{registrationId:'asc'}})).toEqual(standings);
+    expect(await db.match.count({where:{id:{in:stageMatches},status:'COMPLETED',confirmedResultSubmissionId:{not:null}}})).toBe(91);
+    expect(await db.matchResultStatEvent.count({where:{matchId:{in:bracket.map(f=>f.match!.id)}}})).toBe(0);
+    await post(path(cup.id)+'/playoffs/generate',{}).expect(409);
+    await request(app.getHttpServer()).patch('/api'+path(cup.id)+'/playoffs/league-settings').set('Authorization','Bearer '+token).send(body).expect(409);
+    expect(await db.fixture.count({where:{tournamentId:cup.id,phase:'PLAYOFF'}})).toBe(11);
+  },60000);
 
   it('imports existing Duo names and pairs atomically and retries without adding duplicates', async () => {
     const cup = (await create(draftBody({ mode: 'DUO', maxEntries: 20 })).expect(201)).body.data.tournament.id;

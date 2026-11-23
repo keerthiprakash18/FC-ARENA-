@@ -28,6 +28,19 @@ function ids(
 describe(
   'Universal playoff engine',
   () => {
+    it.each(['GLOBAL_SEEDED','PROTECTED_SEED'] as const)('keeps all twelve seeds on connected %s routes without inventing bye results', format => {
+      const plan=buildUniversalPlayoffPlan(format,ids(12));
+      expect(plan.fixtures).toHaveLength(11);expect(plan.byeCount).toBe(4);expect(plan.playInMatches).toBe(4);
+      expect([1,2,3,4].map(round=>plan.fixtures.filter(f=>f.roundNumber===round).length)).toEqual([4,4,2,1]);
+      expect(new Set(plan.fixtures.flatMap(f=>[f.homeRegistrationId,f.awayRegistrationId].filter(Boolean)))).toEqual(new Set(ids(12)));
+      expect(new Set(plan.fixtures.filter(f=>f.roundNumber===2).flatMap(f=>[f.homeRegistrationId,f.awayRegistrationId].filter(Boolean)))).toEqual(new Set(ids(4)));
+      const winners=new Map<string,string>();
+      for(const fixture of [...plan.fixtures].sort((a,b)=>a.roundNumber-b.roundNumber)) {
+        const home=fixture.homeRegistrationId??winners.get(fixture.homeSource!.key),away=fixture.awayRegistrationId??winners.get(fixture.awaySource!.key);
+        expect(home).toBeTruthy();expect(away).toBeTruthy();expect(home).not.toBe(away);winners.set(fixture.key,home!);
+      }
+      expect(winners.get(plan.fixtures.find(f=>f.roundName==='FINAL')!.key)).toBe('S1');
+    });
     it.each([
       3,
       4,

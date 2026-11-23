@@ -53,8 +53,9 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
   let rounds: string[] = [];
   if (!isDoubleChance && count === 4) rounds = ['Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
   if (!isDoubleChance && count === 8) rounds = ['Quarter-finals (8 teams)', 'Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
+  if (!isDoubleChance && count === 12) rounds = ['Play-in (8 teams; 4 seeds receive byes)', 'Quarter-finals (8 teams)', 'Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
   if (!isDoubleChance && count === 16) rounds = ['Round of 16 (16 teams)', 'Quarter-finals (8 teams)', 'Semi-finals (4 teams)', 'Final (2 teams)', 'Champion'];
-  if (!isDoubleChance && ![4, 8, 16].includes(count ?? -1)) {
+  if (!isDoubleChance && ![4, 8, 12, 16].includes(count ?? -1)) {
     rounds = ['Knockout matches (as drawn)', 'Final', 'Champion'];
   }
   if (isDoubleChance) rounds = [
@@ -72,11 +73,13 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
         ? 'Opening pairings by final league seed: #1 vs #4 and #2 vs #3.'
         : count === 8
           ? 'Example opening quarter-finals: #1 vs #8, #4 vs #5, #2 vs #7, #3 vs #6.'
+          : count === 12
+            ? 'Seeds #1–#4 receive byes to the quarter-finals. Play-ins: #8 vs #9, #5 vs #12, #7 vs #10, #6 vs #11.'
           : count === 16
             ? 'Opening round pairs high seeds with low seeds from the final top 16.'
             : null
       : null;
-  const knockoutFixtureCount = !isUcl && !isDoubleChance && [4, 8, 16].includes(count ?? -1)
+  const knockoutFixtureCount = !isUcl && !isDoubleChance && [4, 8, 12, 16].includes(count ?? -1)
     ? (count as number) - 1
     : null;
   const formatName = isUcl ? 'UCL Two-Leg Knockout' : nameByFormat[format] ?? 'Saved Knockout Format';
@@ -96,7 +99,9 @@ export function describeSavedPlayoffs(t: PlayoffGuideInput): PlayoffGuide {
     openingExample,
     knockoutFixtureCount,
     formatName,
-    mechanism,
+    mechanism: !isUcl && !isDoubleChance && count === 12
+      ? `${mechanism} Four seeds receive byes to the quarter-finals; the remaining eight teams play four play-ins. The 12-team bracket has 11 played matches, with no match or score created for a bye.`
+      : mechanism,
     winnerRule: isDirect
       ? 'The winner of the verified knockout final is the tournament champion.'
       : 'League first place is NOT automatically champion: the verified knockout final winner is champion.',

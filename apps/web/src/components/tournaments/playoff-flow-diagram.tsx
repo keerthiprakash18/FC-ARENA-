@@ -132,6 +132,7 @@ export function PlayoffFlowDiagram({ guide, tournament }: {
                   {index > 0 ? <div aria-hidden="true" className="flex w-6 shrink-0 items-center justify-center text-lg text-[var(--theme-primary)]">→</div> : null}
                   <div className="flex w-48 shrink-0 flex-col rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-3">
                     <h5 className="border-b border-[var(--theme-border)] pb-2 text-center text-xs font-black text-[var(--theme-text)]">{round.title}</h5>
+                    {round.byes ? <p className="mt-3 rounded-lg border border-amber-400/30 p-2 text-xs leading-5 text-[var(--theme-text)]">Byes to quarter-finals: {round.byes.map(seed => `#${seed}`).join(', ')}</p> : null}
                     <ol className="flex flex-1 flex-col justify-around gap-3 py-3">
                       {round.matches.map((match) => (
                         <li key={match} className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-elevated)] p-2 text-xs leading-5 text-[var(--theme-text)]">

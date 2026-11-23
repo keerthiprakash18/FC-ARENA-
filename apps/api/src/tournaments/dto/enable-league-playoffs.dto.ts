@@ -5,8 +5,8 @@ import { IsIn, IsString, MaxLength } from 'class-validator';
  * gets a guessed qualifier count, and the final bracket is not drawn early.
  */
 export class EnableLeaguePlayoffsDto {
-  @IsIn([4, 8, 16])
-  playoffQualifiersTotal!: 4 | 8 | 16;
+  @IsIn([4, 8, 12, 16])
+  playoffQualifiersTotal!: 4 | 8 | 12 | 16;
 
   @IsIn(['GLOBAL_SEEDED', 'PROTECTED_SEED', 'DOUBLE_CHANCE'])
   playoffFormat!: 'GLOBAL_SEEDED' | 'PROTECTED_SEED' | 'DOUBLE_CHANCE';

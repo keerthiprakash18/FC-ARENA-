@@ -64,6 +64,7 @@ try {
    assert.equal(await finish().isEnabled(),true);await input(1,'home').fill('1');assert.equal(await finish().isDisabled(),true);
    await panel.getByText('Saved total: 8 – 6',{exact:true}).waitFor();await save(1).click();await panel.getByText('Saved total: 9 – 6',{exact:true}).waitFor();
    await checkLayout(page,`Duo per-game save ${width}`);
+   assert.deepEqual(await panel.locator('input, label, legend').evaluateAll(nodes=>nodes.filter(node=>node.getBoundingClientRect().right>innerWidth+1||node.getBoundingClientRect().left<0).map(node=>node.tagName)),[],'Long player names must not push score controls outside the viewport');
    if(process.env.DUO_SMOKE_OUTPUT){mkdirSync(process.env.DUO_SMOKE_OUTPUT,{recursive:true});await page.screenshot({path:`${process.env.DUO_SMOKE_OUTPUT}/duo-games-${width}.png`,fullPage:true});}
    if(width===390){
     // The fixtures inline editor uses the same durable game progress.

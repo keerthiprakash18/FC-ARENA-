@@ -95,8 +95,8 @@ export function DuoResultPanel({ matchId, context, canSave = true, canVerify = f
     {rows.map((row, index) => <fieldset key={row.key} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">
       <legend className="max-w-full break-words px-1 text-sm font-bold">Game {index + 1}: {name(row.player)} vs {name(row.opponent)}</legend>
       <div className="grid min-w-0 grid-cols-2 gap-3">
-        {(['home', 'away'] as const).map(side => <label key={side} className="grid min-w-0 gap-2 text-xs font-semibold">
-          <span className="break-words">{name(side === 'home' ? row.player : row.opponent)} goals</span>
+        {(['home', 'away'] as const).map(side => <label key={side} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 text-xs font-semibold">
+          <span className="min-w-0 [overflow-wrap:anywhere]">{name(side === 'home' ? row.player : row.opponent)} goals</span>
           <input type="number" inputMode="numeric" min={0} max={99} disabled={locked} value={row.edit[side]}
             aria-label={`Game ${index + 1} ${side === 'home' ? 'home' : 'away'} goals`}
             onChange={event => update(row.key, row.edit, side, event.target.value)}

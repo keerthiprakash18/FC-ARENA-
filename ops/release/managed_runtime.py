@@ -52,6 +52,10 @@ def wait_all(sha):
 
 SOCIAL_MIGRATION='migrations/20261122160000_social_sign_in/migration.sql'
 SOCIAL_MIGRATION_HASH='8264b8fc5ff9988e5b481d4a6788279c32a1cb9b85d66274793eda69f4683249'
+DUO_MIGRATION='migrations/20261123080000_duo_game_progress/migration.sql'
+DUO_MIGRATION_HASH='535fe0d0d583efb5fc80630d3fa5c7bc2e2a4170f3727926bf8d80f69acb1a20'
+DUO_SCHEMA_FIELD=b'  duoGameProgress             Json?\n'
+REVIEWED_MIGRATIONS={SOCIAL_MIGRATION:SOCIAL_MIGRATION_HASH,DUO_MIGRATION:DUO_MIGRATION_HASH}
 
 def migration_checksums(file):
     """Historical migrations may have been applied from Windows or Linux."""
@@ -67,14 +71,18 @@ def require_schema_parity(previous,runtime,approval=None):
     assert old,'Baseline schema is missing'
     if old==new:return
     assert approval,'Schema changes require a separate approved migration rehearsal'
-    assert set(new)==set(old)|{SOCIAL_MIGRATION},'Only the reviewed additive identity migration is allowed'
+    added=set(new)-set(old)
+    assert len(added)==1 and added<=REVIEWED_MIGRATIONS.keys() and set(old)<=set(new),'Exactly one reviewed additive migration is allowed'
+    migration=next(iter(added));migration_hash=REVIEWED_MIGRATIONS[migration]
     assert {name for name in old if old[name]!=new[name]}=={'schema.prisma'},'Existing migration history changed'
-    assert hashlib.sha256(new[SOCIAL_MIGRATION]).hexdigest()==SOCIAL_MIGRATION_HASH,'Unreviewed migration SQL'
+    assert hashlib.sha256(new[migration]).hexdigest()==migration_hash,'Unreviewed migration SQL'
+    if migration==DUO_MIGRATION:
+        assert new['schema.prisma'].count(DUO_SCHEMA_FIELD)==1 and new['schema.prisma'].replace(DUO_SCHEMA_FIELD,b'',1)==old['schema.prisma'],'Duo migration may only add its nullable progress field'
     assert approval['status']=='APPLIED_AND_VERIFIED' and approval['approvedBy']=='owner'
     assert approval['baselineRuntime']==str(previous.resolve()) and approval['candidateRuntime']==str(runtime.resolve())
     assert approval['baselineSchemaSha256']==hashlib.sha256(old['schema.prisma']).hexdigest()
     assert approval['candidateSchemaSha256']==hashlib.sha256(new['schema.prisma']).hexdigest()
-    assert approval['migrationSha256']==SOCIAL_MIGRATION_HASH
+    assert approval['migrationSha256']==migration_hash
 
 def approved_schema_proof(path,runtime,sha,expected_old):
     """Verify an already-applied migration. Never applies SQL or infers approval."""
@@ -89,7 +97,7 @@ def approved_schema_proof(path,runtime,sha,expected_old):
     assert dt.timedelta(0)<=now-approved<=dt.timedelta(hours=24),'Migration approval expired'
     rehearsal=json.loads(Path(proof['rehearsal']).read_text())
     assert rehearsal['status']=='PASS' and rehearsal['release']==sha and rehearsal['baselineRelease']==expected_old
-    assert rehearsal['migrationSha256']==SOCIAL_MIGRATION_HASH and rehearsal['postgresMajor']==17
+    assert rehearsal['migrationSha256'] in REVIEWED_MIGRATIONS.values() and rehearsal['migrationSha256']==proof['migrationSha256'] and rehearsal['postgresMajor']==17
     assert all(rehearsal[key] for key in ['existingDataPreserved','baselineAfterMigrationHealthy','candidateAfterMigrationHealthy'])
     backup=json.loads(Path('/var/backups/fcarena-encrypted/latest.json').read_text())
     receipt=json.loads(Path('/var/backups/fcarena-encrypted/offhost-receipt.json').read_text())

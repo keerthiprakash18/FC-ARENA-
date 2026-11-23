@@ -603,6 +603,11 @@ try {
 
     try {
       await page.goto(`${origin}/admin/results`);
+      const selectReviewStatus = async value => {
+        const filters = page.locator('details').filter({ has: page.getByLabel('Review status') });
+        if (!(await filters.evaluate(element => element.open))) await filters.locator('summary').click();
+        await page.getByLabel('Review status').selectOption(value);
+      };
       await page
         .getByText("1 awaiting review · oldest first", { exact: true })
         .waitFor();
@@ -633,7 +638,7 @@ try {
       await page.getByText("All caught up", { exact: true }).waitFor();
       assert.equal(reviews, 1);
 
-      await page.getByLabel("Review status").selectOption("CONFIRMED");
+      await selectReviewStatus("CONFIRMED");
       await page.getByText("1 verified results", { exact: true }).waitFor();
 
       assert.equal(
@@ -644,9 +649,7 @@ try {
       );
 
       rows = rows.map((row) => ({ ...row, status: "PENDING_VERIFICATION" }));
-      await page
-        .getByLabel("Review status")
-        .selectOption("PENDING_VERIFICATION");
+      await selectReviewStatus("PENDING_VERIFICATION");
 
       await page
         .getByRole("button", { name: "Reject result", exact: true })
@@ -665,7 +668,7 @@ try {
       await page.getByText("All caught up", { exact: true }).waitFor();
       assert.equal(reviews, 2);
 
-      await page.getByLabel("Review status").selectOption("REJECTED");
+      await selectReviewStatus("REJECTED");
       await page
         .getByText("Reason: Wrong screenshot", { exact: true })
         .waitFor();

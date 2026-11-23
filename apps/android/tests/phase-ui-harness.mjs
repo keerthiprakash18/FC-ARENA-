@@ -28,7 +28,7 @@ export async function createUiContext(browser, { width, native = false, direct =
   const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
   await context.route('**/*', async route => {
     const request = route.request(), url = new URL(request.url());
-    const headers = { 'access-control-allow-origin': direct ? new URL(origin).origin : 'https://fcarena.in', 'access-control-allow-credentials': 'true', 'access-control-allow-methods': 'GET,POST,PATCH,DELETE,OPTIONS', 'access-control-allow-headers': 'Authorization,Content-Type' };
+    const headers = { 'access-control-allow-origin': direct ? new URL(origin).origin : 'https://fcarena.in', 'access-control-allow-credentials': 'true', 'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS', 'access-control-allow-headers': 'Authorization,Content-Type' };
     if (url.pathname.startsWith('/api/')) {
       if (url.pathname === '/api/matches/phase3/events') return route.fulfill({ headers: { ...headers, 'content-type': 'text/event-stream' }, body: 'event: connected\ndata: {"type":"connected"}\n\n' });
       if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });

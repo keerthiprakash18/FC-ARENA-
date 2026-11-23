@@ -22,7 +22,9 @@ import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
 import { duoGamesJson, duoPlayerDelta, duoSideGoals, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
-import { uclWinner, mirrorUclReturnLeg } from './ucl-ties.js';
+import { assertSavedDuoGamesMatch, duoProgressSummary, readDuoProgress, saveDuoGameProgress } from './duo-progress.js';
+import type { SaveDuoGameDto } from './dto/save-duo-game.dto.js';
+import { uclWinner, mirrorUclReturnLeg, assertUclReturnLegReady } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
 import { loadGroupFairPlay, rankBestThirdGroups, usesBestThirdPlayoffs } from '../tournaments/best-third-playoffs.js';
 
@@ -270,6 +272,7 @@ export class ResultsService {
             if (duoGames && source.ocrExtractionId) {
               throw new BadRequestException('Duo aggregate results require both individual games to be entered and verified.');
             }
+            if (duoGames) assertSavedDuoGamesMatch(readDuoProgress(currentMatch.duoGameProgress), duoGames);
             return tx.resultSubmission.create({
               data: {
                 matchId,
@@ -354,6 +357,28 @@ export class ResultsService {
     }
   }
 
+  async saveDuoGame(userId: string, matchId: string, dto: SaveDuoGameDto) {
+    const canVerify = await this.authorization.canVerifyResult(userId, matchId);
+    const progress = await this.prisma.$transactionWithRetry(async tx => {
+      const match = await tx.match.findUnique({ where: { id: matchId }, include: { tournament: true, fixture: { include: {
+        homeRegistration: { include: { members: true } }, awayRegistration: { include: { members: true } },
+      } } } });
+      if (!match) throw this.matchNotFound();
+      const home = match.fixture.homeRegistration?.members ?? [], away = match.fixture.awayRegistration?.members ?? [];
+      if (!canVerify && ![...home, ...away].some(member => member.userId === userId)) throw new ForbiddenException('Only participants or an authorized result administrator may save these games.');
+      if (match.confirmedResultSubmissionId || !['UNSCHEDULED', 'SCHEDULED', 'LIVE'].includes(match.status)) throw this.resultAlreadyRecorded();
+      if (await tx.resultSubmission.findFirst({ where: { matchId, status: 'PENDING_VERIFICATION' } })) throw this.resultAlreadyPending();
+      await this.assertPairNotAlreadyCompleted(tx, match);
+      if (match.tournament.competitionFormat === 'UCL_CUP') await assertUclReturnLegReady(tx, match.fixture);
+      const updated = saveDuoGameProgress(match.tournament, home, away, readDuoProgress(match.duoGameProgress), dto);
+      await tx.match.update({ where: { id: matchId }, data: { duoGameProgress: { revision: updated.revision, games: updated.games.map(game => ({ ...game })) }, status: 'LIVE' } });
+      await tx.fixture.update({ where: { id: match.fixtureId }, data: { status: 'LIVE' } });
+      return duoProgressSummary(updated, match.tournament.duoGamesPerFixture === 4 ? 4 : 2);
+    }, { isolationLevel: 'Serializable' });
+    this.realtime.publish(matchId, 'duo_game_saved', { completedGames: progress.completedGames });
+    return { success: true, data: { message: 'Game saved. Fixture standings update after the complete result is verified.', progress }, error: null };
+  }
+
   async getMatchResults(
     userId: string,
     matchId: string,
@@ -374,6 +399,7 @@ export class ResultsService {
                     select: {
                       userId:
                         true,
+                      user: { select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } } },
                     },
                   },
                 },
@@ -385,6 +411,7 @@ export class ResultsService {
                     select: {
                       userId:
                         true,
+                      user: { select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } } },
                     },
                   },
                 },
@@ -521,6 +548,13 @@ export class ResultsService {
           match.confirmedResultSubmissionId,
 
         submissions,
+        duoContext: match.tournament.duoAggregateEnabled && !match.confirmedResultSubmissionId ? {
+          gameCount: match.tournament.duoGamesPerFixture === 4 ? 4 : 2,
+          penaltiesAllowed: match.tournament.competitionFormat === 'UCL_CUP' && match.fixture.phase === 'PLAYOFF' && !(match.fixture.roundName.startsWith('UCL ') && match.fixture.matchday === 1),
+          home: match.fixture.homeRegistration ? { id: match.fixture.homeRegistration.id, members: match.fixture.homeRegistration.members.map(member => ({ id: member.user.id, fullName: member.user.fullName, inGameName: member.user.player?.identity?.inGameName ?? null })) } : null,
+          away: match.fixture.awayRegistration ? { id: match.fixture.awayRegistration.id, members: match.fixture.awayRegistration.members.map(member => ({ id: member.user.id, fullName: member.user.fullName, inGameName: member.user.player?.identity?.inGameName ?? null })) } : null,
+          progress: duoProgressSummary(readDuoProgress(match.duoGameProgress), match.tournament.duoGamesPerFixture === 4 ? 4 : 2),
+        } : null,
       },
       error: null,
     };

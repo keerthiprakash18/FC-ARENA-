@@ -7,6 +7,7 @@ import { useAppRefresh } from '@/lib/app-refresh';
 import { TournamentFormatGuide } from '@/components/tournaments/tournament-format-guide';
 import { MatchTimeCoordination } from '@/components/matches/match-time-coordination';
 import { DuoAggregateInputs, readDuoAggregateForm, type DuoGame } from '@/components/matches/duo-aggregate-inputs';
+import { DuoResultPanel, type DuoProgressContext } from '@/components/matches/duo-result-panel';
 import type { TournamentFormatDescription } from '@/lib/tournament-format-guide';
 import { useResultDraft } from "@/lib/result-draft";
 import { ApiError } from "@/lib/api";
@@ -338,6 +339,7 @@ function MatchRoom() {
   const [submissions, setSubmissions] = useState<ResultSubmission[]>([]);
 
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const [duoContext, setDuoContext] = useState<DuoProgressContext | null>(null);
 
   const [isLeagueAdmin, setIsLeagueAdmin] = useState(false);
 
@@ -402,12 +404,14 @@ function MatchRoom() {
         confirmedResultSubmissionId: string | null;
 
         submissions: ResultSubmission[];
+        duoContext?: DuoProgressContext | null;
       };
 
       error: null;
     }>(`/matches/${params.matchId}/results`, signal ? { signal } : {});
     if (signal?.aborted || epoch !== readEpoch.current.results) return;
     setSubmissions(response.data.submissions);
+    setDuoContext(response.data.duoContext ?? null);
 
     setConfirmedId(response.data.confirmedResultSubmissionId);
 
@@ -1083,7 +1087,7 @@ function MatchRoom() {
         ) : match.returnLeg?.firstLegScore ? (
           <p className="theme-muted text-sm" role="status">Verified first leg: {home} {match.returnLeg.firstLegScore.homeScore} – {match.returnLeg.firstLegScore.awayScore} {away}. The aggregate of both legs decides the winner.</p>
         ) : null}
-        {canSubmit ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
+        {canSubmit && !match.tournament.duoAggregateEnabled ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
           <p className="theme-muted text-sm" role="status">{draft.status || 'Scores and screenshots are saved on this device for 7 days.'}</p>
           {hasDraft ? <button type="button" disabled={busy} className="theme-text min-h-11 px-3 text-sm font-bold" onClick={async () => {
             if (await confirmAction({ title: 'Discard saved draft?', description: 'Remove the scores and selected screenshot saved on this device?', confirmLabel: 'Discard draft' })) draft.clear();
@@ -1611,7 +1615,10 @@ function MatchRoom() {
           <section id="result-entry" className="fc-result-evidence scroll-mt-24">
             <h2 className="theme-text text-2xl font-semibold">Enter Result Manually</h2>
 
-            <form
+            {match.tournament.duoAggregateEnabled && duoContext ? (
+              <div className="mt-5"><DuoResultPanel key={match.id} matchId={match.id} context={duoContext} canVerify={isLeagueAdmin}
+                disabled={busy} allowPenalties={supportsPenaltyScores(match)} homeName={home} awayName={away} onCompleted={refreshMatchCenter} /></div>
+            ) : <form
               onSubmit={submitManualResult}
               className="mt-5 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 sm:gap-4"
             >
@@ -1664,7 +1671,7 @@ function MatchRoom() {
                   ? "Save Result & Update Stats"
                   : "Submit Manual Result"}
               </button>
-            </form>
+            </form>}
           </section>
         ) : null}
 

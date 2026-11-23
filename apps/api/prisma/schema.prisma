@@ -947,6 +947,7 @@ model Match {
   confirmedResultSubmissionId String?     @unique @db.Uuid
   homeReadyAt                 DateTime?
   awayReadyAt                 DateTime?
+  duoGameProgress             Json?
   createdAt                   DateTime    @default(now())
   updatedAt                   DateTime    @updatedAt
 

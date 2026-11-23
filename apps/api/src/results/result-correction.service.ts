@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import {
@@ -745,6 +746,7 @@ export class ResultCorrectionService {
           data: {
             confirmedResultSubmissionId:
               null,
+            duoGameProgress: Prisma.DbNull,
 
             status:
               restoredMatchStatus,

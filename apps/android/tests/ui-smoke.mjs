@@ -60,6 +60,10 @@ async function checkDesign(page, path, width) {
     })));
     accessibility.push({path,width,mode,violations});
   }
+  if (width === 390 && new Set(['/dashboard','/tournaments','/matches','/awards','/profile','/leaderboards','/admin/system']).has(path)) {
+    await html.evaluate(element => { element.dataset.theme = 'luxury-gold'; element.dataset.mode = 'light'; });
+    await page.screenshot({path:`${output}/${screenshot}-obsidian-light-${width}.png`,fullPage:true,animations:'disabled'});
+  }
   await html.evaluate((element, {theme,mode}) => {
     element.dataset.theme = theme;
     element.dataset.mode = mode;

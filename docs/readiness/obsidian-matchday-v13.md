@@ -22,10 +22,12 @@ separate owner-approved action after all release gates are proven.
 - Default `luxury-gold` theme has coordinated light and dark surface roles.
   All existing club palettes and preferences retain their own mappings;
   there is **no** API field, schema or storage migration.
-- Layer is loaded once, after the unchanged `arena-consolidated.css`.
-  Rollback during review is removal of **one import** from
-  `apps/web/src/app/layout.tsx` plus the V13-only Cup Center append.
-- The 13 V12 consolidated source sections remain intact. CSS duplication
+- Layer is appended once after the unchanged V12 sections **inside** the
+  single imported `arena-consolidated.css`. Rollback during review is removal
+  of its dedicated V13 block, plus the V13-only Cup Center append; retain
+  the source file as an auditable reference.
+- The 13 V12 consolidated source sections remain intact and the V13 source
+  is appended as a fourteenth section. CSS duplication
   clean-up is deferred until visual parity is verified, not performed blindly.
 
 ## Phase 2 — Product surfaces: source-level coverage
@@ -49,7 +51,7 @@ been manually approved. Route-level screenshots remain a required gate.
 
 ## Phase 3 — Test coverage introduced
 
-1. `node --test tests/obsidian-matchday.test.mjs`: checks CSS import
+1. `node --test tests/obsidian-matchday.test.mjs`: checks one-bundle source
    ordering, brand palette, static WCAG AA sample contrast, theme presence,
    primary targets, accessibility media queries and restricted Cup changes.
 2. `node apps/android/tests/obsidian-matchday-regression.mjs` runs **against

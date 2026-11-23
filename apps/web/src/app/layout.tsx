@@ -20,6 +20,8 @@ import { WebVitalsReporter } from '@/components/telemetry/web-vitals-reporter';
 import './globals.css';
 import './design-tokens.css';
 import './arena-consolidated.css';
+// V13 brand foundation is isolated after frozen V12 CSS for reversible review.
+import './obsidian-matchday.css';
 
 
 

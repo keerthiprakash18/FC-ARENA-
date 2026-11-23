@@ -86,7 +86,7 @@ export const viewport: Viewport = {
     'cover',
 
   themeColor:
-    '#061E35',
+    '#0C1722',
 };
 
 export default async function RootLayout({

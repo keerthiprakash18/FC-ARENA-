@@ -1,0 +1,142 @@
+# This candidate is a temporary V12 visual-only release branch; isolated PR artifact is for staging, never live activation.
+# Builds immutable deployable files on GitHub Actions, NOT on VCL Hosting.
+# Build on relevant main updates or manually; this workflow NEVER changes production.
+name: FC ARENA - Off-host production build artifact
+
+on:
+  # Build deployable artifacts off-host whenever relevant code reaches main.
+  # This never deploys or changes VCL production.
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/offhost-build-artifact.yml"
+  pull_request:
+    paths:
+      - ".github/workflows/offhost-build-artifact.yml"
+      - "ops/VCL_RELEASE_STORAGE_POLICY.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fcarena-offhost-artifact-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.fcarena.in/api
+      API_PROXY_TARGET: https://api.fcarena.in/api
+      # Dummy CI build value only. Never inject production database credentials.
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/fcarena_build_only?schema=public
+      JWT_ACCESS_SECRET: ci-dummy-access-secret-for-build-at-least-32-characters
+      JWT_REFRESH_SECRET: ci-dummy-refresh-secret-for-build-at-least-32-characters
+      FC_ARENA_RELEASE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact requested revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies on GitHub runner
+        run: npm ci --include=dev
+
+      # Deterministic source-level tests only. This runner has no production
+      # credentials, no SSH access, and never contacts or mutates live DB/media.
+      # A failure stops packaging, so a failed feature safety check cannot
+      # produce a deployable runtime artifact.
+      - name: Offline FC ARENA feature and recovery regression gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test \
+            tests/award-discovery-playoff-explanation.test.mjs \
+            tests/playoff-bracket.test.mjs \
+            tests/tournament-format-diagram.test.mjs \
+            tests/tournament-create-preview.test.mjs \
+            tests/standings-context-regression.test.mjs \
+            tests/v12-premium-experience.test.mjs \
+            tests/v12-clubs-season-public-i18n.test.mjs \
+            tests/security-env.test.mjs \
+            tests/date-of-birth.test.mjs \
+            tests/production-restore-safety.test.mjs \
+            tests/release-rehearsal-contract.test.mjs
+
+      - name: Build API and Web on GitHub runner
+        run: |
+          set -euo pipefail
+          npm run build:api
+          npm run build:web
+          test -f apps/api/dist/main.js || test -f apps/api/dist/main
+          test -f apps/web/.next/BUILD_ID
+
+      - name: Package production-only runtime and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          # No live credentials, DB files, uploads, backups or .env files are included.
+          # npm prune is run only on the disposable GitHub runner.
+          npm prune --omit=dev
+          # After packaging, migrations should be run as a separate verified step.
+          test -d node_modules/@prisma/client
+          rm -rf apps/web/.next/cache
+          mkdir -p release-output
+          bundle="release-output/fcarena-runtime-${FC_ARENA_RELEASE_SHA}.tar.gz"
+          tar -czf "$bundle" \
+            --exclude='node_modules/.cache' \
+            package.json package-lock.json \
+            node_modules packages \
+            apps/api/package.json apps/api/dist apps/api/prisma \
+            apps/web/package.json apps/web/next.config.ts apps/web/.next apps/web/public
+          (cd release-output && sha256sum "$(basename "$bundle")" > SHA256SUMS)
+          printf '%s\n' "$FC_ARENA_RELEASE_SHA" > release-output/RELEASE_SHA.txt
+          test -s "$bundle"
+          (cd release-output && sha256sum -c SHA256SUMS)
+          echo 'Built immutable runtime bundle on GitHub runner; VCL server untouched.'
+
+      - name: Validate bundle identity, checksum, and absence of user data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s ops/tests -p 'test_offhost_bundle.py' -v
+          python3 ops/verify-offhost-runtime-bundle.py \
+            --output-dir release-output \
+            --release "$FC_ARENA_RELEASE_SHA"
+
+      # The VCL host reports Ubuntu 24.04 x86_64, Node 24.22.1 and glibc 2.39.
+      # Rehearse the EXACT packaged output on a disposable matching runner.
+      # This does not boot a server, read user data or contact the production host.
+      - name: Verify packaged native runtime on VCL-matching Linux runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/offhost-vcl-native-runtime.test.mjs
+          stage="$(mktemp -d "$RUNNER_TEMP/fcarena-native-XXXXXXXX")"
+          trap 'rm -rf "$stage"' EXIT
+          tar -xzf "release-output/fcarena-runtime-${FC_ARENA_RELEASE_SHA}.tar.gz" -C "$stage" --no-same-owner --no-same-permissions
+          node ops/verify-offhost-vcl-native-runtime.mjs "$stage"
+
+      - name: Upload short-lived build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fcarena-vcl-runtime-${{ github.event.pull_request.head.sha || github.sha }}
+          path: release-output/
+          retention-days: 14
+          compression-level: 0
+          if-no-files-found: error

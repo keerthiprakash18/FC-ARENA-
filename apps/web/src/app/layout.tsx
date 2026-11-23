@@ -20,6 +20,7 @@ import { WebVitalsReporter } from '@/components/telemetry/web-vitals-reporter';
 import './globals.css';
 import './design-tokens.css';
 import './arena-consolidated.css';
+// V13 appended design layer is included in the ordered consolidated bundle.
 
 
 
@@ -85,7 +86,7 @@ export const viewport: Viewport = {
     'cover',
 
   themeColor:
-    '#061E35',
+    '#0C1722',
 };
 
 export default async function RootLayout({

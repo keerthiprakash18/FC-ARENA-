@@ -306,3 +306,108 @@
   overflow-wrap: anywhere;
 }
 .liveDrawPairs b { flex-shrink: 0; color: var(--cup-gold); }
+
+/* OBSIDIAN MATCHDAY V13: Cup Center display-only refinement. */
+/* The tournament STUDIO retains its dark organizer controls. These rules
+   affect only the tournament listing, not game formats, routes or actions. */
+.center {
+  --cup-navy: var(--theme-surface);
+  --cup-deep: var(--theme-elevated);
+  --cup-panel: var(--theme-secondary-background);
+  --cup-line: var(--theme-border);
+  --cup-gold: var(--theme-primary);
+  --cup-white: var(--theme-text);
+  --cup-muted: var(--theme-text-secondary);
+  width: min(100%, 70rem);
+  gap: clamp(.85rem, 2vw, 1.35rem);
+}
+.center .hero {
+  --cup-white: #f5f8f7;
+  --cup-muted: #c1cbd4;
+  --cup-gold: #d9b977;
+  min-height: 11rem;
+  align-items: center;
+  background: radial-gradient(ellipse at 88% 14%,rgba(217,185,119,.15),transparent 44%),
+    linear-gradient(115deg,#162b3c,#0c1722 75%);
+  border-color: #3a4a59;
+  border-radius: var(--om-radius-hero, 20px);
+}
+.center .hero h1 { font-size: clamp(2rem, 5.3vw, 3.2rem); }
+.center .hero p { max-width: 48ch; }
+.center .heroTrophy { opacity: .25; }
+.center .hero .goldButton {
+  background: #d9b977;
+  color: #18222d;
+}
+.center .hero .goldButton:hover { background: #e9cc93; }
+.center .leagueBar,
+.center .statusBar,
+.center .empty,
+.center .tournamentRow,
+.center .modeGrid a,
+.center .library > *,
+.center .formatList {
+  border-radius: var(--om-radius-card, 16px);
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+  box-shadow: none;
+}
+.center .leagueBar select { color-scheme: normal; }
+.center .leagueBar select option { background: var(--theme-surface); color: var(--theme-text); }
+.center .sectionHead { min-height: 2.6rem; }
+.center .tournamentList { gap: .7rem; }
+.center .tournamentLink { min-height: 74px; gap: 1rem; }
+.center .tournamentMeta h3 { font-size: clamp(1.02rem, 2.1vw, 1.22rem); }
+.center .tournamentMeta p { line-height: 1.5; }
+.center .feature {
+  --cup-white: #f5f8f7;
+  --cup-muted: #c4ced7;
+  --cup-gold: #d9b977;
+  border-radius: var(--om-radius-card, 16px);
+  background: linear-gradient(120deg,#192f40,#0e1d2a 75%);
+  border-color: #526070;
+}
+.center .feature .tournamentMeta h3 { color: #f5f8f7; }
+.center .feature .tournamentMeta p { color: #c4ced7; }
+.center .feature .tournamentLink > svg { color: #d9b977; }
+.center .cardActions > a { color: var(--theme-primary); }
+.center .feature .cardActions > a { color: #d9b977; }
+.center .danger { color: var(--theme-danger); }
+.center .feature .danger { color: #ffaab4; }
+.center .modeGrid a,.center .library > * { min-height: 62px; }
+.center .modeGrid :is(a:hover,a:focus-visible),
+.center .library > :is(a:hover,button:hover,button:focus-visible) {
+  border-color: var(--theme-control-border);
+  background: var(--theme-elevated);
+}
+.center .statusBar button[aria-pressed="true"],
+.center .library [aria-pressed="true"] {
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
+  box-shadow: inset 0 -2px var(--theme-primary);
+}
+:global(.fc-main) .center :is(.statusBar button,.library button)[aria-pressed=true] {
+  background: var(--theme-primary-soft) !important;
+  border-color: var(--theme-border) !important;
+  color: var(--theme-primary) !important;
+}
+:global(.fc-premium .fc-main) .center .leagueBar select {
+  background: var(--theme-surface) !important;
+  color: var(--theme-text) !important;
+  border-color: var(--theme-control-border) !important;
+}
+.center :is(.tournamentRow,.modeGrid a,.library > *):hover {
+  border-color: var(--theme-control-border);
+}
+@media (max-width: 640px) {
+  .center .hero { min-height: 0; padding: 1.25rem; }
+  .center .heroTrophy { opacity: .13; }
+  .center .modeGrid a { min-height: 74px; }
+}
+@media (forced-colors: active) {
+  .center :is(.hero,.feature,.tournamentRow,.leagueBar,.modeGrid a,.library > *) {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+}

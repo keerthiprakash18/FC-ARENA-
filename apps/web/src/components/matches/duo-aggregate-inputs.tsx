@@ -111,7 +111,7 @@ export function DuoAggregateInputs({
         <p className="text-xs font-bold text-amber-300">Game {index + 1}</p>
         <p className="[overflow-wrap:anywhere] text-sm font-semibold">{label(player)} vs {label(opponent)}</p>
         <input type="hidden" name={prefix + 'AwayPlayer' + index} value={opponent.id} />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 items-end gap-3">
           {(['home', 'away'] as const).map(side => (
             <label key={side} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 text-xs font-semibold">
               <span className="[overflow-wrap:anywhere]">{side === 'home' ? 'Home' : 'Away'}: {side === 'home' ? label(player) : label(opponent)} goals</span>

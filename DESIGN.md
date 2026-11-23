@@ -22,3 +22,40 @@ The signed-in interface uses a restrained football matchday style. Put the playe
 - Use English for interface and built-in help copy. Render player names, club names, messages and match evidence in the language entered by their authors.
 
 The implementation applies the Apple Design interaction guidance and the Taste Design hierarchy and restraint principles. The [UI/UX Pro Max accessibility and responsive checks](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/src/ui-ux-pro-max/templates/base/quick-reference.md) guide browser review.
+
+## V13 Obsidian Matchday visual foundation (candidate; not deployed)
+
+The V13 review branch layers `apps/web/src/app/obsidian-matchday.css` **after**
+the byte-preserved V12 `arena-consolidated.css`. That import is the reversible
+visual activation point; do not delete the old consolidated stylesheet to
+"clean up" the visual language before screenshot and functionality parity.
+
+**Default luxury-gold theme:** Obsidian Navy `#0C1722` for navigation and
+matchday highlights, Porcelain `#F5F6F4` canvas, `#FFFFFF` cards,
+`#14222E` primary text, `#536372` supporting text, Champagne Gold
+`#D9B977` for honors or featured CTAs. Gold text on light cards uses
+`#8A631F`, not the lighter fill hue. Dark mode uses `#0C131C` canvas,
+`#141E2A` panels and `#F3F6F5` text.
+
+Regular `FcPageHeader` and `BackHeader` screens now present quiet editorial
+headings; **only featured** matchday / championship sections show dramatic
+navy heroes. The Cup Center uses a calm, light listing with one featured dark
+tournament while its organizer Studio remains unchanged. Dashboard, match
+cards, honours, player identity, rankings, admin workbenches and shared
+navigation use the same radius, spacing, color and focus conventions.
+The source of competition rules, results and user content has not changed.
+
+**Preserve preferences.** Classic Blue and all eleven additional club themes,
+plus system/light/dark mode, are still supported. The V13 foundation gives
+the default luxury-gold theme its own neutral product identity without
+forcing users of other club themes to adopt it.
+
+**Mobile and accessibility:** preserve the existing Android WebView safe
+areas, tab labels, 44px+ controls, horizontal scrolling inside brackets,
+tabular scores, visible focus, high-contrast/forced-colors mode, reduced
+motion and real status labels. No live migrations or production changes are
+part of the visual branch.
+
+For implementation and test evidence, see
+`docs/readiness/obsidian-matchday-v13.md`. Gate any release separately per
+`AGENTS.md` and require visual screenshot review before merging.

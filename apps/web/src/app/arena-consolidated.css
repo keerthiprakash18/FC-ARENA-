@@ -4508,3 +4508,489 @@ html[data-native-app="android"] .theme-bottom-item {
 }
 
 /* ---- END SOURCE arena-premium-foundations.css ---- */
+
+/* ---- BEGIN SOURCE obsidian-matchday.css ---- */
+/*
+ * FC ARENA / OBSIDIAN MATCHDAY — V13 review candidate.
+ * Intentionally isolated AFTER the frozen V12 concatenated stylesheet:
+ * do not edit the old source/cascade without screenshot parity evidence.
+ * Brand-first neutral surfaces; club accents, existing theme choices, API
+ * behavior, tournament and match data remain unchanged.
+ */
+:root {
+  --om-navy: #0c1722;
+  --om-navy-raised: #152637;
+  --om-gold: #d9b977;
+  --om-on-gold: #17202a;
+  --om-success: #23815c;
+  --om-danger: #ba3948;
+  --om-radius-hero: 20px;
+  --om-radius-card: 16px;
+  --om-radius-control: 11px;
+  --om-radius-small: 8px;
+  --om-space-inline: clamp(16px, 2.2vw, 28px);
+  --om-ease: 160ms cubic-bezier(.2,.75,.25,1);
+  /* Computed on the root, so resetting a heading's local legacy tokens
+     does not create a self-referential variable cycle. */
+  --om-editorial-ink: var(--theme-text);
+  --om-editorial-muted: var(--theme-text-secondary);
+  --om-editorial-subtle: var(--theme-text-muted);
+  --om-editorial-border: var(--theme-border);
+  --om-editorial-focus: var(--theme-focus);
+  --om-quiet-shadow: 0 4px 24px rgba(12,23,34,.035);
+}
+:root[data-theme="luxury-gold"][data-mode="light"] {
+  --theme-background: #f5f6f4;
+  --theme-secondary-background: #eff2f1;
+  --theme-surface: #ffffff;
+  --theme-elevated: #f9faf9;
+  --theme-sidebar: #0c1722;
+  --theme-sidebar-secondary: #152637;
+  --theme-sidebar-border: rgba(237,244,248,.12);
+  --theme-sidebar-text: #f6f8f7;
+  --theme-sidebar-muted: #b9c7d0;
+  --theme-sidebar-icon: #b9c7d0;
+  --theme-header: #ffffff;
+  --theme-header-alpha: #ffffff;
+  --theme-primary: #142b40;
+  --theme-primary-hover: #213e53;
+  --theme-primary-bright: #d9b977;
+  --theme-primary-soft: #e9eeed;
+  --theme-primary-soft-strong: #dce5e4;
+  --theme-on-primary: #ffffff;
+  --theme-text: #14222e;
+  --theme-text-secondary: #536372;
+  --theme-text-muted: #607080;
+  --theme-border: #e2e7e8;
+  --theme-control-border: #718392;
+  --theme-focus: #8a631f;
+  --theme-success: #23815c;
+  --theme-success-soft: #eaf5ee;
+  --theme-danger: #ba3948;
+  --theme-danger-soft: #fceef0;
+  --theme-card-shadow: 0 2px 10px rgba(12,23,34,.025);
+  --theme-card-shadow-hover: 0 9px 24px rgba(12,23,34,.07);
+  --fc-navy: #0c1722;
+  --fc-gold: #8a631f;
+  --fc-gold-bright: #d9b977;
+  --fc-gold-soft: #f7efdc;
+}
+:root[data-theme="luxury-gold"][data-mode="dark"] {
+  --theme-background: #0c131c;
+  --theme-secondary-background: #101c29;
+  --theme-surface: #141e2a;
+  --theme-elevated: #1b2936;
+  --theme-sidebar: #0c1722;
+  --theme-sidebar-secondary: #152637;
+  --theme-header: #141e2a;
+  --theme-header-alpha: #141e2a;
+  --theme-text: #f3f6f5;
+  --theme-text-secondary: #b7c5d0;
+  --theme-text-muted: #a7b8c6;
+  --theme-border: #293a49;
+  --theme-control-border: #748b9e;
+  --theme-primary: #e6c681;
+  --theme-primary-hover: #f0d59d;
+  --theme-primary-bright: #e6c681;
+  --theme-on-primary: #17202a;
+  --theme-primary-soft: #302b22;
+  --theme-primary-soft-strong: #3b3428;
+  --theme-focus: #e6c681;
+  --theme-success: #79dba7;
+  --theme-danger: #ffa0aa;
+  --fc-gold: #e6c681;
+  --fc-gold-bright: #e6c681;
+  --fc-gold-soft: #302b22;
+}
+/* All existing club palettes stay editable, including classic-blue. */
+.fc-premium {
+  --fc-card-radius: var(--om-radius-card);
+  --fc-control-radius: var(--om-radius-control);
+  --arena-card-radius: var(--om-radius-card);
+  --arena-hero-radius: var(--om-radius-hero);
+  --fc-page-gap: clamp(16px, 2vw, 24px);
+  --fc-section-gap: clamp(20px, 2.8vw, 32px);
+  --fc-panel-shadow: var(--om-quiet-shadow);
+  font-family: var(--fc-font);
+  font-feature-settings: "ss01" on;
+}
+:root[data-theme="luxury-gold"] .fc-premium .fc-app-shell {
+  background: var(--theme-background) !important;
+}
+:root[data-theme="luxury-gold"] .fc-premium .theme-sidebar {
+  background: var(--om-navy) !important;
+  color: #f6f8f7;
+}
+:root[data-theme="luxury-gold"] .fc-premium .theme-sidebar .theme-nav-item {
+  min-height: 48px;
+  border-radius: var(--om-radius-control);
+  color: #bdcad4;
+  font-weight: 570;
+}
+:root[data-theme="luxury-gold"] .fc-premium .theme-sidebar .theme-nav-item[data-active="true"] {
+  background: rgba(244,248,250,.095) !important;
+  color: #f7faf9 !important;
+  box-shadow: inset 3px 0 0 var(--om-gold);
+  font-weight: 700;
+}
+:root[data-theme="luxury-gold"] .fc-premium .theme-sidebar .theme-nav-item[data-active="true"] .theme-nav-icon {
+  color: var(--om-gold) !important;
+}
+:root[data-theme="luxury-gold"] .fc-premium .theme-sidebar .theme-user-card {
+  background: #152637;
+  border-color: rgba(230,239,244,.12);
+}
+:root[data-theme="luxury-gold"] .fc-premium .theme-sidebar :is(.theme-brand-title,.theme-sidebar-user-name) {
+  color: #f7faf9;
+}
+.fc-premium .fc-main {
+  letter-spacing: -.006em;
+}
+.fc-premium .fc-main :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-panel,.theme-panel,.theme-stat-card,.fc-arena-card,.premium-match,.premium-destination.is-featured,.fc-ux-card,.fc-ux-panel) {
+  border-radius: var(--om-radius-card);
+  border-color: var(--theme-border);
+}
+.fc-premium .fc-app-shell .fc-main :is(.fc-panel,.theme-panel,.theme-stat-card,.fc-ux-card) {
+  box-shadow: var(--om-quiet-shadow);
+}
+.fc-premium .fc-main :is(.theme-stat-card,.fc-metric) {
+  min-width: 0;
+  background: var(--theme-surface);
+}
+.fc-premium .fc-main .fc-metric-label {
+  color: var(--theme-text-secondary);
+  font-size: .79rem;
+  font-weight: 580;
+  letter-spacing: .005em;
+}
+.fc-premium .fc-main .fc-metric-value {
+  color: var(--theme-text);
+  font-size: clamp(1.75rem, 2.7vw, 2.28rem);
+  font-weight: 740;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+.fc-premium .fc-main :is(.fc-section-heading,.premium-section-heading) {
+  border-bottom: 1px solid var(--theme-border);
+  padding-block-end: 12px;
+}
+.fc-premium .fc-main :is(.fc-section-heading,.premium-section-heading) h2 {
+  color: var(--theme-text);
+  font-size: clamp(1.08rem, 1.85vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+.fc-premium .fc-main :is(.fc-quick-action-tile,.theme-action-row,.premium-destination) {
+  border-radius: var(--om-radius-card);
+  box-shadow: none;
+}
+.fc-premium .fc-app-shell .fc-main .fc-quick-action-tile {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+  min-height: 72px;
+}
+.fc-premium .fc-main :is(.theme-primary-button,.theme-secondary-button,.theme-danger-button,.community-button,.premium-button) {
+  min-height: 44px;
+  border-radius: var(--om-radius-control);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+.fc-premium .fc-main :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+  border-radius: var(--om-radius-control);
+  font-family: var(--fc-font);
+}
+.fc-premium .fc-main :is(.fc-status-badge,.theme-status-badge,.theme-tone-premium) {
+  letter-spacing: .01em;
+  font-weight: 650;
+}
+.fc-premium .fc-main :is(.theme-primary-button,.fc-quick-action-tile,.theme-action-row,.fc-context-nav-link):focus-visible,
+.fc-premium .theme-bottom-nav a:focus-visible {
+  outline: 3px solid var(--theme-focus);
+  outline-offset: 3px;
+}
+/*
+ * Routine pages use an editorial heading; drama belongs to the matchday
+ * hero, trophy reveal and actual featured match. No generic stadium card.
+ * Reset legacy heading-local theme tokens before restyling its children.
+ */
+.fc-premium .fc-app-shell .fc-main .fc-page-heading {
+  --theme-text: var(--om-editorial-ink);
+  --theme-text-secondary: var(--om-editorial-muted);
+  --theme-text-muted: var(--om-editorial-subtle);
+  --theme-border: var(--om-editorial-border);
+  --theme-focus: var(--om-editorial-focus);
+  --fc-readable-accent: var(--theme-primary);
+  position: relative;
+  min-height: 0;
+  padding: 2px 0 clamp(12px, 2vw, 20px);
+  border: 0;
+  border-bottom: 1px solid var(--om-editorial-border);
+  border-radius: 0;
+  background: none !important;
+  box-shadow: none;
+  color: var(--om-editorial-ink);
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading h1 {
+  max-width: 100%;
+  color: var(--om-editorial-ink) !important;
+  font-size: clamp(1.85rem, 3.45vw, 2.8rem);
+  line-height: 1.08;
+  letter-spacing: -.053em;
+  font-weight: 735;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading :is(.fc-page-summary,.premium-hero-description) {
+  max-width: 66ch;
+  color: var(--om-editorial-muted) !important;
+  font-size: .92rem;
+  line-height: 1.57;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading .fc-page-kicker {
+  color: var(--theme-primary) !important;
+  letter-spacing: .095em;
+  font-size: .7rem;
+  font-weight: 760;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading .fc-heading-mark {
+  display: none;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading:has(.fc-heading-mark) .fc-page-heading-copy {
+  padding-inline-end: 0;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading :is(.theme-primary-button,.premium-primary,.home-hero-jump) {
+  color: var(--theme-on-primary) !important;
+  border-color: var(--theme-primary) !important;
+  background: var(--theme-primary) !important;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading :is(.theme-secondary-button,.premium-quiet) {
+  color: var(--om-editorial-ink) !important;
+  border-color: var(--theme-control-border) !important;
+  background: var(--theme-surface) !important;
+}
+.fc-premium .fc-app-shell .fc-main .fc-page-heading :is(a,button):focus-visible {
+  outline-color: var(--om-editorial-focus) !important;
+}
+/* Competition/honours carry a more specific old stadium selector. Explicitly
+   restore the same editorial heading there, without touching featured heroes. */
+.fc-premium .fc-app-shell[data-arena-area="competition"] .fc-main .fc-page-heading,
+.fc-premium .fc-app-shell[data-arena-area="honours"] .fc-main .fc-page-heading {
+  background: none !important;
+  border-color: var(--om-editorial-border);
+}
+
+/* Championship moments are featured, not another brightly outlined card. */
+.fc-premium .fc-app-shell .fc-main .premium-hero {
+  --arena-navy: var(--om-navy);
+  --arena-deep: var(--om-navy);
+  --arena-raised: var(--om-navy-raised);
+  --arena-gold: var(--om-gold);
+  --arena-on-gold: var(--om-on-gold);
+  border-radius: var(--om-radius-hero);
+  box-shadow: none;
+}
+.fc-premium .fc-app-shell[data-arena-area="honours"] .fc-main .premium-hero {
+  background: radial-gradient(ellipse at 89% 16%,rgba(217,185,119,.14),transparent 45%),linear-gradient(125deg,#111d2a,#0c1722 75%) !important;
+  border-color: #334353;
+}
+.fc-premium .fc-app-shell .fc-main .premium-hero :is(.premium-eyebrow,.fc-page-kicker) {
+  color: var(--om-gold) !important;
+}
+.fc-premium .fc-app-shell .fc-main .premium-home-hero {
+  border-color: #334353;
+  border-radius: var(--om-radius-hero);
+  box-shadow: none;
+}
+.fc-premium .fc-dashboard-page {
+  row-gap: clamp(14px, 1.75vw, 22px);
+}
+.fc-premium .fc-dashboard-page .home-hero-pitch {
+  display: none;
+}
+.fc-premium .fc-dashboard-page .premium-home-hero {
+  min-height: 0;
+}
+.fc-premium .fc-dashboard-page .premium-home-hero .home-player-name {
+  letter-spacing: -.045em;
+}
+.fc-premium .fc-dashboard-page .fc-next-match-panel {
+  border: 1px solid var(--theme-border);
+  border-top: 2px solid var(--theme-primary);
+  box-shadow: var(--om-quiet-shadow);
+}
+.fc-premium .fc-dashboard-page .premium-home-next .home-matchup {
+  border: 1px solid rgba(224,237,246,.17);
+  border-radius: var(--om-radius-card);
+}
+.fc-premium .fc-dashboard-page .fc-dashboard-queue {
+  border-radius: var(--om-radius-card);
+}
+.fc-premium .fc-dashboard-page .fc-dashboard-queue-item {
+  border-radius: var(--om-radius-small);
+}
+.fc-premium .fc-dashboard-page .home-overview-stats :is(.theme-stat-card,.fc-metric) {
+  box-shadow: none;
+}
+.fc-premium .fc-dashboard-page .home-more-tools {
+  border-color: var(--theme-border);
+}
+.fc-premium .fc-dashboard-page .home-more-tools > summary {
+  min-height: 44px;
+}
+/* Matchroom scores and competition standings use numbers, not decorative glow. */
+.fc-premium .fc-main :is(.premium-match-score,.fc-match-list-score,.fc-standing-points,.fc-directory-points,.fc-rank-medal,.premium-ledger-score) {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.fc-premium .fc-main .premium-match-score {
+  font-weight: 750;
+  letter-spacing: -.065em;
+}
+.fc-premium .fc-main .premium-fixture-page .premium-fixture-ledger {
+  display: grid;
+  gap: 12px;
+}
+.fc-premium .fc-main .premium-fixture-page .premium-fixture-ledger > * {
+  border-radius: var(--om-radius-card);
+}
+.fc-premium .fc-main .premium-filter-workbench {
+  border-color: var(--theme-border);
+}
+.fc-premium .fc-main .premium-filter-workbench > summary {
+  min-height: 44px;
+  font-weight: 650;
+}
+/* Tournaments, leaderboards and profiles: white space carries the hierarchy. */
+.fc-premium .fc-main .fc-directory {
+  border-color: var(--theme-border);
+  border-radius: var(--om-radius-card);
+  background: var(--theme-surface);
+  box-shadow: none;
+}
+.fc-premium .fc-main .fc-directory-row {
+  min-height: 68px;
+}
+.fc-premium .fc-main .fc-directory-row + .fc-directory-row {
+  border-top: 1px solid var(--theme-border);
+}
+.fc-premium .fc-main .fc-directory-ranking .fc-directory-points {
+  font-variant-numeric: tabular-nums;
+}
+.fc-premium .fc-main .fc-leaderboard-page .fc-directory-ranking:first-child .fc-rank-medal {
+  color: var(--fc-gold);
+}
+.fc-premium .fc-main .fc-profile-page .profile-photo-settings {
+  border: 1px solid var(--theme-border);
+  border-radius: var(--om-radius-hero);
+  background: var(--theme-surface);
+  box-shadow: var(--om-quiet-shadow);
+}
+.fc-premium .fc-main .fc-profile-page .fc-profile-sections {
+  gap: 8px;
+}
+.fc-premium .fc-main .fc-profile-page .fc-profile-sections a {
+  border-radius: var(--om-radius-control);
+}
+.fc-premium .fc-main .fc-profile-page :is(.theme-action-row,.fc-panel) {
+  border-color: var(--theme-border);
+}
+.fc-premium .fc-main .premium-prestige-gateway {
+  background: color-mix(in srgb, var(--fc-gold-soft) 55%, var(--theme-surface));
+  border-color: var(--theme-border);
+  border-radius: var(--om-radius-card);
+}
+.fc-premium .fc-main .premium-awards-leader,
+.fc-premium .fc-main .premium-podium-player {
+  border-radius: var(--om-radius-card);
+  box-shadow: none;
+}
+/* The admin workbench is information-dense but visually calm. */
+.fc-premium .fc-main :is(.premium-admin-controls,.premium-filter-workbench,.premium-review-workspace) {
+  border-radius: var(--om-radius-card);
+}
+.fc-premium .fc-main .premium-admin-controls {
+  background: var(--theme-elevated);
+  border-color: var(--theme-border);
+}
+.fc-premium .fc-main .premium-operations-count {
+  border-bottom-color: var(--theme-border);
+}
+.fc-premium .fc-main :is(table,th,td) {
+  font-variant-numeric: tabular-nums;
+}
+.fc-premium .fc-main table th {
+  font-weight: 680;
+}
+/* Mobile tabs: predictable visual state, labels, tap size and native insets. */
+.fc-premium .theme-bottom-nav {
+  border-color: var(--theme-border);
+  border-radius: 20px;
+  box-shadow: 0 9px 28px rgba(12,23,34,.11);
+}
+.fc-premium .theme-bottom-nav .theme-bottom-item {
+  min-height: 56px;
+  border-radius: 15px;
+  font-weight: 620;
+}
+.fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"] {
+  color: var(--theme-text);
+  background: color-mix(in srgb,var(--theme-primary) 11%,var(--theme-surface));
+}
+.fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"]::after {
+  background: var(--theme-primary);
+}
+:root[data-theme="luxury-gold"][data-mode="light"] .fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"] {
+  background: #edf1ef;
+  color: #14222e;
+}
+:root[data-theme="luxury-gold"][data-mode="light"] .fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"]::after {
+  background: #8a631f;
+}
+@media (max-width: 640px) {
+  .fc-premium .fc-main :is(.fc-panel,.theme-panel,.fc-ux-card) {
+    box-shadow: none;
+  }
+  .fc-premium .fc-app-shell .fc-main .fc-page-heading {
+    padding-block: 0 12px;
+  }
+  .fc-premium .fc-app-shell .fc-main .fc-page-heading h1 {
+    font-size: clamp(1.75rem,7.4vw,2.3rem);
+  }
+  .fc-premium .fc-dashboard-page {
+    row-gap: 14px;
+  }
+  .fc-premium .fc-dashboard-page .premium-home-hero {
+    border-radius: 17px;
+  }
+  .fc-premium .fc-main .premium-fixture-page .premium-fixture-ledger {
+    gap: 10px;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .fc-premium .fc-main :is(a.fc-quick-action-tile,a.theme-action-row,a.fc-ux-card):hover {
+    border-color: var(--theme-control-border);
+    background: var(--theme-elevated);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading,.premium-home-hero,.premium-hero,.fc-ux-card,.fc-quick-action-tile) {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading,.premium-home-hero,.premium-hero,.fc-panel,.theme-stat-card) {
+    background: Canvas !important;
+    border: 1px solid CanvasText !important;
+    color: CanvasText !important;
+    box-shadow: none;
+  }
+  .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading,.premium-home-hero,.premium-hero) :is(h1,h2,p,span) {
+    color: CanvasText !important;
+  }
+  .fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+/* ---- END SOURCE obsidian-matchday.css ---- */

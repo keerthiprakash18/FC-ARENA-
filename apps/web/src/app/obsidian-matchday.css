@@ -260,6 +260,14 @@
 .fc-premium .fc-app-shell .fc-main .fc-page-heading :is(a,button):focus-visible {
   outline-color: var(--om-editorial-focus) !important;
 }
+/* Competition/honours carry a more specific old stadium selector. Explicitly
+   restore the same editorial heading there, without touching featured heroes. */
+.fc-premium .fc-app-shell[data-arena-area="competition"] .fc-main .fc-page-heading,
+.fc-premium .fc-app-shell[data-arena-area="honours"] .fc-main .fc-page-heading {
+  background: none !important;
+  border-color: var(--om-editorial-border);
+}
+
 /* Championship moments are featured, not another brightly outlined card. */
 .fc-premium .fc-app-shell .fc-main .premium-hero {
   --arena-navy: var(--om-navy);

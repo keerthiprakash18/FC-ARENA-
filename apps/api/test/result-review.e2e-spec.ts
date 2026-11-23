@@ -399,4 +399,66 @@ describe('Result review queue with authenticated HTTP and real PostgreSQL', () =
     });
     expect(finalMatch.confirmedResult?.duoGames).toEqual(correctedGames);
   }, 30000);
+  it('persists independent Duo games, merges concurrent saves and applies final fixture statistics once', async () => {
+    const leagueId = leagues[0]!;
+    await db.leagueMember.createMany({ data: [2,3,4,5,6].map(i => ({ leagueId, userId: users[i]!, type: 'SECONDARY' as const })), skipDuplicates: true });
+    const cup = await db.tournament.create({ data: { leagueId, createdByUserId: users[0]!, name: 'Progress Duo', code: 'DP' + run,
+      mode: 'DUO', duoAggregateEnabled: true, duoGamesPerFixture: 4, format: 'ROUND_ROBIN', maxEntries: 2, teamSize: 2, status: 'ACTIVE' } });
+    const registration = (ids: string[]) => db.tournamentRegistration.create({ data: { tournamentId: cup.id, registeredByUserId: ids[0]!, status: 'APPROVED',
+      members: { create: ids.map(userId => ({ tournamentId: cup.id, userId })) } } });
+    const home = await registration([users[2]!, users[3]!]), away = await registration([users[4]!, users[5]!]);
+    await db.tournamentAdmin.create({ data: { tournamentId: cup.id, userId: users[6]!, permissions: ['VERIFY_SCORES'] } });
+    const fixture = await db.fixture.create({ data: { tournamentId: cup.id, fixtureCode: 'DP' + run, sequence: 1, roundNumber: 1, roundName: 'Round 1',
+      bracketPosition: 1, homeRegistrationId: home.id, awayRegistrationId: away.id } });
+    const match = await db.match.create({ data: { tournamentId: cup.id, fixtureId: fixture.id } });
+    const games = [
+      { homePlayerId: users[2]!, awayPlayerId: users[4]!, homeGoals: 2, awayGoals: 1 },
+      { homePlayerId: users[3]!, awayPlayerId: users[5]!, homeGoals: 0, awayGoals: 3 },
+      { homePlayerId: users[2]!, awayPlayerId: users[5]!, homeGoals: 1, awayGoals: 0 },
+      { homePlayerId: users[3]!, awayPlayerId: users[4]!, homeGoals: 1, awayGoals: 2 },
+    ];
+    const save = (body: object, actor = users[6]!) => request(app.getHttpServer()).put(`/api/matches/${match.id}/duo-games`).set('Authorization', 'Bearer ' + token(actor)).send(body);
+    const read = () => request(app.getHttpServer()).get(`/api/matches/${match.id}/results`).set('Authorization', 'Bearer ' + token(users[2]!));
+    const submit = (duoGames = games) => request(app.getHttpServer()).post(`/api/matches/${match.id}/results`).set('Authorization', 'Bearer ' + token(users[2]!)).send({ homeScore: 4, awayScore: 6, duoGames });
+    await save({ ...games[0], expectedVersion: 0 }, users[1]!).expect(403);
+    await save({ ...games[0], awayPlayerId: users[0], expectedVersion: 0 }).expect(400);
+    await save({ ...games[0], homeGoals: -1, expectedVersion: 0 }).expect(400);
+    const zero = { ...games[0], homeGoals: 0, awayGoals: 0, expectedVersion: 0 };
+    await db.tournament.update({ where: { id: cup.id }, data: { competitionFormat: 'UCL_CUP' } });
+    await db.fixture.update({ where: { id: fixture.id }, data: { phase: 'PLAYOFF', roundName: 'UCL Round of 16', matchday: 2 } });
+    const lockedReturn = await save(zero).expect(400);
+    expect(lockedReturn.body.error.code).toBe('FIRST_LEG_NOT_CONFIRMED');
+    await db.tournament.update({ where: { id: cup.id }, data: { competitionFormat: 'LEAGUE_ROUND_ROBIN' } });
+    await db.fixture.update({ where: { id: fixture.id }, data: { phase: 'STAGE', roundName: 'Round 1', matchday: null } });
+    const first = (await save(zero).expect(200)).body.data.progress;
+    expect(first).toMatchObject({ completedGames: 1, homeScore: 0, awayScore: 0, complete: false, revision: 1 });
+    expect((await save(zero).expect(200)).body.data.progress).toEqual(first);
+    expect((await read().expect(200)).body.data.duoContext.progress).toEqual(first);
+    expect(await db.matchResultStatEvent.count({ where: { matchId: match.id } })).toBe(0);
+    expect(await db.tournamentStanding.count({ where: { tournamentId: cup.id } })).toBe(0);
+    expect(await db.playerTournamentStatistic.count({ where: { tournamentId: cup.id } })).toBe(0);
+    await submit().expect(409);
+    await save({ ...games[0], expectedVersion: 0 }).expect(409);
+    await save({ ...games[0], expectedVersion: 1 }, users[2]!).expect(200);
+    const concurrent = await Promise.all([save({ ...games[1], expectedVersion: 0 }), save({ ...games[2], expectedVersion: 0 })]);
+    expect(concurrent.map(result => result.status)).toEqual([200,200]);
+    expect((await read().expect(200)).body.data.duoContext.progress.completedGames).toBe(3);
+    const last = (await save({ ...games[3], expectedVersion: 0 }).expect(200)).body.data.progress;
+    expect(last).toMatchObject({ completedGames: 4, homeScore: 4, awayScore: 6, complete: true });
+    const changed = games.map((game, i) => i ? game : { ...game, homeGoals: 3 });
+    await request(app.getHttpServer()).post(`/api/matches/${match.id}/results`).set('Authorization', 'Bearer ' + token(users[2]!))
+      .send({ homeScore: 5, awayScore: 6, duoGames: changed }).expect(409);
+    const result = (await submit().expect(201)).body.data.submission;
+    await save({ ...games[0], expectedVersion: 2 }).expect(409);
+    await post(users[6]!, result.id, 'confirm').expect(201);
+    await post(users[6]!, result.id, 'confirm').expect(409);
+    expect(await db.matchResultStatEvent.count({ where: { matchId: match.id, type: 'APPLY' } })).toBe(1);
+    expect(await db.tournamentStanding.findFirst({ where: { tournamentId: cup.id, registrationId: home.id } })).toMatchObject({ played: 1, goalsFor: 4, goalsAgainst: 6 });
+    expect(await db.playerTournamentStatistic.findFirst({ where: { tournamentId: cup.id, userId: users[2] } })).toMatchObject({ matches: 1, goalsFor: 3, goalsAgainst: 1 });
+    await save({ ...games[0], expectedVersion: 2 }).expect(409);
+    await request(app.getHttpServer()).post(`/api/matches/${match.id}/results/reverse`).set('Authorization', 'Bearer ' + token(users[6]!))
+      .send({ reason: 'Reopen the fixture to verify saved game cleanup' }).expect(201);
+    expect((await db.match.findUniqueOrThrow({ where: { id: match.id } })).duoGameProgress).toBeNull();
+    expect((await read().expect(200)).body.data.duoContext.progress.completedGames).toBe(0);
+  }, 30000);
 });

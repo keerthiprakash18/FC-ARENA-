@@ -6,6 +6,7 @@ import {
   Query,
   Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import { ResultCorrectionService } from './result-correction.service.js';
 import { ResultsService } from './results.service.js';
 import { ResultReviewService } from './result-review.service.js';
 import { ResultQueueDto } from './dto/result-queue.dto.js';
+import { SaveDuoGameDto } from './dto/save-duo-game.dto.js';
 
 type AuthenticatedRequest =
   Request & {
@@ -85,6 +87,11 @@ export class ResultsController {
       request.user.sub,
       matchId,
     );
+  }
+
+  @Put('matches/:matchId/duo-games')
+  saveDuoGame(@Req() request: AuthenticatedRequest, @Param('matchId') matchId: string, @Body() dto: SaveDuoGameDto) {
+    return this.resultsService.saveDuoGame(request.user.sub, matchId, dto);
   }
 
   @Post(

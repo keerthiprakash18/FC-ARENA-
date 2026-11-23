@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { DuoResultPanel, type DuoProgressContext } from '@/components/matches/duo-result-panel';
 import {
   useCallback,
   useEffect,
@@ -38,6 +39,7 @@ interface MatchResultsResponse {
 
     submissions:
       ResultSubmission[];
+    duoContext?: DuoProgressContext | null;
   };
 
   error: null;
@@ -151,6 +153,7 @@ export function InlineResultPanel({
     );
 
   const loadingRef = useRef(false);
+  const [duoContext, setDuoContext] = useState<DuoProgressContext | null>(null);
 
 
   const loadResults =
@@ -173,6 +176,7 @@ export function InlineResultPanel({
             );
 
           setError('');
+          setDuoContext(response.data.duoContext ?? null);
 
           const confirmed =
             response.data.submissions.find(
@@ -409,7 +413,11 @@ export function InlineResultPanel({
 
   return (
     <div className="mt-4 rounded-xl border border-[#284154] bg-[#0E141B] p-4">
-      {confirmedResult ? (
+      {duoContext && !confirmedResult && !completed && !pendingResult ? (
+        <DuoResultPanel key={matchId} matchId={matchId} context={duoContext} canSave={canSubmitResult} canVerify={isLeagueAdmin}
+          disabled={busy || loading} allowPenalties={duoContext.penaltiesAllowed} homeName={homeName} awayName={awayName}
+          onCompleted={async () => { await loadResults(true); await onSaved?.(); }} />
+      ) : confirmedResult ? (
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-300">
             Confirmed Result

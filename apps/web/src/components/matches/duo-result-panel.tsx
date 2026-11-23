@@ -5,6 +5,7 @@ import { authenticatedRequest } from '@/lib/auth-client';
 import { ApiError } from '@/lib/api';
 import type { DuoEntry, DuoGame } from './duo-aggregate-inputs';
 import { PenaltyInputs, readPenaltyScores } from './penalty-inputs';
+import { duoPlayerLabel } from './duo-player-label';
 
 type SavedGame = DuoGame & { version: number };
 export type DuoProgress = {
@@ -13,7 +14,7 @@ export type DuoProgress = {
 };
 export type DuoProgressContext = { home: DuoEntry | null; away: DuoEntry | null; gameCount: number; penaltiesAllowed?: boolean; progress: DuoProgress };
 type Edit = { home: string; away: string; version: number };
-const name = (player: NonNullable<DuoEntry['members']>[number]) => player.inGameName || player.fullName;
+const name = duoPlayerLabel;
 const keyOf = (game: Pick<DuoGame, 'homePlayerId' | 'awayPlayerId'>) => `${game.homePlayerId}:${game.awayPlayerId}`;
 const validScore = (value: string) => /^\d{1,2}$/.test(value);
 
@@ -90,15 +91,16 @@ export function DuoResultPanel({ matchId, context, canSave = true, canVerify = f
     <header className="space-y-2">
       <h3 className="theme-text text-lg font-semibold">Save each game as it finishes</h3>
       <p className="theme-secondary-text text-sm">Saved scores stay here when you return. Fixture points, player statistics and awards update after all {context.gameCount} games are verified together.</p>
+      <p className="theme-secondary-text text-xs">Player name (in-game name) is shown for each side.</p>
     </header>
     {context.gameCount === 2 && !progress.games.length ? <button type="button" disabled={locked} className="theme-secondary-button min-h-11 justify-self-start rounded-xl border px-4 py-2" onClick={() => { setSwap(value => !value); setEdits({}); }}>Swap opponent pairings</button> : null}
     {rows.map((row, index) => <fieldset key={row.key} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">
-      <legend className="max-w-full break-words px-1 text-sm font-bold">Game {index + 1}: {name(row.player)} vs {name(row.opponent)}</legend>
+      <legend className="max-w-full [overflow-wrap:anywhere] px-1 text-sm font-bold">Game {index + 1}: {name(row.player)} vs {name(row.opponent)}</legend>
       <div className="grid min-w-0 grid-cols-2 gap-3">
         {(['home', 'away'] as const).map(side => <label key={side} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 text-xs font-semibold">
-          <span className="min-w-0 [overflow-wrap:anywhere]">{name(side === 'home' ? row.player : row.opponent)} goals</span>
+          <span className="min-w-0 [overflow-wrap:anywhere]">{side === 'home' ? 'Home' : 'Away'}: {name(side === 'home' ? row.player : row.opponent)} goals</span>
           <input type="number" inputMode="numeric" min={0} max={99} disabled={locked} value={row.edit[side]}
-            aria-label={`Game ${index + 1} ${side === 'home' ? 'home' : 'away'} goals`}
+            aria-label={`Game ${index + 1} ${side} goals: ${name(side === 'home' ? row.player : row.opponent)}`}
             onChange={event => update(row.key, row.edit, side, event.target.value)}
             className="theme-input min-h-11 w-full min-w-0 rounded-xl border px-3 py-2 text-center text-lg font-semibold tabular-nums" />
         </label>)}

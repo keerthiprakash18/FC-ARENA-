@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { duoPlayerLabel } from './duo-player-label';
 
 /** Individual games contribute to one combined team score. */
 export type DuoGame = {
@@ -16,8 +17,7 @@ export type DuoEntry = {
 
 const members = (entry: DuoEntry | null) =>
   [...(entry?.members ?? [])].sort((a, b) => a.id.localeCompare(b.id));
-const label = (member: { inGameName: string | null; fullName: string }) =>
-  member.inGameName || member.fullName;
+const label = duoPlayerLabel;
 
 function fixturePairings(home: ReturnType<typeof members>, away: ReturnType<typeof members>, crossPlay: boolean, swap = false) {
   return home.flatMap((player, index) => (crossPlay ? away : [away[swap ? 1 - index : index]!])
@@ -109,12 +109,12 @@ export function DuoAggregateInputs({
     {pairings.map(({ player, opponent }, index) => {
       return <div key={player.id + ":" + opponent.id} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">
         <p className="text-xs font-bold text-amber-300">Game {index + 1}</p>
-        <p className="break-words text-sm font-semibold">{label(player)} vs {label(opponent)}</p>
+        <p className="[overflow-wrap:anywhere] text-sm font-semibold">{label(player)} vs {label(opponent)}</p>
         <input type="hidden" name={prefix + 'AwayPlayer' + index} value={opponent.id} />
         <div className="grid grid-cols-2 gap-3">
           {(['home', 'away'] as const).map(side => (
-            <label key={side} className="grid min-w-0 gap-2 text-xs font-semibold">
-              <span className="break-words">{side === 'home' ? label(player) : label(opponent)} goals</span>
+            <label key={side} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 text-xs font-semibold">
+              <span className="[overflow-wrap:anywhere]">{side === 'home' ? 'Home' : 'Away'}: {side === 'home' ? label(player) : label(opponent)} goals</span>
               <input type="number" inputMode="numeric" min={0} max={99} required
                 disabled={disabled} name={prefix + (side === 'home' ? 'Home' : 'Away') + index}
                 value={scores[index]?.[side] ?? ''} onChange={event => update(index, side, event.target.value)}

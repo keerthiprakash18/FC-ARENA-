@@ -7,13 +7,13 @@ import {phaseData,tournament} from './phase-ui-fixtures.mjs';
 import {makeFixtureFeed} from './fixture-feed-fixtures.mjs';
 const chrome=process.env.CHROMIUM_PATH||(process.platform==='win32'?'C:/Program Files/Google/Chrome/Application/chrome.exe':'/usr/bin/google-chrome');
 const browser=await chromium.launch({headless:true,executablePath:existsSync(chrome)?chrome:undefined});
-const home={id:'duo-home',entryName:'Alpha Duo',members:[{id:'phase3',fullName:'Home A',inGameName:'Home A'},{id:'second-home',fullName:'Home B',inGameName:'Home B '+ 'Champion'.repeat(8)}]};
-const away={id:'duo-away',entryName:'Beta Duo',members:[{id:'away-a',fullName:'Away A',inGameName:'Away A'},{id:'away-b',fullName:'Away B',inGameName:'Away B'}]};
+const home={id:'duo-home',entryName:'Alpha Duo',members:[{id:'phase3',fullName:'Keerthi Home',inGameName:'HYDERABAD FC'},{id:'second-home',fullName:'Michael '+ 'Champion'.repeat(12),inGameName:'Real Madrid'}]};
+const away={id:'duo-away',entryName:'Beta Duo',members:[{id:'away-a',fullName:'Yuki Opponent',inGameName:'Yuki_07'},{id:'away-b',fullName:'Lucas Opponent',inGameName:null}]};
 const cup={...tournament,mode:'DUO',duoAggregateEnabled:true,duoGamesPerFixture:4,status:'ACTIVE',teamSize:2};
 const ok=(route,headers,data,status=200)=>route.fulfill({status,headers,json:{success:true,data,error:null}});
 try {
  for(const width of [320,390,1280]) {
-  let games=[],revision=0,puts=0,submits=0,confirms=0,failed=false,confirmed=false,submissions=[];
+  let games=[],revision=0,puts=0,submits=0,confirms=0,failed=false,confirmed=false,submissions=[],expectedPairing=null;
   const summary=()=>({revision,games,requiredGames:4,completedGames:games.length,homeScore:games.reduce((n,g)=>n+g.homeGoals,0),awayScore:games.reduce((n,g)=>n+g.awayGoals,0),complete:games.length===4});
   const context=()=>({home,away,gameCount:4,progress:summary()});
   const match=()=>({...phaseData['/api/matches/phase3'].match,tournament:cup,isLeagueAdmin:true,status:confirmed?'COMPLETED':'LIVE',fixture:{...phaseData['/api/matches/phase3'].match.fixture,home,away}});
@@ -25,6 +25,7 @@ try {
    const path=new URL(route.request().url()).pathname,body=route.request().postDataJSON();
    if(path==='/api/matches/phase3/duo-games'){
     puts++;assert.equal(route.request().method(),'PUT');
+    assert.deepEqual([body.homePlayerId,body.awayPlayerId],expectedPairing,'Visible player names must save the corresponding fixture player IDs');
     if(width===320&&!failed){failed=true;return route.fulfill({status:503,headers,json:{success:false,error:{code:'TEST_OFFLINE',message:'Temporary connection problem'}}});}
     const existing=games.find(g=>g.homePlayerId===body.homePlayerId&&g.awayPlayerId===body.awayPlayerId);
     if(body.expectedVersion!==(existing?.version??0))return route.fulfill({status:409,headers,json:{success:false,error:{code:'STALE_GAME',message:'This game was updated elsewhere. Reload its saved score before changing it.'}}});
@@ -43,8 +44,15 @@ try {
    const page=f.page;await page.goto('https://fcarena.in/matches/phase3');
    let panel=page.getByRole('form',{name:'Individual Duo results'});await panel.waitFor();
    assert.equal(await page.getByLabel('Result draft',{exact:true}).count(),0,'Duo saves must not claim that unsaved game inputs are device drafts');
-   const input=(game,side)=>panel.getByLabel(`Game ${game} ${side} goals`,{exact:true});
-   const save=game=>panel.getByRole('button',{name:`Save game ${game}`,exact:true});
+   const input=(game,side)=>panel.getByRole('spinbutton',{name:new RegExp(`^Game ${game} ${side} goals:`)});
+   const legends=await panel.locator('legend').allTextContents();
+   assert.equal(legends[0],'Game 1: Keerthi Home (HYDERABAD FC) vs Yuki Opponent (Yuki_07)');
+   assert.equal(legends[1],'Game 2: Keerthi Home (HYDERABAD FC) vs Lucas Opponent');
+   assert(legends[2].includes(home.members[1].fullName+' (Real Madrid) vs Yuki Opponent (Yuki_07)'));
+   assert(legends[3].includes(home.members[1].fullName+' (Real Madrid) vs Lucas Opponent'));
+   assert.equal(await input(1,'home').getAttribute('aria-label'),'Game 1 home goals: Keerthi Home (HYDERABAD FC)');
+   assert.equal(await input(1,'away').getAttribute('aria-label'),'Game 1 away goals: Yuki Opponent (Yuki_07)');
+   const save=game=>{expectedPairing=[['phase3','away-a'],['phase3','away-b'],['second-home','away-a'],['second-home','away-b']][game-1];return panel.getByRole('button',{name:`Save game ${game}`,exact:true});};
    const finish=()=>panel.getByRole('button',{name:'Verify fixture & update stats',exact:true});
    assert.equal(await finish().isDisabled(),true);
    await input(2,'home').fill('3');await input(2,'away').fill('1');
@@ -71,6 +79,7 @@ try {
     // The fixtures inline editor uses the same durable game progress.
     await page.goto('https://fcarena.in/fixtures');await page.getByRole('button',{name:'Update Result',exact:true}).click();
     panel=page.getByRole('form',{name:'Individual Duo results'});await panel.getByText('4 of 4 games saved',{exact:true}).waitFor();
+    assert.equal(await panel.locator('legend').first().textContent(),legends[0]);
     await checkLayout(page,'Duo fixtures inline 390');
    }
    await finish().click();await panel.waitFor({state:'hidden'});assert.equal(submits,1);assert.equal(confirms,1);assert.deepEqual(f.errors,[]);

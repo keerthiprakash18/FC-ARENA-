@@ -25,10 +25,7 @@ The implementation applies the Apple Design interaction guidance and the Taste D
 
 ## V13 Obsidian Matchday visual foundation (candidate; not deployed)
 
-The V13 review branch layers `apps/web/src/app/obsidian-matchday.css` **after**
-the byte-preserved V12 `arena-consolidated.css`. That import is the reversible
-visual activation point; do not delete the old consolidated stylesheet to
-"clean up" the visual language before screenshot and functionality parity.
+The V13 review branch keeps the authored layer in `apps/web/src/app/obsidian-matchday.css` and appends its exact contents to the end of the **single imported** `arena-consolidated.css` runtime bundle, after all byte-preserved V12 sources. The V13 block is the reversible visual activation point; do not delete old CSS before screenshot and functionality parity.
 
 **Default luxury-gold theme:** Obsidian Navy `#0C1722` for navigation and
 matchday highlights, Porcelain `#F5F6F4` canvas, `#FFFFFF` cards,

@@ -80,6 +80,9 @@ describe('Result review queue with authenticated HTTP and real PostgreSQL', () =
     configureHttpSecurity(app);
     await app.init();
     db = app.get(PrismaService);
+    // Suites share this disposable database and loopback client address.
+    // Keep this suite's HTTP traffic out of later suites' global budgets.
+    await db.authRateLimit.deleteMany({ where: { action: { in: ['API_IP', 'API_WRITE_IP'] } } });
     permission = app.get(AuthorizationService);
     for (let i = 0; i < 8; i++)
       users.push(
@@ -211,6 +214,7 @@ describe('Result review queue with authenticated HTTP and real PostgreSQL', () =
     });
   }, 60000);
   afterAll(async () => {
+    await db.authRateLimit.deleteMany({ where: { action: { in: ['API_IP', 'API_WRITE_IP'] } } });
     for (const id of leagues) await db.league.delete({ where: { id } });
     for (const id of users) await db.user.delete({ where: { id } });
     await app?.close();

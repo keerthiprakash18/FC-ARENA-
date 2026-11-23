@@ -59,7 +59,12 @@ class ManagedRuntimeTests(unittest.TestCase):
             receipt={'sha256':'backup','file':'archive.gpg','lastVerifiedRestoreAt':now.isoformat()}
             def read(file,*args,**kwargs):
                 return json.dumps({'approval.json':proof,'rehearsal.json':rehearsal,'latest.json':backup,'offhost-receipt.json':receipt}[file.name])
-            with patch.object(Path,'stat',return_value=SimpleNamespace(st_uid=0,st_mode=0o600)),patch.object(Path,'is_symlink',return_value=False),patch.object(Path,'read_text',read),patch.object(runtime,'command',return_value=json.dumps(ledger)) as query:
+            actual_stat=Path.stat
+            def private_stat(file,*args,**kwargs):
+                if file.name=='approval.json':return SimpleNamespace(st_uid=0,st_mode=0o600)
+                return actual_stat(file,*args,**kwargs)
+            with patch.object(Path,'stat',private_stat),patch.object(Path,'is_symlink',return_value=False),patch.object(Path,'read_text',read),patch.object(runtime,'command',return_value=json.dumps(ledger)) as query:
+                self.assertTrue(candidate.is_dir())
                 self.assertEqual(runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline'),proof)
                 query.return_value='[]'
                 with self.assertRaises(AssertionError):runtime.approved_schema_proof('approval.json',candidate,'candidate','baseline')

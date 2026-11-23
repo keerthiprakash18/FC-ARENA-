@@ -7,3 +7,7 @@ Files: V13 post-V12 CSS section in `arena-consolidated.css`, matching `obsidian-
 **Not a license to delete, migrate or restart:** No API/Prisma schema or migrations are changed. Off-host build must be from this exact SHA (after CI passes), verify package SHA and native bindings, then run historical-vs-current live read-only checks and isolated staging/recovery. Deploy only if current public WEB and API both match the pinned old release, backups/restore and uploads are freshly verified off-host, staging authenticated flow passes, and release-independent storage/rollback/cutover are proven. If current live != 154b8440b92ca18f15fc186ee17019820cf8e116, stop and reconcile the actual live baseline instead of overwriting it.
 
 This is a release branch for operator staging; the mainline design work remains on PR #208 and should not be replaced by this backport. See current `main` AGENTS.md (newer) for stricter security and production policy.
+
+## Mainline status
+
+V13 design PR #208 was merged to main at `f6c4e1f98eacc21525dfe5ad4ab46910b269cbec` after source/build/security and Android API 33–36 CI rerun green. This historical V12-derived candidate is intentionally separate: do NOT deploy the full main bundle as a substitute unless the two post-V12 Prisma migrations have their own isolated restore/migration approvals.

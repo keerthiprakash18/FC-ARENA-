@@ -1087,7 +1087,7 @@ function MatchRoom() {
         ) : match.returnLeg?.firstLegScore ? (
           <p className="theme-muted text-sm" role="status">Verified first leg: {home} {match.returnLeg.firstLegScore.homeScore} – {match.returnLeg.firstLegScore.awayScore} {away}. The aggregate of both legs decides the winner.</p>
         ) : null}
-        {canSubmit ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
+        {canSubmit && !match.tournament.duoAggregateEnabled ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
           <p className="theme-muted text-sm" role="status">{draft.status || 'Scores and screenshots are saved on this device for 7 days.'}</p>
           {hasDraft ? <button type="button" disabled={busy} className="theme-text min-h-11 px-3 text-sm font-bold" onClick={async () => {
             if (await confirmAction({ title: 'Discard saved draft?', description: 'Remove the scores and selected screenshot saved on this device?', confirmLabel: 'Discard draft' })) draft.clear();

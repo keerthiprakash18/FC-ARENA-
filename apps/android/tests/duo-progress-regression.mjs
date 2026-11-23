@@ -42,6 +42,7 @@ try {
   try {
    const page=f.page;await page.goto('https://fcarena.in/matches/phase3');
    let panel=page.getByRole('form',{name:'Individual Duo results'});await panel.waitFor();
+   assert.equal(await page.getByLabel('Result draft',{exact:true}).count(),0,'Duo saves must not claim that unsaved game inputs are device drafts');
    const input=(game,side)=>panel.getByLabel(`Game ${game} ${side} goals`,{exact:true});
    const save=game=>panel.getByRole('button',{name:`Save game ${game}`,exact:true});
    const finish=()=>panel.getByRole('button',{name:'Verify fixture & update stats',exact:true});

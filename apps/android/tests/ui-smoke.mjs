@@ -60,6 +60,22 @@ async function checkDesign(page, path, width) {
     })));
     accessibility.push({path,width,mode,violations});
   }
+  // A matched V13 luxury-gold light screenshot for every priority surface.
+  // API data continues to come from the isolated smoke fixtures.
+  if (width === 390 && new Set([
+    '/dashboard','/tournaments','/matches','/awards',
+    '/profile','/leaderboards','/admin/system',
+  ]).has(path)) {
+    await html.evaluate(element => {
+      element.dataset.theme = 'luxury-gold';
+      element.dataset.mode = 'light';
+    });
+    await page.screenshot({
+      path: `${output}/${screenshot}-obsidian-light-${width}.png`,
+      fullPage: true,
+      animations: 'disabled',
+    });
+  }
   await html.evaluate((element, {theme,mode}) => {
     element.dataset.theme = theme;
     element.dataset.mode = mode;

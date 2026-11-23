@@ -23,13 +23,20 @@ function contrast(foreground, background) {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
-test('V13 can be switched off without altering the V12 cascade', () => {
-  const prior = layout.indexOf("import './arena-consolidated.css';");
-  const next = layout.indexOf("import './obsidian-matchday.css';");
-  assert(prior >= 0 && next > prior, 'new visual layer must load after the V12 CSS');
-  assert.equal(layout.match(/obsidian-matchday\.css/g)?.length, 1);
-  assert.match(layout, /data-theme="luxury-gold"/);
-  assert.match(layout, /data-mode="light"/);
+test('V13 is appended to the single ordered runtime CSS without rewriting V12', () => {
+  const oldImport = "import './arena-consolidated.css';";
+  assert(layout.includes(oldImport));
+  assert(!layout.includes("import './obsidian-matchday.css';"));
+  const sheets = layout.split('\n').map(line => line.trim())
+    .filter(line => line.startsWith("import './") && line.endsWith(".css';"))
+    .map(line => line.slice("import './".length, -2));
+  assert.deepEqual(sheets, ['globals.css', 'design-tokens.css', 'arena-consolidated.css']);
+  const merged = read('apps/web/src/app/arena-consolidated.css');
+  const prior = merged.indexOf('/* ---- END SOURCE arena-premium-foundations.css ---- */');
+  const marker = '/* ---- BEGIN SOURCE obsidian-matchday.css ---- */';
+  const next = merged.indexOf(marker);
+  assert(prior >= 0 && next > prior, 'new layer must follow unchanged V12 sections');
+  assert(merged.includes(marker + '\n' + css.trimEnd() + '\n/* ---- END SOURCE obsidian-matchday.css ---- */'));
   assert.match(css, /FC ARENA \/ OBSIDIAN MATCHDAY/);
   assert.doesNotMatch(css, /@import\s+url\(/i);
 });

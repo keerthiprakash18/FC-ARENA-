@@ -293,9 +293,7 @@
 .fc-premium .fc-dashboard-page {
   row-gap: clamp(14px, 1.75vw, 22px);
 }
-.fc-premium .fc-dashboard-page .home-hero-pitch {
-  display: none;
-}
+/* Keep the existing pitch reveal: it is also covered by WebView regression tests. */
 .fc-premium .fc-dashboard-page .premium-home-hero {
   min-height: 0;
 }

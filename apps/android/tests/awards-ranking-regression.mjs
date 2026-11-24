@@ -104,9 +104,12 @@ try {
   }));
   const duoPlayers = Array.from({ length: 27 }, (_, index) => ({
     id: `duo-${index + 1}`, name: `DUO ${String(index + 1).padStart(2, '0')}`,
-    position: index + 1, matches: 4, goals: 26 - index,
-    goalsPerMatch: (26 - index) / 4, cleanSheets: index % 3,
-    goalsAgainstPerMatch: 0.75,
+    position: index + 1, matches: index === 0 ? 9 : 10, games: index === 0 ? 18 : 20, goals: 26 - index,
+    goalsPerMatch: Number(((26 - index) / (index === 0 ? 9 : 10)).toFixed(2)),
+    goalsPerGame: Number(((26 - index) / (index === 0 ? 18 : 20)).toFixed(2)),
+    cleanSheets: index === 0 ? 9 : index % 3,
+    cleanSheetRate: index === 0 ? 50 : index % 3 * 5,
+    goalsAgainstPerMatch: 1.5, goalsAgainstPerGame: 0.75,
   }));
   const solo = { id: 'solo', name: 'Full SOLO Cup', code: 'SOLO',
     status: 'ACTIVE', mode: 'SOLO', format: 'ROUND_ROBIN',
@@ -144,6 +147,12 @@ try {
       await complete.page.getByText('Player 27', { exact: true }).waitFor();
       await complete.page.getByText('DUO 27', { exact: true }).waitFor();
       assert.equal(await complete.page.getByText('All 27 verified players ranked', { exact: true }).count(), 2);
+      assert.equal(await complete.page.getByText('9 matches · 18 games', { exact: true }).count(), 1);
+      assert.equal(await complete.page.getByText('10 matches · 20 games', { exact: true }).count(), 26);
+      assert.equal(await complete.page.getByText('18 matches', { exact: true }).count(), 0);
+      if (slug === 'golden-glove') {
+        await complete.page.getByText('9 CS · 50% CS · 0.75 GA/game', { exact: true }).waitFor();
+      }
       await checkLayout(complete.page, `full ${slug} category at 390px`);
     }
     await complete.page.goto('https://fcarena.in/tournaments/solo/achievements');
@@ -153,10 +162,12 @@ try {
     await complete.page.goto('https://fcarena.in/tournaments/duo/achievements');
     await complete.page.getByText('DUO 27', { exact: true }).first().waitFor();
     assert.equal(await complete.page.getByText('All 27 verified entries ranked', { exact: false }).count(), 2);
+    assert.equal(await complete.page.getByText('9 matches · 18 games', { exact: true }).count(), 2);
+    assert.equal(await complete.page.getByText('10 matches · 20 games', { exact: true }).count(), 52);
     await checkLayout(complete.page, 'complete verified DUO award races');
     assert.deepEqual(complete.errors, []);
     assert.deepEqual(complete.mutations, [], 'Browsing races must not write match or award data');
-    console.log('PASS 390px: all 27 Golden Boot/Glove/Player-of-Tournament rows, SOLO and verified DUO');
+    console.log('PASS 390px: all 27 rows; DUO own fixture/game counts, per-game rates and 50% clean sheets on both award entry points');
   } finally { await complete.context.close(); }
 
   const row = { ...raceRow('phase3'), fullName: 'Ranking Star', inGameName: null,

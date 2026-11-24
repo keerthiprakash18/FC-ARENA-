@@ -53,7 +53,7 @@ const categories:
       calculationTitle: 'Golden Boot ranking order',
       rules: [
         { label: '1 · Total Goals', detail: 'More verified goals ranks higher.' },
-        { label: '2 · Goals / Match', detail: 'If goals are tied, the higher scoring rate ranks higher.' },
+        { label: '2 · Scoring Rate', detail: 'If goals are tied, higher goals per individual game (DUO) or match ranks higher.' },
         { label: '3 · Goal Difference', detail: 'Next tie-break is the better overall goal difference.' },
         { label: '4 · Wins', detail: 'Next tie-break is more wins. Exact ties can share the award.' },
       ],
@@ -70,8 +70,8 @@ const categories:
       rules: [
         { label: '1 · Clean Sheets', detail: 'More verified clean sheets ranks higher.' },
         { label: '2 · Clean Sheet %', detail: 'If tied, the better clean-sheet rate ranks higher.' },
-        { label: '3 · Goals Against / Match', detail: 'Lower goals conceded per match ranks higher.' },
-        { label: '4 · Matches + Total GA', detail: 'Then more matches, followed by fewer total goals conceded. Exact ties can share the award.' },
+        { label: '3 · Conceding Rate', detail: 'Lower goals conceded per individual game (DUO) or match ranks higher.' },
+        { label: '4 · Games / Matches + Total GA', detail: 'Then more individual games (DUO) or matches, followed by fewer total goals conceded. Exact ties can share the award.' },
       ],
     },
     'player-of-tournament': {
@@ -209,6 +209,9 @@ interface RaceRow {
   inGameName: string | null;
   playerCode: string | null;
   matches: number;
+  games?: number;
+  goalsPerGame?: number;
+  goalsAgainstPerGame?: number;
   goals: number;
   goalsPerMatch: number;
   cleanSheets: number;
@@ -222,6 +225,10 @@ interface VerifiedScoreRow {
   name: string;
   position: number;
   matches: number;
+  games?: number;
+  goalsPerGame?: number;
+  goalsAgainstPerGame?: number;
+  cleanSheetRate?: number;
   goals: number;
   goalsPerMatch: number;
   cleanSheets: number;
@@ -264,6 +271,9 @@ function raceMetric(
     key ===
     'goldenBoot'
   ) {
+    if (row.games !== undefined) {
+      return `${row.goals} goals · ${row.goalsPerGame ?? row.goalsPerMatch}/game`;
+    }
     return `${row.goals} goals · ${row.goalsPerMatch}/M · ${row.matches} M`;
   }
 
@@ -271,6 +281,9 @@ function raceMetric(
     key ===
     'goldenGlove'
   ) {
+    if (row.games !== undefined) {
+      return `${row.cleanSheets} CS · ${row.cleanSheetRate}% CS · ${row.goalsAgainstPerGame ?? row.goalsAgainstPerMatch} GA/game`;
+    }
     return `${row.cleanSheets} CS · ${row.cleanSheetRate}% CS · ${row.goalsAgainstPerMatch} GA/M · ${row.matches} M`;
   }
 
@@ -569,6 +582,7 @@ export default function AwardCategoryPage() {
 
         <p className="border-t border-white/[0.07] px-5 py-4 text-xs leading-5 text-slate-500">
           Individual races use verified SOLO results or verified individual DUO games. Aggregate DUO and TEAM scores appear as team records. Unverified, cancelled or duplicate fixtures do not count.
+          {' '}DUO matches count the fixtures you played; games, goals and rates use only your own individual games.
         </p>
       </details>
 
@@ -614,7 +628,7 @@ export default function AwardCategoryPage() {
                 const rows: RaceRow[] = verified && key !== 'playerOfTournament'
                   ? verified[key].map(row => ({ ...row, userId: row.id, fullName: row.name, inGameName: null,
                     playerCode: verified.scope === 'TEAM' ? 'Team record' : 'Verified DUO player',
-                    cleanSheetRate: row.matches > 0 ? Number((row.cleanSheets / row.matches * 100).toFixed(1)) : 0, rating: null }))
+                    cleanSheetRate: row.cleanSheetRate ?? ((row.games ?? row.matches) > 0 ? Number((row.cleanSheets / (row.games ?? row.matches) * 100).toFixed(1)) : 0), rating: null }))
                   : race.data[key];
 
                 return (
@@ -670,7 +684,7 @@ export default function AwardCategoryPage() {
                                 key={
                                   row.userId
                                 }
-                                className="grid grid-cols-[34px_1fr_auto] items-center gap-3 px-5 py-3.5"
+                                className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-3 px-5 py-3.5 sm:grid-cols-[34px_minmax(0,1fr)_auto]"
                               >
                                 <span className={
                                   row.position <=
@@ -696,9 +710,14 @@ export default function AwardCategoryPage() {
                                       'FC Arena Player'
                                     }
                                   </p>
+                                  {row.games !== undefined ? (
+                                    <p className="mt-1 text-[10px] leading-4 text-slate-400">
+                                      {row.matches} {row.matches === 1 ? 'match' : 'matches'} · {row.games} {row.games === 1 ? 'game' : 'games'}
+                                    </p>
+                                  ) : null}
                                 </div>
 
-                                <p className="text-right text-xs font-black text-slate-300">
+                                <p className="col-start-2 -mt-1 text-left text-xs font-black text-slate-300 sm:col-start-auto sm:mt-0 sm:max-w-36 sm:text-right">
                                   {raceMetric(
                                     key,
                                     row,

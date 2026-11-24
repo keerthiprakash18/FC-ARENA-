@@ -95,6 +95,9 @@ interface VerifiedScoreRow {
   name: string;
   position: number;
   matches: number;
+  games?: number;
+  goalsPerGame?: number;
+  goalsAgainstPerGame?: number;
   goals: number;
   goalsPerMatch: number;
   cleanSheets: number;
@@ -228,7 +231,7 @@ function RaceList<Row extends RaceRow | VerifiedScoreRow>({
                 key={
                   'id' in row ? row.id : row.userId
                 }
-                className="grid grid-cols-[32px_1fr_auto] items-center gap-3 p-4"
+                className="grid grid-cols-[32px_minmax(0,1fr)] items-center gap-3 p-4 sm:grid-cols-[32px_minmax(0,1fr)_auto]"
               >
                 <span className={
                   row.position <=
@@ -251,12 +254,12 @@ function RaceList<Row extends RaceRow | VerifiedScoreRow>({
                     {
                       'playerCode' in row
                         ? row.playerCode || 'FC Arena Player'
-                        : `${row.matches} ${row.matches === 1 ? 'match' : 'matches'}`
+                        : `${row.matches} ${row.matches === 1 ? 'match' : 'matches'}${row.games !== undefined ? ` · ${row.games} ${row.games === 1 ? 'game' : 'games'}` : ''}`
                     }
                   </p>
                 </div>
 
-                <p className="text-right text-xs font-black text-slate-300">
+                <p className="col-start-2 -mt-1 text-left text-xs font-black text-slate-300 sm:col-start-auto sm:mt-0 sm:max-w-36 sm:text-right">
                   {metric(
                     row,
                   )}
@@ -678,20 +681,24 @@ export default function AchievementsPage() {
             <p className="mt-1 text-sm text-slate-400">
               {races.verifiedScoreRaces.scope === 'TEAM'
                 ? 'Provisional team records from confirmed aggregate scores. These are not individual player awards.'
-                : 'Provisional player records from confirmed individual Duo games. Official honours are awarded at tournament finalisation.'}
+                : 'Matches count the completed fixtures you played. Games, goals and rates use only your own confirmed Duo games. Official honours are awarded at tournament finalisation.'}
             </p>
             <div className="mt-4 grid gap-4 lg:grid-cols-2">
               <RaceList
                 title={races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Golden Boot' : 'Golden Boot'}
                 icon="⚽"
                 rows={races.verifiedScoreRaces.goldenBoot}
-                metric={(row) => `${row.goals} goals · ${row.goalsPerMatch}/M`}
+                metric={(row) => row.games !== undefined
+                  ? `${row.goals} goals · ${row.goalsPerGame ?? row.goalsPerMatch}/game`
+                  : `${row.goals} goals · ${row.goalsPerMatch}/M`}
               />
               <RaceList
                 title={races.verifiedScoreRaces.scope === 'TEAM' ? 'Team Defensive Record' : 'Golden Glove'}
                 icon="🧤"
                 rows={races.verifiedScoreRaces.goldenGlove}
-                metric={(row) => `${row.cleanSheets} CS · ${row.goalsAgainstPerMatch} GA/M`}
+                metric={(row) => row.games !== undefined
+                  ? `${row.cleanSheets} CS · ${row.goalsAgainstPerGame ?? row.goalsAgainstPerMatch} GA/game`
+                  : `${row.cleanSheets} CS · ${row.goalsAgainstPerMatch} GA/M`}
               />
             </div>
           </section>

@@ -25,7 +25,11 @@ export function rankVerifiedScores(
   tournament: { competitionFormat: string; legType: string; duoAggregateEnabled: boolean },
 ) {
   const scores = new Map<string, AwardMetricRow>();
-  const record = (id: string, scored: number, conceded: number) => {
+  const playedFixtures = new Map<string, Set<string>>();
+  const record = (id: string, scored: number, conceded: number, fixtureId: string) => {
+    const fixtures = playedFixtures.get(id) ?? new Set<string>();
+    fixtures.add(fixtureId);
+    playedFixtures.set(id, fixtures);
     const row = scores.get(id) ?? {
       userId: id,
       matches: 0,
@@ -61,18 +65,21 @@ export function rankVerifiedScores(
 
     if (tournament.duoAggregateEnabled) {
       for (const game of parseDuoGames(result.duoGames) ?? []) {
-        record(game.homePlayerId, game.homeGoals, game.awayGoals);
-        record(game.awayPlayerId, game.awayGoals, game.homeGoals);
+        record(game.homePlayerId, game.homeGoals, game.awayGoals, fixture.id);
+        record(game.awayPlayerId, game.awayGoals, game.homeGoals, fixture.id);
       }
     } else {
-      record(fixture.homeRegistrationId, result.homeScore, result.awayScore);
-      record(fixture.awayRegistrationId, result.awayScore, result.homeScore);
+      record(fixture.homeRegistrationId, result.homeScore, result.awayScore, fixture.id);
+      record(fixture.awayRegistrationId, result.awayScore, result.homeScore, fixture.id);
     }
   }
 
   const rows = [...scores.values()];
   return {
     ids: [...scores.keys()],
+    fixtureMatches: new Map([...playedFixtures].map(([id, fixtures]) => [id, fixtures.size])),
+    // Official individual awards continue to use verified games for eligibility
+    // and tie-break rates; display fixture counts must not change those rules.
     // The race shows every participant with a confirmed result, including zero-goal
     // players/teams. Official winner eligibility remains unchanged elsewhere.
     metrics: rows,

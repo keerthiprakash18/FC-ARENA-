@@ -95,6 +95,64 @@ try {
     console.log('PASS 390px: older tournament pagination, offline polling pause and online refresh');
   } finally { await paged.context.close(); }
 
+
+  // The old UI displayed only 5 rows and the API previously returned only 20.
+  // Exercise complete 27-player SOLO and verified DUO standings on BOTH entry points.
+  const soloPlayers = Array.from({ length: 27 }, (_, index) => ({
+    ...raceRow(`Player ${String(index + 1).padStart(2, '0')}`, 26 - index),
+    position: index + 1,
+  }));
+  const duoPlayers = Array.from({ length: 27 }, (_, index) => ({
+    id: `duo-${index + 1}`, name: `DUO ${String(index + 1).padStart(2, '0')}`,
+    position: index + 1, matches: 4, goals: 26 - index,
+    goalsPerMatch: (26 - index) / 4, cleanSheets: index % 3,
+    goalsAgainstPerMatch: 0.75,
+  }));
+  const solo = { id: 'solo', name: 'Full SOLO Cup', code: 'SOLO',
+    status: 'ACTIVE', mode: 'SOLO', format: 'ROUND_ROBIN',
+    league: { id: 'phase3', name: 'Arena League' } };
+  const duo = { id: 'duo', name: 'Full DUO Cup', code: 'DUO',
+    status: 'ACTIVE', mode: 'DUO', format: 'ROUND_ROBIN',
+    league: { id: 'phase3', name: 'Arena League' } };
+  const soloRaces = { tournament: solo, available: true, reason: null,
+    goldenBoot: soloPlayers, goldenGlove: soloPlayers, playerOfTournament: soloPlayers };
+  const duoRaces = { tournament: duo, available: false, reason: 'Verified DUO scores',
+    goldenBoot: [], goldenGlove: [], playerOfTournament: [],
+    verifiedScoreRaces: { scope: 'PLAYER', goldenBoot: duoPlayers, goldenGlove: duoPlayers } };
+  const complete = await createUiContext(browser, { width: 390, overrides: {
+    '/api/awards/overview': { trophyCabinet: {}, myTournamentAwards: [], mySeasonalAwards: [],
+      recentSeasonalWinners: [], activeAwardTournaments: [solo, duo] },
+    '/api/awards/live-races': { races: [
+      { tournament: solo, data: soloRaces }, { tournament: duo, data: duoRaces },
+    ], failed: [], pagination: { offset: 0, limit: 6, total: 2, nextOffset: null } },
+    '/api/tournaments/solo/achievements': { tournament: { ...solo, completedAt: null },
+      isLeagueAdmin: false, achievements: [] },
+    '/api/tournaments/solo/award-races': soloRaces,
+    '/api/tournaments/duo/achievements': { tournament: { ...duo, completedAt: null },
+      isLeagueAdmin: false, achievements: [] },
+    '/api/tournaments/duo/award-races': duoRaces,
+  } });
+  try {
+    for (const slug of ['golden-boot', 'golden-glove']) {
+      await complete.page.goto(`https://fcarena.in/awards/${slug}`);
+      await complete.page.getByText('Player 27', { exact: true }).waitFor();
+      await complete.page.getByText('DUO 27', { exact: true }).waitFor();
+      assert.equal(await complete.page.getByText('All 27 verified players ranked', { exact: true }).count(), 2);
+      await checkLayout(complete.page, `full ${slug} category at 390px`);
+    }
+    await complete.page.goto('https://fcarena.in/tournaments/solo/achievements');
+    await complete.page.getByText('Player 27', { exact: true }).first().waitFor();
+    assert.equal(await complete.page.getByText('All 27 verified entries ranked', { exact: false }).count(), 3);
+    await checkLayout(complete.page, 'complete SOLO tournament award races');
+    await complete.page.goto('https://fcarena.in/tournaments/duo/achievements');
+    await complete.page.getByText('DUO 27', { exact: true }).first().waitFor();
+    assert.equal(await complete.page.getByText('All 27 verified entries ranked', { exact: false }).count(), 2);
+    await checkLayout(complete.page, 'complete verified DUO award races');
+    assert.deepEqual(complete.errors, []);
+    assert.deepEqual(complete.mutations, [], 'Browsing races must not write match or award data');
+    console.log('PASS 390px: all 27 Golden Boot/Glove/Player-of-Tournament rows, SOLO and verified DUO');
+  } finally { await complete.context.close(); }
+
   const row = { ...raceRow('phase3'), fullName: 'Ranking Star', inGameName: null,
     performancePoints: 9, goalsFor: 10, goalsAgainst: 3, winRate: 75, form: 'WWWL' };
   const f = await createUiContext(browser, { width: 390, overrides: {

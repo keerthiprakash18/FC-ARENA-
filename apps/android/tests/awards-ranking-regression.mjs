@@ -222,7 +222,14 @@ try {
           await first.waitFor();
           assert.equal(await preview.page.getByText('Joint leader', { exact: true }).count(), 2);
           await expectStat(first, 'Matches', 9); await expectStat(first, 'Games', 18);
-          if (slug === 'golden-glove') await expectStat(first, 'Clean sheet rate', '50%');
+          if (slug === 'golden-glove') {
+            await expectStat(first, 'Clean sheet rate', '50%');
+            const wordLines = await first.getByText('Conceded / game', { exact: true }).evaluate(element => {
+              const range = document.createRange(); range.setStart(element.firstChild, 0); range.setEnd(element.firstChild, 8);
+              return range.getClientRects().length;
+            });
+            assert.equal(wordLines, 1, 'Metric labels must not break in the middle of a word');
+          }
           else await first.getByRole('group', { name: '27 goals', exact: true }).waitFor();
           await preview.page.getByRole('listitem', { name: 'New Player, rank 4', exact: true }).waitFor();
           assert.equal(await preview.page.locator('details').first().evaluate(element => element.open), false);

@@ -1,0 +1,88 @@
+.board {
+  --race-accent: var(--theme-warning);
+  --race-soft: var(--theme-warning-soft);
+  color: var(--theme-text);
+  container-type: inline-size;
+}
+.board[data-award='glove'] {
+  --race-accent: var(--theme-success);
+  --race-soft: var(--theme-success-soft);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: 1rem 1.125rem;
+  border-bottom: 1px solid var(--theme-border);
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0 0 .35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.title svg { color: var(--race-accent); }
+.count { margin: 0; color: var(--theme-text-secondary); font-size: .75rem; line-height: 1.5; }
+.live {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  color: var(--theme-text-secondary);
+  font-size: .6875rem;
+  font-weight: 600;
+}
+.live > span { width: .375rem; height: .375rem; border-radius: 50%; background: var(--theme-success); }
+.list { padding: 0; margin: 0; list-style: none; }
+.row { padding: 1.125rem; border-bottom: 1px solid var(--theme-border); }
+.row:last-child { border-bottom: 0; }
+.row[data-leading='true'] { background: color-mix(in srgb, var(--race-soft) 44%, var(--theme-surface)); }
+.rowTop { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr) auto; gap: .75rem; align-items: center; }
+.rank {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: .625rem;
+  color: var(--theme-text-secondary);
+  font-size: .75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.row[data-leading='true'] .rank { border-color: color-mix(in srgb, var(--race-accent) 35%, transparent); color: var(--race-accent); background: var(--theme-surface); }
+.identity { min-width: 0; }
+.leader { display: block; margin-bottom: .25rem; color: var(--race-accent); font-size: .625rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.name { margin: 0; font-size: .9375rem; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; letter-spacing: -.015em; }
+.detail { margin: .25rem 0 0; color: var(--theme-text-muted); font-size: .6875rem; line-height: 1.4; overflow-wrap: anywhere; }
+.score { text-align: right; padding-left: .25rem; }
+.score strong { display: block; font-size: 1.75rem; font-weight: 700; line-height: 1.05; letter-spacing: -.055em; font-variant-numeric: tabular-nums; }
+.row[data-leading='true'] .score strong { font-size: 2.125rem; color: var(--race-accent); }
+.score span { display: block; margin-top: .25rem; font-size: .6875rem; color: var(--theme-text-secondary); white-space: nowrap; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: .875rem 0 0 2.5rem; gap: .625rem; }
+.stats[data-columns='2'], .stats[data-columns='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stats > div { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--theme-border); padding-left: .625rem; }
+.stats dt { color: var(--theme-text-muted); font-size: .6875rem; line-height: 1.5; overflow-wrap: normal; word-break: normal; }
+.stats dd { margin: auto 0 0; padding-top: .1875rem; color: var(--theme-text); font-size: .875rem; font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.empty { display: grid; justify-items: center; gap: .5rem; padding: 2.5rem 1.25rem; text-align: center; color: var(--theme-text-muted); }
+.empty svg { color: var(--race-accent); }
+.empty p { margin: .25rem 0 0; font-size: .875rem; font-weight: 600; color: var(--theme-text); }
+.empty span { font-size: .75rem; line-height: 1.5; }
+@media (min-width: 640px) {
+  .row, .header { padding: 1.25rem; }
+  .name { font-size: .9375rem; }
+  .stats dt { font-size: .6875rem; }
+}
+@container (min-width: 20rem) {
+  .stats[data-columns='4'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 359px) {
+  .rowTop { grid-template-columns: 1.5rem minmax(0, 1fr) auto; gap: .5rem; }
+  .rank { width: 1.5rem; height: 1.5rem; }
+  .row, .header { padding: 1rem; }
+  .stats { margin-left: 2rem; gap: .5rem; }
+}

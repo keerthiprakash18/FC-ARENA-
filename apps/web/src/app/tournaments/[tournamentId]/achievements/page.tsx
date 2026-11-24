@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/exhaustive-deps -- Data-loading effects are intentionally keyed by resource identifiers; loader callback identity must not retrigger network work. */
 
 import Link from 'next/link';
+import { AwardRaceBoard } from '@/components/fc/award-race-board';
 import { PremiumHero } from '@/components/fc/premium-ui';
 import {
   useParams,
@@ -204,6 +205,18 @@ function RaceList<Row extends RaceRow | VerifiedScoreRow>({
     row: Row,
   ) => string;
 }) {
+  if (title.includes('Golden Boot') || title === 'Golden Glove' || title === 'Team Defensive Record') {
+    return (
+      <FcPanel className="overflow-hidden">
+        <AwardRaceBoard kind={title.includes('Boot') ? 'boot' : 'glove'} title={title} entryLabel="entry"
+          entries={rows.map((row: RaceRow | VerifiedScoreRow) => ({ ...row,
+            id: 'id' in row ? row.id : row.userId,
+            name: 'name' in row ? row.name : racePlayerName(row),
+            detail: 'playerCode' in row ? row.playerCode ?? undefined : undefined,
+          }))} />
+      </FcPanel>
+    );
+  }
   return (
     <FcPanel className="overflow-hidden">
       <div className="border-b border-white/[0.07] p-5">

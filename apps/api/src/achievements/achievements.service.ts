@@ -918,19 +918,16 @@ export class AchievementsService {
       };
     };
 
-    const goldenBoot = rankGoldenBootRace(metrics)
-      .slice(0, 20)
+    const goldenBoot = rankGoldenBootRace(metrics, { includeGoalless: true })
       .map(row => decorate(row, row.position));
 
     const goldenGlove = rankGoldenGloveRace(metrics)
-      .slice(0, 20)
       .map(row => decorate(row, row.position));
 
     const playerOfTournament =
       calculatePerformanceRatings(
         metrics,
       )
-        .slice(0, 20)
         .map(
           (row, index) =>
             decorate(

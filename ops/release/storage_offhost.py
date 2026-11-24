@@ -51,6 +51,18 @@ def main():
                 time.sleep(2)
         result.check_returncode()
 
+    def resume_archive(source, target):
+        batch = destination / 'archive-transfer.private.batch'
+        escaped_target = target.as_posix().replace('"', '\\"')
+        batch.write_text('reget "' + source + '" "' + escaped_target + '"\n')
+        for attempt in range(6):
+            result = subprocess.run(['sftp', '-q', '-b', str(batch), '-R', '8', *common, args.host], timeout=1800)
+            if result.returncode == 0:
+                return
+            if attempt < 5:
+                time.sleep(2)
+        result.check_returncode()
+
     ssh('python3 ' + GUARD + ' plan --output ' + REMOTE + 'pc-plan.json')
     plan_path = destination / 'pc-plan.private.json'
     scp(args.host + ':' + REMOTE + 'pc-plan.json', str(plan_path))
@@ -72,7 +84,7 @@ def main():
             if shutil.disk_usage(destination).free < item['bytes'] + 1024**3:
                 raise ValueError('Insufficient private PC space')
             partial = target.with_suffix(target.suffix + '.partial')
-            scp(args.host + ':' + item['path'], str(partial))
+            resume_archive(item['path'], partial)
             if digest(partial) != item['sha256']:
                 raise ValueError('PC archive checksum mismatch')
             partial.replace(target)

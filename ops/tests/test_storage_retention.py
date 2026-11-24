@@ -10,9 +10,21 @@ from unittest.mock import patch
 SPEC = importlib.util.spec_from_file_location('retention', Path(__file__).parents[1] / 'release/storage_retention.py')
 R = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(R)
+OFFHOST_SPEC = importlib.util.spec_from_file_location('escrow', Path(__file__).parents[1] / 'release/storage_offhost.py')
+O = importlib.util.module_from_spec(OFFHOST_SPEC)
+OFFHOST_SPEC.loader.exec_module(O)
 
 
 class RetentionTests(unittest.TestCase):
+    def test_pc_escrow_rejects_other_paths_and_mismatched_release(self):
+        name = 'fcarena-runtime-' + 'a' * 40 + '.tar.gz'
+        item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/' + name, 'sha256': 'b' * 64}
+        self.assertEqual(O.archive_target(item, Path('/private')), Path('/private') / name)
+        for invalid in ('/etc/fcarena/secrets.env', item['path'].replace('/' + 'a' * 40 + '/', '/' + 'c' * 40 + '/'),
+                        item['path'].replace(name, '../' + name)):
+            with self.assertRaises(ValueError):
+                O.archive_target(dict(item, path=invalid), Path('/private'))
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)

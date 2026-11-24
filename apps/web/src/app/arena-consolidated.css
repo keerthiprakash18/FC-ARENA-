@@ -4613,6 +4613,7 @@ html[data-native-app="android"] .theme-bottom-item {
   --fc-panel-shadow: var(--om-quiet-shadow);
   font-family: var(--fc-font);
   font-feature-settings: "ss01" on;
+  font-optical-sizing: auto;
 }
 :root[data-theme="luxury-gold"] .fc-premium .fc-app-shell {
   background: var(--theme-background) !important;
@@ -4644,7 +4645,7 @@ html[data-native-app="android"] .theme-bottom-item {
   color: #f7faf9;
 }
 .fc-premium .fc-main {
-  letter-spacing: -.006em;
+  letter-spacing: 0;
 }
 .fc-premium .fc-main :is(h1, h2, h3) {
   text-wrap: balance;
@@ -4670,7 +4671,7 @@ html[data-native-app="android"] .theme-bottom-item {
   color: var(--theme-text);
   font-size: clamp(1.75rem, 2.7vw, 2.28rem);
   font-weight: 740;
-  letter-spacing: -.055em;
+  letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
 }
 .fc-premium .fc-main :is(.fc-section-heading,.premium-section-heading) {
@@ -4681,7 +4682,7 @@ html[data-native-app="android"] .theme-bottom-item {
   color: var(--theme-text);
   font-size: clamp(1.08rem, 1.85vw, 1.35rem);
   font-weight: 700;
-  letter-spacing: -.035em;
+  letter-spacing: -.02em;
 }
 .fc-premium .fc-main :is(.fc-quick-action-tile,.theme-action-row,.premium-destination) {
   border-radius: var(--om-radius-card);
@@ -4737,8 +4738,8 @@ html[data-native-app="android"] .theme-bottom-item {
   max-width: 100%;
   color: var(--om-editorial-ink) !important;
   font-size: clamp(1.85rem, 3.45vw, 2.8rem);
-  line-height: 1.08;
-  letter-spacing: -.053em;
+  line-height: 1.16;
+  letter-spacing: -.025em;
   font-weight: 735;
 }
 .fc-premium .fc-app-shell .fc-main .fc-page-heading :is(.fc-page-summary,.premium-hero-description) {
@@ -4810,7 +4811,7 @@ html[data-native-app="android"] .theme-bottom-item {
   min-height: 0;
 }
 .fc-premium .fc-dashboard-page .premium-home-hero .home-player-name {
-  letter-spacing: -.045em;
+  letter-spacing: -.02em;
 }
 .fc-premium .fc-dashboard-page .fc-next-match-panel {
   border: 1px solid var(--theme-border);
@@ -4842,7 +4843,7 @@ html[data-native-app="android"] .theme-bottom-item {
 }
 .fc-premium .fc-main .premium-match-score {
   font-weight: 750;
-  letter-spacing: -.065em;
+  letter-spacing: -.02em;
 }
 .fc-premium .fc-main .premium-fixture-page .premium-fixture-ledger {
   display: grid;
@@ -4944,6 +4945,37 @@ html[data-native-app="android"] .theme-bottom-item {
 :root[data-theme="luxury-gold"][data-mode="light"] .fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"]::after {
   background: #8a631f;
 }
+/* Keep fixture controls readable when the status names need more space. */
+.fc-premium .fc-app-shell .fc-main :is(.premium-hero,.premium-home-hero) h1 {
+  letter-spacing: -.025em;
+  line-height: 1.16;
+}
+.fc-premium .fc-main .fc-fixture-filter {
+  color: var(--theme-text-secondary);
+  background: var(--theme-surface);
+  border-color: var(--theme-control-border);
+}
+.fc-premium .fc-main .fc-fixture-filters {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+}
+.fc-premium .fc-main .fc-fixture-filter[aria-pressed="true"] {
+  color: var(--theme-text);
+  background: var(--theme-primary-soft);
+  font-weight: 750;
+  box-shadow: inset 0 -3px 0 var(--theme-primary);
+}
+.fc-premium .fc-main .fc-fixture-filter:focus-visible {
+  outline: 3px solid var(--theme-focus);
+  outline-offset: 3px;
+}
+.fc-premium .fc-main .premium-fixture-page .theme-status-badge {
+  flex-shrink: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+@media (prefers-contrast: more) {
+  .fc-premium .fc-main .fc-fixture-filter { border-color: currentColor; }
+}
 @media (max-width: 640px) {
   .fc-premium .fc-main :is(.fc-panel,.theme-panel,.fc-ux-card) {
     box-shadow: none;
@@ -4985,6 +5017,8 @@ html[data-native-app="android"] .theme-bottom-item {
   }
   .fc-premium .fc-app-shell .fc-main :is(.fc-page-heading,.premium-home-hero,.premium-hero) :is(h1,h2,p,span) {
     color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+    text-shadow: none !important;
   }
   .fc-premium .fc-app-shell .theme-bottom-nav .theme-bottom-item[data-active="true"] {
     outline: 2px solid Highlight;

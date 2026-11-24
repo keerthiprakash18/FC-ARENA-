@@ -769,18 +769,15 @@ export default function FixturesPage() {
             </section>
 
             <FcPanel className="p-3">
-              <div className="grid grid-cols-4 gap-2">
+              <div className="fc-fixture-filters grid gap-2" role="group" aria-label="Filter matches by status">
                 {(["ALL", "UPCOMING", "LIVE", "COMPLETED"] as Filter[]).map(
                   (value) => (
                     <button
                       key={value}
                       type="button"
+                      aria-pressed={filter === value}
                       onClick={() => setFilter(value)}
-                      className={`rounded-xl border px-2 py-3 text-[10px] font-black transition sm:text-xs ${
-                        filter === value
-                          ? "border-sky-400/30 bg-sky-400/[0.09] text-sky-300"
-                          : "border-white/[0.07] text-slate-500"
-                      }`}
+                      className="fc-fixture-filter min-h-11 whitespace-nowrap rounded-xl border px-3 py-3 text-xs font-semibold transition"
                     >
                       {value}
                     </button>

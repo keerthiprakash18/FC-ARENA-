@@ -112,6 +112,55 @@ try {
       await fixture.context.close();
     }
   }
+  for (const width of [320,390,1280]) for (const mode of ['LIGHT','DARK']) {
+    const fixture=await createUiContext(browser,{width,mode,theme:'LUXURY_GOLD',native:width<500,direct:true,reducedMotion:'reduce'});
+    try {
+      const page=fixture.page;await page.goto(origin+'/fixtures');
+      const controls=page.getByRole('group',{name:'Filter matches by status'});await controls.waitFor();
+      const buttons=controls.getByRole('button');assert.equal(await buttons.count(),4);
+      const sizes=await buttons.evaluateAll(nodes=>nodes.map(node=>{const s=getComputedStyle(node),r=document.createRange();r.selectNodeContents(node);return{height:node.getBoundingClientRect().height,textHeight:r.getBoundingClientRect().height,lineHeight:parseFloat(s.lineHeight),nowrap:s.whiteSpace};}));
+      assert(sizes.every(size=>size.height>=44&&size.nowrap==='nowrap'&&size.textHeight<=size.lineHeight+2),'Filter labels must fit on one line with finger-sized controls');
+      assert.equal(await controls.locator('[aria-pressed="true"]').count(),1);
+      await controls.getByRole('button',{name:'COMPLETED',exact:true}).click();
+      assert.equal(await controls.getByRole('button',{name:'COMPLETED',exact:true}).getAttribute('aria-pressed'),'true');
+      await controls.getByRole('button',{name:'ALL',exact:true}).click();
+      await controls.getByRole('button',{name:'ALL',exact:true}).focus();
+      await page.keyboard.press('Tab');
+      const focus=await controls.getByRole('button',{name:'UPCOMING',exact:true}).evaluate(el=>{const s=getComputedStyle(el);return{style:s.outlineStyle,width:parseFloat(s.outlineWidth)};});
+      assert(focus.style!=='none'&&focus.width>=2,'Keyboard selection needs a visible focus ring');
+      const badge=page.locator('.theme-status-badge').filter({hasText:/^SCHEDULED$/}).first();
+      await badge.waitFor();assert.equal(await badge.evaluate(el=>getComputedStyle(el).flexShrink),'0');
+      await checkLayout(page,`Refined fixtures ${width} ${mode}`);
+      const palettes=await page.evaluate(themes=>{
+        const root=document.documentElement,button=document.querySelector('.fc-fixture-filter[aria-pressed="true"]'),before={theme:root.dataset.theme,mode:root.dataset.mode};
+        const rgb=s=>(s.match(/[\d.]+/g)||[]).map(Number);
+        const luma=rgb=>rgb.slice(0,3).reduce((sum,v,i)=>sum+(v/255<=.04045?v/255/12.92:((v/255+.055)/1.055)**2.4)*[.2126,.7152,.0722][i],0);
+        const issues=[];
+        for(const theme of themes)for(const mode of ['light','dark']){
+          root.dataset.theme=theme;root.dataset.mode=mode;
+          let bg=mode==='light'?[255,255,255]:[0,0,0];const ancestors=[];
+          for(let el=button;el;el=el.parentElement)ancestors.unshift(el);
+          for(const el of ancestors){const c=rgb(getComputedStyle(el).backgroundColor),a=c[3]??1;bg=bg.map((v,i)=>(c[i]??v)*a+v*(1-a));}
+          const fg=luma(rgb(getComputedStyle(button).color)),back=luma(bg),ratio=(Math.max(fg,back)+.05)/(Math.min(fg,back)+.05);
+          if(ratio<4.5)issues.push({theme,mode,ratio});
+        }
+        root.dataset.theme=before.theme;root.dataset.mode=before.mode;return issues;
+      },themes);
+      assert.deepEqual(palettes,[],'Selected filter text must remain readable across all club themes and both modes');
+      const enlarged=await controls.evaluate(el=>{
+        const root=document.documentElement,before=root.style.fontSize;root.style.fontSize='200%';
+        const fits=[...el.querySelectorAll('button')].every(button=>button.scrollWidth<=button.clientWidth+1);
+        root.style.fontSize=before;return fits;
+      });
+      assert(enlarged,'Status controls must expand with larger text');
+      await page.emulateMedia({forcedColors:'active'});
+      const ink=await page.locator('h1').first().evaluate(el=>{const s=getComputedStyle(el);return{color:s.color,fill:s.webkitTextFillColor};});
+      assert.equal(ink.fill,ink.color,'High-contrast headings must use visible text fill');
+      await page.emulateMedia({forcedColors:'none'});
+      await page.screenshot({path:join(output,`refined-fixtures-${mode.toLowerCase()}-${width}.png`),fullPage:true,animations:'disabled'});
+      assert.deepEqual(fixture.errors,[]);console.log(`PASS refined fixtures ${width}px ${mode}: labels, focus, selection, 24 theme/mode contrast pairs`);
+    } finally {await fixture.context.close();}
+  }
 } finally {
   await browser.close();
 }

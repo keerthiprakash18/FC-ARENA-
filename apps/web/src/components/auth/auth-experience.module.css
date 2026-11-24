@@ -21,9 +21,10 @@
 .securityIcon { display: inline-grid; place-items: center; }
 .card :global(.auth-form) { gap: 18px; }
 .card :global(.field label) { color: var(--theme-text); font-size: 14px; font-weight: 600; }
-.card :global(.field input) { min-width: 0; width: 100%; min-height: 48px; border-radius: 10px; border: 1px solid var(--theme-control-border); background: var(--theme-surface); color: var(--theme-text); font-size: 16px; }
+/* Keep the focus outline immediate; the legacy input transition animates all properties. */
+.card :global(.field input) { min-width: 0; width: 100%; min-height: 48px; border-radius: 10px; border: 1px solid var(--theme-control-border); background: var(--theme-surface); color: var(--theme-text); font-size: 16px; transition: border-color var(--fc-motion), background-color var(--fc-motion); }
 .card :global(.field input:focus) { border-color: var(--theme-focus); box-shadow: none; }
-.card :global(.field input:focus-visible) { outline: 3px solid var(--theme-focus); outline-offset: 3px; }
+.card :global(.field input:focus-visible) { outline: 3px solid var(--theme-focus) !important; outline-offset: 3px !important; }
 .card :global(.field input::placeholder) { color: var(--theme-text-muted); }
 .card :global(.primary-button) { width: 100%; min-height: 48px; background: var(--arena-gold); color: var(--arena-on-gold); border-radius: var(--fc-control-radius); font-weight: 600; box-shadow: none; transition: transform var(--arena-press), background-color var(--fc-motion); }
 .card :global(.primary-button:hover:not(:disabled)) { background: #ffe4a9; }

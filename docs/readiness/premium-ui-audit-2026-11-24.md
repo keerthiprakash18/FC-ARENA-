@@ -46,6 +46,19 @@ automatic claim that a source commit is live.
    headers use solid theme ink. Forced-color text fill, reduced motion and
    saved club palettes remain supported. Identity crests on fixtures and
    podiums use readable surface/text roles.
+9. **Live instances serving different designs.** Release preflight found the
+   primary web process on `cd16e827` while the secondary and managed pointer
+   remained on `48f171ac`. A later unmanaged systemd override bypassed the
+   managed launcher. Its exact configuration was backed up privately and
+   reversibly disabled; only the primary web service restarted while the
+   healthy secondary stayed available. Both returned to the managed baseline
+   before the new release switch. Final verification must prove identical
+   candidate markers across both web and both API processes.
+
+Linux frontend CI also caught the legacy auth input `transition: all`
+animating the focus outline from zero width. Auth inputs now transition only
+border/background color and declare a stable 3px focus ring. The existing
+immediate keyboard-focus assertion is retained.
 
 ## Verification
 

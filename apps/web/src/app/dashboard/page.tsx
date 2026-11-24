@@ -743,7 +743,7 @@ export default function DashboardPage() {
       description: `${activeTournament.pendingEntries} registration(s) awaiting review.`,
       href: `/tournaments/${activeTournament.id}/teams`,
     }] : []),
-  ].filter(action => action.href !== heroAction.href).slice(0, 3);
+  ].filter(action => action.href !== heroAction.href && !(showNextMatch && action.id === 'match')).slice(0, 3);
 
   return (
     <AppShell
@@ -752,6 +752,7 @@ export default function DashboardPage() {
       playerRole={selectedMembership?.adminRole || "Player"}
     >
       <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5">
+        <div className="fc-dashboard-spotlight" data-has-match={showNextMatch}>
         <section className="fc-dashboard-hero premium-home-hero" data-has-match={showNextMatch}>
           <div className="home-hero-layout relative grid items-center">
             <div className="min-w-0">
@@ -884,16 +885,11 @@ export default function DashboardPage() {
                     </nav>
                   ) : null}
                   {matchdayGuidance ? (
-                    <div className="mt-3 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-secondary-background)] p-3 sm:p-4" aria-label="Your matchday next action">
+                    <div className="fc-matchday-guidance mt-3" aria-label="Your matchday next action">
                       <div className="min-w-0">
-                        <p className="text-xs font-bold uppercase tracking-wider text-[var(--theme-text-secondary)]">Your next action</p>
                         <h3 className="mt-1 text-sm font-bold text-[var(--theme-text)]">{matchdayGuidance.heading}</h3>
                         <p className="mt-1 text-sm leading-5 text-[var(--theme-text-secondary)]">{matchdayGuidance.description}</p>
                       </div>
-                      <Link href={nextFixture.match?.id ? `/matches/${nextFixture.match.id}` : `/tournaments/${nextFixture.tournamentId}/fixtures`}
-                        className="theme-secondary-button inline-flex min-h-11 shrink-0 items-center rounded-xl border px-3 text-sm font-semibold">
-                        {matchdayGuidance.actionLabel} →
-                      </Link>
                     </div>
                   ) : null}
                 </>
@@ -901,6 +897,7 @@ export default function DashboardPage() {
             </FcPanel>
           </section>
         ) : null}
+        </div>
 
         {nextActions.length > 0 ? (
           <section aria-labelledby="dashboard-actions-title" className="fc-dashboard-queue theme-panel border">

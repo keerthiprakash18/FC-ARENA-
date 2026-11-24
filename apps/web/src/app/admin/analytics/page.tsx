@@ -240,7 +240,7 @@ export default function AdminAnalyticsPage() {
       backHref="/more"
       backLabel="More"
       className="premium-operations"
-      header={<PremiumHero eyebrow="FC Arena · Competition operations" title="Analytics" description="A clear view of your competitions. Put the next decision first." action={data ? <a href="#pending-review" className="theme-primary-button premium-button">Open review queues <FcIcon name="chevronRight" size={16} /></a> : undefined}>
+      header={<PremiumHero variant="editorial" eyebrow="FC Arena · Competition operations" title="Analytics" description="A clear view of your competitions. Put the next decision first." action={data ? <a href="#pending-review" className="theme-primary-button premium-button">Open review queues <FcIcon name="chevronRight" size={16} /></a> : undefined}>
         {data ? <div className="premium-hero-tags"><span>{data.scope.global ? 'Global Scope' : `${data.scope.leagueIds.length} Managed League${data.scope.leagueIds.length === 1 ? '' : 's'}`}</span><span>{data.alerts.total} operational alerts</span><span>{data.totals.liveMatches} live matches</span></div> : null}
       </PremiumHero>}
       action={

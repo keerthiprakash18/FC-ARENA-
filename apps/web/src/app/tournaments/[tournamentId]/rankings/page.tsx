@@ -284,7 +284,7 @@ export default function RankingsPage() {
           </Link>
         </div>
 
-        <PremiumHero title={data.tournament.name} eyebrow="Tournament Rankings">
+        <PremiumHero variant="editorial" title={data.tournament.name} eyebrow="Tournament Rankings">
           <div className="premium-hero-tags">
             <span>{competitionLabel(data.tournament.mode)}</span>
             <span>{competitionLabel(data.tournament.format)}</span>

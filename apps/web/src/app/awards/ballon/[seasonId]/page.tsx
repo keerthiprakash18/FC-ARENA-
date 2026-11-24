@@ -390,7 +390,7 @@ export default function BallonRankingsPage() {
              ).toLocaleDateString()} · ${season.minimumMatches}–${season.maximumMatches} matches counted · ${season.status}`
           : 'Loading seasonal ranking...'
       }
-       header={<PremiumHero eyebrow="FC Arena · Ballon d’Or" title={season?.name ?? 'Season Rankings'} description={season ? `${new Date(season.startAt).toLocaleDateString()} – ${new Date(season.endAt).toLocaleDateString()} · ${season.minimumMatches}–${season.maximumMatches} matches counted · ${season.status}` : 'Loading seasonal ranking...'} />}
+       header={<PremiumHero variant="editorial" eyebrow="FC Arena · Ballon d’Or" title={season?.name ?? 'Season Rankings'} description={season ? `${new Date(season.startAt).toLocaleDateString()} – ${new Date(season.endAt).toLocaleDateString()} · ${season.minimumMatches}–${season.maximumMatches} matches counted · ${season.status}` : 'Loading seasonal ranking...'} />}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link

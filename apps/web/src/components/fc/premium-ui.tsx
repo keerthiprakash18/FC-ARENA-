@@ -9,12 +9,12 @@ export function PremiumPitch() {
   return <svg className="premium-pitch" viewBox="0 0 600 340" fill="none" aria-hidden="true"><rect x="35" y="35" width="530" height="270" rx="8" /><path d="M300 35v270M35 110h90v120H35m530-120h-90v120h90" /><circle cx="300" cy="170" r="65" /><circle cx="300" cy="170" r="3" /></svg>;
 }
 
-export function PremiumHero({ eyebrow, title, description, crest, imageUrl, action, children, className = '' }: {
+export function PremiumHero({ eyebrow, title, description, crest, imageUrl, action, children, className = '', variant = 'feature' }: {
   eyebrow: string; title: string; description?: string; crest?: string; imageUrl?: string | null;
-  action?: ReactNode; children?: ReactNode; className?: string;
+  action?: ReactNode; children?: ReactNode; className?: string; variant?: 'feature' | 'editorial';
 }) {
-  return <section className={`premium-hero ${className}`}>
-    <PremiumPitch />
+  return <section className={`premium-hero${variant === 'editorial' ? ' premium-hero--editorial' : ''} ${className}`}>
+    {variant === 'feature' ? <PremiumPitch /> : null}
     <div className="premium-hero-copy">
       <p className="premium-eyebrow">{eyebrow}</p>
       <div className="premium-hero-identity">

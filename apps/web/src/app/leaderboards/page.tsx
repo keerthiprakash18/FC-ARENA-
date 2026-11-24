@@ -427,8 +427,9 @@ export default function LeaderboardsPage() {
                 </p>
               </details>
 
-              <section aria-labelledby="my-ranking-history-title" className="mb-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
-                <h2 id="my-ranking-history-title" className="theme-text text-base font-bold">My rank history</h2>
+              <details aria-labelledby="my-ranking-history-title" className="fc-rank-history mb-4 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] px-4 sm:px-5">
+                <summary className="min-h-11 cursor-pointer py-3"><h2 id="my-ranking-history-title" className="theme-text inline text-sm font-semibold">My rank history</h2></summary>
+                <div className="pb-4">
                 <p className="theme-secondary-text mt-1 text-xs leading-5">
                   Last 90 days of actual saved daily league snapshots in this competition mode.
                   Missing dates and unranked days are never estimated.
@@ -449,7 +450,8 @@ export default function LeaderboardsPage() {
                     {rankHistory ? 'No historical daily snapshots recorded yet.' : 'Loading previous ranks…'}
                   </p>
                 )}
-              </section>
+                </div>
+              </details>
 
               <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <FcStatCard

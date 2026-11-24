@@ -543,7 +543,7 @@ export default function LeagueWarPage() {
       }
     >
       <div className="premium-page fc-league-war-page">
-        <PremiumHero
+        <PremiumHero variant="editorial"
           eyebrow="Competition"
           title="League War"
           description="Follow league challenges, rosters and points from verified matches."

@@ -78,11 +78,11 @@ export function SocialSignIn() {
               f
             </span>
           )}
-          {busy === provider
+          <span className="min-w-0 flex-1 text-left leading-5">{busy === provider
             ? 'Opening sign-in...'
-            : `Continue with ${provider === 'google' ? 'Google' : 'Facebook'}`}
+            : `Continue with ${provider === 'google' ? 'Google' : 'Facebook'}`}</span>
           {ready && !providers[provider] ? (
-            <span className="text-xs font-normal">Coming soon</span>
+            <span className="shrink-0 whitespace-nowrap text-[10px] font-normal">Coming soon</span>
           ) : null}
         </button>
       ))}

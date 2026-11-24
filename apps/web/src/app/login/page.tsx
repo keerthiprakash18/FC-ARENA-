@@ -122,7 +122,7 @@ export default function LoginPage() {
   return (
     <AuthCard
       eyebrow="PLAYER ACCESS"
-      title="WELCOME BACK"
+      title="Welcome back"
       description="Sign in with your email or In-Game Name to continue your FC ARENA career."
     >
       <form className="auth-form" onSubmit={submit}>
@@ -140,7 +140,7 @@ export default function LoginPage() {
             placeholder="you@example.com or your IGN"
             required
           />
-          <p className="mt-2 text-xs leading-5 text-slate-500">
+          <p className="theme-secondary-text mt-2 text-xs leading-5">
             Use either your registered email address or the In-Game Name saved in your FC ARENA profile.
           </p>
         </div>

@@ -548,6 +548,7 @@ export default function FixturesPage() {
     <AppShell currentUser={user} playerName={user.player?.identity?.inGameName}>
       <div className="premium-page premium-fixture-page">
         <PremiumHero
+          variant="editorial"
           eyebrow="The matchday centre"
           title="Fixtures"
           description="Every opponent. Every matchday. Every result."
@@ -570,7 +571,7 @@ export default function FixturesPage() {
               </div>
             ) : null
           }
-        ><div className="premium-hero-tags"><span>{upcomingCount} upcoming</span><span>{todayCount} today</span><span>{liveCount} live</span><span>{completedCount} completed</span></div></PremiumHero>
+        />
 
         {error ? <FcErrorState message={error} onRetry={() => { setError(""); setRetry(value => value + 1); }} /> : null}
 

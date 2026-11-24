@@ -784,7 +784,7 @@ export default function PlayoffsPage() {
     return (
       <AppShell playerName={user.player?.identity?.inGameName}>
         <div className="premium-page premium-playoffs">
-          <PremiumHero
+          <PremiumHero variant="editorial"
             eyebrow={`${tournament.name} · ${tournament.code}`}
             title="League Standings"
             description="This competition has no knockout stage. Verified league results decide the winner through the final standings."
@@ -835,7 +835,7 @@ export default function PlayoffsPage() {
           ← Back
         </button>
 
-        <PremiumHero
+        <PremiumHero variant="editorial"
           eyebrow={
             `${tournament.name} · ${format.title}`
           }

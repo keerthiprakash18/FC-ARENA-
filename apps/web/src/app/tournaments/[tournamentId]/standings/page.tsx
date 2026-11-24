@@ -458,7 +458,7 @@ export default function StandingsPage() {
           Tournament
         </Link>
 
-        <PremiumHero eyebrow={tournament.name} title="Standings" description="Official competition standings and your own match statistics, updated from confirmed results." />
+        <PremiumHero variant="editorial" eyebrow={tournament.name} title="Standings" description="Official competition standings and your own match statistics, updated from confirmed results." />
 
         {groups.length > 0 && tournament.formatGuide?.qualification.source === 'OVERALL_STANDINGS' && standings.length > 0 ? (
           <StandingTable title="Overall qualification table" eyebrow="Official Tournament Standings" bands={tournament.formatGuide.qualification.bands}

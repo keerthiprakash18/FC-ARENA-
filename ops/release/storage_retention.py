@@ -236,7 +236,7 @@ def select_policy(report, policy, receipt, now=None):
     require(24 <= age <= 720 and 0 < limit <= 10, 'Policy bounds invalid')
     now = time.time() if now is None else now
     copies = {i['source']: i for i in receipt['files'] if i.get('verified') is True
-              and 0 <= now - dt.datetime.fromisoformat(i['verifiedAt']).timestamp() <= 48 * 3600}
+              and -300 <= now - dt.datetime.fromisoformat(i['verifiedAt']).timestamp() <= 48 * 3600}
     selected = [i for i in report['candidates'] if now - i['fingerprint']['mtime_ns'] / 1e9 >= age * 3600
                 and (i['kind'] != 'downloaded-archive' or copies.get(i['path'], {}).get('sha256') == i['sha256'])]
     require(sum(i['bytes'] for i in selected) <= limit * 1024**3, 'Cycle exceeds approved budget; manual review required')

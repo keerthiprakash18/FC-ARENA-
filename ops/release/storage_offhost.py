@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import time
 
 REMOTE = '/var/lib/fcarena-release-storage/'
 GUARD = '/opt/fcarena-ops/release/storage_retention.py'
@@ -35,13 +36,20 @@ def main():
     args = parser.parse_args()
     destination = Path(args.directory).resolve()
     destination.mkdir(parents=True, exist_ok=True)
-    common = ['-i', args.identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15']
+    common = ['-i', args.identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
+              '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=4']
 
     def ssh(command):
         subprocess.run(['ssh', *common, args.host, command], check=True, timeout=1800)
 
     def scp(source, target):
-        subprocess.run(['scp', '-q', *common, source, target], check=True, timeout=1800)
+        for attempt in range(3):
+            result = subprocess.run(['scp', '-q', *common, source, target], timeout=1800)
+            if result.returncode == 0:
+                return
+            if attempt < 2:
+                time.sleep(2)
+        result.check_returncode()
 
     ssh('python3 ' + GUARD + ' plan --output ' + REMOTE + 'pc-plan.json')
     plan_path = destination / 'pc-plan.private.json'

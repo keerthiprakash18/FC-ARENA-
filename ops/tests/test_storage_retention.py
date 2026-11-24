@@ -158,6 +158,8 @@ class RetentionTests(unittest.TestCase):
         self.assertEqual(R.select_policy(report, policy, {'files': [entry]}, now)['candidates'], [])
         entry['verifiedAt'] = R.dt.datetime.fromtimestamp(now, R.dt.timezone.utc).isoformat()
         self.assertEqual(len(R.select_policy(report, policy, {'files': [entry]}, now)['candidates']), 1)
+        entry['verifiedAt'] = R.dt.datetime.fromtimestamp(now + 301, R.dt.timezone.utc).isoformat()
+        self.assertEqual(R.select_policy(report, policy, {'files': [entry]}, now)['candidates'], [])
 
 
 if __name__ == '__main__':

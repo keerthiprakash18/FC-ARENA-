@@ -225,8 +225,11 @@ def restore(snapshot):
         time.sleep(2)
     raise RuntimeError('Baseline rollback failed exact release health')
 def activate(args):
-    import pwd
     assert os.geteuid()==0 and socket.gethostname().split('.')[0]=='fcarena-prod'
+    storage_policy=Path('/etc/fcarena/release-storage-policy.json')
+    if storage_policy.exists():
+        command(['/usr/bin/python3','/opt/fcarena-ops/release/storage_retention.py','preflight'])
+    import pwd
     assert re.fullmatch('[0-9a-f]{40}',args.sha or '')
     runtime=Path(args.runtime).resolve();assert runtime.name=='runtime' and runtime.parent.parent==Path('/opt/fcarena-deployments')
     previous=json.loads((MANAGED/'current.json').read_text()) if (MANAGED/'current.json').exists() else None

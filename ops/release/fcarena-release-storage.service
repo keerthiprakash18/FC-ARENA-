@@ -1,0 +1,18 @@
+[Unit]
+Description=FC Arena owner-approved guarded release storage maintenance
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /opt/fcarena-ops/release/storage_retention.py cycle
+Nice=15
+IOSchedulingClass=idle
+CPUQuota=25%
+RuntimeMaxSec=1800
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/fcarena-deployments /root/fcarena-audit-improvements/artifacts /var/lib/fcarena-release-storage /run/lock
+

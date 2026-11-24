@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily guarded FC Arena release cache retention
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 UTC
+RandomizedDelaySec=15m
+Persistent=true
+Unit=fcarena-release-storage.service
+
+[Install]
+WantedBy=timers.target

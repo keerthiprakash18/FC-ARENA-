@@ -214,15 +214,13 @@ function RaceList<Row extends RaceRow | VerifiedScoreRow>({
           </span>
           {title}
         </h2>
+        <p className="mt-2 text-xs text-slate-400" role="status">
+          All {rows.length} verified {rows.length === 1 ? 'entry' : 'entries'} ranked · Scroll to see the complete race
+        </p>
       </div>
 
       <div className="divide-y divide-white/[0.06]">
-        {rows
-          .slice(
-            0,
-            5,
-          )
-          .map(
+        {rows.map(
             (
               row,
             ) => (

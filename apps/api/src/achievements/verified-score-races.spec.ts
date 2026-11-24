@@ -50,6 +50,7 @@ describe('verified score award races', () => {
       { userId: 'h1', goalsFor: 4 },
       { userId: 'a2', goalsFor: 3 },
       { userId: 'h2', goalsFor: 1 },
+      { userId: 'a1', goalsFor: 0 },
     ]);
     expect(ranks.goldenGlove[0]).toMatchObject({ userId: 'h1', cleanSheets: 1 });
   });
@@ -63,4 +64,28 @@ describe('verified score award races', () => {
     expect(ranks.goldenBoot).toEqual([]);
     expect(ranks.goldenGlove).toEqual([]);
   });
+  it('includes every verified TEAM/DUO entry beyond rank 20, even when an entry has zero goals', () => {
+    const fixtures = Array.from({ length: 13 }, (_, index) => ({
+      ...fixture,
+      id: `fixture-${index + 1}`,
+      sequence: index + 1,
+      homeRegistrationId: `home-${index}`,
+      awayRegistrationId: `away-${index}`,
+      match: { ...fixture.match,
+        confirmedResultSubmissionId: `result-${index + 1}`,
+        confirmedResult: { ...fixture.match.confirmedResult,
+          id: `result-${index + 1}`, homeScore: index + 1, awayScore: 0 },
+      },
+    }));
+    const ranks = rankVerifiedScores(fixtures, tournament);
+    expect(ranks.metrics).toHaveLength(26);
+    expect(ranks.goldenBoot).toHaveLength(26);
+    expect(ranks.goldenGlove).toHaveLength(26);
+    expect(new Set(ranks.goldenBoot.map(row => row.userId)).size).toBe(26);
+    expect(ranks.goldenBoot[0]).toMatchObject({ userId: 'home-12', goalsFor: 13 });
+    expect(ranks.goldenBoot.find(row => row.userId === 'away-12'))
+      .toMatchObject({ goalsFor: 0, matches: 1 });
+    expect(ranks.goldenGlove.filter(row => row.cleanSheets === 1)).toHaveLength(13);
+  });
+
 });

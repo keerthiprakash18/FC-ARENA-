@@ -42,4 +42,31 @@ describe('consistent live award race positions', () => {
     expect(response.data.goldenBoot.map(row => [row.userId, row.position])).toEqual([['a', 1], ['b', 1], ['c', 3]]);
     expect(response.data.goldenGlove.map(row => row.position)).toEqual([1, 1, 1]);
   });
+  it('returns every verified SOLO player beyond the previous 20-person cap for all three races', async () => {
+    const rows = Array.from({ length: 27 }, (_, index) => metric(
+      `player-${String(index + 1).padStart(2, '0')}`,
+      { goalsFor: index, goalDifference: index - 4, cleanSheets: index % 4 },
+    ));
+    const prisma: any = {
+      tournament: { findUnique: vi.fn().mockResolvedValue({ id: 'cup', leagueId: 'league', mode: 'SOLO' }) },
+      leagueMember: { findUnique: vi.fn().mockResolvedValue({}) },
+      playerTournamentStatistic: { findMany: vi.fn().mockResolvedValue(rows.map(row => ({
+        ...row, user: { fullName: row.userId, player: null },
+      }))) },
+    };
+    const service = new AchievementsService(prisma, {} as any);
+    vi.spyOn(service as any, 'buildTournamentAwardMetrics').mockResolvedValue(rows);
+    const response = await service.getTournamentAwardRaces('member', 'cup');
+    for (const race of [response.data.goldenBoot, response.data.goldenGlove, response.data.playerOfTournament]) {
+      expect(race).toHaveLength(27);
+      expect(new Set(race.map(row => row.userId)).size).toBe(27);
+    }
+    expect(response.data.goldenBoot[0].userId).toBe('player-27');
+    expect(response.data.goldenBoot.at(-1)).toMatchObject({
+      userId: 'player-01', goals: 0, matches: 4,
+    });
+    // A goalless participant can see their rank, but cannot receive a Golden Boot trophy.
+    expect(tiedGoldenBootWinners([metric('goalless', { goalsFor: 0 })])).toEqual([]);
+  });
+
 });

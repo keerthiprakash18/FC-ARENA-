@@ -73,10 +73,10 @@ export function rankVerifiedScores(
   const rows = [...scores.values()];
   return {
     ids: [...scores.keys()],
-    // Full canonical verified metrics for official awards at tournament finalisation.
-    // The public races below remain capped at 20; official winners must not be.
+    // The race shows every participant with a confirmed result, including zero-goal
+    // players/teams. Official winner eligibility remains unchanged elsewhere.
     metrics: rows,
-    goldenBoot: rankGoldenBootRace(rows).slice(0, 20),
-    goldenGlove: rankGoldenGloveRace(rows).slice(0, 20),
+    goldenBoot: rankGoldenBootRace(rows, { includeGoalless: true }),
+    goldenGlove: rankGoldenGloveRace(rows),
   };
 }

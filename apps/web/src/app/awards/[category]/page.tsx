@@ -659,12 +659,10 @@ export default function AwardCategoryPage() {
                       : 'Player record · verified individual DUO games.'}</p> : null}
                     {race.data.available || verified ? (
                       <div className="divide-y divide-white/[0.06]">
-                        {rows
-                          .slice(
-                            0,
-                            5,
-                          )
-                          .map(
+                        <p className="px-5 py-3 text-xs text-slate-400" role="status">
+                          All {rows.length} verified {verified?.scope === 'TEAM' ? (rows.length === 1 ? 'team' : 'teams') : (rows.length === 1 ? 'player' : 'players')} ranked
+                        </p>
+                        {rows.map(
                             (
                               row,
                             ) => (

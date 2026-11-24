@@ -282,8 +282,16 @@ function sharedPositions<T extends { userId: string }>(rows: T[], scoreOrder: (a
   });
 }
 
-export function rankGoldenBootRace<T extends GoldenBootMetric>(rows: T[]) {
-  return sharedPositions(rows.filter(row => row.matches > 0 && row.goalsFor > 0), goldenBootScoreOrder);
+/** Include zero-goal verified participants in the visible race, never as official winners.
+ * The default keeps existing final-award eligibility unchanged. */
+export function rankGoldenBootRace<T extends GoldenBootMetric>(
+  rows: T[],
+  options: { includeGoalless?: boolean } = {},
+) {
+  return sharedPositions(
+    rows.filter(row => row.matches > 0 && (options.includeGoalless || row.goalsFor > 0)),
+    goldenBootScoreOrder,
+  );
 }
 
 export function rankGoldenGloveRace<T extends AwardMetricRow>(rows: T[]) {

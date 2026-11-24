@@ -1006,11 +1006,17 @@ export class AchievementsService {
       id: row.userId,
       name: names.get(row.userId) || (individual ? 'Player' : 'Team'),
       position: row.position,
-      matches: row.matches,
+      matches: races.fixtureMatches.get(row.userId) ?? 0,
       goals: row.goalsFor,
-      goalsPerMatch: Number((row.goalsFor / row.matches).toFixed(2)),
+      goalsPerMatch: Number((row.goalsFor / (races.fixtureMatches.get(row.userId) || 1)).toFixed(2)),
       cleanSheets: row.cleanSheets,
-      goalsAgainstPerMatch: Number((row.goalsAgainst / row.matches).toFixed(2)),
+      cleanSheetRate: Number((row.cleanSheets / row.matches * 100).toFixed(1)),
+      goalsAgainstPerMatch: Number((row.goalsAgainst / (races.fixtureMatches.get(row.userId) || 1)).toFixed(2)),
+      ...(individual ? {
+        games: row.matches,
+        goalsPerGame: Number((row.goalsFor / row.matches).toFixed(2)),
+        goalsAgainstPerGame: Number((row.goalsAgainst / row.matches).toFixed(2)),
+      } : {}),
     });
     return {
       scope: individual ? 'PLAYER' as const : 'TEAM' as const,

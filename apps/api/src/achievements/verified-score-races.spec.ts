@@ -50,6 +50,7 @@ describe('verified score award races', () => {
       { userId: 'h1', goalsFor: 4 },
       { userId: 'a2', goalsFor: 3 },
       { userId: 'h2', goalsFor: 1 },
+      { userId: 'a1', goalsFor: 0 },
     ]);
     expect(ranks.goldenGlove[0]).toMatchObject({ userId: 'h1', cleanSheets: 1 });
   });

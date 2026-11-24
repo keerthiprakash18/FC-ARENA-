@@ -1,6 +1,7 @@
 'use client';
 
 import { AwardCeremony } from '@/components/fc/award-ceremony';
+import { AwardRaceBoard } from '@/components/fc/award-race-board';
 import Link from 'next/link';
 import {
   useParams,
@@ -475,6 +476,46 @@ export default function AwardCategoryPage() {
     );
   }
 
+  const scoreRace = config.raceKey === 'goldenBoot' || config.raceKey === 'goldenGlove';
+  const scoringDetails = (
+      <details className="overflow-hidden rounded-[24px] border border-amber-400/15 bg-amber-400/[0.035]" open={!scoreRace}>
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              How scoring works
+            </p>
+            <h2 className="mt-1 text-base font-black">
+              {config.calculationTitle}
+            </h2>
+          </div>
+          <span className="text-lg">
+            ⓘ
+          </span>
+        </summary>
+
+        <div className="grid gap-3 border-t border-white/[0.07] p-5 sm:grid-cols-2">
+          {config.rules.map((rule) => (
+            <div
+              key={rule.label}
+              className="rounded-2xl border border-white/[0.07] bg-black/10 p-4"
+            >
+              <p className="text-sm font-black text-slate-200">
+                {rule.label}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                {rule.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p className="border-t border-white/[0.07] px-5 py-4 text-xs leading-5 text-slate-500">
+          Individual races use verified SOLO results or verified individual DUO games. Aggregate DUO and TEAM scores appear as team records. Unverified, cancelled or duplicate fixtures do not count.
+          {' '}DUO matches count the fixtures you played; games, goals and rates use only your own individual games.
+        </p>
+      </details>
+  );
+
   return (
     <SecondaryFeaturePage
       eyebrow="Award Category"
@@ -494,7 +535,7 @@ export default function AwardCategoryPage() {
         </span>
       }
     >
-      <section className="relative overflow-hidden rounded-[28px] border border-amber-400/20 bg-[#0B0F14] p-5 sm:p-7">
+      {scoreRace ? null : <section className="relative overflow-hidden rounded-[28px] border border-amber-400/20 bg-[#0B0F14] p-5 sm:p-7">
         <div className="pointer-events-none absolute -right-16 -top-20 h-60 w-60 rounded-full bg-amber-300/10 blur-3xl" />
 
         <div className="relative flex flex-wrap items-start justify-between gap-6">
@@ -547,44 +588,9 @@ export default function AwardCategoryPage() {
             </p>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <details className="overflow-hidden rounded-[24px] border border-amber-400/15 bg-amber-400/[0.035]" open>
-        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
-              How scoring works
-            </p>
-            <h2 className="mt-1 text-base font-black">
-              {config.calculationTitle}
-            </h2>
-          </div>
-          <span className="text-lg">
-            ⓘ
-          </span>
-        </summary>
-
-        <div className="grid gap-3 border-t border-white/[0.07] p-5 sm:grid-cols-2">
-          {config.rules.map((rule) => (
-            <div
-              key={rule.label}
-              className="rounded-2xl border border-white/[0.07] bg-black/10 p-4"
-            >
-              <p className="text-sm font-black text-slate-200">
-                {rule.label}
-              </p>
-              <p className="mt-2 text-xs leading-5 text-slate-500">
-                {rule.detail}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <p className="border-t border-white/[0.07] px-5 py-4 text-xs leading-5 text-slate-500">
-          Individual races use verified SOLO results or verified individual DUO games. Aggregate DUO and TEAM scores appear as team records. Unverified, cancelled or duplicate fixtures do not count.
-          {' '}DUO matches count the fixtures you played; games, goals and rates use only your own individual games.
-        </p>
-      </details>
+      {!scoreRace ? scoringDetails : null}
 
       {config.raceKey ? (
         <section>
@@ -599,9 +605,11 @@ export default function AwardCategoryPage() {
               </h2>
             </div>
 
-            <p className="text-xs font-semibold text-slate-500">
-              Verified results auto-refresh
-            </p>
+            {scoreRace ? (
+              <p className="shrink-0 rounded-lg border border-[var(--theme-border)] px-3 py-2 text-xs text-[var(--theme-text-secondary)]">
+                My honours <strong className="ml-2 tabular-nums text-[var(--theme-text)]">{overview?.trophyCabinet[config.backendTypes[config.backendTypes.length - 1]] ?? config.backendTypes.reduce((total, type) => total + (overview?.trophyCabinet[type] ?? 0), 0)}</strong>
+              </p>
+            ) : <p className="text-xs font-semibold text-slate-500">Verified results auto-refresh</p>}
           </div>
 
           {pagination.total > 6 ? (
@@ -615,6 +623,7 @@ export default function AwardCategoryPage() {
                 className="theme-secondary-button min-h-11 rounded-lg border px-3 text-sm font-semibold disabled:opacity-40">Next races</button>
             </nav>
           ) : null}
+
           {loading && races.length === 0 ? <p role="status" className="mt-4 text-sm text-slate-400">Loading verified races…</p> : null}
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {races.map(
@@ -640,7 +649,7 @@ export default function AwardCategoryPage() {
                   >
                     <div className="flex items-start justify-between gap-4 border-b border-white/[0.07] p-5">
                       <div className="min-w-0">
-                        <h3 className="truncate text-lg font-black">
+                        <h3 className="break-words text-lg font-bold leading-snug [overflow-wrap:anywhere]">
                           {
                             race.tournament
                               .name
@@ -662,7 +671,7 @@ export default function AwardCategoryPage() {
                         href={
                           `/tournaments/${race.tournament.id}/achievements`
                         }
-                        className="shrink-0 text-xs font-black text-amber-300"
+                        className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-[var(--theme-border)] px-3 text-xs font-semibold text-[var(--theme-text)]"
                       >
                         Full race →
                       </Link>
@@ -671,7 +680,12 @@ export default function AwardCategoryPage() {
                     {verified ? <p className="border-b border-white/[0.07] px-5 py-3 text-xs text-slate-400">{verified.scope === 'TEAM'
                       ? 'Team record · aggregate scores; individual player honours are separate.'
                       : 'Player record · verified individual DUO games.'}</p> : null}
-                    {race.data.available || verified ? (
+                    {race.data.available || verified ? (key === 'goldenBoot' || key === 'goldenGlove' ? (
+                      <AwardRaceBoard kind={key === 'goldenBoot' ? 'boot' : 'glove'}
+                        entryLabel={verified?.scope === 'TEAM' ? 'team' : 'player'}
+                        entries={rows.map(row => ({ ...row, id: row.userId, name: playerName(row),
+                          detail: verified ? undefined : row.playerCode ?? undefined }))} />
+                    ) : (
                       <div className="divide-y divide-white/[0.06]">
                         <p className="px-5 py-3 text-xs text-slate-400" role="status">
                           All {rows.length} verified {verified?.scope === 'TEAM' ? (rows.length === 1 ? 'team' : 'teams') : (rows.length === 1 ? 'player' : 'players')} ranked
@@ -733,7 +747,7 @@ export default function AwardCategoryPage() {
                             Verified results will populate this race.
                           </p>
                         ) : null}
-                      </div>
+                      </div>)
                     ) : (
                       <p className="p-5 text-sm leading-6 text-slate-500">
                         {
@@ -758,6 +772,8 @@ export default function AwardCategoryPage() {
           </div>
         </section>
       ) : null}
+
+      {scoreRace ? scoringDetails : null}
 
       {config.seasonal ? (
         <section>

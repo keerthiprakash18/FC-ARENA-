@@ -46,6 +46,13 @@ function createHarness(overrides: {
 afterEach(() => vi.restoreAllMocks());
 
 describe('existing 20-team single-table league to top-N playoffs conversion', () => {
+  it.each(['GLOBAL_SEEDED','PROTECTED_SEED','DOUBLE_CHANCE'] as const)('saves Top 12 with %s while preserving the league schedule', async playoffFormat => {
+    vi.spyOn(AuthorizationService.prototype,'assertCanManageTournamentPermission').mockResolvedValue(undefined);
+    const {service,tx}=createHarness({approvedEntries:14});
+    const result=await service.enableLeaguePlayoffs('owner',tournament.id,{playoffQualifiersTotal:12,playoffFormat,confirmation:tournament.name});
+    expect(result.data).toMatchObject({playoffQualifiersTotal:12,playoffFormat,stageFixturesPreserved:190,bracketCreated:false});
+    expect(tx.tournament.update).toHaveBeenCalledWith({where:{id:tournament.id},data:expect.objectContaining({playoffQualifiersTotal:12,playoffFormat})});
+  });
   it('preserves 190 existing matches and creates no bracket before qualification', async () => {
     const permission = vi.spyOn(AuthorizationService.prototype, 'assertCanManageTournamentPermission').mockResolvedValue(undefined);
     const { service, tx } = createHarness();
@@ -80,6 +87,7 @@ describe('existing 20-team single-table league to top-N playoffs conversion', ()
     [{ groups: 2 }, 8, 'LEAGUE_PLAYOFFS_GROUPS'],
     [{ playoffFixtures: 1 }, 8, 'LEAGUE_PLAYOFFS_EXISTS'],
     [{ approvedEntries: 4 }, 8, 'LEAGUE_PLAYOFFS_QUALIFIERS'],
+    [{ approvedEntries: 11 }, 12, 'LEAGUE_PLAYOFFS_QUALIFIERS'],
     [{ stageFixtures: 0 }, 8, 'LEAGUE_PLAYOFFS_NO_STAGE'],
     [{ status: 'COMPLETED' }, 8, 'LEAGUE_PLAYOFFS_LOCKED'],
     [{ format: 'SINGLE_ELIMINATION' }, 8, 'LEAGUE_PLAYOFFS_FORMAT'],

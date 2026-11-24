@@ -12,6 +12,15 @@ spec=importlib.util.spec_from_file_location('managed_runtime',path)
 runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
 
 class ManagedRuntimeTests(unittest.TestCase):
+    def test_storage_admission_blocks_activation_before_any_mutation(self):
+        with patch.object(runtime.os,'geteuid',return_value=0,create=True), \
+             patch.object(runtime.socket,'gethostname',return_value='fcarena-prod'), \
+             patch.object(runtime.Path,'exists',return_value=True), \
+             patch.object(runtime,'command',side_effect=RuntimeError('low disk')) as command:
+            with self.assertRaisesRegex(RuntimeError,'low disk'):
+                runtime.activate(SimpleNamespace())
+            command.assert_called_once_with(['/usr/bin/python3','/opt/fcarena-ops/release/storage_retention.py','preflight'])
+
     def test_historical_checksums_accept_only_equivalent_line_endings(self):
         with tempfile.TemporaryDirectory() as raw:
             file=Path(raw)/'migration.sql';lf=b'CREATE TABLE example (id int);\n';crlf=lf.replace(b'\n',b'\r\n')

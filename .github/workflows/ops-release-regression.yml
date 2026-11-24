@@ -5,12 +5,22 @@ on:
     paths:
       - "ops/tournament-production-release.py"
       - "ops/tests/test_tournament_release_dropins.py"
+      - "ops/release/storage*.py"
+      - "ops/release/managed_runtime.py"
+      - "ops/tests/test_managed_runtime.py"
+      - "ops/release/fcarena-release-storage.*"
+      - "ops/tests/test_storage_retention.py"
       - ".github/workflows/ops-release-regression.yml"
   push:
     branches: [main]
     paths:
       - "ops/tournament-production-release.py"
       - "ops/tests/test_tournament_release_dropins.py"
+      - "ops/release/storage*.py"
+      - "ops/release/managed_runtime.py"
+      - "ops/tests/test_managed_runtime.py"
+      - "ops/release/fcarena-release-storage.*"
+      - "ops/tests/test_storage_retention.py"
       - ".github/workflows/ops-release-regression.yml"
 
 permissions:
@@ -30,3 +40,7 @@ jobs:
         run: python3 -m py_compile ops/tournament-production-release.py
       - name: Verify managed drop-in lifecycle and rollback
         run: python3 -m unittest discover -s ops/tests -p 'test_tournament_release_dropins.py' -v
+      - name: Verify storage deletion boundaries and off-host receipt gates
+        run: python3 -m unittest discover -s ops/tests -p 'test_storage_retention.py' -v
+      - name: Verify managed activation admission and rollback
+        run: python3 -m unittest discover -s ops/tests -p 'test_managed_runtime.py' -v

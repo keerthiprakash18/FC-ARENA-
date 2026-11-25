@@ -101,6 +101,16 @@ try {
       await heading.waitFor();
       const background = await heading.evaluate(el => getComputedStyle(el).backgroundImage);
       assert.equal(background, 'none', 'Admin headings should be editorial, not stadium heroes');
+      const search=fixture.page.getByRole('searchbox',{name:'Find a tournament'});
+      await search.waitFor();
+      await fixture.page.getByRole('heading',{name:'Responsive Cup',exact:true}).waitFor();
+      await search.fill('no-such-tournament');
+      await fixture.page.getByRole('heading',{name:'No matching tournaments',exact:true}).waitFor();
+      assert.equal(await fixture.page.getByRole('heading',{name:'Responsive Cup',exact:true}).count(),0);
+      await search.fill('PHASE3');
+      await fixture.page.getByRole('heading',{name:'Responsive Cup',exact:true}).waitFor();
+      assert.equal(await fixture.page.getByRole('link',{name:'Overview',exact:true}).filter({hasText:'Overview'}).count()>=1,true);
+      await search.fill('');
       await checkLayout(fixture.page, `Obsidian admin ${width}`);
       await fixture.page.screenshot({
         path: join(output, `obsidian-admin-${width}.png`),

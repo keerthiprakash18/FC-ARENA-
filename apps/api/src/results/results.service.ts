@@ -397,7 +397,7 @@ export class ResultsService {
       if (match.tournament.competitionFormat === 'UCL_CUP') await assertUclReturnLegReady(tx, match.fixture);
       const aliases = await this.duoAliases(tx, match.fixture, saved.games);
       const updated = saveDuoGameProgress(match.tournament, home, away, saved, dto, aliases);
-      await tx.match.update({ where: { id: matchId }, data: { duoGameProgress: { homePlayerIds: home.map(member => member.userId), awayPlayerIds: away.map(member => member.userId), revision: updated.revision, games: updated.games.map(game => ({ ...game })) }, status: 'LIVE' } });
+      await tx.match.update({ where: { id: matchId }, data: { duoGameProgress: { ...(updated.homePlayerIds ? { homePlayerIds: updated.homePlayerIds } : {}), ...(updated.awayPlayerIds ? { awayPlayerIds: updated.awayPlayerIds } : {}), revision: updated.revision, games: updated.games.map(game => ({ ...game })) }, status: 'LIVE' } });
       await tx.fixture.update({ where: { id: match.fixtureId }, data: { status: 'LIVE' } });
       return duoProgressSummary(updated, match.tournament.duoGamesPerFixture === 4 ? 4 : 2);
     }, { isolationLevel: 'Serializable' });

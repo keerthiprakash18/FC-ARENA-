@@ -91,7 +91,7 @@ export function DuoResultPanel({ matchId, context, canSave = true, canVerify = f
     <header className="space-y-2">
       <h3 className="theme-text text-lg font-semibold">Save each game as it finishes</h3>
       <p className="theme-secondary-text text-sm">Saved scores stay here when you return. Fixture points, player statistics and awards update after all {context.gameCount} games are verified together.</p>
-      <p className="theme-secondary-text text-xs">Player name (in-game name) is shown for each side.</p>
+      <p className="theme-secondary-text text-xs">Player name (in-game name) is shown for each side. Once games are saved, this fixture keeps its players even if the team changes later.</p>
     </header>
     {context.gameCount === 2 && !progress.games.length ? <button type="button" disabled={locked} className="theme-secondary-button min-h-11 justify-self-start rounded-xl border px-4 py-2" onClick={() => { setSwap(value => !value); setEdits({}); }}>Swap opponent pairings</button> : null}
     {rows.map((row, index) => <fieldset key={row.key} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">

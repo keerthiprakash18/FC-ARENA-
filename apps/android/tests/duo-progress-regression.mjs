@@ -26,6 +26,7 @@ try {
    if(path==='/api/matches/phase3/duo-games'){
     puts++;assert.equal(route.request().method(),'PUT');
     assert.deepEqual([body.homePlayerId,body.awayPlayerId],expectedPairing,'Visible player names must save the corresponding fixture player IDs');
+    if(width===390&&!failed){failed=true;return route.fulfill({status:400,headers,json:{statusCode:400,message:'Each player must face each opponent once.',error:'Bad Request'}});}
     if(width===320&&!failed){failed=true;return route.fulfill({status:503,headers,json:{success:false,error:{code:'TEST_OFFLINE',message:'Temporary connection problem'}}});}
     const existing=games.find(g=>g.homePlayerId===body.homePlayerId&&g.awayPlayerId===body.awayPlayerId);
     if(body.expectedVersion!==(existing?.version??0))return route.fulfill({status:409,headers,json:{success:false,error:{code:'STALE_GAME',message:'This game was updated elsewhere. Reload its saved score before changing it.'}}});
@@ -59,6 +60,7 @@ try {
    await input(1,'home').fill('0');await save(1).click();assert.equal(puts,0);
    await input(1,'away').fill('0');await save(1).click();
    if(width===320){await panel.getByRole('alert').filter({hasText:'Temporary connection problem'}).waitFor();assert.equal(await input(1,'home').inputValue(),'0');await save(1).click();}
+   if(width===390){await panel.getByRole('alert').filter({hasText:'Each player must face each opponent once.'}).waitFor();assert.equal(await input(1,'home').inputValue(),'0');await save(1).click();}
    await panel.getByText('1 of 4 games saved',{exact:true}).waitFor();
    assert.equal(await input(2,'home').inputValue(),'3');assert.equal(await input(2,'away').inputValue(),'1');
    await page.reload();await panel.waitFor();await panel.getByText('1 of 4 games saved',{exact:true}).waitFor();assert.equal(await input(1,'home').inputValue(),'0');

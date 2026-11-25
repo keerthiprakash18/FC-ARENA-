@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { MatchRealtimeService } from '../matches/match-realtime.service.js';
 import { AuthorizationService } from '../security/authorization.service.js';
 import {
@@ -20,9 +21,9 @@ import {
 import type { RejectResultDto } from './dto/reject-result.dto.js';
 import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
-import { duoGamesJson, duoPlayerDelta, duoSideGoals, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
+import { duoGamesJson, duoPlayerDelta, duoSideGoals, parseDuoGames } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
-import { assertSavedDuoGamesMatch, duoProgressSummary, duoFixtureLineup, readDuoProgress, saveDuoGameProgress } from './duo-progress.js';
+import { duoProgressSummary, duoFixturePlan, duoReplacementAliases, readDuoProgress, saveDuoGameProgress, validateDuoFixtureResult } from './duo-progress.js';
 import type { SaveDuoGameDto } from './dto/save-duo-game.dto.js';
 import { uclWinner, mirrorUclReturnLeg, assertUclReturnLegReady } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
@@ -64,6 +65,27 @@ export class ResultsService {
     private readonly realtime:
       MatchRealtimeService,
   ) {}
+
+  private async duoAliases(db: Pick<Prisma.TransactionClient, 'auditLog'>, fixture: {
+    homeRegistration?: { id: string; members: { userId: string }[] } | null;
+    awayRegistration?: { id: string; members: { userId: string }[] } | null;
+  }, games: ReadonlyArray<{ homePlayerId: string; awayPlayerId: string }>) {
+    const side = async (registration: typeof fixture.homeRegistration, ids: string[]) => {
+      const current = registration?.members ?? [];
+      const historical = ids.filter(id => !current.some(member => member.userId === id));
+      if (!historical.length) return new Map<string, string>();
+      if (!registration) throw new ConflictException('Duo registration is missing.');
+      const history = await db.auditLog.findMany({
+        where: { action: 'TOURNAMENT_PLAYER_REPLACED', targetType: 'TournamentRegistration', targetId: registration.id },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], select: { beforeData: true, afterData: true },
+      });
+      return duoReplacementAliases(current, history, historical);
+    };
+    return {
+      home: await side(fixture.homeRegistration, games.map(game => game.homePlayerId)),
+      away: await side(fixture.awayRegistration, games.map(game => game.awayPlayerId)),
+    };
+  }
 
   async submitResult(
     userId: string,
@@ -127,10 +149,7 @@ export class ResultsService {
         matchId,
       );
 
-    const savedLineup = match.tournament.duoAggregateEnabled
-      ? duoFixtureLineup(readDuoProgress(match.duoGameProgress), match.fixture.homeRegistration?.members ?? [], match.fixture.awayRegistration?.members ?? []) : null;
     const participantUserIds = [
-      ...(savedLineup ? [...savedLineup.home, ...savedLineup.away].map(member => member.userId) : []),
       ...(match.fixture.homeRegistration
         ?.members.map(
           (member) => member.userId,
@@ -266,18 +285,18 @@ export class ResultsService {
               if (extraction.resultSubmission) throw this.resultAlreadyPending();
             }
 
-            const lineup = currentMatch.tournament.duoAggregateEnabled
-              ? duoFixtureLineup(readDuoProgress(currentMatch.duoGameProgress), currentMatch.fixture.homeRegistration?.members ?? [], currentMatch.fixture.awayRegistration?.members ?? []) : null;
-            const duoGames = validateDuoAggregate(
-              currentMatch.tournament,
-              lineup?.home ?? currentMatch.fixture.homeRegistration?.members ?? [],
-              lineup?.away ?? currentMatch.fixture.awayRegistration?.members ?? [],
-              dto,
-            );
+            const homeMembers = currentMatch.fixture.homeRegistration?.members ?? [];
+            const awayMembers = currentMatch.fixture.awayRegistration?.members ?? [];
+            if (currentMatch.tournament.duoAggregateEnabled && !canVerifyResult &&
+                ![...homeMembers, ...awayMembers].some(member => member.userId === userId)) {
+              throw new ForbiddenException('Only current participants or an authorized result administrator may submit this fixture.');
+            }
+            const saved = currentMatch.tournament.duoAggregateEnabled ? readDuoProgress(currentMatch.duoGameProgress) : readDuoProgress(null);
+            const aliases = await this.duoAliases(tx, currentMatch.fixture, saved.games);
+            const duoGames = validateDuoFixtureResult(currentMatch.tournament, homeMembers, awayMembers, dto, saved, aliases);
             if (duoGames && source.ocrExtractionId) {
               throw new BadRequestException('Duo aggregate results require both individual games to be entered and verified.');
             }
-            if (duoGames) assertSavedDuoGamesMatch(readDuoProgress(currentMatch.duoGameProgress), duoGames);
             return tx.resultSubmission.create({
               data: {
                 matchId,
@@ -370,13 +389,14 @@ export class ResultsService {
       } } } });
       if (!match) throw this.matchNotFound();
       const saved = readDuoProgress(match.duoGameProgress);
-      const { home, away } = duoFixtureLineup(saved, match.fixture.homeRegistration?.members ?? [], match.fixture.awayRegistration?.members ?? []);
+      const home = match.fixture.homeRegistration?.members ?? [], away = match.fixture.awayRegistration?.members ?? [];
       if (!canVerify && ![...home, ...away].some(member => member.userId === userId)) throw new ForbiddenException('Only participants or an authorized result administrator may save these games.');
       if (match.confirmedResultSubmissionId || !['UNSCHEDULED', 'SCHEDULED', 'LIVE'].includes(match.status)) throw this.resultAlreadyRecorded();
       if (await tx.resultSubmission.findFirst({ where: { matchId, status: 'PENDING_VERIFICATION' } })) throw this.resultAlreadyPending();
       await this.assertPairNotAlreadyCompleted(tx, match);
       if (match.tournament.competitionFormat === 'UCL_CUP') await assertUclReturnLegReady(tx, match.fixture);
-      const updated = saveDuoGameProgress(match.tournament, home, away, saved, dto);
+      const aliases = await this.duoAliases(tx, match.fixture, saved.games);
+      const updated = saveDuoGameProgress(match.tournament, home, away, saved, dto, aliases);
       await tx.match.update({ where: { id: matchId }, data: { duoGameProgress: { homePlayerIds: home.map(member => member.userId), awayPlayerIds: away.map(member => member.userId), revision: updated.revision, games: updated.games.map(game => ({ ...game })) }, status: 'LIVE' } });
       await tx.fixture.update({ where: { id: match.fixtureId }, data: { status: 'LIVE' } });
       return duoProgressSummary(updated, match.tournament.duoGamesPerFixture === 4 ? 4 : 2);
@@ -436,10 +456,13 @@ export class ResultsService {
       match.tournament.leagueId,
     );
 
-    const duoLineup = match.tournament.duoAggregateEnabled && !match.confirmedResultSubmissionId
-      ? duoFixtureLineup(readDuoProgress(match.duoGameProgress), match.fixture.homeRegistration?.members ?? [], match.fixture.awayRegistration?.members ?? []) : null;
+    const savedProgress = match.tournament.duoAggregateEnabled && !match.confirmedResultSubmissionId ? readDuoProgress(match.duoGameProgress) : null;
+    const duoLineup = savedProgress ? duoFixturePlan(savedProgress, match.fixture.homeRegistration?.members ?? [],
+      match.fixture.awayRegistration?.members ?? [], match.tournament.duoGamesPerFixture === 4 ? 4 : 2,
+      await this.duoAliases(this.prisma, match.fixture, savedProgress.games)) : null;
     const lineupUsers = duoLineup ? await this.prisma.user.findMany({
-      where: { id: { in: [...duoLineup.home, ...duoLineup.away].map(member => member.userId) } },
+      where: { id: { in: [...new Set([...duoLineup.home, ...duoLineup.away].map(member => member.userId)
+        .concat(duoLineup.pairings.flatMap(pair => [pair.homePlayerId, pair.awayPlayerId])))] } },
       select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } },
     }) : [];
     const lineupLabels = (members: { userId: string }[]) => members.map(member => {
@@ -449,7 +472,6 @@ export class ResultsService {
 
     const participantUserIds =
       new Set([
-        ...(duoLineup ? [...duoLineup.home, ...duoLineup.away].map(member => member.userId) : []),
         ...(
           match.fixture
             .homeRegistration
@@ -571,7 +593,11 @@ export class ResultsService {
           penaltiesAllowed: match.tournament.competitionFormat === 'UCL_CUP' && match.fixture.phase === 'PLAYOFF' && !(match.fixture.roundName.startsWith('UCL ') && match.fixture.matchday === 1),
           home: match.fixture.homeRegistration ? { id: match.fixture.homeRegistration.id, members: lineupLabels(duoLineup!.home) } : null,
           away: match.fixture.awayRegistration ? { id: match.fixture.awayRegistration.id, members: lineupLabels(duoLineup!.away) } : null,
-          progress: duoProgressSummary(readDuoProgress(match.duoGameProgress), match.tournament.duoGamesPerFixture === 4 ? 4 : 2),
+          pairings: duoLineup!.pairings.map(pair => ({
+            player: lineupLabels([{ userId: pair.homePlayerId }])[0],
+            opponent: lineupLabels([{ userId: pair.awayPlayerId }])[0],
+          })),
+          progress: duoProgressSummary(savedProgress!, match.tournament.duoGamesPerFixture === 4 ? 4 : 2),
         } : null,
       },
       error: null,
@@ -702,15 +728,11 @@ export class ResultsService {
           tx,
           submission.match,
         );
-        const lineup = submission.match.tournament.duoAggregateEnabled
-          ? duoFixtureLineup(readDuoProgress(submission.match.duoGameProgress), home.members, away.members) : null;
-        // Revalidate the saved fixture lineup even if registration members changed later.
-        validateDuoAggregate(
-          submission.match.tournament,
-          lineup?.home ?? home.members,
-          lineup?.away ?? away.members,
-          { homeScore: submission.homeScore, awayScore: submission.awayScore, duoGames: submission.duoGames },
-        );
+        const saved = submission.match.tournament.duoAggregateEnabled ? readDuoProgress(submission.match.duoGameProgress) : readDuoProgress(null);
+        const submittedGames = submission.match.tournament.duoAggregateEnabled ? parseDuoGames(submission.duoGames) : undefined;
+        const aliases = await this.duoAliases(tx, fixture, submittedGames ?? saved.games);
+        const confirmedGames = validateDuoFixtureResult(submission.match.tournament, home.members, away.members,
+          { homeScore: submission.homeScore, awayScore: submission.awayScore, duoGames: submission.duoGames }, saved, aliases, true);
 
         const isUclKnockout = submission.match.tournament.competitionFormat === 'UCL_CUP' && fixture.phase === 'PLAYOFF';
         const uclWinnerId = isUclKnockout ? await uclWinner(tx, fixture, submission) : null;
@@ -830,10 +852,7 @@ export class ResultsService {
                   homeDelta,
 
                 userIds:
-                  (lineup?.home ?? home.members).map(
-                    (member) =>
-                      member.userId,
-                  ),
+                  confirmedGames ? [...new Set(confirmedGames.map(game => game.homePlayerId))] : home.members.map(member => member.userId),
               },
 
               away: {
@@ -847,10 +866,7 @@ export class ResultsService {
                   awayDelta,
 
                 userIds:
-                  (lineup?.away ?? away.members).map(
-                    (member) =>
-                      member.userId,
-                  ),
+                  confirmedGames ? [...new Set(confirmedGames.map(game => game.awayPlayerId))] : away.members.map(member => member.userId),
               },
             },
           },

@@ -19,12 +19,20 @@ function setup() {
   };
   const redis = {
     pipeline: vi.fn(() => pipeline),
-    hgetall: vi.fn(async () => ({})),
+    hgetall: vi.fn(async (_key: string): Promise<Record<string, string>> => ({})),
     disconnect: vi.fn(),
   };
+  const readKeys: string[] = [];
+  const readPipeline = {
+    hgetall: vi.fn((key: string) => { readKeys.push(key); return readPipeline; }),
+    exec: vi.fn(async (): Promise<Array<[Error | null, unknown]>> =>
+      Promise.all(readKeys.map(async key => [null, await redis.hgetall(key)] as [null, unknown]))),
+  };
+  // The write tests retain the original pipeline; read tests select the read pipeline.
+  const useReadPipeline = () => redis.pipeline.mockReturnValueOnce(readPipeline as unknown as typeof pipeline);
   const service = new DurableTelemetryService();
   (service as unknown as { redis: TestRedis }).redis = redis;
-  return { service, redis, pipeline, calls };
+  return { service, redis, pipeline, calls, readPipeline, readKeys, useReadPipeline };
 }
 
 describe('anonymous durable telemetry aggregates', () => {
@@ -62,7 +70,8 @@ describe('anonymous durable telemetry aggregates', () => {
   });
 
   it('returns a bounded anonymous seven-day view and 5xx counts', async () => {
-    const { service, redis } = setup();
+    const { service, redis, readPipeline, readKeys, useReadPipeline } = setup();
+    useReadPipeline();
     redis.hgetall.mockImplementation(async (key: string) => {
       if (key.endsWith(':API_5XX')) return { b0: '3' };
       if (key.endsWith(':API_MS')) return { b0: '1', b4: '3' };
@@ -74,10 +83,30 @@ describe('anonymous durable telemetry aggregates', () => {
       percentileType: 'bucket-upper-bound-approximation',
     });
     expect(view.days).toHaveLength(7);
+    expect(readPipeline.exec).toHaveBeenCalledOnce();
+    expect(readKeys).toHaveLength(49);
+    expect(new Set(readKeys).size).toBe(49);
+    expect(view.days[0].day < view.days[6].day).toBe(true);
     expect(view.days[0].metrics.API_5XX).toEqual({ events: 3 });
     expect(view.days[0].metrics.API_MS).toMatchObject({
       samples: 4, p95UpperBound: 250,
     });
+  });
+
+  it('caps history reads at 98 anonymous keys in one batch', async () => {
+    const { service, readPipeline, readKeys, useReadPipeline } = setup();
+    useReadPipeline();
+    const view = await service.recentDays(100);
+    expect(view.days).toHaveLength(14);
+    expect(readPipeline.exec).toHaveBeenCalledOnce();
+    expect(readKeys).toHaveLength(98);
+  });
+
+  it('does not publish partial history as a valid zero-filled response', async () => {
+    const { service, readPipeline, useReadPipeline } = setup();
+    useReadPipeline();
+    readPipeline.exec.mockResolvedValueOnce([[new Error('offline'), null]]);
+    await expect(service.recentDays(1)).rejects.toThrow('Redis telemetry history read failed');
   });
 
   it('keeps existing instance-only snapshots compatible with optional persistence', () => {

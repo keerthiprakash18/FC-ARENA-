@@ -113,4 +113,60 @@ describe('Player replacement keeps generated groups, fixtures and results in rea
       await expect(replace.replace(ids[0], cup, entry, request())).rejects.toThrow('completed or cancelled');
     }
   });
+  it('uses the actual replacement for the fourth DUO game in PostgreSQL without relabelling saved scores', async () => {
+    const duo = (await db.tournament.create({ data: {
+      name: 'DUO partial replacement', code: `RE-D-${run}`, leagueId: league, createdByUserId: ids[0],
+      mode: 'DUO', format: 'ROUND_ROBIN', competitionFormat: 'DOUBLE_ROUND_ROBIN', legType: 'HOME_AWAY',
+      groupMode: 'MULTIPLE_GROUPS', teamSize: 2, maxEntries: 4, status: 'ACTIVE',
+      duoAggregateEnabled: true, duoGamesPerFixture: 4,
+    } })).id;
+    const duoGroup = (await db.tournamentGroup.create({ data: { tournamentId: duo, name: 'DUO Group A', position: 0 } })).id;
+    const makeEntry = async (name: string, members: string[], sortOrder: number) => (await db.tournamentRegistration.create({ data: {
+      tournamentId: duo, groupId: duoGroup, entryName: name, sortOrder, status: 'APPROVED',
+      registeredByUserId: members[0]!, members: { create: members.map(userId => ({ tournamentId: duo, userId })) },
+    } })).id;
+    const homeEntry = await makeEntry('DUO Home', [ids[1]!, ids[4]!], 1);
+    const awayEntry = await makeEntry('DUO Away', [ids[2]!, ids[7]!], 2);
+    const fixture = await db.fixture.create({ data: {
+      tournamentId: duo, groupId: duoGroup, fixtureCode: `RE-DF-${run}`, roundName: 'Round 1',
+      sequence: 1, roundNumber: 1, bracketPosition: 1, matchday: 1, homeRegistrationId: homeEntry,
+      awayRegistrationId: awayEntry, status: 'SCHEDULED',
+      match: { create: { tournamentId: duo, matchCode: `RE-DM-${run}`, status: 'SCHEDULED' } },
+    }, include: { match: true } });
+    const matchId = fixture.match!.id;
+    const makeGame = (homePlayerId: string, awayPlayerId: string, homeGoals: number, awayGoals: number) => ({
+      homePlayerId, awayPlayerId, homeGoals, awayGoals, expectedVersion: 0,
+    });
+    // Departing player already played once. Their remaining game must belong to the new player.
+    await results.saveDuoGame(ids[0]!, matchId, makeGame(ids[1]!, ids[2]!, 2, 1));
+    await results.saveDuoGame(ids[0]!, matchId, makeGame(ids[4]!, ids[2]!, 1, 0));
+    const third = await results.saveDuoGame(ids[0]!, matchId, makeGame(ids[4]!, ids[7]!, 4, 2));
+    const originalGames = third.data.progress.games;
+    const before = await db.match.findUniqueOrThrow({ where: { id: matchId } });
+    await replace.replace(ids[0]!, duo, homeEntry, request(3, ids[1]));
+    expect((await db.match.findUniqueOrThrow({ where: { id: matchId } })).duoGameProgress).toEqual(before.duoGameProgress);
+
+    const view = (await results.getMatchResults(ids[3]!, matchId)).data.duoContext!;
+    expect(view.home?.members.map(member => member.id)).toEqual(expect.arrayContaining([ids[3], ids[4]]));
+    expect(view.home?.members.map(member => member.id)).not.toContain(ids[1]);
+    expect(view.pairings.map(pair => [pair.player!.id, pair.opponent!.id])).toEqual(expect.arrayContaining([
+      [ids[1], ids[2]], [ids[3], ids[7]],
+    ]));
+    expect(view.pairings.map(pair => [pair.player!.id, pair.opponent!.id])).not.toContainEqual([ids[1], ids[7]]);
+    await expect(results.saveDuoGame(ids[1]!, matchId, makeGame(ids[1]!, ids[7]!, 0, 2))).rejects.toMatchObject({ status: 403 });
+    await expect(results.saveDuoGame(ids[0]!, matchId, makeGame(ids[1]!, ids[7]!, 0, 2))).rejects.toThrow();
+    const fourth = await results.saveDuoGame(ids[3]!, matchId, makeGame(ids[3]!, ids[7]!, 0, 2));
+    expect(fourth.data.progress.games.slice(0,3)).toEqual(originalGames);
+    expect(fourth.data.progress).toMatchObject({ completedGames: 4, homeScore: 7, awayScore: 5, complete: true });
+    const submission = await results.submitResult(ids[3]!, matchId, {
+      homeScore: 7, awayScore: 5,
+      duoGames: fourth.data.progress.games.map(({ homePlayerId, awayPlayerId, homeGoals, awayGoals }) => ({ homePlayerId, awayPlayerId, homeGoals, awayGoals })),
+    });
+    await results.confirmResult(ids[0]!, submission.data.submission.id);
+    expect(await db.match.findUniqueOrThrow({ where: { id: matchId } })).toMatchObject({ status: 'COMPLETED' });
+    expect(await db.playerTournamentStatistic.findUnique({ where: { tournamentId_userId: { tournamentId: duo, userId: ids[1]! } } })).toMatchObject({ matches: 1, goalsFor: 2, goalsAgainst: 1 });
+    expect(await db.playerTournamentStatistic.findUnique({ where: { tournamentId_userId: { tournamentId: duo, userId: ids[3]! } } })).toMatchObject({ matches: 1, goalsFor: 0, goalsAgainst: 2 });
+    expect(await db.playerTournamentStatistic.findUnique({ where: { tournamentId_userId: { tournamentId: duo, userId: ids[4]! } } })).toMatchObject({ matches: 1, goalsFor: 5, goalsAgainst: 2 });
+    expect(await db.tournamentStanding.findUnique({ where: { registrationId: homeEntry } })).toMatchObject({ played: 1, goalsFor: 7, goalsAgainst: 5, points: 3 });
+  }, 60000);
 });

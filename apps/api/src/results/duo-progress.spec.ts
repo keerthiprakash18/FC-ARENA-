@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateDuoAggregate } from './duo-aggregate.js';
-import { assertSavedDuoGamesMatch, duoProgressSummary, duoFixtureLineup, readDuoProgress, saveDuoGameProgress } from './duo-progress.js';
+import { assertSavedDuoGamesMatch, duoProgressSummary, duoFixturePlan, duoReplacementAliases, readDuoProgress, saveDuoGameProgress, validateDuoFixtureResult } from './duo-progress.js';
 const tournament = { mode: 'DUO', duoAggregateEnabled: true, duoGamesPerFixture: 4 };
 const home = [{ userId: 'h1' }, { userId: 'h2' }], away = [{ userId: 'a1' }, { userId: 'a2' }];
 const game = { homePlayerId: 'h1', awayPlayerId: 'a1', homeGoals: 0, awayGoals: 0, expectedVersion: 0 };
@@ -36,32 +35,55 @@ describe('persisted unfinished Duo games', () => {
     expect(() => save(undefined, { ...game, awayPlayerId: 'h2' })).toThrow();
     expect(() => saveDuoGameProgress({ ...tournament, duoAggregateEnabled: false }, home, away, first, game)).toThrow();
   });
-  it('preserves saved players and scores across later registration substitutions', () => {
-    const first = save();
+  const change = (from: string, to: string) => ({ beforeData: { userId: from }, afterData: { userId: to } });
+  it('uses the replacement in pending slots, keeps historical scores, rejects new games for the outgoing player', () => {
+    const first = save(undefined, { ...game, homeGoals: 2, awayGoals: 1 });
+    const second = save(first, { ...game, awayPlayerId: 'a2', homeGoals: 1 });
+    const third = save(second, { ...game, homePlayerId: 'h2', awayPlayerId: 'a2', awayGoals: 2 });
+    // Existing three games include the outgoing player; the remaining slot belongs to the replacement.
     const changedAway = [{ userId: 'replacement' }, { userId: 'a2' }];
-    const second = saveDuoGameProgress(tournament, home, changedAway, readDuoProgress(JSON.parse(JSON.stringify(first))), { ...game, awayPlayerId: 'a2', homeGoals: 2 });
+    const aliases = { home: new Map<string, string>(), away: duoReplacementAliases(changedAway, [change('a1', 'replacement')], ['a1']) };
+    const plan = duoFixturePlan(third, home, changedAway, 4, aliases);
+    expect(plan.away.map(m => m.userId)).toEqual(['a2', 'replacement']);
+    expect(plan.pairings).toContainEqual({ homePlayerId: 'h2', awayPlayerId: 'replacement' });
+    expect(plan.pairings).not.toContainEqual({ homePlayerId: 'h2', awayPlayerId: 'a1' });
+    expect(() => saveDuoGameProgress(tournament, home, changedAway, third, { ...game, homePlayerId: 'h2' }, aliases)).toThrow();
+    const fourth = saveDuoGameProgress(tournament, home, changedAway, third, { ...game, homePlayerId: 'h2', awayPlayerId: 'replacement', homeGoals: 3 }, aliases);
+    expect(fourth.games.slice(0, 3)).toEqual(third.games);
+    expect(fourth.games[3]).toMatchObject({ homePlayerId: 'h2', awayPlayerId: 'replacement' });
+    expect(duoProgressSummary(fourth, 4)).toMatchObject({ completedGames: 4, homeScore: 6, awayScore: 3, complete: true });
+    const verified = validateDuoFixtureResult(tournament, home, changedAway, { ...duoProgressSummary(fourth, 4), duoGames: fourth.games }, fourth, aliases);
+    expect(verified?.map(g => g.awayPlayerId)).toEqual(['a1','a2','a2','replacement']);
+    expect(() => validateDuoFixtureResult(tournament, home, changedAway, { ...duoProgressSummary(fourth, 4), duoGames: fourth.games.map(g => ({ ...g, awayPlayerId: g.awayPlayerId === 'a1' ? 'replacement' : g.awayPlayerId })) }, fourth, aliases)).toThrow();
+  });
+  it('handles legacy progress, chained replacements, and replacements on both sides', () => {
+    const games = [{ ...game, version: 1 }];
+    const legacy = readDuoProgress({ revision: 1, games });
+    const currentHome = [{userId:'h-new'}, {userId:'h2'}];
+    const currentAway = [{userId:'a-new'}, {userId:'a2'}];
+    const aliases = { home: duoReplacementAliases(currentHome, [change('h1','h-mid'),change('h-mid','h-new')], ['h1']),
+      away: duoReplacementAliases(currentAway, [change('a1','a-new')], ['a1']) };
+    const plan = duoFixturePlan(legacy, currentHome, currentAway, 4, aliases);
+    expect(plan.pairings).toContainEqual({homePlayerId:'h1',awayPlayerId:'a1'});
+    expect(plan.pairings).toContainEqual({homePlayerId:'h-new',awayPlayerId:'a2'});
+    expect(plan.pairings).toContainEqual({homePlayerId:'h2',awayPlayerId:'a-new'});
+    expect(plan.pairings).not.toContainEqual({homePlayerId:'h-new',awayPlayerId:'a-new'});
+    expect(() => duoFixturePlan(legacy, currentHome, currentAway, 4)).toThrow(/saved scores are unchanged/);
+  });
+  it('keeps a saved two-game pairing and assigns the unplayed game to current players', () => {
+    const two = { ...tournament, duoGamesPerFixture: 2 };
+    const first = saveDuoGameProgress(two, home, away, readDuoProgress(null), { ...game, awayPlayerId:'a2' });
+    const changedAway = [{userId:'replacement'},{userId:'a2'}];
+    const second = saveDuoGameProgress(two, home, changedAway, first, {...game,homePlayerId:'h2',awayPlayerId:'replacement'});
     expect(second.games[0]).toEqual(first.games[0]);
-    expect(second.awayPlayerIds).toEqual(['a1', 'a2']);
-    expect(() => saveDuoGameProgress(tournament, home, changedAway, second, { ...game, homePlayerId: 'h2', awayPlayerId: 'replacement' })).toThrow();
-    const third = saveDuoGameProgress(tournament, home, changedAway, second, { ...game, homePlayerId: 'h2', awayGoals: 2 });
-    const fourth = saveDuoGameProgress(tournament, home, changedAway, third, { ...game, homePlayerId: 'h2', awayPlayerId: 'a2', homeGoals: 3 });
-    const lineup = duoFixtureLineup(fourth, home, changedAway);
-    expect(lineup.away).toEqual(away);
-    expect(duoProgressSummary(fourth, 4)).toMatchObject({ completedGames: 4, homeScore: 5, awayScore: 2, complete: true });
-    expect(() => validateDuoAggregate(tournament, lineup.home, lineup.away, { ...duoProgressSummary(fourth, 4), duoGames: fourth.games })).not.toThrow();
+    expect(second.games[1]).toMatchObject({homePlayerId:'h2',awayPlayerId:'replacement'});
+    expect(validateDuoFixtureResult(two,home,changedAway,{...duoProgressSummary(second,2),duoGames:second.games},second)).toHaveLength(2);
   });
-  it('recovers a legacy three-game fixture without relabelling a departed player', () => {
-    const games = [game, { ...game, awayPlayerId: 'a2' }, { ...game, homePlayerId: 'h2', awayPlayerId: 'a2' }].map(g => ({ homePlayerId: g.homePlayerId, awayPlayerId: g.awayPlayerId, homeGoals: g.homeGoals, awayGoals: g.awayGoals, version: 1 }));
-    const legacy = { revision: 3, games };
-    const changedAway = [{ userId: 'replacement' }, { userId: 'a1' }];
-    expect(duoFixtureLineup(legacy, home, changedAway).away).toEqual(away);
-    const complete = saveDuoGameProgress(tournament, home, changedAway, legacy, { ...game, homePlayerId: 'h2', homeGoals: 1 });
-    expect(complete.games.slice(0, 3)).toEqual(games);
-    expect(duoProgressSummary(complete, 4).complete).toBe(true);
-  });
-  it('rejects ambiguous legacy lineups instead of dropping games', () => {
-    const games = ['a1', 'a2', 'a3'].map(awayPlayerId => ({ ...game, awayPlayerId, version: 1 }));
-    expect(() => duoFixtureLineup({ revision: 3, games }, home, away)).toThrow(/different lineups/);
+  it('fails closed if replacement history is missing or two old games map to the same slot', () => {
+    expect(() => duoReplacementAliases(away, [], ['departed'])).toThrow(/saved scores are unchanged/);
+    const games = ['old', 'a1'].map(awayPlayerId => ({ ...game, awayPlayerId, version: 1 }));
+    const aliases = { home: new Map<string,string>(), away: duoReplacementAliases(away, [change('old','a1')], ['old']) };
+    expect(() => duoFixturePlan({ revision: 2, games }, home, away, 4, aliases)).toThrow(/saved scores are unchanged/);
   });
   it.each([-1, 100, 1.5, NaN])('rejects invalid score %s and oversized aggregate totals', value => {
     expect(() => save(undefined, { ...game, homeGoals: value })).toThrow();

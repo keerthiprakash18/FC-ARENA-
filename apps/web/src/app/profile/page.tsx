@@ -720,7 +720,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => void saveProfile()}
                   disabled={profileBusy}
-                  className="theme-primary-button min-h-11 w-full rounded-xl px-5 text-sm font-semibold disabled:opacity-50 sm:w-auto"
+                  className="theme-primary-button min-h-11 rounded-[10px] w-full px-5 text-sm font-semibold disabled:opacity-50 sm:w-auto"
                 >
                   {profileBusy ? "Saving…" : "Save profile"}
                 </button>

@@ -773,7 +773,7 @@ export default function DashboardPage() {
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
               </div>
-              {isVisible("stats") && <div className={`home-overview-stats ${heroStyles.overview}`} aria-label="Overall career overview">
+              {isVisible("stats") && <div className={`home-hero-career ${heroStyles.overview}`} aria-label="Overall career overview">
                 <div className={heroStyles.heading}>
                   <span>Overall career</span>
                   <Link href="/career" className={heroStyles.details}>Full stats <span aria-hidden="true">→</span></Link>

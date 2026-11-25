@@ -700,6 +700,14 @@ export class PlayerCareerService {
         },
       });
 
+    // Dashboard omits award rows to keep its response small, but must return
+    // the same authoritative total as the full career page.
+    const achievementCount = dashboard
+      ? await this.prisma.achievement.count({
+          where: { userId, ...(leagueId ? { tournament: { leagueId } } : {}) },
+        })
+      : achievements.length;
+
     const totals =
       statistics.reduce(
         (
@@ -1074,8 +1082,7 @@ export class PlayerCareerService {
           tournaments:
             tournamentHistory.length,
 
-          achievements:
-            achievements.length,
+          achievements: achievementCount,
         },
 
         availableLeagues: [...leagues.values()],

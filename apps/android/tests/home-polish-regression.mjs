@@ -97,14 +97,12 @@ try {
       const match = f.page.locator('.fc-next-match-panel');
       const action = match.getByRole('link', { name: /^View Match/ }); await action.waitFor();
       const hero = f.page.locator('.premium-home-hero');
-      const pitch = hero.locator('.home-hero-pitch');
-      await pitch.waitFor();
-      if (width === 1280) {
-        assert(await pitch.evaluate(element => element.getAnimations().some(animation =>
-          animation instanceof CSSAnimation && animation.animationName === 'home-pitch-reveal' &&
-          animation.effect?.getKeyframes().length > 1,
-        )));
-      }
+      const overview = hero.getByLabel('Overall career overview');
+      await overview.waitFor();
+      assert.deepEqual(await overview.locator('dd').allTextContents(), ['4', '50%', '6', '0']);
+      assert.equal(await overview.getByRole('link', { name: /Full stats/ }).getAttribute('href'), '/career');
+      assert.equal(await overview.getByLabel('2 wins, 1 draws, 1 losses').count(), 1);
+      assert.equal(await f.page.locator('.home-hero-career').count(), 1);
       assert.equal(await hero.getByText(/Home Club|Away Club/).count(), 0);
       assert.equal(await action.getAttribute('href'), '/matches/phase3');
       assert.equal(await f.page.locator('.premium-home-hero .theme-primary-button').count(), 0, 'The real match keeps the primary action');
@@ -130,15 +128,14 @@ try {
   try {
     await unscheduled.page.goto(origin + '/dashboard');
     const hero = unscheduled.page.locator('.premium-home-hero');
-    const pitch = hero.locator('.home-hero-pitch');
+    const overview = hero.getByLabel('Overall career overview');
     await unscheduled.page.locator('#dashboard-next-match').getByRole('heading', { name: 'Fixture Ready' }).waitFor();
-    await pitch.waitFor();
+    await overview.waitFor();
     assert.equal(await hero.getByText('Fixture Ready', { exact: true }).count(), 0);
     assert.equal(await unscheduled.page.getByText('Fixture Ready', { exact: true }).count(), 1);
-    assert.equal(await pitch.getAttribute('aria-hidden'), 'true');
-    assert.equal(await pitch.evaluate(element => getComputedStyle(element).animationName), 'none');
+    assert.equal(await overview.evaluate(element => getComputedStyle(element).animationName), 'none');
     assert.deepEqual(unscheduled.errors, []);
-    console.log('PASS unscheduled: Fixture Ready appears only in the match card and the welcome pitch respects reduced motion');
+    console.log('PASS unscheduled: Fixture Ready appears only in the match card and the career overview respects reduced motion');
   } finally { await unscheduled.context.close(); }
 
   for (const scenario of ['profile', 'hidden']) {
@@ -149,7 +146,7 @@ try {
       await action.waitFor(); assert.equal(await action.getAttribute('href'), scenario === 'profile' ? '/profile' : '/matches/phase3');
       if (scenario === 'hidden') {
         assert.equal(await f.page.locator('.fc-next-match-panel,.fc-league-panel,.fc-tournament-panel,.home-empty-row').count(), 0);
-        assert.equal(await f.page.locator('.home-overview-stats').isVisible(), false);
+        assert.equal(await f.page.locator('.home-hero-career').isVisible(), false);
         assert.equal(await f.page.locator('.fc-quick-actions-panel').isVisible(), false);
         assert.equal(await f.page.locator('.fc-activity-panel').isVisible(), false);
       }

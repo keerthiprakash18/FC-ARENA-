@@ -96,6 +96,20 @@ try {
           assert(await guide.getByText('Summary → Team Trophy Archive', { exact: false }).isVisible());
           assert.equal(await guide.getByRole('link').count(), 2);
         }
+        if (route === '/profile') {
+          const save = page.getByRole('button', { name: 'Save profile', exact: true });
+          const fullName = page.locator('input[name="fullName"]');
+          await save.waitFor();
+          const originalName = await fullName.inputValue();
+          assert(await save.evaluate(el => Boolean(document.querySelector('input[name="gameUid"]').compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)),
+            'Save action follows all editable identity fields in document and keyboard order');
+          assert((await save.boundingBox()).height >= 44, 'Profile save has a finger-sized target');
+          await fullName.fill('x');
+          await save.click();
+          await page.getByRole('alert').filter({ hasText: 'Full name must be between 2 and 120 characters.' }).waitFor();
+          assert.deepEqual(f.mutations, [], 'Invalid profile edits must not issue a mutation');
+          await fullName.fill(originalName);
+        }
         if (route === '/login') {
           // Navigate with the keyboard to ensure focus-visible, not just :focus.
           await page.keyboard.press('Tab');

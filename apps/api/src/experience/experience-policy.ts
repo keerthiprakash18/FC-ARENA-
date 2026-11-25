@@ -14,6 +14,7 @@ export interface ExperienceWeek {
   matches: number;
   days: number;
   teamMatches: number;
+  wins?: number;
 }
 
 export const PLAYER_FRAMES = [
@@ -185,6 +186,8 @@ export function summarizeExperience(
     week: {
       ...window,
       verifiedMatches: current.matches,
+      // Read-only activity totals, not additional XP or currency rewards.
+      verifiedWins: Math.min(current.matches, Math.max(0, current.wins ?? 0)),
       activeDays: current.days,
       missions,
       completedMissions: missions.filter((mission) => mission.completed).length,

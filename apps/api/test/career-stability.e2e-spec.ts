@@ -20,6 +20,9 @@ import { TournamentsService } from '../src/tournaments/tournaments.service.js';
 import { TournamentEntriesService } from '../src/tournaments/tournament-entries.service.js';
 import { FixturesService } from '../src/tournaments/fixtures.service.js';
 import { configureHttpSecurity } from '../src/security/http-security.js';
+import { ExperienceService } from '../src/experience/experience.service.js';
+import { weekWindow } from '../src/experience/experience-policy.js';
+import { SafetyService } from '../src/security/safety.service.js';
 
 describe('Two-league career, owner registration access and notifications', () => {
   const run = randomUUID().slice(0, 8),
@@ -318,6 +321,52 @@ describe('Two-league career, owner registration access and notifications', () =>
       expect(dashboard.lifetimeStatistics.matches).toBe(full.lifetimeStatistics.matches);
       expect(dashboard.achievements).toEqual([]);
       expect(dashboard.matchHistory.length).toBeLessThanOrEqual(3);
+    }
+  });
+  it('aggregates canonical weekly wins by participant and keeps corrected matches in their original week', async () => {
+    const experience = new ExperienceService(db, app.get(SafetyService));
+    const window = weekWindow();
+    const current = new Date(window.startsAt);
+    const prior = new Date(current.getTime() - 1);
+    const matches = await db.match.findMany({
+      where: { tournamentId: cups[0], confirmedResultSubmissionId: { not: null } },
+      include: { confirmedResult: true },
+      orderBy: { serialNumber: 'asc' },
+    });
+    const win = matches.find(m => m.confirmedResult!.homeScore > m.confirmedResult!.awayScore)!;
+    const secondWin = matches.filter(m => m.confirmedResult!.homeScore > m.confirmedResult!.awayScore)[1]!;
+    const draw = matches.find(m => m.confirmedResult!.homeScore === m.confirmedResult!.awayScore)!;
+    const loss = matches.find(m => m.confirmedResult!.homeScore < m.confirmedResult!.awayScore)!;
+    const payload = { home: { userIds: [player] }, away: { userIds: [opponent] } };
+    const stale = await db.resultSubmission.create({
+      data: { matchId: secondWin.id, submittedByUserId: player, homeScore: 0, awayScore: 1 },
+    });
+    try {
+      await db.matchResultStatEvent.createMany({
+        data: [
+          ...[win, secondWin, draw, loss].map(m => ({
+            tournamentId: cups[0], matchId: m.id,
+            resultSubmissionId: m.confirmedResultSubmissionId!, type: 'APPLY' as const,
+            payload, createdAt: current,
+          })),
+          { tournamentId: cups[0], matchId: secondWin.id, resultSubmissionId: stale.id,
+            type: 'APPLY' as const, payload, createdAt: prior },
+        ],
+      });
+      expect((await experience.getMine(player)).data.week).toMatchObject({
+        key: window.key, verifiedMatches: 3, verifiedWins: 1,
+      });
+      expect((await experience.getMine(opponent)).data.week).toMatchObject({
+        key: window.key, verifiedMatches: 3, verifiedWins: 1,
+      });
+      expect((await experience.getMine(teammate)).data.week).toMatchObject({
+        key: window.key, verifiedMatches: 0, verifiedWins: 0,
+      });
+    } finally {
+      await db.matchResultStatEvent.deleteMany({
+        where: { matchId: { in: [win.id, secondWin.id, draw.id, loss.id] } },
+      });
+      await db.resultSubmission.delete({ where: { id: stale.id } });
     }
   });
   it('rejects foreign scope, malformed IDs and another-account injection', async () => {

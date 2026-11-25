@@ -31,7 +31,14 @@ export class ExperienceService {
         SELECT m.id,
           (SELECT MIN(first_event."createdAt") FROM match_result_stat_events first_event
            WHERE first_event."matchId" = m.id AND first_event.type = 'APPLY') AS occurred_at,
-          t.mode
+          t.mode,
+          CASE
+            WHEN (current_event.payload #> '{home,userIds}') @> jsonb_build_array(${userId}::text)
+              THEN result."homeScore" > result."awayScore"
+            WHEN (current_event.payload #> '{away,userIds}') @> jsonb_build_array(${userId}::text)
+              THEN result."awayScore" > result."homeScore"
+            ELSE false
+          END AS won
         FROM match_result_stat_events current_event
         JOIN matches m ON m."confirmedResultSubmissionId" = current_event."resultSubmissionId"
           AND m.id = current_event."matchId"
@@ -44,6 +51,7 @@ export class ExperienceService {
       )
       SELECT to_char(date_trunc('week', occurred_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata'), 'YYYY-MM-DD') AS week,
         COUNT(DISTINCT id)::integer AS matches,
+        COUNT(DISTINCT id) FILTER (WHERE won)::integer AS wins,
         COUNT(DISTINCT (occurred_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date)::integer AS days,
         COUNT(DISTINCT id) FILTER (WHERE mode IN ('DUO', 'TEAM'))::integer AS "teamMatches"
       FROM verified GROUP BY 1 ORDER BY 1 DESC

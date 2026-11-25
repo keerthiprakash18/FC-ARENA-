@@ -721,7 +721,7 @@ export class TournamentWizardFinalizeService {
 
     const publish = async (tx: Prisma.TransactionClient) => {
       const current = await tx.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
-      const fields = ['status', 'competitionFormat', 'groupMode', 'legType', 'fixtureMode', 'playoffSource', 'playoffFormat', 'qualifiersPerGroup', 'playoffQualifiersTotal'] as const;
+      const fields = ['status', 'competitionFormat', 'groupMode', 'legType', 'fixtureMode', 'playoffSource', 'playoffFormat', 'qualifiersPerGroup', 'playoffQualifiersTotal', 'playoffPairingMethod', 'playoffSeedingBasis', 'avoidSameGroupEarly'] as const;
       const freshInputs = await readGroupInputs(tx, tournamentId);
       if (fields.some(key => current[key] !== tournament[key]) || groupInputsFingerprint(freshInputs) !== groupInputsFingerprint(publicationInputs)) throw new ConflictException({ success: false, data: null, error: { code: 'FIXTURE_INPUTS_CHANGED', message: 'Approved teams, groups or tournament settings changed. Review the groups and fixtures before publishing again.' } });
       if (current.groupMode === 'MULTIPLE_GROUPS') assertBalancedGroupInputs(freshInputs);

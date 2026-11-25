@@ -12,7 +12,7 @@ export type DuoProgress = {
   revision: number; games: SavedGame[]; completedGames: number; requiredGames: number;
   homeScore: number; awayScore: number; complete: boolean;
 };
-export type DuoProgressContext = { home: DuoEntry | null; away: DuoEntry | null; gameCount: number; penaltiesAllowed?: boolean; progress: DuoProgress };
+export type DuoProgressContext = { home: DuoEntry | null; away: DuoEntry | null; gameCount: number; penaltiesAllowed?: boolean; progress: DuoProgress; pairings?: Array<{ player: DuoEntry['members'][number]; opponent: DuoEntry['members'][number] }> };
 type Edit = { home: string; away: string; version: number };
 const name = duoPlayerLabel;
 const keyOf = (game: Pick<DuoGame, 'homePlayerId' | 'awayPlayerId'>) => `${game.homePlayerId}:${game.awayPlayerId}`;
@@ -23,16 +23,22 @@ export function DuoResultPanel({ matchId, context, canSave = true, canVerify = f
   allowPenalties?: boolean; homeName?: string; awayName?: string; onCompleted: () => Promise<void> | void;
 }) {
   const [responseProgress, setResponseProgress] = useState<DuoProgress | null>(null);
+  const [reloadedContext, setReloadedContext] = useState<DuoProgressContext | null>(null);
   const [edits, setEdits] = useState<Record<string, Edit>>({});
   const [busy, setBusy] = useState(''), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const writing = useRef(false);
-  const progress = responseProgress && responseProgress.revision > context.progress.revision ? responseProgress : context.progress;
-  const home = [...(context.home?.members ?? [])].sort((a, b) => a.id.localeCompare(b.id));
-  const away = [...(context.away?.members ?? [])].sort((a, b) => a.id.localeCompare(b.id));
+  const activeContext = reloadedContext && reloadedContext.progress.revision >= context.progress.revision ? reloadedContext : context;
+  const progress = responseProgress && responseProgress.revision > activeContext.progress.revision ? responseProgress : activeContext.progress;
+  const home = [...(activeContext.home?.members ?? [])].sort((a, b) => a.id.localeCompare(b.id));
+  const away = [...(activeContext.away?.members ?? [])].sort((a, b) => a.id.localeCompare(b.id));
   const savedSwap = progress.games.some(game => home.findIndex(player => player.id === game.homePlayerId) !== away.findIndex(player => player.id === game.awayPlayerId));
   const [swap, setSwap] = useState(false);
-  const pairings = home.length === 2 && away.length === 2 ? home.flatMap((player, index) =>
+  const derivedPairings = home.length === 2 && away.length === 2 ? home.flatMap((player, index) =>
     (context.gameCount === 4 ? away : [away[(progress.games.length ? savedSwap : swap) ? 1 - index : index]!]).map(opponent => ({ player, opponent }))) : [];
+  // The server resolves historical saved rows and current pending rows using
+  // registration audit history. The unsaved two-game pairing toggle remains local.
+  const pairings = activeContext.pairings && (context.gameCount === 4 || activeContext.progress.games.length)
+    ? activeContext.pairings : derivedPairings;
   const rows = pairings.map(({ player, opponent }) => {
     const key = keyOf({ homePlayerId: player.id, awayPlayerId: opponent.id });
     const saved = progress.games.find(game => keyOf(game) === key);
@@ -45,7 +51,10 @@ export function DuoResultPanel({ matchId, context, canSave = true, canVerify = f
 
   async function reloadSaved() {
     const result = await authenticatedRequest<{ data: { duoContext?: DuoProgressContext | null } }>(`/matches/${matchId}/results`, { cache: 'no-store' });
-    if (result.data.duoContext) setResponseProgress(result.data.duoContext.progress);
+    if (result.data.duoContext) {
+      setReloadedContext(result.data.duoContext);
+      setResponseProgress(result.data.duoContext.progress);
+    }
   }
   function update(key: string, current: Edit, field: 'home' | 'away', value: string) {
     setEdits(values => ({ ...values, [key]: { ...current, [field]: value } }));
@@ -91,7 +100,7 @@ export function DuoResultPanel({ matchId, context, canSave = true, canVerify = f
     <header className="space-y-2">
       <h3 className="theme-text text-lg font-semibold">Save each game as it finishes</h3>
       <p className="theme-secondary-text text-sm">Saved scores stay here when you return. Fixture points, player statistics and awards update after all {context.gameCount} games are verified together.</p>
-      <p className="theme-secondary-text text-xs">Player name (in-game name) is shown for each side. Once games are saved, this fixture keeps its players even if the team changes later.</p>
+      <p className="theme-secondary-text text-xs">Saved games retain the players who actually played. Unsaved games use the current team members after a replacement.</p>
     </header>
     {context.gameCount === 2 && !progress.games.length ? <button type="button" disabled={locked} className="theme-secondary-button min-h-11 justify-self-start rounded-xl border px-4 py-2" onClick={() => { setSwap(value => !value); setEdits({}); }}>Swap opponent pairings</button> : null}
     {rows.map((row, index) => <fieldset key={row.key} className="grid min-w-0 gap-3 rounded-xl border border-white/10 p-3">

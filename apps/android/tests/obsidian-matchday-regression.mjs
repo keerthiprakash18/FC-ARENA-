@@ -118,6 +118,13 @@ try {
       const page=fixture.page;await page.goto(origin+'/fixtures');
       const controls=page.getByRole('group',{name:'Filter matches by status'});await controls.waitFor();
       const buttons=controls.getByRole('button');assert.equal(await buttons.count(),4);
+      const scope=page.getByRole('group',{name:'Match scope'});await scope.waitFor();
+      assert.equal(await scope.getByRole('button').count(),2);
+      await page.locator('.premium-filter-workbench summary').click();
+      const leagueSelect=page.getByLabel('League',{exact:true});
+      await leagueSelect.waitFor();
+      assert((await leagueSelect.boundingBox()).height>=44,'League filter must retain a finger-sized target');
+      await page.locator('.premium-filter-workbench summary').click();
       const sizes=await buttons.evaluateAll(nodes=>nodes.map(node=>{const s=getComputedStyle(node),r=document.createRange();r.selectNodeContents(node);return{height:node.getBoundingClientRect().height,textHeight:r.getBoundingClientRect().height,lineHeight:parseFloat(s.lineHeight),nowrap:s.whiteSpace};}));
       assert(sizes.every(size=>size.height>=44&&size.nowrap==='nowrap'&&size.textHeight<=size.lineHeight+2),'Filter labels must fit on one line with finger-sized controls');
       assert.equal(await controls.locator('[aria-pressed="true"]').count(),1);

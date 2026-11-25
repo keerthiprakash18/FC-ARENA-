@@ -52,6 +52,11 @@ export default function AdminTournamentsPage() {
     );
 
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLocaleLowerCase();
+  const visibleTournaments = query ? tournaments.filter(tournament =>
+    [tournament.name, tournament.code, tournament.leagueName, tournament.status].some(value => value.toLocaleLowerCase().includes(query)),
+  ) : tournaments;
   const initialLoad = useRecoverableLoad(async signal => {
     setLoading(true);
     try {
@@ -80,8 +85,18 @@ export default function AdminTournamentsPage() {
           actionHref="/tournaments"
         />
       ) : (
-        <section className="grid gap-4 lg:grid-cols-2">
-          {tournaments.map(
+        <section className="space-y-4" aria-label="Manage tournaments">
+          <FcPanel className="p-4">
+            <label className="theme-text grid gap-2 text-sm font-semibold">
+              Find a tournament
+              <input type="search" value={search} onChange={event => setSearch(event.target.value)}
+                placeholder="Name, code, league or status" className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 font-normal" />
+            </label>
+            <p role="status" className="theme-secondary-text mt-2 text-xs">{visibleTournaments.length} of {tournaments.length} tournaments</p>
+          </FcPanel>
+          {visibleTournaments.length === 0 ? <FcEmptyState title="No matching tournaments" description="Try another name, code, league or status." /> : null}
+          <div className="grid gap-4 lg:grid-cols-2">
+          {visibleTournaments.map(
             (
               tournament,
             ) => (
@@ -91,27 +106,27 @@ export default function AdminTournamentsPage() {
                 }
                 className="p-5"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-400">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="theme-text-link text-xs font-semibold uppercase tracking-wide [overflow-wrap:anywhere]">
                       {
                         tournament.leagueName
                       }
                     </p>
 
-                    <h2 className="mt-2 text-xl font-black">
+                    <h2 className="theme-text mt-2 text-xl font-semibold [overflow-wrap:anywhere]">
                       {
                         tournament.name
                       }
                     </h2>
 
-                    <p className="mt-1 font-mono text-[10px] text-slate-600">
+                    <p className="theme-secondary-text mt-1 font-mono text-xs [overflow-wrap:anywhere]">
                       {
                         tournament.code
                       }
                     </p>
 
-                    <p className="mt-2 text-xs text-slate-600">
+                    <p className="theme-secondary-text mt-2 text-xs tabular-nums">
                       {
                         tournament.registeredEntries ?? tournament.approvedEntries + (tournament.pendingEntries ?? 0)
                       }
@@ -145,7 +160,7 @@ export default function AdminTournamentsPage() {
                     href={
                       `/tournaments/${tournament.id}`
                     }
-                    className="rounded-xl bg-sky-400 px-4 py-3 text-sm font-black text-[#031019]"
+                    className="theme-primary-button inline-flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold"
                   >
                     Overview
                   </Link>
@@ -154,7 +169,7 @@ export default function AdminTournamentsPage() {
                     href={
                       `/tournaments/${tournament.id}/settings`
                     }
-                    className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
+                    className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold"
                   >
                     Settings
                   </Link> : null}
@@ -163,7 +178,7 @@ export default function AdminTournamentsPage() {
                     href={
                       `/tournaments/${tournament.id}/teams`
                     }
-                    className="rounded-xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300"
+                    className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold"
                   >
                     Teams
                   </Link>
@@ -171,6 +186,7 @@ export default function AdminTournamentsPage() {
               </FcPanel>
             ),
           )}
+          </div>
         </section>
       )}
     </SecondaryFeaturePage>

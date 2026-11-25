@@ -128,6 +128,7 @@ export default function ArenaTalkPage() {
               </label>
             )}
             <p className="community-muted arena-audience-note" role="status" aria-live="polite">
+              <strong className="theme-text">{scope === "PUBLIC" ? "Football Talk" : league?.name || "My League"}.</strong>{" "}
               {context.policy.audienceNote}
             </p>
             <div className="arena-layout">

@@ -90,14 +90,14 @@ function EntryNames({ row }: { row: RankingRow }) {
 
 function formTone(outcome: string) {
   if (outcome === "W") {
-    return "border-emerald-400/20 bg-emerald-400/10 text-emerald-300";
+    return "border-[var(--theme-border)] bg-[var(--theme-success-soft)] text-[var(--theme-success)]";
   }
 
   if (outcome === "D") {
-    return "border-amber-400/20 bg-amber-400/10 text-amber-300";
+    return "border-[var(--theme-border)] bg-[var(--theme-warning-soft)] text-[var(--theme-warning)]";
   }
 
-  return "border-red-400/20 bg-red-400/10 text-red-300";
+  return "border-[var(--theme-border)] bg-[var(--theme-danger-soft)] text-[var(--theme-danger)]";
 }
 
 export default function LeaderboardsPage() {
@@ -352,7 +352,7 @@ export default function LeaderboardsPage() {
             <p className="theme-muted mt-2 text-xs leading-5">Ranking order: points, wins, win rate, goal difference, then goals scored. Players enter the table after their first verified match.</p>
             {query && data ? <p role="status" className="theme-muted mt-2 text-xs">{rankings.length} of {allRankings.length} ranked players match. League rank numbers are preserved.</p> : null}
 
-            <div className="mt-4 grid grid-cols-4 gap-2" aria-label="Leaderboard scoring rules">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Leaderboard scoring rules">
               {[
                 ["Win", "+3"],
                 ["Draw", "+1"],
@@ -379,7 +379,7 @@ export default function LeaderboardsPage() {
             <>
               <FcPanel className="p-5 sm:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-4">
+                  <div className="flex min-w-0 items-center gap-4">
                     <FcCrest
                       name={data.league.name}
                       imageUrl={data.league.logoUrl}
@@ -391,7 +391,7 @@ export default function LeaderboardsPage() {
                         {data.league.code}
                       </p>
 
-                      <h2 className="theme-text mt-1 text-xl font-semibold">
+                      <h2 className="theme-text mt-1 text-xl font-semibold [overflow-wrap:anywhere]">
                         {data.league.name}
                       </h2>
 

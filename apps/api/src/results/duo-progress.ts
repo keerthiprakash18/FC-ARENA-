@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import type { DuoGameScore } from './duo-aggregate.js';
+import { parseDuoGames, validateDuoAggregate, type DuoGameScore } from './duo-aggregate.js';
 
 export interface SavedDuoGame extends DuoGameScore { version: number }
 export interface DuoProgress { revision: number; games: SavedDuoGame[]; homePlayerIds?: string[]; awayPlayerIds?: string[] }
@@ -24,24 +24,83 @@ export function readDuoProgress(value: unknown): DuoProgress {
     ...(stored.awayPlayerIds ? { awayPlayerIds: [...stored.awayPlayerIds] } : {}), revision: stored.revision!, games: stored.games.map(game => ({ homePlayerId: game.homePlayerId, awayPlayerId: game.awayPlayerId, homeGoals: game.homeGoals, awayGoals: game.awayGoals, version: game.version })) };
 }
 
-/** Saved games establish the fixture lineup; later registration substitutions apply to future fixtures. */
-export function duoFixtureLineup(progress: DuoProgress, home: readonly { userId: string }[], away: readonly { userId: string }[]) {
-  const side = (key: 'homePlayerId' | 'awayPlayerId', stored: string[] | undefined, current: readonly { userId: string }[]) => {
-    const played = [...new Set(progress.games.map(game => game[key]))];
-    if (!stored && played.length === 1 && !current.some(member => member.userId === played[0])) {
-      throw new ConflictException('A player changed before the full lineup was saved. Contact the tournament owner to resolve this fixture lineup.');
+type Member = { userId: string };
+export type DuoReplacement = { beforeData: unknown; afterData: unknown };
+export type DuoAliases = { home: ReadonlyMap<string, string>; away: ReadonlyMap<string, string> };
+const noAliases: DuoAliases = { home: new Map(), away: new Map() };
+const playerId = (value: unknown): string | undefined => value && typeof value === 'object' &&
+  'userId' in value && typeof value.userId === 'string' ? value.userId : undefined;
+const lineupError = () => new ConflictException('Saved Duo game participants cannot be matched to the current team slots. Contact the tournament owner; saved scores are unchanged.');
+
+/** Only authoritative registration replacement audit events may associate old participants with current slots. */
+export function duoReplacementAliases(current: readonly Member[], history: readonly DuoReplacement[], historical: readonly string[]) {
+  const active = new Set(current.map(member => member.userId));
+  const aliases = new Map<string, string>();
+  for (const id of new Set(historical)) {
+    if (active.has(id)) continue;
+    const destinations = new Set<string>();
+    // An ID may have been replaced more than once. Follow each possible chronological chain.
+    for (let i = 0; i < history.length; i++) {
+      if (playerId(history[i]!.beforeData) !== id) continue;
+      let next = playerId(history[i]!.afterData);
+      for (const event of history.slice(i + 1)) {
+        if (playerId(event.beforeData) === next) next = playerId(event.afterData);
+      }
+      if (next && active.has(next)) destinations.add(next);
     }
-    const ids = stored ?? [...new Set([...played, ...current.map(member => member.userId).sort()])].slice(0, 2);
-    if (ids.length !== 2 || played.some(id => !ids.includes(id))) {
-      throw new ConflictException('Saved games contain different lineups. Contact the tournament owner before continuing.');
-    }
-    return ids.map(userId => ({ userId }));
-  };
-  const result = { home: side('homePlayerId', progress.homePlayerIds, home), away: side('awayPlayerId', progress.awayPlayerIds, away) };
-  if (result.home.some(member => result.away.some(opponent => opponent.userId === member.userId))) {
-    throw new ConflictException('The same player cannot appear on both fixture sides.');
+    if (destinations.size !== 1) throw lineupError();
+    aliases.set(id, [...destinations][0]!);
   }
-  return result;
+  return aliases;
+}
+
+type Pair = Pick<DuoGameScore, 'homePlayerId' | 'awayPlayerId'>;
+const pairKey = (game: Pair) => JSON.stringify([game.homePlayerId, game.awayPlayerId]);
+const ordered = (members: readonly Member[]) => [...members].sort((a,b) => a.userId.localeCompare(b.userId));
+function normalizePair<T extends Pair>(game: T, home: readonly Member[], away: readonly Member[], aliases: DuoAliases): T {
+  const homePlayerId = aliases.home.get(game.homePlayerId) ?? game.homePlayerId;
+  const awayPlayerId = aliases.away.get(game.awayPlayerId) ?? game.awayPlayerId;
+  if (!home.some(member => member.userId === homePlayerId) || !away.some(member => member.userId === awayPlayerId)) throw lineupError();
+  return { ...game, homePlayerId, awayPlayerId };
+}
+
+/** Current roster is authoritative for all unplayed slots. Saved rows retain the actual players. */
+export function duoFixturePlan(progress: DuoProgress, homeMembers: readonly Member[], awayMembers: readonly Member[],
+  count: number, aliases: DuoAliases = noAliases) {
+  const home = ordered(homeMembers), away = ordered(awayMembers);
+  if (home.length !== 2 || away.length !== 2 || new Set(home.map(m => m.userId)).size !== 2 ||
+      new Set(away.map(m => m.userId)).size !== 2 || home.some(m => away.some(a => a.userId === m.userId))) throw lineupError();
+  const slots = progress.games.map(game => normalizePair(game, home, away, aliases));
+  if (slots.length > count || new Set(slots.map(pairKey)).size !== slots.length) throw lineupError();
+  if (count === 2 && (new Set(slots.map(g => g.homePlayerId)).size !== slots.length ||
+    new Set(slots.map(g => g.awayPlayerId)).size !== slots.length)) throw lineupError();
+  const swap = slots.length > 0 && home.findIndex(m => m.userId === slots[0]!.homePlayerId) !==
+    away.findIndex(m => m.userId === slots[0]!.awayPlayerId);
+  const pairings = home.flatMap((member, i) => (count === 4 ? away : [away[swap ? 1-i : i]!]).map(opponent => {
+    const slot = { homePlayerId: member.userId, awayPlayerId: opponent.userId };
+    const index = slots.findIndex(game => pairKey(game) === pairKey(slot));
+    const saved = index < 0 ? undefined : progress.games[index];
+    return saved ? { homePlayerId: saved.homePlayerId, awayPlayerId: saved.awayPlayerId } : slot;
+  }));
+  if (progress.games.some(game => !pairings.some(pair => pairKey(pair) === pairKey(game)))) throw lineupError();
+  return { home, away, pairings };
+}
+
+/** Validate slot coverage without relabelling the actual persisted player IDs. */
+export function validateDuoFixtureResult(tournament: Tournament, home: readonly Member[], away: readonly Member[],
+  scores: { homeScore: number; awayScore: number; duoGames?: unknown }, progress: DuoProgress, aliases: DuoAliases = noAliases,
+  alreadySubmitted = false) {
+  if (!tournament.duoAggregateEnabled) return validateDuoAggregate(tournament, home, away, scores);
+  if (!Array.isArray(scores.duoGames)) return validateDuoAggregate(tournament, home, away, scores);
+  // Never accept a departed participant supplied by a new all-at-once client.
+  if (!progress.games.length && !alreadySubmitted) return validateDuoAggregate(tournament, home, away, scores);
+  // Use the shared parser first, then validate normalized slot coverage and exact totals.
+  const games = parseDuoGames(scores.duoGames);
+  if (!games) throw new BadRequestException('Enter all valid Duo game scores.');
+  if (progress.games.length) assertSavedDuoGamesMatch(progress, games);
+  const normalized = games.map(game => normalizePair(game, home, away, aliases));
+  validateDuoAggregate(tournament, home, away, { ...scores, duoGames: normalized });
+  return games;
 }
 
 export function duoProgressSummary(progress: DuoProgress, requiredGames: number) {
@@ -51,34 +110,31 @@ export function duoProgressSummary(progress: DuoProgress, requiredGames: number)
     complete: progress.games.length === requiredGames };
 }
 
-export function saveDuoGameProgress(tournament: Tournament, home: readonly { userId: string }[], away: readonly { userId: string }[],
-  progress: DuoProgress, input: DuoGameScore & { expectedVersion: number }): DuoProgress {
+export function saveDuoGameProgress(tournament: Tournament, home: readonly Member[], away: readonly Member[],
+  progress: DuoProgress, input: DuoGameScore & { expectedVersion: number }, aliases: DuoAliases = noAliases): DuoProgress {
   if (tournament.mode !== 'DUO' || !tournament.duoAggregateEnabled || home.length !== 2 || away.length !== 2) {
     throw new BadRequestException('Individual game saving requires an aggregate Duo fixture with two players on each side.');
   }
-  const lineup = duoFixtureLineup(progress, home, away);
-  home = lineup.home; away = lineup.away;
   const count = tournament.duoGamesPerFixture === 4 ? 4 : 2;
-  const homeIds = new Set(home.map(member => member.userId)), awayIds = new Set(away.map(member => member.userId));
-  if (!homeIds.has(input.homePlayerId) || !awayIds.has(input.awayPlayerId) || !goal(input.homeGoals) || !goal(input.awayGoals)) {
-    throw new BadRequestException('Choose this fixture’s players and enter whole-number scores from 0 to 99.');
+  const plan = duoFixturePlan(progress, home, away, count, aliases);
+  const existing = progress.games.find(game => pairKey(game) === pairKey(input));
+  const validPair = plan.pairings.some(pair => pairKey(pair) === pairKey(input)) ||
+    (count === 2 && !progress.games.length && home.some(m => m.userId === input.homePlayerId) && away.some(m => m.userId === input.awayPlayerId));
+  if (!validPair || !goal(input.homeGoals) || !goal(input.awayGoals)) {
+    throw new BadRequestException('Choose this fixture’s current players for unsaved games, or edit a saved game, and enter whole-number scores from 0 to 99.');
   }
-  const existing = progress.games.find(game => game.homePlayerId === input.homePlayerId && game.awayPlayerId === input.awayPlayerId);
   const identical = existing?.homeGoals === input.homeGoals && existing?.awayGoals === input.awayGoals;
   if (input.expectedVersion !== (existing?.version ?? 0) && !identical) {
     throw new ConflictException('This game was updated elsewhere. Reload its saved score before changing it.');
   }
+  if (identical) return progress;
   const games = progress.games.filter(game => game !== existing);
   games.push({ homePlayerId: input.homePlayerId, awayPlayerId: input.awayPlayerId, homeGoals: input.homeGoals, awayGoals: input.awayGoals, version: (existing?.version ?? 0) + 1 });
-  if (homeIds.size !== 2 || awayIds.size !== 2 || games.length > count ||
-    games.some(game => !homeIds.has(game.homePlayerId) || !awayIds.has(game.awayPlayerId)) ||
-    new Set(games.map(game => JSON.stringify([game.homePlayerId, game.awayPlayerId]))).size !== games.length ||
-    (count === 2 && (new Set(games.map(game => game.homePlayerId)).size !== games.length || new Set(games.map(game => game.awayPlayerId)).size !== games.length))) {
-    throw new BadRequestException(count === 4 ? 'Each player must face each opponent once.' : 'Each player must appear in exactly one game.');
-  }
-  const summary = duoProgressSummary({ revision: progress.revision, games }, count);
+  const updated = { revision: progress.revision + 1, games, homePlayerIds: plan.home.map(member => member.userId), awayPlayerIds: plan.away.map(member => member.userId) };
+  duoFixturePlan(updated, home, away, count, aliases);
+  const summary = duoProgressSummary(updated, count);
   if (summary.homeScore > 99 || summary.awayScore > 99) throw new BadRequestException('The combined score must be 99 or fewer goals per side.');
-  return identical ? progress : { revision: progress.revision + 1, games, homePlayerIds: home.map(member => member.userId), awayPlayerIds: away.map(member => member.userId) };
+  return updated;
 }
 
 export function assertSavedDuoGamesMatch(progress: DuoProgress, games: DuoGameScore[]) {

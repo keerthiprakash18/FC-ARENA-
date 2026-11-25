@@ -108,7 +108,7 @@ export class ResultReviewService {
           },
         },
       }),
-    ]);
+    ], { isolationLevel: 'RepeatableRead' });
     return {
       success: true,
       data: { submissions, tournaments, total, page: query.page, pageSize },

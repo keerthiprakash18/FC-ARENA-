@@ -13,14 +13,21 @@ const cup={...tournament,mode:'DUO',duoAggregateEnabled:true,duoGamesPerFixture:
 const ok=(route,headers,data,status=200)=>route.fulfill({status,headers,json:{success:true,data,error:null}});
 try {
  for(const width of [320,390,1280]) {
-  let games=[],revision=0,puts=0,submits=0,confirms=0,failed=false,confirmed=false,submissions=[],expectedPairing=null;
+  let games=[],revision=0,puts=0,submits=0,confirms=0,failed=false,confirmed=false,submissions=[],expectedPairing=null,replaced=false;
+  const replacement={id:'away-c',fullName:'New Replacement',inGameName:'New FC'};
+  const currentAway=()=>replaced?{...away,members:[away.members[0],replacement]}:away;
   const summary=()=>({revision,games,requiredGames:4,completedGames:games.length,homeScore:games.reduce((n,g)=>n+g.homeGoals,0),awayScore:games.reduce((n,g)=>n+g.awayGoals,0),complete:games.length===4});
-  const context=()=>({home,away,gameCount:4,progress:summary()});
-  const match=()=>({...phaseData['/api/matches/phase3'].match,tournament:cup,isLeagueAdmin:true,status:confirmed?'COMPLETED':'LIVE',fixture:{...phaseData['/api/matches/phase3'].match.fixture,home,away}});
+  const context=()=>({home,away:currentAway(),gameCount:4,progress:summary(),...(replaced?{pairings:[
+    {player:home.members[0],opponent:away.members[0]},
+    {player:home.members[0],opponent:away.members[1]},
+    {player:home.members[1],opponent:away.members[0]},
+    {player:home.members[1],opponent:replacement}
+  ]}:{})});
+  const match=()=>({...phaseData['/api/matches/phase3'].match,tournament:cup,isLeagueAdmin:true,status:confirmed?'COMPLETED':'LIVE',fixture:{...phaseData['/api/matches/phase3'].match.fixture,home,away:currentAway()}});
   const f=await createUiContext(browser,{width,native:width<500,overrides:{
    '/api/matches/phase3':(route,headers)=>ok(route,headers,{match:match()}),
    '/api/matches/phase3/results':(route,headers)=>ok(route,headers,{isLeagueAdmin:true,canVerifyResult:true,canSubmitResult:true,isParticipant:true,confirmedResultSubmissionId:confirmed?'saved-fixture':null,submissions,duoContext:confirmed?null:context()}),
-   '/api/leagues/phase3/fixture-feed':(route,headers)=>ok(route,headers,makeFixtureFeed('phase3',[cup],{phase3:[{...phaseData['/api/tournaments/phase3/fixtures'].fixtures[0],homeRegistration:home,awayRegistration:away,match:{id:'phase3',status:'LIVE',confirmedResult:null}}]})),
+   '/api/leagues/phase3/fixture-feed':(route,headers)=>ok(route,headers,makeFixtureFeed('phase3',[cup],{phase3:[{...phaseData['/api/tournaments/phase3/fixtures'].fixtures[0],homeRegistration:home,awayRegistration:currentAway(),match:{id:'phase3',status:'LIVE',confirmedResult:null}}]})),
   },onMutation:(route,headers)=>{
    const path=new URL(route.request().url()).pathname,body=route.request().postDataJSON();
    if(path==='/api/matches/phase3/duo-games'){
@@ -35,6 +42,7 @@ try {
    }
    if(path==='/api/matches/phase3/results'){
     submits++;assert.equal(body.duoGames.length,4);assert.equal(body.homeScore,9);assert.equal(body.awayScore,6);
+    if(replaced){assert.equal(body.duoGames.filter(g=>g.awayPlayerId==='away-b').length,1);assert.equal(body.duoGames.filter(g=>g.awayPlayerId==='away-c').length,1);}
     submissions=[{id:'saved-fixture',...body,status:'PENDING_VERIFICATION',source:'MANUAL',rejectionReason:null,createdAt:new Date().toISOString(),submittedBy:{id:user.id,fullName:user.fullName,player:user.player},reviewedBy:null}];
     return ok(route,headers,{submission:{id:'saved-fixture'},message:'Awaiting verification'},201);
    }
@@ -53,7 +61,7 @@ try {
    assert(legends[3].includes(home.members[1].fullName+' (Real Madrid) vs Lucas Opponent'));
    assert.equal(await input(1,'home').getAttribute('aria-label'),'Game 1 home goals: Keerthi Home (HYDERABAD FC)');
    assert.equal(await input(1,'away').getAttribute('aria-label'),'Game 1 away goals: Yuki Opponent (Yuki_07)');
-   const save=game=>{expectedPairing=[['phase3','away-a'],['phase3','away-b'],['second-home','away-a'],['second-home','away-b']][game-1];return panel.getByRole('button',{name:`Save game ${game}`,exact:true});};
+   const save=game=>{expectedPairing=[['phase3','away-a'],['phase3','away-b'],['second-home','away-a'],['second-home',replaced?'away-c':'away-b']][game-1];return panel.getByRole('button',{name:`Save game ${game}`,exact:true});};
    const finish=()=>panel.getByRole('button',{name:'Verify fixture & update stats',exact:true});
    assert.equal(await finish().isDisabled(),true);
    await input(2,'home').fill('3');await input(2,'away').fill('1');
@@ -71,6 +79,12 @@ try {
    await save(3).click();await panel.getByRole('alert').filter({hasText:'updated elsewhere'}).waitFor();assert.equal(await input(3,'home').inputValue(),'4');
    await panel.getByRole('button',{name:'Use saved score for game 3',exact:true}).click();assert.equal(await input(3,'home').inputValue(),'9');
    await input(3,'home').fill('4');await input(3,'away').fill('3');await save(3).click();await panel.getByText('3 of 4 games saved',{exact:true}).waitFor();
+   if(width===390){
+    replaced=true;await page.reload();await panel.getByText('3 of 4 games saved',{exact:true}).waitFor();
+    assert((await panel.locator('legend').nth(1).textContent()).includes('Lucas Opponent'),'Saved historical game retains actual player');
+    assert((await panel.locator('legend').nth(3).textContent()).includes('New Replacement (New FC)'),'Unplayed game uses current replacement');
+    assert.equal(await input(2,'home').inputValue(),'3');assert.equal(await input(4,'home').inputValue(),'');
+   }
    await input(4,'home').fill('1');await input(4,'away').fill('2');await save(4).click();await panel.getByText('4 of 4 games saved',{exact:true}).waitFor();
    assert.equal(await finish().isEnabled(),true);await input(1,'home').fill('1');assert.equal(await finish().isDisabled(),true);
    await panel.getByText('Saved total: 8 – 6',{exact:true}).waitFor();await save(1).click();await panel.getByText('Saved total: 9 – 6',{exact:true}).waitFor();

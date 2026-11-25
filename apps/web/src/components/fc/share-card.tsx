@@ -17,17 +17,17 @@ function supportsFileShare(file: File) {
 function cancelled(error: unknown) {
   return error instanceof DOMException && error.name === "AbortError";
 }
-export function ShareCard({
+type ShareCardProps = { title: string; lines: string[]; filename?: string; label?: string };
+export function ShareCard(props: ShareCardProps) {
+  // Never keep an old PNG after a verified result or career scope changes.
+  return <ShareCardContent key={JSON.stringify([props.title, props.lines, props.filename])} {...props} />;
+}
+function ShareCardContent({
   title,
   lines,
   filename = "fc-arena-card",
   label = "Share player card",
-}: {
-  title: string;
-  lines: string[];
-  filename?: string;
-  label?: string;
-}) {
+}: ShareCardProps) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -39,11 +39,8 @@ export function ShareCard({
   const working = useRef(false);
 
   useEffect(() => {
-    if (!preparedFile || nativeAndroid) return;
-    const url = URL.createObjectURL(preparedFile);
-    setLocalUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [preparedFile, nativeAndroid]);
+    if (localUrl) return () => URL.revokeObjectURL(localUrl);
+  }, [localUrl]);
 
   async function prepare() {
     if (working.current) return;
@@ -87,6 +84,7 @@ export function ShareCard({
       );
       const file = new File([blob], `${filename}.png`, { type: "image/png" });
       setPreparedFile(file);
+      if (!native) setLocalUrl(URL.createObjectURL(file));
       const canShare = supportsFileShare(file);
       setShareAvailable(canShare);
       // Canvas encoding is asynchronous. A new click supplies fresh user activation.

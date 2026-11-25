@@ -11,6 +11,7 @@ on:
       - "apps/web/**"
       - "apps/android/tests/**"
       - "tests/deployment-id.test.cjs"
+      - "tests/vnext-unified-design.test.mjs"
       - "packages/**"
       - "package.json"
       - "package-lock.json"

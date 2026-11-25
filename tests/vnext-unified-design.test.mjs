@@ -65,3 +65,43 @@ test('UI foundation cannot alter back-end records or require an API', () => {
   ];
   modules.forEach(relative => assert.ok(fs.existsSync(path.join(root, relative)), relative));
 });
+
+test('all 12 club palettes in light and dark meet semantic token contrast thresholds', () => {
+  // This is deliberately a source-level check for literal sRGB tokens only.
+  // Rendered gradients, overlays and real focus visibility still need browser QA.
+  const rules = [...tokens.matchAll(/(:root[^{]*)\{([^}]+)\}/g)].map(match => ({
+    selector: match[1].trim(),
+    values: Object.fromEntries([...match[2].matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-f]{6})\s*;/gi)]
+      .map(value => [value[1], value[2]])),
+  }));
+  const themes = ['luxury-gold', ...rules.filter(rule => rule.selector.startsWith(':root[data-theme='))
+    .map(rule => rule.selector.match(/data-theme="([^"]+)"/)[1])];
+  assert.equal(new Set(themes).size, 12, 'Keep the existing theme choices available');
+  const pairs = [
+    ['text','surface',4.5], ['text-secondary','surface',4.5], ['text-muted','surface',4.5],
+    ['text-secondary','background',4.5], ['text-muted','background',4.5],
+    ['on-primary','primary',4.5], ['on-primary','primary-hover',4.5],
+    ['sidebar-text','sidebar',4.5], ['sidebar-muted','sidebar',4.5], ['sidebar-icon','sidebar',3],
+    ['focus','surface',3], ['focus','background',3],
+    ['control-border','surface',3], ['control-border','background',3],
+    ['success','success-soft',4.5], ['warning','warning-soft',4.5], ['danger','danger-soft',4.5],
+  ];
+  const luminance = color => {
+    assert.match(color ?? '', /^#[0-9a-f]{6}$/i, 'Expected a literal sRGB semantic token');
+    const [r,g,b] = color.slice(1).match(/../g).map(value => parseInt(value,16)/255)
+      .map(channel => channel <= 0.04045 ? channel/12.92 : ((channel+0.055)/1.055)**2.4);
+    return 0.2126*r + 0.7152*g + 0.0722*b;
+  };
+  for (const theme of themes) for (const mode of ['light','dark']) {
+    const resolved = Object.assign({}, ...rules.filter(rule =>
+      (!rule.selector.includes('data-mode="dark"') || mode === 'dark') &&
+      (!rule.selector.includes('data-theme=') || rule.selector.includes('data-theme="'+theme+'"'))
+    ).map(rule => rule.values));
+    for (const [foreground,background,minimum] of pairs) {
+      const a = luminance(resolved['--theme-'+foreground]);
+      const b = luminance(resolved['--theme-'+background]);
+      const ratio = (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
+      assert.ok(ratio >= minimum, `${theme}/${mode}: ${foreground} on ${background} = ${ratio.toFixed(2)}, requires ${minimum}`);
+    }
+  }
+});

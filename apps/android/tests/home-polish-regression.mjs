@@ -100,6 +100,14 @@ try {
       const overview = hero.getByLabel('Overall career overview');
       await overview.waitFor();
       assert.deepEqual(await overview.locator('dd').allTextContents(), ['4', '50%', '6', '0']);
+      assert.deepEqual(await overview.locator('dt').allTextContents(), ['Matches', 'Win rate', 'Goals', 'Achievements']);
+      const achievementLabel = overview.locator('dt').filter({ hasText: /^Achievements$/ });
+      assert.equal(await achievementLabel.count(), 1);
+      const labelLayout = await achievementLabel.evaluate(element => {
+        const range = document.createRange(); range.selectNodeContents(element);
+        return { lines: range.getClientRects().length, fits: element.scrollWidth <= element.clientWidth + 1 };
+      });
+      assert.deepEqual(labelLayout, { lines: 1, fits: true }, 'Achievements must not break midword or overflow');
       assert.equal(await overview.getByRole('link', { name: /Full stats/ }).getAttribute('href'), '/career');
       assert.equal(await overview.getByLabel('2 wins, 1 draws, 1 losses').count(), 1);
       assert.equal(await f.page.locator('.home-hero-career').count(), 1);

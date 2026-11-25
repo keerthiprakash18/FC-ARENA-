@@ -13,11 +13,13 @@
 .details { display: block; min-height: 44px; padding: 8px 10px; color: inherit; text-decoration: none; border-radius: inherit; }
 .detailsLabel { color: #f3d28b; white-space: nowrap; }
 .details:focus-visible { outline: 2px solid #f3d28b; outline-offset: 2px; border-radius: 4px; }
-.metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 4px 0 0; }
+/* Give the longer achievement label its own width without reducing the other
+   three metrics to tiny text. Narrow handsets use two balanced rows. */
+.metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)) minmax(0,1.55fr); margin: 4px 0 0; }
 .metrics > div { min-width: 0; padding-inline: 6px; border-inline-start: 1px solid rgb(185 207 226 / 19%); }
 .metrics > div:first-child { border: 0; padding-inline-start: 0; }
 .metrics > div:last-child { padding-inline-end: 0; }
-.metrics dt { color: #c4d3e1; font-size: clamp(9px, 2.65vw, 11px); font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.metrics dt { color: #c4d3e1; font-size: clamp(10px, 2.65vw, 11px); font-weight: 500; line-height: 1.4; overflow-wrap: normal; }
 .metrics dd { margin: 2px 0 0; font-size: clamp(16px, 4.9vw, 24px); line-height: 1.2; font-weight: 750; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .metrics small { font-size: .62em; font-weight: 650; }
 .form { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgb(185 207 226 / 19%); font-size: 10px; color: #d5e0eb; font-variant-numeric: tabular-nums; }
@@ -27,7 +29,13 @@
 .draw { background: #ecca83; }
 .loss { background: #f8a2ac; }
 .gd { margin-inline-start: auto; }
-@media (max-width: 340px) { .metrics > div { padding-inline: 4px; } .details { padding-inline: 8px; } }
+@media (max-width: 359px) {
+  .metrics { grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 5px; }
+  .metrics > div { padding-inline: 6px; }
+  .metrics > div:nth-child(odd) { border-inline-start: 0; padding-inline-start: 0; }
+  .metrics > div:nth-child(even) { padding-inline-end: 0; }
+  .details { padding-inline: 8px; }
+}
 
 /* Preserve the first-screen match action on narrow devices without clipping
    names or reducing the minimum touch target. */

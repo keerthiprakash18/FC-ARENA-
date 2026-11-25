@@ -39,6 +39,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Capture pinned Next.js authoring guidance for web maintenance
+        shell: bash
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const pkg = require.resolve('next/package.json', { paths: [path.resolve('apps/web')] });
+          const root = path.join(path.dirname(pkg), 'dist', 'docs');
+          console.log('Installed Next.js:', JSON.parse(fs.readFileSync(pkg, 'utf8')).version);
+          if (!fs.existsSync(root)) {
+            console.log('Installed package does not expose the authoring documentation directory.');
+            process.exit(0);
+          }
+          const files = fs.readdirSync(root, {recursive:true}).map(String).filter(f => /\.mdx?$/.test(f));
+          const wanted = files.filter(f => /(?:^|\/)(?:\d+-)?(?:css|server-and-client-components|linking-and-navigating)\.mdx?$/.test(f));
+          console.log('Relevant guides:', JSON.stringify(wanted));
+          for (const f of wanted) {
+            console.log('--- NEXT_GUIDE ' + f + ' ---');
+            console.log(fs.readFileSync(path.join(root, f), 'utf8'));
+            console.log('--- END_NEXT_GUIDE ---');
+          }
+          NODE
+
       - name: Web lint
         run: npm run lint --workspace=apps/web
 

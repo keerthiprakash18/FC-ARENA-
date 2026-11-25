@@ -41,6 +41,21 @@ describe('Verified player experience policy', () => {
       result.week.missions.find((m) => m.id === 'THREE_MATCHES')?.progress,
     ).toBe(3);
   });
+  it('reports authoritative weekly wins without altering XP or mission rules', () => {
+    const weeks = [
+      { week: '2026-10-26', matches: 8, days: 3, teamMatches: 0, wins: 8 },
+      { week: '2026-11-02', matches: 120, days: 4, teamMatches: 0, wins: 73 },
+    ];
+    const result = summarizeExperience(weeks, 0, false, 'CLASSIC', now);
+    expect(result.week).toMatchObject({ verifiedMatches: 120, verifiedWins: 73 });
+    const withoutWins = summarizeExperience(
+      weeks.map(({ wins: _wins, ...week }) => week), 0, false, 'CLASSIC', now,
+    );
+    expect(result.totalXp).toBe(withoutWins.totalXp);
+    expect(result.week.missions).toEqual(withoutWins.week.missions);
+    expect(withoutWins.week.verifiedWins).toBe(0);
+    expect(summarizeExperience([], 0, false, 'CLASSIC', now).week.verifiedWins).toBe(0);
+  });
   it('reconciles XP and unlocks after a result reversal without keeping stale bonuses', () => {
     const before = summarizeExperience(
       [{ week: '2026-11-02', matches: 10, days: 2, teamMatches: 0 }],

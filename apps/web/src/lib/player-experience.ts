@@ -16,7 +16,10 @@ export interface PlayerExperience {
   breakdown: { matchXp: number; tournamentXp: number; missionXp: number };
   week: {
     key: string;
+    startsAt?: string;
     endsAt: string;
+    verifiedMatches?: number;
+    verifiedWins?: number;
     completedMissions: number;
     earnedBonusXp: number;
     missions: {

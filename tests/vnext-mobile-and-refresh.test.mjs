@@ -62,7 +62,9 @@ test('Player Journey keeps one main landmark and announces completed-goal counts
   const source = read('apps/web/src/app/experience/page.tsx');
   assert.doesNotMatch(source, /<main className="community-page">/);
   assert.match(source, /<div className="community-page">/);
-  assert.match(source, /aria-label=\{`\$\{goal\.label\}: \$\{goal\.value\} of \$\{goal\.target\}`\}/);
+  const journey = read('apps/web/src/components/experience/player-journey.tsx');
+  assert.match(source, /<PlayerJourney\s/);
+  assert.match(journey, /aria-label=\{`\$\{goal\.label\}: \$\{goal\.value\} of \$\{goal\.target\}`\}/);
   assert.match(source, /<button type="button" onClick=\{\(\) => void load\(\)\}>Try again<\/button>/);
 });
 

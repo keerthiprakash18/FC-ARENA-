@@ -102,6 +102,7 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/awards-ranking-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/social-login-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/duo-progress-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/result-card-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/top-twelve-playoffs-regression.mjs
 
       - name: Upload complete UI verification screenshots

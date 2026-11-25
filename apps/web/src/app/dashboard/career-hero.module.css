@@ -1,0 +1,43 @@
+/* Compact stadium-overlay career strip. Keep the match action prominent. */
+.overview {
+  margin-block-start: 8px;
+  padding: 0;
+  border: 1px solid rgb(185 207 226 / 24%);
+  border-radius: 12px;
+  background: #102132;
+  color: #f4f7fb;
+  min-inline-size: 0;
+  max-inline-size: 460px;
+}
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 600; color: #c4d3e1; }
+.details { display: block; min-height: 44px; padding: 8px 10px; color: inherit; text-decoration: none; border-radius: inherit; }
+.detailsLabel { color: #f3d28b; white-space: nowrap; }
+.details:focus-visible { outline: 2px solid #f3d28b; outline-offset: 2px; border-radius: 4px; }
+.metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 4px 0 0; }
+.metrics > div { min-width: 0; padding-inline: 6px; border-inline-start: 1px solid rgb(185 207 226 / 19%); }
+.metrics > div:first-child { border: 0; padding-inline-start: 0; }
+.metrics > div:last-child { padding-inline-end: 0; }
+.metrics dt { color: #c4d3e1; font-size: clamp(9px, 2.65vw, 11px); font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.metrics dd { margin: 2px 0 0; font-size: clamp(16px, 4.9vw, 24px); line-height: 1.2; font-weight: 750; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.metrics small { font-size: .62em; font-weight: 650; }
+.form { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgb(185 207 226 / 19%); font-size: 10px; color: #d5e0eb; font-variant-numeric: tabular-nums; }
+.form span { display: inline-flex; align-items: center; gap: 4px; }
+.form i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
+.win { background: #7ce0ae; }
+.draw { background: #ecca83; }
+.loss { background: #f8a2ac; }
+.gd { margin-inline-start: auto; }
+@media (max-width: 340px) { .metrics > div { padding-inline: 4px; } .details { padding-inline: 8px; } }
+
+/* Preserve the first-screen match action on narrow devices without clipping
+   names or reducing the minimum touch target. */
+@media (max-width: 639px) {
+  :global(.fc-premium .fc-app-shell .fc-main) .hero:global(.premium-home-hero) { padding: 12px; }
+  :global(.fc-premium .fc-app-shell .fc-main) .hero:global(.premium-home-hero) :global(.home-hero-layout) { padding: 0; gap: 8px; }
+  :global(.fc-premium .fc-app-shell .fc-main) .hero:global(.premium-home-hero) :global(.home-player-name) { font-size: clamp(21px, 6.2vw, 26px); }
+  .details { padding-block: 6px; }
+}
+@media (forced-colors: active) {
+  .overview { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .detailsLabel { color: LinkText; }
+}

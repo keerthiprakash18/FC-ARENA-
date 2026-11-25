@@ -4,6 +4,7 @@ import { TournamentRegistrationSummary } from '@/components/tournaments/registra
 import { PlayerOnboarding } from "@/components/fc/player-onboarding";
 import { getMatchdayGuidance, type MatchdayState } from "@/lib/matchday-guidance";
 import Link from "next/link";
+import heroStyles from "./career-hero.module.css";
 import { useActiveLeague } from '@/lib/active-league';
 import { useRecoverableLoad } from '@/lib/use-recoverable-load';
 import { useEffect, useMemo, useState } from "react";
@@ -22,7 +23,6 @@ import {
   FcPanel,
   FcQuickActionTile,
   FcSkeleton,
-  FcStatCard,
   FcStatusBadge,
 } from "@/components/fc/fc-ui";
 
@@ -72,6 +72,8 @@ interface CareerData {
     goalsAgainst: number;
     goalDifference: number;
     winRate: number;
+    achievements?: number;
+    tournaments?: number;
   };
 
   tournamentHistory: Array<{
@@ -753,7 +755,7 @@ export default function DashboardPage() {
     >
       <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5">
         <div className="fc-dashboard-spotlight" data-has-match={showNextMatch}>
-        <section className="fc-dashboard-hero premium-home-hero" data-has-match={showNextMatch}>
+        <section className={`fc-dashboard-hero premium-home-hero ${heroStyles.hero}`} data-has-match={showNextMatch}>
           <div className="home-hero-layout relative grid items-center">
             <div className="min-w-0">
               <h1 className="theme-text break-words font-bold tracking-[-0.025em]">
@@ -771,7 +773,26 @@ export default function DashboardPage() {
                   <FcStatusBadge label="Verified" tone="amber" />
                 ) : null}
               </div>
-              <div className="home-hero-pitch" aria-hidden="true" />
+              {isVisible("stats") && <div className={`home-hero-career ${heroStyles.overview}`} aria-label="Overall career overview">
+                <Link href="/career" className={heroStyles.details} aria-label="Full stats — Overall career">
+                <div className={heroStyles.heading}>
+                  <span>Overall career</span>
+                  <span className={heroStyles.detailsLabel}>Full stats <span aria-hidden="true">→</span></span>
+                </div>
+                <dl className={heroStyles.metrics}>
+                  <div><dt>Matches</dt><dd>{stats.matches}</dd></div>
+                  <div><dt>Win rate</dt><dd>{stats.winRate}<small>%</small></dd></div>
+                  <div><dt>Goals</dt><dd>{stats.goalsFor}</dd></div>
+                  <div><dt>Achievements</dt><dd>{stats.achievements ?? "—"}</dd></div>
+                </dl>
+                <div className={heroStyles.form} aria-label={`${stats.wins} wins, ${stats.draws} draws, ${stats.losses} losses`}>
+                  <span><i className={heroStyles.win} />{stats.wins}W</span>
+                  <span><i className={heroStyles.draw} />{stats.draws}D</span>
+                  <span><i className={heroStyles.loss} />{stats.losses}L</span>
+                  <span className={heroStyles.gd}>GD {stats.goalDifference > 0 ? "+" : ""}{stats.goalDifference}</span>
+                </div>
+                </Link>
+              </div>}
             </div>
             <Link
               href={heroAction.href}
@@ -1109,46 +1130,6 @@ export default function DashboardPage() {
             </Link>)}
           </FcPanel>
         </section> : null}
-
-        <section aria-label="Career overview" className={`home-overview-stats fc-dashboard-stats grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4 ${!isVisible("stats") ? "hidden" : ""}`}>
-          <Link href="/career">
-            <FcStatCard
-              label="Matches"
-              value={stats.matches}
-              detail="View career stats"
-              icon="▤"
-            />
-          </Link>
-
-          <Link href="/career">
-            <FcStatCard
-              label="Wins"
-              value={stats.wins}
-              detail={`${stats.draws} draws • ${stats.losses} losses`}
-              tone="emerald"
-              icon="✓"
-            />
-          </Link>
-
-          <Link href="/career">
-            <FcStatCard
-              label="Goals"
-              value={stats.goalsFor}
-              detail={`Goal difference: ${stats.goalDifference > 0 ? "+" : ""}${stats.goalDifference}`}
-              tone="amber"
-              icon="fixtures"
-            />
-          </Link>
-
-          <Link href="/career">
-            <FcStatCard
-              label="Win Rate"
-              value={`${stats.winRate}%`}
-              detail="View detailed stats"
-              icon="↗"
-            />
-          </Link>
-        </section>
 
         <div className={`fc-quick-actions-panel ${!isVisible("quickActions") ? "hidden" : ""}`}>
           <SectionTitle icon="activity" title="Quick Actions" />

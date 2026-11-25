@@ -308,6 +308,18 @@ describe('Two-league career, owner registration access and notifications', () =>
       expect(scoped.body.data.availableLeagues).toHaveLength(2);
     }
   });
+  it('returns the same overall and scoped career totals in the lightweight dashboard without loading award rows', async () => {
+    const service = app.get(PlayerCareerService);
+    for (const leagueId of [undefined, ...leagues]) {
+      const full = (await service.getMyCareer(player, false, leagueId)).data;
+      const dashboard = (await service.getMyCareer(player, true, leagueId)).data;
+      expect(dashboard.lifetimeStatistics.achievements).toBe(leagueId ? 1 : 2);
+      expect(dashboard.lifetimeStatistics.achievements).toBe(full.lifetimeStatistics.achievements);
+      expect(dashboard.lifetimeStatistics.matches).toBe(full.lifetimeStatistics.matches);
+      expect(dashboard.achievements).toEqual([]);
+      expect(dashboard.matchHistory.length).toBeLessThanOrEqual(3);
+    }
+  });
   it('rejects foreign scope, malformed IDs and another-account injection', async () => {
     expect((await career(randomUUID())).status).toBe(403);
     expect((await career('not-a-league-id')).status).toBe(400);

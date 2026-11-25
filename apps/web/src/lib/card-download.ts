@@ -27,6 +27,7 @@ export async function prepareCardDownload(
     data: ExportTicket;
   }>("/players/me/card-export", form);
   if (
+    !data || typeof data.path !== "string" || typeof data.filename !== "string" ||
     !/^\/players\/card-exports\/[0-9a-f-]{36}\?grant=[\w.-]+$/.test(
       data.path,
     ) ||

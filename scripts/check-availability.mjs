@@ -12,6 +12,11 @@ function failureCode(error) {
   return 'CONNECTION_FAILED';
 }
 
+// Public release identifiers are optional monitoring evidence, not authorization.
+function releaseSha(value) {
+  return typeof value === 'string' && /^[a-f0-9]{40}$/.test(value) ? value : null;
+}
+
 function requireHealthy(payload) {
   const data = payload?.data;
   if (payload?.success !== true || !['healthy', 'degraded'].includes(data?.status)
@@ -38,11 +43,13 @@ export async function checkAvailability({
     }
   }
   const checks = [];
+  const releaseChecks = [];
+  const observed = { web: null, directApi: null, sameOriginApi: null };
   const assets = new Map();
   const backupProbes = new Set();
   const overallDeadline = AbortSignal.timeout(90_000);
 
-  async function probe(name, url, validate, method = 'GET') {
+  async function probe(name, url, validate, method = 'GET', results = checks) {
     const started = performance.now();
     let response;
     try {
@@ -54,15 +61,15 @@ export async function checkAvailability({
       });
       if (!response.ok) {
         await response.body?.cancel();
-        checks.push({ name, url: String(url), ok: false, status: response.status, code: 'HTTP_ERROR' });
+        results.push({ name, url: String(url), ok: false, status: response.status, code: 'HTTP_ERROR' });
         return;
       }
       await validate(response);
-      checks.push({ name, url: String(url), ok: true, status: response.status,
+      results.push({ name, url: String(url), ok: true, status: response.status,
         durationMs: Math.round(performance.now() - started) });
     } catch (error) {
       const timedOut = ['TimeoutError', 'AbortError'].includes(error?.name);
-      checks.push({ name, url: String(url), ok: false, status: response?.status ?? null,
+      results.push({ name, url: String(url), ok: false, status: response?.status ?? null,
         code: timedOut ? 'CONNECTION_TIMEOUT' : response ? 'INVALID_RESPONSE' : failureCode(error),
         message: response && !timedOut ? error.message : 'Endpoint could not be reached within the probe deadline.' });
     }
@@ -98,12 +105,26 @@ export async function checkAvailability({
     probe('android-start-page', new URL('/dashboard', web), page),
     probe('same-origin-api', new URL('/api/health', web), async response => {
       const body=await response.json();requireHealthy(body);
+      if (new URL(response.url || web).origin === web.origin)
+        observed.sameOriginApi = releaseSha(body.data.runtime?.release);
       if(body.data.backupMonitoring==='enabled')backupProbes.add(new URL('/api/health/backups',web).href);
     }),
     probe('direct-api', api, async response => {
       const body=await response.json();requireHealthy(body);
+      if (new URL(response.url || api).origin === api.origin)
+        observed.directApi = releaseSha(body.data.runtime?.release);
       if(body.data.backupMonitoring==='enabled')backupProbes.add(new URL('/api/health/backups',api).href);
     }),
+    probe('web-release-observation', new URL('/web-release', web), async response => {
+      if (new URL(response.url || web).origin !== web.origin)
+        throw new Error('Release endpoint redirected to another origin.');
+      let body;
+      try { body = await response.json(); }
+      catch { throw new Error('Release endpoint did not return valid JSON.'); }
+      const sha = releaseSha(body?.release);
+      if (!sha) throw new Error('No valid public web release identifier.');
+      observed.web = sha;
+    }, 'GET', releaseChecks),
   ]);
   await Promise.all([...backupProbes].map(url=>probe('encrypted-recovery',url,async response=>{
     const body=await response.json();
@@ -120,7 +141,12 @@ export async function checkAvailability({
     }, 'HEAD')));
   }
   checks.sort((left, right) => left.name.localeCompare(right.name) || left.url.localeCompare(right.url));
-  return { ok: checks.every(check => check.ok), checkedAt: new Date().toISOString(), checks };
+  const apiRoutesAgree = observed.directApi && observed.sameOriginApi
+    ? observed.directApi === observed.sameOriginApi : null;
+  return {
+    ok: checks.every(check => check.ok), checkedAt: new Date().toISOString(), checks,
+    releaseEvidence: { ...observed, apiRoutesAgree, observations: releaseChecks },
+  };
 }
 
 if (import.meta.main) {
@@ -133,7 +159,15 @@ if (import.meta.main) {
     console.log(JSON.stringify(result, null, 2));
     if (process.env.GITHUB_STEP_SUMMARY) {
       const lines = result.checks.map(check => `- ${check.ok ? 'PASS' : 'FAIL'} ${check.name}: ${check.url} (${check.code ?? check.status})`);
-      appendFileSync(process.env.GITHUB_STEP_SUMMARY, `FC Arena availability: ${result.ok ? 'PASS' : 'FAIL'}\n\n${lines.join('\n')}\n`);
+      const evidence = result.releaseEvidence;
+      const releaseLines = [
+        `- Observed web release: ${evidence.web ?? 'unknown'}`,
+        `- Observed direct API release: ${evidence.directApi ?? 'unknown'}`,
+        `- Observed same-origin API release: ${evidence.sameOriginApi ?? 'unknown'}`,
+        `- API route identity agreement: ${evidence.apiRoutesAgree === null ? 'unknown' : evidence.apiRoutesAgree ? 'yes' : 'no'}`,
+        '- Public observations only; not proof of host runtime, rollback, or deployment authorization.',
+      ];
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, `FC Arena availability: ${result.ok ? 'PASS' : 'FAIL'}\n\n${lines.join('\n')}\n\nRelease evidence (non-gating)\n\n${releaseLines.join('\n')}\n`);
     }
     process.exitCode = result.ok ? 0 : 1;
   } catch (error) {

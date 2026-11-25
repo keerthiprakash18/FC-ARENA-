@@ -55,6 +55,51 @@ test('checks the Android start document, both API routes and deduplicated exact 
   assert.ok(server.requests.some(request => request.path === '/dashboard'));
 });
 
+test('reports observed releases without assuming main is deployed or requiring web and API to match', async t => {
+  const web = 'a'.repeat(40), api = 'b'.repeat(40);
+  const apiBody = JSON.stringify({ ...health, data: { ...health.data, runtime: { release: api } } });
+  const server = await fixture(t, {
+    '/web-release': { type: 'application/json', body: JSON.stringify({ release: web }) },
+    '/api/health': { body: apiBody },
+    '/direct/health': { body: apiBody },
+  });
+  const result = await checkAvailability(server);
+  assert.equal(result.ok, true);
+  assert.equal(result.releaseEvidence.web, web);
+  assert.equal(result.releaseEvidence.directApi, api);
+  assert.equal(result.releaseEvidence.sameOriginApi, api);
+  assert.equal(result.releaseEvidence.apiRoutesAgree, true);
+  assert.equal(result.releaseEvidence.observations[0].ok, true);
+  assert.ok(server.requests.every(request => ['GET', 'HEAD'].includes(request.method)));
+});
+
+test('reports API route drift and unknown web identity separately from availability', async t => {
+  const body = release => JSON.stringify({ ...health, data: { ...health.data, runtime: { release } } });
+  const server = await fixture(t, {
+    '/web-release': { status: 404 },
+    '/api/health': { body: body('a'.repeat(40)) },
+    '/direct/health': { body: body('b'.repeat(40)) },
+  });
+  const result = await checkAvailability(server);
+  assert.equal(result.ok, true);
+  assert.equal(result.releaseEvidence.web, null);
+  assert.equal(result.releaseEvidence.observations[0].ok, false);
+  assert.equal(result.releaseEvidence.apiRoutesAgree, false);
+});
+
+test('rejects malformed identities and does not claim evidence from a legacy API', async t => {
+  const server = await fixture(t, {
+    '/web-release': { type: 'application/json', body: JSON.stringify({ release: 'not-a-sha' }) },
+  });
+  const result = await checkAvailability(server);
+  assert.equal(result.ok, true);
+  assert.equal(result.releaseEvidence.web, null);
+  assert.equal(result.releaseEvidence.directApi, null);
+  assert.equal(result.releaseEvidence.sameOriginApi, null);
+  assert.equal(result.releaseEvidence.apiRoutesAgree, null);
+  assert.equal(result.releaseEvidence.observations[0].ok, false);
+});
+
 test('a working direct API does not hide a broken website API proxy', async t => {
   const server = await fixture(t, { '/api/health': { status: 502, body: 'Bad Gateway' } });
   const result = await checkAvailability(server);

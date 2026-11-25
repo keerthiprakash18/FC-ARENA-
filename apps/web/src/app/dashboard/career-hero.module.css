@@ -14,7 +14,7 @@
 .detailsLabel { color: #f3d28b; white-space: nowrap; }
 .details:focus-visible { outline: 2px solid #f3d28b; outline-offset: 2px; border-radius: 4px; }
 /* Give the longer achievement label its own width without reducing the other
-   three metrics to tiny text. Narrow handsets use two balanced rows. */
+   three metrics to tiny text. Preserve one compact row on narrow handsets. */
 .metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)) minmax(0,1.55fr); margin: 4px 0 0; }
 .metrics > div { min-width: 0; padding-inline: 6px; border-inline-start: 1px solid rgb(185 207 226 / 19%); }
 .metrics > div:first-child { border: 0; padding-inline-start: 0; }
@@ -30,10 +30,10 @@
 .loss { background: #f8a2ac; }
 .gd { margin-inline-start: auto; }
 @media (max-width: 359px) {
-  .metrics { grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 5px; }
-  .metrics > div { padding-inline: 6px; }
-  .metrics > div:nth-child(odd) { border-inline-start: 0; padding-inline-start: 0; }
-  .metrics > div:nth-child(even) { padding-inline-end: 0; }
+  .metrics { grid-template-columns: minmax(0,1fr) minmax(0,1.05fr) minmax(0,.82fr) minmax(0,1.6fr); }
+  .metrics > div { padding-inline: 3px; }
+  .metrics > div:first-child { padding-inline-start: 0; }
+  .metrics > div:last-child { padding-inline-end: 0; }
   .details { padding-inline: 8px; }
 }
 

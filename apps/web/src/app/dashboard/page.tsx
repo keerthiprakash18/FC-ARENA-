@@ -755,7 +755,7 @@ export default function DashboardPage() {
     >
       <div className="fc-dashboard-page premium-dashboard fc-dashboard-classic relative grid gap-4 sm:gap-5">
         <div className="fc-dashboard-spotlight" data-has-match={showNextMatch}>
-        <section className="fc-dashboard-hero premium-home-hero" data-has-match={showNextMatch}>
+        <section className={`fc-dashboard-hero premium-home-hero ${heroStyles.hero}`} data-has-match={showNextMatch}>
           <div className="home-hero-layout relative grid items-center">
             <div className="min-w-0">
               <h1 className="theme-text break-words font-bold tracking-[-0.025em]">
@@ -774,9 +774,10 @@ export default function DashboardPage() {
                 ) : null}
               </div>
               {isVisible("stats") && <div className={`home-hero-career ${heroStyles.overview}`} aria-label="Overall career overview">
+                <Link href="/career" className={heroStyles.details} aria-label="Full stats — Overall career">
                 <div className={heroStyles.heading}>
                   <span>Overall career</span>
-                  <Link href="/career" className={heroStyles.details}>Full stats <span aria-hidden="true">→</span></Link>
+                  <span className={heroStyles.detailsLabel}>Full stats <span aria-hidden="true">→</span></span>
                 </div>
                 <dl className={heroStyles.metrics}>
                   <div><dt>Matches</dt><dd>{stats.matches}</dd></div>
@@ -790,6 +791,7 @@ export default function DashboardPage() {
                   <span><i className={heroStyles.loss} />{stats.losses}L</span>
                   <span className={heroStyles.gd}>GD {stats.goalDifference > 0 ? "+" : ""}{stats.goalDifference}</span>
                 </div>
+                </Link>
               </div>}
             </div>
             <Link

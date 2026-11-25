@@ -22,7 +22,7 @@ import type { SubmitResultDto } from './dto/submit-result.dto.js';
 import { calculateResultDelta } from './result-outcome.js';
 import { duoGamesJson, duoPlayerDelta, duoSideGoals, parseDuoGames, validateDuoAggregate } from './duo-aggregate.js';
 import { resultPlayerIds } from './result-roster.js';
-import { assertSavedDuoGamesMatch, duoProgressSummary, readDuoProgress, saveDuoGameProgress } from './duo-progress.js';
+import { assertSavedDuoGamesMatch, duoProgressSummary, duoFixtureLineup, readDuoProgress, saveDuoGameProgress } from './duo-progress.js';
 import type { SaveDuoGameDto } from './dto/save-duo-game.dto.js';
 import { uclWinner, mirrorUclReturnLeg, assertUclReturnLegReady } from './ucl-ties.js';
 import { rankUclEntries } from '../tournaments/ucl-ranking.js';
@@ -127,7 +127,10 @@ export class ResultsService {
         matchId,
       );
 
+    const savedLineup = match.tournament.duoAggregateEnabled
+      ? duoFixtureLineup(readDuoProgress(match.duoGameProgress), match.fixture.homeRegistration?.members ?? [], match.fixture.awayRegistration?.members ?? []) : null;
     const participantUserIds = [
+      ...(savedLineup ? [...savedLineup.home, ...savedLineup.away].map(member => member.userId) : []),
       ...(match.fixture.homeRegistration
         ?.members.map(
           (member) => member.userId,
@@ -263,10 +266,12 @@ export class ResultsService {
               if (extraction.resultSubmission) throw this.resultAlreadyPending();
             }
 
+            const lineup = currentMatch.tournament.duoAggregateEnabled
+              ? duoFixtureLineup(readDuoProgress(currentMatch.duoGameProgress), currentMatch.fixture.homeRegistration?.members ?? [], currentMatch.fixture.awayRegistration?.members ?? []) : null;
             const duoGames = validateDuoAggregate(
               currentMatch.tournament,
-              currentMatch.fixture.homeRegistration?.members ?? [],
-              currentMatch.fixture.awayRegistration?.members ?? [],
+              lineup?.home ?? currentMatch.fixture.homeRegistration?.members ?? [],
+              lineup?.away ?? currentMatch.fixture.awayRegistration?.members ?? [],
               dto,
             );
             if (duoGames && source.ocrExtractionId) {
@@ -364,14 +369,15 @@ export class ResultsService {
         homeRegistration: { include: { members: true } }, awayRegistration: { include: { members: true } },
       } } } });
       if (!match) throw this.matchNotFound();
-      const home = match.fixture.homeRegistration?.members ?? [], away = match.fixture.awayRegistration?.members ?? [];
+      const saved = readDuoProgress(match.duoGameProgress);
+      const { home, away } = duoFixtureLineup(saved, match.fixture.homeRegistration?.members ?? [], match.fixture.awayRegistration?.members ?? []);
       if (!canVerify && ![...home, ...away].some(member => member.userId === userId)) throw new ForbiddenException('Only participants or an authorized result administrator may save these games.');
       if (match.confirmedResultSubmissionId || !['UNSCHEDULED', 'SCHEDULED', 'LIVE'].includes(match.status)) throw this.resultAlreadyRecorded();
       if (await tx.resultSubmission.findFirst({ where: { matchId, status: 'PENDING_VERIFICATION' } })) throw this.resultAlreadyPending();
       await this.assertPairNotAlreadyCompleted(tx, match);
       if (match.tournament.competitionFormat === 'UCL_CUP') await assertUclReturnLegReady(tx, match.fixture);
-      const updated = saveDuoGameProgress(match.tournament, home, away, readDuoProgress(match.duoGameProgress), dto);
-      await tx.match.update({ where: { id: matchId }, data: { duoGameProgress: { revision: updated.revision, games: updated.games.map(game => ({ ...game })) }, status: 'LIVE' } });
+      const updated = saveDuoGameProgress(match.tournament, home, away, saved, dto);
+      await tx.match.update({ where: { id: matchId }, data: { duoGameProgress: { homePlayerIds: home.map(member => member.userId), awayPlayerIds: away.map(member => member.userId), revision: updated.revision, games: updated.games.map(game => ({ ...game })) }, status: 'LIVE' } });
       await tx.fixture.update({ where: { id: match.fixtureId }, data: { status: 'LIVE' } });
       return duoProgressSummary(updated, match.tournament.duoGamesPerFixture === 4 ? 4 : 2);
     }, { isolationLevel: 'Serializable' });
@@ -430,8 +436,20 @@ export class ResultsService {
       match.tournament.leagueId,
     );
 
+    const duoLineup = match.tournament.duoAggregateEnabled && !match.confirmedResultSubmissionId
+      ? duoFixtureLineup(readDuoProgress(match.duoGameProgress), match.fixture.homeRegistration?.members ?? [], match.fixture.awayRegistration?.members ?? []) : null;
+    const lineupUsers = duoLineup ? await this.prisma.user.findMany({
+      where: { id: { in: [...duoLineup.home, ...duoLineup.away].map(member => member.userId) } },
+      select: { id: true, fullName: true, player: { select: { identity: { select: { inGameName: true } } } } },
+    }) : [];
+    const lineupLabels = (members: { userId: string }[]) => members.map(member => {
+      const user = lineupUsers.find(user => user.id === member.userId);
+      return { id: member.userId, fullName: user?.fullName ?? 'Player', inGameName: user?.player?.identity?.inGameName ?? null };
+    });
+
     const participantUserIds =
       new Set([
+        ...(duoLineup ? [...duoLineup.home, ...duoLineup.away].map(member => member.userId) : []),
         ...(
           match.fixture
             .homeRegistration
@@ -551,8 +569,8 @@ export class ResultsService {
         duoContext: match.tournament.duoAggregateEnabled && !match.confirmedResultSubmissionId ? {
           gameCount: match.tournament.duoGamesPerFixture === 4 ? 4 : 2,
           penaltiesAllowed: match.tournament.competitionFormat === 'UCL_CUP' && match.fixture.phase === 'PLAYOFF' && !(match.fixture.roundName.startsWith('UCL ') && match.fixture.matchday === 1),
-          home: match.fixture.homeRegistration ? { id: match.fixture.homeRegistration.id, members: match.fixture.homeRegistration.members.map(member => ({ id: member.user.id, fullName: member.user.fullName, inGameName: member.user.player?.identity?.inGameName ?? null })) } : null,
-          away: match.fixture.awayRegistration ? { id: match.fixture.awayRegistration.id, members: match.fixture.awayRegistration.members.map(member => ({ id: member.user.id, fullName: member.user.fullName, inGameName: member.user.player?.identity?.inGameName ?? null })) } : null,
+          home: match.fixture.homeRegistration ? { id: match.fixture.homeRegistration.id, members: lineupLabels(duoLineup!.home) } : null,
+          away: match.fixture.awayRegistration ? { id: match.fixture.awayRegistration.id, members: lineupLabels(duoLineup!.away) } : null,
           progress: duoProgressSummary(readDuoProgress(match.duoGameProgress), match.tournament.duoGamesPerFixture === 4 ? 4 : 2),
         } : null,
       },
@@ -684,11 +702,13 @@ export class ResultsService {
           tx,
           submission.match,
         );
-        // Revalidate after approval: the two saved games must still match both sides.
+        const lineup = submission.match.tournament.duoAggregateEnabled
+          ? duoFixtureLineup(readDuoProgress(submission.match.duoGameProgress), home.members, away.members) : null;
+        // Revalidate the saved fixture lineup even if registration members changed later.
         validateDuoAggregate(
           submission.match.tournament,
-          home.members,
-          away.members,
+          lineup?.home ?? home.members,
+          lineup?.away ?? away.members,
           { homeScore: submission.homeScore, awayScore: submission.awayScore, duoGames: submission.duoGames },
         );
 
@@ -810,7 +830,7 @@ export class ResultsService {
                   homeDelta,
 
                 userIds:
-                  home.members.map(
+                  (lineup?.home ?? home.members).map(
                     (member) =>
                       member.userId,
                   ),
@@ -827,7 +847,7 @@ export class ResultsService {
                   awayDelta,
 
                 userIds:
-                  away.members.map(
+                  (lineup?.away ?? away.members).map(
                     (member) =>
                       member.userId,
                   ),

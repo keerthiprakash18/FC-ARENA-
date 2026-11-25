@@ -144,10 +144,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
         ...options, method, credentials: 'include', headers,
       }, Math.max(1, deadline - Date.now()), safeToRetry ? READ_HANDSHAKE_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
       if (response.ok) return payload as T;
-      const failure = payload as ApiFailure | null;
+      const failure = payload as (ApiFailure & { message?: unknown }) | null;
+      const publicMessage = response.status < 500 && typeof failure?.message === 'string' ? failure.message : undefined;
       throw new ApiError({
         code: failure?.error?.code ?? (response.status >= 500 ? 'SERVICE_UNAVAILABLE' : 'REQUEST_FAILED'),
-        message: failure?.error?.message ?? (response.status >= 500
+        message: failure?.error?.message ?? publicMessage ?? (response.status >= 500
           ? 'FC ARENA is temporarily unavailable. Please retry.'
           : 'Something went wrong. Please try again.'),
         status: response.status, details: failure?.error?.details,

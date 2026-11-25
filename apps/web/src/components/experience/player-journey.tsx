@@ -17,13 +17,16 @@ import {
   type CardDownload,
 } from "@/lib/card-download";
 import { CardDownloadReady } from "./card-download-ready";
+import { weeklyActivityProgress } from '@/lib/weekly-verified-progress.mjs';
 
 export function PlayerJourney({
   player,
   full = false,
+  weeklyHistory,
 }: {
   player: PlayerCardData;
   full?: boolean;
+  weeklyHistory?: ReadonlyArray<{ id: string; confirmedAt: string; outcome: 'W' | 'D' | 'L' }>;
 }) {
   const [data, setData] = useState<PlayerExperience | null>(null);
   const [error, setError] = useState("");
@@ -218,6 +221,8 @@ export function PlayerJourney({
       setSharing(false);
     }
   }
+  const weekly = full && weeklyHistory && (data || error)
+    ? weeklyActivityProgress(data?.week, weeklyHistory) : null;
   return (
     <section className="journey" aria-label="Player journey">
       <div className="journey-heading">
@@ -238,6 +243,42 @@ export function PlayerJourney({
             Refresh progress
           </button>
         </div>
+      )}
+      {weekly && (
+        <section aria-labelledby="verified-goals-title" className="min-w-0 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 id="verified-goals-title" className="theme-text text-base font-bold">This week&apos;s verified goals</h3>
+              <p className="theme-secondary-text mt-1 text-xs">
+                {new Date(weekly.start).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' })}
+                {' – '}
+                {new Date(weekly.end - 1).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short' })}
+                {' · IST'}
+              </p>
+            </div>
+            <span className="theme-soft-accent rounded-lg border px-3 py-1 text-xs font-semibold tabular-nums">
+              {weekly.matches} verified matches · {weekly.wins} wins
+            </span>
+          </div>
+          {weekly.source === 'recent-history' && (
+            <p className="theme-secondary-text mt-2 text-xs" role="status">
+              Recent history estimate. Full verified totals are unavailable; older matches may be missing.
+            </p>
+          )}
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {weekly.goals.map(goal => (
+              <div key={goal.id} className="min-w-0 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-elevated)] px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="theme-text min-w-0 text-sm font-semibold">{goal.label}</h4>
+                  <span className="theme-secondary-text shrink-0 text-xs tabular-nums">{goal.value}/{goal.target}</span>
+                </div>
+                <progress aria-label={`${goal.label}: ${goal.value} of ${goal.target}`} value={goal.value} max={goal.target} className="mt-2 h-2 w-full accent-[var(--theme-primary)]" />
+                <p className="theme-secondary-text mt-1 text-xs">{goal.value === goal.target ? 'Completed' : 'In progress'}</p>
+              </div>
+            ))}
+          </div>
+          <p className="theme-secondary-text mt-3 text-xs leading-5">Activity progress only. These goals do not award Arena Coins or XP.</p>
+        </section>
       )}
       <div className="journey-grid">
         <PlayerIdentityCard player={player} progress={data} />

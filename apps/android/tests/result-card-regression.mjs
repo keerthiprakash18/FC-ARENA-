@@ -57,11 +57,21 @@ try {
         await save.waitFor();
         assert((await save.getAttribute('href')).startsWith('https://api.fcarena.in/api/players/card-exports/'));
         assert.equal(uploads, 2);
+        const downloaded = f.page.waitForEvent('download');
+        await save.click();
+        const attachment = await downloaded;
+        assert.equal(attachment.suggestedFilename(), 'fc-arena-result.png');
+        assert.equal(await attachment.failure(), null);
       } else {
         const save = f.page.getByRole('link', { name: 'Save PNG ↓', exact: true });
         await save.waitFor();
         assert((await save.getAttribute('href')).startsWith('blob:'));
         assert.equal(uploads, 0, 'Desktop fallback does not require an upload');
+        const downloaded = f.page.waitForEvent('download');
+        await save.click();
+        const attachment = await downloaded;
+        assert.equal(attachment.suggestedFilename(), 'fc-arena-result.png');
+        assert.equal(await attachment.failure(), null);
         if (scenario === 'desktop-share') {
           assert.equal(await f.page.evaluate(() => window.__sharedPng), undefined);
           await f.page.getByRole('button', { name: 'Share PNG', exact: true }).click();

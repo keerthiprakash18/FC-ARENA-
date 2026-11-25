@@ -158,6 +158,48 @@ describe('Player progress and Arena Talk with real PostgreSQL', () => {
       await db.user.delete({ where: { id: candidate.id } });
     }
   });
+  it('counts unique active accounts and complete IST retention cohorts without inflating engagement', async () => {
+    const adminOps = new AdminOpsService(db);
+    const now = new Date('2026-05-20T12:00:00+05:30');
+    const midnight = new Date('2026-05-20T00:00:00+05:30').getTime();
+    const day = 86_400_000;
+    const baseline = (await adminOps.playerActivity(admin, now)).data;
+    const created: string[] = [];
+    try {
+      const addUser = async (label: string, offset: number) => {
+        const account = await db.user.create({ data: {
+          fullName: label, email: `${label}-${run}@example.invalid`,
+          passwordHash: 'synthetic-test-record', status: 'ACTIVE',
+          createdAt: new Date(midnight + offset * day + 1_000),
+        } });
+        created.push(account.id);
+        return account.id;
+      };
+      const session = async (userId: string, createdAt: Date) =>
+        db.refreshSession.create({ data: { id: randomUUID(), userId, tokenHash: randomUUID(),
+          createdAt, expiresAt: new Date(createdAt.getTime() + day) } });
+      const mature = await addUser('MatureRetention', -8);
+      await session(mature, new Date(midnight - 7 * day)); // D1 starts exactly at IST midnight.
+      await session(mature, new Date(midnight - day)); // D7.
+      await session(mature, new Date(midnight + 2_000));
+      await session(mature, new Date(midnight + 3_000)); // Same account does not count twice.
+      const notMatureD7 = await addUser('ImmatureD7', -7);
+      await session(notMatureD7, new Date(midnight + 4_000)); // D7 is today, incomplete.
+      await addUser('ImmatureD1', -1);
+      const future = await addUser('FutureSession', -2);
+      await session(future, new Date(now.getTime() + 60_000)); // Future reads excluded.
+      const result = (await adminOps.playerActivity(admin, now)).data;
+      expect(result.daily - baseline.daily).toBe(2);
+      expect(result.weekly - baseline.weekly).toBe(2);
+      expect(result.signups - baseline.signups).toBe(4);
+      expect(result.day1Eligible - baseline.day1Eligible).toBe(3);
+      expect(result.day1Returned - baseline.day1Returned).toBe(1);
+      expect(result.day7Eligible - baseline.day7Eligible).toBe(1);
+      expect(result.day7Returned - baseline.day7Returned).toBe(1);
+    } finally {
+      await db.user.deleteMany({ where: { id: { in: created } } });
+    }
+  });
   it('requires an explicit room opt-in and applies one-way mutes without changing access', async () => {
     await arena.setSubscription(member, leagueId, false);
     await expect(arena.feed(viewer(), 'LEAGUE', leagueId)).rejects.toMatchObject({ status: 403 });

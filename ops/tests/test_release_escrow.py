@@ -14,6 +14,35 @@ SPEC.loader.exec_module(R)
 
 
 class ReleaseEscrowTests(unittest.TestCase):
+    @unittest.skipIf(os.name == 'nt', 'Linux hardlink counts checked by target-platform CI')
+    def test_unlinking_archived_shared_files_does_not_mask_actual_content_changes(self):
+        with tempfile.TemporaryDirectory() as raw:
+            base = Path(raw)
+            first, second = base / 'first', base / 'second'
+            first.mkdir()
+            second.mkdir()
+            (first / 'module.js').write_bytes(b'original code')
+            os.link(first / 'module.js', second / 'module.js')
+            full, stable = R.tree_snapshots(second)
+            report = {'root': str(base), 'current': {'release': 'a'}, 'rollback': {'release': 'b'},
+                      'releases': [{'name': 'second', **stable}], 'treeFingerprintVersion': 2}
+            report['planId'] = R.digest_json(report)
+            guard = Mock()
+            guard.private_json.return_value = report
+            guard.mount_paths.return_value = set()
+            (first / 'module.js').unlink()
+            self.assertNotEqual(full, R.tree_fingerprint(second))
+            self.assertEqual(stable, R.tree_fingerprint(second, include_link_count=False))
+            with patch.object(R, 'ROOT', base), \
+                 patch.object(R, 'admission', return_value=({}, report['current'], report['rollback'])):
+                R.reviewed(guard, report['planId'])
+            (second / 'module.js').write_bytes(b'changed code')
+            self.assertNotEqual(stable, R.tree_fingerprint(second, include_link_count=False))
+            with patch.object(R, 'ROOT', base), \
+                 patch.object(R, 'admission', return_value=({}, report['current'], report['rollback'])):
+                with self.assertRaisesRegex(ValueError, 'tree changed'):
+                    R.reviewed(guard, report['planId'])
+
     def test_fingerprint_detects_added_removed_and_modified_files(self):
         with tempfile.TemporaryDirectory() as raw:
             path = Path(raw)
@@ -117,6 +146,20 @@ class ReleaseEscrowTests(unittest.TestCase):
         with patch.object(R, 'ROOT', Path('/opt/fcarena-releases')):
             with self.assertRaisesRegex(ValueError, 'another deployment root'):
                 R.reviewed(guard, report['planId'])
+
+    def test_completed_archive_plan_cannot_be_replaced(self):
+        with tempfile.TemporaryDirectory() as raw:
+            base = Path(raw).resolve()
+            root, state = base / 'releases', base / 'state'
+            root.mkdir()
+            state.mkdir()
+            (state / 'stream.json').write_text('completed stream evidence')
+            guard = Mock()
+            with patch.object(R, 'ROOT', root), patch.object(R, 'STATE', state), \
+                 patch.object(R, 'admission', return_value=({}, {}, {})):
+                with self.assertRaisesRegex(ValueError, 'Cannot replace a plan'):
+                    R.prepare(guard)
+            guard.save.assert_not_called()
 
     def test_database_reference_scan_is_limited_to_the_selected_root(self):
         raw = b'/opt/fcarena-releases/keep/uploads/a /opt/fcarena-deployments/other/source'

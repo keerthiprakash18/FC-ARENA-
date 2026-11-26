@@ -104,7 +104,7 @@ def legacy_references(r, root):
     return refs
 
 
-def tree_fingerprint(path):
+def tree_snapshots(path):
     """Bound the complete tree, including empty folders, hardlinks and symlinks; never follow links."""
     rows, pending = [], [path]
     device = path.stat().st_dev
@@ -119,7 +119,17 @@ def tree_fingerprint(path):
                      os.readlink(current) if stat.S_ISLNK(info.st_mode) else ''))
         if stat.S_ISDIR(info.st_mode):
             pending.extend(current.iterdir())
-    return {'treeSha256': digest_json(sorted(rows)), 'entries': len(rows)}
+    rows.sort()
+    # Removing another archived hardlink changes st_nlink, but not these file bytes,
+    # ownership, mode, inode or mtime. Capture both hashes from the same stat pass.
+    stable_rows = [row[:8] + (None,) + row[9:] for row in rows]
+    return ({'treeSha256': digest_json(rows), 'entries': len(rows)},
+            {'treeSha256': digest_json(stable_rows), 'entries': len(rows)})
+
+
+def tree_fingerprint(path, *, include_link_count=True):
+    full, stable = tree_snapshots(path)
+    return full if include_link_count else stable
 
 
 def admission(r):
@@ -156,21 +166,35 @@ def prepare(r):
             if len(items) >= 10 or cycle_bytes + size > 10 * 1024**3:
                 continue
             cycle_bytes += size
-        items.append({'name': path.name, **tree_fingerprint(path)})
+        items.append({'name': path.name, **tree_fingerprint(path, include_link_count=False)})
     report = {'root': str(ROOT), 'current': current, 'rollback': rollback, 'releases': items,
               'protected': sorted(refs), 'createdAt': dt.datetime.now(dt.timezone.utc).isoformat(),
-              'automatic': AUTOMATIC}
+              'automatic': AUTOMATIC, 'treeFingerprintVersion': 2}
     report['planId'] = digest_json(report)
-    STATE.mkdir(mode=0o700)
+    STATE.mkdir(mode=0o700, exist_ok=True)
+    require(r.canonical(STATE), 'Invalid private state directory')
+    require(not any((STATE / name).exists() for name in
+                    ('stream.json', 'pc-receipt.json', 'pc-receipt.incoming.json', 'result.json')),
+            'Cannot replace a plan after archive transfer has begun')
+    previous = STATE / 'plan.private.json'
+    if previous.exists():
+        old = r.private_json(previous)
+        require(re.fullmatch('[0-9a-f]{64}', old['planId']), 'Invalid prior plan identifier')
+        archived = STATE / ('plan-before-refresh-' + old['planId'][:16] + '.json')
+        if archived.exists():
+            require(r.private_json(archived) == old, 'Prior plan backup differs')
+        else:
+            r.save(archived, old)
     r.save(STATE / 'plan.private.json', report)
     print(json.dumps({'action': 'READ_ONLY_PLAN', 'planId': report['planId'],
                       'releaseCount': len(items), 'protectedCount': len(refs), 'dataChanged': False}), flush=True)
 
 
-def reviewed(r, approved):
+def reviewed(r, approved, *, stable_trees=None):
     report = r.private_json(STATE / 'plan.private.json')
     value = dict(report)
     require(value.pop('planId') == approved and digest_json(value) == approved, 'Exact reviewed plan required')
+    require(report.get('treeFingerprintVersion', 1) in (1, 2), 'Unknown tree fingerprint version')
     require(report.get('root', str(ROOT)) == str(ROOT), 'Plan belongs to another deployment root')
     require(report['releases'], 'Empty plan')
     if report.get('automatic'):
@@ -188,8 +212,12 @@ def reviewed(r, approved):
         path = ROOT / name
         require(path.parent == ROOT and r.canonical(path) and path.is_dir(), 'Invalid release root')
         require(not any(m == path or m.is_relative_to(path) for m in mounts), 'Mounted release refused')
-        require(tree_fingerprint(path) == {key: item[key] for key in ('treeSha256', 'entries')},
+        full, stable = tree_snapshots(path)
+        observed = stable if report.get('treeFingerprintVersion', 1) == 2 else full
+        require(observed == {key: item[key] for key in ('treeSha256', 'entries')},
                 'Historical release tree changed')
+        if stable_trees is not None:
+            stable_trees[name] = stable
     return report
 
 
@@ -232,13 +260,14 @@ def apply(r, approved):
     require(all(streamed[key] == receipt[key] for key in ('sha256', 'bytes')), 'Off-host archive mismatch')
     age = dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(receipt['verifiedAt'])
     require(dt.timedelta(minutes=-5) <= age <= dt.timedelta(hours=2), 'PC verification is stale')
-    report = reviewed(r, approved)  # Recheck references and every tree before deleting anything.
+    stable_trees = {}
+    report = reviewed(r, approved, stable_trees=stable_trees)  # Validate the entire original batch first.
     require(set(receipt['releaseNames']) == {item['name'] for item in report['releases']}, 'PC archive inventory differs')
     before = shutil.disk_usage(ROOT).free
     removed = []
     for item in report['releases']:
         path = ROOT / item['name']
-        require(r.canonical(path) and tree_fingerprint(path)['treeSha256'] == item['treeSha256'],
+        require(r.canonical(path) and tree_fingerprint(path, include_link_count=False) == stable_trees[item['name']],
                 'Historical release changed immediately before deletion')
         shutil.rmtree(path)
         removed.append(item['name'])

@@ -128,7 +128,9 @@ try {
           await search.fill('no-feature-matches-this');
           await results.getByRole('heading', { name: 'No matching features' }).waitFor();
           await page.getByRole('button', { name: 'Clear search' }).click();
-          await page.getByRole('region', { name: 'Player essentials' }).waitFor();
+          const essentials = page.getByRole('region', { name: 'Player essentials' });
+          await essentials.waitFor();
+          assert.equal(await essentials.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ }).getAttribute('href'), '/awards');
         }
         if (route === '/login') {
           // Navigate with the keyboard to ensure focus-visible, not just :focus.
@@ -169,5 +171,29 @@ try {
       console.log(`PASS hierarchy ${width}px ${mode}: ${routes.length} screens, match identity, ranking and disclosures`);
     } finally { await f.context.close(); }
   }
+  // Exercise the actual search UI as a non-admin account using synthetic data.
+  // This is a navigation visibility test; server-side authorization remains authoritative.
+  const playerContext = await createUiContext(browser, {
+    width: 390, direct: true, native: true, role: 'PLAYER',
+    overrides: { '/api/leagues/my': {
+      leagues: phaseData['/api/leagues/my'].leagues.map(membership => ({ ...membership, adminRole: null })),
+    } },
+  });
+  try {
+    const page = playerContext.page;
+    await page.goto(origin + '/more');
+    const search = page.getByRole('searchbox', { name: 'Find a feature' });
+    await search.waitFor();
+    await search.fill('admin');
+    const results = page.getByRole('region', { name: 'Feature search results' });
+    await results.waitFor();
+    assert.equal(await results.locator('a[href^="/admin/"]').count(), 0);
+    await search.fill('awards');
+    await results.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ }).waitFor();
+    assert.equal(await results.locator('a[href^="/admin/"]').count(), 0);
+    assert.deepEqual(playerContext.errors, []);
+    assert.deepEqual(playerContext.mutations, []);
+    console.log('PASS non-admin feature search preserves awards access without admin links');
+  } finally { await playerContext.context.close(); }
   console.log(`PASS premium hierarchy: ${checks} route/viewport/mode cases`);
 } finally { await browser.close(); }

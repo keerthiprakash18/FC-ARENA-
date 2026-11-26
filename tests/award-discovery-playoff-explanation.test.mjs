@@ -57,7 +57,8 @@ test('awards are discoverable from both global and tournament pages', () => {
   const tournament = content('apps/web/src/app/tournaments/[tournamentId]/page.tsx');
   const awards = content('apps/web/src/app/tournaments/[tournamentId]/achievements/page.tsx');
   const summary = content('apps/web/src/app/tournaments/[tournamentId]/summary/page.tsx');
-  assert.match(more, /href="\/awards" icon="🏆" title="Awards & DUO\/TEAM Honours"/);
+  assert.match(more, /href:\s*"\/awards",\s*icon:\s*"🏆",\s*title:\s*"Awards & DUO\/TEAM Honours"/);
+  assert.match(more, /group\.items\.map\(item => <FcMenuRow key=\{item\.href\} \{\.\.\.item\} \/>\)/);
   assert.match(global, /Where are my awards/);
   assert.match(global, /Choose Tournament/);
   assert.match(global, /Team Trophy Archive/);

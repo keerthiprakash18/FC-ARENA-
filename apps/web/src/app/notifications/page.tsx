@@ -121,6 +121,8 @@ function formatEventTime(value: string) {
 
   const day = 24 * hour;
 
+  if (diff < 0) return date.toLocaleString();
+
   if (diff < minute) {
     return "Just now";
   }
@@ -153,6 +155,7 @@ export default function NotificationsPage() {
   });
 
   const [filter, setFilter] = useState<NotificationFilter>("inbox");
+  const [search, setSearch] = useState("");
   const resultStatusView = filter === "pending-results" || filter === "confirmed-results";
   const resultView = filter === "results" || resultStatusView;
 
@@ -271,7 +274,10 @@ export default function NotificationsPage() {
     };
   }, [user, loadNotifications, invalidateRequests]);
 
-  const visibleNotifications = data.notifications;
+  const query = search.trim().toLocaleLowerCase();
+  const visibleNotifications = query ? data.notifications.filter(notification =>
+    [notification.title, notification.message].some(value => value.toLocaleLowerCase().includes(query)),
+  ) : data.notifications;
 
   async function markAsRead(notificationId: string) {
     const currentNotification = data.notifications.find(
@@ -428,7 +434,7 @@ export default function NotificationsPage() {
             </button>
           </div>
           {resultView ? (
-            <div className="mt-4 flex flex-wrap gap-2 border-t pt-4" aria-label="Result status filters">
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--theme-border)] pt-4" role="group" aria-label="Result status filters">
               {([
                 ["pending-results", "Pending results"],
                 ["confirmed-results", "Confirmed results"],
@@ -447,6 +453,18 @@ export default function NotificationsPage() {
               ))}
             </div>
           ) : null}
+          <div className="mt-4 border-t border-[var(--theme-border)] pt-4">
+            <label className="theme-text grid gap-2 text-sm font-semibold">
+              Search loaded notifications
+              <input type="search" value={search} onChange={event => setSearch(event.target.value)}
+                placeholder="Search titles and messages" className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 font-normal" />
+            </label>
+            {query ? <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              <p role="status" className="theme-secondary-text text-xs">{visibleNotifications.length} of {data.notifications.length} loaded notifications match this search.</p>
+              <button type="button" onClick={() => setSearch("")} className="theme-secondary-button min-h-11 rounded-lg border px-3 text-xs">Clear search</button>
+            </div> : null}
+            {query && data.unreadCount > 0 ? <p className="theme-secondary-text mt-2 text-xs">Mark all as read applies to your entire inbox, not only the search results.</p> : null}
+          </div>
         </FcPanel>
 
         <p className="theme-muted text-sm" role="status">
@@ -473,14 +491,14 @@ export default function NotificationsPage() {
                 data-unread={unread}
                 className="fc-notification-item theme-panel rounded-2xl border p-4 sm:p-5"
               >
-                <div className="flex items-start gap-4">
-                  <span className="theme-soft-accent grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-base font-semibold">
+                <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 sm:flex sm:gap-4">
+                  <span aria-hidden="true" className="theme-soft-accent grid h-11 w-11 shrink-0 place-items-center rounded-xl border text-base font-semibold">
                     {notificationIcon(notification.type)}
                   </span>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="theme-text fc-display text-[15px] font-semibold sm:text-base">
+                      <h2 className="theme-text fc-display text-[15px] font-semibold [overflow-wrap:anywhere] sm:text-base">
                         {notification.href ? (
                           <Link
                             href={notification.href}
@@ -509,7 +527,7 @@ export default function NotificationsPage() {
                       ) : null}
                     </div>
 
-                    <p className="theme-secondary-text mt-1.5 text-sm leading-6">
+                    <p className="theme-secondary-text mt-1.5 text-sm leading-6 [overflow-wrap:anywhere]">
                       {notification.message}
                     </p>
 
@@ -537,7 +555,7 @@ export default function NotificationsPage() {
 
                         void markAsRead(notification.id);
                       }}
-                      className="theme-secondary-button min-h-11 shrink-0 rounded-[9px] border px-3 py-2 text-xs font-semibold disabled:opacity-50"
+                      className="theme-secondary-button col-start-2 min-h-11 shrink-0 justify-self-start rounded-[9px] border px-3 py-2 text-xs font-semibold disabled:opacity-50"
                     >
                       {resultStatusView ? "Mark read" : "Clear"}
                     </button>
@@ -549,7 +567,9 @@ export default function NotificationsPage() {
             return <div key={notification.id}>{content}</div>;
           })}
 
-          {visibleNotifications.length === 0 ? (
+          {visibleNotifications.length === 0 && query ? (
+            <FcEmptyState title="No matching notifications" description="Try another search or clear it to see the loaded notifications in this tab." />
+          ) : visibleNotifications.length === 0 ? (
             <FcEmptyState
               title={
                 filter === "pending-results"

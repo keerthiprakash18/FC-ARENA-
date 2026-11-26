@@ -18,6 +18,8 @@ on:
     paths:
       - ".github/workflows/offhost-build-artifact.yml"
       - "ops/VCL_RELEASE_STORAGE_POLICY.md"
+      - "ops/verify-offhost-runtime-bundle.py"
+      - "ops/tests/test_offhost_bundle.py"
   workflow_dispatch:
 
 permissions:

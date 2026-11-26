@@ -11,6 +11,7 @@ import {
   type ArenaPost,
 } from "@/lib/arena-talk";
 import { confirmAction } from "@/components/fc/confirmation-provider";
+import styles from "./arena-feed.module.css";
 
 function stamp(value: string) {
   return new Date(value).toLocaleString("en-IN", {
@@ -711,10 +712,12 @@ export function ArenaFeed({
   leagueId,
   leagueName,
   onMuted,
+  refreshRevision = 0,
 }: {
   leagueId: string | null;
   leagueName: string;
   onMuted?: () => Promise<void>;
+  refreshRevision?: number;
 }) {
   const [posts, setPosts] = useState<ArenaPost[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -735,6 +738,8 @@ export function ArenaFeed({
   const [notice, setNotice] = useState("");
   const request = useRef({ signature: "", id: "" });
   const fileInput = useRef<HTMLInputElement>(null);
+  const composer = useRef<HTMLDetailsElement>(null);
+  const hasDraft = Boolean(body.trim() || source.trim() || file || options.some(option => option.trim()));
   useEffect(() => {
     if (!file) {
       setPreview("");
@@ -780,7 +785,7 @@ export function ArenaFeed({
     return () => {
       requests.value++;
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [refreshRevision]); // eslint-disable-line react-hooks/exhaustive-deps
   async function publish() {
     if (sending) return;
     setSending(true);
@@ -831,13 +836,22 @@ export function ArenaFeed({
   }
   return (
     <div className="arena-feed">
-      <section className="community-panel arena-composer">
-        <div className="community-between">
-          <h2>Start a conversation</h2>
+      <nav aria-label="Conversation shortcuts" className="flex flex-wrap gap-2">
+        <a href="#arena-conversation-feed" className="community-button">Read conversations</a>
+        <a href="#arena-composer" className="community-button" onClick={() => {
+          if (composer.current) composer.current.open = true;
+        }}>Write a post</a>
+      </nav>
+      <details ref={composer} id="arena-composer" className="community-panel arena-composer scroll-mt-24" data-has-draft={hasDraft}>
+        <summary className={styles.composerSummary}>
+          <span className={styles.composerHeading}>
+            <strong>Start a conversation</strong>
+            <span>Share a match moment, ask a question or create a poll.</span>
+          </span>
           <span className="audience-pill">
             {leagueId ? "♧ League only" : "◎ All members"}
           </span>
-        </div>
+        </summary>
         <p className="community-muted">
           Posting to <strong>{leagueName}</strong>. Football, match moments and
           respectful debate belong here.
@@ -863,6 +877,7 @@ export function ArenaFeed({
             </label>
             <textarea
               id="arena-body"
+              aria-describedby="arena-character-count"
               required
               maxLength={2000}
               rows={4}
@@ -870,7 +885,7 @@ export function ArenaFeed({
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
-            <small>{body.length}/2000 characters</small>
+            <small id="arena-character-count" className="theme-secondary-text tabular-nums">{body.length}/2000 characters</small>
             <details open={kind === "NEWS" ? true : undefined}>
               <summary>
                 Source link{kind === "NEWS" ? " (required)" : " (optional)"}
@@ -1006,8 +1021,8 @@ export function ArenaFeed({
             </p>
           )}
         </form>
-      </section>
-      <div className="community-between">
+      </details>
+      <div id="arena-conversation-feed" className="community-between scroll-mt-24">
         <h2>{leagueName}</h2>
         <button
           className="community-button"

@@ -64,14 +64,14 @@ interface CareerData extends CareerScopeData {
 
 function outcomeClass(outcome: string) {
   if (outcome === 'W') {
-    return 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300';
+    return 'border-[var(--theme-border)] bg-[var(--theme-success-soft)] text-[var(--theme-success)]';
   }
 
   if (outcome === 'D') {
-    return 'border-amber-400/20 bg-amber-400/10 text-amber-300';
+    return 'border-[var(--theme-border)] bg-[var(--theme-warning-soft)] text-[var(--theme-warning)]';
   }
 
-  return 'border-red-400/20 bg-red-400/10 text-red-300';
+  return 'border-[var(--theme-border)] bg-[var(--theme-danger-soft)] text-[var(--theme-danger)]';
 }
 
 export default function CareerPage() {
@@ -108,10 +108,6 @@ export default function CareerPage() {
           }
         />
 
-        <div className="flex flex-wrap gap-3">
-          <Link href="/career/season-recaps" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">🏆 {"Season Recaps"} →</Link>
-          <Link href="/clubs" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">★ {"FC ARENA Clubs"} →</Link>
-        </div>
         <CareerNavigation />
         <CareerLeagueFilter data={career} />
 
@@ -127,7 +123,7 @@ export default function CareerPage() {
             />
 
             <div className="min-w-0">
-              <h2 className="theme-text">
+              <h2 className="theme-text [overflow-wrap:anywhere]">
                 {ign}
               </h2>
 
@@ -140,7 +136,7 @@ export default function CareerPage() {
                 {career.profile.primaryLeague ? (
                   <Link
                     href={`/leagues/${career.profile.primaryLeague.league.id}`}
-                    className="rounded-full border border-sky-400/20 bg-sky-400/[0.05] px-3 py-1 text-[10px] font-black text-sky-300"
+                    className="inline-flex min-h-11 max-w-full items-center rounded-xl border border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-3 py-2 text-xs font-semibold text-[var(--theme-text)] [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
                   >
                     {career.profile.primaryLeague.league.name}
                   </Link>
@@ -149,7 +145,7 @@ export default function CareerPage() {
                 {career.profile.secondaryLeague ? (
                   <Link
                     href={`/leagues/${career.profile.secondaryLeague.league.id}`}
-                    className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black text-slate-400"
+                    className="inline-flex min-h-11 max-w-full items-center rounded-xl border border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-3 py-2 text-xs font-semibold text-[var(--theme-text)] [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
                   >
                     {career.profile.secondaryLeague.league.name}
                   </Link>
@@ -159,7 +155,7 @@ export default function CareerPage() {
           </div>
         </FcPanel>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section aria-label="Verified career totals" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
             label="Matches"
             value={stats.matches}
@@ -187,6 +183,31 @@ export default function CareerPage() {
             tone="slate"
           />
         </section>
+
+        <FcPanel className="p-5 sm:p-6">
+          <section aria-labelledby="career-outcomes-title">
+            <h2 id="career-outcomes-title" className="theme-text text-lg font-semibold">Match outcomes</h2>
+            <p className="theme-secondary-text mt-1 text-xs">Verified results in your selected career scope.</p>
+            {stats.matches > 0 ? (
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {[
+                  { label: 'Wins', count: stats.wins, tone: 'accent-[var(--theme-success)]' },
+                  { label: 'Draws', count: stats.draws, tone: 'accent-[var(--theme-warning)]' },
+                  { label: 'Losses', count: stats.losses, tone: 'accent-[var(--theme-danger)]' },
+                ].map(({ label, count, tone }) => (
+                  <div key={label} className="min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="theme-secondary-text text-sm">{label}</span>
+                      <strong className="theme-text tabular-nums">{count}</strong>
+                    </div>
+                    <meter min={0} max={stats.matches} value={Math.min(stats.matches, Math.max(0, count))}
+                      aria-label={`${label}: ${count} of ${stats.matches} matches`} className={`mt-2 h-3 w-full ${tone}`} />
+                  </div>
+                ))}
+              </div>
+            ) : <p className="theme-secondary-text mt-3 text-sm">Your match outcome breakdown appears after your first verified match.</p>}
+          </section>
+        </FcPanel>
 
         <section aria-label="Verified career snapshot" className="relative overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 sm:p-6">
           <div className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-[var(--theme-primary-soft)] opacity-40" aria-hidden="true" />
@@ -218,7 +239,7 @@ export default function CareerPage() {
         </section>
 
         <FcPanel className="p-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">
+          <p className="theme-secondary-text text-xs font-semibold uppercase tracking-wide">
             Recent Form
           </p>
 
@@ -235,12 +256,17 @@ export default function CareerPage() {
                 ),
               )
             ) : (
-              <p className="text-sm text-slate-600">
+              <p className="theme-secondary-text text-sm">
                 No completed matches yet.
               </p>
             )}
           </div>
         </FcPanel>
+
+        <div className="flex flex-wrap gap-3">
+          <Link href="/career/season-recaps" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">🏆 {"Season Recaps"} →</Link>
+          <Link href="/clubs" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">★ {"FC ARENA Clubs"} →</Link>
+        </div>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
@@ -269,17 +295,17 @@ export default function CareerPage() {
               <Link
                 key={href}
                 href={careerHref(href, leagueId)}
-                className="rounded-2xl border border-white/10 bg-[#08111b] p-4 transition hover:border-sky-400/30"
+                className="theme-action-row rounded-2xl border p-4"
               >
-                <p className="font-black">
+                <p className="theme-text font-semibold">
                   {title}
                 </p>
 
-                <p className="mt-2 text-xs leading-5 text-slate-600">
+                <p className="theme-secondary-text mt-2 text-xs leading-5">
                   {description}
                 </p>
 
-                <span className="mt-3 inline-flex text-xs font-black text-sky-300">
+                <span className="theme-text-link mt-3 inline-flex text-xs font-semibold">
                   Open →
                 </span>
               </Link>

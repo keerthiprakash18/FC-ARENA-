@@ -30,13 +30,21 @@ const overrides = {
     tournaments: [{ ...tournament, status: 'ACTIVE' }], fixtures: [fixture],
   },
   '/api/leagues/phase3/rankings/history': { history: [] },
+  '/api/leagues/phase3/tournaments': { tournaments: [{ ...tournament, status: 'REGISTRATION_OPEN' }] },
+  '/api/notifications': {
+    unreadCount: 2,
+    notifications: [
+      { id: 'notice-1', type: 'MATCH_REMINDER', title: 'Matchday reminder', message: 'Your next cup match is ready.', href: null, eventAt: '2026-11-25T12:00:00Z', readAt: null },
+      { id: 'notice-2', type: 'ACHIEVEMENT_RECEIVED', title: 'Achievement unlocked', message: 'Your verified milestone.', href: null, eventAt: '2026-11-25T12:00:00Z', readAt: null },
+    ],
+  },
   '/api/awards/overview': {
     ...phaseData['/api/awards/overview'],
     currentBallon: { season, rankings: { locked: false, rows } },
     trophyCabinet: { GOLDEN_BOOT: 2 },
   },
 };
-const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/login'];
+const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/career', '/more', '/tournaments', '/notifications', '/login'];
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 let checks = 0;
 try {
@@ -96,6 +104,67 @@ try {
           assert(await guide.getByText('Summary → Team Trophy Archive', { exact: false }).isVisible());
           assert.equal(await guide.getByRole('link').count(), 2);
         }
+        if (route === '/profile') {
+          const save = page.getByRole('button', { name: 'Save profile', exact: true });
+          const fullName = page.locator('input[name="fullName"]');
+          await save.waitFor();
+          const originalName = await fullName.inputValue();
+          assert(await save.evaluate(el => Boolean(document.querySelector('input[name="gameUid"]').compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)),
+            'Save action follows all editable identity fields in document and keyboard order');
+          assert((await save.boundingBox()).height >= 44, 'Profile save has a finger-sized target');
+          await fullName.fill('x');
+          await save.click();
+          await page.getByRole('alert').filter({ hasText: 'Full name must be between 2 and 120 characters.' }).waitFor();
+          assert.deepEqual(f.mutations, [], 'Invalid profile edits must not issue a mutation');
+          await fullName.fill(originalName);
+        }
+        if (route === '/career') {
+          const breakdown = page.getByRole('region', { name: 'Match outcomes' });
+          await breakdown.waitFor();
+          for (const [label, count] of [['Wins', 2], ['Draws', 1], ['Losses', 1]]) {
+            const meter = breakdown.getByRole('meter', { name: `${label}: ${count} of 4 matches` });
+            assert.equal(await meter.getAttribute('value'), String(count));
+            assert.equal(await meter.getAttribute('max'), '4');
+          }
+        }
+        if (route === '/more') {
+          const search = page.getByRole('searchbox', { name: 'Find a feature' });
+          await search.waitFor();
+          await search.fill('Tournament Management');
+          const results = page.getByRole('region', { name: 'Feature search results' });
+          await results.getByRole('link', { name: /Tournament Management/ }).waitFor();
+          await search.fill('no-feature-matches-this');
+          await results.getByRole('heading', { name: 'No matching features' }).waitFor();
+          await page.getByRole('button', { name: 'Clear search' }).click();
+          const essentials = page.getByRole('region', { name: 'Player essentials' });
+          await essentials.waitFor();
+          const awardsLink = essentials.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ });
+          assert.equal(await awardsLink.getAttribute('href'), '/awards');
+          assert.equal(await awardsLink.evaluate(el => getComputedStyle(el).display), 'flex');
+          assert(await awardsLink.evaluate(el => {
+            const icon = el.firstElementChild.getBoundingClientRect();
+            const copy = el.children[1].getBoundingClientRect();
+            return icon.right <= copy.left && Math.abs(icon.top + icon.height / 2 - copy.top - copy.height / 2) < 2;
+          }), 'Directory icons and copy share one readable row');
+        }
+        if (route === '/tournaments') {
+          const capacity = page.getByRole('progressbar', { name: 'Responsive Cup: 2 approved of 8 entry limit' });
+          await capacity.waitFor();
+          assert.equal(await capacity.getAttribute('value'), '2');
+          assert.equal(await capacity.getAttribute('max'), '8');
+        }
+        if (route === '/notifications') {
+          const search = page.getByRole('searchbox', { name: 'Search loaded notifications' });
+          await search.waitFor();
+          await page.getByRole('heading', { name: 'Matchday reminder', exact: true }).waitFor();
+          await search.fill('milestone');
+          await page.getByRole('heading', { name: 'Achievement unlocked', exact: true }).waitFor();
+          assert.equal(await page.getByRole('heading', { name: 'Matchday reminder', exact: true }).count(), 0);
+          await search.fill('no such notification');
+          await page.getByRole('heading', { name: 'No matching notifications' }).waitFor();
+          await page.getByRole('button', { name: 'Clear search' }).click();
+          await page.getByRole('heading', { name: 'Matchday reminder', exact: true }).waitFor();
+        }
         if (route === '/login') {
           // Navigate with the keyboard to ensure focus-visible, not just :focus.
           await page.keyboard.press('Tab');
@@ -135,5 +204,29 @@ try {
       console.log(`PASS hierarchy ${width}px ${mode}: ${routes.length} screens, match identity, ranking and disclosures`);
     } finally { await f.context.close(); }
   }
+  // Exercise the actual search UI as a non-admin account using synthetic data.
+  // This is a navigation visibility test; server-side authorization remains authoritative.
+  const playerContext = await createUiContext(browser, {
+    width: 390, direct: true, native: true, role: 'USER',
+    overrides: { '/api/leagues/my': {
+      leagues: phaseData['/api/leagues/my'].leagues.map(membership => ({ ...membership, adminRole: null })),
+    } },
+  });
+  try {
+    const page = playerContext.page;
+    await page.goto(origin + '/more');
+    const search = page.getByRole('searchbox', { name: 'Find a feature' });
+    await search.waitFor();
+    await search.fill('admin');
+    const results = page.getByRole('region', { name: 'Feature search results' });
+    await results.waitFor();
+    assert.equal(await results.locator('a[href^="/admin/"]').count(), 0);
+    await search.fill('awards');
+    await results.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ }).waitFor();
+    assert.equal(await results.locator('a[href^="/admin/"]').count(), 0);
+    assert.deepEqual(playerContext.errors, []);
+    assert.deepEqual(playerContext.mutations, []);
+    console.log('PASS non-admin feature search preserves awards access without admin links');
+  } finally { await playerContext.context.close(); }
   console.log(`PASS premium hierarchy: ${checks} route/viewport/mode cases`);
 } finally { await browser.close(); }

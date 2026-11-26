@@ -1,0 +1,43 @@
+.composerSummary {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 48px;
+  color: var(--theme-text);
+}
+
+.composerSummary:focus-visible {
+  outline: 3px solid var(--theme-focus);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+.composerSummary::after {
+  content: "+";
+  color: var(--theme-primary);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+[open] > .composerSummary::after {
+  content: "−";
+}
+
+.composerHeading {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 5px;
+  min-width: 0;
+}
+
+.composerHeading strong {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.composerHeading > span {
+  color: var(--theme-text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}

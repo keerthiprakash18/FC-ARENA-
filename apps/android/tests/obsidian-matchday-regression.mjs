@@ -101,6 +101,16 @@ try {
       await heading.waitFor();
       const background = await heading.evaluate(el => getComputedStyle(el).backgroundImage);
       assert.equal(background, 'none', 'Admin headings should be editorial, not stadium heroes');
+      const search=fixture.page.getByRole('searchbox',{name:'Find a tournament'});
+      await search.waitFor();
+      await fixture.page.getByRole('heading',{name:'Responsive Cup',exact:true}).waitFor();
+      await search.fill('no-such-tournament');
+      await fixture.page.getByRole('heading',{name:'No matching tournaments',exact:true}).waitFor();
+      assert.equal(await fixture.page.getByRole('heading',{name:'Responsive Cup',exact:true}).count(),0);
+      await search.fill('PHASE3');
+      await fixture.page.getByRole('heading',{name:'Responsive Cup',exact:true}).waitFor();
+      assert.equal(await fixture.page.getByRole('link',{name:'Overview',exact:true}).filter({hasText:'Overview'}).count()>=1,true);
+      await search.fill('');
       await checkLayout(fixture.page, `Obsidian admin ${width}`);
       await fixture.page.screenshot({
         path: join(output, `obsidian-admin-${width}.png`),
@@ -118,6 +128,13 @@ try {
       const page=fixture.page;await page.goto(origin+'/fixtures');
       const controls=page.getByRole('group',{name:'Filter matches by status'});await controls.waitFor();
       const buttons=controls.getByRole('button');assert.equal(await buttons.count(),4);
+      const scope=page.getByRole('group',{name:'Match scope'});await scope.waitFor();
+      assert.equal(await scope.getByRole('button').count(),2);
+      await page.locator('.premium-filter-workbench summary').click();
+      const leagueSelect=page.getByLabel('League',{exact:true});
+      await leagueSelect.waitFor();
+      assert((await leagueSelect.boundingBox()).height>=44,'League filter must retain a finger-sized target');
+      await page.locator('.premium-filter-workbench summary').click();
       const sizes=await buttons.evaluateAll(nodes=>nodes.map(node=>{const s=getComputedStyle(node),r=document.createRange();r.selectNodeContents(node);return{height:node.getBoundingClientRect().height,textHeight:r.getBoundingClientRect().height,lineHeight:parseFloat(s.lineHeight),nowrap:s.whiteSpace};}));
       assert(sizes.every(size=>size.height>=44&&size.nowrap==='nowrap'&&size.textHeight<=size.lineHeight+2),'Filter labels must fit on one line with finger-sized controls');
       assert.equal(await controls.locator('[aria-pressed="true"]').count(),1);

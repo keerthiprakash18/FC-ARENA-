@@ -411,3 +411,10 @@
     border-color: CanvasText;
   }
 }
+
+/* Capacity is factual registration data, not a countdown or urgency signal. */
+.center .capacityProgress { display: block; appearance: none; width: 100%; max-width: 16rem; height: 6px; margin-top: 8px; border: 0; border-radius: 999px; overflow: hidden; background: var(--theme-border); color: var(--cup-gold); }
+.center .capacityProgress::-webkit-progress-bar { background: var(--theme-border); border-radius: 999px; }
+.center .capacityProgress::-webkit-progress-value { background: var(--cup-gold); border-radius: 999px; }
+.center .capacityProgress::-moz-progress-bar { background: var(--cup-gold); border-radius: 999px; }
+@media (forced-colors: active) { .center .capacityProgress { appearance: auto; } }

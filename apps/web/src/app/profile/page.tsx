@@ -96,7 +96,7 @@ function Detail({
         {label}
       </p>
 
-      <p className="theme-text mt-1 break-all text-sm font-medium">
+      <p className="theme-text mt-1 [overflow-wrap:anywhere] text-sm font-medium">
         {value || "Not provided"}
       </p>
     </div>
@@ -304,6 +304,9 @@ export default function ProfilePage() {
   const joinedAt = Date.parse(career.profile.joinedAt);
 
   async function saveProfile() {
+    if (profileBusy) return;
+    setProfileMessage("");
+    setProfileError("");
     const fullName = profileForm.fullName.trim();
     const phoneNumber = profileForm.phoneNumber.trim();
     const whatsappNumber = profileForm.whatsappNumber.trim();
@@ -340,8 +343,6 @@ export default function ProfilePage() {
     }
 
     setProfileBusy(true);
-    setProfileError("");
-    setProfileMessage("");
 
     try {
       const response = await authenticatedRequest<{
@@ -686,14 +687,6 @@ export default function ProfilePage() {
                       : "Use the identity shown in your FC ARENA competitions."}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => void saveProfile()}
-                  disabled={profileBusy}
-                  className="theme-primary-button min-h-11 rounded-[10px] px-4 text-xs font-semibold disabled:opacity-50"
-                >
-                  {profileBusy ? "Saving…" : "Save profile"}
-                </button>
               </div>
 
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -722,8 +715,20 @@ export default function ProfilePage() {
                 </label>
               </div>
 
-              {profileMessage ? <div className="mt-4"><FcNotice>{profileMessage}</FcNotice></div> : null}
-              {profileError ? <div className="mt-4"><FcNotice tone="error">{profileError}</FcNotice></div> : null}
+              <div className="mt-5 flex justify-end border-t border-[var(--theme-border)] pt-4">
+                <button
+                  type="button"
+                  onClick={() => void saveProfile()}
+                  disabled={profileBusy}
+                  className="theme-primary-button min-h-11 rounded-[10px] w-full px-5 text-sm font-semibold disabled:opacity-50 sm:w-auto"
+                >
+                  {profileBusy ? "Saving…" : "Save profile"}
+                </button>
+              </div>
+              <div className={profileMessage || profileError ? "mt-3" : undefined}>
+                <FcNotice>{profileMessage}</FcNotice>
+                <FcNotice tone="error">{profileError}</FcNotice>
+              </div>
             </div>
           </FcPanel>
 

@@ -1213,7 +1213,7 @@ export default function AwardsPage() {
                     href={
                       `/tournaments/${tournament.id}/achievements`
                     }
-                    className="flex items-center justify-between gap-4 rounded-xl border border-white/[0.07] bg-white/[0.025] p-4 transition hover:border-amber-400/20"
+                    className="theme-action-row flex items-center justify-between gap-4 rounded-xl border p-4"
                   >
                     <div className="min-w-0">
                       <p className="truncate font-black">
@@ -1248,7 +1248,7 @@ export default function AwardsPage() {
               .activeAwardTournaments
               .length ===
               0 ? (
-              <p className="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-500">
+              <p className="theme-secondary-text rounded-xl border border-dashed border-[var(--theme-border)] p-5 text-sm">
                  No active tournament award races are available in your leagues.
               </p>
             ) : null}
@@ -1334,7 +1334,7 @@ export default function AwardsPage() {
               .recentSeasonalWinners
               .length ===
               0 ? (
-              <p className="rounded-xl border border-dashed border-white/10 p-5 text-sm text-slate-500">
+              <p className="theme-secondary-text rounded-xl border border-dashed border-[var(--theme-border)] p-5 text-sm">
                 Seasonal winners will appear after a Ballon season is locked.
               </p>
             ) : null}
@@ -1363,7 +1363,7 @@ export default function AwardsPage() {
           </p>
         </div>
 
-        <p className="mb-4 text-xs leading-5 text-slate-400">Live award races are provisional. Official honours are confirmed only after verified results and tournament finalisation.</p>
+        <p className="theme-secondary-text mb-4 text-xs leading-5">Live award races are provisional. Official honours are confirmed only after verified results and tournament finalisation.</p>
         <div className="premium-award-lanes">
           {awardCards.map(
             (

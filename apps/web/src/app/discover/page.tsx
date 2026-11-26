@@ -10,6 +10,7 @@ import {
 import {
   FcEmptyState,
   FcPanel,
+  FcSkeleton,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
 
@@ -284,11 +285,11 @@ export default function DiscoverPage() {
   ] =
     useState(false);
 
-  const [
-    error,
-    setError,
-  ] =
-    useState('');
+  const [searchError, setSearchError] = useState('');
+  const [featuredError, setFeaturedError] = useState('');
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [searchAttempt, setSearchAttempt] = useState(0);
+  const [featuredAttempt, setFeaturedAttempt] = useState(0);
 
   useEffect(() => {
     const initial =
@@ -306,16 +307,22 @@ export default function DiscoverPage() {
         initial,
       );
     }
+  }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    setFeaturedLoading(true);
+    setFeaturedError('');
     void authenticatedRequest<{
       success: true;
       data: FeaturedData;
       error: null;
-    }>('/discover/featured')
+    }>('/discover/featured', { signal: controller.signal })
       .then(
         (
           response,
         ) => {
+          if (controller.signal.aborted) return;
           setFeatured(
             response.data,
           );
@@ -325,26 +332,33 @@ export default function DiscoverPage() {
         (
           err,
         ) => {
-          setError(
+          if (controller.signal.aborted) return;
+          setFeaturedError(
             err instanceof Error
               ? err.message
               : 'Unable to load Discover.',
           );
         },
-      );
-  }, []);
+      )
+      .finally(() => {
+        if (!controller.signal.aborted) setFeaturedLoading(false);
+      });
+    return () => controller.abort();
+  }, [featuredAttempt]);
 
   useEffect(() => {
     const value =
       query.trim();
+    const controller = new AbortController();
+    setSearchError('');
+    // Results belong to a specific query and filter. Never show an earlier
+    // response as if it belonged to the player's current search.
+    setResults(null);
 
     if (
       value.length <
       2
     ) {
-      setResults(
-        null,
-      );
       setLoading(
         false,
       );
@@ -373,15 +387,17 @@ export default function DiscoverPage() {
             error: null;
           }>(
             `/discover?${params.toString()}`,
+            { signal: controller.signal },
           )
             .then(
               (
                 response,
               ) => {
+                if (controller.signal.aborted) return;
                 setResults(
                   response.data,
                 );
-                setError(
+                setSearchError(
                   '',
                 );
               },
@@ -390,7 +406,8 @@ export default function DiscoverPage() {
               (
                 err,
               ) => {
-                setError(
+                if (controller.signal.aborted) return;
+                setSearchError(
                   err instanceof Error
                     ? err.message
                     : 'Search is unavailable.',
@@ -399,6 +416,7 @@ export default function DiscoverPage() {
             )
             .finally(
               () => {
+                if (controller.signal.aborted) return;
                 setLoading(
                   false,
                 );
@@ -409,6 +427,7 @@ export default function DiscoverPage() {
       );
 
     return () => {
+      controller.abort();
       window.clearTimeout(
         timer,
       );
@@ -416,11 +435,13 @@ export default function DiscoverPage() {
   }, [
     query,
     type,
+    searchAttempt,
   ]);
 
   const searching =
     query.trim().length >=
     2;
+  const error = searching ? searchError : featuredError;
 
   const sections =
     useMemo(
@@ -457,14 +478,14 @@ export default function DiscoverPage() {
       action={
         <Link
           href="/awards/hall-of-fame"
-          className="theme-secondary-button inline-flex min-h-10 items-center rounded-xl border px-4 text-sm font-black"
+          className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-black"
         >
           Hall of Fame →
         </Link>
       }
     >
       <FcPanel className="p-4 sm:p-5">
-        <label className="theme-search flex min-h-12 items-center gap-3 rounded-xl border px-4">
+        <div role="search" className="theme-search flex min-h-12 items-center gap-3 rounded-xl border px-4">
           <span
             className="theme-muted text-lg"
             aria-hidden="true"
@@ -473,6 +494,9 @@ export default function DiscoverPage() {
           </span>
 
           <input
+            type="search"
+            enterKeyHint="search"
+            aria-describedby="discover-search-help"
             value={
               query
             }
@@ -499,14 +523,15 @@ export default function DiscoverPage() {
                   '',
                 )
               }
-              className="theme-muted rounded-lg px-2 py-1 text-xs font-black"
+              aria-label="Clear search"
+              className="theme-muted min-h-11 shrink-0 rounded-lg px-2 py-1 text-xs font-black"
             >
               Clear
             </button>
           ) : null}
-        </label>
+        </div>
 
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <div role="group" aria-label="Filter search results" className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {filters.map(
             (
               filter,
@@ -528,8 +553,8 @@ export default function DiscoverPage() {
                 className={
                   type ===
                   filter.type
-                    ? 'theme-primary-button min-h-9 shrink-0 rounded-lg px-4 text-xs font-black'
-                    : 'theme-secondary-button min-h-9 shrink-0 rounded-lg border px-4 text-xs font-semibold'
+                    ? 'theme-primary-button min-h-11 shrink-0 rounded-lg px-4 text-xs font-black'
+                    : 'theme-secondary-button min-h-11 shrink-0 rounded-lg border px-4 text-xs font-semibold'
                 }
               >
                 {
@@ -540,31 +565,39 @@ export default function DiscoverPage() {
           )}
         </div>
 
-        <p className="theme-muted mt-3 text-xs">
-          Search uses public competition identity only. Email, phone number and game UID are never shown here.
+        <p id="discover-search-help" className="theme-muted mt-3 text-xs leading-5">
+          {query.trim().length === 1 ? 'Enter at least 2 characters to search. ' : ''}
+          Search public player and competition identities. Email, phone number and game UID stay private.
         </p>
       </FcPanel>
 
       {error ? (
-        <FcPanel className="border-red-400/20 p-4 text-sm text-red-300">
-          {
-            error
-          }
+        <FcPanel className="p-4">
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="theme-text text-sm font-semibold">{searching ? 'Search is unavailable' : 'Discover could not be loaded'}</p>
+              <p className="theme-muted mt-1 text-sm">{error}</p>
+            </div>
+            <button type="button" className="theme-secondary-button min-h-11 rounded-xl border px-4 text-sm font-semibold"
+              onClick={() => searching ? setSearchAttempt(value => value + 1) : setFeaturedAttempt(value => value + 1)}>
+              Try again
+            </button>
+          </div>
         </FcPanel>
       ) : null}
 
       {searching ? (
-        <section className="space-y-5">
+        <section aria-label="Search results" aria-busy={loading} className="space-y-5">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
                 Global Search
               </p>
 
-              <h2 className="mt-1 text-xl font-black">
+              <h2 aria-live="polite" aria-atomic="true" className="mt-1 text-xl font-black">
                 {loading
                   ? 'Searching...'
-                  : `${results?.total ?? 0} result${results?.total === 1 ? '' : 's'}`}
+                  : error ? 'Try your search again' : `${results?.total ?? 0} result${results?.total === 1 ? '' : 's'}`}
               </h2>
             </div>
 
@@ -580,6 +613,12 @@ export default function DiscoverPage() {
               />
             ) : null}
           </div>
+
+          {loading ? (
+            <div className="grid gap-3 md:grid-cols-2" aria-hidden="true">
+              {[0, 1, 2, 3].map(item => <FcPanel key={item} className="flex items-center gap-3 p-4"><FcSkeleton className="h-11 w-11 shrink-0" /><div className="flex-1 space-y-2"><FcSkeleton className="h-4 w-3/4" /><FcSkeleton className="h-3 w-1/2" /></div></FcPanel>)}
+            </div>
+          ) : null}
 
           {(
             type ===
@@ -923,7 +962,12 @@ export default function DiscoverPage() {
             />
           ) : null}
         </section>
-      ) : (
+      ) : featuredLoading ? (
+        <section role="status" aria-label="Loading Discover" className="grid gap-4 lg:grid-cols-2">
+          <span className="sr-only">Loading competitions and leagues...</span>
+          {[0, 1].map(item => <FcPanel key={item} className="space-y-4 p-5"><FcSkeleton className="h-5 w-40" /><FcSkeleton className="h-20 w-full" /><FcSkeleton className="h-20 w-full" /></FcPanel>)}
+        </section>
+      ) : featuredError && !featured ? null : (
         <section className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
             <FcPanel className="p-5 sm:p-6">

@@ -1087,23 +1087,17 @@ function MatchRoom() {
         ) : match.returnLeg?.firstLegScore ? (
           <p className="theme-muted text-sm" role="status">Verified first leg: {home} {match.returnLeg.firstLegScore.homeScore} – {match.returnLeg.firstLegScore.awayScore} {away}. The aggregate of both legs decides the winner.</p>
         ) : null}
-        {canSubmit && !match.tournament.duoAggregateEnabled ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
-          <p className="theme-muted text-sm" role="status">{draft.status || 'Scores and screenshots are saved on this device for 7 days.'}</p>
-          {hasDraft ? <button type="button" disabled={busy} className="theme-text min-h-11 px-3 text-sm font-bold" onClick={async () => {
-            if (await confirmAction({ title: 'Discard saved draft?', description: 'Remove the scores and selected screenshot saved on this device?', confirmLabel: 'Discard draft' })) draft.clear();
-          }}>Discard draft</button> : null}
-        </div> : null}
         <div className="premium-match-links flex flex-wrap gap-4">
           <Link
             href={`/tournaments/${match.tournament.id}`}
-            className="text-sm font-bold text-slate-500 hover:text-white"
+            className="theme-text-link inline-flex min-h-11 items-center text-sm font-semibold"
           >
             ← Back to Tournament
           </Link>
 
           <Link
             href={`/tournaments/${match.tournament.id}/standings`}
-            className="text-sm font-bold text-sky-400"
+            className="theme-text-link inline-flex min-h-11 items-center text-sm font-semibold"
           >
             View Standings →
           </Link>
@@ -1288,6 +1282,12 @@ function MatchRoom() {
         <FcNotice>{message}</FcNotice>
         <FcNotice tone="error">{error}</FcNotice>
 
+        {canSubmit && !match.tournament.duoAggregateEnabled ? <div className="theme-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4" aria-label="Result draft">
+          <p className="theme-muted text-sm" role="status">{draft.status || 'Scores and screenshots are saved on this device for 7 days.'}</p>
+          {hasDraft ? <button type="button" disabled={busy} className="theme-text min-h-11 px-3 text-sm font-bold" onClick={async () => {
+            if (await confirmAction({ title: 'Discard saved draft?', description: 'Remove the scores and selected screenshot saved on this device?', confirmLabel: 'Discard draft' })) draft.clear();
+          }}>Discard draft</button> : null}
+        </div> : null}
         <details className="fc-help-disclosure"><summary>Schedule, round &amp; venue</summary>
         <section className="fc-match-room-meta mt-3 grid grid-cols-1 gap-3 md:grid-cols-4" aria-label="Match metadata">
           <article className="rounded-2xl border border-white/10 bg-[#0a1018] p-5">
@@ -1551,7 +1551,7 @@ function MatchRoom() {
                           max="99"
                           required
                           inputMode="numeric"
-                          className="min-w-0 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-center text-2xl font-black"
+                          className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                         />
                       </label>
 
@@ -1571,7 +1571,7 @@ function MatchRoom() {
                           max="99"
                           required
                           inputMode="numeric"
-                          className="min-w-0 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-center text-2xl font-black"
+                          className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                         />
                       </label>
                     </div>
@@ -1690,7 +1690,7 @@ function MatchRoom() {
               {match.tournament.duoAggregateEnabled ? (
                 <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="corrected" gameCount={match.tournament.duoGamesPerFixture}
                   initial={confirmed.duoGames} disabled={busy} />
-              ) : (<div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+              ) : (<div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3">
                 <label className="grid gap-2 text-sm font-bold">
                   {home}
 
@@ -1701,7 +1701,7 @@ function MatchRoom() {
                     max="99"
                     defaultValue={confirmed.homeScore}
                     required
-                    className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                    className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                   />
                 </label>
 
@@ -1717,7 +1717,7 @@ function MatchRoom() {
                     max="99"
                     defaultValue={confirmed.awayScore}
                     required
-                    className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                    className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                   />
                 </label>
               </div>)}
@@ -1730,7 +1730,7 @@ function MatchRoom() {
                 minLength={3}
                 required
                 placeholder="Correction reason"
-                className="rounded-xl border border-white/10 bg-[#080e15] p-4"
+                className="theme-input w-full rounded-xl border p-4"
               />
               </label>
 

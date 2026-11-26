@@ -165,12 +165,28 @@ export class DurableTelemetryService implements OnModuleInit, OnModuleDestroy {
       days: [],
     };
     await this.flush();
+    const redis = this.redis;
+    const now = Date.now();
+    const dates = Array.from({ length: count }, (_, index) =>
+      new Date(now - (count - 1 - index) * 86_400_000).toISOString().slice(0, 10),
+    );
+    // At most 98 anonymous keys (14 days × 7 metrics). One pipeline avoids
+    // a separate network round trip per histogram while retaining daily order.
+    const pipeline = redis.pipeline();
+    for (const day of dates) for (const metric of METRICS) {
+      pipeline.hgetall(`${KEY_PREFIX}:${day}:${metric}`);
+    }
+    const replies = await pipeline.exec();
+    if (!replies || replies.length !== dates.length * METRICS.length ||
+        replies.some(([error]) => error)) {
+      throw new Error('Redis telemetry history read failed');
+    }
+    let index = 0;
     const result = [];
-    for (let offset = count - 1; offset >= 0; offset--) {
-      const day = new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10);
+    for (const day of dates) {
       const metrics: Record<string, unknown> = {};
       for (const metric of METRICS) {
-        const values = await this.redis.hgetall(`${KEY_PREFIX}:${day}:${metric}`);
+        const values = replies[index++][1] as Record<string, string>;
         const histogram = Array.from({ length: bounds(metric).length + 1 }, (_, i) =>
           Number(values[`b${i}`] ?? 0),
         );

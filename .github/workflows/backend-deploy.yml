@@ -28,7 +28,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: fcarena-production-backend
+  # CI uses disposable databases and never deploys; do not cancel another PR's queued verification.
+  group: fcarena-backend-ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:

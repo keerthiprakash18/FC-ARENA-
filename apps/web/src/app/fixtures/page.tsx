@@ -584,20 +584,21 @@ export default function FixturesPage() {
           />
         ) : (
           <>
-            <div className="flex gap-2" aria-label="Match scope">{(["MY", "ALL"] as const).map(value => <button key={value} aria-pressed={scope === value} onClick={() => setScope(value)} className={`${scope === value ? "theme-primary-button" : "theme-secondary-button"} flex-1 rounded-xl px-4 py-3 font-semibold`}>{value === "MY" ? "My Matches" : "All Matches"}</button>)}</div>
+            <div className="flex gap-2" role="group" aria-label="Match scope">{(["MY", "ALL"] as const).map(value => <button key={value} aria-pressed={scope === value} onClick={() => setScope(value)} className={`${scope === value ? "theme-primary-button" : "theme-secondary-button"} flex-1 rounded-xl px-4 py-3 font-semibold`}>{value === "MY" ? "My Matches" : "All Matches"}</button>)}</div>
             <details className="premium-filter-workbench"><summary>League &amp; tournament filters · {selectedMembership?.league.name}</summary>
               <div className="premium-filters">
                 <label className="grid gap-2">
-                  <span className="text-xs font-medium text-[#A7B0BE]">
+                  <span className="theme-secondary-text text-xs font-medium">
                     League
                   </span>
 
                   <select
+                    aria-label="League"
                     value={selectedLeagueId}
                     onChange={(event) =>
                       setSelectedLeagueId(event.target.value)
                     }
-                    className="rounded-xl border border-white/10 bg-[#07101a] px-4 py-3 text-sm font-black outline-none"
+                    className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 py-2 text-sm font-semibold"
                   >
                     {memberships.map((membership) => (
                       <option
@@ -611,11 +612,12 @@ export default function FixturesPage() {
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-medium text-[#A7B0BE]">
+                  <span className="theme-secondary-text text-xs font-medium">
                     Tournament
                   </span>
 
                   <select
+                    aria-label="Tournament"
                     value={selectedTournamentId}
                     onChange={(event) => {
                       setSelectedTournamentId(event.target.value);
@@ -630,7 +632,7 @@ export default function FixturesPage() {
 
                       setExpandedResultMatchId(null);
                     }}
-                    className="rounded-xl border border-white/10 bg-[#07101a] px-4 py-3 text-sm font-black outline-none"
+                    className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 py-2 text-sm font-semibold"
                   >
                     <option value="ALL">All Tournaments</option>
 
@@ -648,7 +650,7 @@ export default function FixturesPage() {
               <summary className="min-h-11 cursor-pointer font-semibold">More filters · {[selectedGroupId, selectedMatchday, selectedStage, selectedTeam].filter(value => value !== "ALL").length} active</summary>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <label className="grid gap-2">
-                  <span className="text-xs font-medium text-[#A7B0BE]">
+                  <span className="theme-secondary-text text-xs font-medium">
                     Group
                   </span>
 
@@ -659,7 +661,7 @@ export default function FixturesPage() {
                       setSelectedTeam("ALL");
                       setExpandedResultMatchId(null);
                     }}
-                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                    className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 text-sm"
                   >
                     <option value="ALL">All Groups</option>
 
@@ -672,7 +674,7 @@ export default function FixturesPage() {
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-medium text-[#A7B0BE]">
+                  <span className="theme-secondary-text text-xs font-medium">
                     Matchday
                   </span>
 
@@ -681,7 +683,7 @@ export default function FixturesPage() {
                     onChange={(event) =>
                       setSelectedMatchday(event.target.value)
                     }
-                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                    className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 text-sm"
                   >
                     <option value="ALL">All Matchdays</option>
 
@@ -694,14 +696,14 @@ export default function FixturesPage() {
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-medium text-[#A7B0BE]">
+                  <span className="theme-secondary-text text-xs font-medium">
                     Stage
                   </span>
 
                   <select
                     value={selectedStage}
                     onChange={(event) => setSelectedStage(event.target.value)}
-                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                    className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 text-sm"
                   >
                     <option value="ALL">All Stages</option>
 
@@ -714,7 +716,7 @@ export default function FixturesPage() {
                 </label>
 
                 <label className="grid gap-2">
-                  <span className="text-xs font-medium text-[#A7B0BE]">
+                  <span className="theme-secondary-text text-xs font-medium">
                     Team
                   </span>
 
@@ -725,7 +727,7 @@ export default function FixturesPage() {
 
                       setExpandedResultMatchId(null);
                     }}
-                    className="min-h-11 rounded-[10px] border border-[#253140] bg-[#151C26] px-3 text-sm"
+                    className="theme-input min-h-11 min-w-0 w-full rounded-xl border px-3 text-sm"
                   >
                     <option value="ALL">All Teams</option>
 
@@ -737,7 +739,7 @@ export default function FixturesPage() {
                   </select>
                 </label>
               </div>
-              <button className="theme-secondary-button mt-4 rounded-lg px-4" onClick={() => { setSelectedGroupId("ALL"); setSelectedMatchday("ALL"); setSelectedStage("ALL"); setSelectedTeam("ALL"); setFilter("ALL"); setSelectedTournamentId("ALL"); }}>Clear filters</button>
+              <button className="theme-secondary-button mt-4 min-h-11 rounded-lg px-4" onClick={() => { setSelectedGroupId("ALL"); setSelectedMatchday("ALL"); setSelectedStage("ALL"); setSelectedTeam("ALL"); setFilter("ALL"); setSelectedTournamentId("ALL"); }}>Clear filters</button>
             </details>
 
             <section className="premium-metrics" aria-label="Matchday summary">
@@ -792,7 +794,7 @@ export default function FixturesPage() {
                 eyebrow={selectedMembership?.league.name}
                 title="Match Schedule"
                 action={
-                  <span className="text-xs font-black text-slate-600">
+                  <span role="status" className="theme-secondary-text text-xs font-semibold tabular-nums">
                     {visibleFixtures.length} matches
                   </span>
                 }
@@ -803,7 +805,7 @@ export default function FixturesPage() {
                   {[0, 1, 2, 3].map((value) => (
                     <div
                       key={value}
-                      className="h-44 animate-pulse rounded-2xl border border-white/10 bg-white/[0.025]"
+                      className="h-44 motion-safe:animate-pulse rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)]"
                     />
                   ))}
                 </div>
@@ -827,7 +829,7 @@ export default function FixturesPage() {
 
                         <span className="h-px flex-1 bg-white/[0.07]" />
 
-                        <span className="text-[10px] font-black text-slate-600">
+                        <span className="theme-secondary-text text-xs font-semibold tabular-nums">
                           {items.length}
                         </span>
                       </div>

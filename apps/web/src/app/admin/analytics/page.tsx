@@ -14,7 +14,7 @@ import {
 } from '@/components/admin/admin-navigation';
 
 import {
-  FcEmptyState,
+  FcErrorState,
   FcPanel,
   FcStatusBadge,
 } from '@/components/fc/fc-ui';
@@ -107,13 +107,14 @@ interface PlayerActivityData {
 function PlayerActivity() {
   const [activity, setActivity] = useState<PlayerActivityData | null>(null);
   const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     void authenticatedRequest<{ data: PlayerActivityData }>('/admin/ops/player-activity', { signal: controller.signal })
       .then(({ data }) => { if (!controller.signal.aborted) setActivity(data); })
       .catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
-  }, []);
+  }, [attempt]);
   const rate = (numerator: number, denominator: number) =>
     denominator ? `${Math.round(numerator / denominator * 100)}% (${numerator}/${denominator})` : '—';
   return (
@@ -123,7 +124,7 @@ function PlayerActivity() {
         Activity counts unique accounts with a login or refresh session, using IST calendar days.
         Retention uses the last 28 signup days and includes only cohorts with a complete return day.
       </p>
-      {error ? <p role="alert">Player activity is temporarily unavailable.</p> : activity ? (
+      {error ? <div className="theme-panel mt-3 rounded-xl border p-4"><p role="alert" className="theme-secondary-text text-sm">Player activity is temporarily unavailable. No missing values are treated as zero.</p><button type="button" className="theme-secondary-button mt-3 min-h-11 rounded-xl border px-4 text-sm font-semibold" onClick={() => { setError(false); setAttempt(value => value + 1); }}>Retry player activity</button></div> : activity ? (
         <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
             ['Active today', activity.daily],
@@ -180,33 +181,18 @@ export default function AdminAnalyticsPage() {
   ] =
     useState('');
 
+  const [overviewAttempt, setOverviewAttempt] = useState(0);
   useEffect(() => {
-    void authenticatedRequest<{
-      success: true;
-      data: OverviewData;
-      error: null;
-    }>('/admin/ops/overview')
-      .then(
-        (
-          response,
-        ) => {
-          setData(
-            response.data,
-          );
-        },
-      )
-      .catch(
-        (
-          err,
-        ) => {
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Unable to load admin analytics.',
-          );
-        },
-      );
-  }, []);
+    const controller = new AbortController();
+    void authenticatedRequest<{ success: true; data: OverviewData; error: null }>(
+      '/admin/ops/overview', { signal: controller.signal },
+    ).then(response => {
+      if (!controller.signal.aborted) setData(response.data);
+    }).catch(err => {
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : 'Unable to load admin analytics.');
+    });
+    return () => controller.abort();
+  }, [overviewAttempt]);
 
   const maxTrend =
     useMemo(
@@ -276,11 +262,11 @@ export default function AdminAnalyticsPage() {
       <AdminNavigation />
 
       {error ? (
-        <FcEmptyState
+        <FcErrorState
           title="Analytics unavailable"
-          description={
-            error
-          }
+          message={error}
+          retryLabel="Retry analytics"
+          onRetry={() => { setError(''); setOverviewAttempt(value => value + 1); }}
         />
       ) : null}
 
@@ -337,7 +323,7 @@ export default function AdminAnalyticsPage() {
                     }
                   </p>
 
-                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-600">
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--theme-text-secondary)]">
                     {
                       item[0]
                     }
@@ -351,7 +337,7 @@ export default function AdminAnalyticsPage() {
             <FcPanel className="p-5">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--theme-primary)]">
                     Last 14 Days
                   </p>
 
@@ -360,7 +346,7 @@ export default function AdminAnalyticsPage() {
                   </h2>
                 </div>
 
-                <div className="flex gap-3 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                <div className="flex gap-3 text-[10px] font-black uppercase tracking-wider text-[var(--theme-text-secondary)]">
                   <span>
                     ● {
                       data
@@ -369,90 +355,58 @@ export default function AdminAnalyticsPage() {
                     }
                   </span>
 
-                  <span className="text-emerald-400">
+                  <span className="text-[var(--theme-success)]">
                     ● Confirmed Results
                   </span>
                 </div>
               </div>
 
-               {data.trend.days.length > 0 ? <div className="premium-activity-chart mt-6 grid h-52 grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-1.5">
-                {data.trend.days.map(
-                  (
-                    day,
-                  ) => (
-                    <div
-                      key={
-                        day.day
-                      }
-                      className="flex h-full min-w-0 flex-col justify-end gap-1"
-                      title={
-                        day.day +
-                        ': ' +
-                        day.newPlayers +
-                        ' ' +
-                        data.trend
-                          .label
-                          .toLowerCase() +
-                        ', ' +
-                        day.confirmedResults +
-                        ' confirmed results'
-                      }
-                    >
-                      <div
-                        className="rounded-t bg-sky-400/55"
-                        style={{
-                          height:
-                            Math.max(
-                              day.newPlayers >
-                                0
-                                ? 5
-                                : 0,
-                              (
-                                day.newPlayers /
-                                maxTrend
-                              ) *
-                                100,
-                            ) +
-                            '%',
-                        }}
-                      />
-
-                      <div
-                        className="rounded-t bg-emerald-400/70"
-                        style={{
-                          height:
-                            Math.max(
-                              day.confirmedResults >
-                                0
-                                ? 5
-                                : 0,
-                              (
-                                day.confirmedResults /
-                                maxTrend
-                              ) *
-                                100,
-                            ) +
-                            '%',
-                        }}
-                      />
-
-                      <span className="truncate text-center text-[8px] text-slate-700">
-                        {
-                          day.day.slice(
-                            8,
-                          )
-                        }
-                      </span>
+              {data.trend.days.length > 0 ? (
+                <>
+                  <p className="theme-secondary-text mt-3 text-xs">Left bar: {data.trend.label}. Right bar: confirmed results. Both use the same scale.</p>
+                  <div aria-hidden="true" className="premium-activity-chart mt-4 grid h-52 gap-1.5"
+                    style={{ gridTemplateColumns: `repeat(${data.trend.days.length}, minmax(0, 1fr))` }}>
+                    {data.trend.days.map(day => (
+                      <div key={day.day} className="flex min-h-0 min-w-0 flex-col gap-1" title={`${day.day}: ${day.newPlayers} ${data.trend.label}, ${day.confirmedResults} confirmed results`}>
+                        <div className="flex min-h-0 flex-1 items-end justify-center gap-px">
+                          <span data-series="players" className="w-1/2 max-w-5 rounded-t-sm bg-[var(--theme-primary)]"
+                            style={{ height: `${day.newPlayers / maxTrend * 100}%` }} />
+                          <span data-series="results" className="w-1/2 max-w-5 rounded-t-sm bg-[var(--theme-success)]"
+                            style={{ height: `${day.confirmedResults / maxTrend * 100}%` }} />
+                        </div>
+                        <span className="theme-secondary-text truncate text-center text-[10px] tabular-nums">{day.day.slice(8)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <details className="mt-5 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-surface)]">
+                    <summary className="theme-text flex min-h-11 cursor-pointer items-center px-3 text-sm font-semibold">View activity data</summary>
+                    <div className="overflow-x-auto px-3 pb-3">
+                      <table className="w-full table-fixed text-left text-xs tabular-nums">
+                        <caption className="sr-only">Verified activity by day</caption>
+                        <thead><tr className="theme-secondary-text border-b border-[var(--theme-border)]">
+                          <th scope="col" className="py-2">Date</th>
+                          <th scope="col" className="py-2 text-right break-words">{data.trend.label}</th>
+                          <th scope="col" className="py-2 text-right break-words">Confirmed results</th>
+                        </tr></thead>
+                        <tbody>{data.trend.days.map(day => (
+                          <tr key={day.day} className="theme-text border-b border-[var(--theme-border)]">
+                            <th scope="row" className="py-2 font-medium break-words"><time dateTime={day.day}>{day.day}</time></th>
+                            <td className="py-2 text-right">{day.newPlayers}</td>
+                            <td className="py-2 text-right">{day.confirmedResults}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
                     </div>
-                   ),
-                 )}
-              </div> : <p className="theme-secondary-text mt-6 py-6 text-sm">No activity recorded for this period.</p>}
+                  </details>
+                </>
+              ) : <p className="theme-secondary-text mt-6 py-6 text-sm">No activity recorded for this period.</p>}
+
             </FcPanel>
 
             <FcPanel className="p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--theme-warning)]">
                     Operational Alerts
                   </p>
 
@@ -513,9 +467,9 @@ export default function AdminAnalyticsPage() {
                       key={
                         alert[0]
                       }
-                      className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3"
+                      className="flex items-center justify-between gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-elevated)] p-3"
                     >
-                      <span className="text-sm text-slate-400">
+                      <span className="text-sm text-[var(--theme-text-secondary)]">
                         {
                           alert[0]
                         }
@@ -574,7 +528,7 @@ export default function AdminAnalyticsPage() {
            <PremiumSection label="Operational detail" title="Competition health">
            <div className="premium-spread">
             <FcPanel className="p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-400">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--theme-primary)]">
                 Competition Operations
               </p>
 
@@ -632,7 +586,7 @@ export default function AdminAnalyticsPage() {
                         }
                       </p>
 
-                      <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-slate-600">
+                      <p className="mt-1 text-[9px] font-black uppercase tracking-wider text-[var(--theme-text-secondary)]">
                         {
                           humanize(
                             label,
@@ -646,7 +600,7 @@ export default function AdminAnalyticsPage() {
             </FcPanel>
 
             <FcPanel className="p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--theme-warning)]">
                 Managed Ecosystem
               </p>
 
@@ -663,7 +617,7 @@ export default function AdminAnalyticsPage() {
                       key={
                         league.id
                       }
-                      className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3"
+                      className="flex items-center gap-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-elevated)] p-3"
                     >
                       <span className="theme-avatar grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border text-xs font-black">
                         {league.logoUrl ? (
@@ -691,7 +645,7 @@ export default function AdminAnalyticsPage() {
                           }
                         </p>
 
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-[var(--theme-text-secondary)]">
                           {
                             league.members
                           }{' '}
@@ -711,8 +665,8 @@ export default function AdminAnalyticsPage() {
            </PremiumSection>
 
           <FcPanel className="overflow-hidden">
-            <div className="border-b border-white/[0.07] p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+            <div className="border-b border-[var(--theme-border)] p-5">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--theme-text-secondary)]">
                 Audit Trail
               </p>
 
@@ -721,7 +675,7 @@ export default function AdminAnalyticsPage() {
               </h2>
             </div>
 
-            <div className="divide-y divide-white/[0.06]">
+            <div className="divide-y divide-[var(--theme-border)]">
               {data.recentAudit.map(
                 (
                   event,
@@ -741,7 +695,7 @@ export default function AdminAnalyticsPage() {
                         }
                       </p>
 
-                      <p className="mt-1 truncate text-xs text-slate-500">
+                      <p className="mt-1 truncate text-xs text-[var(--theme-text-secondary)]">
                         {
                           event.actor
                             ?.name ??
@@ -754,7 +708,7 @@ export default function AdminAnalyticsPage() {
                       </p>
                     </div>
 
-                    <span className="text-xs text-slate-600">
+                    <span className="text-xs text-[var(--theme-text-secondary)]">
                       {new Date(
                         event.createdAt,
                       ).toLocaleString()}
@@ -766,7 +720,7 @@ export default function AdminAnalyticsPage() {
               {data.recentAudit
                 .length ===
                 0 ? (
-                <p className="p-6 text-center text-sm text-slate-500">
+                <p className="p-6 text-center text-sm text-[var(--theme-text-secondary)]">
                   No audit events in this admin scope yet.
                 </p>
               ) : null}
@@ -774,8 +728,8 @@ export default function AdminAnalyticsPage() {
           </FcPanel>
         </>
       ) : !error ? (
-        <FcPanel className="p-8 text-center text-sm text-slate-500">
-          Loading admin analytics...
+        <FcPanel className="p-8 text-center text-sm text-[var(--theme-text-secondary)]">
+          <p role="status">Loading admin analytics...</p>
         </FcPanel>
       ) : null}
     </SecondaryFeaturePage>

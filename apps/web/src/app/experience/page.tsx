@@ -64,7 +64,13 @@ export default function ExperiencePage() {
           </div>
         ) : user && career ? (
           <>
-            <DailyRewards userId={user.id} full /><PlayerJourney
+            <nav className="flex flex-wrap gap-2" aria-label="Player journey sections">
+              <a href="#daily-check-in" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-3 text-sm font-semibold">Daily check-in</a>
+              <a href="#player-progress" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-3 text-sm font-semibold">Missions &amp; progress</a>
+            </nav>
+            <DailyRewards userId={user.id} full />
+            <div id="player-progress" className="scroll-mt-24">
+            <PlayerJourney
             full
             weeklyHistory={career.matchHistory ?? []}
             player={{
@@ -77,7 +83,9 @@ export default function ExperiencePage() {
               goals: career.lifetimeStatistics.goalsFor,
               winRate: career.lifetimeStatistics.winRate,
             }}
-          /></>
+          />
+            </div>
+          </>
         ) : (
           <p role="status">Loading your player journey…</p>
         )}

@@ -7,7 +7,7 @@ import { summarizeExperience } from '../../api/src/experience/experience-policy.
 
 const output = path.resolve(process.env.COMMUNITY_SCREENSHOTS || '.cache/community/screenshots');
 fs.mkdirSync(output, { recursive: true });
-const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 const leagueId = '01e150a6-1be1-4e30-9a67-8e6d80a64116';
 const contextData = { leagues: [{ id: leagueId, name: 'Coastal Premier League' }], canModerate: true, policy: { audienceNote: 'Football Talk is visible to active FC ARENA members. League posts stay within that league. Posts and likes do not earn XP.' } };
 const experience = summarizeExperience([{ week: '2026-10-26', matches: 10, days: 2, teamMatches: 0 }], 1, false, 'CLASSIC', new Date('2026-11-01T12:00:00Z'));
@@ -30,6 +30,9 @@ try {
       if (theme === 'LUXURY_GOLD' && width === 390) await page.screenshot({ path: path.join(output, `experience-${mode.toLowerCase()}.png`), fullPage: true });
       await page.goto('https://fcarena.in/arena-talk');
       await page.getByText('Who controls the midfield this weekend?', { exact: true }).waitFor();
+      const shortcuts = page.getByRole('navigation', { name: 'Conversation shortcuts' });
+      assert.equal(await shortcuts.getByRole('link', { name: 'Read conversations' }).getAttribute('href'), '#arena-conversation-feed');
+      assert.equal(await shortcuts.getByRole('link', { name: 'Write a post' }).getAttribute('href'), '#arena-composer');
       await checkLayout(page, `Arena ${theme} ${mode} ${width}`);
       if (theme === 'LUXURY_GOLD' && width === 390) await page.screenshot({ path: path.join(output, `arena-${mode.toLowerCase()}.png`), fullPage: true });
       assert.deepEqual(errors, []); screens += 2;
@@ -69,6 +72,7 @@ try {
     await page.getByRole('button', { name: /Home team/ }).click(); await page.waitForFunction(() => document.querySelector('.poll-option')?.getAttribute('aria-pressed') === 'true');
     await page.getByRole('button', { name: '♡ Like · 3', exact: true }).click(); await page.getByRole('button', { name: '♥ Liked · 4', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Comments · 0', exact: true }).click(); await page.getByLabel('Add a comment', { exact: true }).fill('A thoughtful comment'); await page.getByRole('button', { name: 'Post comment', exact: true }).click(); await page.getByText('A thoughtful comment', { exact: true }).waitFor();
+    await page.getByRole('link', { name: 'Write a post', exact: true }).click();
     await page.getByLabel('Your post', { exact: true }).fill('My new football post'); await page.getByRole('button', { name: 'Publish post ↗', exact: true }).click(); await page.getByText(/Unable to publish right now/).waitFor(); assert.equal(await page.getByLabel('Your post', { exact: true }).inputValue(), 'My new football post');
     await page.getByRole('button', { name: 'Publish post ↗', exact: true }).click(); await page.getByText('Your post is live.', { exact: true }).waitFor(); assert.equal(postRequests.length, 2); assert(postRequests[0]); assert.equal(postRequests[0], postRequests[1]);
     await page.getByRole('button', { name: /My League/ }).click(); await page.getByText('Private league conversation', { exact: true }).waitFor(); assert.equal(await page.getByText('Who controls the midfield this weekend?', { exact: true }).count(), 0);

@@ -218,12 +218,12 @@ export function FcStatCard({
   return (
     <article className="fc-metric theme-stat-card h-full rounded-2xl border">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="fc-metric-label">
+        <div className="min-w-0">
+          <p className="fc-metric-label [overflow-wrap:anywhere]">
             {label}
           </p>
 
-          <p className="fc-metric-value theme-text tabular-nums">
+          <p className="fc-metric-value theme-text tabular-nums [overflow-wrap:anywhere]">
             {value}
           </p>
         </div>
@@ -443,7 +443,7 @@ export function FcActionRow({
       href={
         href
       }
-      className="theme-action-row group flex min-h-[78px] items-center gap-4 rounded-2xl border p-4 transition duration-200"
+      className="fc-menu-action theme-action-row group flex min-h-[78px] items-center gap-4 rounded-2xl border p-4 transition duration-200"
     >
       <span
         className={

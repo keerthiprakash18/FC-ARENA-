@@ -4,6 +4,7 @@ import unittest
 import hashlib
 import json
 import tempfile
+import stat
 from unittest.mock import patch
 from types import SimpleNamespace
 
@@ -12,6 +13,45 @@ spec=importlib.util.spec_from_file_location('managed_runtime',path)
 runtime=importlib.util.module_from_spec(spec);spec.loader.exec_module(runtime)
 
 class ManagedRuntimeTests(unittest.TestCase):
+    def test_staging_proof_requires_exact_successful_fresh_candidate_and_baseline(self):
+        with tempfile.TemporaryDirectory() as raw:
+            stage=Path(raw);candidate=stage/'runtime';candidate.mkdir();source=stage/'staging-proof.json'
+            now=runtime.dt.datetime(2026,11,26,5,30,tzinfo=runtime.dt.timezone.utc)
+            proof={'status':'PASS','release':'candidate','baselineRelease':'baseline','verifiedAtUtc':now.isoformat(),
+              'crossInstanceRedis':True,'replicaFailover':True,'realBrowser':True,'realAuthenticatedAPI':True}
+            actual_stat=Path.stat
+            def private_stat(file,*args,**kwargs):
+                if file==source:return SimpleNamespace(st_uid=0,st_mode=stat.S_IFREG|0o600)
+                return actual_stat(file,*args,**kwargs)
+            with patch.object(Path,'stat',private_stat):
+                source.write_text(json.dumps(proof))
+                self.assertEqual(runtime.require_staging_proof(source,candidate,'candidate','baseline',now),proof)
+                invalid=[('status','FAILED'),('release','different'),('baselineRelease','old-baseline'),
+                  ('realBrowser','true'),('replicaFailover',1),('crossInstanceRedis',False),('realAuthenticatedAPI',False),
+                  ('verifiedAtUtc',(now-runtime.dt.timedelta(hours=25)).isoformat()),
+                  ('verifiedAtUtc',(now+runtime.dt.timedelta(minutes=6)).isoformat()),
+                  ('verifiedAtUtc',now.replace(tzinfo=None).isoformat())]
+                for key,value in invalid:
+                    source.write_text(json.dumps({**proof,key:value}))
+                    with self.subTest(key=key,value=value),self.assertRaises(AssertionError):
+                        runtime.require_staging_proof(source,candidate,'candidate','baseline',now)
+
+    def test_staging_proof_rejects_untrusted_files_and_another_candidate_stage(self):
+        with tempfile.TemporaryDirectory() as raw:
+            stage=Path(raw);candidate=stage/'runtime';candidate.mkdir();source=stage/'staging-proof.json'
+            source.write_text('{}')
+            with self.assertRaises(AssertionError):
+                runtime.require_staging_proof(source,stage/'different/runtime','candidate','baseline')
+            with patch.object(Path,'is_symlink',return_value=True),self.assertRaises(AssertionError):
+                runtime.require_staging_proof(source,candidate,'candidate','baseline')
+            actual_stat=Path.stat
+            for owner,mode in [(1000,0o600),(0,0o644)]:
+                def untrusted_stat(file,*args,**kwargs):
+                    if file==source:return SimpleNamespace(st_uid=owner,st_mode=stat.S_IFREG|mode)
+                    return actual_stat(file,*args,**kwargs)
+                with self.subTest(owner=owner,mode=mode),patch.object(Path,'stat',untrusted_stat),self.assertRaises(AssertionError):
+                    runtime.require_staging_proof(source,candidate,'candidate','baseline')
+
     def test_storage_admission_blocks_activation_before_any_mutation(self):
         with patch.object(runtime.os,'geteuid',return_value=0,create=True), \
              patch.object(runtime.socket,'gethostname',return_value='fcarena-prod'), \

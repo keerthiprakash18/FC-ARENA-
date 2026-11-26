@@ -307,7 +307,7 @@ export function PlayerJourney({
               </div>
               <div className="community-between">
                 <h3>This week’s missions</h3>
-                <span>
+                <span role="status" className="theme-secondary-text tabular-nums">
                   {data.week.completedMissions}/{data.week.missions.length} done
                 </span>
               </div>

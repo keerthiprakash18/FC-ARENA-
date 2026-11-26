@@ -18,7 +18,7 @@ ARTIFACTS = Path('/root/fcarena-audit-improvements/artifacts')
 STATE = Path('/var/lib/fcarena-release-storage')
 POLICY = Path('/etc/fcarena/release-storage-policy.json')
 PATTERN = re.compile(r'/opt/fcarena-deployments/([^/\s\"\x27;]+)')
-ARCHIVE = re.compile(r'fcarena-(?:vcl-runtime-[0-9a-f]{40}\.zip|runtime-[0-9a-f]{40}\.tar\.gz)$')
+ARCHIVE = re.compile(r'(?:fcarena-(?:vcl-runtime-[0-9a-f]{40}\.zip|runtime-[0-9a-f]{40}\.tar\.gz)|runtime-artifact\.zip)$')
 RELATIVE = tuple(prefix + suffix for prefix in ('', 'source/', 'candidate/', 'runtime/')
                  for suffix in ('node_modules', 'apps/web/node_modules', 'apps/web/.next/cache'))
 CONFIG_ROOTS = ('/etc/systemd/system', '/etc/fcarena', '/etc/cron.d', '/etc/cron.daily',

@@ -69,6 +69,49 @@ Disable future cleanup with `systemctl disable --now fcarena-release-storage.tim
 and disable the PC task. This leaves the app running. Retain private cleanup
 plans, receipts and `/var/lib/fcarena-release-storage/last-cleanup.json` as evidence.
 
+## Verified relocation of historical releases (26 Nov 2026)
+
+The owner explicitly requested removal of accumulated deployment files, preservation
+of all user data/features, and future storage of archives on the PC. This extends
+the earlier package/cache-only scope to **verified off-host relocation** of
+unreferenced whole release roots. It does not authorize deleting live data,
+referenced releases, the verified rollback, or unverified archives.
+
+- `retire_shadowed_config.py` retires only `ExecStart`, `EnvironmentFile`, and
+  `WorkingDirectory` directives overridden by the final managed configuration.
+  Original bytes remain private for recovery. Commands, environments, security
+  settings, writable paths, and PIDs must compare identically after daemon-reload;
+  any mismatch restores the original files. There is no application restart.
+- `release_escrow.py` checks current/rollback, effective reference inventory,
+  symlinks, mounts, processes, file descriptors, database file references, and fresh
+  complete encrypted off-host backup/restore proof. It records every historical
+  tree before streaming an archive directly to the PC. No archive is stored on VCL.
+- `receive_release_escrow.py` compares the actual PC bytes with the server stream
+  SHA-256 and checks every tar entry against the exact release inventory. Only then
+  does it issue a private receipt. Server `apply` checks the receipt, freshness,
+  references and every tree again under the activation lock before removal.
+- The separate root-owned `/etc/fcarena/release-escrow-policy.json` must approve
+  `pc-verified-unreferenced-release-roots-v1` for the PC `--cycle` mode. Cycles select
+  only releases at least 24 hours old, at most 10 roots and 10 GiB per run. The
+  existing logged-in-user PC maintenance task runs the receiver after archive
+  escrow. If the PC is unavailable, disk space is insufficient, or recovery proof
+  is stale, old releases remain protected and maintenance reports failure.
+- GitHub outer `runtime-artifact.zip` files now participate in archive escrow.
+  A PC with the matching inner tarball can reconstruct the exact outer ZIP from
+  bounded header/trailer metadata; its complete SHA-256 must still match before
+  the server may remove the original. Filenames include the release SHA to avoid
+  collisions between different outer ZIPs.
+
+Keep builds in GitHub Actions and the PC. Required current/rollback runtimes,
+stable user files, credentials and data remain on VCL. Never promise an empty
+deployment directory while those applications are served from VCL.
+
+Disable whole-release relocation by disabling the PC task or removing its
+separate standing policy; the guarded package/cache timer can remain enabled.
+Private plans, transfer receipts and results remain under
+`/var/lib/fcarena-release-storage`; sensitive historical archives stay on the
+owner's private PC and must never be uploaded to GitHub.
+
 ## Historical baseline (20 Nov 2026; superseded by current live inventory)
 
 - Current live V12: `/opt/fcarena-deployments/fcarena-v12-stage-154b8440b92c` (SHA `154b8440b92ca18f15fc186ee17019820cf8e116`). Protected V11 rollback: `/opt/fcarena-deployments/playoff-visual-v11-2433159e0d5c`. GitHub main is not automatically live.

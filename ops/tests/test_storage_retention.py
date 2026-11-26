@@ -1,4 +1,6 @@
 import copy
+import base64
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -33,6 +35,33 @@ class RetentionTests(unittest.TestCase):
         self.artifacts = self.root / 'artifacts'
         self.releases.mkdir()
         self.artifacts.mkdir()
+
+    def test_github_outer_zip_is_escrowed_with_unique_release_name(self):
+        path = self.artifacts / ('a' * 40) / 'runtime-artifact.zip'
+        path.parent.mkdir()
+        path.write_bytes(b'github artifact outer zip')
+        self.assertEqual(self.items()[0]['path'], str(path))
+        item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/runtime-artifact.zip',
+                'sha256': 'b' * 64}
+        self.assertEqual(O.archive_target(item, Path('/private')), Path('/private') / ('a' * 40 + '-runtime-artifact.zip'))
+        other = dict(item, path=item['path'].replace('a' * 40, 'c' * 40))
+        self.assertNotEqual(O.archive_target(other, Path('/private')), O.archive_target(item, Path('/private')))
+
+    def test_reconstructed_zip_requires_the_complete_remote_checksum(self):
+        source = self.root / ('fcarena-runtime-' + 'a' * 40 + '.tar.gz')
+        source.write_bytes(b'already verified inner tarball')
+        target = self.root / ('a' * 40 + '-runtime-artifact.zip')
+        head, tail = b'zip header', b'zip directory'
+        recipe = {'name': source.name, 'bytes': source.stat().st_size,
+                  'head': base64.b64encode(head).decode(), 'tail': base64.b64encode(tail).decode()}
+        item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/runtime-artifact.zip',
+                'sha256': hashlib.sha256(head + source.read_bytes() + tail).hexdigest()}
+        self.assertTrue(O.reconstruct_stored_zip(item, target, recipe))
+        self.assertEqual(target.read_bytes(), head + source.read_bytes() + tail)
+        target.unlink()
+        self.assertFalse(O.reconstruct_stored_zip(dict(item, sha256='b' * 64), target, recipe))
+        self.assertFalse(target.exists())
+        self.assertTrue(source.exists())
 
     def directory(self, name):
         path = self.releases / name

@@ -55,12 +55,12 @@ def database_references():
     raw = subprocess.check_output(['docker', 'exec', 'fc-arena-postgres', 'sh', '-ec',
                                   'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --data-only'],
                                  stderr=subprocess.PIPE, timeout=120)
-    return set(re.findall(re.escape(str(ROOT).encode()) + rb'/([A-Za-z0-9_.-]+)', raw))
+    return set(re.findall(re.escape(ROOT.as_posix().encode()) + rb'/([A-Za-z0-9_.-]+)', raw))
 
 
 def legacy_references(r, root):
     """The retired pre-managed roots need the same config/process/link reference safeguards."""
-    pattern = re.compile(re.escape(str(root)) + r'/([^/\s\"\x27;]+)')
+    pattern = re.compile(re.escape(root.as_posix()) + r'/([^/\s\"\x27;]+)')
     refs = {}
 
     def add(text, why):
@@ -92,8 +92,8 @@ def legacy_references(r, root):
         if entry:
             link, target = entry.split('\t', 1)
             resolved = (Path(link).parent / target).resolve()
-            if pattern.findall(link) != pattern.findall(str(resolved)):
-                add(str(resolved), 'external symlink')
+            if pattern.findall(link) != pattern.findall(resolved.as_posix()):
+                add(resolved.as_posix(), 'external symlink')
     return refs
 
 

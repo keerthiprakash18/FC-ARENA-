@@ -86,23 +86,23 @@ class ReleaseEscrowTests(unittest.TestCase):
     def test_legacy_inventory_protects_config_process_and_external_link_references(self):
         real_path = Path
         with tempfile.TemporaryDirectory() as raw:
-            base = Path(raw)
+            base = Path(raw).resolve()
             root = base / 'legacy-releases'
             root.mkdir()
             for name in ('configured', 'running', 'linked', 'unused'):
                 (root / name).mkdir()
             config = base / 'config'
             config.mkdir()
-            (config / 'legacy.conf').write_text(str(root / 'configured/runtime'))
+            (config / 'legacy.conf').write_text((root / 'configured/runtime').as_posix())
             guard = Mock()
             guard.CONFIG_ROOTS = [str(config)]
-            guard.process_paths.return_value = {str(root / 'running/main.js')}
+            guard.process_paths.return_value = {(root / 'running/main.js').as_posix()}
             guard.mount_paths.return_value = set()
             proc = Mock()
             proc.iterdir.return_value = []
             def path(value):
                 return proc if str(value) == '/proc' else real_path(value)
-            links = (str(base / 'external-link') + '\t' + str(root / 'linked/runtime') + '\0').encode()
+            links = ((base / 'external-link').as_posix() + '\t' + (root / 'linked/runtime').as_posix() + '\0').encode()
             with patch.object(R, 'Path', side_effect=path), \
                  patch.object(R.subprocess, 'check_output', return_value=links):
                 refs = R.legacy_references(guard, root)

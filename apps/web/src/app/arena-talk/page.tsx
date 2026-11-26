@@ -59,9 +59,9 @@ export default function ArenaTalkPage() {
   }, []);
   async function switchScope(next: string) {
     if (next === scope) return;
-    const draft = document.querySelector<HTMLTextAreaElement>("#arena-body");
+    const draft = document.querySelector('#arena-composer[data-has-draft="true"]');
     if (
-      draft?.value.trim() &&
+      draft &&
       !(await confirmAction({
         title: "Switch conversations?",
         description:
@@ -133,7 +133,8 @@ export default function ArenaTalkPage() {
             </p>
             <div className="arena-layout">
               {canReadRoom ? <ArenaFeed
-                key={`${scope}:${feedRevision}`}
+                key={scope}
+                refreshRevision={feedRevision}
                 leagueId={scope === "PUBLIC" ? null : scope}
                 leagueName={
                   scope === "PUBLIC"

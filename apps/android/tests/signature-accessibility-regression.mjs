@@ -1,6 +1,6 @@
 // Rendered acceptance uses synthetic intercepted data and never contacts production.
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
@@ -8,8 +8,9 @@ import { createUiContext, checkLayout } from './phase-ui-harness.mjs';
 import { phaseData } from './phase-ui-fixtures.mjs';
 
 const origin=process.env.SMOKE_WEB_ORIGIN||'http://127.0.0.1:3000';
-const output=process.env.SMOKE_OUTPUT||'/tmp/fcarena-mobile-ui';
-mkdirSync(output,{recursive:true});
+const outputRoot=process.env.SMOKE_OUTPUT||'/tmp/fcarena-mobile-ui';
+mkdirSync(outputRoot,{recursive:true});
+const output=mkdtempSync(join(outputRoot,'signature-accessibility-'));
 const themes=['LUXURY_GOLD','CLASSIC_BLUE','CITY_SKY','LONDON_RED','MERSEY_RED','MADRID_ROYAL','CATALAN_NIGHTS','MUNICH_RED','PARIS_NIGHT','MILAN_BLUE','MILAN_RED','TURIN_MONO'];
 const match=phaseData['/api/matches/phase3'].match;
 const submission={id:'signature-confirmed',homeScore:3,awayScore:1,status:'CONFIRMED',source:'MANUAL',rejectionReason:null,createdAt:'2026-11-25T12:00:00Z',submittedBy:{id:'phase3',fullName:'Fixture Player',player:null},reviewedBy:{id:'fixture-admin',fullName:'Fixture Admin'}};
@@ -72,7 +73,6 @@ try {
    await f.page.waitForTimeout(400);await checkLayout(f.page,'bounded score reveal');
   }finally{await f.context.close();}
  }
- writeFileSync(join(output,'signature-accessibility-results.json'),JSON.stringify(results,null,2));
  assert.deepEqual(results.filter(r=>r.violations.length),[],'rendered WCAG violations (see signature-accessibility-results.json)');
  console.log(`PASS: ${results.length} rendered WCAG audits; reflow, keyboard, forced colors and bounded/reduced/native motion`);
-} finally {writeFileSync(join(output,'signature-accessibility-results.json'),JSON.stringify(results,null,2));await browser.close();}
+} finally {writeFileSync(join(output,'signature-accessibility-results.json'),JSON.stringify(results,null,2),{flag:'wx',mode:0o600});await browser.close();}

@@ -145,6 +145,7 @@ jobs:
           path: |
             /tmp/fcarena-mobile-ui/*.png
             /tmp/fcarena-mobile-ui/results.json
-            /tmp/fcarena-mobile-ui/signature-accessibility-results.json
+            /tmp/fcarena-mobile-ui/signature-accessibility-*/*.png
+            /tmp/fcarena-mobile-ui/signature-accessibility-*/signature-accessibility-results.json
           if-no-files-found: warn
           retention-days: 7

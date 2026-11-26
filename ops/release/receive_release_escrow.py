@@ -77,7 +77,9 @@ def main():
     streamed = read('stream.json')
     assert target.stat().st_size == streamed['bytes'] and digest(target) == streamed['sha256']
     counts = {item['name']: 0 for item in plan['releases']}
-    with tarfile.open(target, 'r|gz', bufsize=1024 * 1024) as archive:
+    # Keep tarfile's small default stream buffer: large compressed metadata chunks
+    # otherwise cause repeated large byte copies for each of the many tiny headers.
+    with tarfile.open(target, 'r|gz') as archive:
         for member in archive:
             name = Path(member.name)
             assert not name.is_absolute() and '..' not in name.parts and '\\' not in member.name

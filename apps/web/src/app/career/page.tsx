@@ -136,7 +136,7 @@ export default function CareerPage() {
                 {career.profile.primaryLeague ? (
                   <Link
                     href={`/leagues/${career.profile.primaryLeague.league.id}`}
-                    className="rounded-full border border-sky-400/20 bg-sky-400/[0.05] px-3 py-1 text-[10px] font-black text-sky-300"
+                    className="inline-flex min-h-11 max-w-full items-center rounded-xl border border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-3 py-2 text-xs font-semibold text-[var(--theme-text)] [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
                   >
                     {career.profile.primaryLeague.league.name}
                   </Link>
@@ -145,7 +145,7 @@ export default function CareerPage() {
                 {career.profile.secondaryLeague ? (
                   <Link
                     href={`/leagues/${career.profile.secondaryLeague.league.id}`}
-                    className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black text-slate-400"
+                    className="inline-flex min-h-11 max-w-full items-center rounded-xl border border-[var(--theme-control-border)] bg-[var(--theme-surface)] px-3 py-2 text-xs font-semibold text-[var(--theme-text)] [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-focus)]"
                   >
                     {career.profile.secondaryLeague.league.name}
                   </Link>

@@ -123,6 +123,8 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/premium-hierarchy-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/discover-search-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/arena-reading-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/admin-career-acceptance.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 COMMUNITY_SCREENSHOTS=/tmp/fcarena-mobile-ui node apps/android/tests/player-community-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/node_modules/@playwright/test/cli.js test --config apps/android/tests/startup-web.config.mjs --workers=2 --output /tmp/fcarena-startup-web
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/next-match-navigation-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/awards-ranking-regression.mjs

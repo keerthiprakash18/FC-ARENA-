@@ -39,7 +39,8 @@ Updated: 26 November 2026 (Asia/Kolkata). This ledger records evidence, not rele
 - [x] Review community audience and loading/recovery interactions; fix reproduced draft-loss defects.
 - [x] Run relevant local source/functional/browser/theme/security checks and reconcile measured inherited performance evidence; record scope and limitations.
 - [x] Capture 32 matched synthetic before/after screenshots and document design decisions in `next-design-system.md` and the visual evidence ledger.
-- [ ] Commit coherent changes, publish reviewable PR and wait for exact final CI.
+- [x] Prior integrated candidate `255bcdb92f1d55105cdb1285a52fbf1cd98c04b2`: 13/13 workflow conclusions successful; Android API 33–36 and Frontend verified. Manual live/artifact job was skipped, not passed. User's Windows read-only preflight reported exact artifact, unchanged live baseline, four replicas, backup timestamps and disk admission PASS. None of these establish final staging or full-product acceptance.
+- [ ] Verify new admin analytics chart/retry and all-theme career links; run the community/journey matrix in CI rather than relying only on a workstation sweep. Recheck exact new SHA before accepting.
 - [ ] Verify public/host release identity, recovery freshness, capacity and guarded staging prerequisites.
 - [ ] Rehearse exact final artifact and rollback when host gates permit.
 - [ ] Complete release checklist and operator handoff; do not declare unfinished phases complete.

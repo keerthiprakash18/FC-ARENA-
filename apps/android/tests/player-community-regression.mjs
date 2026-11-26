@@ -7,7 +7,7 @@ import { summarizeExperience } from '../../api/src/experience/experience-policy.
 
 const output = path.resolve(process.env.COMMUNITY_SCREENSHOTS || '.cache/community/screenshots');
 fs.mkdirSync(output, { recursive: true });
-const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 const leagueId = '01e150a6-1be1-4e30-9a67-8e6d80a64116';
 const contextData = { leagues: [{ id: leagueId, name: 'Coastal Premier League' }], canModerate: true, policy: { audienceNote: 'Football Talk is visible to active FC ARENA members. League posts stay within that league. Posts and likes do not earn XP.' } };
 const experience = summarizeExperience([{ week: '2026-10-26', matches: 10, days: 2, teamMatches: 0 }], 1, false, 'CLASSIC', new Date('2026-11-01T12:00:00Z'));

@@ -50,6 +50,21 @@ def wait_all(sha):
         time.sleep(2)
     raise RuntimeError('Managed replicas failed exact release health')
 
+def require_staging_proof(path,runtime,sha,expected_old,now=None):
+    """Accept only a fresh, private proof from this exact candidate stage."""
+    source=Path(path)
+    assert not source.is_symlink() and source.resolve().parent==runtime.resolve().parent,'Staging proof must belong to this candidate stage'
+    metadata=source.stat()
+    assert source.is_file() and metadata.st_uid==0 and metadata.st_mode&0o077==0,'Staging proof must be a private root-owned file'
+    proof=json.loads(source.read_text())
+    assert proof['status']=='PASS' and proof['release']==sha and proof['baselineRelease']==expected_old,'Staging proof does not match the candidate and current baseline'
+    assert all(proof[key] is True for key in ['crossInstanceRedis','replicaFailover','realBrowser','realAuthenticatedAPI']),'Authenticated API, real browser, Redis and failover evidence must all pass'
+    verified=dt.datetime.fromisoformat(proof['verifiedAtUtc'])
+    assert verified.tzinfo is not None,'Staging proof timestamp must include its timezone'
+    now=now or dt.datetime.now(dt.timezone.utc)
+    assert dt.timedelta(minutes=-5)<=now-verified<=dt.timedelta(hours=24),'Staging proof is stale or from the future'
+    return proof
+
 SOCIAL_MIGRATION='migrations/20261122160000_social_sign_in/migration.sql'
 SOCIAL_MIGRATION_HASH='8264b8fc5ff9988e5b481d4a6788279c32a1cb9b85d66274793eda69f4683249'
 DUO_MIGRATION='migrations/20261123080000_duo_game_progress/migration.sql'
@@ -240,7 +255,7 @@ def activate(args):
         assert release_health(4000,'api')==args.expected_old and release_health(3000,'web')==args.expected_old
         assert all('managed_runtime.py' not in property('fcarena-'+kind,'ExecStart') for kind in ['api','web'])
         previous=None
-    proof=json.loads(Path(args.staging_proof).read_text());assert proof['release']==args.sha and proof['crossInstanceRedis'] and proof['replicaFailover'] and proof['realBrowser']
+    require_staging_proof(args.staging_proof,runtime,args.sha,args.expected_old)
     backup=json.loads(Path('/var/lib/fcarena-backup-state/health.json').read_text())
     assert backup['encrypted'] and backup.get('lastOffhostCopyAt') and backup.get('lastVerifiedRestoreAt')
     now=dt.datetime.now(dt.timezone.utc)

@@ -22,9 +22,9 @@ def bundle(root, entries=None, release=RELEASE):
     with tarfile.open(path, "w:gz") as tar:
         for entry in entries:
             if isinstance(entry, tuple):
-                name, link = entry
+                name, link, *kind = entry
                 info = tarfile.TarInfo(name)
-                info.type = tarfile.SYMTYPE
+                info.type = kind[0] if kind else tarfile.SYMTYPE
                 info.linkname = link
                 tar.addfile(info)
             else:
@@ -79,6 +79,42 @@ class TestBundleGate(unittest.TestCase):
         bundle(self.root, entries=REQUIRED + [("node_modules/example", "../../../../etc/passwd")])
         with self.assertRaisesRegex(module.UnsafeBundle, "escaping archive link"):
             module.verify(self.root, RELEASE)
+
+    def test_rejects_symlink_ancestor_in_both_orders(self):
+        link = ("node_modules/example", "../apps/web")
+        child = "node_modules/example/unexpected.js"
+        for pair in ([link, child], [child, link]):
+            with self.subTest(pair=pair):
+                bundle(self.root, entries=REQUIRED + pair)
+                with self.assertRaisesRegex(module.UnsafeBundle, "non-directory archive ancestor"):
+                    module.verify(self.root, RELEASE)
+
+    def test_rejects_regular_file_as_parent(self):
+        bundle(self.root, entries=REQUIRED + ["node_modules/file", "node_modules/file/child"])
+        with self.assertRaisesRegex(module.UnsafeBundle, "non-directory archive ancestor"):
+            module.verify(self.root, RELEASE)
+
+    def test_rejects_symlink_in_place_of_required_runtime_file(self):
+        entries = [entry for entry in REQUIRED if entry != "apps/web/.next/BUILD_ID"]
+        bundle(self.root, entries=entries + [("apps/web/.next/BUILD_ID", "../../../package.json")])
+        with self.assertRaisesRegex(module.UnsafeBundle, "regular files required"):
+            module.verify(self.root, RELEASE)
+
+    def test_rejects_missing_or_symlink_hardlink_target(self):
+        for target in ("node_modules/missing", "node_modules/link"):
+            with self.subTest(target=target):
+                bundle(self.root, entries=REQUIRED + [
+                    ("node_modules/link", "../package.json"),
+                    ("node_modules/hard", target, tarfile.LNKTYPE),
+                ])
+                with self.assertRaisesRegex(module.UnsafeBundle, "hardlink target"):
+                    module.verify(self.root, RELEASE)
+
+    def test_allows_internal_regular_hardlink(self):
+        bundle(self.root, entries=REQUIRED + [
+            ("node_modules/hard", "package.json", tarfile.LNKTYPE),
+        ])
+        self.assertEqual(module.verify(self.root, RELEASE), 5)
 
     def test_allows_workspace_relative_symlink(self):
         bundle(self.root, entries=REQUIRED + [("node_modules/example", "../package-lock.json")])

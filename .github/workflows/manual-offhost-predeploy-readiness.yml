@@ -8,6 +8,7 @@ on:
       - ".github/workflows/manual-offhost-predeploy-readiness.yml"
       - "tests/manual-offhost-predeploy-readiness.test.mjs"
       - "ops/verify-offhost-runtime-bundle.py"
+      - "ops/tests/test_offhost_bundle.py"
   workflow_dispatch:
     inputs:
       source_run_id:

@@ -47,6 +47,9 @@ def verify(directory: Path, release: str) -> int:
         raise UnsafeBundle("artifact checksum mismatch")
 
     seen: set[str] = set()
+    regular: set[str] = set()
+    directories: set[str] = set()
+    hardlinks: dict[str, str] = {}
     count = 0
     with tarfile.open(archive, "r:gz") as bundle:
         for member in bundle:
@@ -75,14 +78,33 @@ def verify(directory: Path, release: str) -> int:
                 ) if member.issym() else target)
                 if linked == ".." or linked.startswith("../") or linked.startswith("/"):
                     raise UnsafeBundle("escaping archive link")
-            elif not (member.isfile() or member.isdir()):
+                if member.islnk():
+                    hardlinks[raw] = linked
+            elif member.isfile():
+                regular.add(raw)
+            elif member.isdir():
+                directories.add(raw)
+            else:
                 raise UnsafeBundle("special archive file type")
             if raw in seen:
                 raise UnsafeBundle("duplicate archive entry: " + raw[:120])
             seen.add(raw)
-    if not REQUIRED.issubset(seen):
-        raise UnsafeBundle("missing required compiled runtime files")
-    if not any(n in seen for n in ("apps/api/dist/main.js", "apps/api/dist/main")):
+    # Tar extraction must never traverse a member that is a symlink, hardlink,
+    # or regular file. Validate after reading all headers so archive order
+    # cannot conceal a link ancestor. Implicit directories are permitted.
+    non_directories = seen - directories
+    for raw in seen:
+        parent = posixpath.dirname(raw)
+        while parent:
+            if parent in non_directories:
+                raise UnsafeBundle("non-directory archive ancestor: " + parent[:120])
+            parent = posixpath.dirname(parent)
+    for target in hardlinks.values():
+        if target not in regular:
+            raise UnsafeBundle("hardlink target must be a regular archived file")
+    if not REQUIRED.issubset(regular):
+        raise UnsafeBundle("missing required compiled runtime files (regular files required)")
+    if not any(n in regular for n in ("apps/api/dist/main.js", "apps/api/dist/main")):
         raise UnsafeBundle("missing compiled API entrypoint")
     print(f"OFFHOST_BUNDLE_SAFETY=PASS RELEASE={release} ENTRIES={count}")
     print("PRODUCTION_DEPLOYMENT_AUTHORIZED=NO")

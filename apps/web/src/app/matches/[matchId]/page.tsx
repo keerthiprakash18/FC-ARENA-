@@ -307,11 +307,21 @@ function MatchScheduleLabel({ schedule, status }: { schedule: MatchCenter['sched
   useEffect(() => {
     if (status === 'COMPLETED' || status === 'CANCELLED') return;
     const target = Math.max(new Date(schedule.scheduledAt ?? '').getTime() || 0, new Date(schedule.estimatedDeadlineAt ?? '').getTime() || 0);
-    if (target <= Date.now()) return;
-    const update = () => { if (document.visibilityState !== 'hidden') setNow(Date.now()); };
-    const timer = window.setInterval(update, 1_000);
+    let timer: number | undefined;
+    const update = () => {
+      window.clearTimeout(timer);
+      if (document.visibilityState === 'hidden') return;
+      const current = Date.now();
+      setNow(current);
+      if (target > current) {
+        // Days are displayed to minute precision. Shorter windows show seconds.
+        const delay = target - current >= 86_400_000 ? 60_000 : 1_000;
+        timer = window.setTimeout(update, Math.min(delay, target - current));
+      }
+    };
+    timer = window.setTimeout(update, 0);
     document.addEventListener('visibilitychange', update);
-    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', update); };
+    return () => { window.clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
   }, [schedule.scheduledAt, schedule.estimatedDeadlineAt, status]);
   if (status === 'COMPLETED') return <>Match completed</>;
   if (status === 'CANCELLED') return <>Match cancelled</>;
@@ -1060,6 +1070,21 @@ function MatchRoom() {
       (item) => item.status === "PENDING_VERIFICATION",
     );
 
+  const roomState = confirmed ? 'verified' : match.status === 'CANCELLED' ? 'cancelled' : returnLegLocked ? 'locked' : awaitingReview ? 'review' : confirmedId || match.status === 'COMPLETED' ? 'completed' : match.readiness.bothReady ? 'ready' : 'scheduled';
+  const roomTitle = roomState === 'verified' ? 'Verified result · Match Room locked'
+    : roomState === 'cancelled' ? 'Match cancelled'
+    : roomState === 'locked' ? 'First-leg verification required'
+    : roomState === 'review' ? 'Result submitted · awaiting verification'
+    : roomState === 'completed' ? 'Match completed'
+    : roomState === 'ready' ? 'Both sides Ready · play the match'
+    : canSubmit ? 'Match Room active' : 'Match details';
+  const roomHint = roomState === 'verified' ? 'The confirmed score is the official result for this match.'
+    : roomState === 'cancelled' ? 'This fixture is no longer scheduled for play.'
+    : roomState === 'locked' ? 'Open the first leg above to check its verification.'
+    : roomState === 'review' ? 'Submitted scores are provisional until verified.'
+    : roomState === 'completed' ? 'See the result verification section for the available record.'
+    : roomState === 'ready' ? 'When play is finished, submit the result for verification.'
+    : 'Check the scheduled time and readiness before playing.';
   const participantReady =
     match.participantSide === "HOME"
       ? match.readiness.homeReady
@@ -1103,7 +1128,7 @@ function MatchRoom() {
           </Link>
         </div>
 
-        <section className="premium-hero premium-scoreboard fc-scoreboard-enter">
+        <section className="premium-hero premium-scoreboard fc-scoreboard-enter fc-signature-matchboard" data-match-state={roomState} aria-label="Match scoreboard">
           <PremiumPitch />
 
           <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -1121,7 +1146,7 @@ function MatchRoom() {
 
             <div className="premium-countdown rounded-2xl border px-4 py-3 text-right">
               <p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-600">
-                Live Countdown
+                Match schedule
               </p>
               <p className="mt-1 text-sm font-black text-sky-300">
                 <MatchScheduleLabel schedule={match.schedule} status={match.status} />
@@ -1129,7 +1154,7 @@ function MatchRoom() {
             </div>
           </div>
 
-          <div className="fc-match-room-score-grid relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
+          <div className="fc-match-room-score-grid relative mt-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5" aria-label={confirmed ? `Verified score: ${home} ${confirmed.homeScore}, ${away} ${confirmed.awayScore}` : "Teams and readiness"}>
             <div className="min-w-0 text-center">
               <p className="theme-secondary-text mb-2 text-[10px] font-semibold uppercase tracking-wider">Home</p>
               <FcCrest name={home} size="lg" />
@@ -1148,7 +1173,7 @@ function MatchRoom() {
               </p>
 
               {confirmed ? (
-                <p className="mt-5 fc-match-status-enter text-5xl font-black text-sky-400 md:text-6xl">
+                <p key={`home-${confirmed.id}-${confirmed.homeScore}`} className="mt-5 fc-match-status-enter fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.homeScore}
                 </p>
               ) : null}
@@ -1184,7 +1209,7 @@ function MatchRoom() {
               </p>
 
               {confirmed ? (
-                <p className="mt-5 fc-match-status-enter text-5xl font-black text-sky-400 md:text-6xl">
+                <p key={`away-${confirmed.id}-${confirmed.awayScore}`} className="mt-5 fc-match-status-enter fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.awayScore}
                 </p>
               ) : null}
@@ -1259,7 +1284,7 @@ function MatchRoom() {
           ) : null}
         </section>
 
-        <section className="premium-match-task">
+        <section className="premium-match-task fc-signature-match-task" data-match-state={roomState} aria-label="Match actions">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -1268,8 +1293,8 @@ function MatchRoom() {
                 </span>
                 <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">{match.status.replaceAll("_", " ")}</span>
               </div>
-              <p className="mt-3 text-sm font-semibold">{confirmed ? "Verified result · Match Room locked" : awaitingReview ? "Result submitted · awaiting verification" : match.readiness.bothReady ? "Both sides Ready · play the match" : canSubmit ? "Match Room active" : "Match details"}</p>
-              <p className="mt-1 text-xs text-slate-500"><MatchScheduleLabel schedule={match.schedule} status={match.status} /></p>
+              <p className="fc-match-task-title mt-3 text-sm font-semibold" role="status">{roomTitle}</p>
+              <p className="theme-secondary-text mt-1 text-sm">{roomHint}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {!confirmed && (awaitingReview || canSubmit) ? <a className="theme-primary-button rounded-xl px-4 py-3 text-sm" href={awaitingReview ? "#result-verification" : "#result-entry"}>{awaitingReview ? "Review submissions" : "Enter score"}</a> : null}
@@ -1761,7 +1786,7 @@ function MatchRoom() {
 
             <Link
               href={"/matches/" + params.matchId + "/dispute"}
-              className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] px-4 py-2 text-sm font-black text-amber-300 transition hover:bg-amber-400/[0.08]"
+              className="theme-secondary-button inline-flex min-h-11 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold"
             >
               Dispute Center
             </Link>

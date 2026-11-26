@@ -198,12 +198,12 @@ export default function AppearancePage() {
               <FcPanel
                 key={option.preference}
                 className={
-                  current ? "theme-selected-card p-5 sm:p-6" : "p-5 sm:p-6"
+                  current ? "theme-selected-card fc-signature-option flex flex-col p-5 sm:p-6" : "fc-signature-option flex flex-col p-5 sm:p-6"
                 }
               >
                 <ThemePreview option={option} dark={resolvedDark} />
 
-                <div className="mt-5 flex flex-wrap items-start justify-between gap-3">
+                <div className="mt-4 flex flex-1 flex-wrap items-start justify-between gap-3 pb-4">
                   <div>
                     <h3 className="text-lg font-bold">{option.name}</h3>
                     <p className="mt-1 text-sm font-semibold">{option.signature}</p>
@@ -231,7 +231,7 @@ export default function AppearancePage() {
                   aria-label={`${current ? "Current theme:" : "Use theme:"} ${option.name}`}
                   disabled={saving !== null || current}
                   onClick={() => void chooseTheme(option.preference)}
-                  className="theme-primary-button mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[11px] px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-55"
+                  className="theme-primary-button mt-auto inline-flex min-h-12 w-full items-center justify-center rounded-[11px] px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-55"
                 >
                   {saving === option.preference
                     ? "Applying..."

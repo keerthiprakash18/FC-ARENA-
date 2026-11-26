@@ -1,6 +1,6 @@
 # Signature Edition — founder acceptance ledger
 
-Baseline: main f009fbdd69bcaf9e434ead4a3c193921b281d6b4; last owner-provided rollout verified four healthy instances and 54.92 GiB free. Public endpoint retrieval in this audit was unavailable; do not treat prior rollout logs as a new live measurement.
+Baseline: main f009fbdd69bcaf9e434ead4a3c193921b281d6b4; last owner-provided rollout verified four healthy instances and 54.92 GiB free. Public endpoint retrieval in both audit attempts was unavailable; do not treat prior rollout logs as a new live measurement.
 
 ## Root cause
 Dark London, Mersey and Munich shared identical primary/soft values; most dark backgrounds were identical. Matchday gradients reused a navy formula and the more-specific arena stadium rule masked club hero backgrounds. Appearance used light-only generic placeholder blocks, even in dark mode.
@@ -10,7 +10,7 @@ Preserve all 12 existing persisted keys and LIGHT/DARK/SYSTEM, no new league/clu
 
 ## Evidence and remaining gates
 - Source contrast calculation in authoring: 528 literal pairs passed; does not certify rendered gradients, visual appeal or WCAG conformance.
-- Rendered appearance/hero matrix and exact candidate CI must pass; inspect captured screenshots before accepting.
+- Prior theme candidate 65402da73ac5db672067ca9ee35a18eb1fa7b236: Frontend CI run 45844562535 passed 4 galleries and 24 actual dashboard theme/mode cases; screenshot artifact 15131961903. Manual visual review remains open. Final-source gate run 45844562435 failed on obsolete Vercel/Railway assertion. Align the strict source gate and worksheet with VCL hosting; retain other Data Safety checks. Retest exact revised candidate.
 - Existing Android, tournament, award, admin, security and recovery regression gates remain mandatory.
 - No direct new live authenticated audit, physical device or production metrics in this session.
 

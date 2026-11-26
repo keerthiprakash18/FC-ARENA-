@@ -42,7 +42,7 @@ for (const required of [
 }
 
 requireMatch(
-  privacy.includes('Vercel') && privacy.includes('Railway'),
+  privacy.includes('VCCLHosting (VCL)') && worksheet.includes('VCCLHosting (VCL)'),
   'Privacy Policy must identify current hosting/infrastructure providers.',
 );
 

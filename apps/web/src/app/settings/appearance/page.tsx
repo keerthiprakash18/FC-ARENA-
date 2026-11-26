@@ -27,78 +27,15 @@ import {
   type ThemePreference,
 } from "@/lib/theme";
 
-function ThemePreview({ option }: { option: ThemeOption }) {
+function ThemePreview({ option, dark }: { option: ThemeOption; dark: boolean }) {
   return (
-    <div
-      className="overflow-hidden rounded-2xl border"
-      style={{
-        borderColor: option.preview.accent + "33",
-        background: option.preview.background,
-      }}
-    >
-      <div className="grid min-h-[180px] grid-cols-[70px_1fr]">
-        <div
-          className="p-3"
-          style={{ background: option.preview.sidebar }}
-        >
-          <div
-            className="h-7 w-7 rounded-lg border"
-            style={{
-              borderColor: option.preview.accent + "66",
-              background: option.preview.accent + "22",
-            }}
-          />
-
-          <div className="mt-5 space-y-2">
-            <div
-              className="h-6 rounded-md"
-              style={{ background: option.preview.accent }}
-            />
-            <div className="h-6 rounded-md bg-white/10" />
-            <div className="h-6 rounded-md bg-white/10" />
-          </div>
-        </div>
-
-        <div className="p-3">
-          <div
-            className="h-7 rounded-lg border"
-            style={{
-              borderColor: option.preview.accent + "2b",
-              background: option.preview.surface,
-            }}
-          />
-
-          <div
-            className="mt-3 h-12 rounded-xl border"
-            style={{
-              borderColor: option.preview.accent + "33",
-              background:
-                "linear-gradient(120deg, " +
-                option.preview.surface +
-                ", " +
-                option.preview.accent +
-                "22)",
-            }}
-          />
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {[0, 1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="h-10 rounded-lg border"
-                style={{
-                  borderColor: option.preview.accent + "22",
-                  background: option.preview.surface,
-                }}
-              />
-            ))}
-          </div>
-
-          <div
-            className="mt-3 h-8 w-24 rounded-lg"
-            style={{ background: option.preview.accent }}
-          />
-        </div>
+    <div className="fc-signature-preview" data-preview-theme={option.dataTheme} data-preview-mode={dark ? "dark" : "light"} aria-hidden="true">
+      <div className="fc-signature-art">
+        <small>FC ARENA / SIGNATURE</small>
+        <strong>{option.signature}</strong>
+      </div>
+      <div className="fc-signature-sample">
+        <span>FC</span><span>Matchday · {dark ? "Night" : "Day"}</span>
       </div>
     </div>
   );
@@ -106,7 +43,7 @@ function ThemePreview({ option }: { option: ThemeOption }) {
 
 export default function AppearancePage() {
 
-  const { themePreference, displayMode, setThemePreference, setDisplayMode } =
+  const { themePreference, displayMode, resolvedDark, setThemePreference, setDisplayMode } =
     useTheme();
 
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -182,14 +119,14 @@ export default function AppearancePage() {
           <div className="mt-2">
             <FcPageHeader
               eyebrow="Settings · Appearance"
-              title="Theme"
-              subtitle="Choose how FC ARENA looks for your account. Your preference follows you when you sign in again."
+              title="Signature themes"
+              subtitle="Choose your matchday identity. Your saved palette follows your account; previews follow this device’s display mode."
             />
           </div>
         </div>
 
         {message ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.06] p-4 text-sm text-emerald-700">
+          <div role="status" className="rounded-xl border border-[var(--theme-success)] bg-[var(--theme-success-soft)] p-4 text-sm text-[var(--theme-success)]">
             {message}
           </div>
         ) : null}
@@ -252,7 +189,8 @@ export default function AppearancePage() {
           </div>
         </FcPanel>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="space-y-2"><h2 className="text-xl font-bold">Signature collection</h2><p className="text-sm text-[var(--theme-text-muted)]">Original FC ARENA artwork. Club-inspired palettes are unofficial fan themes and do not imply affiliation or endorsement.</p></div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {THEME_OPTIONS.map((option) => {
             const current = themePreference === option.preference;
 
@@ -263,11 +201,12 @@ export default function AppearancePage() {
                   current ? "theme-selected-card p-5 sm:p-6" : "p-5 sm:p-6"
                 }
               >
-                <ThemePreview option={option} />
+                <ThemePreview option={option} dark={resolvedDark} />
 
                 <div className="mt-5 flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-bold">{option.name}</h2>
+                    <h3 className="text-lg font-bold">{option.name}</h3>
+                    <p className="mt-1 text-sm font-semibold">{option.signature}</p>
 
                     <p className="mt-1 text-sm font-semibold text-[var(--theme-primary)]">
                       {option.palette}
@@ -289,6 +228,7 @@ export default function AppearancePage() {
 
                 <button
                   type="button"
+                  aria-label={`${current ? "Current theme:" : "Use theme:"} ${option.name}`}
                   disabled={saving !== null || current}
                   onClick={() => void chooseTheme(option.preference)}
                   className="theme-primary-button mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[11px] px-5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-55"

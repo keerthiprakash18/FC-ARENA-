@@ -96,7 +96,7 @@ export default function PrivacyPage() {
         icon="document"
       >
         <p>
-          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, Google Firebase Cloud Messaging for Android push-notification delivery, and Google Firebase Crashlytics for Android crash and reliability diagnostics.
+          FC ARENA uses service providers only where needed to operate the service. The current production application is hosted with VCCLHosting (VCL). Other providers can include Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, Google Firebase Cloud Messaging for Android push-notification delivery, and Google Firebase Crashlytics for Android crash and reliability diagnostics.
         </p>
 
         <p>

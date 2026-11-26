@@ -70,6 +70,7 @@ export default function TermsPage() {
         <p>
           Only upload or publish logos, images, names, text or other material that you are allowed to use. FC ARENA does not grant permission to use third-party game, club, league, film or brand assets merely because the platform allows a text name or image upload.
         </p>
+        <p>Club-inspired colour themes are unofficial fan preferences. FC ARENA does not represent those clubs or claim their sponsorship or endorsement.</p>
       </PublicInfoCard>
 
       <PublicInfoCard

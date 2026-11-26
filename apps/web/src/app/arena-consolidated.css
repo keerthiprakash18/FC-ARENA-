@@ -5194,3 +5194,86 @@ html[data-native-app="android"] .theme-bottom-item {
   .fc-premium .fc-main .fc-menu-action > span:first-child { width: 36px; height: 36px; }
 }
 /* ---- END SOURCE obsidian-matchday.css ---- */
+
+/* ---- BEGIN SOURCE signature-club-experience.css ---- */
+/* FC ARENA / SIGNATURE CLUB EXPERIENCE — restrained, static, original geometry.
+   Do not retheme editorial pages, official award metals or semantic status colors. */
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium {
+  --arena-navy: var(--theme-matchday-start);
+  --arena-deep: var(--theme-matchday-start);
+  --arena-raised: var(--theme-matchday-end);
+  --arena-line: color-mix(in srgb, var(--theme-matchday-accent) 28%, var(--theme-matchday-start));
+  --arena-gold: var(--theme-matchday-accent);
+  --arena-on-gold: var(--theme-on-matchday-accent);
+  --arena-hero-surface: var(--theme-signature-pattern), linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end));
+  --arena-stadium: var(--arena-hero-surface);
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .fc-app-shell .fc-main .premium-home-hero {
+  background: var(--arena-hero-surface) !important;
+  border-color: var(--arena-line);
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar .theme-nav-item[data-active="true"] {
+  box-shadow: inset 3px 0 0 var(--theme-matchday-accent);
+}
+.fc-signature-preview {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: 15px;
+  background: var(--theme-background);
+  color: var(--theme-text);
+}
+.fc-signature-preview .fc-signature-art {
+  min-height: 108px;
+  padding: 14px;
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+  background: var(--theme-signature-pattern), linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end));
+  color: var(--theme-matchday-text);
+}
+.fc-signature-preview .fc-signature-art small {
+  color: var(--theme-matchday-accent);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .14em;
+}
+.fc-signature-preview .fc-signature-art strong {
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 730;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+.fc-signature-preview .fc-signature-sample {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+.fc-signature-preview .fc-signature-sample span:first-child {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--theme-primary);
+  color: var(--theme-on-primary);
+  font-weight: 800;
+}
+.fc-signature-preview .fc-signature-sample span:last-child {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 650;
+}
+@media (forced-colors: active) {
+  .fc-signature-preview, .fc-signature-preview .fc-signature-art,
+  .fc-signature-preview .fc-signature-sample { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .fc-signature-preview .fc-signature-art small { color: CanvasText; }
+}
+/* ---- END SOURCE signature-club-experience.css ---- */

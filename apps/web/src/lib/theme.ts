@@ -34,6 +34,7 @@ export interface ThemeOption {
   dataTheme: ThemeDataAttribute;
   name: string;
   palette: string;
+  signature: string;
   description: string;
   inspiration: string;
   preview: {
@@ -52,6 +53,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "LUXURY_GOLD",
     dataTheme: "luxury-gold",
+    signature: "Gilded Obsidian",
     name: "Luxury Gold",
     palette: "Cream • Navy • Gold",
     description: "FC ARENA's premium default football presentation.",
@@ -61,6 +63,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "CLASSIC_BLUE",
     dataTheme: "classic-blue",
+    signature: "Electric Atlas",
     name: "Classic Blue",
     palette: "White • Royal Blue • Navy",
     description: "Clean modern sports styling with a bright blue accent.",
@@ -70,6 +73,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "CITY_SKY",
     dataTheme: "city-sky",
+    signature: "Titanium Sky",
     name: "Manchester City",
     palette: "Sky Blue • Midnight Navy • White",
     description: "Sky-blue matchday skin with floodlight geometry, stadium arcs and City-style visual rhythm.",
@@ -79,6 +83,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "LONDON_RED",
     dataTheme: "london-red",
+    signature: "Scarlet Precision",
     name: "Arsenal",
     palette: "Red • White • Deep Navy",
     description: "Red-and-white North London skin with sharp diagonal structure and premium matchday contrast.",
@@ -88,6 +93,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "MERSEY_RED",
     dataTheme: "mersey-red",
+    signature: "Anfield Ember",
     name: "Liverpool",
     palette: "Deep Red • Cream • Charcoal",
     description: "Deep red matchday skin with warm stadium glow, pinstripe motion and heritage-style depth.",
@@ -97,6 +103,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "MADRID_ROYAL",
     dataTheme: "madrid-royal",
+    signature: "Royal Ivory",
     name: "Real Madrid",
     palette: "White • Royal Blue • Gold",
     description: "White, royal blue and gold skin with architectural slats and a polished European-night feel.",
@@ -106,6 +113,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "CATALAN_NIGHTS",
     dataTheme: "catalan-nights",
+    signature: "Blaugrana Midnight",
     name: "Barcelona",
     palette: "Midnight Blue • Burgundy • Electric Blue",
     description: "Blue-and-burgundy vertical matchday skin with a dramatic night-game presentation.",
@@ -115,6 +123,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "MUNICH_RED",
     dataTheme: "munich-red",
+    signature: "Bavarian Ruby",
     name: "Bayern Munich",
     palette: "Red • White • Graphite",
     description: "Red-and-white skin with diamond geometry, high-contrast surfaces and a clean Bavarian matchday feel.",
@@ -124,6 +133,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "PARIS_NIGHT",
     dataTheme: "paris-night",
+    signature: "Paris Nocturne",
     name: "Paris Saint-Germain",
     palette: "Midnight Navy • Red • Ice White",
     description: "Midnight navy skin with a bold central red stripe, luminous surfaces and a Paris night-match feel.",
@@ -133,6 +143,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "MILAN_BLUE",
     dataTheme: "milan-blue",
+    signature: "Nerazzurri Steel",
     name: "Inter Milan",
     palette: "Black • Royal Blue • Steel",
     description: "Black-and-blue striped matchday skin with metallic contrast and a dramatic stadium-night atmosphere.",
@@ -142,6 +153,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "MILAN_RED",
     dataTheme: "milan-red",
+    signature: "Rossoneri Carbon",
     name: "AC Milan",
     palette: "Black • Crimson • Smoke",
     description: "Black-and-crimson striped skin with smoky surfaces and a classic Milan night-game presentation.",
@@ -151,6 +163,7 @@ export const THEME_OPTIONS: readonly ThemeOption[] = [
   {
     preference: "TURIN_MONO",
     dataTheme: "turin-mono",
+    signature: "Platinum Noir",
     name: "Juventus",
     palette: "Black • White • Silver",
     description: "Black-and-white striped skin with metallic detail and a sharp monochrome matchday identity.",

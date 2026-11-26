@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """PC-side archive escrow. Copy/hash first; server independently rechecks before cleanup."""
 import argparse
+import base64
 import datetime as dt
 import hashlib
 import json
@@ -12,7 +13,8 @@ import time
 
 REMOTE = '/var/lib/fcarena-release-storage/'
 GUARD = '/opt/fcarena-ops/release/storage_retention.py'
-SOURCE = re.compile(r'/root/fcarena-audit-improvements/artifacts/([0-9a-f]{40})/(fcarena-(?:runtime-[0-9a-f]{40}\.tar\.gz|vcl-runtime-[0-9a-f]{40}\.zip))$')
+SOURCE = re.compile(r'/root/fcarena-audit-improvements/artifacts/([0-9a-f]{40})/(fcarena-(?:runtime-[0-9a-f]{40}\.tar\.gz|vcl-runtime-[0-9a-f]{40}\.zip)|runtime-artifact\.zip)$')
+RUNTIME_SOURCE = re.compile(r'/opt/fcarena-deployments/([A-Za-z0-9][A-Za-z0-9_.-]*)/(fcarena-runtime-[0-9a-f]{40}\.tar\.gz|github-artifact\.verified\.zip)$')
 
 
 def digest(path):
@@ -20,11 +22,58 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def archive_target(item, destination):
+def archive_identity(item):
     match = SOURCE.fullmatch(item['path'])
-    if not match or match[1] not in match[2] or not re.fullmatch('[0-9a-f]{64}', item['sha256']):
+    if not re.fullmatch('[0-9a-f]{64}', item['sha256']):
+        raise ValueError('Unexpected archive checksum')
+    if match:
+        if match[2] != 'runtime-artifact.zip' and match[1] not in match[2]:
+            raise ValueError('Archive commit mismatch')
+        return match[1], match[2], False
+    match = RUNTIME_SOURCE.fullmatch(item['path'])
+    sha = item.get('releaseSha', '')
+    if (not match or not re.fullmatch('[0-9a-f]{40}', sha) or not match[1].endswith(sha[:12])
+            or (match[2] != 'github-artifact.verified.zip' and match[2] != 'fcarena-runtime-' + sha + '.tar.gz')):
         raise ValueError('Unexpected archive path/checksum')
-    return destination / match[2]
+    return sha, match[2], True
+
+
+def archive_target(item, destination):
+    sha, original, runtime = archive_identity(item)
+    if runtime:
+        name = sha + '-' + item['sha256'][:16] + '-' + original
+    else:
+        name = sha + '-runtime-artifact.zip' if original == 'runtime-artifact.zip' else original
+    return destination / name
+
+
+def reconstruct_stored_zip(item, target, recipe):
+    """Reuse an already verified inner tarball; the complete outer ZIP must still hash identically."""
+    sha, original, runtime = archive_identity(item)
+    if original not in ('runtime-artifact.zip', 'github-artifact.verified.zip'):
+        return False
+    expected_name = 'fcarena-runtime-' + sha + '.tar.gz'
+    if recipe.get('name') != expected_name:
+        return False
+    head, tail = (base64.b64decode(recipe[key], validate=True) for key in ('head', 'tail'))
+    if len(head) > 65536 or len(tail) > 65536:
+        raise ValueError('Unexpected ZIP metadata bounds')
+    for source in sorted(target.parent.glob('*' + expected_name)):
+        if not source.is_file() or source.is_symlink() or source.stat().st_size != recipe.get('bytes'):
+            continue
+        partial = target.with_name(target.name + '.reconstruct.partial')
+        try:
+            with partial.open('xb') as out, source.open('rb') as stream:
+                out.write(head)
+                shutil.copyfileobj(stream, out, 1024 * 1024)
+                out.write(tail)
+            if digest(partial) == item['sha256']:
+                partial.replace(target)
+                return True
+        finally:
+            if partial.exists():
+                partial.unlink()
+    return False
 
 
 def main():
@@ -37,6 +86,7 @@ def main():
     destination = Path(args.directory).resolve()
     destination.mkdir(parents=True, exist_ok=True)
     common = ['-i', args.identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
+              '-o', 'ConnectionAttempts=3', '-o', 'IPQoS=none',
               '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=4']
 
     def ssh(command):
@@ -63,6 +113,32 @@ def main():
                 time.sleep(2)
         result.check_returncode()
 
+    def reuse_inner_archive(item, target):
+        sha, original, runtime = archive_identity(item)
+        if original not in ('runtime-artifact.zip', 'github-artifact.verified.zip'):
+            return False
+        # The source path is restricted to a literal SHA directory and fixed basename.
+        code = '''import base64,json,pathlib,struct,zipfile
+p=pathlib.Path(SOURCE_PATH)
+name=EXPECTED_INNER_NAME
+with zipfile.ZipFile(p) as z:
+ i=z.getinfo(name)
+ assert i.compress_type==zipfile.ZIP_STORED and i.file_size==i.compress_size
+ with p.open('rb') as f:
+  f.seek(i.header_offset);h=f.read(30)
+  assert h[:4]==b'PK\\x03\\x04'
+  filename,extra=struct.unpack('<HH',h[26:30]);offset=i.header_offset+30+filename+extra
+  remaining=p.stat().st_size-offset-i.file_size
+  assert 0<=offset<=65536 and 0<=remaining<=65536
+  f.seek(0);head=f.read(offset);f.seek(offset+i.file_size);tail=f.read(remaining)
+ print(json.dumps({'name':name,'bytes':i.file_size,'head':base64.b64encode(head).decode(),'tail':base64.b64encode(tail).decode()}))
+'''.replace('SOURCE_PATH', repr(item['path'])).replace('EXPECTED_INNER_NAME', repr('fcarena-runtime-' + sha + '.tar.gz'))
+        result = subprocess.run(['ssh', *common, args.host, 'python3 -'], input=code, text=True,
+                                capture_output=True, timeout=60)
+        if result.returncode != 0:
+            return False
+        return reconstruct_stored_zip(item, target, json.loads(result.stdout))
+
     ssh('python3 ' + GUARD + ' plan --output ' + REMOTE + 'pc-plan.json')
     plan_path = destination / 'pc-plan.private.json'
     scp(args.host + ':' + REMOTE + 'pc-plan.json', str(plan_path))
@@ -83,11 +159,12 @@ def main():
         if not target.exists() or digest(target) != item['sha256']:
             if shutil.disk_usage(destination).free < item['bytes'] + 1024**3:
                 raise ValueError('Insufficient private PC space')
-            partial = target.with_suffix(target.suffix + '.partial')
-            resume_archive(item['path'], partial)
-            if digest(partial) != item['sha256']:
-                raise ValueError('PC archive checksum mismatch')
-            partial.replace(target)
+            if not reuse_inner_archive(item, target):
+                partial = target.with_suffix(target.suffix + '.partial')
+                resume_archive(item['path'], partial)
+                if digest(partial) != item['sha256']:
+                    raise ValueError('PC archive checksum mismatch')
+                partial.replace(target)
         copies[item['path']] = {'source': item['path'], 'localPath': str(target), 'sha256': digest(target),
                                 'bytes': target.stat().st_size, 'verified': True,
                                 'verifiedAt': dt.datetime.now(dt.timezone.utc).isoformat()}

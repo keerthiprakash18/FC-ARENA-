@@ -18,7 +18,7 @@ ARTIFACTS = Path('/root/fcarena-audit-improvements/artifacts')
 STATE = Path('/var/lib/fcarena-release-storage')
 POLICY = Path('/etc/fcarena/release-storage-policy.json')
 PATTERN = re.compile(r'/opt/fcarena-deployments/([^/\s\"\x27;]+)')
-ARCHIVE = re.compile(r'fcarena-(?:vcl-runtime-[0-9a-f]{40}\.zip|runtime-[0-9a-f]{40}\.tar\.gz)$')
+ARCHIVE = re.compile(r'(?:fcarena-(?:vcl-runtime-[0-9a-f]{40}\.zip|runtime-[0-9a-f]{40}\.tar\.gz)|runtime-artifact\.zip)$')
 RELATIVE = tuple(prefix + suffix for prefix in ('', 'source/', 'candidate/', 'runtime/')
                  for suffix in ('node_modules', 'apps/web/node_modules', 'apps/web/.next/cache'))
 CONFIG_ROOTS = ('/etc/systemd/system', '/etc/fcarena', '/etc/cron.d', '/etc/cron.daily',
@@ -68,6 +68,16 @@ def process_paths():
     return paths
 
 
+def container_sources():
+    ids = subprocess.check_output(['docker', 'ps', '--all', '--quiet'], text=True, timeout=30).split()
+    if not ids:
+        return set()
+    output = subprocess.check_output(['docker', 'inspect', '--format', '{{json .Mounts}}', *ids],
+                                     text=True, stderr=subprocess.PIPE, timeout=30)
+    return {Path(item['Source']) for line in output.splitlines() for item in json.loads(line)
+            if item.get('Source')}
+
+
 def referenced_releases(root=RELEASES):
     refs = {}
 
@@ -96,6 +106,13 @@ def referenced_releases(root=RELEASES):
                 pass
     for path in mount_paths():
         add(str(path), 'mount')
+    for path in container_sources():
+        if path == root or root.is_relative_to(path):
+            for release in root.iterdir():
+                if release.is_dir():
+                    refs.setdefault(release.name, set()).add('container mount of deployment parent')
+        else:
+            add(str(path), 'container volume/bind mount')
     roots = [str(p) for p in (root, Path('/opt/fcarena'), Path('/opt/fcarena-ops'),
                               Path('/etc/fcarena'), Path('/var/backups')) if p.exists()]
     links = subprocess.check_output(['find', *roots, '-type', 'l', '-printf', r'%p\t%l\0'])
@@ -119,7 +136,7 @@ def referenced_releases(root=RELEASES):
     return refs, state, rollback
 
 
-def candidates(root, artifact_root, protected, mounts=(), opened=()):
+def candidates(root, artifact_root, protected, mounts=(), opened=(), runtime_archives=None):
     out = []
 
     def safe(path):
@@ -127,7 +144,19 @@ def candidates(root, artifact_root, protected, mounts=(), opened=()):
             Path(p.removesuffix(' (deleted)')).is_relative_to(path) for p in opened)
 
     for release in sorted(root.iterdir()):
-        if not release.is_dir() or not canonical(release) or release.name in protected:
+        if not release.is_dir() or not canonical(release):
+            continue
+        # The running binaries stay protected. Completed immutable transfer archives
+        # beside current/rollback runtime are independently disposable after PC escrow.
+        sha = (runtime_archives or {}).get(release.name)
+        if sha and re.fullmatch('[0-9a-f]{40}', sha) and release.name.endswith(sha[:12]):
+            marker = release / 'RELEASE_SHA.txt'
+            if marker.is_file() and canonical(marker) and marker.read_text().strip() == sha:
+                for name in ('fcarena-runtime-' + sha + '.tar.gz', 'github-artifact.verified.zip'):
+                    path = release / name
+                    if path.is_file() and safe(path):
+                        out.append({'path': str(path), 'kind': 'downloaded-archive', 'releaseSha': sha})
+        if release.name in protected:
             continue
         for relative in RELATIVE:
             path = release / relative
@@ -153,7 +182,8 @@ def seal(report):
 
 def plan():
     refs, state, rollback = referenced_releases()
-    items = candidates(RELEASES, ARTIFACTS, refs, mount_paths(), process_paths())
+    archive_roots = {Path(item['runtime']).parent.name: item['release'] for item in (state, rollback)}
+    items = candidates(RELEASES, ARTIFACTS, refs, mount_paths(), process_paths(), archive_roots)
     for item in items:
         path = Path(item['path'])
         item['fingerprint'] = fingerprint(path)
@@ -239,9 +269,14 @@ def select_policy(report, policy, receipt, now=None):
               and -300 <= now - dt.datetime.fromisoformat(i['verifiedAt']).timestamp() <= 48 * 3600}
     selected = [i for i in report['candidates'] if now - i['fingerprint']['mtime_ns'] / 1e9 >= age * 3600
                 and (i['kind'] != 'downloaded-archive' or copies.get(i['path'], {}).get('sha256') == i['sha256'])]
-    require(sum(i['bytes'] for i in selected) <= limit * 1024**3, 'Cycle exceeds approved budget; manual review required')
+    bounded, total = [], 0
+    for item in selected:
+        require(item['bytes'] <= limit * 1024**3, 'Single candidate exceeds approved budget; manual review required')
+        if total + item['bytes'] <= limit * 1024**3:
+            bounded.append(item)
+            total += item['bytes']
     value = {k: v for k, v in report.items() if k != 'planId'}
-    value.update(candidates=selected, reclaimBytes=sum(i['bytes'] for i in selected))
+    value.update(candidates=bounded, reclaimBytes=total)
     return seal(value)
 
 

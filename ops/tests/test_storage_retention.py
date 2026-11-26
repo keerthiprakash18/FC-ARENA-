@@ -1,4 +1,6 @@
 import copy
+import base64
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -16,6 +18,18 @@ OFFHOST_SPEC.loader.exec_module(O)
 
 
 class RetentionTests(unittest.TestCase):
+    def test_container_volume_inventory_includes_stopped_container_configuration(self):
+        output = json.dumps([{'Source': '/opt/fcarena-deployments/held/runtime'}, {'Type': 'tmpfs'}]) + '\n'
+        with patch.object(R.subprocess, 'check_output', side_effect=['one\ntwo\n', output]) as command:
+            self.assertEqual(R.container_sources(), {Path('/opt/fcarena-deployments/held/runtime')})
+            self.assertIn('--all', command.call_args_list[0].args[0])
+            self.assertEqual(command.call_args_list[1].args[0][-2:], ['one', 'two'])
+
+    def test_no_container_does_not_issue_an_unscoped_inspect(self):
+        with patch.object(R.subprocess, 'check_output', return_value='') as command:
+            self.assertEqual(R.container_sources(), set())
+            self.assertEqual(command.call_count, 1)
+
     def test_pc_escrow_rejects_other_paths_and_mismatched_release(self):
         name = 'fcarena-runtime-' + 'a' * 40 + '.tar.gz'
         item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/' + name, 'sha256': 'b' * 64}
@@ -33,6 +47,33 @@ class RetentionTests(unittest.TestCase):
         self.artifacts = self.root / 'artifacts'
         self.releases.mkdir()
         self.artifacts.mkdir()
+
+    def test_github_outer_zip_is_escrowed_with_unique_release_name(self):
+        path = self.artifacts / ('a' * 40) / 'runtime-artifact.zip'
+        path.parent.mkdir()
+        path.write_bytes(b'github artifact outer zip')
+        self.assertEqual(self.items()[0]['path'], str(path))
+        item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/runtime-artifact.zip',
+                'sha256': 'b' * 64}
+        self.assertEqual(O.archive_target(item, Path('/private')), Path('/private') / ('a' * 40 + '-runtime-artifact.zip'))
+        other = dict(item, path=item['path'].replace('a' * 40, 'c' * 40))
+        self.assertNotEqual(O.archive_target(other, Path('/private')), O.archive_target(item, Path('/private')))
+
+    def test_reconstructed_zip_requires_the_complete_remote_checksum(self):
+        source = self.root / ('fcarena-runtime-' + 'a' * 40 + '.tar.gz')
+        source.write_bytes(b'already verified inner tarball')
+        target = self.root / ('a' * 40 + '-runtime-artifact.zip')
+        head, tail = b'zip header', b'zip directory'
+        recipe = {'name': source.name, 'bytes': source.stat().st_size,
+                  'head': base64.b64encode(head).decode(), 'tail': base64.b64encode(tail).decode()}
+        item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/runtime-artifact.zip',
+                'sha256': hashlib.sha256(head + source.read_bytes() + tail).hexdigest()}
+        self.assertTrue(O.reconstruct_stored_zip(item, target, recipe))
+        self.assertEqual(target.read_bytes(), head + source.read_bytes() + tail)
+        target.unlink()
+        self.assertFalse(O.reconstruct_stored_zip(dict(item, sha256='b' * 64), target, recipe))
+        self.assertFalse(target.exists())
+        self.assertTrue(source.exists())
 
     def directory(self, name):
         path = self.releases / name
@@ -65,6 +106,34 @@ class RetentionTests(unittest.TestCase):
             self.directory('old/' + name)
         (self.releases / 'old/release.env').write_text('private')
         self.assertEqual(self.items(), [])
+
+    def test_completed_current_archives_are_separate_from_protected_runtime(self):
+        sha = 'a' * 40
+        name = 'awards-full-' + sha[:12]
+        self.directory(name + '/runtime/node_modules')
+        release = self.releases / name
+        (release / 'RELEASE_SHA.txt').write_text(sha + '\n')
+        (release / ('fcarena-runtime-' + sha + '.tar.gz')).write_bytes(b'build archive')
+        (release / 'github-artifact.verified.zip').write_bytes(b'outer zip')
+        items = self.items({name}, runtime_archives={name: sha})
+        self.assertEqual(len(items), 2)
+        self.assertTrue(all(i['kind'] == 'downloaded-archive' and i['releaseSha'] == sha for i in items))
+        self.assertTrue((release / 'runtime/node_modules/file').exists())
+        self.assertEqual(len(self.items({name}, runtime_archives={name: sha},
+                                        opened={str(release / 'github-artifact.verified.zip')})), 1)
+        (release / 'RELEASE_SHA.txt').write_text('b' * 40)
+        self.assertEqual(self.items({name}, runtime_archives={name: sha}), [])
+
+    def test_pc_runtime_archive_targets_require_exact_release_and_preserve_distinct_bytes(self):
+        sha = 'a' * 40
+        path = '/opt/fcarena-deployments/awards-full-' + sha[:12] + '/github-artifact.verified.zip'
+        item = {'path': path, 'releaseSha': sha, 'sha256': 'b' * 64}
+        target = O.archive_target(item, self.root)
+        self.assertNotEqual(target, O.archive_target(dict(item, sha256='c' * 64), self.root))
+        for bad in (dict(item, releaseSha='c' * 40), dict(item, path=path.replace('github-artifact.verified.zip', 'release.env')),
+                    dict(item, path=path.replace('/opt/fcarena-deployments/', '/var/backups/'))):
+            with self.assertRaises(ValueError):
+                O.archive_target(bad, self.root)
 
     def test_mount_and_open_descriptor_exclude_directory(self):
         path = self.directory('old/runtime/node_modules')
@@ -172,6 +241,18 @@ class RetentionTests(unittest.TestCase):
         self.assertEqual(len(R.select_policy(report, policy, {'files': [entry]}, now)['candidates']), 1)
         entry['verifiedAt'] = R.dt.datetime.fromtimestamp(now + 301, R.dt.timezone.utc).isoformat()
         self.assertEqual(R.select_policy(report, policy, {'files': [entry]}, now)['candidates'], [])
+
+    def test_large_backlog_is_selected_in_bounded_batches(self):
+        self.directory('one/runtime/node_modules')
+        self.directory('two/runtime/node_modules')
+        report = self.report(self.items())
+        for item in report['candidates']:
+            item['bytes'] = 1024**3
+        policy = {'approvedBy': 'owner', 'scope': 'unreferenced-packages-cache-and-pc-verified-archives-v1',
+                  'minimumAgeHours': 24, 'maxCycleGiB': 1.5}
+        selected = R.select_policy(report, policy, {'files': []}, now=time.time() + 90000)
+        self.assertEqual(len(selected['candidates']), 1)
+        self.assertEqual(selected['reclaimBytes'], 1024**3)
 
 
 if __name__ == '__main__':

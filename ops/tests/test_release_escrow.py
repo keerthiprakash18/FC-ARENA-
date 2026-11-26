@@ -83,6 +83,46 @@ class ReleaseEscrowTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Standing owner'):
                     R.prepare(guard)
 
+    def test_legacy_inventory_protects_config_process_and_external_link_references(self):
+        real_path = Path
+        with tempfile.TemporaryDirectory() as raw:
+            base = Path(raw)
+            root = base / 'legacy-releases'
+            root.mkdir()
+            for name in ('configured', 'running', 'linked', 'unused'):
+                (root / name).mkdir()
+            config = base / 'config'
+            config.mkdir()
+            (config / 'legacy.conf').write_text(str(root / 'configured/runtime'))
+            guard = Mock()
+            guard.CONFIG_ROOTS = [str(config)]
+            guard.process_paths.return_value = {str(root / 'running/main.js')}
+            guard.mount_paths.return_value = set()
+            proc = Mock()
+            proc.iterdir.return_value = []
+            def path(value):
+                return proc if str(value) == '/proc' else real_path(value)
+            links = (str(base / 'external-link') + '\t' + str(root / 'linked/runtime') + '\0').encode()
+            with patch.object(R, 'Path', side_effect=path), \
+                 patch.object(R.subprocess, 'check_output', return_value=links):
+                refs = R.legacy_references(guard, root)
+            self.assertEqual(set(refs), {'configured', 'running', 'linked'})
+
+    def test_plan_cannot_be_replayed_against_another_storage_root(self):
+        report = {'root': '/opt/fcarena-staging', 'releases': [{'name': 'old'}]}
+        report['planId'] = R.digest_json(report)
+        guard = Mock()
+        guard.private_json.return_value = report
+        with patch.object(R, 'ROOT', Path('/opt/fcarena-releases')):
+            with self.assertRaisesRegex(ValueError, 'another deployment root'):
+                R.reviewed(guard, report['planId'])
+
+    def test_database_reference_scan_is_limited_to_the_selected_root(self):
+        raw = b'/opt/fcarena-releases/keep/uploads/a /opt/fcarena-deployments/other/source'
+        with patch.object(R, 'ROOT', Path('/opt/fcarena-releases')), \
+             patch.object(R.subprocess, 'check_output', return_value=raw):
+            self.assertEqual(R.database_references(), {b'keep'})
+
 
 if __name__ == '__main__':
     unittest.main()

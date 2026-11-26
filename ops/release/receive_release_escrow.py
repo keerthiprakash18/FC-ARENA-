@@ -26,12 +26,18 @@ def main():
     parser.add_argument('--directory', required=True)
     parser.add_argument('--plan-id')
     parser.add_argument('--cycle', action='store_true')
+    parser.add_argument('--root', choices=('deployments', 'releases', 'staging'), default='deployments')
     args = parser.parse_args()
     assert bool(args.plan_id) != args.cycle, 'Choose one exact manual plan or the standing owner cycle'
     destination = Path(args.directory).resolve()
     common = ['-i', args.identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
               '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=4']
     remote_state, remote_helper, suffix = REMOTE_STATE, REMOTE_HELPER, ''
+    if args.root != 'deployments':
+        assert not args.cycle, 'Additional legacy roots require a separate reviewed manual plan'
+        remote_state = REMOTE_STATE.rstrip('/') + '-' + args.root + '/'
+        remote_helper = '/opt/fcarena-ops/release/release_escrow.py'
+        suffix = ' --root ' + args.root
     if args.cycle:
         cycle = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ-') + secrets.token_hex(4)
         remote_state = '/var/lib/fcarena-release-storage/release-escrow/' + cycle + '/'

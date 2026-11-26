@@ -16,6 +16,8 @@ import sys
 import tempfile
 
 ROOT = Path('/opt/fcarena-deployments')
+ROOTS = {'deployments': ROOT, 'releases': Path('/opt/fcarena-releases'),
+         'staging': Path('/opt/fcarena-staging')}
 STATE = Path('/var/lib/fcarena-release-storage/whole-release-escrow-20261126')
 POLICY = Path('/etc/fcarena/release-escrow-policy.json')
 AUTOMATIC = False
@@ -53,7 +55,46 @@ def database_references():
     raw = subprocess.check_output(['docker', 'exec', 'fc-arena-postgres', 'sh', '-ec',
                                   'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --data-only'],
                                  stderr=subprocess.PIPE, timeout=120)
-    return set(re.findall(rb'/opt/fcarena-deployments/([A-Za-z0-9_.-]+)', raw))
+    return set(re.findall(re.escape(str(ROOT).encode()) + rb'/([A-Za-z0-9_.-]+)', raw))
+
+
+def legacy_references(r, root):
+    """The retired pre-managed roots need the same config/process/link reference safeguards."""
+    pattern = re.compile(re.escape(str(root)) + r'/([^/\s\"\x27;]+)')
+    refs = {}
+
+    def add(text, why):
+        for name in pattern.findall(text):
+            if (root / name).is_dir():
+                refs.setdefault(name, set()).add(why)
+
+    for start in r.CONFIG_ROOTS:
+        if Path(start).exists():
+            for path in Path(start).rglob('*'):
+                if path.is_file():
+                    require(path.stat().st_size < 1024**2, 'Oversized configuration needs review')
+                    add(path.read_text(errors='ignore'), str(path))
+    for text in r.process_paths():
+        add(text, 'live process/open descriptor')
+    for proc in Path('/proc').iterdir():
+        if not proc.name.isdigit():
+            continue
+        for leaf in ('cmdline', 'environ', 'maps'):
+            try:
+                add((proc / leaf).read_text(errors='ignore'), 'live process')
+            except (FileNotFoundError, ProcessLookupError):
+                pass
+    for path in r.mount_paths():
+        add(str(path), 'mount')
+    roots = [str(p) for p in (Path('/opt'), Path('/etc/fcarena'), Path('/var/backups')) if p.exists()]
+    links = subprocess.check_output(['find', *roots, '-type', 'l', '-printf', r'%p\t%l\0'])
+    for entry in links.decode().split('\0'):
+        if entry:
+            link, target = entry.split('\t', 1)
+            resolved = (Path(link).parent / target).resolve()
+            if pattern.findall(link) != pattern.findall(str(resolved)):
+                add(str(resolved), 'external symlink')
+    return refs
 
 
 def tree_fingerprint(path):
@@ -77,6 +118,8 @@ def tree_fingerprint(path):
 def admission(r):
     backup_ready()
     refs, current, rollback = r.referenced_releases()
+    if ROOT != ROOTS['deployments']:
+        refs = legacy_references(r, ROOT)
     r.healthy(current['release'])
     for name in database_references():
         refs.setdefault(name.decode(), set()).add('database file reference')
@@ -107,7 +150,7 @@ def prepare(r):
                 continue
             cycle_bytes += size
         items.append({'name': path.name, **tree_fingerprint(path)})
-    report = {'current': current, 'rollback': rollback, 'releases': items,
+    report = {'root': str(ROOT), 'current': current, 'rollback': rollback, 'releases': items,
               'protected': sorted(refs), 'createdAt': dt.datetime.now(dt.timezone.utc).isoformat(),
               'automatic': AUTOMATIC}
     report['planId'] = digest_json(report)
@@ -121,6 +164,7 @@ def reviewed(r, approved):
     report = r.private_json(STATE / 'plan.private.json')
     value = dict(report)
     require(value.pop('planId') == approved and digest_json(value) == approved, 'Exact reviewed plan required')
+    require(report.get('root', str(ROOT)) == str(ROOT), 'Plan belongs to another deployment root')
     require(report['releases'], 'Empty plan')
     if report.get('automatic'):
         policy = r.private_json(POLICY)
@@ -201,13 +245,19 @@ def apply(r, approved):
 
 
 def main():
-    global STATE, AUTOMATIC
+    global STATE, AUTOMATIC, ROOT
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['plan', 'stream', 'apply'])
     parser.add_argument('--approved-plan')
     parser.add_argument('--state-id')
+    parser.add_argument('--root', choices=tuple(ROOTS), default='deployments')
     args = parser.parse_args()
     require(os.geteuid() == 0 and socket.gethostname().split('.')[0] == 'fcarena-prod', 'Wrong host')
+    ROOT = ROOTS[args.root]
+    require(ROOT.is_dir() and ROOT.resolve() == ROOT and not ROOT.is_symlink(), 'Invalid deployment root')
+    if args.root != 'deployments':
+        require(not args.state_id, 'Standing policy is limited to the managed deployment root')
+        STATE = STATE.with_name(STATE.name + '-' + args.root)
     if args.state_id:
         require(re.fullmatch(r'[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', args.state_id), 'Invalid cycle identifier')
         STATE = Path('/var/lib/fcarena-release-storage/release-escrow') / args.state_id

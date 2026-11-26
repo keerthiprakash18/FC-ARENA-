@@ -78,3 +78,22 @@
   .fc-signature-preview .fc-signature-sample { background: Canvas; color: CanvasText; border-color: CanvasText; }
   .fc-signature-preview .fc-signature-art small { color: CanvasText; }
 }
+
+/* The header picker uses the same canonical, mode-aware palette as Appearance. */
+.fc-signature-mini {
+  border-radius: 9px;
+  padding: 0;
+}
+.fc-signature-mini-art {
+  display: block;
+  height: 34px;
+  background: var(--theme-signature-pattern), linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end));
+}
+.fc-signature-mini-swatch {
+  display: block;
+  height: 5px;
+  background: linear-gradient(90deg, var(--theme-primary) 0 33%, var(--theme-matchday-accent) 33% 66%, var(--theme-surface) 66%);
+}
+@media (forced-colors: active) {
+  .fc-signature-mini-art, .fc-signature-mini-swatch { background: Canvas; border-block-end: 1px solid CanvasText; }
+}

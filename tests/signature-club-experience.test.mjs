@@ -30,3 +30,12 @@ test('signature matchday text, accents and actions have literal endpoint contras
     }
   }
 });
+
+test('header picker and dashboard career overview use signature tokens',()=>{
+  const picker=read('apps/web/src/components/app/theme-quick-picker.tsx');
+  const hero=read('apps/web/src/app/dashboard/career-hero.module.css');
+  assert.match(picker,/data-preview-mode=\{resolvedDark \? "dark" : "light"\}/);
+  assert.match(picker,/option.signature/);
+  assert.match(hero,/var\(--theme-matchday-accent\)/);
+  assert.match(hero,/var\(--theme-matchday-start\)/);
+});

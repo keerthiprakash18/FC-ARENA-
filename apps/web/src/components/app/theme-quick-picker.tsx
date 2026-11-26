@@ -27,6 +27,7 @@ export function ThemeQuickPicker() {
   const {
     themePreference,
     setThemePreference,
+    resolvedDark,
   } = useTheme();
 
   const rootRef =
@@ -53,16 +54,6 @@ export function ThemeQuickPicker() {
     setError,
   ] =
     useState('');
-
-  const currentOption =
-    THEME_OPTIONS.find(
-      (
-        option,
-      ) =>
-        option.preference ===
-        themePreference,
-    ) ??
-    THEME_OPTIONS[0];
 
   useEffect(
     () => {
@@ -169,11 +160,7 @@ export function ThemeQuickPicker() {
         <span
           aria-hidden="true"
           className="absolute bottom-1 right-1 h-2.5 w-2.5 rounded-full border-2 border-[var(--theme-header)] shadow-sm"
-          style={{
-            background:
-              currentOption.preview
-                .accent,
-          }}
+          style={{ background: "var(--theme-primary-bright)" }}
         />
       </button>
 
@@ -195,7 +182,7 @@ export function ThemeQuickPicker() {
           <div className="flex items-start justify-between gap-4 border-b border-[var(--theme-border)] p-4">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[var(--theme-primary)]">
-                Club Collection
+                Signature Collection
               </p>
 
               <h2 className="mt-1 text-sm font-bold text-[var(--theme-text)]">
@@ -203,7 +190,7 @@ export function ThemeQuickPicker() {
               </h2>
 
               <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
-                Theme changes apply instantly and sync to your account.
+                Choose an unofficial fan-inspired palette. Your selection syncs to your account.
               </p>
             </div>
 
@@ -215,7 +202,7 @@ export function ThemeQuickPicker() {
                   false,
                 )
               }
-              className="theme-secondary-button grid h-9 w-9 shrink-0 place-items-center rounded-lg text-sm font-bold"
+              className="theme-secondary-button grid h-11 w-11 shrink-0 place-items-center rounded-lg text-sm font-bold"
             >
               ×
             </button>
@@ -260,56 +247,24 @@ export function ThemeQuickPicker() {
                     >
                       <span
                         aria-hidden="true"
-                        className="mb-3 block h-10 rounded-lg"
-                        style={{ background: `linear-gradient(125deg, ${option.preview.sidebar}, ${option.preview.accent})` }}
-                      />
-                      <span className="flex items-center justify-between gap-2">
-                        <span
-                          aria-hidden="true"
-                          className="flex items-center gap-1"
-                        >
-                          <span
-                            className="h-4 w-4 rounded-full border border-black/10"
-                            style={{
-                              background:
-                                option.preview
-                                  .accent,
-                            }}
-                          />
-
-                          <span
-                            className="h-4 w-4 rounded-full border border-black/10"
-                            style={{
-                              background:
-                                option.preview
-                                  .sidebar,
-                            }}
-                          />
-
-                          <span
-                            className="h-4 w-4 rounded-full border border-black/10"
-                            style={{
-                              background:
-                                option.preview
-                                  .surface,
-                            }}
-                          />
-                        </span>
-
-                        {selected ? (
-                          <span className="text-xs font-black text-[var(--theme-primary)]">
-                            ✓
-                          </span>
-                        ) : null}
+                        className="fc-signature-preview fc-signature-mini mb-2 block"
+                        data-preview-theme={option.dataTheme}
+                        data-preview-mode={resolvedDark ? "dark" : "light"}
+                      >
+                        <span className="fc-signature-mini-art" />
+                        <span className="fc-signature-mini-swatch" />
                       </span>
-
-                      <span className="mt-2 block truncate text-xs font-bold text-[var(--theme-text)]">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 text-[11px] font-semibold text-[var(--theme-text-secondary)] [overflow-wrap:anywhere]">{option.signature}</span>
+                        {selected ? <span aria-hidden="true" className="shrink-0 text-xs font-bold text-[var(--theme-primary)]">✓</span> : null}
+                      </span>
+                      <span className="mt-2 block text-xs font-bold [overflow-wrap:anywhere] text-[var(--theme-text)]">
                         {
                           option.name
                         }
                       </span>
 
-                      <span className="mt-1 block truncate text-[10px] font-semibold text-[var(--theme-text-muted)]">
+                      <span className="mt-1 block text-[10px] font-semibold [overflow-wrap:anywhere] text-[var(--theme-text-muted)]">
                         {
                           option.inspiration
                         }
@@ -330,7 +285,7 @@ export function ThemeQuickPicker() {
             {error ? (
               <p
                 role="alert"
-                className="mt-3 rounded-lg border border-red-400/20 bg-red-400/[0.06] px-3 py-2 text-xs text-red-500"
+                className="mt-3 rounded-lg border border-[var(--theme-danger)] bg-[var(--theme-danger-soft)] px-3 py-2 text-xs text-[var(--theme-danger)]"
               >
                 {error}
               </p>
@@ -345,7 +300,7 @@ export function ThemeQuickPicker() {
                   false,
                 )
               }
-              className="theme-secondary-button flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 text-xs font-bold"
+              className="theme-secondary-button flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-xs font-bold"
             >
               <FcIcon
                 name="settings"

@@ -40,6 +40,13 @@ try {
         assert(result.height >= 44, name + ': touch target');
         assert(result.contrast >= 4.5, `${theme} ${mode} ${name}: contrast ${result.contrast}`);
       }
+      const goals=f.page.getByRole('region',{name:'Goal balance'});
+      for (const [label,value] of [['Goals scored',6],['Goals conceded',4]]) {
+        const meter=goals.getByRole('meter',{name:label+': '+value});
+        assert.equal(await meter.getAttribute('value'),String(value));
+        assert.equal(await meter.getAttribute('max'),'6');
+      }
+      assert(await goals.getByText('+2',{exact:true}).isVisible());
       await checkLayout(f.page, `Career leagues ${theme} ${mode}`);
       await f.page.goto(origin + '/admin/analytics');
       const chart = f.page.locator('.premium-activity-chart');

@@ -32,6 +32,28 @@ try {
       assert.deepEqual(f.mutations,[]);
     } finally { await f.context.close(); }
   }
+  // Header picker must use actual mode and the same distinct artwork.
+  for (const mode of ['LIGHT','DARK']) {
+    const f=await createUiContext(browser,{width:390,native:true,direct:true,mode});
+    try {
+      await f.page.goto(origin+'/dashboard');
+      const trigger=f.page.getByRole('button',{name:'Choose club theme'});
+      await trigger.click();
+      const dialog=f.page.getByRole('dialog',{name:'Choose FC Arena club theme'});
+      await dialog.waitFor();
+      const swatches=dialog.locator('.fc-signature-mini');
+      assert.equal(await swatches.count(),12);
+      await f.page.waitForFunction(mode=>[...document.querySelectorAll('.fc-signature-mini')].every(e=>e.dataset.previewMode===mode),mode.toLowerCase());
+      const artwork=await swatches.evaluateAll(els=>els.map(el=>getComputedStyle(el.querySelector('.fc-signature-mini-art')).backgroundImage));
+      assert.equal(new Set(artwork).size,12);
+      await f.page.screenshot({path:join(output,'signature-quick-picker-'+mode.toLowerCase()+'.png'),animations:'disabled'});
+      await f.page.keyboard.press('Escape');
+      await dialog.waitFor({state:'detached'});
+      assert(await trigger.evaluate(e=>e===document.activeElement),'dialog close restores focus');
+      assert.deepEqual(f.errors,[]);
+      assert.deepEqual(f.mutations,[]);
+    } finally { await f.context.close(); }
+  }
   for(const mode of ['LIGHT','DARK']){
     const art=[];
     for(const theme of themes){
@@ -52,5 +74,5 @@ try {
     }
     assert.equal(new Set(art).size,12,'actual dashboard hero backgrounds must differ, not just swatches');
   }
-  console.log('PASS: 4 appearance galleries and 24 actual dashboard theme/mode cases');
+  console.log('PASS: 4 appearance galleries, 2 header picker and 24 actual dashboard theme/mode cases');
 } finally { await browser.close(); }

@@ -82,6 +82,9 @@ export default function CareerPage() {
   const stats =
     career.lifetimeStatistics;
 
+  // Counts are supplied by the existing verified career endpoint. A single
+  // denominator makes scored/conceded bars directly comparable.
+  const goalScale = Math.max(stats.goalsFor, stats.goalsAgainst, 1);
   const ign =
     career.profile.identity
       ?.inGameName ||
@@ -206,6 +209,31 @@ export default function CareerPage() {
                 ))}
               </div>
             ) : <p className="theme-secondary-text mt-3 text-sm">Your match outcome breakdown appears after your first verified match.</p>}
+          </section>
+        </FcPanel>
+
+        <FcPanel className="p-5 sm:p-6">
+          <section aria-labelledby="career-goals-title">
+            <h2 id="career-goals-title" className="theme-text text-lg font-semibold">Goal balance</h2>
+            <p className="theme-secondary-text mt-1 text-xs">Verified goals scored and conceded in this career scope, on the same scale.</p>
+            {stats.matches > 0 ? (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {[
+                  { label: 'Goals scored', count: stats.goalsFor, tone: 'accent-[var(--theme-success)]' },
+                  { label: 'Goals conceded', count: stats.goalsAgainst, tone: 'accent-[var(--theme-danger)]' },
+                ].map(({ label, count, tone }) => (
+                  <div key={label} className="min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="theme-secondary-text text-sm">{label}</span>
+                      <strong className="theme-text tabular-nums">{count}</strong>
+                    </div>
+                    <meter min={0} max={goalScale} value={count}
+                      aria-label={`${label}: ${count}`} className={`mt-2 h-3 w-full ${tone}`} />
+                  </div>
+                ))}
+                <p className="theme-secondary-text text-sm sm:col-span-2">Goal difference: <strong className="theme-text tabular-nums">{stats.goalDifference > 0 ? '+' : ''}{stats.goalDifference}</strong></p>
+              </div>
+            ) : <p className="theme-secondary-text mt-3 text-sm">Goal balance appears after your first verified match.</p>}
           </section>
         </FcPanel>
 

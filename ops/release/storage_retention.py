@@ -119,7 +119,7 @@ def referenced_releases(root=RELEASES):
     return refs, state, rollback
 
 
-def candidates(root, artifact_root, protected, mounts=(), opened=()):
+def candidates(root, artifact_root, protected, mounts=(), opened=(), runtime_archives=None):
     out = []
 
     def safe(path):
@@ -127,7 +127,19 @@ def candidates(root, artifact_root, protected, mounts=(), opened=()):
             Path(p.removesuffix(' (deleted)')).is_relative_to(path) for p in opened)
 
     for release in sorted(root.iterdir()):
-        if not release.is_dir() or not canonical(release) or release.name in protected:
+        if not release.is_dir() or not canonical(release):
+            continue
+        # The running binaries stay protected. Completed immutable transfer archives
+        # beside current/rollback runtime are independently disposable after PC escrow.
+        sha = (runtime_archives or {}).get(release.name)
+        if sha and re.fullmatch('[0-9a-f]{40}', sha) and release.name.endswith(sha[:12]):
+            marker = release / 'RELEASE_SHA.txt'
+            if marker.is_file() and canonical(marker) and marker.read_text().strip() == sha:
+                for name in ('fcarena-runtime-' + sha + '.tar.gz', 'github-artifact.verified.zip'):
+                    path = release / name
+                    if path.is_file() and safe(path):
+                        out.append({'path': str(path), 'kind': 'downloaded-archive', 'releaseSha': sha})
+        if release.name in protected:
             continue
         for relative in RELATIVE:
             path = release / relative
@@ -153,7 +165,8 @@ def seal(report):
 
 def plan():
     refs, state, rollback = referenced_releases()
-    items = candidates(RELEASES, ARTIFACTS, refs, mount_paths(), process_paths())
+    archive_roots = {Path(item['runtime']).parent.name: item['release'] for item in (state, rollback)}
+    items = candidates(RELEASES, ARTIFACTS, refs, mount_paths(), process_paths(), archive_roots)
     for item in items:
         path = Path(item['path'])
         item['fingerprint'] = fingerprint(path)

@@ -102,6 +102,17 @@ referenced releases, the verified rollback, or unverified archives.
   bounded header/trailer metadata; its complete SHA-256 must still match before
   the server may remove the original. Filenames include the release SHA to avoid
   collisions between different outer ZIPs.
+- Completed CI tar/ZIP transfer files beside the current and verified rollback
+  runtime also participate in PC escrow. The full release marker and folder SHA
+  must agree, only the two fixed archive basenames are eligible, and open or
+  mounted files are excluded. The running `runtime/` tree remains protected.
+  Content-specific PC filenames keep different builds from overwriting a prior
+  verified archive copy.
+- `--root releases` and `--root staging` support separately inventoried manual
+  relocation of the two pre-managed historical roots. Their configuration,
+  process, mount, symlink and database references are checked independently, and
+  the selected root is sealed into each plan. The standing automatic policy
+  remains limited to `/opt/fcarena-deployments`.
 
 Keep builds in GitHub Actions and the PC. Required current/rollback runtimes,
 stable user files, credentials and data remain on VCL. Never promise an empty

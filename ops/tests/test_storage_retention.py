@@ -95,6 +95,34 @@ class RetentionTests(unittest.TestCase):
         (self.releases / 'old/release.env').write_text('private')
         self.assertEqual(self.items(), [])
 
+    def test_completed_current_archives_are_separate_from_protected_runtime(self):
+        sha = 'a' * 40
+        name = 'awards-full-' + sha[:12]
+        self.directory(name + '/runtime/node_modules')
+        release = self.releases / name
+        (release / 'RELEASE_SHA.txt').write_text(sha + '\n')
+        (release / ('fcarena-runtime-' + sha + '.tar.gz')).write_bytes(b'build archive')
+        (release / 'github-artifact.verified.zip').write_bytes(b'outer zip')
+        items = self.items({name}, runtime_archives={name: sha})
+        self.assertEqual(len(items), 2)
+        self.assertTrue(all(i['kind'] == 'downloaded-archive' and i['releaseSha'] == sha for i in items))
+        self.assertTrue((release / 'runtime/node_modules/file').exists())
+        self.assertEqual(len(self.items({name}, runtime_archives={name: sha},
+                                        opened={str(release / 'github-artifact.verified.zip')})), 1)
+        (release / 'RELEASE_SHA.txt').write_text('b' * 40)
+        self.assertEqual(self.items({name}, runtime_archives={name: sha}), [])
+
+    def test_pc_runtime_archive_targets_require_exact_release_and_preserve_distinct_bytes(self):
+        sha = 'a' * 40
+        path = '/opt/fcarena-deployments/awards-full-' + sha[:12] + '/github-artifact.verified.zip'
+        item = {'path': path, 'releaseSha': sha, 'sha256': 'b' * 64}
+        target = O.archive_target(item, self.root)
+        self.assertNotEqual(target, O.archive_target(dict(item, sha256='c' * 64), self.root))
+        for bad in (dict(item, releaseSha='c' * 40), dict(item, path=path.replace('github-artifact.verified.zip', 'release.env')),
+                    dict(item, path=path.replace('/opt/fcarena-deployments/', '/var/backups/'))):
+            with self.assertRaises(ValueError):
+                O.archive_target(bad, self.root)
+
     def test_mount_and_open_descriptor_exclude_directory(self):
         path = self.directory('old/runtime/node_modules')
         self.assertEqual(self.items(mounts={path / 'nested'}), [])

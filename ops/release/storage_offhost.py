@@ -14,6 +14,7 @@ import time
 REMOTE = '/var/lib/fcarena-release-storage/'
 GUARD = '/opt/fcarena-ops/release/storage_retention.py'
 SOURCE = re.compile(r'/root/fcarena-audit-improvements/artifacts/([0-9a-f]{40})/(fcarena-(?:runtime-[0-9a-f]{40}\.tar\.gz|vcl-runtime-[0-9a-f]{40}\.zip)|runtime-artifact\.zip)$')
+RUNTIME_SOURCE = re.compile(r'/opt/fcarena-deployments/([A-Za-z0-9][A-Za-z0-9_.-]*)/(fcarena-runtime-[0-9a-f]{40}\.tar\.gz|github-artifact\.verified\.zip)$')
 
 
 def digest(path):
@@ -21,40 +22,58 @@ def digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
-def archive_target(item, destination):
+def archive_identity(item):
     match = SOURCE.fullmatch(item['path'])
-    if not match or (match[2] != 'runtime-artifact.zip' and match[1] not in match[2]) or not re.fullmatch('[0-9a-f]{64}', item['sha256']):
+    if not re.fullmatch('[0-9a-f]{64}', item['sha256']):
+        raise ValueError('Unexpected archive checksum')
+    if match:
+        if match[2] != 'runtime-artifact.zip' and match[1] not in match[2]:
+            raise ValueError('Archive commit mismatch')
+        return match[1], match[2], False
+    match = RUNTIME_SOURCE.fullmatch(item['path'])
+    sha = item.get('releaseSha', '')
+    if (not match or not re.fullmatch('[0-9a-f]{40}', sha) or not match[1].endswith(sha[:12])
+            or (match[2] != 'github-artifact.verified.zip' and match[2] != 'fcarena-runtime-' + sha + '.tar.gz')):
         raise ValueError('Unexpected archive path/checksum')
-    name = match[1] + '-runtime-artifact.zip' if match[2] == 'runtime-artifact.zip' else match[2]
+    return sha, match[2], True
+
+
+def archive_target(item, destination):
+    sha, original, runtime = archive_identity(item)
+    if runtime:
+        name = sha + '-' + item['sha256'][:16] + '-' + original
+    else:
+        name = sha + '-runtime-artifact.zip' if original == 'runtime-artifact.zip' else original
     return destination / name
 
 
 def reconstruct_stored_zip(item, target, recipe):
     """Reuse an already verified inner tarball; the complete outer ZIP must still hash identically."""
-    match = SOURCE.fullmatch(item['path'])
-    if not match or match[2] != 'runtime-artifact.zip':
+    sha, original, runtime = archive_identity(item)
+    if original not in ('runtime-artifact.zip', 'github-artifact.verified.zip'):
         return False
-    expected_name = 'fcarena-runtime-' + match[1] + '.tar.gz'
-    source = target.parent / expected_name
-    if (recipe.get('name') != expected_name or not source.is_file() or source.is_symlink()
-            or source.stat().st_size != recipe.get('bytes')):
+    expected_name = 'fcarena-runtime-' + sha + '.tar.gz'
+    if recipe.get('name') != expected_name:
         return False
     head, tail = (base64.b64decode(recipe[key], validate=True) for key in ('head', 'tail'))
     if len(head) > 65536 or len(tail) > 65536:
         raise ValueError('Unexpected ZIP metadata bounds')
-    partial = target.with_name(target.name + '.reconstruct.partial')
-    try:
-        with partial.open('xb') as out, source.open('rb') as stream:
-            out.write(head)
-            shutil.copyfileobj(stream, out, 1024 * 1024)
-            out.write(tail)
-        if digest(partial) != item['sha256']:
-            return False
-        partial.replace(target)
-        return True
-    finally:
-        if partial.exists():
-            partial.unlink()
+    for source in sorted(target.parent.glob('*' + expected_name)):
+        if not source.is_file() or source.is_symlink() or source.stat().st_size != recipe.get('bytes'):
+            continue
+        partial = target.with_name(target.name + '.reconstruct.partial')
+        try:
+            with partial.open('xb') as out, source.open('rb') as stream:
+                out.write(head)
+                shutil.copyfileobj(stream, out, 1024 * 1024)
+                out.write(tail)
+            if digest(partial) == item['sha256']:
+                partial.replace(target)
+                return True
+        finally:
+            if partial.exists():
+                partial.unlink()
+    return False
 
 
 def main():
@@ -94,13 +113,13 @@ def main():
         result.check_returncode()
 
     def reuse_inner_archive(item, target):
-        match = SOURCE.fullmatch(item['path'])
-        if not match or match[2] != 'runtime-artifact.zip':
+        sha, original, runtime = archive_identity(item)
+        if original not in ('runtime-artifact.zip', 'github-artifact.verified.zip'):
             return False
         # The source path is restricted to a literal SHA directory and fixed basename.
         code = '''import base64,json,pathlib,struct,zipfile
 p=pathlib.Path(SOURCE_PATH)
-name='fcarena-runtime-'+p.parent.name+'.tar.gz'
+name=EXPECTED_INNER_NAME
 with zipfile.ZipFile(p) as z:
  i=z.getinfo(name)
  assert i.compress_type==zipfile.ZIP_STORED and i.file_size==i.compress_size
@@ -112,7 +131,7 @@ with zipfile.ZipFile(p) as z:
   assert 0<=offset<=65536 and 0<=remaining<=65536
   f.seek(0);head=f.read(offset);f.seek(offset+i.file_size);tail=f.read(remaining)
  print(json.dumps({'name':name,'bytes':i.file_size,'head':base64.b64encode(head).decode(),'tail':base64.b64encode(tail).decode()}))
-'''.replace('SOURCE_PATH', repr(item['path']))
+'''.replace('SOURCE_PATH', repr(item['path'])).replace('EXPECTED_INNER_NAME', repr('fcarena-runtime-' + sha + '.tar.gz'))
         result = subprocess.run(['ssh', *common, args.host, 'python3 -'], input=code, text=True,
                                 capture_output=True, timeout=60)
         if result.returncode != 0:

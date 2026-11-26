@@ -593,6 +593,7 @@ export default function FixturesPage() {
                   </span>
 
                   <select
+                    aria-label="League"
                     value={selectedLeagueId}
                     onChange={(event) =>
                       setSelectedLeagueId(event.target.value)
@@ -616,6 +617,7 @@ export default function FixturesPage() {
                   </span>
 
                   <select
+                    aria-label="Tournament"
                     value={selectedTournamentId}
                     onChange={(event) => {
                       setSelectedTournamentId(event.target.value);

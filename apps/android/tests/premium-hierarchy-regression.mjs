@@ -36,7 +36,7 @@ const overrides = {
     trophyCabinet: { GOLDEN_BOOT: 2 },
   },
 };
-const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/login'];
+const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/career', '/login'];
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 let checks = 0;
 try {
@@ -109,6 +109,15 @@ try {
           await page.getByRole('alert').filter({ hasText: 'Full name must be between 2 and 120 characters.' }).waitFor();
           assert.deepEqual(f.mutations, [], 'Invalid profile edits must not issue a mutation');
           await fullName.fill(originalName);
+        }
+        if (route === '/career') {
+          const breakdown = page.getByRole('region', { name: 'Match outcomes' });
+          await breakdown.waitFor();
+          for (const [label, count] of [['Wins', 2], ['Draws', 1], ['Losses', 1]]) {
+            const meter = breakdown.getByRole('meter', { name: `${label}: ${count} of 4 matches` });
+            assert.equal(await meter.getAttribute('value'), String(count));
+            assert.equal(await meter.getAttribute('max'), '4');
+          }
         }
         if (route === '/login') {
           // Navigate with the keyboard to ensure focus-visible, not just :focus.

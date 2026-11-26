@@ -863,6 +863,7 @@ export function ArenaFeed({
             </label>
             <textarea
               id="arena-body"
+              aria-describedby="arena-character-count"
               required
               maxLength={2000}
               rows={4}
@@ -870,7 +871,7 @@ export function ArenaFeed({
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
-            <small>{body.length}/2000 characters</small>
+            <small id="arena-character-count" className="theme-secondary-text tabular-nums">{body.length}/2000 characters</small>
             <details open={kind === "NEWS" ? true : undefined}>
               <summary>
                 Source link{kind === "NEWS" ? " (required)" : " (optional)"}

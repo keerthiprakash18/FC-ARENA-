@@ -1551,7 +1551,7 @@ function MatchRoom() {
                           max="99"
                           required
                           inputMode="numeric"
-                          className="min-w-0 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-center text-2xl font-black"
+                          className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                         />
                       </label>
 
@@ -1571,7 +1571,7 @@ function MatchRoom() {
                           max="99"
                           required
                           inputMode="numeric"
-                          className="min-w-0 w-full rounded-xl border border-white/10 bg-[#080e15] px-3 py-3 text-center text-2xl font-black"
+                          className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                         />
                       </label>
                     </div>
@@ -1690,7 +1690,7 @@ function MatchRoom() {
               {match.tournament.duoAggregateEnabled ? (
                 <DuoAggregateInputs home={match.fixture.home} away={match.fixture.away} prefix="corrected" gameCount={match.tournament.duoGamesPerFixture}
                   initial={confirmed.duoGames} disabled={busy} />
-              ) : (<div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+              ) : (<div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3">
                 <label className="grid gap-2 text-sm font-bold">
                   {home}
 
@@ -1701,7 +1701,7 @@ function MatchRoom() {
                     max="99"
                     defaultValue={confirmed.homeScore}
                     required
-                    className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                    className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                   />
                 </label>
 
@@ -1717,7 +1717,7 @@ function MatchRoom() {
                     max="99"
                     defaultValue={confirmed.awayScore}
                     required
-                    className="rounded-xl border border-white/10 bg-[#080e15] px-4 py-3 text-center text-2xl font-black"
+                    className="theme-input min-w-0 w-full rounded-xl border px-3 py-3 text-center text-2xl font-semibold tabular-nums"
                   />
                 </label>
               </div>)}
@@ -1730,7 +1730,7 @@ function MatchRoom() {
                 minLength={3}
                 required
                 placeholder="Correction reason"
-                className="rounded-xl border border-white/10 bg-[#080e15] p-4"
+                className="theme-input w-full rounded-xl border p-4"
               />
               </label>
 

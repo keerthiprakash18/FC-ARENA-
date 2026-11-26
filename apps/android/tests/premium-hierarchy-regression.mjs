@@ -36,7 +36,7 @@ const overrides = {
     trophyCabinet: { GOLDEN_BOOT: 2 },
   },
 };
-const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/career', '/login'];
+const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/career', '/more', '/login'];
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 let checks = 0;
 try {
@@ -118,6 +118,17 @@ try {
             assert.equal(await meter.getAttribute('value'), String(count));
             assert.equal(await meter.getAttribute('max'), '4');
           }
+        }
+        if (route === '/more') {
+          const search = page.getByRole('searchbox', { name: 'Find a feature' });
+          await search.waitFor();
+          await search.fill('Tournament Management');
+          const results = page.getByRole('region', { name: 'Feature search results' });
+          await results.getByRole('link', { name: /Tournament Management/ }).waitFor();
+          await search.fill('no-feature-matches-this');
+          await results.getByRole('heading', { name: 'No matching features' }).waitFor();
+          await page.getByRole('button', { name: 'Clear search' }).click();
+          await page.getByRole('region', { name: 'Player essentials' }).waitFor();
         }
         if (route === '/login') {
           // Navigate with the keyboard to ensure focus-visible, not just :focus.

@@ -95,7 +95,13 @@ async function metrics(page) {
       return { top: r.top, bottom: r.bottom, height: r.height };
     };
     const hit = document.elementFromPoint(innerWidth / 2, innerHeight * 0.65);
-    return { height: innerHeight, width: innerWidth, scrollHeight: document.documentElement.scrollHeight, scrollY, scrollWidth: document.documentElement.scrollWidth, native: document.documentElement.dataset.nativeApp, header: rect('.theme-top-header'), nav: rect('.theme-bottom-nav'), hit: hit?.tagName + '.' + hit?.className, shellOverflow: getComputedStyle(document.querySelector('.fc-app-shell')).overflowY };
+    const chain = [];
+    for (let el = hit; el && chain.length < 8; el = el.parentElement) {
+      const style = getComputedStyle(el);
+      chain.push({ tag: el.tagName, class: String(el.className).slice(0, 120), touchAction: style.touchAction,
+        overflowY: style.overflowY, scrollTop: el.scrollTop, clientHeight: el.clientHeight, scrollHeight: el.scrollHeight });
+    }
+    return { gestureHitChain: chain, height: innerHeight, width: innerWidth, scrollHeight: document.documentElement.scrollHeight, scrollY, scrollWidth: document.documentElement.scrollWidth, native: document.documentElement.dataset.nativeApp, header: rect('.theme-top-header'), nav: rect('.theme-bottom-nav'), hit: hit?.tagName + '.' + hit?.className, shellOverflow: getComputedStyle(document.querySelector('.fc-app-shell')).overflowY };
   });
 }
 async function swipe(page, upwards) {

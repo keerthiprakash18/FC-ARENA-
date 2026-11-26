@@ -108,10 +108,6 @@ export default function CareerPage() {
           }
         />
 
-        <div className="flex flex-wrap gap-3">
-          <Link href="/career/season-recaps" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">🏆 {"Season Recaps"} →</Link>
-          <Link href="/clubs" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">★ {"FC ARENA Clubs"} →</Link>
-        </div>
         <CareerNavigation />
         <CareerLeagueFilter data={career} />
 
@@ -159,7 +155,7 @@ export default function CareerPage() {
           </div>
         </FcPanel>
 
-        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section aria-label="Verified career totals" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FcStatCard
             label="Matches"
             value={stats.matches}
@@ -266,6 +262,11 @@ export default function CareerPage() {
             )}
           </div>
         </FcPanel>
+
+        <div className="flex flex-wrap gap-3">
+          <Link href="/career/season-recaps" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">🏆 {"Season Recaps"} →</Link>
+          <Link href="/clubs" className="theme-secondary-button inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-bold">★ {"FC ARENA Clubs"} →</Link>
+        </div>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[

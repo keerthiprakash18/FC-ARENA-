@@ -202,6 +202,18 @@ class RetentionTests(unittest.TestCase):
         entry['verifiedAt'] = R.dt.datetime.fromtimestamp(now + 301, R.dt.timezone.utc).isoformat()
         self.assertEqual(R.select_policy(report, policy, {'files': [entry]}, now)['candidates'], [])
 
+    def test_large_backlog_is_selected_in_bounded_batches(self):
+        self.directory('one/runtime/node_modules')
+        self.directory('two/runtime/node_modules')
+        report = self.report(self.items())
+        for item in report['candidates']:
+            item['bytes'] = 1024**3
+        policy = {'approvedBy': 'owner', 'scope': 'unreferenced-packages-cache-and-pc-verified-archives-v1',
+                  'minimumAgeHours': 24, 'maxCycleGiB': 1.5}
+        selected = R.select_policy(report, policy, {'files': []}, now=time.time() + 90000)
+        self.assertEqual(len(selected['candidates']), 1)
+        self.assertEqual(selected['reclaimBytes'], 1024**3)
+
 
 if __name__ == '__main__':
     unittest.main()

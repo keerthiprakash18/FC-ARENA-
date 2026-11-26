@@ -239,9 +239,14 @@ def select_policy(report, policy, receipt, now=None):
               and -300 <= now - dt.datetime.fromisoformat(i['verifiedAt']).timestamp() <= 48 * 3600}
     selected = [i for i in report['candidates'] if now - i['fingerprint']['mtime_ns'] / 1e9 >= age * 3600
                 and (i['kind'] != 'downloaded-archive' or copies.get(i['path'], {}).get('sha256') == i['sha256'])]
-    require(sum(i['bytes'] for i in selected) <= limit * 1024**3, 'Cycle exceeds approved budget; manual review required')
+    bounded, total = [], 0
+    for item in selected:
+        require(item['bytes'] <= limit * 1024**3, 'Single candidate exceeds approved budget; manual review required')
+        if total + item['bytes'] <= limit * 1024**3:
+            bounded.append(item)
+            total += item['bytes']
     value = {k: v for k, v in report.items() if k != 'planId'}
-    value.update(candidates=selected, reclaimBytes=sum(i['bytes'] for i in selected))
+    value.update(candidates=bounded, reclaimBytes=total)
     return seal(value)
 
 

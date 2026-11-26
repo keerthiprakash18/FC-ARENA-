@@ -97,6 +97,8 @@ referenced releases, the verified rollback, or unverified archives.
   escrow and an isolated restore verification of the latest encrypted recovery
   archive. If the PC is unavailable, disk space is insufficient, or recovery proof
   is stale, old releases remain protected and maintenance reports failure.
+  The existing PC task permits battery operation while still requiring network
+  availability; its original battery restriction had left maintenance queued.
 - GitHub outer `runtime-artifact.zip` files now participate in archive escrow.
   A PC with the matching inner tarball can reconstruct the exact outer ZIP from
   bounded header/trailer metadata; its complete SHA-256 must still match before

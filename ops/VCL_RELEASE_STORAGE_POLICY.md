@@ -94,7 +94,8 @@ referenced releases, the verified rollback, or unverified archives.
   `pc-verified-unreferenced-release-roots-v1` for the PC `--cycle` mode. Cycles select
   only releases at least 24 hours old, at most 10 roots and 10 GiB per run. The
   existing logged-in-user PC maintenance task runs the receiver after archive
-  escrow. If the PC is unavailable, disk space is insufficient, or recovery proof
+  escrow and an isolated restore verification of the latest encrypted recovery
+  archive. If the PC is unavailable, disk space is insufficient, or recovery proof
   is stale, old releases remain protected and maintenance reports failure.
 - GitHub outer `runtime-artifact.zip` files now participate in archive escrow.
   A PC with the matching inner tarball can reconstruct the exact outer ZIP from

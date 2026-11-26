@@ -31,6 +31,7 @@ def main():
     assert bool(args.plan_id) != args.cycle, 'Choose one exact manual plan or the standing owner cycle'
     destination = Path(args.directory).resolve()
     common = ['-i', args.identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
+              '-o', 'ConnectionAttempts=3', '-o', 'IPQoS=none',
               '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=4']
     remote_state, remote_helper, suffix = REMOTE_STATE, REMOTE_HELPER, ''
     if args.root != 'deployments':
@@ -43,7 +44,7 @@ def main():
         remote_state = '/var/lib/fcarena-release-storage/release-escrow/' + cycle + '/'
         remote_helper = '/opt/fcarena-ops/release/release_escrow.py'
         suffix = ' --state-id ' + cycle
-        result = subprocess.check_output(['ssh', *common, args.host, 'python3 ' + remote_helper + ' plan' + suffix], timeout=1800)
+        result = subprocess.check_output(['ssh', '-n', '-T', *common, args.host, 'python3 ' + remote_helper + ' plan' + suffix], timeout=1800)
         summary = json.loads(result)
         if summary['releaseCount'] == 0:
             print(json.dumps({'status': 'PASS', 'retiredReleases': 0}), flush=True)
@@ -54,7 +55,7 @@ def main():
     destination.mkdir(mode=0o700, parents=True, exist_ok=True)
 
     def read(name):
-        return json.loads(subprocess.check_output(['ssh', *common, args.host, 'cat ' + remote_state + name], timeout=60))
+        return json.loads(subprocess.check_output(['ssh', '-n', '-T', *common, args.host, 'cat ' + remote_state + name], timeout=60))
 
     plan = read('plan.private.json')
     expected = dict(plan)
@@ -67,7 +68,7 @@ def main():
         assert shutil.disk_usage(destination).free >= 20 * 1024**3
         assert not partial.exists(), 'Review incomplete transfer before retrying'
         with partial.open('xb') as out, (destination / 'transfer.private.log').open('xb') as log:
-            subprocess.run(['ssh', *common, args.host,
+            subprocess.run(['ssh', '-n', '-T', *common, args.host,
                             'python3 ' + remote_helper + ' stream --approved-plan ' + args.plan_id + suffix],
                            stdout=out, stderr=log, check=True, timeout=7200)
         streamed = read('stream.json')
@@ -92,12 +93,12 @@ def main():
     receipt_path = destination / 'pc-receipt.private.json'
     receipt_path.write_text(json.dumps(receipt, indent=2))
     subprocess.run(['scp', '-q', *common, str(receipt_path), args.host + ':' + remote_state + 'pc-receipt.incoming.json'], check=True)
-    subprocess.run(['ssh', *common, args.host, 'chmod 600 ' + remote_state + 'pc-receipt.incoming.json && mv '
+    subprocess.run(['ssh', '-n', '-T', *common, args.host, 'chmod 600 ' + remote_state + 'pc-receipt.incoming.json && mv '
                     + remote_state + 'pc-receipt.incoming.json ' + remote_state + 'pc-receipt.json'], check=True)
     print(json.dumps({'status': 'PC_ARCHIVE_VERIFIED', 'archive': str(target), 'bytes': streamed['bytes'],
                       'releaseCount': len(counts), 'verifiedEntries': sum(counts.values()), 'sha256': streamed['sha256']}), flush=True)
     if args.cycle:
-        subprocess.run(['ssh', *common, args.host, 'python3 ' + remote_helper + ' apply --approved-plan '
+        subprocess.run(['ssh', '-n', '-T', *common, args.host, 'python3 ' + remote_helper + ' apply --approved-plan '
                         + args.plan_id + suffix], check=True, timeout=1800)
 
 

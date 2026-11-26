@@ -86,6 +86,7 @@ def main():
     destination = Path(args.directory).resolve()
     destination.mkdir(parents=True, exist_ok=True)
     common = ['-i', args.identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15',
+              '-o', 'ConnectionAttempts=3', '-o', 'IPQoS=none',
               '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=4']
 
     def ssh(command):

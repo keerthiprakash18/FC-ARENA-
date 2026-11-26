@@ -107,13 +107,14 @@ interface PlayerActivityData {
 function PlayerActivity() {
   const [activity, setActivity] = useState<PlayerActivityData | null>(null);
   const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     void authenticatedRequest<{ data: PlayerActivityData }>('/admin/ops/player-activity', { signal: controller.signal })
       .then(({ data }) => { if (!controller.signal.aborted) setActivity(data); })
       .catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
-  }, []);
+  }, [attempt]);
   const rate = (numerator: number, denominator: number) =>
     denominator ? `${Math.round(numerator / denominator * 100)}% (${numerator}/${denominator})` : '—';
   return (
@@ -123,7 +124,7 @@ function PlayerActivity() {
         Activity counts unique accounts with a login or refresh session, using IST calendar days.
         Retention uses the last 28 signup days and includes only cohorts with a complete return day.
       </p>
-      {error ? <p role="alert">Player activity is temporarily unavailable.</p> : activity ? (
+      {error ? <div className="theme-panel mt-3 rounded-xl border p-4"><p role="alert" className="theme-secondary-text text-sm">Player activity is temporarily unavailable. No missing values are treated as zero.</p><button type="button" className="theme-secondary-button mt-3 min-h-11 rounded-xl border px-4 text-sm font-semibold" onClick={() => { setError(false); setAttempt(value => value + 1); }}>Retry player activity</button></div> : activity ? (
         <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
             ['Active today', activity.daily],

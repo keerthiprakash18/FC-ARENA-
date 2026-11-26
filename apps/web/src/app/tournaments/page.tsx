@@ -314,6 +314,7 @@ export default function TournamentsPage() {
                 <input className="theme-input border" type="search" aria-label="Search tournaments" placeholder="Search by name or code" value={search} onChange={event => setSearch(event.target.value)} />
                 {search && <button type="button" className="theme-secondary-button border text-sm font-semibold" onClick={() => setSearch('')}>Clear search</button>}
               </div>
+              {!loading && !tournamentLoad.error && record?.leagueId === leagueId ? <p role="status" className="theme-secondary-text mb-3 text-xs tabular-nums">{filtered.length} {stageLabel.toLowerCase()} {filtered.length === 1 ? 'tournament' : 'tournaments'} shown</p> : null}
               {formatFilter && <button className={styles.filterClear} type="button" onClick={() => setFormatFilter(null)}>{competitionLabel(formatFilter)} <span aria-hidden="true">×</span><span className="sr-only">, clear format filter</span></button>}
               {tournamentLoad.error ? <FcErrorState message={tournamentLoad.error} onRetry={tournamentLoad.retry} /> : loading || record?.leagueId !== leagueId ? (
                 <div className={styles.skeleton} role="status"><span className="sr-only">Loading tournaments</span></div>
@@ -324,9 +325,16 @@ export default function TournamentsPage() {
                       <Link href={'/tournaments/' + tournament.id} className={styles.tournamentLink}>
                         <FcCrest name={tournament.name} imageUrl={tournament.logoUrl} size="lg" />
                         <div className={styles.tournamentMeta}>
-                          <p>{competitionLabel(tournament.competitionFormat || tournament.format)}</p>
+                          <p>{competitionLabel(tournament.competitionFormat || tournament.format)} · {competitionLabel(tournament.mode)}</p>
                           <h3>{tournament.name}</h3>
                           <p>{tournament.approvedEntries}/{tournament.maxEntries} approved · {tournament.startAt ? new Date(tournament.startAt).toLocaleDateString('en-GB') : 'Date to be set'}</p>
+                          {['REGISTRATION_OPEN', 'REGISTRATION_CLOSED'].includes(tournament.status) &&
+                           Number.isFinite(tournament.approvedEntries) && tournament.approvedEntries >= 0 &&
+                           Number.isFinite(tournament.maxEntries) && tournament.maxEntries > 0 ? (
+                            <progress aria-label={`${tournament.name}: ${tournament.approvedEntries} approved of ${tournament.maxEntries} entry limit`}
+                              value={Math.min(tournament.approvedEntries, tournament.maxEntries)} max={tournament.maxEntries}
+                              className="mt-1.5 h-2 w-full max-w-64 accent-[#d9b977]" />
+                          ) : null}
                         </div>
                         <FcIcon name="chevronRight" />
                       </Link>

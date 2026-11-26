@@ -30,13 +30,21 @@ const overrides = {
     tournaments: [{ ...tournament, status: 'ACTIVE' }], fixtures: [fixture],
   },
   '/api/leagues/phase3/rankings/history': { history: [] },
+  '/api/leagues/phase3/tournaments': { tournaments: [{ ...tournament, status: 'REGISTRATION_OPEN' }] },
+  '/api/notifications': {
+    unreadCount: 2,
+    notifications: [
+      { id: 'notice-1', type: 'MATCH_REMINDER', title: 'Matchday reminder', message: 'Your next cup match is ready.', href: null, eventAt: '2026-11-25T12:00:00Z', readAt: null },
+      { id: 'notice-2', type: 'ACHIEVEMENT_RECEIVED', title: 'Achievement unlocked', message: 'Your verified milestone.', href: null, eventAt: '2026-11-25T12:00:00Z', readAt: null },
+    ],
+  },
   '/api/awards/overview': {
     ...phaseData['/api/awards/overview'],
     currentBallon: { season, rankings: { locked: false, rows } },
     trophyCabinet: { GOLDEN_BOOT: 2 },
   },
 };
-const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/career', '/more', '/login'];
+const routes = ['/dashboard', '/fixtures', '/leaderboards', '/awards', '/awards/golden-boot', '/profile', '/career', '/more', '/tournaments', '/notifications', '/login'];
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 let checks = 0;
 try {
@@ -132,6 +140,24 @@ try {
           await essentials.waitFor();
           assert.equal(await essentials.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ }).getAttribute('href'), '/awards');
         }
+        if (route === '/tournaments') {
+          const capacity = page.getByRole('progressbar', { name: 'Responsive Cup: 2 approved of 8 entry limit' });
+          await capacity.waitFor();
+          assert.equal(await capacity.getAttribute('value'), '2');
+          assert.equal(await capacity.getAttribute('max'), '8');
+        }
+        if (route === '/notifications') {
+          const search = page.getByRole('searchbox', { name: 'Search loaded notifications' });
+          await search.waitFor();
+          await page.getByRole('heading', { name: 'Matchday reminder', exact: true }).waitFor();
+          await search.fill('milestone');
+          await page.getByRole('heading', { name: 'Achievement unlocked', exact: true }).waitFor();
+          assert.equal(await page.getByRole('heading', { name: 'Matchday reminder', exact: true }).count(), 0);
+          await search.fill('no such notification');
+          await page.getByRole('heading', { name: 'No matching notifications' }).waitFor();
+          await page.getByRole('button', { name: 'Clear search' }).click();
+          await page.getByRole('heading', { name: 'Matchday reminder', exact: true }).waitFor();
+        }
         if (route === '/login') {
           // Navigate with the keyboard to ensure focus-visible, not just :focus.
           await page.keyboard.press('Tab');
@@ -174,7 +200,7 @@ try {
   // Exercise the actual search UI as a non-admin account using synthetic data.
   // This is a navigation visibility test; server-side authorization remains authoritative.
   const playerContext = await createUiContext(browser, {
-    width: 390, direct: true, native: true, role: 'PLAYER',
+    width: 390, direct: true, native: true, role: 'USER',
     overrides: { '/api/leagues/my': {
       leagues: phaseData['/api/leagues/my'].leagues.map(membership => ({ ...membership, adminRole: null })),
     } },

@@ -68,6 +68,16 @@ def process_paths():
     return paths
 
 
+def container_sources():
+    ids = subprocess.check_output(['docker', 'ps', '--all', '--quiet'], text=True, timeout=30).split()
+    if not ids:
+        return set()
+    output = subprocess.check_output(['docker', 'inspect', '--format', '{{json .Mounts}}', *ids],
+                                     text=True, stderr=subprocess.PIPE, timeout=30)
+    return {Path(item['Source']) for line in output.splitlines() for item in json.loads(line)
+            if item.get('Source')}
+
+
 def referenced_releases(root=RELEASES):
     refs = {}
 
@@ -96,6 +106,13 @@ def referenced_releases(root=RELEASES):
                 pass
     for path in mount_paths():
         add(str(path), 'mount')
+    for path in container_sources():
+        if path == root or root.is_relative_to(path):
+            for release in root.iterdir():
+                if release.is_dir():
+                    refs.setdefault(release.name, set()).add('container mount of deployment parent')
+        else:
+            add(str(path), 'container volume/bind mount')
     roots = [str(p) for p in (root, Path('/opt/fcarena'), Path('/opt/fcarena-ops'),
                               Path('/etc/fcarena'), Path('/var/backups')) if p.exists()]
     links = subprocess.check_output(['find', *roots, '-type', 'l', '-printf', r'%p\t%l\0'])

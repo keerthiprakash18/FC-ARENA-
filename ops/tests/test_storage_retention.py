@@ -18,6 +18,18 @@ OFFHOST_SPEC.loader.exec_module(O)
 
 
 class RetentionTests(unittest.TestCase):
+    def test_container_volume_inventory_includes_stopped_container_configuration(self):
+        output = json.dumps([{'Source': '/opt/fcarena-deployments/held/runtime'}, {'Type': 'tmpfs'}]) + '\n'
+        with patch.object(R.subprocess, 'check_output', side_effect=['one\ntwo\n', output]) as command:
+            self.assertEqual(R.container_sources(), {Path('/opt/fcarena-deployments/held/runtime')})
+            self.assertIn('--all', command.call_args_list[0].args[0])
+            self.assertEqual(command.call_args_list[1].args[0][-2:], ['one', 'two'])
+
+    def test_no_container_does_not_issue_an_unscoped_inspect(self):
+        with patch.object(R.subprocess, 'check_output', return_value='') as command:
+            self.assertEqual(R.container_sources(), set())
+            self.assertEqual(command.call_count, 1)
+
     def test_pc_escrow_rejects_other_paths_and_mismatched_release(self):
         name = 'fcarena-runtime-' + 'a' * 40 + '.tar.gz'
         item = {'path': '/root/fcarena-audit-improvements/artifacts/' + 'a' * 40 + '/' + name, 'sha256': 'b' * 64}

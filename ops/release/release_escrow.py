@@ -86,6 +86,13 @@ def legacy_references(r, root):
                 pass
     for path in r.mount_paths():
         add(str(path), 'mount')
+    for path in r.container_sources():
+        if path == root or root.is_relative_to(path):
+            for release in root.iterdir():
+                if release.is_dir():
+                    refs.setdefault(release.name, set()).add('container mount of deployment parent')
+        else:
+            add(str(path), 'container volume/bind mount')
     roots = [str(p) for p in (Path('/opt'), Path('/etc/fcarena'), Path('/var/backups')) if p.exists()]
     links = subprocess.check_output(['find', *roots, '-type', 'l', '-printf', r'%p\t%l\0'])
     for entry in links.decode().split('\0'):

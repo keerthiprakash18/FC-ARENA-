@@ -98,6 +98,7 @@ class ReleaseEscrowTests(unittest.TestCase):
             guard.CONFIG_ROOTS = [str(config)]
             guard.process_paths.return_value = {(root / 'running/main.js').as_posix()}
             guard.mount_paths.return_value = set()
+            guard.container_sources.return_value = set()
             proc = Mock()
             proc.iterdir.return_value = []
             def path(value):

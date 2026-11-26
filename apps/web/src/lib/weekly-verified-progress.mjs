@@ -71,7 +71,7 @@ export function weeklyActivityProgress(week, history, now = Date.now()) {
       Number.isSafeInteger(matches) && Number.isSafeInteger(wins) &&
       matches >= 0 && wins >= 0 && wins <= matches &&
       Number.isFinite(start) && Number.isFinite(end) &&
-      weekWindowIst(start).start === start && weekWindowIst(start).end === end) {
+      weekWindowIst(now).start === start && weekWindowIst(now).end === end) {
     return { ...progressSummary(matches, wins, start, end), source: 'canonical' };
   }
   return { ...weeklyVerifiedProgress(history, now), source: 'recent-history' };

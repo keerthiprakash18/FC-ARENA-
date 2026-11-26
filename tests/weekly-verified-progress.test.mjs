@@ -73,3 +73,12 @@ test('Player Journey exposes read-only, accessible weekly activity without a cla
   assert.match(source, /<progress aria-label=/);
   assert.match(source, /do not award Arena Coins or XP/);
 });
+
+test('expired server totals never appear as current week progress', () => {
+  const expired = { startsAt: '2026-11-01T18:30:00.000Z', endsAt: '2026-11-08T18:30:00.000Z', verifiedMatches: 12, verifiedWins: 8 };
+  const result = weeklyActivityProgress(expired, [{ id: 'current', confirmedAt: '2026-11-12T09:00:00+05:30', outcome: 'D' }], now);
+  assert.equal(result.source, 'recent-history');
+  assert.equal(result.matches, 1);
+  assert.equal(result.wins, 0);
+  assert.equal(result.start, weekWindowIst(now).start);
+});

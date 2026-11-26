@@ -45,3 +45,10 @@ test('candidate source manifest is immutable and guards tracked secrets', () => 
   assert.match(compare,/BLOCKED_SOURCE_DRIFT/);
   assert.match(compare,/Even NO_SOURCE_CONFLICTS_FOUND does not authorize production deployment/);
 });
+
+ test('API production start never performs implicit schema changes', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'apps/api/package.json'), 'utf8'));
+  assert.equal(pkg.scripts['start:prod'], 'node dist/main');
+  assert.equal(pkg.scripts['prestart:prod'], undefined);
+  assert.equal(pkg.scripts['poststart:prod'], undefined);
+});

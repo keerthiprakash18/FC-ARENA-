@@ -30,6 +30,9 @@ try {
       if (theme === 'LUXURY_GOLD' && width === 390) await page.screenshot({ path: path.join(output, `experience-${mode.toLowerCase()}.png`), fullPage: true });
       await page.goto('https://fcarena.in/arena-talk');
       await page.getByText('Who controls the midfield this weekend?', { exact: true }).waitFor();
+      const shortcuts = page.getByRole('navigation', { name: 'Conversation shortcuts' });
+      assert.equal(await shortcuts.getByRole('link', { name: 'Read conversations' }).getAttribute('href'), '#arena-conversation-feed');
+      assert.equal(await shortcuts.getByRole('link', { name: 'Write a post' }).getAttribute('href'), '#arena-composer');
       await checkLayout(page, `Arena ${theme} ${mode} ${width}`);
       if (theme === 'LUXURY_GOLD' && width === 390) await page.screenshot({ path: path.join(output, `arena-${mode.toLowerCase()}.png`), fullPage: true });
       assert.deepEqual(errors, []); screens += 2;

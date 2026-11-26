@@ -333,7 +333,7 @@ export default function TournamentsPage() {
                            Number.isFinite(tournament.maxEntries) && tournament.maxEntries > 0 ? (
                             <progress aria-label={`${tournament.name}: ${tournament.approvedEntries} approved of ${tournament.maxEntries} entry limit`}
                               value={Math.min(tournament.approvedEntries, tournament.maxEntries)} max={tournament.maxEntries}
-                              className="mt-1.5 h-2 w-full max-w-64 accent-[#d9b977]" />
+                              className={styles.capacityProgress} />
                           ) : null}
                         </div>
                         <FcIcon name="chevronRight" />

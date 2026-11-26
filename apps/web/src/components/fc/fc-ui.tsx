@@ -443,7 +443,7 @@ export function FcActionRow({
       href={
         href
       }
-      className="theme-action-row group flex min-h-[78px] items-center gap-4 rounded-2xl border p-4 transition duration-200"
+      className="fc-menu-action theme-action-row group flex min-h-[78px] items-center gap-4 rounded-2xl border p-4 transition duration-200"
     >
       <span
         className={

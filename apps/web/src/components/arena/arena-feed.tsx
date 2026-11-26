@@ -831,7 +831,11 @@ export function ArenaFeed({
   }
   return (
     <div className="arena-feed">
-      <section className="community-panel arena-composer">
+      <nav aria-label="Conversation shortcuts" className="flex flex-wrap gap-2">
+        <a href="#arena-conversation-feed" className="community-button">Read conversations</a>
+        <a href="#arena-composer" className="community-button">Write a post</a>
+      </nav>
+      <section id="arena-composer" className="community-panel arena-composer scroll-mt-24">
         <div className="community-between">
           <h2>Start a conversation</h2>
           <span className="audience-pill">
@@ -1008,7 +1012,7 @@ export function ArenaFeed({
           )}
         </form>
       </section>
-      <div className="community-between">
+      <div id="arena-conversation-feed" className="community-between scroll-mt-24">
         <h2>{leagueName}</h2>
         <button
           className="community-button"

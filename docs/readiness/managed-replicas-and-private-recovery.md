@@ -6,7 +6,7 @@ Capacity acceptance requires two real API processes to achieve at least 90% of o
 
 ## Runtime and release
 
-Build with `.github/workflows/offhost-build-artifact.yml`. Verify its SHA256, rehearse the exact Linux artifact with disposable PostgreSQL 17 and Redis, real browser login, cross-instance match updates and a stopped-replica failover. Do not install or build dependencies on production. Never run `start:prod` during activation: it includes migrations.
+Build with `.github/workflows/offhost-build-artifact.yml`. Verify its SHA256, rehearse the exact Linux artifact with disposable PostgreSQL 17 and Redis, real browser login, cross-instance match updates and a stopped-replica failover. Do not install or build dependencies on production. Use the existing direct managed runtime entrypoint during activation. New source revisions remove implicit migrations from `start:prod`; older artifacts may still include them. Never invoke an unverified startup script. Schema changes remain a separately approved operator action.
 
 The root-owned `/etc/fcarena/managed-release/current.json` identifies the runtime and source SHA. Root-only `api.env` and `web.env` consolidate the effective inherited service environment; the API retains `/opt/fcarena/apps/api` as its working directory for stable dotenv/media compatibility. Existing environment files and legacy drop-ins are retained. Only the primary API runs scheduled workers; both APIs share Redis request quotas and match-event pub/sub. Authentication quotas stay in PostgreSQL, and unavailable Redis acceleration falls back to the existing database budget.
 

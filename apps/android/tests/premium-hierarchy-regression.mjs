@@ -138,7 +138,14 @@ try {
           await page.getByRole('button', { name: 'Clear search' }).click();
           const essentials = page.getByRole('region', { name: 'Player essentials' });
           await essentials.waitFor();
-          assert.equal(await essentials.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ }).getAttribute('href'), '/awards');
+          const awardsLink = essentials.getByRole('link', { name: /Awards & DUO\/TEAM Honours/ });
+          assert.equal(await awardsLink.getAttribute('href'), '/awards');
+          assert.equal(await awardsLink.evaluate(el => getComputedStyle(el).display), 'flex');
+          assert(await awardsLink.evaluate(el => {
+            const icon = el.firstElementChild.getBoundingClientRect();
+            const copy = el.children[1].getBoundingClientRect();
+            return icon.right <= copy.left && Math.abs(icon.top + icon.height / 2 - copy.top - copy.height / 2) < 2;
+          }), 'Directory icons and copy share one readable row');
         }
         if (route === '/tournaments') {
           const capacity = page.getByRole('progressbar', { name: 'Responsive Cup: 2 approved of 8 entry limit' });

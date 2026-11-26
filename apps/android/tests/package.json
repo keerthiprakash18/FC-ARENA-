@@ -1,1 +1,1 @@
-{"name":"fc-arena-android-smoke","private":true,"type":"module","devDependencies":{"@playwright/test":"1.58.2","playwright":"1.58.2"}}
+{"name":"fc-arena-android-smoke","private":true,"type":"module","devDependencies":{"@axe-core/playwright":"4.14.1","@playwright/test":"1.58.2","playwright":"1.58.2"}}

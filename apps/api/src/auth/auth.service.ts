@@ -718,10 +718,14 @@ export class AuthService {
         12,
       );
 
-    await this.prisma.$transaction(
+    await this.prisma.$transactionWithRetry(
       async (
         tx,
       ) => {
+        // Recheck inside the serializable transaction, including on retry. Two
+        // deletion requests must not anonymize the same account twice.
+        const current = await tx.user.findUnique({ where: { id: userId }, select: { status: true } });
+        if (current?.status !== 'ACTIVE') throw this.invalidCredentials();
         const memberships =
           await tx.tournamentRegistrationMember.findMany({
             where: {
@@ -839,7 +843,9 @@ export class AuthService {
         });
         await tx.arenaPost.updateMany({
           where: { authorUserId: userId, kind: { not: 'RESULT' } },
-          data: { body: 'Removed account content.', sourceUrl: null, imageKey: null, requestHash: null, clientRequestId: null, hiddenAt: new Date() },
+          // The opaque request UUID is part of arena_post_source_check and
+          // preserves idempotency. It contains no authored content or contact data.
+          data: { body: 'Removed account content.', sourceUrl: null, imageKey: null, requestHash: null, hiddenAt: new Date() },
         });
         await tx.arenaComment.updateMany({
           where: { authorUserId: userId },
@@ -2216,6 +2222,7 @@ export class AuthService {
 
       const payload =
         await response.json() as {
+          result?: string;
           error?: {
             message?:
               string;
@@ -2224,7 +2231,8 @@ export class AuthService {
 
       if (
         !response.ok ||
-        payload.error
+        payload.error ||
+        !['ok', 'not found'].includes(payload.result ?? '')
       ) {
         throw new Error(
           'Profile image cleanup failed.',

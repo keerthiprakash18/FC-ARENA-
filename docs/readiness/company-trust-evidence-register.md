@@ -26,3 +26,15 @@ Record approval/evidence privately: control, verifier, date, exact app release/b
 
 ## Additional source finding and correction
 The previous account-deletion transaction cleared the login phone but left the separate Player.whatsappNumber and whatsappShareEnabled. It also retained private account preferences and authored Arena Talk content after disabling the account. The candidate clears these fields, redacts/hides only authored non-result posts and comments, detaches authored media, and removes the account's reactions/votes and private community/experience preferences. The existing orphan cleanup is not proof of physical file or backup erasure; verify it separately. Extended isolated PostgreSQL E2E asserts erased values and preserved result/history records. The privacy policy and Data Safety worksheet now also explicitly identify the existing first-party Web Vitals measurements and optional Redis aggregate expiry. No new data collection, migration, retroactive production cleanup or deletion was performed. DOB validation currently accepts valid dates through today; the operator must settle age/consent rules before claiming children's-data compliance.
+
+27 November 2026 continuation: source Data Safety, Play compliance, final release
+and production dependency gates passed locally (zero production dependency
+findings). Isolated PostgreSQL 17 deletion/media/concurrent-request acceptance
+passed; see Step 15 for the physical-file retention boundary and simulated
+provider scope. Google Play's current User Data, deletion, Data Safety and UGC
+references above were retrieved again; these checks do not certify the owner's
+declarations or moderation operations. The available Play Console session
+redirected to the public business landing page; no authenticated declaration,
+developer verification, distributed-build or private legal/processor evidence
+was available. No physical Android device was listed by ADB. Keep those controls
+open and preserve the explicit final owner activation gate.

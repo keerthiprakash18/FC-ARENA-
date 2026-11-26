@@ -38,3 +38,13 @@ The existing public deletion-request form remains available. It records a verifi
 ## E2E acceptance
 
 The isolated E2E test verifies wrong-password rejection, successful deletion, session/push/OTP/Notification removal, anonymized identity, retained League competition relationship, scrubbed deletion-request metadata and rejection of the old access token after deletion.
+
+27 November continuation: PostgreSQL 17 local acceptance also verifies the
+unchanged official-result/source and authored-request constraints, preserved
+opaque request UUIDs, two simultaneous deletion requests with concurrent edits,
+stale image grants, real disposable OCR/orphan files, and protection of unrelated
+and recent media. Provider calls are intercepted with synthetic positive/invalid
+responses; no real provider or production account is deleted. Authored images
+are denied immediately after commit; detached orphan files retain the existing
+24-hour minimum age and six-hour cleanup schedule. Backup expiry and actual
+provider/Console evidence remain operator verification requirements.

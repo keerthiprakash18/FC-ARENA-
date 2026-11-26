@@ -31,6 +31,7 @@ async function run(theme,mode,width,state){
   const board=f.page.getByRole('region',{name:'Match scoreboard'});
   await board.waitFor();
   const task=f.page.getByRole('region',{name:'Match actions'});
+  if(state.largeText)await f.page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
   assert.equal(await board.getAttribute('data-match-state'),state.key);
   assert.equal(await task.getAttribute('data-match-state'),state.key);
   assert(await task.getByText(state.title,{exact:true}).isVisible());
@@ -39,8 +40,14 @@ async function run(theme,mode,width,state){
   if(state.key==='verified') assert.deepEqual(await scores.allTextContents(),['3','1']);
   else assert.equal(await scores.count(),0,'unverified score must not appear as official');
   if(state.key==='review') assert(await task.getByRole('link',{name:'Review submissions'}).isVisible());
+  if(state.key==='ready') {
+   const summary=board.getByText('Both Ready',{exact:true});
+   const summaryBox=await summary.boundingBox();
+   const teamsBox=await board.locator('.fc-match-room-score-grid').boundingBox();
+   assert(summaryBox && teamsBox && summaryBox.y>=teamsBox.y+teamsBox.height,'readiness summary must not overlap team names');
+  }
   await checkLayout(f.page,theme+' '+mode+' '+state.key+' '+width);
-  if(state.key==='verified'||theme==='LUXURY_GOLD') await f.page.screenshot({path:join(output,'signature-match-'+theme.toLowerCase()+'-'+mode.toLowerCase()+'-'+width+'-'+state.key+'.png'),animations:'disabled'});
+  if(state.key==='verified'||theme==='LUXURY_GOLD') await f.page.screenshot({path:join(output,'signature-match-'+theme.toLowerCase()+'-'+mode.toLowerCase()+'-'+width+'-'+(state.label||state.key)+'.png'),animations:'disabled'});
   assert.deepEqual(f.errors,[]);
   assert.deepEqual(f.mutations,[]);
   count++;
@@ -49,5 +56,9 @@ async function run(theme,mode,width,state){
 try{
  for(const theme of themes)for(const mode of ['LIGHT','DARK'])await run(theme,mode,390,states[3]);
  for(const state of states)for(const [width,mode] of [[320,'LIGHT'],[1280,'DARK']])await run('LUXURY_GOLD',mode,width,state);
+ const home={...base.fixture.homeRegistration,entryName:'HomeClubWithAVeryLongUnbrokenNameThatMustStayInsideTheScoreboard'};
+ const away={...base.fixture.awayRegistration,entryName:'Away Club With A Long Competition Entry Name And International Characters தமிழ்'};
+ const large={...states[1],label:'ready-large-text',largeText:true,match:{...states[1].match,fixture:{...base.fixture,homeRegistration:home,home,awayRegistration:away,away}}};
+ for(const width of [320,768,1280])await run('LUXURY_GOLD','LIGHT',width,large);
  console.log('PASS Signature Match Center: '+count+' theme, state and layout cases');
 }finally{await browser.close();}

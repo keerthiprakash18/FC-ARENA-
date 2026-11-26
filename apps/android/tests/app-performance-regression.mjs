@@ -6,7 +6,7 @@ import { makeFixtureFeed } from './fixture-feed-fixtures.mjs';
 
 const origin = process.env.SMOKE_WEB_ORIGIN || 'http://127.0.0.1:3000';
 const browser = await chromium.launch({ headless: true,
-  executablePath: process.env.CHROMIUM_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--no-sandbox'] });
+  executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--no-sandbox'] });
 try {
   for (const width of [360, 1280]) {
     const tournaments = Array.from({ length: 20 }, (_, i) => ({ ...tournament, id: `cup-${i}`, name: `Cup ${i}` }));

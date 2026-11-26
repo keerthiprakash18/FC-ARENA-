@@ -1176,7 +1176,7 @@ function MatchRoom() {
               </p>
 
               {confirmed ? (
-                <p key={`home-${confirmed.id}-${confirmed.homeScore}`} className="mt-5 fc-match-status-enter fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
+                <p key={`home-${confirmed.id}-${confirmed.homeScore}`} className="mt-5 fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.homeScore}
                 </p>
               ) : null}
@@ -1187,11 +1187,6 @@ function MatchRoom() {
                 {confirmed ? "FT" : "VS"}
               </div>
 
-              {match.readiness.bothReady && !confirmed ? (
-                <p className="mt-3 text-[9px] font-black uppercase tracking-wider text-emerald-300">
-                  Both Ready
-                </p>
-              ) : null}
             </div>
 
             <div className="min-w-0 text-center">
@@ -1212,12 +1207,18 @@ function MatchRoom() {
               </p>
 
               {confirmed ? (
-                <p key={`away-${confirmed.id}-${confirmed.awayScore}`} className="mt-5 fc-match-status-enter fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
+                <p key={`away-${confirmed.id}-${confirmed.awayScore}`} className="mt-5 fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
                   {confirmed.awayScore}
                 </p>
               ) : null}
             </div>
           </div>
+
+          {match.readiness.bothReady && !confirmed ? (
+            <p className="fc-signature-ready-summary text-center text-xs font-semibold text-[var(--theme-matchday-accent)]">
+              Both Ready
+            </p>
+          ) : null}
 
           {!confirmed &&
           (match.isParticipant || match.isLeagueAdmin) &&
@@ -1828,7 +1829,7 @@ function MatchRoom() {
                         ) : null}
 
                         {active ? (
-                          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-black text-emerald-300">
+                          <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-black text-[var(--theme-text)]">
                             ACTIVE RESULT
                           </span>
                         ) : null}

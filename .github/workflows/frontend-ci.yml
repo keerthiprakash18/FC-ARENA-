@@ -126,6 +126,8 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/admin-career-acceptance.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/signature-club-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/signature-match-center-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/signature-accessibility-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/app-performance-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 COMMUNITY_SCREENSHOTS=/tmp/fcarena-mobile-ui node apps/android/tests/player-community-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/node_modules/@playwright/test/cli.js test --config apps/android/tests/startup-web.config.mjs --workers=2 --output /tmp/fcarena-startup-web
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/next-match-navigation-regression.mjs
@@ -143,5 +145,6 @@ jobs:
           path: |
             /tmp/fcarena-mobile-ui/*.png
             /tmp/fcarena-mobile-ui/results.json
+            /tmp/fcarena-mobile-ui/signature-accessibility-results.json
           if-no-files-found: warn
           retention-days: 7

@@ -21,7 +21,7 @@ import {
 } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import { fetchWithTimeout } from '../security/external-request.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import { Prisma } from '../generated/prisma/client.js';
 import type {
   AccessTokenPayload,
   RefreshTokenPayload,
@@ -829,6 +829,33 @@ export class AuthService {
           },
         });
 
+        // Account deletion retains competition and necessary moderation
+        // references, not a player's private contact or community content.
+        // Detach authored media; the existing bounded orphan-media cleanup
+        // handles unreferenced local files. Hidden records cannot serve images.
+        await tx.arenaPollOption.updateMany({
+          where: { post: { authorUserId: userId, kind: { not: 'RESULT' } } },
+          data: { label: 'Removed option' },
+        });
+        await tx.arenaPost.updateMany({
+          where: { authorUserId: userId, kind: { not: 'RESULT' } },
+          data: { body: 'Removed account content.', sourceUrl: null, imageKey: null, requestHash: null, clientRequestId: null, hiddenAt: new Date() },
+        });
+        await tx.arenaComment.updateMany({
+          where: { authorUserId: userId },
+          data: { body: 'Removed account content.', hiddenAt: new Date() },
+        });
+        await tx.arenaReaction.deleteMany({ where: { userId } });
+        await tx.arenaPollVote.deleteMany({ where: { userId } });
+        await tx.arenaLeagueSubscription.deleteMany({ where: { userId } });
+        await tx.arenaPlayerMute.deleteMany({ where: { userId } });
+        await tx.playerExperiencePreferences.deleteMany({ where: { userId } });
+        await tx.aiUsageBucket.deleteMany({ where: { userId } });
+        await tx.arenaReport.updateMany({
+          where: { reporterUserId: userId },
+          data: { details: null },
+        });
+
         await tx.matchDispute.updateMany({
           where: {
             raisedByUserId:
@@ -1100,6 +1127,8 @@ export class AuthService {
                 anonymousPlayerCode,
               profileImageUrl:
                 null,
+              whatsappNumber: null,
+              whatsappShareEnabled: false,
             },
           });
 
@@ -1144,6 +1173,8 @@ export class AuthService {
             dateOfBirth: null,
             phoneNumber:
               null,
+            notificationPreferences: Prisma.DbNull,
+            dashboardPreferences: Prisma.DbNull,
             passwordHash:
               randomPassword,
             role:

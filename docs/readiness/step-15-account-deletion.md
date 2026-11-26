@@ -19,6 +19,9 @@ The authenticated endpoint:
 - removes stored OCR screenshot files connected to the account where FC ARENA controls those files
 - anonymizes User email, name, phone, password, role/status and verification state
 - anonymizes Player code, In-Game Name, game UID and profile image
+- clears the optional opponent WhatsApp contact and sharing consent, date of birth and private dashboard/notification preferences
+- hides/redacts authored community posts/comments and poll labels, detaches image references for existing orphan-file cleanup, removes own reactions, votes, subscriptions, mutes, experience preferences and AI usage buckets; retains official result posts and necessary moderation references
+- physical media cleanup, external provider deletion and backup expiry remain separate operational verification requirements
 - scrubs personal text/evidence from retained disputes, Fair Play records, OCR data, awards metadata and Audit Log metadata
 - de-identifies cached ranking snapshots
 - anonymizes SOLO Tournament entry display names

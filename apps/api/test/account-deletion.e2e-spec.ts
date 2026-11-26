@@ -42,6 +42,8 @@ describe(
 
     let accessToken =
       '';
+    let authoredPostId = '';
+    let retainedPostId = '';
 
     const originalEmail =
       `delete-${randomUUID()}@example.test`;
@@ -136,6 +138,9 @@ describe(
                 originalEmail,
               phoneNumber:
                 '+15550001111',
+              dateOfBirth: new Date('1998-01-01T00:00:00Z'),
+              notificationPreferences: { matchReminders: false },
+              dashboardPreferences: { stats: false },
               passwordHash:
                 await bcrypt.hash(
                   password,
@@ -158,6 +163,8 @@ describe(
             data: {
               userId:
                 user.id,
+              whatsappNumber: '+15550002222',
+              whatsappShareEnabled: true,
               playerCode:
                 `DELTEST-${randomUUID()
                   .replaceAll(
@@ -225,6 +232,27 @@ describe(
           },
         });
 
+        const authored = await prisma.arenaPost.create({ data: {
+          leagueId, authorUserId: userId, kind: 'DISCUSSION',
+          body: originalEmail, sourceUrl: 'https://example.test/private',
+          imageKey: `${randomUUID()}.webp`,
+          clientRequestId: randomUUID(),
+          requestHash: 'a'.repeat(64),
+          pollOptions: { create: [{ label: originalInGameName, position: 0 }, { label: 'Other', position: 1 }] },
+        }, include: { pollOptions: true } });
+        authoredPostId = authored.id;
+        const retained = await prisma.arenaPost.create({ data: {
+          leagueId, kind: 'RESULT', body: 'Independent retained result fixture',
+        } });
+        retainedPostId = retained.id;
+        await prisma.arenaComment.create({ data: {
+          postId: retainedPostId, authorUserId: userId, body: originalEmail,
+          clientRequestId: randomUUID(),
+        } });
+        await prisma.arenaReaction.create({ data: { postId: retainedPostId, userId } });
+        await prisma.arenaPollVote.create({ data: { postId: authoredPostId, optionId: authored.pollOptions[0].id, userId } });
+        await prisma.arenaLeagueSubscription.create({ data: { leagueId, userId } });
+        await prisma.playerExperiencePreferences.create({ data: { userId, frame: 'CLASSIC' } });
         const sessionId =
           randomUUID();
 
@@ -532,6 +560,29 @@ describe(
             ?.gameUid,
         ).toBeNull();
 
+        expect(user.dateOfBirth).toBeNull();
+        expect(user.notificationPreferences).toBeNull();
+        expect(user.dashboardPreferences).toBeNull();
+        expect(user.player?.whatsappNumber).toBeNull();
+        expect(user.player?.whatsappShareEnabled).toBe(false);
+        const authored = await prisma.arenaPost.findUniqueOrThrow({ where: { id: authoredPostId }, include: { pollOptions: true } });
+        expect(authored.hiddenAt).not.toBeNull();
+        expect(authored.body).toBe('Removed account content.');
+        expect(authored.sourceUrl).toBeNull();
+        expect(authored.imageKey).toBeNull();
+        expect(authored.requestHash).toBeNull();
+        expect(authored.pollOptions.every(option => option.label === 'Removed option')).toBe(true);
+        const retained = await prisma.arenaPost.findUniqueOrThrow({ where: { id: retainedPostId } });
+        expect(retained.hiddenAt).toBeNull();
+        expect(retained.body).toBe('Independent retained result fixture');
+        const comments = await prisma.arenaComment.findMany({ where: { authorUserId: userId } });
+        expect(comments).toHaveLength(1);
+        expect(comments[0].body).toBe('Removed account content.');
+        expect(comments[0].hiddenAt).not.toBeNull();
+        expect(await prisma.arenaReaction.count({ where: { userId } })).toBe(0);
+        expect(await prisma.arenaPollVote.count({ where: { userId } })).toBe(0);
+        expect(await prisma.arenaLeagueSubscription.count({ where: { userId } })).toBe(0);
+        expect(await prisma.playerExperiencePreferences.count({ where: { userId } })).toBe(0);
         const [
           sessions,
           devices,

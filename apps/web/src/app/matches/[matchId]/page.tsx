@@ -306,16 +306,19 @@ function MatchScheduleLabel({ schedule, status }: { schedule: MatchCenter['sched
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (status === 'COMPLETED' || status === 'CANCELLED') return;
-    const target = Math.max(new Date(schedule.scheduledAt ?? '').getTime() || 0, new Date(schedule.estimatedDeadlineAt ?? '').getTime() || 0);
+    const scheduledStart = new Date(schedule.scheduledAt ?? '').getTime();
+    const scheduledEnd = new Date(schedule.estimatedDeadlineAt ?? '').getTime();
     let timer: number | undefined;
     const update = () => {
       window.clearTimeout(timer);
       if (document.visibilityState === 'hidden') return;
       const current = Date.now();
       setNow(current);
+      const target = Number.isFinite(scheduledStart) && scheduledStart > current ? scheduledStart
+        : Number.isFinite(scheduledStart) && Number.isFinite(scheduledEnd) && scheduledEnd > current ? scheduledEnd : 0;
       if (target > current) {
-        // Days are displayed to minute precision. Shorter windows show seconds.
-        const delay = target - current >= 86_400_000 ? 60_000 : 1_000;
+        // Align the refresh cadence to the currently displayed boundary.
+        const delay = target - current > 86_400_000 ? Math.min(60_000, target - current - 86_400_000) : 1_000;
         timer = window.setTimeout(update, Math.min(delay, target - current));
       }
     };

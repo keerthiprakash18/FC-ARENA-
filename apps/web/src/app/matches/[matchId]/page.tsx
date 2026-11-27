@@ -1073,6 +1073,7 @@ function MatchRoom() {
       (item) => item.status === "PENDING_VERIFICATION",
     );
 
+  const showReadiness = !confirmed && ['UNSCHEDULED', 'SCHEDULED', 'LIVE'].includes(match.status);
   const roomState = confirmed ? 'verified' : match.status === 'CANCELLED' ? 'cancelled' : returnLegLocked ? 'locked' : awaitingReview ? 'review' : confirmedId || match.status === 'COMPLETED' ? 'completed' : match.readiness.bothReady ? 'ready' : 'scheduled';
   const roomTitle = roomState === 'verified' ? 'Verified result · Match Room locked'
     : roomState === 'cancelled' ? 'Match cancelled'
@@ -1165,7 +1166,7 @@ function MatchRoom() {
                 {home}
               </p>
 
-              <p
+              {showReadiness ? <p
                 className={
                   match.readiness.homeReady
                     ? "mt-3 text-[10px] font-black uppercase tracking-wider text-emerald-300"
@@ -1173,7 +1174,7 @@ function MatchRoom() {
                 }
               >
                 {match.readiness.homeReady ? "✓ Ready" : "Not Ready"}
-              </p>
+              </p> : null}
 
               {confirmed ? (
                 <p key={`home-${confirmed.id}-${confirmed.homeScore}`} className="mt-5 fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
@@ -1196,7 +1197,7 @@ function MatchRoom() {
                 {away}
               </p>
 
-              <p
+              {showReadiness ? <p
                 className={
                   match.readiness.awayReady
                     ? "mt-3 text-[10px] font-black uppercase tracking-wider text-emerald-300"
@@ -1204,7 +1205,7 @@ function MatchRoom() {
                 }
               >
                 {match.readiness.awayReady ? "✓ Ready" : "Not Ready"}
-              </p>
+              </p> : null}
 
               {confirmed ? (
                 <p key={`away-${confirmed.id}-${confirmed.awayScore}`} className="mt-5 fc-signature-score text-5xl font-black text-sky-400 md:text-6xl">
@@ -1214,7 +1215,7 @@ function MatchRoom() {
             </div>
           </div>
 
-          {match.readiness.bothReady && !confirmed ? (
+          {showReadiness && match.readiness.bothReady ? (
             <p className="fc-signature-ready-summary text-center text-xs font-semibold text-[var(--theme-matchday-accent)]">
               Both Ready
             </p>

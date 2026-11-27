@@ -39,6 +39,7 @@ async function run(theme,mode,width,state){
   const scores=board.locator('.fc-signature-score');
   if(state.key==='verified') assert.deepEqual(await scores.allTextContents(),['3','1']);
   else assert.equal(await scores.count(),0,'unverified score must not appear as official');
+  if(['verified','cancelled'].includes(state.key))assert.equal(await board.getByText(/^(?:✓ Ready|Not Ready|Both Ready)$/).count(),0,'finished matches must not show availability prompts');
   if(state.key==='review') assert(await task.getByRole('link',{name:'Review submissions'}).isVisible());
   if(state.key==='ready') {
    const summary=board.getByText('Both Ready',{exact:true});

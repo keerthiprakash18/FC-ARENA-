@@ -5349,6 +5349,17 @@ html[data-native-app="android"] .theme-bottom-item {
 .fc-premium .fc-main .fc-signature-match-task[data-match-state="cancelled"] { border-inline-start-color: var(--theme-danger); }
 .fc-premium .fc-main .fc-match-task-title { font-size: 1rem; line-height: 1.4; color: var(--theme-text); }
 .fc-signature-option { min-width: 0; }
+@media (max-width: 640px) {
+  .fc-premium .fc-app-shell .fc-main .fc-signature-matchboard {
+    padding: clamp(12px, 3vw, 20px);
+  }
+  .fc-premium .fc-app-shell .fc-main .fc-signature-matchboard h1 {
+    font-size: clamp(1.25rem, calc(1rem + 1vw), 1.75rem) !important;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: pretty;
+  }
+}
 @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
   :root:not([data-native-app="android"]) .fc-premium .fc-main .fc-signature-score {
     animation: fc-confirmed-score-reveal 220ms cubic-bezier(.2,.75,.25,1) both;

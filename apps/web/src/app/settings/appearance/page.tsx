@@ -206,19 +206,15 @@ export default function AppearancePage() {
                 <div className="mt-4 flex flex-1 flex-wrap items-start justify-between gap-3 pb-4">
                   <div>
                     <h3 className="text-lg font-bold">{option.name}</h3>
-                    <p className="mt-1 text-sm font-semibold">{option.signature}</p>
-
-                    <p className="mt-1 text-sm font-semibold text-[var(--theme-primary)]">
-                      {option.palette}
-                    </p>
-
                     <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--theme-text-muted)]">
                       {option.inspiration}
                     </p>
 
-                    <p className="mt-2 text-sm text-[var(--theme-text-muted)]">
-                      {option.description}
-                    </p>
+                    <details className="mt-2 text-sm text-[var(--theme-text-muted)]">
+                      <summary className="min-h-11 cursor-pointer content-center rounded-md font-semibold text-[var(--theme-primary)] focus-visible:outline-2 focus-visible:outline-offset-2">Theme details<span className="sr-only">: {option.name}</span></summary>
+                      <p className="mt-1 font-semibold">{option.palette}</p>
+                      <p className="mt-2">{option.description}</p>
+                    </details>
                   </div>
 
                   {current ? (

@@ -35,6 +35,8 @@ export function SocialSignIn() {
       setBusy(null);
     }
   }
+  const available = (['google', 'facebook'] as const).filter(provider => providers[provider]);
+  if (!ready || available.length === 0) return null;
   return (
     <section className="mt-5 space-y-3" aria-label="Other sign-in options">
       <div className="flex items-center gap-3 text-xs text-slate-500">
@@ -42,7 +44,7 @@ export function SocialSignIn() {
         or continue with
         <span className="h-px flex-1 bg-slate-300/30" />
       </div>
-      {(['google', 'facebook'] as const).map((provider) => (
+      {available.map((provider) => (
         <button
           type="button"
           key={provider}
@@ -81,9 +83,6 @@ export function SocialSignIn() {
           <span className="min-w-0 flex-1 text-left leading-5">{busy === provider
             ? 'Opening sign-in...'
             : `Continue with ${provider === 'google' ? 'Google' : 'Facebook'}`}</span>
-          {ready && !providers[provider] ? (
-            <span className="shrink-0 whitespace-nowrap text-[10px] font-normal">Coming soon</span>
-          ) : null}
         </button>
       ))}
       {error ? (

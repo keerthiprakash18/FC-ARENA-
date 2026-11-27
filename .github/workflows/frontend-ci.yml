@@ -119,6 +119,7 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-group-editor-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/tournament-studio-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/home-polish-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/premium-usability-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/obsidian-matchday-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/premium-hierarchy-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/discover-search-regression.mjs

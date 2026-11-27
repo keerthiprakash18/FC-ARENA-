@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useLayoutEffect, useState } from 'react';
 
-export function PlayerOnboarding({ userId, profile, league, registered }: {
-  userId: string; profile: boolean; league: boolean; registered: boolean;
+export function PlayerOnboarding({ userId, profile, league, registered, primaryActionHref }: {
+  userId: string; profile: boolean; league: boolean; registered: boolean; primaryActionHref?: string;
 }) {
   const [hidden, setHidden] = useState(true);
   const key = `fc-onboarding:${userId}`;
@@ -20,11 +20,12 @@ export function PlayerOnboarding({ userId, profile, league, registered }: {
     { done: registered, label: 'Register & play', href: '/tournaments' },
   ];
   const completed = steps.filter(step => step.done).length;
+  const nextStep = steps.find(step => !step.done);
   return (
     <section className="theme-panel home-onboarding" aria-label="Getting started">
       <details className="home-onboarding-steps">
         <summary>
-          <h2><span>Get match ready · {completed}/3</span><span className="theme-muted home-onboarding-next">Next: {steps.find(step => !step.done)?.label}</span><span className="home-disclosure-chevron" aria-hidden="true">⌄</span></h2>
+          <h2><span>Get match ready · {completed}/3</span><span className="theme-muted home-onboarding-next">{nextStep?.href === primaryActionHref ? 'View your progress' : `Next: ${nextStep?.label}`}</span><span className="home-disclosure-chevron" aria-hidden="true">⌄</span></h2>
         </summary>
         <nav aria-label="Getting started steps">
           {steps.map((step, index) => (

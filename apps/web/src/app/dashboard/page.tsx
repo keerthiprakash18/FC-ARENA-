@@ -1119,14 +1119,14 @@ export default function DashboardPage() {
           </div>
         ) : null}
 
-        <PlayerOnboarding userId={user.id} profile={hasProfile} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} />
+        <PlayerOnboarding userId={user.id} profile={hasProfile} league={!!primaryMembership} registered={career.tournamentHistory.length > 0} primaryActionHref={heroAction.href} />
 
         {emptyUpdates.length ? <section aria-label="Competition updates">
           <FcPanel className="home-empty-overview">
             {emptyUpdates.map(update => <Link key={update.key} href={update.href} className="home-empty-row">
               <span className="home-empty-icon theme-tone-neutral"><FcIcon name={update.icon} size={18} /></span>
               <span className="home-empty-copy"><span className="theme-text home-empty-title">{update.title}</span><span className="theme-muted">{update.description}</span></span>
-              <span className="theme-text-link home-empty-action">{update.action} →</span>
+              {update.href !== heroAction.href ? <span className="theme-text-link home-empty-action">{update.action} →</span> : null}
             </Link>)}
           </FcPanel>
         </section> : null}
@@ -1138,7 +1138,7 @@ export default function DashboardPage() {
             <FcQuickActionTile
               href="/leagues"
               icon="+"
-              title={memberships.length ? "My Leagues" : "Join League"}
+              title={memberships.length ? "My Leagues" : "Leagues"}
               description={memberships.length ? "Open your leagues" : "Use invite code"}
               tone="cyan"
             />

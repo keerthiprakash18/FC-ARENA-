@@ -21,7 +21,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Effective date: 1 November 2026. Updated: 15 November 2026.
+          Effective date: 1 November 2026. Updated: 26 November 2026.
         </p>
       </PublicInfoCard>
 
@@ -76,6 +76,9 @@ export default function PrivacyPage() {
         <p>
           The Android app uses Firebase Crashlytics for production diagnostics. If the Android app crashes, becomes unresponsive or encounters a non-fatal application error, limited technical diagnostic information such as app version, device and operating-system information, crash stack traces and related runtime data can be processed to identify and fix reliability problems. FC ARENA does not enable Google Analytics in the Android app for this crash-reporting integration.
         </p>
+        <p>
+          The website and Android WebView send limited performance measurements (page rendering time, responsiveness and layout stability) to FC ARENA for reliability analysis. The measurement payload does not include account identifiers, page URLs or authentication cookies. Where durable performance aggregation is enabled, daily metric histograms in Redis have a 15-day expiry. Ordinary request and security logs are separate from these aggregate measurements.
+        </p>
       </PublicInfoCard>
 
       <PublicInfoCard
@@ -96,7 +99,7 @@ export default function PrivacyPage() {
         icon="document"
       >
         <p>
-          FC ARENA uses service providers only where needed to operate the service. Current providers can include Vercel and Railway for application hosting and infrastructure, Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, Google Firebase Cloud Messaging for Android push-notification delivery, and Google Firebase Crashlytics for Android crash and reliability diagnostics.
+          FC ARENA uses service providers only where needed to operate the service. The current production application is hosted with VCCLHosting (VCL). Other providers can include Brevo for transactional email delivery, Cloudinary for player profile and match-evidence image storage and delivery, Google Firebase Cloud Messaging for Android push-notification delivery, and Google Firebase Crashlytics for Android crash and reliability diagnostics.
         </p>
 
         <p>
@@ -166,7 +169,7 @@ export default function PrivacyPage() {
         </p>
 
         <p>
-          Some completed competition, audit, dispute, Fair Play moderation or security records may be retained in a de-identified or anonymized form where necessary to preserve competition integrity, prevent abuse or satisfy legal obligations. Retained records are not used to recreate a deleted account.
+          Your separately saved WhatsApp opponent contact and sharing preference are cleared during account deletion. Your authored Arena Talk posts and comments are hidden and their content is replaced with a removal notice; your reactions, votes and private community preferences are removed. Detached images are eligible for the existing orphan-file cleanup. Some completed competition, audit, dispute, moderation or security records may be retained in a de-identified or anonymized form where necessary to preserve competition integrity, prevent abuse or satisfy legal obligations. Retained records are not used to recreate a deleted account.
         </p>
       </PublicInfoCard>
 

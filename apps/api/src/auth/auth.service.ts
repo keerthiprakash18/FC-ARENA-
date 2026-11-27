@@ -21,7 +21,7 @@ import {
 } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service.js';
 import { fetchWithTimeout } from '../security/external-request.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import { Prisma } from '../generated/prisma/client.js';
 import type {
   AccessTokenPayload,
   RefreshTokenPayload,
@@ -718,10 +718,14 @@ export class AuthService {
         12,
       );
 
-    await this.prisma.$transaction(
+    await this.prisma.$transactionWithRetry(
       async (
         tx,
       ) => {
+        // Recheck inside the serializable transaction, including on retry. Two
+        // deletion requests must not anonymize the same account twice.
+        const current = await tx.user.findUnique({ where: { id: userId }, select: { status: true } });
+        if (current?.status !== 'ACTIVE') throw this.invalidCredentials();
         const memberships =
           await tx.tournamentRegistrationMember.findMany({
             where: {
@@ -827,6 +831,35 @@ export class AuthService {
           where: {
             userId,
           },
+        });
+
+        // Account deletion retains competition and necessary moderation
+        // references, not a player's private contact or community content.
+        // Detach authored media; the existing bounded orphan-media cleanup
+        // handles unreferenced local files. Hidden records cannot serve images.
+        await tx.arenaPollOption.updateMany({
+          where: { post: { authorUserId: userId, kind: { not: 'RESULT' } } },
+          data: { label: 'Removed option' },
+        });
+        await tx.arenaPost.updateMany({
+          where: { authorUserId: userId, kind: { not: 'RESULT' } },
+          // The opaque request UUID is part of arena_post_source_check and
+          // preserves idempotency. It contains no authored content or contact data.
+          data: { body: 'Removed account content.', sourceUrl: null, imageKey: null, requestHash: null, hiddenAt: new Date() },
+        });
+        await tx.arenaComment.updateMany({
+          where: { authorUserId: userId },
+          data: { body: 'Removed account content.', hiddenAt: new Date() },
+        });
+        await tx.arenaReaction.deleteMany({ where: { userId } });
+        await tx.arenaPollVote.deleteMany({ where: { userId } });
+        await tx.arenaLeagueSubscription.deleteMany({ where: { userId } });
+        await tx.arenaPlayerMute.deleteMany({ where: { userId } });
+        await tx.playerExperiencePreferences.deleteMany({ where: { userId } });
+        await tx.aiUsageBucket.deleteMany({ where: { userId } });
+        await tx.arenaReport.updateMany({
+          where: { reporterUserId: userId },
+          data: { details: null },
         });
 
         await tx.matchDispute.updateMany({
@@ -1100,6 +1133,8 @@ export class AuthService {
                 anonymousPlayerCode,
               profileImageUrl:
                 null,
+              whatsappNumber: null,
+              whatsappShareEnabled: false,
             },
           });
 
@@ -1144,6 +1179,8 @@ export class AuthService {
             dateOfBirth: null,
             phoneNumber:
               null,
+            notificationPreferences: Prisma.DbNull,
+            dashboardPreferences: Prisma.DbNull,
             passwordHash:
               randomPassword,
             role:
@@ -2185,6 +2222,7 @@ export class AuthService {
 
       const payload =
         await response.json() as {
+          result?: string;
           error?: {
             message?:
               string;
@@ -2193,7 +2231,8 @@ export class AuthService {
 
       if (
         !response.ok ||
-        payload.error
+        payload.error ||
+        !['ok', 'not found'].includes(payload.result ?? '')
       ) {
         throw new Error(
           'Profile image cleanup failed.',

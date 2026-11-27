@@ -1,0 +1,174 @@
+/* FC ARENA / SIGNATURE CLUB EXPERIENCE — restrained, static, original geometry.
+   Do not retheme editorial pages, official award metals or semantic status colors. */
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium {
+  --arena-navy: var(--theme-matchday-start);
+  --arena-deep: var(--theme-matchday-start);
+  --arena-raised: var(--theme-matchday-end);
+  --arena-line: color-mix(in srgb, var(--theme-matchday-accent) 28%, var(--theme-matchday-start));
+  --arena-gold: var(--theme-matchday-accent);
+  --arena-on-gold: var(--theme-on-matchday-accent);
+  --arena-hero-surface: var(--theme-signature-pattern), linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end));
+  --arena-stadium: var(--arena-hero-surface);
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .fc-app-shell .fc-main .premium-home-hero {
+  background: var(--arena-hero-surface) !important;
+  border-color: var(--arena-line);
+}
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .theme-sidebar .theme-nav-item[data-active="true"] {
+  box-shadow: inset 3px 0 0 var(--theme-matchday-accent);
+}
+.fc-signature-preview {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: 15px;
+  background: var(--theme-background);
+  color: var(--theme-text);
+}
+.fc-signature-preview .fc-signature-art {
+  min-height: 108px;
+  padding: 14px;
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+  background: var(--theme-signature-pattern), linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end));
+  color: var(--theme-matchday-text);
+}
+.fc-signature-preview .fc-signature-art small {
+  color: var(--theme-matchday-accent);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .14em;
+}
+.fc-signature-preview .fc-signature-art strong {
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 730;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+.fc-signature-preview .fc-signature-sample {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+.fc-signature-preview .fc-signature-sample span:first-child {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--theme-primary);
+  color: var(--theme-on-primary);
+  font-weight: 800;
+}
+.fc-signature-preview .fc-signature-sample span:last-child {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 650;
+}
+@media (forced-colors: active) {
+  .fc-signature-preview, .fc-signature-preview .fc-signature-art,
+  .fc-signature-preview .fc-signature-sample { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .fc-signature-preview .fc-signature-art small { color: CanvasText; }
+}
+
+/* The header picker uses the same canonical, mode-aware palette as Appearance. */
+.fc-signature-mini {
+  border-radius: 9px;
+  padding: 0;
+}
+.fc-signature-mini-art {
+  display: block;
+  height: 34px;
+  background: var(--theme-signature-pattern), linear-gradient(120deg, var(--theme-matchday-start), var(--theme-matchday-end));
+}
+.fc-signature-mini-swatch {
+  display: block;
+  height: 5px;
+  background: linear-gradient(90deg, var(--theme-primary) 0 33%, var(--theme-matchday-accent) 33% 66%, var(--theme-surface) 66%);
+}
+@media (forced-colors: active) {
+  .fc-signature-mini-art, .fc-signature-mini-swatch { background: Canvas; border-block-end: 1px solid CanvasText; }
+}
+
+/* Match Center: a score broadcast, not another settings panel. The result
+   remains server-confirmed; the theme never changes readiness or scoring. */
+:root[data-theme]:not([data-theme="luxury-gold"]) .fc-premium .fc-app-shell .fc-main .fc-signature-matchboard {
+  --arena-navy: var(--theme-matchday-start);
+  --arena-deep: var(--theme-matchday-start);
+  --arena-raised: var(--theme-matchday-end);
+  --arena-gold: var(--theme-matchday-accent);
+  --arena-on-gold: var(--theme-on-matchday-accent);
+  background: var(--arena-hero-surface) !important;
+}
+.fc-premium .fc-main .fc-signature-matchboard .fc-match-room-score-grid {
+  margin-block: clamp(14px, 3vw, 26px);
+}
+.fc-premium .fc-main .fc-signature-matchboard .premium-crest {
+  color: var(--theme-matchday-accent) !important;
+  border-color: var(--theme-matchday-accent);
+  background: var(--theme-matchday-start) !important;
+}
+.fc-premium .fc-main .fc-signature-matchboard .fc-signature-score {
+  color: var(--theme-matchday-text) !important;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  line-height: 1;
+  letter-spacing: -.045em;
+}
+.fc-premium .fc-main .fc-signature-matchboard .premium-match-context {
+  gap: 8px 12px;
+  align-items: center;
+}
+.fc-premium .fc-main .fc-signature-matchboard .premium-match-context [role="status"] {
+  border: 1px solid var(--theme-matchday-accent);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: var(--theme-matchday-accent);
+  font-weight: 750;
+  font-size: .7rem;
+}
+.fc-premium .fc-main .fc-signature-matchboard .premium-readiness {
+  margin-top: 14px;
+  background: var(--theme-matchday-start);
+  border-color: color-mix(in srgb, var(--theme-matchday-accent) 36%, var(--theme-matchday-start));
+}
+.fc-premium .fc-main .fc-signature-match-task {
+  border-inline-start-color: var(--theme-primary);
+  border-radius: 15px;
+  padding: clamp(14px,2vw,22px);
+  box-shadow: var(--theme-card-shadow);
+}
+.fc-premium .fc-main .fc-signature-match-task[data-match-state="verified"] { border-inline-start-color: var(--theme-success); }
+.fc-premium .fc-main .fc-signature-match-task[data-match-state="review"] { border-inline-start-color: var(--theme-warning); }
+.fc-premium .fc-main .fc-signature-match-task[data-match-state="cancelled"] { border-inline-start-color: var(--theme-danger); }
+.fc-premium .fc-main .fc-match-task-title { font-size: 1rem; line-height: 1.4; color: var(--theme-text); }
+.fc-signature-option { min-width: 0; }
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  :root:not([data-native-app="android"]) .fc-premium .fc-main .fc-signature-score {
+    animation: fc-confirmed-score-reveal 220ms cubic-bezier(.2,.75,.25,1) both;
+  }
+  .fc-signature-option { transition: border-color 160ms ease, box-shadow 160ms ease; }
+  .fc-signature-option:focus-within { border-color: var(--theme-focus); }
+}
+@keyframes fc-confirmed-score-reveal {
+  from { opacity: .65; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-premium .fc-main .fc-signature-score, .fc-signature-option { animation: none !important; transition: none !important; transform: none !important; }
+}
+@media (forced-colors: active) {
+  .fc-premium .fc-app-shell .fc-main .fc-signature-matchboard,
+  .fc-premium .fc-main .fc-signature-matchboard .premium-crest,
+  .fc-premium .fc-main .fc-signature-matchboard .premium-readiness { background: Canvas !important; color: CanvasText !important; border-color: CanvasText !important; }
+  .fc-premium .fc-main .fc-signature-matchboard .fc-signature-score,
+  .fc-premium .fc-main .fc-signature-matchboard .premium-match-context [role="status"] { color: CanvasText !important; border-color: CanvasText !important; }
+}

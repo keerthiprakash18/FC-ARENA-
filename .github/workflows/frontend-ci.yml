@@ -87,7 +87,7 @@ jobs:
         run: node --test tests/dashboard-next-actions.test.mjs tests/tournament-review-theme.test.mjs tests/tournament-create-preview.test.mjs tests/verify-live-baseline.test.mjs tests/weekly-verified-progress.test.mjs tests/dashboard-refresh-throttle.test.mjs tests/leaderboard-a11y.test.mjs tests/experience-trust-controls.test.mjs tests/owner-analytics-and-invites.test.mjs tests/rank-history-ui.test.mjs tests/vnext-production-audit.test.mjs tests/match-time-coordination.test.mjs tests/vnext-unified-design.test.mjs tests/isolated-db-restore.test.mjs tests/vnext-source-inventory.test.mjs tests/vnext-visual-language.test.mjs tests/league-war-responsive-filter.test.mjs tests/vnext-mobile-and-refresh.test.mjs tests/production-restore-safety.test.mjs tests/release-rehearsal-contract.test.mjs tests/standings-context-regression.test.mjs tests/v12-premium-experience.test.mjs tests/v12-clubs-season-public-i18n.test.mjs
 
       - name: Verify Obsidian Matchday design foundation and AA palette
-        run: node --test tests/obsidian-matchday.test.mjs
+        run: node --test tests/obsidian-matchday.test.mjs tests/signature-club-experience.test.mjs
 
       - name: Web production build
         run: npm run build:web
@@ -124,6 +124,10 @@ jobs:
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/discover-search-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/arena-reading-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/admin-career-acceptance.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/signature-club-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/signature-match-center-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 SMOKE_OUTPUT=/tmp/fcarena-mobile-ui node apps/android/tests/signature-accessibility-regression.mjs
+          SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/app-performance-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 COMMUNITY_SCREENSHOTS=/tmp/fcarena-mobile-ui node apps/android/tests/player-community-regression.mjs
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/node_modules/@playwright/test/cli.js test --config apps/android/tests/startup-web.config.mjs --workers=2 --output /tmp/fcarena-startup-web
           SMOKE_WEB_ORIGIN=http://127.0.0.1:3000 node apps/android/tests/next-match-navigation-regression.mjs
@@ -141,5 +145,7 @@ jobs:
           path: |
             /tmp/fcarena-mobile-ui/*.png
             /tmp/fcarena-mobile-ui/results.json
+            /tmp/fcarena-mobile-ui/signature-accessibility-*/*.png
+            /tmp/fcarena-mobile-ui/signature-accessibility-*/signature-accessibility-results.json
           if-no-files-found: warn
           retention-days: 7

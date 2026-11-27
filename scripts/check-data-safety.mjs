@@ -32,6 +32,8 @@ for (const required of [
   'Google Firebase Cloud Messaging',
   'Brevo',
   'Cloudinary',
+  'performance measurements',
+  '15-day expiry',
   'Data retention',
   'Account & data deletion',
 ]) {
@@ -42,7 +44,7 @@ for (const required of [
 }
 
 requireMatch(
-  privacy.includes('Vercel') && privacy.includes('Railway'),
+  privacy.includes('VCCLHosting (VCL)') && worksheet.includes('VCCLHosting (VCL)'),
   'Privacy Policy must identify current hosting/infrastructure providers.',
 );
 

@@ -774,7 +774,7 @@ export default function DashboardPage() {
                 ) : null}
               </div>
               {isVisible("stats") && <div className={`home-hero-career ${heroStyles.overview}`} aria-label="Overall career overview">
-                <Link href="/career" className={heroStyles.details} aria-label="Full stats — Overall career">
+                <Link href="/career" className={heroStyles.details}>
                 <div className={heroStyles.heading}>
                   <span>Overall career</span>
                   <span className={heroStyles.detailsLabel}>Full stats <span aria-hidden="true">→</span></span>

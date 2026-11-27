@@ -1,6 +1,6 @@
 # Step 16 — Privacy & Google Play Data Safety Audit
 
-Status: CODE/DOCUMENTATION COMPLETE. Play Console answers must be copied from this worksheet and rechecked against the exact final build before submission.
+Status: SOURCE DISCLOSURE AND WORKSHEET REVIEW; external declarations, actual processor contracts, deletion propagation and exact final build still require verification.
 
 Last reviewed: 3 October 2026
 Prepared update, 22 November 2026: the required-profile/social-sign-in change makes birth date and private WhatsApp account contact required when activated. The source change is not yet live; review/update Play Console before that activation.
@@ -8,7 +8,7 @@ Package: `in.fcarena.app`
 
 ## Scope reviewed
 
-The audit covers the Android wrapper, FC ARENA web app loaded in the WebView, API/database persistence, Firebase Cloud Messaging, Firebase Crashlytics, Brevo transactional email, Cloudinary image storage, Vercel/web hosting, backend infrastructure, moderation/reporting, account deletion and the optional AI assistant.
+The audit covers the Android wrapper, FC ARENA web app loaded in the WebView, API/database persistence, Firebase Cloud Messaging, Firebase Crashlytics, Brevo transactional email, Cloudinary image storage, VCCLHosting (VCL) web/API hosting, backend infrastructure, moderation/reporting, account deletion and the optional AI assistant.
 
 Google Play treats user data collected through a WebView controlled by the app as app collection. The Data Safety declaration therefore covers the FC ARENA web experience as well as native Android SDK behavior.
 
@@ -25,7 +25,7 @@ Google Play treats user data collected through a WebView controlled by the app a
 | App activity — App interactions | Yes | No* | Core | App functionality, security | League/Tournament participation, fixtures, results, standings, awards, notifications |
 | App activity — Other user-generated content | Yes | No* | Feature dependent | App functionality, moderation, security | Team/Tournament names, reports, disputes, Fair Play reasons/evidence/appeals |
 | App info and performance — Crash logs | Yes on Android production diagnostics | No* | Automatic when production Crashlytics is enabled | Reliability analytics / app functionality | Crash stack traces and crash context through Firebase Crashlytics |
-| App info and performance — Diagnostics | Yes | No* | Automatic where applicable | Reliability, security | App version, OS/device runtime diagnostics, server/service health metadata |
+| App info and performance — Diagnostics | Yes | No* | Automatic where applicable | Reliability, security | App version, OS/device runtime diagnostics, server/service health metadata, first-party Web Vitals measurement payload without account IDs or cookies; optional Redis daily histograms with 15-day expiry |
 | Device or other IDs | Yes | No* | Optional for push; security processing otherwise | App functionality, fraud/security | FCM registration token, request/security identifiers and ordinary server security logs |
 
 * "Shared" in the Google Play Data Safety form has defined exceptions, including qualifying service-provider processing on the developer's behalf. FC ARENA currently uses providers as processors to operate the service. Before submission, confirm the current contractual/data-use terms for each provider and only mark a data type as not shared when the Google Play service-provider exception is actually satisfied.
@@ -38,7 +38,7 @@ The app can still receive user-selected files through the system picker/WebView 
 
 ## Providers and processing
 
-- **Vercel / web delivery** — serves the FC ARENA web application and may process ordinary request/network logs.
+- **VCCLHosting (VCL) / production web and API** — serves the FC ARENA web and API and may process ordinary request/network logs. Confirm hosting contract, processing locations and subprocessors with the operator before final declaration.
 - **Backend hosting / PostgreSQL / Redis infrastructure** — processes account, competition, moderation, session and security data required for FC ARENA.
 - **Brevo** — receives the destination email address and transactional-email content needed for password recovery/verification flows where enabled.
 - **Cloudinary** — processes optional uploaded profile and competition/evidence images.
@@ -67,4 +67,4 @@ The app can still receive user-selected files through the system picker/WebView 
 
 ## Release decision
 
-Step 16 is complete at repository level. Play Console is an external declaration surface and must be filled from this worksheet after the final release artifact is frozen. No source change may add a new collection/sharing behavior between this audit and the final AAB without reopening Step 16.
+Step 16 source consistency is a testable gate, not proof of regulatory or Play Console compliance. Play Console is an external declaration surface and must be filled from this worksheet after the final release artifact is frozen. No source change may add a new collection/sharing behavior between this audit and the final AAB without reopening Step 16.

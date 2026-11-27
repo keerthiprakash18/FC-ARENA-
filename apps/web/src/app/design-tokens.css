@@ -8,7 +8,7 @@
 
 /* Canonical FC Arena tokens. Theme/mode preferences only change values here.
    Legacy names remain aliases so existing screens use the same palette. */
-:root {
+:root, .fc-signature-preview {
   color-scheme: light;
   --fc-font: Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --fc-navy: #102b46;
@@ -117,9 +117,11 @@
   --theme-matchday-muted: #c8d5e1;
   --theme-matchday-accent: #ecd394;
   --theme-on-matchday-accent: #10263c;
+
+  --theme-signature-pattern: linear-gradient(118deg, transparent 0 70%, #ecd39418 70% 70.4%, transparent 70.4% 76%, #ecd39412 76% 76.4%, transparent 76.4%);
 }
 
-:root[data-theme="classic-blue"] {
+:root[data-theme="classic-blue"], .fc-signature-preview[data-preview-theme="classic-blue"] {
   --theme-background: #f5f8fd;
   --theme-secondary-background: #f8fafe;
   --theme-surface: #ffffff;
@@ -141,12 +143,14 @@
   --theme-text-secondary: #60708a;
   --theme-border: #dce5f1;
   --theme-focus: #176caa;
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #081a38;
+  --theme-matchday-end: #163c72;
+  --theme-matchday-accent: #a8d8ff;
+
+  --theme-signature-pattern: repeating-linear-gradient(135deg, transparent 0 36px, #a8d8ff12 36px 37px, transparent 37px 72px);
 }
 
-:root[data-theme="city-sky"] {
+:root[data-theme="city-sky"], .fc-signature-preview[data-preview-theme="city-sky"] {
   --theme-background: #eef8fc;
   --theme-secondary-background: #e7f3f8;
   --theme-surface: #ffffff;
@@ -180,12 +184,14 @@
     radial-gradient(circle at 50% 12%, rgba(111,196,232,.18), transparent 16rem),
     repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 2px, transparent 2px 30px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #09243b;
+  --theme-matchday-end: #20536a;
+  --theme-matchday-accent: #b7e6f7;
+
+  --theme-signature-pattern: radial-gradient(ellipse at 95% 0%, transparent 0 24%, #b7e6f71c 24.3% 24.8%, transparent 25% 41%, #b7e6f712 41.3% 41.8%, transparent 42%);
 }
 
-:root[data-theme="london-red"] {
+:root[data-theme="london-red"], .fc-signature-preview[data-preview-theme="london-red"] {
   --theme-background: #fbf4f4;
   --theme-secondary-background: #f7eded;
   --theme-surface: #ffffff;
@@ -218,12 +224,14 @@
     linear-gradient(155deg, rgba(201,31,43,.26), transparent 35%),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 46px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #27141f;
+  --theme-matchday-end: #641b2b;
+  --theme-matchday-accent: #ffbdc4;
+
+  --theme-signature-pattern: linear-gradient(135deg, transparent 0 65%, #ffbdc420 65% 66%, transparent 66% 71%, #ffbdc414 71% 84%, transparent 84%);
 }
 
-:root[data-theme="mersey-red"] {
+:root[data-theme="mersey-red"], .fc-signature-preview[data-preview-theme="mersey-red"] {
   --theme-background: #f8f2ef;
   --theme-secondary-background: #f2e9e4;
   --theme-surface: #fffaf6;
@@ -257,12 +265,14 @@
     radial-gradient(ellipse at 50% 5%, rgba(217,43,67,.22), transparent 18rem),
     repeating-linear-gradient(112deg, rgba(255,255,255,.035) 0 2px, transparent 2px 28px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #2c111c;
+  --theme-matchday-end: #5c1e24;
+  --theme-matchday-accent: #ffd1aa;
+
+  --theme-signature-pattern: repeating-linear-gradient(105deg, transparent 0 26px, #ffd1aa10 26px 28px, transparent 28px 54px);
 }
 
-:root[data-theme="madrid-royal"] {
+:root[data-theme="madrid-royal"], .fc-signature-preview[data-preview-theme="madrid-royal"] {
   --theme-background: #f8f8fb;
   --theme-secondary-background: #f1f3f9;
   --theme-surface: #ffffff;
@@ -296,12 +306,14 @@
     linear-gradient(145deg, rgba(212,171,76,.18), transparent 30%),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 56px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #15213f;
+  --theme-matchday-end: #34416a;
+  --theme-matchday-accent: #f4d28a;
+
+  --theme-signature-pattern: linear-gradient(90deg, transparent 0 69%, #f4d28a18 69% 69.5%, transparent 69.5% 76%, #f4d28a18 76% 76.5%, transparent 76.5% 83%, #f4d28a18 83% 83.5%, transparent 83.5%);
 }
 
-:root[data-theme="catalan-nights"] {
+:root[data-theme="catalan-nights"], .fc-signature-preview[data-preview-theme="catalan-nights"] {
   --theme-background: #f2f4fa;
   --theme-secondary-background: #e9edf6;
   --theme-surface: #ffffff;
@@ -337,12 +349,14 @@
     repeating-linear-gradient(90deg, rgba(59,121,255,.12) 0 26px, rgba(177,30,84,.14) 26px 52px),
     linear-gradient(180deg, rgba(8,13,24,.58), rgba(8,13,24,.92));
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #121d40;
+  --theme-matchday-end: #4f193d;
+  --theme-matchday-accent: #f0a3c4;
+
+  --theme-signature-pattern: repeating-linear-gradient(90deg, transparent 0 36px, #f0a3c414 36px 69px, #a9b9ff0c 69px 105px);
 }
 
-:root[data-theme="munich-red"] {
+:root[data-theme="munich-red"], .fc-signature-preview[data-preview-theme="munich-red"] {
   --theme-background: #faf5f5;
   --theme-secondary-background: #f4eded;
   --theme-surface: #ffffff;
@@ -375,12 +389,14 @@
     linear-gradient(45deg, rgba(231,44,69,.10) 25%, transparent 25% 75%, rgba(231,44,69,.10) 75%),
     linear-gradient(-45deg, rgba(255,255,255,.035) 25%, transparent 25% 75%, rgba(255,255,255,.035) 75%);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #29121d;
+  --theme-matchday-end: #67172a;
+  --theme-matchday-accent: #ffb6c0;
+
+  --theme-signature-pattern: repeating-linear-gradient(48deg, transparent 0 43px, #ffb6c013 43px 44px, transparent 44px 86px), repeating-linear-gradient(-48deg, transparent 0 43px, #ffb6c013 43px 44px, transparent 44px 86px);
 }
 
-:root[data-theme="paris-night"] {
+:root[data-theme="paris-night"], .fc-signature-preview[data-preview-theme="paris-night"] {
   --theme-background: #f4f6f9;
   --theme-secondary-background: #eaf0f5;
   --theme-surface: #ffffff;
@@ -415,12 +431,14 @@
   --theme-sidebar-pattern:
     linear-gradient(90deg, transparent 0 43%, rgba(255,255,255,.07) 43% 46%, rgba(227,27,54,.24) 46% 54%, rgba(255,255,255,.07) 54% 57%, transparent 57% 100%);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #091a35;
+  --theme-matchday-end: #273048;
+  --theme-matchday-accent: #a9d0ff;
+
+  --theme-signature-pattern: linear-gradient(105deg, transparent 0 68%, #ff9bab22 68% 79%, transparent 79% 81%, #a9d0ff1a 81% 82%, transparent 82%);
 }
 
-:root[data-theme="milan-blue"] {
+:root[data-theme="milan-blue"], .fc-signature-preview[data-preview-theme="milan-blue"] {
   --theme-background: #f2f5f9;
   --theme-secondary-background: #e9eef5;
   --theme-surface: #ffffff;
@@ -455,12 +473,14 @@
   --theme-sidebar-pattern:
     repeating-linear-gradient(90deg, rgba(22,114,212,.16) 0 28px, rgba(0,0,0,.15) 28px 56px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #0a1527;
+  --theme-matchday-end: #143f66;
+  --theme-matchday-accent: #a9cfff;
+
+  --theme-signature-pattern: repeating-linear-gradient(110deg, transparent 0 34px, #a9cfff16 34px 50px, transparent 50px 76px);
 }
 
-:root[data-theme="milan-red"] {
+:root[data-theme="milan-red"], .fc-signature-preview[data-preview-theme="milan-red"] {
   --theme-background: #f8f4f5;
   --theme-secondary-background: #f1e9ed;
   --theme-surface: #ffffff;
@@ -495,12 +515,14 @@
   --theme-sidebar-pattern:
     repeating-linear-gradient(90deg, rgba(213,25,45,.15) 0 28px, rgba(0,0,0,.17) 28px 56px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #1c111b;
+  --theme-matchday-end: #49202d;
+  --theme-matchday-accent: #ffaab8;
+
+  --theme-signature-pattern: repeating-linear-gradient(90deg, transparent 0 26px, #ffaab819 26px 39px, transparent 39px 57px);
 }
 
-:root[data-theme="turin-mono"] {
+:root[data-theme="turin-mono"], .fc-signature-preview[data-preview-theme="turin-mono"] {
   --theme-background: #f2f3f4;
   --theme-secondary-background: #e9ebed;
   --theme-surface: #ffffff;
@@ -532,12 +554,14 @@
   --theme-sidebar-pattern:
     repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 24px, rgba(0,0,0,.22) 24px 48px);
 
-  --theme-matchday-start: color-mix(in srgb, var(--theme-primary) 14%, #0b1a2c);
-  --theme-matchday-end: color-mix(in srgb, var(--theme-primary) 30%, #10273d);
-  --theme-matchday-accent: color-mix(in srgb, var(--theme-primary-bright) 34%, #ffffff);
+  --theme-matchday-start: #14191f;
+  --theme-matchday-end: #343c44;
+  --theme-matchday-accent: #e8edf1;
+
+  --theme-signature-pattern: repeating-linear-gradient(90deg, transparent 0 28px, #e8edf116 28px 42px, transparent 42px 56px);
 }
 
-:root[data-mode="dark"] {
+:root[data-mode="dark"], .fc-signature-preview[data-preview-mode="dark"] {
   color-scheme: dark;
   --fc-gold: #e6ca87;
   --fc-gold-soft: #352d1e;
@@ -576,7 +600,7 @@
   --theme-overlay: rgba(0,0,0,.68);
 }
 
-:root[data-mode="dark"][data-theme="luxury-gold"] {
+:root[data-mode="dark"][data-theme="luxury-gold"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="luxury-gold"] {
   --theme-primary: #e2c17b;
   --theme-primary-hover: #edd49d;
   --theme-primary-bright: #edd49d;
@@ -584,37 +608,376 @@
   --theme-primary-soft-strong: #3b3322;
 }
 
-:root[data-mode="dark"][data-theme="city-sky"] {
-  --theme-primary: #8bcfea; --theme-primary-hover: #abe0f4; --theme-primary-bright: #abe0f4; --theme-primary-soft: #122e40; --theme-primary-soft-strong: #18394c;
+:root[data-mode="dark"][data-theme="city-sky"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="city-sky"] {
+  --theme-primary: #8bcfea; --theme-primary-hover: #b7e6f7; --theme-primary-bright: #b7e6f7; --theme-primary-soft: #15384a; --theme-primary-soft-strong: #204759;
+
+  --theme-background: #0a1b26;
+
+  --theme-secondary-background: #0a1b26;
+
+  --theme-surface: #112b39;
+
+  --theme-elevated: #193949;
+
+  --theme-header: #112b39;
+
+  --theme-header-alpha: #112b39;
+
+  --theme-sidebar: #0a1b26;
+
+  --theme-sidebar-secondary: #112b39;
+
+  --theme-sidebar-border: #204759;
+
+  --theme-border: #204759;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #8bcfea;
+
+  --theme-matchday-start: #09243b;
+
+  --theme-matchday-end: #20536a;
+
+  --theme-matchday-accent: #b7e6f7;
 }
-:root[data-mode="dark"][data-theme="london-red"] {
-  --theme-primary: #ff8290; --theme-primary-hover: #ff9ca7; --theme-primary-bright: #ff9ca7; --theme-primary-soft: #351d29; --theme-primary-soft-strong: #412332;
+:root[data-mode="dark"][data-theme="london-red"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="london-red"] {
+  --theme-primary: #ff8795; --theme-primary-hover: #ffbdc4; --theme-primary-bright: #ffbdc4; --theme-primary-soft: #442130; --theme-primary-soft-strong: #542c3b;
+
+  --theme-background: #21131b;
+
+  --theme-secondary-background: #21131b;
+
+  --theme-surface: #32202b;
+
+  --theme-elevated: #402733;
+
+  --theme-header: #32202b;
+
+  --theme-header-alpha: #32202b;
+
+  --theme-sidebar: #21131b;
+
+  --theme-sidebar-secondary: #32202b;
+
+  --theme-sidebar-border: #542c3b;
+
+  --theme-border: #542c3b;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #ff8795;
+
+  --theme-matchday-start: #27141f;
+
+  --theme-matchday-end: #641b2b;
+
+  --theme-matchday-accent: #ffbdc4;
 }
 
-:root[data-mode="dark"][data-theme="mersey-red"] {
-  --theme-primary: #ff8290; --theme-primary-hover: #ff9ca7; --theme-primary-bright: #ff9ca7; --theme-primary-soft: #351d29; --theme-primary-soft-strong: #412332;
+:root[data-mode="dark"][data-theme="mersey-red"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="mersey-red"] {
+  --theme-primary: #ff9a98; --theme-primary-hover: #ffd1aa; --theme-primary-bright: #ffd1aa; --theme-primary-soft: #432629; --theme-primary-soft-strong: #553337;
+
+  --theme-background: #201417;
+
+  --theme-secondary-background: #201417;
+
+  --theme-surface: #302125;
+
+  --theme-elevated: #3c292d;
+
+  --theme-header: #302125;
+
+  --theme-header-alpha: #302125;
+
+  --theme-sidebar: #201417;
+
+  --theme-sidebar-secondary: #302125;
+
+  --theme-sidebar-border: #553337;
+
+  --theme-border: #553337;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #ff9a98;
+
+  --theme-matchday-start: #2c111c;
+
+  --theme-matchday-end: #5c1e24;
+
+  --theme-matchday-accent: #ffd1aa;
 }
 
-:root[data-mode="dark"][data-theme="munich-red"] {
-  --theme-primary: #ff8290; --theme-primary-hover: #ff9ca7; --theme-primary-bright: #ff9ca7; --theme-primary-soft: #351d29; --theme-primary-soft-strong: #412332;
+:root[data-mode="dark"][data-theme="munich-red"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="munich-red"] {
+  --theme-primary: #ff889d; --theme-primary-hover: #ffb6c0; --theme-primary-bright: #ffb6c0; --theme-primary-soft: #49242f; --theme-primary-soft-strong: #59313d;
+
+  --theme-background: #231419;
+
+  --theme-secondary-background: #231419;
+
+  --theme-surface: #352129;
+
+  --theme-elevated: #452a34;
+
+  --theme-header: #352129;
+
+  --theme-header-alpha: #352129;
+
+  --theme-sidebar: #231419;
+
+  --theme-sidebar-secondary: #352129;
+
+  --theme-sidebar-border: #59313d;
+
+  --theme-border: #59313d;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #ff889d;
+
+  --theme-matchday-start: #29121d;
+
+  --theme-matchday-end: #67172a;
+
+  --theme-matchday-accent: #ffb6c0;
 }
-:root[data-mode="dark"][data-theme="madrid-royal"] {
-  --theme-primary: #a4b5ff; --theme-primary-hover: #becaff; --theme-primary-bright: #e1c77f; --theme-primary-soft: #222d4d; --theme-primary-soft-strong: #2a3557;
+:root[data-mode="dark"][data-theme="madrid-royal"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="madrid-royal"] {
+  --theme-primary: #b4bfff; --theme-primary-hover: #f4d28a; --theme-primary-bright: #f4d28a; --theme-primary-soft: #303958; --theme-primary-soft-strong: #3a4567;
+
+  --theme-background: #14182c;
+
+  --theme-secondary-background: #14182c;
+
+  --theme-surface: #20263e;
+
+  --theme-elevated: #2c3450;
+
+  --theme-header: #20263e;
+
+  --theme-header-alpha: #20263e;
+
+  --theme-sidebar: #14182c;
+
+  --theme-sidebar-secondary: #20263e;
+
+  --theme-sidebar-border: #3a4567;
+
+  --theme-border: #3a4567;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #b4bfff;
+
+  --theme-matchday-start: #15213f;
+
+  --theme-matchday-end: #34416a;
+
+  --theme-matchday-accent: #f4d28a;
 }
-:root[data-mode="dark"][data-theme="catalan-nights"] {
-  --theme-primary: #9bb5ff; --theme-primary-hover: #bbcbff; --theme-primary-bright: #ee8ab0; --theme-primary-soft: #1c2b4b; --theme-primary-soft-strong: #233454;
+:root[data-mode="dark"][data-theme="catalan-nights"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="catalan-nights"] {
+  --theme-primary: #a9b9ff; --theme-primary-hover: #f0a3c4; --theme-primary-bright: #f0a3c4; --theme-primary-soft: #312e50; --theme-primary-soft-strong: #40395e;
+
+  --theme-background: #151526;
+
+  --theme-secondary-background: #151526;
+
+  --theme-surface: #24233d;
+
+  --theme-elevated: #302b49;
+
+  --theme-header: #24233d;
+
+  --theme-header-alpha: #24233d;
+
+  --theme-sidebar: #151526;
+
+  --theme-sidebar-secondary: #24233d;
+
+  --theme-sidebar-border: #40395e;
+
+  --theme-border: #40395e;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #a9b9ff;
+
+  --theme-matchday-start: #121d40;
+
+  --theme-matchday-end: #4f193d;
+
+  --theme-matchday-accent: #f0a3c4;
 }
-:root[data-mode="dark"][data-theme="paris-night"] {
-  --theme-primary: #ff8497; --theme-primary-hover: #ffa2af; --theme-primary-bright: #95c5ff; --theme-primary-soft: #351d2c; --theme-primary-soft-strong: #402536;
+:root[data-mode="dark"][data-theme="paris-night"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="paris-night"] {
+  --theme-primary: #ff9bab; --theme-primary-hover: #a9d0ff; --theme-primary-bright: #a9d0ff; --theme-primary-soft: #3b263d; --theme-primary-soft-strong: #4b3049;
+
+  --theme-background: #0d1526;
+
+  --theme-secondary-background: #0d1526;
+
+  --theme-surface: #192438;
+
+  --theme-elevated: #253149;
+
+  --theme-header: #192438;
+
+  --theme-header-alpha: #192438;
+
+  --theme-sidebar: #0d1526;
+
+  --theme-sidebar-secondary: #192438;
+
+  --theme-sidebar-border: #4b3049;
+
+  --theme-border: #4b3049;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #ff9bab;
+
+  --theme-matchday-start: #091a35;
+
+  --theme-matchday-end: #273048;
+
+  --theme-matchday-accent: #a9d0ff;
 }
-:root[data-mode="dark"][data-theme="milan-blue"] {
-  --theme-primary: #7bb9ff; --theme-primary-hover: #9ccbff; --theme-primary-bright: #9ccbff; --theme-primary-soft: #152c45; --theme-primary-soft-strong: #1d3752;
+:root[data-mode="dark"][data-theme="milan-blue"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="milan-blue"] {
+  --theme-primary: #86beff; --theme-primary-hover: #a9cfff; --theme-primary-bright: #a9cfff; --theme-primary-soft: #1d3450; --theme-primary-soft-strong: #29425e;
+
+  --theme-background: #0b1421;
+
+  --theme-secondary-background: #0b1421;
+
+  --theme-surface: #162538;
+
+  --theme-elevated: #20344a;
+
+  --theme-header: #162538;
+
+  --theme-header-alpha: #162538;
+
+  --theme-sidebar: #0b1421;
+
+  --theme-sidebar-secondary: #162538;
+
+  --theme-sidebar-border: #29425e;
+
+  --theme-border: #29425e;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #86beff;
+
+  --theme-matchday-start: #0a1527;
+
+  --theme-matchday-end: #143f66;
+
+  --theme-matchday-accent: #a9cfff;
 }
-:root[data-mode="dark"][data-theme="milan-red"] {
-  --theme-primary: #ff8495; --theme-primary-hover: #ffa2ae; --theme-primary-bright: #ffa2ae; --theme-primary-soft: #361e2a; --theme-primary-soft-strong: #422532;
+:root[data-mode="dark"][data-theme="milan-red"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="milan-red"] {
+  --theme-primary: #ff91a5; --theme-primary-hover: #ffaab8; --theme-primary-bright: #ffaab8; --theme-primary-soft: #432736; --theme-primary-soft-strong: #523345;
+
+  --theme-background: #1b131a;
+
+  --theme-secondary-background: #1b131a;
+
+  --theme-surface: #2c202a;
+
+  --theme-elevated: #3a2936;
+
+  --theme-header: #2c202a;
+
+  --theme-header-alpha: #2c202a;
+
+  --theme-sidebar: #1b131a;
+
+  --theme-sidebar-secondary: #2c202a;
+
+  --theme-sidebar-border: #523345;
+
+  --theme-border: #523345;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #ff91a5;
+
+  --theme-matchday-start: #1c111b;
+
+  --theme-matchday-end: #49202d;
+
+  --theme-matchday-accent: #ffaab8;
 }
-:root[data-mode="dark"][data-theme="turin-mono"] {
-  --theme-primary: #e0e6ed; --theme-primary-hover: #ffffff; --theme-primary-bright: #ffffff; --theme-primary-soft: #293441; --theme-primary-soft-strong: #344151; --theme-on-primary: #101214;
-  --theme-matchday-start: #111c29;
-  --theme-matchday-end: #293442;
+:root[data-mode="dark"][data-theme="turin-mono"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="turin-mono"] {
+  --theme-primary: #e0e6ed; --theme-primary-hover: #ffffff; --theme-primary-bright: #ffffff; --theme-primary-soft: #323940; --theme-primary-soft-strong: #414950; --theme-on-primary: #101214;
+  --theme-matchday-start: #14191f;
+  --theme-matchday-end: #343c44;
+
+  --theme-background: #14171b;
+
+  --theme-secondary-background: #14171b;
+
+  --theme-surface: #23282e;
+
+  --theme-elevated: #30363d;
+
+  --theme-header: #23282e;
+
+  --theme-header-alpha: #23282e;
+
+  --theme-sidebar: #14171b;
+
+  --theme-sidebar-secondary: #23282e;
+
+  --theme-sidebar-border: #414950;
+
+  --theme-border: #414950;
+
+  --theme-control-border: #8294aa;
+
+  --theme-focus: #e0e6ed;
+
+  --theme-matchday-accent: #e8edf1;
+}
+
+:root[data-mode="dark"][data-theme="classic-blue"], .fc-signature-preview[data-preview-mode="dark"][data-preview-theme="classic-blue"] {
+
+  --theme-background: #0b1323;
+
+  --theme-secondary-background: #0b1323;
+
+  --theme-surface: #14223b;
+
+  --theme-elevated: #1a2c48;
+
+  --theme-header: #14223b;
+
+  --theme-header-alpha: #14223b;
+
+  --theme-sidebar: #0b1323;
+
+  --theme-sidebar-secondary: #14223b;
+
+  --theme-sidebar-border: #203b59;
+
+  --theme-border: #203b59;
+
+  --theme-control-border: #8294aa;
+
+  --theme-primary: #79baff;
+
+  --theme-primary-hover: #a3d1ff;
+
+  --theme-primary-bright: #a3d1ff;
+
+  --theme-primary-soft: #142b47;
+
+  --theme-primary-soft-strong: #203b59;
+
+  --theme-focus: #79baff;
+
+  --theme-matchday-start: #081a38;
+
+  --theme-matchday-end: #163c72;
+
+  --theme-matchday-accent: #a8d8ff;
 }

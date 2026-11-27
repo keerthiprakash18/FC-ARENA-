@@ -32,6 +32,19 @@ async function run(theme,mode,width,state){
   await board.waitFor();
   const task=f.page.getByRole('region',{name:'Match actions'});
   if(state.largeText)await f.page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+  if(state.largeText && width===320) {
+   const contained=await board.locator('.fc-match-room-score-grid > div > p').evaluateAll(els=>els.every(el=>{
+    const box=el.getBoundingClientRect(),parent=el.parentElement.getBoundingClientRect();
+    return box.left>=parent.left-1 && box.right<=parent.right+1;
+   }));
+   assert(contained,'enlarged team names and scores must stay inside their own columns');
+   const wordLines=await board.locator('h1').evaluate(el=>{
+    const text=el.firstChild,word=text.textContent.split(' ')[0];
+    const range=document.createRange();range.setStart(text,0);range.setEnd(text,word.length);
+    return range.getClientRects().length;
+   });
+   assert.equal(wordLines,1,'enlarged tournament heading must wrap at word boundaries');
+  }
   assert.equal(await board.getAttribute('data-match-state'),state.key);
   assert.equal(await task.getAttribute('data-match-state'),state.key);
   assert(await task.getByText(state.title,{exact:true}).isVisible());

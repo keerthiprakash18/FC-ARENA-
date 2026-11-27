@@ -169,6 +169,9 @@ export default function LoginPage() {
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
+          <Link className="text-link inline-flex min-h-11 items-center self-start text-sm" href="/forgot-password">
+            Forgot password?
+          </Link>
         </div>
 
         <FcNotice>{notice}</FcNotice>
@@ -197,12 +200,6 @@ export default function LoginPage() {
       </form>
 
       <SocialSignIn/>
-
-      <div className="link-row">
-        <Link className="text-link" href="/forgot-password">
-          Forgot password?
-        </Link>
-      </div>
 
       <div className="link-row">
         New player?{' '}

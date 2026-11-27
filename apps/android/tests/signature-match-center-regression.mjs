@@ -33,6 +33,11 @@ async function run(theme,mode,width,state){
   const task=f.page.getByRole('region',{name:'Match actions'});
   if(state.largeText)await f.page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
   if(state.largeText && width===320) {
+   const contained=await board.locator('.fc-match-room-score-grid > div > p').evaluateAll(els=>els.every(el=>{
+    const box=el.getBoundingClientRect(),parent=el.parentElement.getBoundingClientRect();
+    return box.left>=parent.left-1 && box.right<=parent.right+1;
+   }));
+   assert(contained,'enlarged team names and scores must stay inside their own columns');
    const wordLines=await board.locator('h1').evaluate(el=>{
     const text=el.firstChild,word=text.textContent.split(' ')[0];
     const range=document.createRange();range.setStart(text,0);range.setEnd(text,word.length);

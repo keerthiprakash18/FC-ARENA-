@@ -111,6 +111,12 @@
 .fc-premium .fc-main .fc-signature-matchboard .fc-match-room-score-grid {
   margin-block: clamp(14px, 3vw, 26px);
 }
+.fc-premium .fc-main .fc-signature-matchboard .fc-match-room-score-grid > div > p {
+  min-width: 0;
+  max-width: 100%;
+  align-self: stretch;
+  overflow-wrap: anywhere;
+}
 .fc-premium .fc-main .fc-signature-matchboard .premium-crest {
   color: var(--theme-matchday-accent) !important;
   border-color: var(--theme-matchday-accent);

@@ -158,7 +158,7 @@ export default function AppearancePage() {
                   setMessage("Light Mode applied.");
                 }}
                 className={
-                  "min-h-11 flex-1 rounded-[9px] px-5 text-sm font-semibold transition sm:flex-none " +
+                  "min-h-11 min-w-max flex-1 whitespace-nowrap rounded-[9px] px-5 text-sm font-semibold transition sm:flex-none " +
                   (displayMode === "LIGHT"
                     ? "theme-primary-button"
                     : "theme-secondary-button")
@@ -176,7 +176,7 @@ export default function AppearancePage() {
                   setMessage("Dark Mode applied and saved on this device.");
                 }}
                 className={
-                  "min-h-11 flex-1 rounded-[9px] px-5 text-sm font-semibold transition sm:flex-none " +
+                  "min-h-11 min-w-max flex-1 whitespace-nowrap rounded-[9px] px-5 text-sm font-semibold transition sm:flex-none " +
                   (displayMode === "DARK"
                     ? "theme-primary-button"
                     : "theme-secondary-button")
@@ -184,7 +184,7 @@ export default function AppearancePage() {
               >
                 ◐ Dark
               </button>
-              <button type="button" aria-pressed={displayMode === "SYSTEM"} onClick={() => { setDisplayMode("SYSTEM"); setMessage("Following your device appearance."); }} className={`min-h-11 rounded-lg px-4 text-sm font-semibold ${displayMode === "SYSTEM" ? "theme-primary-button" : "theme-secondary-button"}`}>Use device theme</button>
+              <button type="button" aria-pressed={displayMode === "SYSTEM"} onClick={() => { setDisplayMode("SYSTEM"); setMessage("Following your device appearance."); }} className={`min-h-11 w-full whitespace-nowrap rounded-lg px-4 text-sm font-semibold sm:w-auto ${displayMode === "SYSTEM" ? "theme-primary-button" : "theme-secondary-button"}`}>Use device theme</button>
             </div>
           </div>
         </FcPanel>
